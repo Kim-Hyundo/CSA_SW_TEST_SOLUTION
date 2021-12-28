@@ -1,0 +1,106 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for QN9080DHN on QN9080-DK with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The Offchip Trace using a Combiprobe/uTrace or PowerTrace is set up.
+;   Use this script for testing the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Combiprobe/uTrace to P1 using LA-3771 adapter
+;    * Trace signals need to be connected manually via J5 and J7 to LA-3771:
+;        TRACE_CLK   PA28 (J7, Pin 18)
+;        TRACE_D0    PA24 (J5, Pin 20)
+;        TRACE_D1    PA25 (J7, Pin 12)
+;        TRACE_D2    PA29 (J7, Pin 9)
+;        TRACE_D3    PA30 (J5, Pin 9)
+;    * P1 is used to connect external targets to be debugged using
+;      the on board debugger. To use it in the opposite direction to connect
+;      an external debugger and debug the QN9080 U4, U5 and U6 have to be
+;      removed from the target board.
+; @Keywords: ARM, Cortex-M4, ETM, ITM
+; @Author: STK
+; @Board: QN9080-DK
+; @Chip: QN9080DHN
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: qn9080-dk_sieve_offchip_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU QN9080DHN
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI34   ; Because LA-3771 adapter is used!
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace (ETM, ITM)
+IF COMBIPROBE()||UTRACE()||Analyzer()
+(
+  ; set PinMux and enable Clocks
+  Data.Set AD:0x4000083C %Long 0yXXXX001000100010XXXXxxxx00100010   ; Pin multiplexing
+  Data.Set AD:0x40000810 %Long 0yX111xx11XXXXxxxxXXXXxxxxXXXXxxxx   ; Drive strength
+
+  TPIU.PortSize 4
+  TPIU.PortMode Continuous
+  ITM.DataTrace CorrelatedData
+  ITM.ON
+  ETM.Trace ON
+  ETM.ON
+)
+IF COMBIPROBE()||UTRACE()
+(
+  Trace.METHOD CAnalyzer
+  Trace.AutoInit ON
+  IF VERSION.BUILD.BASE()>=74752.
+  (
+    CAnalyzer.AutoFocus
+  )
+  ELSE
+  (
+    ; for uTrace & Combiprobe use manual calibration
+    ; CAnalyzer.ClockDELAY Large
+  )
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO

@@ -1,0 +1,44 @@
+; --------------------------------------------------------------------------------
+; @Title: Run a Sieve demo in SRAM for the LPC4330-Xplorer Board
+; @Description:
+;   This demo shows how to connect TRACE32 to the LPC4330-Xplorer Board
+;   and load a simple sieve demo on SRAM and start a debug session
+;   SRAM: 0x10080000--0x10091FFF
+;
+; @Keywords: Cortex-M4F, SWD, sieve
+; @Author: MSA
+; @Board: LPC4330-Xplorer
+; @Chip: LPC4330FET100
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: lpc4330fet100_sram_demo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+  RESet
+  SYStem.RESet
+  SYStem.CPU LPC4330FET100
+  SYStem.Option.ResBreak OFF
+  SYStem.CONFIG.DEBUGPORTTYPE SWD
+
+  SYStem.Up
+
+  Data.LOAD.Elf ~~~~/sieve_ram_thumb_ii_v7.elf
+
+  ; open some windows
+  WinCLEAR
+
+  WinPOS 0% 0% 50% 50%
+  List.auto
+
+  WinPOS 50% 0% 50% 50%
+  Register.view /SpotLight
+
+  WinPOS 0% 50% 50% 50%
+  Frame /Locals /Caller
+
+  WinPOS 50% 50% 50% 50%
+  Var.DRAW sinewave
+  
+  GO
+  WAIT 2.s
+  Break
+  ENDDO

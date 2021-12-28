@@ -1,0 +1,244 @@
+; --------------------------------------------------------------------------------
+; @Title: AMP-Demo script for  with Offchip-Trace (AMP, RAM)
+; @Description:
+;   Setup a AMP debug session using a single script approach.
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Offchip-Trace.
+;   Pinmuxing setup is handled in the script.
+;   Use this script to test the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Debug Cable / CombiProbe to J12 (remove pin 7)
+;    * Connect AutoFocus Preprocessor Mictor cable to J14 via trace converter MCIMX.
+;    * set BOOTMODE SW3[1..2]=0y10 - Internal Boot
+;    * set SW2[1..8]=0y00100000 - SD-Card
+;    * remove SD-Card
+;    * TRACE32 is started using the .bat/.sh file in this directory
+; @Keywords: ARM, ETM
+; @Author: AME
+; @Board: MCIMX7SABRE, iMX7D SABRE
+; @Chip:
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mcimx7sabre_amp_offchip_trace_sram.cmm 15362 2019-12-03 14:50:48Z mschleinkofer $
+
+PRIVATE &currPath &rclPort &remoteCmd
+&currPath=OS.PPD()
+&rclPort=FORMAT.DecimalU(1.,RCL.PORT(0))+"."
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF SYStem.INSTANCE()<1.
+(
+  PRINT %ERROR "TRACE32 is not running in AMP mode! Use .bat/.sh file in this directory."
+  ENDDO
+)
+IF VERSION.BUILD.BASE()<75701.
+(
+  PRINT %ERROR "Please use more recent Software! Contact support@lauterbach.com."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; enable INTERCOM if not already specified and prepare related variables
+IF (INTERCOM.PORT()==0)
+(
+  InterCom.ENable CA7
+)
+&remoteCmd="InterCom.execute CM4"
+
+; --------------------------------------------------------------------------------
+; close any existing REMOTE GUI
+INTERCOM.execute OTHERS QUIT
+; --------------------------------------------------------------------------------
+; open SLAVE GUI with or without enabled remote API
+IF (RCL.PORT(0)!=0)
+(
+  TargetSystem.NewInstance CM4 /ARCHitecture ARM /ChipIndex 2. /APIPORT &rclPort+1. /ONCE
+)
+ELSE
+(
+  TargetSystem.NewInstance CM4 /ARCHitecture ARM /ChipIndex 2. /ONCE
+)
+
+; --------------------------------------------------------------------------------
+; set titles for SLAVE GUIs
+TITLE "TRACE32 for ARM - IMX7DUAL-CA7 - MASTER"
+&remoteCmd TITLE "TRACE32 for ARM - IMX7DUAL-CM4 - SLAVE1"
+
+; --------------------------------------------------------------------------------
+; common SYStem settings
+RESet
+&remoteCmd RESet
+SYStem.RESet
+&remoteCmd SYStem.RESet
+SYStem.CPU IMX7DUAL-CA7
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 30.0ms
+SYStem.CONFIG CORE 1. 1.
+SYStem.CONFIG SLAVE OFF
+CORE.ASSIGN 1.
+&remoteCmd SYStem.CPU IMX7DUAL-CM4
+&remoteCmd SYStem.CONFIG CORE 2. 1.
+&remoteCmd SYStem.CONFIG SLAVE ON
+
+; disable Trace for connection phase
+; ETM.OFF
+; Trace.DISable
+
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; kick secondary cores
+GOSUB KickCA7
+GOSUB KickCM4
+
+
+; --------------------------------------------------------------------------------
+; attach to all cores on all sessions
+SYStem.Down
+CORE.ASSIGN 1. 2.
+SYStem.Mode.Attach
+&remoteCmd SYStem.Mode.Up
+
+; --------------------------------------------------------------------------------
+; load demo program on all sessions (use internal RAM only)
+CORE.select 0.
+Data.LOAD.Elf ~~~~/master/sieve_ram_arm_v7.elf
+&remoteCmd ChDir &currPath
+&remoteCmd Data.LOAD.Elf ./slave1/sieve_ram_thumb_ii_v7m.elf
+
+Register.Set T 0
+Register.Set PC _start /CORE 1.
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace if Analyzer is plugged (ETM)
+IF Analyzer()
+(
+  ; set the pin-multiplexing for the off-chip trace (SW_MUX_CTL_PAD_LCD_DATAxx=ALT2)
+  Data.Set AD:0x303300c8 %Long 0x2
+  Data.Set AD:0x303300cc %Long 0x2
+  Data.Set AD:0x303300d0 %Long 0x2
+  Data.Set AD:0x303300d4 %Long 0x2
+  Data.Set AD:0x303300d8 %Long 0x2
+  Data.Set AD:0x303300dc %Long 0x2
+  Data.Set AD:0x303300e0 %Long 0x2
+  Data.Set AD:0x303300e4 %Long 0x2
+  Data.Set AD:0x303300e8 %Long 0x2
+  Data.Set AD:0x303300ec %Long 0x2
+  Data.Set AD:0x303300f0 %Long 0x2
+  Data.Set AD:0x303300f4 %Long 0x2
+  Data.Set AD:0x303300f8 %Long 0x2
+  Data.Set AD:0x303300fc %Long 0x2
+  Data.Set AD:0x30330100 %Long 0x2
+  Data.Set AD:0x30330104 %Long 0x2
+  Data.Set AD:0x30330108 %Long 0x2
+  Data.Set AD:0x3033010c %Long 0x2
+
+  ; set the pin driving strength for the off-chip trace (SW_PAD_CTL_PAD_LCD_DATAxx)
+  Data.Set AD:0x30330338 %Long 0x3
+  Data.Set AD:0x3033033c %Long 0x3
+  Data.Set AD:0x30330340 %Long 0x3
+  Data.Set AD:0x30330344 %Long 0x3
+  Data.Set AD:0x30330348 %Long 0x3
+  Data.Set AD:0x3033034c %Long 0x3
+  Data.Set AD:0x30330350 %Long 0x3
+  Data.Set AD:0x30330354 %Long 0x3
+  Data.Set AD:0x30330358 %Long 0x3
+  Data.Set AD:0x3033035c %Long 0x3
+  Data.Set AD:0x30330360 %Long 0x3
+  Data.Set AD:0x30330364 %Long 0x3
+  Data.Set AD:0x30330368 %Long 0x3
+  Data.Set AD:0x3033036c %Long 0x3
+  Data.Set AD:0x30330370 %Long 0x3
+  Data.Set AD:0x30330374 %Long 0x3
+  Data.Set AD:0x30330378 %Long 0x3
+  Data.Set AD:0x3033037c %Long 0x3
+
+  Trace.Method Analyzer
+  &remoteCmd Trace.Method Analyzer
+
+  TPIU.PortSize 16
+  TPIU.PortMode Continuous
+  ETM.TraceID 1.
+  ETM.Trace ON
+  ETM.DataTrace OFF
+  ETM.ON
+  &remoteCmd ETM.TraceID 3.
+  &remoteCmd ETM.Trace ON
+  &remoteCmd ETM.DataTrace OFF
+  &remoteCmd ETM.ON
+
+  ; use Autofocus based calibration
+  Analyzer.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main\1
+WAIT !STATE.RUN()
+&remoteCmd Go.direct main\1
+&remoteCmd WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 0. 32.
+Trace.List
+&remoteCmd WinCLEAR
+&remoteCmd Mode.Hll
+&remoteCmd WinPOS 0. 0. 116. 26.
+&remoteCmd List.auto
+&remoteCmd WinPOS 0. 32.
+&remoteCmd Trace.List
+
+ENDDO
+
+KickCA7:
+(
+  PRIVATE &SRC_BASE_ADDR &GPC_IPS_BASE_ADDR
+  &SRC_BASE_ADDR=0x30390000
+  &GPC_IPS_BASE_ADDR=0x303A0000
+
+  ; assemble endless loop to SRAM
+  Data.Set AD:0x00900000 %Long 0xE0011001 // ARM: and r1,r1,r1 THUMB: asrs r1,r0,#0x0; b $+0x8
+  Data.Set AD:0x00900004 %Long 0xEAFFFFFE // ARM: b $+0x0
+  Data.Set AD:0x00900008 %Long 0xE7FEE7FE // THUMB: b $+0x0
+
+  ; set SRC_GPR3 to SRAM
+  Data.Set AD:&SRC_BASE_ADDR+0x8+0x74 %Long 0x00900000
+  ; set GPC_PGC_C1.PCR
+  Data.Set AD:&GPC_IPS_BASE_ADDR+0x840 %Long 0x1
+  ; set CPU_PGC_SW_PUP_REQ.CORE1
+  Data.Set AD:&GPC_IPS_BASE_ADDR+0xf0 %Long Data.Long(AD:&GPC_IPS_BASE_ADDR+0xf0)|0x2
+  ; wait for ACK, poll CPU_PGC_PUP_STATUS
+  WAIT (Data.Long(AD:&GPC_IPS_BASE_ADDR+0x130)&0x2)==0x0
+  ; clear GPC_PGC_C1.PCR
+  Data.Set AD:&GPC_IPS_BASE_ADDR+0x840 %Long 0x0
+  ; set A7RCR1.CORE1_ENABLE
+  Data.Set AD:&SRC_BASE_ADDR+0x8 %Long Data.Long(AD:&SRC_BASE_ADDR+0x8)|0x2
+
+  RETURN
+)
+
+KickCM4:
+(
+  PRIVATE &SRC_BASE_ADDR
+  &SRC_BASE_ADDR=0x30390000
+
+  ; Set initial Stack, PC
+  ; Assemble endless loop to OCRAM_S
+  Data.Set AD:0x00180000 %Long 0x8000
+  Data.Set AD:0x00180004 %Long 0x8|0x1
+  Data.Assemble T:0x00180008 b $+0x0
+
+  ; SRC_M4RCR
+  Data.Set AD:&SRC_BASE_ADDR+0xc %Long (Data.Long(AD:&SRC_BASE_ADDR+0xc)&(~0x1)|0x8)
+
+  RETURN
+)

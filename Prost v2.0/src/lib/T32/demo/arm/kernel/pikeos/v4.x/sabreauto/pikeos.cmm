@@ -1,0 +1,168 @@
+; --------------------------------------------------------------------------------
+; @Title: SIMPLE PikeOS Demo for TRACE32 OS Awareness
+; @Description:
+;
+;   This batchfile demonstrates the use of the OS Awareness for PikeOS
+;   on a small static PikeOS system. It is useful if you have only a
+;   small amount of PikeOS tasks with a static configuration.
+;
+;   The example is generated for the iMX6 Sabre Automotive evaluation board.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   PikeOS is downloaded to the board via ICD.
+;
+; @Keywords: Awareness, PikeOS, RTOS, iMX6, Sabre
+; @Author: DIE
+; @Board: Sabre Automotive
+; @Chip: iMX6Quad
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: pikeos.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; - Put SD-card with u-boot into the SD slot
+; - Connect STRAIGHT modem cable to RS232
+;   - 115200 baud, 8/N/1, no(!) handshake
+; - Start TRACE32
+; - Switch on the board
+; - TRACE32: "do pikeos"
+
+
+&term="COM5"
+&workspace="X:\RTOS\PikeOS\workspace\v4.1"
+
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 21. 70. 9. 0. 0. W000
+ AREA.view
+
+ PRINT "resetting..."
+ RESet
+
+
+; Open serial terminal window
+
+ PRINT "starting terminal on &term"
+ WinPOS 35. 0. ,,,,, TERM.view
+ TERM.METHOD COM &term 115200. 8 NONE 1STOP NONE
+ TERM.SIZE 80. 1000.
+ TERM.Mode VT100
+ TERM.SCROLL ON
+ TERM.view
+ SCREEN.ALways      ; permanent update for internal terminal window
+
+
+; Initialize debugger
+
+ print "initializing..."
+
+ SYStem.CPU iMX6Quad
+
+ ; start with one core
+ CORE.ASSIGN 1
+
+ SYStem.Option ResBreak OFF
+ SYStem.Option WaitReset 1.3s   ; let bootloader setup the CPU
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ TrOnchip.Set DABORT OFF        ; used by MMU
+ TrOnchip.Set PABORT OFF        ; used by MMU
+ TrOnchip.Set UNDEF OFF         ; may be used for FPU emulation
+ SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+ SETUP.IMASKASM ON              ; lock interrupts while single stepping
+
+ Trace.METHOD Onchip
+
+ MAP.DENYACCESS     ; prevent accesses to non-existent memory
+ MAP.NODENYACCESS 0x02000000--0x020fffff    ; internal periphery
+ MAP.NODENYACCESS 0x10000000--0x4fffffff    ; RAM
+
+
+; Reset target and connect to it
+
+ SYStem.Up
+
+ ; Disable watchdog
+ PER.Set ASD:0x20BC000 %W (d.w(ASD:0x20BC000)&~0x1)|0x0
+ PER.Set ASD:0x20BC000 %W (d.w(ASD:0x20BC000)&~0x4)|0x0
+
+
+; Open a Code Window -- we like to see something
+
+ WinPOS 0. 0. 75. 20.
+ List.auto
+
+
+; Download PikeOS image
+
+ ; See project.config, MKIMAGE_LOAD_ADDRESS and MKIMAGE_ENTRY_ADDRESS
+
+ PRINT "loading PikeOS image..."
+ Data.LOAD.Binary &workspace\hello-sabreauto.int\boot\simple-pikeos-imx6q_sabreauto-raw 0x10020000
+ Register.Set PC 0x10020000
+
+
+; Load kernel symbols
+
+ ; Check the used kernel in project.rbx, "psp" attribute of romimage.
+ ; You can find the kernel symbol file in /opt/pikeos-4.1/target/<arch>/<proc>/object/bsp/<board>.
+ PRINT "loading kernel symbols..."
+ Data.LOAD.Elf &workspace\bsp\imx6\kernel-nodebug-tracesys-smp.elf /NoCODE /NoClear
+
+
+; Declare the MMU format to the debugger
+
+ PRINT "initializing debugger translation..."
+ MMU.FORMAT STD 0 0x80000000--0xbfffffff 0x10000000  ; kernel
+ TRANSlation.COMMON 0x80000000--0xffffffff
+ TRANSlation.TableWalk ON
+ TRANSlation.ON
+
+
+; Start kernel
+
+ Break.Set P4Main /Program /Onchip  ; use onchip due to MMU switch
+ Go
+ PRINT "initilizing PikeOS..."
+ WAIT !STATE.RUN()
+ Break.Delete P4Main
+
+
+; Start all cores and assign to them
+
+ Go create_idle /Onchip
+ wait !STATE.RUN()
+ SYStem.Down            ; detach from CPU
+ CORE.ASSIGN 1 2 3 4    ; assign to all cores
+ SYStem.Attach          ; reattach to CPU
+
+
+; Initialize PikeOS Support
+
+ PRINT "initializing PikeOS support..."
+ TASK.CONFIG ~~/demo/arm/kernel/pikeos/v4.x/pikeos.t32      ; load PikeOS awareness
+ MENU.ReProgram ~~/demo/arm/kernel/pikeos/v4.x/pikeos.men   ; load PikeOS specific menu
+
+ ; Switch on autoloader
+ sYmbol.AutoLoad.CHECKCoMmanD "do ~~/demo/arm/kernel/pikeos/v4.x/autoload "
+
+ ; Group kernel area to be displayed with red bar
+ GROUP.Create "kernel" 0x80000000--0xffffffff /RED
+
+
+; Wait for "hello" task to be started
+
+ ; specify path where to find the application's symbol file
+ sYmbol.SourcePATH.Set &workspace/hello-v7hf.app
+ ; run script that waits for application and halts at "main"
+ DO ~~/demo/arm/kernel/pikeos/v4.x/app_debug hello
+
+
+; That's it!
+
+ PRINT "done."
+
+
+ENDDO

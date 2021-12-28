@@ -1,0 +1,60 @@
+; --------------------------------------------------------------------------------
+; @Title: Load APEX Awareness
+; @Description:
+;
+;  This script loads the symbols of a PikeOS APEX task and loads the APEX
+;  awareness for this task.
+;  Parameters:
+;  - PikeOS task name
+;  - apex os type (devel | normal | trace)
+;    see integration project4.rbx, <romimage> <files>, e.g. "apex_os_devel"
+;
+;  Examples:
+;   DO load_apex myApexTask devel
+;
+; @Keywords: awareness pikeos
+; @Author: DIE
+; @Copyright: (c) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: load_apex.cmm 5210 2020-04-16 08:02:04Z rdienstbeck $
+
+LOCAL &apextask &apexostype &apexid &apexosfile &apexospath
+ENTRY &apextask &apexostype
+
+PRINT "loading symbols and APEX awareness for process &apextask"
+
+; load symbols of PikeOS task
+sYmbol.AutoLOAD.Check
+sYmbol.AutoLOAD.TOUCH "&apextask"
+
+&apexid=task.task.name2id("&apextask")
+IF &apexid==0xffffffff
+(
+    PRINT "sorry: PikeOS task named &apextask not found."
+    ENDDO
+)
+
+; load APEX OS symbol file
+&apexosfile="apex_os_"+"&apexostype"+".unstripped"
+&apexospath=sYmbol.SEARCHFILE("&apexosfile")
+IF !OS.FILE("&apexospath")  ; not found
+(
+    LOCAL &spath
+    WinPOS ,,,,,, filebox normal "Searching for &apexosfile"
+    DIALOG.File "*/&apexosfile*"
+    ENTRY %LINE &apexospath
+    IF "&apexospath"==""
+    (
+        PRINT "loading awareness skipped - no apex os symbols loaded."
+        ENDDO
+    )
+    &spath=OS.FILE.PATH("&apexospath")
+    sYmbol.SourcePATH.Set &spath
+)
+Data.LOAD.Elf "&apexospath" &apexid:0 /nocode /noclear /name apex_os
+
+; load APEX awareness
+EXTension.LOAD ~~/demo/arm64/kernel/pikeos/v5.x/apex/apex.t32 &apexid /ACCESS &apexid:0 /NAME &apextask
+DO ~~/demo/arm64/kernel/pikeos/v5.x/adjust_menu ~~/demo/arm64/kernel/pikeos/v5.x/apex/apex.men &apextask
+
+ENDDO

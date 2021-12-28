@@ -1,0 +1,87 @@
+; --------------------------------------------------------------------------------
+; @Title: UEFI Autoloader Script
+; @Description: Autoload script, called by TRACE32 if symbols are to be loaded
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: autoload.cmm 15209 2019-11-04 10:07:55Z bschroefel $
+
+// define local macros
+ local &name &magic &type &code &data &space
+ local &filepath
+
+// get module name and relocation information
+ // these parameters are passed from TRACE32 when calling this skript
+ 
+ entry &name &magic &type &code &data &space
+ 
+ //print "autoload: " &name " " &magic " " &type " " &code " " &data " " &space
+ 
+ // &name:          name of module
+ // &magic:         "magic" of module
+ // &type:          type of file: 1=PEIM, 2=DXE
+ // &code:          code address
+ // &data:          data address (n/a)
+ // &space:         space id (n/a)
+ 
+// remove paranthesis
+ &name=&name
+ 
+// get symbol file name
+ if (&type==1)
+ (
+   // PEIMs
+   &filepath=ext.peim.path(&magic)
+ )
+ if (&type==2)
+ (
+   // DXEs
+   &filepath=ext.dxedrv.path(&magic)
+ )
+ if (&type==3)
+ (
+   // early DXE Main
+   &filepath=ext.peim.path(&magic)
+ )
+ //print "autoload: image path = &filepath"
+
+// delete symbols if they already exist
+ if y.exist("\\&name")
+   sYmbol.Delete \\&name
+
+// check if preset file path is valid
+ if !os.file("&filepath")
+   &filepath=y.searchfile("&filepath")
+ if "&filepath"==""
+ (
+   local &file &spath
+   &file=os.file.name("&name.dll")
+   &filepath=y.searchfile("&file")
+   if "&filepath"==""
+   (
+     winpos ,,,,,, filebox normal "Searching symbols for &name"
+     dialog.file "*\&file"
+     entry %line &filepath
+     if "&filepath"==""
+       enddo
+     &spath=os.file.path("&filepath")
+     sYmbol.SourcePATH.Set &spath
+   )
+ )
+
+// load symbol file (options for sourcepath, e.g. /STRIPPART may need to be added when required)
+
+ Data.LOAD.Elf "&filepath" &code /noclear /nocode /name &name
+
+ //if (&type==1)  // PEIMs
+ //(
+   //Data.LOAD.Elf "&filepath" /noclear /nocode /nommu /name &name /locateat &code
+ //)
+ 
+ //if (&type==2) // DXEs
+ //(
+ //  Data.LOAD.Elf "&filepath" &code /noclear /nocode /nommu /name &name
+ //)
+ 
+ enddo
+

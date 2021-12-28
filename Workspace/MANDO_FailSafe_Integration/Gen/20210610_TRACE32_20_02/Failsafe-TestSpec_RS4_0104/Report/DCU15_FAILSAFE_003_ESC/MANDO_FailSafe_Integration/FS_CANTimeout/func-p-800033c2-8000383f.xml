@@ -1,0 +1,3251 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="t32transform.xsl"?>
+<TRACE32 file="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Gen\20210610_TRACE32_20_02\Failsafe-TestSpec_RS4_0104\Report\DCU15_FAILSAFE_003_ESC\MANDO_FailSafe_Integration\FS_CANTimeout\func-p-800033c2-8000383f.xml">
+	<coverage>
+		<COVerage.EXPORT.ListLine ts="1623300909" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE" metric="object">
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\Rte_SWC_Diag</tree>
+				<cov>partial</cov>
+				<exec metric="object">50.847%</exec>
+				<branches>-</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>0</never>
+				<bytes>590</bytes>
+				<bytesok>300</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_HWFailure</tree>
+				<cov>partial</cov>
+				<exec metric="object">16.831%</exec>
+				<branches>10.000%</branches>
+				<ok>0</ok>
+				<taken>1</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>202</bytes>
+				<bytesok>34</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\SWC_Failsafe</tree>
+				<cov>partial</cov>
+				<exec metric="object">70.413%</exec>
+				<branches>-</branches>
+				<ok>4</ok>
+				<taken>10</taken>
+				<nottaken>22</nottaken>
+				<bytes>1548</bytes>
+				<bytesok>1090</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80002C38</addrFrom>
+				<addrTo>P:80002DC9</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\FS_BatteryVoltage</tree>
+				<cov>partial</cov>
+				<exec metric="object">50.248%</exec>
+				<branches>37.500%</branches>
+				<ok>1</ok>
+				<taken>10</taken>
+				<nottaken>6</nottaken>
+				<never>7</never>
+				<bytes>402</bytes>
+				<bytesok>202</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_CANBusOff</tree>
+				<cov>partial</cov>
+				<exec metric="object">54.263%</exec>
+				<branches>1.671%</branches>
+				<ok>1</ok>
+				<taken>4</taken>
+				<nottaken>5</nottaken>
+				<never>319</never>
+				<bytes>258</bytes>
+				<bytesok>140</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_CANTimeout</tree>
+				<cov>partial</cov>
+				<exec metric="object">74.013%</exec>
+				<branches>26.443%</branches>
+				<ok>53</ok>
+				<taken>40</taken>
+				<nottaken>28</nottaken>
+				<never>208</never>
+				<bytes>2432</bytes>
+				<bytesok>1800</bytesok>
+				<function>
+					<addrFrom>P:800033C2</addrFrom>
+					<addrTo>P:8000383F</addrTo>
+					<tree uid="p-800033c2-8000383f">\\MANDO_FailSafe_Integration\FS_CANTimeout\FS_UpdateInfo_CANTimeout</tree>
+					<cov>partial</cov>
+					<exec metric="object">58.608%</exec>
+					<branches>52.247%</branches>
+					<ok>16</ok>
+					<taken>33</taken>
+					<nottaken>28</nottaken>
+					<never>12</never>
+					<bytes>1150</bytes>
+					<bytesok>674</bytesok>
+					<line>
+						<addrFrom>P:800033C2</addrFrom>
+						<addrTo>P:800033C3</addrTo>
+						<tree>FS_CANTimeout.c \1--32</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800033C4</addrFrom>
+						<addrTo>P:800033C9</addrTo>
+						<tree>FS_CANTimeout.c \33--34</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>6</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800033CA</addrFrom>
+						<addrTo>P:800033CD</addrTo>
+						<tree>FS_CANTimeout.c \35--36</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800033CE</addrFrom>
+						<addrTo>P:800033D3</addrTo>
+						<tree>FS_CANTimeout.c \37--37</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>6</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_CANTimeout.c \38--38</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>10</bytes>
+						<bytesok>10</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_CANTimeout.c \39--39</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>16</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800033F2</addrFrom>
+						<addrTo>P:800033F5</addrTo>
+						<tree>FS_CANTimeout.c \40--40</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_CANTimeout.c \41--43</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>not taken</cov>
+						<exec metric="object">71.428%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>2</nottaken>
+						<bytes>14</bytes>
+						<bytesok>10</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_CANTimeout.c \44--44</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>partial</cov>
+						<exec metric="object">64.705%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>1</nottaken>
+						<bytes>34</bytes>
+						<bytesok>22</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000343A</addrFrom>
+						<addrTo>P:8000343B</addrTo>
+						<tree>FS_CANTimeout.c \45--45</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_CANTimeout.c \46--46</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>partial</cov>
+						<exec metric="object">66.666%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>12</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_CANTimeout.c \47--47</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>partial</cov>
+						<exec metric="object">8.333%</exec>
+						<branches>6.250%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>7</never>
+						<bytes>24</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003464</addrFrom>
+						<addrTo>P:80003467</addrTo>
+						<tree>FS_CANTimeout.c \48--48</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003468</addrFrom>
+						<addrTo>P:8000346F</addrTo>
+						<tree>FS_CANTimeout.c \49--50</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>8</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_CANTimeout.c \51--56</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>not taken</cov>
+						<exec metric="object">82.608%</exec>
+						<branches>-</branches>
+						<ok>1</ok>
+						<taken>0</taken>
+						<nottaken>2</nottaken>
+						<bytes>46</bytes>
+						<bytesok>38</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000349E</addrFrom>
+						<addrTo>P:800034BF</addrTo>
+						<tree>FS_CANTimeout.c \57--58</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>not taken</cov>
+						<exec metric="object">76.470%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>2</nottaken>
+						<never>0</never>
+						<bytes>34</bytes>
+						<bytesok>26</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800034C0</addrFrom>
+						<addrTo>P:800034DB</addrTo>
+						<tree>FS_CANTimeout.c \59--80</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>not taken</cov>
+						<exec metric="object">85.714%</exec>
+						<branches>66.666%</branches>
+						<ok>1</ok>
+						<taken>0</taken>
+						<nottaken>2</nottaken>
+						<never>0</never>
+						<bytes>28</bytes>
+						<bytesok>24</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800034DC</addrFrom>
+						<addrTo>P:800034DD</addrTo>
+						<tree>FS_CANTimeout.c \81--81</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800034DE</addrFrom>
+						<addrTo>P:800034FD</addrTo>
+						<tree>FS_CANTimeout.c \82--84</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>partial</cov>
+						<exec metric="object">31.250%</exec>
+						<branches>37.500%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>2</nottaken>
+						<never>1</never>
+						<bytes>32</bytes>
+						<bytesok>10</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800034FE</addrFrom>
+						<addrTo>P:800034FF</addrTo>
+						<tree>FS_CANTimeout.c \85--85</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003500</addrFrom>
+						<addrTo>P:80003527</addrTo>
+						<tree>FS_CANTimeout.c \86--89</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>not taken</cov>
+						<exec metric="object">70.000%</exec>
+						<branches>60.000%</branches>
+						<ok>1</ok>
+						<taken>0</taken>
+						<nottaken>4</nottaken>
+						<never>0</never>
+						<bytes>40</bytes>
+						<bytesok>28</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003528</addrFrom>
+						<addrTo>P:80003529</addrTo>
+						<tree>FS_CANTimeout.c \90--90</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000352A</addrFrom>
+						<addrTo>P:80003555</addrTo>
+						<tree>FS_CANTimeout.c \91--92</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>partial</cov>
+						<exec metric="object">18.181%</exec>
+						<branches>25.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>2</nottaken>
+						<never>3</never>
+						<bytes>44</bytes>
+						<bytesok>8</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003556</addrFrom>
+						<addrTo>P:80003557</addrTo>
+						<tree>FS_CANTimeout.c \93--100</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003558</addrFrom>
+						<addrTo>P:8000356F</addrTo>
+						<tree>FS_CANTimeout.c \101--104</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>not taken</cov>
+						<exec metric="object">83.333%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>2</nottaken>
+						<never>0</never>
+						<bytes>24</bytes>
+						<bytesok>20</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003570</addrFrom>
+						<addrTo>P:80003571</addrTo>
+						<tree>FS_CANTimeout.c \105--105</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003572</addrFrom>
+						<addrTo>P:8000358D</addrTo>
+						<tree>FS_CANTimeout.c \106--107</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>not taken</cov>
+						<exec metric="object">78.571%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>3</nottaken>
+						<never>0</never>
+						<bytes>28</bytes>
+						<bytesok>22</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000358E</addrFrom>
+						<addrTo>P:8000358F</addrTo>
+						<tree>FS_CANTimeout.c \108--108</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003590</addrFrom>
+						<addrTo>P:800035AB</addrTo>
+						<tree>FS_CANTimeout.c \109--110</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>not taken</cov>
+						<exec metric="object">85.714%</exec>
+						<branches>66.666%</branches>
+						<ok>1</ok>
+						<taken>0</taken>
+						<nottaken>2</nottaken>
+						<never>0</never>
+						<bytes>28</bytes>
+						<bytesok>24</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000361E</addrFrom>
+						<addrTo>P:8000361F</addrTo>
+						<tree>FS_CANTimeout.c \111--125</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_CANTimeout.c \126--128</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>12</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_CANTimeout.c \129--166</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>2</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<bytes>16</bytes>
+						<bytesok>16</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800035D6</addrFrom>
+						<addrTo>P:800035D9</addrTo>
+						<tree>FS_CANTimeout.c \167--168</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">50.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_CANTimeout.c \169--175</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>0.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>4</never>
+						<bytes>10</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_CANTimeout.c \176--176</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_CANTimeout.c \177--177</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>partial</cov>
+						<exec metric="object">83.333%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>24</bytes>
+						<bytesok>20</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800035FA</addrFrom>
+						<addrTo>P:800035FD</addrTo>
+						<tree>FS_CANTimeout.c \178--182</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003486</addrFrom>
+						<addrTo>P:80003495</addrTo>
+						<tree>FS_CANTimeout.c \183--183</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>16</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800035F0</addrFrom>
+						<addrTo>P:800035F9</addrTo>
+						<tree>FS_CANTimeout.c \184--184</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>10</bytes>
+						<bytesok>10</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800035FE</addrFrom>
+						<addrTo>P:800035FF</addrTo>
+						<tree>FS_CANTimeout.c \185--190</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>100.000%</branches>
+						<ok>1</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_CANTimeout.c \191--192</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>50.000%</branches>
+						<ok>1</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>1</never>
+						<bytes>20</bytes>
+						<bytesok>20</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003610</addrFrom>
+						<addrTo>P:80003611</addrTo>
+						<tree>FS_CANTimeout.c \193--193</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003612</addrFrom>
+						<addrTo>P:80003617</addrTo>
+						<tree>FS_CANTimeout.c \194--194</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>6</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000361C</addrFrom>
+						<addrTo>P:8000361D</addrTo>
+						<tree>FS_CANTimeout.c \195--197</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_CANTimeout.c \198--203</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>8</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_CANTimeout.c \204--205</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>not taken</cov>
+						<exec metric="object">77.777%</exec>
+						<branches>-</branches>
+						<ok>1</ok>
+						<taken>0</taken>
+						<nottaken>2</nottaken>
+						<bytes>18</bytes>
+						<bytesok>14</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003652</addrFrom>
+						<addrTo>P:8000365F</addrTo>
+						<tree>FS_CANTimeout.c \206--206</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>14</bytes>
+						<bytesok>14</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003660</addrFrom>
+						<addrTo>P:8000366B</addrTo>
+						<tree>FS_CANTimeout.c \207--207</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>12</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_CANTimeout.c \208--208</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>partial</cov>
+						<exec metric="object">25.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<bytes>8</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003652</addrFrom>
+						<addrTo>P:8000365F</addrTo>
+						<tree>FS_CANTimeout.c \209--209</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>14</bytes>
+						<bytesok>14</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000366C</addrFrom>
+						<addrTo>P:8000366D</addrTo>
+						<tree>FS_CANTimeout.c \210--240</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000366E</addrFrom>
+						<addrTo>P:80003675</addrTo>
+						<tree>FS_CANTimeout.c \241--242</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003676</addrFrom>
+						<addrTo>P:80003677</addrTo>
+						<tree>FS_CANTimeout.c \243--248</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003678</addrFrom>
+						<addrTo>P:8000367F</addrTo>
+						<tree>FS_CANTimeout.c \249--250</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003680</addrFrom>
+						<addrTo>P:80003683</addrTo>
+						<tree>FS_CANTimeout.c \251--255</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>not taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>1</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003684</addrFrom>
+						<addrTo>P:8000368B</addrTo>
+						<tree>FS_CANTimeout.c \256--257</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>8</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000368C</addrFrom>
+						<addrTo>P:800036A5</addrTo>
+						<tree>FS_CANTimeout.c \258--263</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>not taken</cov>
+						<exec metric="object">76.923%</exec>
+						<branches>62.500%</branches>
+						<ok>1</ok>
+						<taken>0</taken>
+						<nottaken>3</nottaken>
+						<never>0</never>
+						<bytes>26</bytes>
+						<bytesok>20</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_CANTimeout.c \264--264</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>1</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<bytes>12</bytes>
+						<bytesok>12</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800036AC</addrFrom>
+						<addrTo>P:800036AF</addrTo>
+						<tree>FS_CANTimeout.c \265--266</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>100.000%</branches>
+						<ok>1</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800036B0</addrFrom>
+						<addrTo>P:800036B3</addrTo>
+						<tree>FS_CANTimeout.c \267--269</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>100.000%</branches>
+						<ok>1</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800036B4</addrFrom>
+						<addrTo>P:800036B7</addrTo>
+						<tree>FS_CANTimeout.c \270--272</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>100.000%</branches>
+						<ok>1</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800036BE</addrFrom>
+						<addrTo>P:800036C3</addrTo>
+						<tree>FS_CANTimeout.c \273--274</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>6</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800036B8</addrFrom>
+						<addrTo>P:800036BD</addrTo>
+						<tree>FS_CANTimeout.c \275--275</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>partial</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800036C4</addrFrom>
+						<addrTo>P:800036C7</addrTo>
+						<tree>FS_CANTimeout.c \276--276</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_CANTimeout.c \277--280</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>1</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<bytes>12</bytes>
+						<bytesok>12</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_CANTimeout.c \281--281</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">75.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<bytes>8</bytes>
+						<bytesok>6</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_CANTimeout.c \282--282</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>partial</cov>
+						<exec metric="object">66.666%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>8</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_CANTimeout.c \283--283</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>partial</cov>
+						<exec metric="object">36.363%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>22</bytes>
+						<bytesok>8</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003708</addrFrom>
+						<addrTo>P:8000370B</addrTo>
+						<tree>FS_CANTimeout.c \284--284</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>100.000%</branches>
+						<ok>1</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_CANTimeout.c \285--285</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>partial</cov>
+						<exec metric="object">66.666%</exec>
+						<branches>25.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>1</never>
+						<bytes>18</bytes>
+						<bytesok>12</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000371C</addrFrom>
+						<addrTo>P:8000371D</addrTo>
+						<tree>FS_CANTimeout.c \286--286</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000371E</addrFrom>
+						<addrTo>P:80003729</addrTo>
+						<tree>FS_CANTimeout.c \287--287</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000372C</addrFrom>
+						<addrTo>P:8000372D</addrTo>
+						<tree>FS_CANTimeout.c \288--290</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_CANTimeout.c \291--296</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>12</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_CANTimeout.c \297--298</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>22</bytes>
+						<bytesok>22</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_CANTimeout.c \299--302</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">88.888%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<bytes>18</bytes>
+						<bytesok>16</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003762</addrFrom>
+						<addrTo>P:80003769</addrTo>
+						<tree>FS_CANTimeout.c \303--303</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000376A</addrFrom>
+						<addrTo>P:8000376B</addrTo>
+						<tree>FS_CANTimeout.c \304--311</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000376C</addrFrom>
+						<addrTo>P:80003773</addrTo>
+						<tree>FS_CANTimeout.c \312--312</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003774</addrFrom>
+						<addrTo>P:80003775</addrTo>
+						<tree>FS_CANTimeout.c \313--313</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003776</addrFrom>
+						<addrTo>P:8000377D</addrTo>
+						<tree>FS_CANTimeout.c \314--314</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000377E</addrFrom>
+						<addrTo>P:8000377F</addrTo>
+						<tree>FS_CANTimeout.c \315--316</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003780</addrFrom>
+						<addrTo>P:80003787</addrTo>
+						<tree>FS_CANTimeout.c \317--317</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003788</addrFrom>
+						<addrTo>P:80003789</addrTo>
+						<tree>FS_CANTimeout.c \318--322</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000378A</addrFrom>
+						<addrTo>P:80003791</addrTo>
+						<tree>FS_CANTimeout.c \323--323</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003792</addrFrom>
+						<addrTo>P:80003795</addrTo>
+						<tree>FS_CANTimeout.c \324--326</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">50.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003796</addrFrom>
+						<addrTo>P:8000379D</addrTo>
+						<tree>FS_CANTimeout.c \327--327</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000379E</addrFrom>
+						<addrTo>P:8000379F</addrTo>
+						<tree>FS_CANTimeout.c \328--328</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800037A0</addrFrom>
+						<addrTo>P:800037A7</addrTo>
+						<tree>FS_CANTimeout.c \329--329</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800037A8</addrFrom>
+						<addrTo>P:800037A9</addrTo>
+						<tree>FS_CANTimeout.c \330--330</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800037AA</addrFrom>
+						<addrTo>P:800037B1</addrTo>
+						<tree>FS_CANTimeout.c \331--331</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800037B2</addrFrom>
+						<addrTo>P:800037B3</addrTo>
+						<tree>FS_CANTimeout.c \332--332</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800037B4</addrFrom>
+						<addrTo>P:800037BB</addrTo>
+						<tree>FS_CANTimeout.c \333--333</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800037BC</addrFrom>
+						<addrTo>P:800037BD</addrTo>
+						<tree>FS_CANTimeout.c \334--334</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800037BE</addrFrom>
+						<addrTo>P:800037C5</addrTo>
+						<tree>FS_CANTimeout.c \335--335</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800037C6</addrFrom>
+						<addrTo>P:800037C7</addrTo>
+						<tree>FS_CANTimeout.c \336--336</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800037C8</addrFrom>
+						<addrTo>P:800037CF</addrTo>
+						<tree>FS_CANTimeout.c \337--337</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800037D0</addrFrom>
+						<addrTo>P:800037D1</addrTo>
+						<tree>FS_CANTimeout.c \338--338</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800037D2</addrFrom>
+						<addrTo>P:800037D9</addrTo>
+						<tree>FS_CANTimeout.c \339--339</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800037DA</addrFrom>
+						<addrTo>P:800037DD</addrTo>
+						<tree>FS_CANTimeout.c \340--340</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800037DE</addrFrom>
+						<addrTo>P:800037DF</addrTo>
+						<tree>FS_CANTimeout.c \341--342</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800037E0</addrFrom>
+						<addrTo>P:800037E7</addrTo>
+						<tree>FS_CANTimeout.c \343--343</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800037E8</addrFrom>
+						<addrTo>P:800037EB</addrTo>
+						<tree>FS_CANTimeout.c \344--346</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">50.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800037EC</addrFrom>
+						<addrTo>P:800037ED</addrTo>
+						<tree>FS_CANTimeout.c \347--348</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>0.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>1</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800037EE</addrFrom>
+						<addrTo>P:800037F5</addrTo>
+						<tree>FS_CANTimeout.c \349--349</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800037F6</addrFrom>
+						<addrTo>P:800037F7</addrTo>
+						<tree>FS_CANTimeout.c \350--350</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800037F8</addrFrom>
+						<addrTo>P:800037FF</addrTo>
+						<tree>FS_CANTimeout.c \351--351</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003800</addrFrom>
+						<addrTo>P:80003801</addrTo>
+						<tree>FS_CANTimeout.c \352--353</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003802</addrFrom>
+						<addrTo>P:80003809</addrTo>
+						<tree>FS_CANTimeout.c \354--354</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000380A</addrFrom>
+						<addrTo>P:8000380B</addrTo>
+						<tree>FS_CANTimeout.c \355--359</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000380C</addrFrom>
+						<addrTo>P:80003813</addrTo>
+						<tree>FS_CANTimeout.c \360--360</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003814</addrFrom>
+						<addrTo>P:80003815</addrTo>
+						<tree>FS_CANTimeout.c \361--361</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003816</addrFrom>
+						<addrTo>P:8000381D</addrTo>
+						<tree>FS_CANTimeout.c \362--362</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000381E</addrFrom>
+						<addrTo>P:8000381F</addrTo>
+						<tree>FS_CANTimeout.c \363--363</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003820</addrFrom>
+						<addrTo>P:80003827</addrTo>
+						<tree>FS_CANTimeout.c \364--364</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003828</addrFrom>
+						<addrTo>P:8000382B</addrTo>
+						<tree>FS_CANTimeout.c \365--421</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">50.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000382C</addrFrom>
+						<addrTo>P:8000382F</addrTo>
+						<tree>FS_CANTimeout.c \422--422</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003830</addrFrom>
+						<addrTo>P:80003831</addrTo>
+						<tree>FS_CANTimeout.c \423--423</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003832</addrFrom>
+						<addrTo>P:80003835</addrTo>
+						<tree>FS_CANTimeout.c \424--424</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003836</addrFrom>
+						<addrTo>P:80003837</addrTo>
+						<tree>FS_CANTimeout.c \425--425</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003838</addrFrom>
+						<addrTo>P:8000383B</addrTo>
+						<tree>FS_CANTimeout.c \426--426</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000383C</addrFrom>
+						<addrTo>P:8000383D</addrTo>
+						<tree>FS_CANTimeout.c \427--427</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000383E</addrFrom>
+						<addrTo>P:8000383F</addrTo>
+						<tree>FS_CANTimeout.c \428--430</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>SWC_Failsafe.h \709--724</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.h</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>76</bytes>
+						<bytesok>76</bytesok>
+					</line>
+					<total>
+						<cov>partial</cov>
+						<exec metric="object">60.327%</exec>
+						<branches>59.375%</branches>
+						<ok>16</ok>
+						<taken>33</taken>
+						<nottaken>30</nottaken>
+						<never>1</never>
+						<bytes>1220</bytes>
+						<bytesok>736</bytesok>
+					</total>
+				</function>
+				<total>
+					<cov>partial</cov>
+					<exec metric="object">58.608%</exec>
+					<branches>52.247%</branches>
+					<ok>16</ok>
+					<taken>33</taken>
+					<nottaken>28</nottaken>
+					<never>12</never>
+					<bytes>1150</bytes>
+					<bytesok>674</bytesok>
+				</total>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_InvalidSignal</tree>
+				<cov>partial</cov>
+				<exec metric="object">62.870%</exec>
+				<branches>51.823%</branches>
+				<ok>77</ok>
+				<taken>111</taken>
+				<nottaken>76</nottaken>
+				<never>65</never>
+				<bytes>5866</bytes>
+				<bytesok>3688</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_SWFailure</tree>
+				<cov>partial</cov>
+				<exec metric="object">48.979%</exec>
+				<branches>1.975%</branches>
+				<ok>2</ok>
+				<taken>4</taken>
+				<nottaken>5</nottaken>
+				<never>318</never>
+				<bytes>392</bytes>
+				<bytesok>192</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>5</never>
+				<bytes>806</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80005B2A</addrFrom>
+				<addrTo>P:80005CBB</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc1</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>402</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80005CBC</addrFrom>
+				<addrTo>P:80005E4D</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc2</tree>
+				<cov>partial</cov>
+				<exec metric="object">79.104%</exec>
+				<branches>75.000%</branches>
+				<ok>2</ok>
+				<taken>1</taken>
+				<nottaken>1</nottaken>
+				<never>0</never>
+				<bytes>402</bytes>
+				<bytesok>318</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc3</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc4</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_main</tree>
+				<cov>partial</cov>
+				<exec metric="object">24.691%</exec>
+				<branches>25.000%</branches>
+				<ok>1</ok>
+				<taken>1</taken>
+				<nottaken>1</nottaken>
+				<never>5</never>
+				<bytes>324</bytes>
+				<bytesok>80</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80006180</addrFrom>
+				<addrTo>P:80006315</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc5</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80006456</addrFrom>
+				<addrTo>P:80006485</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_stubs</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>2</never>
+				<bytes>48</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<total>
+				<cov>partial</cov>
+				<exec metric="object">52.679%</exec>
+				<branches>21.949%</branches>
+				<ok>141</ok>
+				<taken>182</taken>
+				<nottaken>144</nottaken>
+				<never>918</never>
+				<bytes>14890</bytes>
+				<bytesok>7844</bytesok>
+			</total>
+		</COVerage.EXPORT.ListLine>
+	</coverage>
+	<marker>
+		<BookMark.EXPORT ts="1623300909" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE">
+		</BookMark.EXPORT>
+	</marker>
+	<listing>
+		<List.EXPORT ts="1623300909" t32ver="R.2020.09.000128638" t32pv="TRICORE" order="source">
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>1</line><src>/*</src></hll>
+				<hll><line>2</line><src> * Author: Insub Song (insub.song@halla.com)</src></hll>
+				<hll><line>3</line><src> * Date  : 2019.02.01</src></hll>
+				<hll><line>4</line><src> */</src></hll>
+				<hll><line>5</line><src></src></hll>
+				<hll><line>6</line><src>#include &quot;Rte_SWC_DiagnosticMonitor.h&quot;</src></hll>
+				<hll><line>7</line><src>#include &quot;App_NvM_Ram.h&quot;</src></hll>
+				<hll><line>8</line><src></src></hll>
+				<hll><line>9</line><src>#include &quot;SWC_Failsafe.h&quot;</src></hll>
+				<hll><line>10</line><src>#include &quot;FS_CANTimeout.h&quot;</src></hll>
+				<hll><line>11</line><src>#include &quot;FS_InvalidSignal.h&quot;</src></hll>
+				<hll><line>12</line><src>#include &quot;DRV_par.h&quot;</src></hll>
+				<hll><line>13</line><src></src></hll>
+				<hll><line>14</line><src>extern boolean is_coding_navi_mismatch(void);</src></hll>
+				<hll><line>15</line><src></src></hll>
+				<hll><line>16</line><src>uint32 can_timeout_fault[MSG_GRP_NUM];</src></hll>
+				<hll><line>17</line><src>uint16 can_timeout_tick[MSG_GRP_NUM][32];</src></hll>
+				<hll><line>18</line><src></src></hll>
+				<hll><line>19</line><src>#if CCAN == CANFD</src></hll>
+				<hll><line>20</line><src>boolean can_timeout_disable = FALSE; /* CAN Timeout Disable caused by ACU reset */</src></hll>
+				<hll><line>21</line><src>uint16 can_timeout_dis_time_remain; /* disable time remaining */</src></hll>
+				<hll><line>22</line><src>static sigerr_t MDPS_01_indir;</src></hll>
+				<hll><line>23</line><src></src></hll>
+				<hll><line>24</line><src>#elif CCAN == HSCAN</src></hll>
+				<hll><line>25</line><src>boolean can_timeout_disable = FALSE;</src></hll>
+				<hll><line>26</line><src>static sigerr_t TCU11_indir;</src></hll>
+				<hll><line>27</line><src>static sigerr_t EMS11_indir;</src></hll>
+				<hll><line>28</line><src>static sigerr_t EMS_H12_indir;</src></hll>
+				<hll><line>29</line><src>static sigerr_t NAVI_V2_POS_indir;</src></hll>
+				<hll><line>30</line><src>#endif /* CCAN */</src></hll>
+				<hll><line>31</line><src></src></hll>
+				<hll><cov>ok</cov><line>32</line><src>void FS_UpdateInfo_CANTimeout(void)</src></hll>
+				<asm><cov>ok</cov><addr>P:800033C2</addr><code>1820</code><label>FS_UpdateInfo_CANTimeout:                                                                                                                                                                                                                                       </label><mnemonic>sub16.a   a10,#0x18</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>33</line><src>{</src></hll>
+				<hll><cov>ok</cov><line>34</line><src>    struct precondition *p = get_precond_ptr();</src></hll>
+				<asm><cov>ok</cov><addr>P:800033C4</addr><code>1065006D</code><mnemonic>call      0x8000548E</mnemonic><comment>get_precond_ptr</comment></asm>
+				<asm><cov>ok</cov><addr>P:800033C8</addr><code>2F40</code><mnemonic>mov16.aa  a15,a2</mnemonic><comment>a15,p</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>35</line><src>    boolean meet_precond;</src></hll>
+				<hll><cov>ok</cov><line>36</line><src>    boolean navi_option = Get_NAVI_Option();</src></hll>
+				<asm><cov>ok</cov><addr>P:800033CA</addr><code>1058006D</code><mnemonic>call      0x8000547A</mnemonic><comment>Get_HDA2_Option</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>ok</cov><line>37</line><src>    boolean hda_option = Get_HDA2_Option();</src></hll>
+				<asm><cov>ok</cov><addr>P:800033CE</addr><code>2802</code><mnemonic>mov16     d8,d2</mnemonic><comment>d8,navi_option</comment></asm>
+				<asm><cov>ok</cov><addr>P:800033D0</addr><code>1055006D</code><mnemonic>call      0x8000547A</mnemonic><comment>Get_HDA2_Option</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c" type="multiple">
+				<hll><cov>ok</cov><line>38</line><src>    uint8 mdps_option = Get_MDPS_Option();</src></hll>
+				<asm><cov>ok</cov><addr>P:800033D4</addr><code>2902</code><mnemonic>mov16     d9,d2</mnemonic><comment>d9,hda_option</comment></asm>
+				<asm><cov>ok</cov><addr>P:800033D6</addr><code>104B006D</code><mnemonic>call      0x8000546C</mnemonic><comment>Get_MDPS_Option</comment></asm>
+				<asm><cov>ok</cov><addr>P:800033E6</addr><code>A0680237</code><mnemonic>extr.u    d10,d2,0x0,#0x8</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c" type="multiple">
+				<hll><cov>ok</cov><line>39</line><src>    uint8 HU_AliveStatus = ref_sig.HU_AliveStatus;</src></hll>
+				<asm><cov>ok</cov><addr>P:800033DA</addr><code>29004091</code><mnemonic>movh.a    a2,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800033DE</addr><code>D00022D9</code><mnemonic>lea       a2,[a2]0x340</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800033E2</addr><code>0990A289</code><mnemonic>st.a      [a10]0x10,a2</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800033EC</addr><code>18402B09</code><mnemonic>ld.bu     d11,[a2]0x40</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>ok</cov><line>40</line><src>    uint8 HU_AdasSupport = ref_sig.HU_AdasSupport;</src></hll>
+				<asm><cov>ok</cov><addr>P:800033F2</addr><code>18412C09</code><mnemonic>ld.bu     d12,[a2]0x41</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c" type="multiple">
+				<hll><line>41</line><src></src></hll>
+				<hll><line>42</line><src>#if CCAN == CANFD</src></hll>
+				<hll><cov>ok</cov><line>43</line><src>    meet_precond = p-&gt;is_norm_vol &amp;&amp; p-&gt;is_3s_after_ign_on &amp;&amp; p-&gt;is_not_ecan_busoff;</src></hll>
+				<asm><cov>ok</cov><addr>P:800033EA</addr><code>FF14</code><mnemonic>ld16.bu   d15,[a15]</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800033F0</addr><code>0082</code><mnemonic>mov16     d0,#0x0</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:800033F6</addr><code>056E</code><mnemonic>jz16      d15,0x80003400</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800033F8</addr><code>1F08</code><mnemonic>ld16.bu   d15,[a15]0x1</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:800033FA</addr><code>036E</code><mnemonic>jz16      d15,0x80003400</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800033FC</addr><code>4F08</code><mnemonic>ld16.bu   d15,[a15]0x4</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800033FE</addr><code>10AA</code><mnemonic>cmov16    d0,d15,#0x1</mnemonic><comment>meet_precond,d15,#1</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c" type="multiple">
+				<hll><cov>ok</cov><line>44</line><src>    if (meet_precond &amp;&amp; ref_sig.YRS_AcuRstSta == 1 &amp;&amp; ref_sig.ESC_IMURstStaAck == 1 &amp;&amp; can_timeout_disable == FALSE) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003400</addr><code>29004091</code><mnemonic>movh.a    a2,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003404</addr><code>607022D9</code><mnemonic>lea       a2,[a2]0x5B0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003408</addr><code>0984A289</code><mnemonic>st.a      [a10]0x4,a2</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003410</addr><code>2314</code><mnemonic>ld16.bu   d3,[a2]</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:80003426</addr><code>0E76</code><mnemonic>jz16      d0,0x80003442</mnemonic><comment>meet_precond,0x80003442</comment></asm>
+				<asm><cov>ok</cov><addr>P:80003428</addr><code>0990A409</code><mnemonic>ld.a      a4,[a10]0x10</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000342C</addr><code>08784F09</code><mnemonic>ld.bu     d15,[a4]0x38</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003430</addr><code>195E</code><mnemonic>jne16     d15,#0x1,0x80003442</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003432</addr><code>08544F09</code><mnemonic>ld.bu     d15,[a4]0x14</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003436</addr><code>165E</code><mnemonic>jne16     d15,#0x1,0x80003442</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003438</addr><code>35F6</code><mnemonic>jnz16     d3,0x80003442</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>45</line><src>        can_timeout_disable = TRUE;</src></hll>
+				<asm><cov>never</cov><addr>P:8000343A</addr><code>1382</code><mnemonic>mov16     d3,#0x1</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c" type="multiple">
+				<hll><cov>ok</cov><line>46</line><src>        can_timeout_dis_time_remain = MS2TICK(1000);</src></hll>
+				<asm><cov>ok</cov><addr>P:80003412</addr><code>29004091</code><mnemonic>movh.a    a2,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003416</addr><code>404622D9</code><mnemonic>lea       a2,[a2]0x506</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000341E</addr><code>08C02109</code><mnemonic>ld.hu     d1,[a2]0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000343C</addr><code>1006403B</code><mnemonic>mov       d1,#0x64</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003440</addr><code>183C</code><mnemonic>j16       0x80003470</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c" type="multiple">
+				<hll><cov>partial</cov><line>47</line><src>    } else if (is_updated(CHASSIS_0, YRS_01_10ms_POS) &amp;&amp; ref_sig.YRS_AcuRstSta == 0 &amp;&amp; ref_sig.ESC_IMURstStaAck == 0 &amp;&amp; can_timeout_dis_time_remain == 0) {</src></hll>
+				<asm><cov>taken</cov><addr>P:8000344E</addr><code>0D76</code><mnemonic>jz16      d0,0x80003468</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003450</addr><code>0990A409</code><mnemonic>ld.a      a4,[a10]0x10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003454</addr><code>08784F09</code><mnemonic>ld.bu     d15,[a4]0x38</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003458</addr><code>08EE</code><mnemonic>jnz16     d15,0x80003468</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000345A</addr><code>08544F09</code><mnemonic>ld.bu     d15,[a4]0x14</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000345E</addr><code>05EE</code><mnemonic>jnz16     d15,0x80003468</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003460</addr><code>0D82</code><mnemonic>mov16     d13,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003462</addr><code>13F6</code><mnemonic>jnz16     d1,0x80003468</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003470</addr><code>0D82</code><mnemonic>mov16     d13,#0x0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>48</line><src>        can_timeout_disable = FALSE;</src></hll>
+				<asm><cov>never</cov><addr>P:80003464</addr><code>D302</code><mnemonic>mov16     d3,d13</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003466</addr><code>063C</code><mnemonic>j16       0x80003472</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>49</line><src>    } else if (can_timeout_dis_time_remain) {</src></hll>
+				<hll><cov>ok</cov><line>50</line><src>        can_timeout_dis_time_remain--;</src></hll>
+				<asm><cov>ok</cov><addr>P:80003468</addr><code>111FF1AB</code><mnemonic>cadd      d1,d1,d1,#-0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000346C</addr><code>10700137</code><mnemonic>extr.u    d1,d1,0x0,#0x10</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c" type="multiple">
+				<hll><line>51</line><src>    }</src></hll>
+				<hll><line>52</line><src>#endif /* for CANFD */</src></hll>
+				<hll><line>53</line><src></src></hll>
+				<hll><line>54</line><src></src></hll>
+				<hll><line>55</line><src>    /* Chassis CAN */</src></hll>
+				<hll><cov>ok</cov><line>56</line><src>    for (int pos = CHASSIS_0_NUM; pos--;) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003472</addr><code>21B4</code><mnemonic>st16.h    [a2],d1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000347C</addr><code>0984A209</code><mnemonic>ld.a      a2,[a10]0x4</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003484</addr><code>2334</code><mnemonic>st16.b    [a2],d3</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000349E</addr><code>1DDA</code><mnemonic>mov16     d15,#0x1D</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800034A0</addr><code>EDB0</code><mnemonic>add16.a   a13,#-0x2</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800034A2</addr><code>FEC2</code><mnemonic>add16     d14,#-0x1</mnemonic><comment>pos,#-1</comment></asm>
+				<asm><cov>ok</cov><addr>P:800034A4</addr><code>EEB0</code><mnemonic>add16.a   a14,#-0x2</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:800034A6</addr><code>00BDEF3F</code><mnemonic>jlt       d15,d14,0x80003620</mnemonic><comment>d15,pos,0x80003620</comment></asm>
+				<asm><cov>ok</cov><addr>P:800034AA</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:800034AC</addr><code>00BAFE3F</code><mnemonic>jlt       d14,d15,0x80003620</mnemonic><comment>pos,d15,0x80003620</comment></asm>
+				<asm><cov>ok</cov><addr>P:800034B0</addr><code>FE5A</code><mnemonic>sub16     d15,d14,d15</mnemonic><comment>d15,pos,d15</comment></asm>
+				<asm><cov>ok</cov><addr>P:800034B2</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800034B6</addr><code>A23C22D9</code><mnemonic>lea       a2,[a2]0x22BC</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800034BA</addr><code>2290</code><mnemonic>addsc16.a a2,a2,d15,#0x2</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800034BC</addr><code>22D4</code><mnemonic>ld16.a    a2,[a2]</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800034BE</addr><code>02DC</code><mnemonic>ji16      a2</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003620</addr><code>FF3F0EDF</code><mnemonic>jne       d14,#0x0,0x8000349E</mnemonic><comment>pos,#0,0x8000349E</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>57</line><src>#if CCAN == CANFD</src></hll>
+				<hll><did>not</did><dec>taken</dec><cov>taken</cov><line>58</line><src>        switch (pos) {</src></hll>
+				<asm><cov>ok</cov><addr>P:8000349E</addr><code>1DDA</code><mnemonic>mov16     d15,#0x1D</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800034A0</addr><code>EDB0</code><mnemonic>add16.a   a13,#-0x2</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800034A2</addr><code>FEC2</code><mnemonic>add16     d14,#-0x1</mnemonic><comment>pos,#-1</comment></asm>
+				<asm><cov>ok</cov><addr>P:800034A4</addr><code>EEB0</code><mnemonic>add16.a   a14,#-0x2</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:800034A6</addr><code>00BDEF3F</code><mnemonic>jlt       d15,d14,0x80003620</mnemonic><comment>d15,pos,0x80003620</comment></asm>
+				<asm><cov>ok</cov><addr>P:800034AA</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:800034AC</addr><code>00BAFE3F</code><mnemonic>jlt       d14,d15,0x80003620</mnemonic><comment>pos,d15,0x80003620</comment></asm>
+				<asm><cov>ok</cov><addr>P:800034B0</addr><code>FE5A</code><mnemonic>sub16     d15,d14,d15</mnemonic><comment>d15,pos,d15</comment></asm>
+				<asm><cov>ok</cov><addr>P:800034B2</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800034B6</addr><code>A23C22D9</code><mnemonic>lea       a2,[a2]0x22BC</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800034BA</addr><code>2290</code><mnemonic>addsc16.a a2,a2,d15,#0x2</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800034BC</addr><code>22D4</code><mnemonic>ld16.a    a2,[a2]</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800034BE</addr><code>02DC</code><mnemonic>ji16      a2</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>59</line><src>        case ABS_ESC_01_10ms_POS:</src></hll>
+				<hll><line>60</line><src>        case BCM_10_200ms_POS:</src></hll>
+				<hll><line>61</line><src>        case CLU_01_20ms_POS:</src></hll>
+				<hll><line>62</line><src>        case CLU_02_100ms_POS:</src></hll>
+				<hll><line>63</line><src>        case ESC_01_10ms_POS:</src></hll>
+				<hll><line>64</line><src>        case ESC_03_20ms_POS:</src></hll>
+				<hll><line>65</line><src>        case ICSC_02_100ms_POS:</src></hll>
+				<hll><line>66</line><src>        case ICU_02_200ms_POS:</src></hll>
+				<hll><line>67</line><src>        case ICU_04_200ms_POS:</src></hll>
+				<hll><line>68</line><src>        case ICU_06_200ms_POS:</src></hll>
+				<hll><line>69</line><src>        case MDPS_01_10ms_POS:</src></hll>
+				<hll><line>70</line><src>        case MFSW_01_200ms_POS:</src></hll>
+				<hll><line>71</line><src>        case SAS_01_10ms_POS:</src></hll>
+				<hll><line>72</line><src>        case SWRC_03_20ms_POS:</src></hll>
+				<hll><line>73</line><src>#if VEH_TYPE == NORMAL</src></hll>
+				<hll><line>74</line><src>        case TCU_01_10ms_POS:</src></hll>
+				<hll><line>75</line><src>#elif VEH_TYPE == HEV</src></hll>
+				<hll><line>76</line><src>        case HTCU_04_POS:</src></hll>
+				<hll><line>77</line><src>#endif /* VEH_TYPE */</src></hll>
+				<hll><line>78</line><src>        case WHL_01_10ms_POS:</src></hll>
+				<hll><line>79</line><src>        case YRS_01_10ms_POS:</src></hll>
+				<hll><did>not</did><dec>taken</dec><cov>taken</cov><line>80</line><src>            meet_precond = p-&gt;is_norm_vol &amp;&amp; p-&gt;is_3s_after_ign_on &amp;&amp; p-&gt;is_eng_run &amp;&amp; p-&gt;is_not_ecan_busoff;</src></hll>
+				<asm><cov>ok</cov><addr>P:800034C0</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800034C2</addr><code>0578</code><mnemonic>st16.w    [a10]0x14,d15</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800034C4</addr><code>FF14</code><mnemonic>ld16.bu   d15,[a15]</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:800034C6</addr><code>736E</code><mnemonic>jz16      d15,0x800035AC</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800034C8</addr><code>1F08</code><mnemonic>ld16.bu   d15,[a15]0x1</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:800034CA</addr><code>716E</code><mnemonic>jz16      d15,0x800035AC</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800034CC</addr><code>3F08</code><mnemonic>ld16.bu   d15,[a15]0x3</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800034CE</addr><code>6F6E</code><mnemonic>jz16      d15,0x800035AC</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800034D0</addr><code>4F08</code><mnemonic>ld16.bu   d15,[a15]0x4</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800034D2</addr><code>0914A009</code><mnemonic>ld.w      d0,[a10]0x14</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800034D6</addr><code>10AA</code><mnemonic>cmov16    d0,d15,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800034D8</addr><code>0914A089</code><mnemonic>st.w      [a10]0x14,d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>ok</cov><line>81</line><src>            break;</src></hll>
+				<asm><cov>ok</cov><addr>P:800034DC</addr><code>683C</code><mnemonic>j16       0x800035AC</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>82</line><src>        case SBCM_AST_02_200ms_POS:</src></hll>
+				<hll><line>83</line><src>        case SBCM_DRV_01_200ms_POS:</src></hll>
+				<hll><cov>partial</cov><line>84</line><src>            meet_precond = p-&gt;is_norm_vol &amp;&amp; p-&gt;is_3s_after_ign_on &amp;&amp; p-&gt;for_3min_after_ign_off &amp;&amp; p-&gt;is_eng_run &amp;&amp; p-&gt;is_not_ecan_busoff;</src></hll>
+				<asm><cov>ok</cov><addr>P:800034DE</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800034E0</addr><code>0578</code><mnemonic>st16.w    [a10]0x14,d15</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800034E2</addr><code>FF14</code><mnemonic>ld16.bu   d15,[a15]</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:800034E4</addr><code>646E</code><mnemonic>jz16      d15,0x800035AC</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800034E6</addr><code>1F08</code><mnemonic>ld16.bu   d15,[a15]0x1</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:800034E8</addr><code>626E</code><mnemonic>jz16      d15,0x800035AC</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800034EA</addr><code>2F08</code><mnemonic>ld16.bu   d15,[a15]0x2</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:800034EC</addr><code>606E</code><mnemonic>jz16      d15,0x800035AC</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800034EE</addr><code>3F08</code><mnemonic>ld16.bu   d15,[a15]0x3</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800034F0</addr><code>5E6E</code><mnemonic>jz16      d15,0x800035AC</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800034F2</addr><code>4F08</code><mnemonic>ld16.bu   d15,[a15]0x4</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800034F4</addr><code>0914A009</code><mnemonic>ld.w      d0,[a10]0x14</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800034F8</addr><code>10AA</code><mnemonic>cmov16    d0,d15,#0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800034FA</addr><code>0914A089</code><mnemonic>st.w      [a10]0x14,d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>85</line><src>            break;</src></hll>
+				<asm><cov>never</cov><addr>P:800034FE</addr><code>573C</code><mnemonic>j16       0x800035AC</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>86</line><src>        case HU_CLU_PE_05_POS:</src></hll>
+				<hll><line>87</line><src>        case HU_GW_PE_01_POS:</src></hll>
+				<hll><line>88</line><src>        case HU_MON_PE_01_POS:</src></hll>
+				<hll><did>not</did><dec>taken</dec><cov>taken</cov><line>89</line><src>            meet_precond = navi_option &amp;&amp; !is_coding_navi_mismatch() &amp;&amp; p-&gt;is_norm_vol &amp;&amp; p-&gt;is_3s_after_ign_on &amp;&amp; p-&gt;is_eng_run &amp;&amp; p-&gt;is_not_ecan_busoff;</src></hll>
+				<asm><cov>ok</cov><addr>P:80003500</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003502</addr><code>0578</code><mnemonic>st16.w    [a10]0x14,d15</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:80003504</addr><code>005408DF</code><mnemonic>jeq       d8,#0x0,0x800035AC</mnemonic><comment>navi_option,#0,0x800035AC</comment></asm>
+				<asm><cov>ok</cov><addr>P:80003508</addr><code>07EA006D</code><mnemonic>call      0x800044DC</mnemonic><comment>is_coding_navi_mismatch</comment></asm>
+				<asm><cov>not taken</cov><addr>P:8000350C</addr><code>805002DF</code><mnemonic>jne       d2,#0x0,0x800035AC</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003510</addr><code>FF14</code><mnemonic>ld16.bu   d15,[a15]</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:80003512</addr><code>4D6E</code><mnemonic>jz16      d15,0x800035AC</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003514</addr><code>1F08</code><mnemonic>ld16.bu   d15,[a15]0x1</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:80003516</addr><code>4B6E</code><mnemonic>jz16      d15,0x800035AC</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003518</addr><code>3F08</code><mnemonic>ld16.bu   d15,[a15]0x3</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000351A</addr><code>496E</code><mnemonic>jz16      d15,0x800035AC</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000351C</addr><code>4F08</code><mnemonic>ld16.bu   d15,[a15]0x4</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000351E</addr><code>0914A009</code><mnemonic>ld.w      d0,[a10]0x14</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003522</addr><code>10AA</code><mnemonic>cmov16    d0,d15,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003524</addr><code>0914A089</code><mnemonic>st.w      [a10]0x14,d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>ok</cov><line>90</line><src>            break;</src></hll>
+				<asm><cov>ok</cov><addr>P:80003528</addr><code>423C</code><mnemonic>j16       0x800035AC</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>91</line><src>        case HU_NAVI_V2_POS_PE_POS:</src></hll>
+				<hll><cov>partial</cov><line>92</line><src>            meet_precond = navi_option &amp;&amp; !is_coding_navi_mismatch() &amp;&amp; HU_AliveStatus == 1 &amp;&amp;p-&gt;is_norm_vol &amp;&amp; p-&gt;is_3s_after_ign_on &amp;&amp; p-&gt;is_eng_run &amp;&amp; p-&gt;is_not_ecan_busoff;</src></hll>
+				<asm><cov>ok</cov><addr>P:8000352A</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000352C</addr><code>0578</code><mnemonic>st16.w    [a10]0x14,d15</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:8000352E</addr><code>003F08DF</code><mnemonic>jeq       d8,#0x0,0x800035AC</mnemonic><comment>navi_option,#0,0x800035AC</comment></asm>
+				<asm><cov>ok</cov><addr>P:80003532</addr><code>07D5006D</code><mnemonic>call      0x800044DC</mnemonic><comment>is_coding_navi_mismatch</comment></asm>
+				<asm><cov>not taken</cov><addr>P:80003536</addr><code>803B02DF</code><mnemonic>jne       d2,#0x0,0x800035AC</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:8000353A</addr><code>80391BDF</code><mnemonic>jne       d11,#0x1,0x800035AC</mnemonic><comment>HU_AliveStatus,#1,0x800035AC</comment></asm>
+				<asm><cov>never</cov><addr>P:8000353E</addr><code>FF14</code><mnemonic>ld16.bu   d15,[a15]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003540</addr><code>366E</code><mnemonic>jz16      d15,0x800035AC</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003542</addr><code>1F08</code><mnemonic>ld16.bu   d15,[a15]0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003544</addr><code>346E</code><mnemonic>jz16      d15,0x800035AC</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003546</addr><code>3F08</code><mnemonic>ld16.bu   d15,[a15]0x3</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003548</addr><code>326E</code><mnemonic>jz16      d15,0x800035AC</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000354A</addr><code>4F08</code><mnemonic>ld16.bu   d15,[a15]0x4</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000354C</addr><code>0914A009</code><mnemonic>ld.w      d0,[a10]0x14</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003550</addr><code>10AA</code><mnemonic>cmov16    d0,d15,#0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003552</addr><code>0914A089</code><mnemonic>st.w      [a10]0x14,d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>93</line><src>#if MAP_VER == V2_3</src></hll>
+				<hll><line>94</line><src>            (HU_AdasSupport == 5);</src></hll>
+				<hll><line>95</line><src>#elif MAP_VER == V2</src></hll>
+				<hll><line>96</line><src>            (HU_AdasSupport == 3 || HU_AdasSupport == 4);</src></hll>
+				<hll><line>97</line><src>#else</src></hll>
+				<hll><line>98</line><src>    #error Undefined map version</src></hll>
+				<hll><line>99</line><src>#endif /* MAP_VER */</src></hll>
+				<hll><cov>never</cov><line>100</line><src>            break;</src></hll>
+				<asm><cov>never</cov><addr>P:80003556</addr><code>2B3C</code><mnemonic>j16       0x800035AC</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>101</line><src>#if VEH_TYPE == NORMAL</src></hll>
+				<hll><line>102</line><src>        case EMS_01_10ms_POS:</src></hll>
+				<hll><line>103</line><src>        case EMS_02_10ms_POS:</src></hll>
+				<hll><did>not</did><dec>taken</dec><cov>taken</cov><line>104</line><src>            meet_precond = p-&gt;is_norm_vol &amp;&amp; p-&gt;is_3s_after_ign_on &amp;&amp; p-&gt;is_not_ecan_busoff;</src></hll>
+				<asm><cov>ok</cov><addr>P:80003558</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000355A</addr><code>0578</code><mnemonic>st16.w    [a10]0x14,d15</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000355C</addr><code>FF14</code><mnemonic>ld16.bu   d15,[a15]</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:8000355E</addr><code>276E</code><mnemonic>jz16      d15,0x800035AC</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003560</addr><code>1F08</code><mnemonic>ld16.bu   d15,[a15]0x1</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:80003562</addr><code>256E</code><mnemonic>jz16      d15,0x800035AC</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003564</addr><code>4F08</code><mnemonic>ld16.bu   d15,[a15]0x4</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003566</addr><code>0914A009</code><mnemonic>ld.w      d0,[a10]0x14</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000356A</addr><code>10AA</code><mnemonic>cmov16    d0,d15,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000356C</addr><code>0914A089</code><mnemonic>st.w      [a10]0x14,d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>ok</cov><line>105</line><src>            break;</src></hll>
+				<asm><cov>ok</cov><addr>P:80003570</addr><code>1E3C</code><mnemonic>j16       0x800035AC</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>106</line><src>        case EMS_03_10ms_POS:</src></hll>
+				<hll><did>not</did><dec>taken</dec><cov>taken</cov><line>107</line><src>            meet_precond = p-&gt;is_norm_vol &amp;&amp; p-&gt;is_3s_after_ign_on &amp;&amp; p-&gt;is_not_ecan_busoff &amp;&amp; Get_ISG_Option();</src></hll>
+				<asm><cov>ok</cov><addr>P:80003572</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003574</addr><code>0578</code><mnemonic>st16.w    [a10]0x14,d15</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003576</addr><code>FF14</code><mnemonic>ld16.bu   d15,[a15]</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:80003578</addr><code>1A6E</code><mnemonic>jz16      d15,0x800035AC</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000357A</addr><code>1F08</code><mnemonic>ld16.bu   d15,[a15]0x1</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:8000357C</addr><code>186E</code><mnemonic>jz16      d15,0x800035AC</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000357E</addr><code>4F08</code><mnemonic>ld16.bu   d15,[a15]0x4</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:80003580</addr><code>166E</code><mnemonic>jz16      d15,0x800035AC</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003582</addr><code>0F6C006D</code><mnemonic>call      0x8000545A</mnemonic><comment>Get_ISG_Option</comment></asm>
+				<asm><cov>ok</cov><addr>P:80003586</addr><code>0558</code><mnemonic>ld16.w    d15,[a10]0x14</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003588</addr><code>F2A01FAB</code><mnemonic>seln      d15,d2,d15,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000358C</addr><code>0578</code><mnemonic>st16.w    [a10]0x14,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>ok</cov><line>108</line><src>            break;</src></hll>
+				<asm><cov>ok</cov><addr>P:8000358E</addr><code>0F3C</code><mnemonic>j16       0x800035AC</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>109</line><src>        case EMS_05_100ms_POS:</src></hll>
+				<hll><did>not</did><dec>taken</dec><cov>taken</cov><line>110</line><src>            meet_precond = p-&gt;is_norm_vol &amp;&amp; p-&gt;is_3s_after_ign_on &amp;&amp; p-&gt;is_eng_run &amp;&amp; p-&gt;is_not_ecan_busoff;</src></hll>
+				<asm><cov>ok</cov><addr>P:80003590</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003592</addr><code>0578</code><mnemonic>st16.w    [a10]0x14,d15</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003594</addr><code>FF14</code><mnemonic>ld16.bu   d15,[a15]</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:80003596</addr><code>0B6E</code><mnemonic>jz16      d15,0x800035AC</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003598</addr><code>1F08</code><mnemonic>ld16.bu   d15,[a15]0x1</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:8000359A</addr><code>096E</code><mnemonic>jz16      d15,0x800035AC</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000359C</addr><code>3F08</code><mnemonic>ld16.bu   d15,[a15]0x3</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000359E</addr><code>076E</code><mnemonic>jz16      d15,0x800035AC</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800035A0</addr><code>4F08</code><mnemonic>ld16.bu   d15,[a15]0x4</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800035A2</addr><code>0914A009</code><mnemonic>ld.w      d0,[a10]0x14</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800035A6</addr><code>10AA</code><mnemonic>cmov16    d0,d15,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800035A8</addr><code>0914A089</code><mnemonic>st.w      [a10]0x14,d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>111</line><src>            break;</src></hll>
+				<hll><line>112</line><src>#elif VEH_TYPE == EV</src></hll>
+				<hll><line>113</line><src>        case VCU_01_10ms_POS:</src></hll>
+				<hll><line>114</line><src>        case VCU_03_100ms_POS:</src></hll>
+				<hll><line>115</line><src>            meet_precond = p-&gt;is_norm_vol &amp;&amp; p-&gt;is_3s_after_ign_on &amp;&amp; p-&gt;is_not_ecan_busoff;</src></hll>
+				<hll><line>116</line><src>            break;</src></hll>
+				<hll><line>117</line><src>#elif VEH_TYPE == HEV</src></hll>
+				<hll><line>118</line><src>        case EMS_07_POS:</src></hll>
+				<hll><line>119</line><src>        case EMS_11_POS:</src></hll>
+				<hll><line>120</line><src>        case HCU_03_POS:</src></hll>
+				<hll><line>121</line><src>        case HCU_05_POS:</src></hll>
+				<hll><line>122</line><src>            meet_precond = p-&gt;is_norm_vol &amp;&amp; p-&gt;is_3s_after_ign_on &amp;&amp; p-&gt;is_not_ecan_busoff;</src></hll>
+				<hll><line>123</line><src>            break;</src></hll>
+				<hll><line>124</line><src>#endif /* VEH_TYPE */</src></hll>
+				<hll><cov>ok</cov><line>125</line><src>        default:</src></hll>
+				<asm><cov>ok</cov><addr>P:8000361E</addr><code>C174</code><mnemonic>st16.w    [a12],d1</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c" type="multiple">
+				<hll><line>126</line><src>            continue;</src></hll>
+				<hll><line>127</line><src>        }</src></hll>
+				<hll><cov>ok</cov><line>128</line><src>        meet_precond &amp;= !can_timeout_disable;</src></hll>
+				<asm><cov>ok</cov><addr>P:800035AC</addr><code>0984A209</code><mnemonic>ld.a      a2,[a10]0x4</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800035B6</addr><code>2F14</code><mnemonic>ld16.bu   d15,[a2]</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800035BC</addr><code>02000F8B</code><mnemonic>eq        d0,d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800035C0</addr><code>0558</code><mnemonic>ld16.w    d15,[a10]0x14</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c" type="multiple">
+				<hll><line>129</line><src></src></hll>
+				<hll><line>130</line><src>#elif CCAN == HSCAN</src></hll>
+				<hll><line>131</line><src>        switch (pos) {</src></hll>
+				<hll><line>132</line><src>        case CGW1_POS:</src></hll>
+				<hll><line>133</line><src>        case CGW2_POS:</src></hll>
+				<hll><line>134</line><src>        case CGW8_POS:</src></hll>
+				<hll><line>135</line><src>        case CGW_PC4_POS:</src></hll>
+				<hll><line>136</line><src>        case CGW_PC5_POS:</src></hll>
+				<hll><line>137</line><src>        case CLU11_POS:</src></hll>
+				<hll><line>138</line><src>        case CLU13_POS:</src></hll>
+				<hll><line>139</line><src>        case ESP12_POS:</src></hll>
+				<hll><line>140</line><src>        case HU_MON_PE_01_POS:</src></hll>
+				<hll><line>141</line><src>        case MDPS11_POS:</src></hll>
+				<hll><line>142</line><src>        case MDPS12_POS:</src></hll>
+				<hll><line>143</line><src>        case P_STS_POS:</src></hll>
+				<hll><line>144</line><src>        case RR_C_RDR_02_50ms_POS:</src></hll>
+				<hll><line>145</line><src>        case SAS11_POS:</src></hll>
+				<hll><line>146</line><src>        case TCS11_POS:</src></hll>
+				<hll><line>147</line><src>        case TCS13_POS:</src></hll>
+				<hll><line>148</line><src>        case VSM11_POS:</src></hll>
+				<hll><line>149</line><src>        case WHL_SPD11_POS:</src></hll>
+				<hll><line>150</line><src>            meet_precond = p-&gt;is_norm_vol &amp;&amp; p-&gt;is_3s_after_ign_on &amp;&amp; p-&gt;is_eng_run &amp;&amp; p-&gt;is_not_ecan_busoff;</src></hll>
+				<hll><line>151</line><src>            break;</src></hll>
+				<hll><line>152</line><src>        case HU_CLU_PE_05_POS:</src></hll>
+				<hll><line>153</line><src>        case HU_GW_PE_01_POS:</src></hll>
+				<hll><line>154</line><src>            meet_precond = navi_option &amp;&amp; !is_coding_navi_mismatch() &amp;&amp; p-&gt;is_norm_vol &amp;&amp; p-&gt;is_3s_after_ign_on &amp;&amp; p-&gt;is_eng_run &amp;&amp; p-&gt;is_not_ecan_busoff;</src></hll>
+				<hll><line>155</line><src>            break;</src></hll>
+				<hll><line>156</line><src>        case EMS12_POS:</src></hll>
+				<hll><line>157</line><src>        case EMS16_POS:</src></hll>
+				<hll><line>158</line><src>            meet_precond = p-&gt;is_norm_vol &amp;&amp; p-&gt;is_3s_after_ign_on &amp;&amp; p-&gt;is_not_ecan_busoff;</src></hll>
+				<hll><line>159</line><src>            break;</src></hll>
+				<hll><line>160</line><src>        default:</src></hll>
+				<hll><line>161</line><src>            continue;</src></hll>
+				<hll><line>162</line><src>        }</src></hll>
+				<hll><line>163</line><src>#endif /* CCAN */</src></hll>
+				<hll><line>164</line><src></src></hll>
+				<hll><line>165</line><src></src></hll>
+				<hll><cov>ok</cov><line>166</line><src>        if (is_updated(CHASSIS_0, (uint8)pos) || ecan_timeout_val[pos] == NO_DETECTION) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003496</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000349A</addr><code>62B82ED9</code><mnemonic>lea       a14,[a2]0x29B8</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800035CE</addr><code>04EE</code><mnemonic>jnz16     d15,0x800035D6</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800035D0</addr><code>08C0EF09</code><mnemonic>ld.hu     d15,[a14]0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800035D4</addr><code>15EE</code><mnemonic>jnz16     d15,0x800035FE</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>167</line><src>#if CCAN == CANFD</src></hll>
+				<hll><cov>taken</cov><line>168</line><src>            if (pos == HU_NAVI_V2_POS_PE_POS) {</src></hll>
+				<asm><cov>ok</cov><addr>P:800035D6</addr><code>10DA</code><mnemonic>mov16     d15,#0x10</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:800035D8</addr><code>EC7E</code><mnemonic>jne16     d15,d14,0x800035F0</mnemonic><comment>d15,pos,0x800035F0</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c" type="multiple">
+				<hll><line>169</line><src>#if MAP_VER == V2_3</src></hll>
+				<hll><line>170</line><src>                if (HU_AdasSupport == 5) {</src></hll>
+				<hll><line>171</line><src>                    can_timeout_tick[CHASSIS_0][HU_NAVI_V2_POS_PE_POS] = 0;</src></hll>
+				<hll><line>172</line><src>                    can_timeout_fault[CHASSIS_0] &amp;= ~BIT(HU_NAVI_V2_POS_PE_POS);</src></hll>
+				<hll><line>173</line><src>                }</src></hll>
+				<hll><line>174</line><src>#elif MAP_VER == V2</src></hll>
+				<hll><cov>never</cov><line>175</line><src>                if (HU_AdasSupport == 3 || HU_AdasSupport == 4) {</src></hll>
+				<asm><cov>never</cov><addr>P:800035DA</addr><code>00043CDF</code><mnemonic>jeq       d12,#0x3,0x800035E2</mnemonic><comment>HU_AdasSupport,#3,0x800035E2</comment></asm>
+				<asm><cov>never</cov><addr>P:800035DE</addr><code>80204CDF</code><mnemonic>jne       d12,#0x4,0x8000361E</mnemonic><comment>HU_AdasSupport,#4,0x8000361E</comment></asm>
+				<asm><cov>never</cov><addr>P:800035EE</addr><code>183C</code><mnemonic>j16       0x8000361E</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c" type="multiple">
+				<hll><cov>never</cov><line>176</line><src>                    can_timeout_tick[CHASSIS_0][HU_NAVI_V2_POS_PE_POS] = 0;</src></hll>
+				<asm><cov>never</cov><addr>P:800035E2</addr><code>0988A209</code><mnemonic>ld.a      a2,[a10]0x8</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800035EA</addr><code>08A02D89</code><mnemonic>st.h      [a2]0x20,d13</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c" type="multiple">
+				<hll><cov>ok</cov><line>177</line><src>                    can_timeout_fault[CHASSIS_0] &amp;= ~BIT(HU_NAVI_V2_POS_PE_POS);</src></hll>
+				<asm><cov>ok</cov><addr>P:80003474</addr><code>E001E03B</code><mnemonic>mov       d14,#0x1E</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003478</addr><code>C9004091</code><mnemonic>movh.a    a12,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003480</addr><code>1030CCD9</code><mnemonic>lea       a12,[a12]0x70</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800035C6</addr><code>1F26</code><mnemonic>and16     d15,d1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800035C8</addr><code>C154</code><mnemonic>ld16.w    d1,[a12]</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800035CA</addr><code>F2200F8B</code><mnemonic>ne        d15,d15,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800035E6</addr><code>180101B7</code><mnemonic>insert    d1,d1,#0x0,0x10,#0x1</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>178</line><src>                }</src></hll>
+				<hll><line>179</line><src>#else</src></hll>
+				<hll><line>180</line><src>    #error Undefined map version</src></hll>
+				<hll><line>181</line><src>#endif /* MAP_VER */</src></hll>
+				<hll><cov>ok</cov><line>182</line><src>            } else {</src></hll>
+				<asm><cov>ok</cov><addr>P:800035FA</addr><code>F126</code><mnemonic>and16     d1,d15</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800035FC</addr><code>103C</code><mnemonic>j16       0x8000361C</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>ok</cov><line>183</line><src>                can_timeout_tick[CHASSIS_0][pos] = 0;</src></hll>
+				<asm><cov>ok</cov><addr>P:80003486</addr><code>29004091</code><mnemonic>movh.a    a2,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000348A</addr><code>400022D9</code><mnemonic>lea       a2,[a2]0x100</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000348E</addr><code>0988A289</code><mnemonic>st.a      [a10]0x8,a2</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003492</addr><code>0A3C2D49</code><mnemonic>lea       a13,[a2]0x3C</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>ok</cov><line>184</line><src>                can_timeout_fault[CHASSIS_0] &amp;= ~BIT(pos);</src></hll>
+				<asm><cov>ok</cov><addr>P:800035F0</addr><code>01DA</code><mnemonic>mov16     d15,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800035F2</addr><code>F000EF0F</code><mnemonic>sh        d15,d15,d14</mnemonic><comment>d15,d15,pos</comment></asm>
+				<asm><cov>ok</cov><addr>P:800035F6</addr><code>F082</code><mnemonic>mov16     d0,#-0x1</mnemonic><comment>meet_precond,#-1</comment></asm>
+				<asm><cov>ok</cov><addr>P:800035F8</addr><code>0FC6</code><mnemonic>xor16     d15,d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>185</line><src>            }</src></hll>
+				<hll><line>186</line><src>#elif CCAN == HSCAN</src></hll>
+				<hll><line>187</line><src>            can_timeout_tick[CHASSIS_0][pos] = 0;</src></hll>
+				<hll><line>188</line><src>            can_timeout_fault[CHASSIS_0] &amp;= ~BIT(pos);</src></hll>
+				<hll><line>189</line><src>#endif /* CCAN */</src></hll>
+				<hll><cov>ok</cov><line>190</line><src>            } else if (meet_precond) {</src></hll>
+				<asm><cov>ok</cov><addr>P:800035FE</addr><code>0F76</code><mnemonic>jz16      d0,0x8000361C</mnemonic><comment>meet_precond,0x8000361C</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c" type="multiple">
+				<hll><line>191</line><src></src></hll>
+				<hll><cov>ok</cov><line>192</line><src>            if (++can_timeout_tick[CHASSIS_0][pos] &gt;= ecan_timeout_val[pos]) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003600</addr><code>08C0D009</code><mnemonic>ld.hu     d0,[a13]0x0</mnemonic><comment>meet_precond,[a13]0</comment></asm>
+				<asm><cov>ok</cov><addr>P:80003604</addr><code>10C2</code><mnemonic>add16     d0,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003606</addr><code>00700037</code><mnemonic>extr.u    d0,d0,0x0,#0x10</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000360A</addr><code>D0B4</code><mnemonic>st16.h    [a13],d0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000360C</addr><code>8009F03F</code><mnemonic>jlt.u     d0,d15,0x8000361E</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003618</addr><code>F1A6</code><mnemonic>or16      d1,d15</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000361A</addr><code>023C</code><mnemonic>j16       0x8000361E</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>ok</cov><line>193</line><src>                can_timeout_tick[CHASSIS_0][pos] = ecan_timeout_val[pos];</src></hll>
+				<asm><cov>ok</cov><addr>P:80003610</addr><code>DFB4</code><mnemonic>st16.h    [a13],d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>ok</cov><line>194</line><src>                can_timeout_fault[CHASSIS_0] |= BIT(pos);</src></hll>
+				<asm><cov>ok</cov><addr>P:80003612</addr><code>01DA</code><mnemonic>mov16     d15,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003614</addr><code>F000EF0F</code><mnemonic>sh        d15,d15,d14</mnemonic><comment>d15,d15,pos</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>195</line><src>            }</src></hll>
+				<hll><line>196</line><src>        } else {</src></hll>
+				<hll><cov>ok</cov><line>197</line><src>            can_timeout_tick[CHASSIS_0][pos] = 0;</src></hll>
+				<asm><cov>ok</cov><addr>P:8000361C</addr><code>DDB4</code><mnemonic>st16.h    [a13],d13</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c" type="multiple">
+				<hll><line>198</line><src>        }</src></hll>
+				<hll><line>199</line><src>    }</src></hll>
+				<hll><line>200</line><src></src></hll>
+				<hll><line>201</line><src>    /* Indirect timeout detection */</src></hll>
+				<hll><line>202</line><src>#if CCAN == CANFD</src></hll>
+				<hll><cov>ok</cov><line>203</line><src>    uint8 MDPS_LkaPlgInSta = ref_sig.MDPS_LkaPlgInSta;</src></hll>
+				<asm><cov>ok</cov><addr>P:80003624</addr><code>0990A209</code><mnemonic>ld.a      a2,[a10]0x10</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000362C</addr><code>086C2009</code><mnemonic>ld.bu     d0,[a2]0x2C</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c" type="multiple">
+				<hll><line>204</line><src></src></hll>
+				<hll><cov>ok</cov><line>205</line><src>    meet_precond = p-&gt;is_norm_vol &amp;&amp; p-&gt;is_3s_after_ign_on &amp;&amp; p-&gt;is_eng_run &amp;&amp; p-&gt;is_not_ecan_busoff;</src></hll>
+				<asm><cov>ok</cov><addr>P:80003628</addr><code>FF14</code><mnemonic>ld16.bu   d15,[a15]</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000362A</addr><code>0482</code><mnemonic>mov16     d4,#0x0</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:80003630</addr><code>076E</code><mnemonic>jz16      d15,0x8000363E</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003632</addr><code>1F08</code><mnemonic>ld16.bu   d15,[a15]0x1</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:80003634</addr><code>056E</code><mnemonic>jz16      d15,0x8000363E</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003636</addr><code>3F08</code><mnemonic>ld16.bu   d15,[a15]0x3</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003638</addr><code>036E</code><mnemonic>jz16      d15,0x8000363E</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000363A</addr><code>4F08</code><mnemonic>ld16.bu   d15,[a15]0x4</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000363C</addr><code>14AA</code><mnemonic>cmov16    d4,d15,#0x1</mnemonic><comment>meet_precond,d15,#1</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>ok</cov><line>206</line><src>    update_info(&amp;MDPS_01_indir, meet_precond,</src></hll>
+				<asm><cov>ok</cov><addr>P:80003652</addr><code>B003203B</code><mnemonic>mov       d11,#0x32</mnemonic><comment>HU_AliveStatus,#50</comment></asm>
+				<asm><cov>ok</cov><addr>P:80003656</addr><code>D9004091</code><mnemonic>movh.a    a13,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000365A</addr><code>3054DDD9</code><mnemonic>lea       a13,[a13]0x4D4</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000365E</addr><code>ADB4</code><mnemonic>st16.h    [a10],d13</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>ok</cov><line>207</line><src>                MDPS_LkaPlgInSta != 1,</src></hll>
+				<asm><cov>ok</cov><addr>P:80003660</addr><code>5220108B</code><mnemonic>ne        d5,d0,#0x1</mnemonic><comment>d5,MDPS_LkaPlgInSta,#1</comment></asm>
+				<asm><cov>ok</cov><addr>P:80003664</addr><code>D440</code><mnemonic>mov16.aa  a4,a13</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003666</addr><code>B702</code><mnemonic>mov16     d7,d11</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003668</addr><code>0A30006D</code><mnemonic>call      0x80004AC8</mnemonic><comment>update_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c" type="multiple">
+				<hll><cov>ok</cov><line>208</line><src>                is_updated(CHASSIS_0, MDPS_01_10ms_POS) &amp;&amp; MDPS_LkaPlgInSta == 1,</src></hll>
+				<asm><cov>ok</cov><addr>P:80003646</addr><code>0682</code><mnemonic>mov16     d6,#0x0</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:8000364C</addr><code>036E</code><mnemonic>jz16      d15,0x80003652</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000364E</addr><code>10BA</code><mnemonic>eq16      d15,d0,#0x1</mnemonic><comment>d15,MDPS_LkaPlgInSta,#1</comment></asm>
+				<asm><cov>never</cov><addr>P:80003650</addr><code>16AA</code><mnemonic>cmov16    d6,d15,#0x1</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>ok</cov><line>209</line><src>                MS2TICK(500), 0);</src></hll>
+				<asm><cov>ok</cov><addr>P:80003652</addr><code>B003203B</code><mnemonic>mov       d11,#0x32</mnemonic><comment>HU_AliveStatus,#50</comment></asm>
+				<asm><cov>ok</cov><addr>P:80003656</addr><code>D9004091</code><mnemonic>movh.a    a13,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000365A</addr><code>3054DDD9</code><mnemonic>lea       a13,[a13]0x4D4</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000365E</addr><code>ADB4</code><mnemonic>st16.h    [a10],d13</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>210</line><src></src></hll>
+				<hll><line>211</line><src>#elif CCAN == HSCAN</src></hll>
+				<hll><line>212</line><src>    uint8 TCU11_STS = ref_sig.TCU11_STS;</src></hll>
+				<hll><line>213</line><src>    uint8 EMS11_STS = ref_sig.EMS11_STS;</src></hll>
+				<hll><line>214</line><src>    uint8 EMS_H12_STS = ref_sig.EMS_H12_STS;</src></hll>
+				<hll><line>215</line><src>    uint16 POS_V2_RangeAvgSpeed = ref_sig.POS_V2_RangeAvgSpeed;</src></hll>
+				<hll><line>216</line><src></src></hll>
+				<hll><line>217</line><src>    meet_precond = p-&gt;is_norm_vol &amp;&amp; p-&gt;is_3s_after_ign_on &amp;&amp; p-&gt;is_not_ecan_busoff;</src></hll>
+				<hll><line>218</line><src>    update_info(&amp;EMS11_indir, meet_precond,</src></hll>
+				<hll><line>219</line><src>                EMS11_STS == 1,</src></hll>
+				<hll><line>220</line><src>                is_updated(CHASSIS_0, P_STS_POS) &amp;&amp; EMS11_STS == 0,</src></hll>
+				<hll><line>221</line><src>                MS2TICK(2000), 0);</src></hll>
+				<hll><line>222</line><src>    update_info(&amp;EMS_H12_indir, meet_precond,</src></hll>
+				<hll><line>223</line><src>                EMS_H12_STS == 1,</src></hll>
+				<hll><line>224</line><src>                is_updated(CHASSIS_0, P_STS_POS) &amp;&amp; EMS_H12_STS == 0,</src></hll>
+				<hll><line>225</line><src>                MS2TICK(2000), 0);</src></hll>
+				<hll><line>226</line><src></src></hll>
+				<hll><line>227</line><src>    meet_precond = p-&gt;is_norm_vol &amp;&amp; p-&gt;is_3s_after_ign_on &amp;&amp; p-&gt;is_eng_run &amp;&amp; p-&gt;is_not_ecan_busoff;</src></hll>
+				<hll><line>228</line><src>    update_info(&amp;TCU11_indir, meet_precond,</src></hll>
+				<hll><line>229</line><src>                TCU11_STS == 1,</src></hll>
+				<hll><line>230</line><src>                is_updated(CHASSIS_0, P_STS_POS) &amp;&amp; TCU11_STS == 0,</src></hll>
+				<hll><line>231</line><src>                MS2TICK(2000), 0);</src></hll>
+				<hll><line>232</line><src></src></hll>
+				<hll><line>233</line><src>    meet_precond = navi_option &amp;&amp; !is_coding_navi_mismatch() &amp;&amp; HU_AliveStatus == 1 &amp;&amp;p-&gt;is_norm_vol &amp;&amp; p-&gt;is_3s_after_ign_on &amp;&amp; p-&gt;is_eng_run &amp;&amp; p-&gt;is_not_ecan_busoff;</src></hll>
+				<hll><line>234</line><src>    update_info(&amp;NAVI_V2_POS_indir, meet_precond,</src></hll>
+				<hll><line>235</line><src>                POS_V2_RangeAvgSpeed == 0x1FE,</src></hll>
+				<hll><line>236</line><src>                is_updated(CHASSIS_0, NAVI_V2_POS_E_POS) &amp;&amp; POS_V2_RangeAvgSpeed != 0x1FE,</src></hll>
+				<hll><line>237</line><src>                MS2TICK(12000), 3);</src></hll>
+				<hll><line>238</line><src>#endif /* CCAN */</src></hll>
+				<hll><line>239</line><src></src></hll>
+				<hll><cov>taken</cov><line>240</line><src>    if (!navi_option) {</src></hll>
+				<asm><cov>taken</cov><addr>P:8000366C</addr><code>85F6</code><mnemonic>jnz16     d8,0x80003676</mnemonic><comment>navi_option,0x80003676</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>241</line><src>#if CCAN == CANFD</src></hll>
+				<hll><cov>never</cov><line>242</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~(BIT(HU_CLU_PE_05_POS) | BIT(HU_GW_PE_01_POS) | BIT(HU_MON_PE_01_POS) | BIT(HU_NAVI_V2_POS_PE_POS));</src></hll>
+				<asm><cov>never</cov><addr>P:8000366E</addr><code>C054</code><mnemonic>ld16.w    d0,[a12]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003670</addr><code>068400B7</code><mnemonic>insert    d0,d0,#0x0,0x0D,#0x4</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003674</addr><code>C074</code><mnemonic>st16.w    [a12],d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>243</line><src>#elif CCAN == HSCAN</src></hll>
+				<hll><line>244</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~(BIT(HU_CLU_PE_05_POS) | BIT(HU_GW_PE_01_POS));</src></hll>
+				<hll><line>245</line><src>        NAVI_V2_POS_indir.fault = FALSE;</src></hll>
+				<hll><line>246</line><src>#endif /* CCAN */</src></hll>
+				<hll><line>247</line><src>    }</src></hll>
+				<hll><cov>taken</cov><line>248</line><src>    if (!hda_option) {</src></hll>
+				<asm><cov>taken</cov><addr>P:80003676</addr><code>95F6</code><mnemonic>jnz16     d9,0x80003680</mnemonic><comment>hda_option,0x80003680</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>249</line><src>#if CCAN == CANFD</src></hll>
+				<hll><cov>never</cov><line>250</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~(BIT(ICU_06_200ms_POS));</src></hll>
+				<asm><cov>never</cov><addr>P:80003678</addr><code>CF54</code><mnemonic>ld16.w    d15,[a12]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000367A</addr><code>FA010FB7</code><mnemonic>insert    d15,d15,#0x0,0x14,#0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000367E</addr><code>CF74</code><mnemonic>st16.w    [a12],d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>251</line><src>#elif CCAN == HSCAN</src></hll>
+				<hll><line>252</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~(BIT(CGW5_POS) | BIT(CGW11_POS) | BIT(RR_C_RDR_02_POS));</src></hll>
+				<hll><line>253</line><src>#endif /* CCAN */</src></hll>
+				<hll><line>254</line><src>    }</src></hll>
+				<hll><did>not</did><dec>taken</dec><cov>taken</cov><line>255</line><src>    if (mdps_option != MDPS__R_Type) {</src></hll>
+				<asm><cov>not taken</cov><addr>P:80003680</addr><code>00062ADF</code><mnemonic>jeq       d10,#0x2,0x8000368C</mnemonic><comment>mdps_option,#2,0x8000368C</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>256</line><src>#if CCAN == CANFD</src></hll>
+				<hll><cov>ok</cov><line>257</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~(BIT(MFSW_01_200ms_POS));</src></hll>
+				<asm><cov>ok</cov><addr>P:80003684</addr><code>CF54</code><mnemonic>ld16.w    d15,[a12]</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003686</addr><code>FB810FB7</code><mnemonic>insert    d15,d15,#0x0,0x17,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000368A</addr><code>CF74</code><mnemonic>st16.w    [a12],d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>258</line><src>#endif /* CCAN */        </src></hll>
+				<hll><line>259</line><src>    }</src></hll>
+				<hll><line>260</line><src></src></hll>
+				<hll><line>261</line><src></src></hll>
+				<hll><line>262</line><src>    /* ADAS CAN */</src></hll>
+				<hll><did>not</did><dec>taken</dec><cov>taken</cov><line>263</line><src>    meet_precond = (!can_timeout_disable) &amp;&amp; p-&gt;is_norm_vol &amp;&amp; p-&gt;is_3s_after_ign_on &amp;&amp; p-&gt;is_eng_run &amp;&amp; p-&gt;is_not_acan_busoff;</src></hll>
+				<asm><cov>ok</cov><addr>P:8000368C</addr><code>0984A209</code><mnemonic>ld.a      a2,[a10]0x4</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003690</addr><code>0382</code><mnemonic>mov16     d3,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003692</addr><code>2F14</code><mnemonic>ld16.bu   d15,[a2]</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:80003694</addr><code>09EE</code><mnemonic>jnz16     d15,0x800036A6</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003696</addr><code>FF14</code><mnemonic>ld16.bu   d15,[a15]</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:80003698</addr><code>076E</code><mnemonic>jz16      d15,0x800036A6</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000369A</addr><code>1F08</code><mnemonic>ld16.bu   d15,[a15]0x1</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:8000369C</addr><code>056E</code><mnemonic>jz16      d15,0x800036A6</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000369E</addr><code>3F08</code><mnemonic>ld16.bu   d15,[a15]0x3</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800036A0</addr><code>036E</code><mnemonic>jz16      d15,0x800036A6</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800036A2</addr><code>5F08</code><mnemonic>ld16.bu   d15,[a15]0x5</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800036A4</addr><code>13AA</code><mnemonic>cmov16    d3,d15,#0x1</mnemonic><comment>meet_precond,d15,#1</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c" type="multiple">
+				<hll><cov>ok</cov><line>264</line><src>    for (int msg_num = 0, type = L_FR_CMR_0; type &lt;= L_FR_C_RDR_1; type++) {</src></hll>
+				<asm><cov>ok</cov><addr>P:800036A6</addr><code>0482</code><mnemonic>mov16     d4,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800036A8</addr><code>2582</code><mnemonic>mov16     d5,#0x2</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800036AA</addr><code>32A0</code><mnemonic>mov16.a   a2,#0x3</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003732</addr><code>15C2</code><mnemonic>add16     d5,#0x1</mnemonic><comment>type,#1</comment></asm>
+				<asm><cov>ok</cov><addr>P:80003734</addr><code>7FBC20FD</code><mnemonic>loop      a2,0x800036AC</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>265</line><src>        switch (type) {</src></hll>
+				<hll><cov>ok</cov><line>266</line><src>            case L_FR_CMR_0:</src></hll>
+				<asm><cov>ok</cov><addr>P:800036AC</addr><code>000925DF</code><mnemonic>jeq       d5,#0x2,0x800036BE</mnemonic><comment>type,#2,0x800036BE</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>267</line><src>                msg_num = L_FR_CMR_0_NUM;</src></hll>
+				<hll><line>268</line><src>                break;</src></hll>
+				<hll><cov>ok</cov><line>269</line><src>            case L_FR_RDR_0:</src></hll>
+				<asm><cov>ok</cov><addr>P:800036B0</addr><code>000735DF</code><mnemonic>jeq       d5,#0x3,0x800036BE</mnemonic><comment>type,#3,0x800036BE</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>270</line><src>                msg_num = L_FR_RDR_0_NUM;</src></hll>
+				<hll><line>271</line><src>                break;</src></hll>
+				<hll><cov>ok</cov><line>272</line><src>            case L_FR_C_RDR_0:</src></hll>
+				<asm><cov>ok</cov><addr>P:800036B4</addr><code>000545DF</code><mnemonic>jeq       d5,#0x4,0x800036BE</mnemonic><comment>type,#4,0x800036BE</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>273</line><src>                msg_num = L_FR_C_RDR_0_NUM;</src></hll>
+				<hll><cov>ok</cov><line>274</line><src>                break;</src></hll>
+				<asm><cov>ok</cov><addr>P:800036BE</addr><code>4002003B</code><mnemonic>mov       d4,#0x20</mnemonic><comment>msg_num,#32</comment></asm>
+				<asm><cov>ok</cov><addr>P:800036C2</addr><code>033C</code><mnemonic>j16       0x800036C8</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>partial</cov><line>275</line><src>            case L_FR_C_RDR_1:</src></hll>
+				<asm><cov>taken</cov><addr>P:800036B8</addr><code>000655DF</code><mnemonic>jeq       d5,#0x5,0x800036C4</mnemonic><comment>type,#5,0x800036C4</comment></asm>
+				<asm><cov>never</cov><addr>P:800036BC</addr><code>063C</code><mnemonic>j16       0x800036C8</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>ok</cov><line>276</line><src>                msg_num = L_FR_C_RDR_1_NUM;</src></hll>
+				<asm><cov>ok</cov><addr>P:800036C4</addr><code>4001003B</code><mnemonic>mov       d4,#0x10</mnemonic><comment>msg_num,#16</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c" type="multiple">
+				<hll><line>277</line><src>                break;</src></hll>
+				<hll><line>278</line><src>        }</src></hll>
+				<hll><line>279</line><src></src></hll>
+				<hll><cov>ok</cov><line>280</line><src>        for (int pos = msg_num; pos--;) {</src></hll>
+				<asm><cov>ok</cov><addr>P:800036D2</addr><code>4602</code><mnemonic>mov16     d6,d4</mnemonic><comment>d6,msg_num</comment></asm>
+				<asm><cov>ok</cov><addr>P:800036E0</addr><code>273C</code><mnemonic>j16       0x8000372E</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800036E2</addr><code>F6C2</code><mnemonic>add16     d6,#-0x1</mnemonic><comment>pos,#-1</comment></asm>
+				<asm><cov>ok</cov><addr>P:800036E4</addr><code>5054</code><mnemonic>ld16.w    d0,[a5]</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000372E</addr><code>FFDA06DF</code><mnemonic>jne       d6,#0x0,0x800036E2</mnemonic><comment>pos,#0,0x800036E2</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c" type="multiple">
+				<hll><cov>ok</cov><line>281</line><src>            if (is_updated((uint8)type, (uint8)pos)) {</src></hll>
+				<asm><cov>ok</cov><addr>P:800036E6</addr><code>10680637</code><mnemonic>extr.u    d1,d6,0x0,#0x8</mnemonic><comment>d1,pos,0,#8</comment></asm>
+				<asm><cov>ok</cov><addr>P:800036EA</addr><code>EFB0</code><mnemonic>add16.a   a15,#-0x2</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:800036F4</addr><code>0A76</code><mnemonic>jz16      d0,0x80003708</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c" type="multiple">
+				<hll><cov>ok</cov><line>282</line><src>                can_timeout_tick[type][pos] = 0;</src></hll>
+				<asm><cov>ok</cov><addr>P:800036D8</addr><code>02D8</code><mnemonic>ld16.a    a15,[a10]0x8</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800036DA</addr><code>FF10</code><mnemonic>addsc16.a a15,a15,d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800036DC</addr><code>F601F401</code><mnemonic>addsc.a   a15,a15,d4,#0x1</mnemonic><comment>a15,a15,msg_num,#1</comment></asm>
+				<asm><cov>never</cov><addr>P:800036F6</addr><code>FDB4</code><mnemonic>st16.h    [a15],d13</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003706</addr><code>143C</code><mnemonic>j16       0x8000372E</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c" type="multiple">
+				<hll><cov>ok</cov><line>283</line><src>                can_timeout_fault[type] &amp;= ~BIT(pos);</src></hll>
+				<asm><cov>ok</cov><addr>P:800036CA</addr><code>F020658F</code><mnemonic>sha       d15,d5,#0x6</mnemonic><comment>d15,type,#6</comment></asm>
+				<asm><cov>ok</cov><addr>P:800036CE</addr><code>4602C501</code><mnemonic>addsc.a   a4,a12,d5,#0x2</mnemonic><comment>a4,a12,type,#2</comment></asm>
+				<asm><cov>never</cov><addr>P:800036F8</addr><code>2000620F</code><mnemonic>sh        d2,d2,d6</mnemonic><comment>d2,d2,pos</comment></asm>
+				<asm><cov>never</cov><addr>P:800036FC</addr><code>4054</code><mnemonic>ld16.w    d0,[a4]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800036FE</addr><code>F182</code><mnemonic>mov16     d1,#-0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003700</addr><code>12C6</code><mnemonic>xor16     d2,d1</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003702</addr><code>2026</code><mnemonic>and16     d0,d2</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003704</addr><code>4074</code><mnemonic>st16.w    [a4],d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>ok</cov><line>284</line><src>            } else if (meet_precond) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003708</addr><code>001203DF</code><mnemonic>jeq       d3,#0x0,0x8000372C</mnemonic><comment>meet_precond,#0,0x8000372C</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c" type="multiple">
+				<hll><cov>taken</cov><line>285</line><src>                if (++can_timeout_tick[type][pos] &gt;= acan_timeout_val) {</src></hll>
+				<asm><cov>ok</cov><addr>P:8000370C</addr><code>08C0FF09</code><mnemonic>ld.hu     d15,[a15]0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003710</addr><code>1FC2</code><mnemonic>add16     d15,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003712</addr><code>F0700F37</code><mnemonic>extr.u    d15,d15,0x0,#0x10</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003716</addr><code>FFB4</code><mnemonic>st16.h    [a15],d15</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003718</addr><code>800BBF3F</code><mnemonic>jlt.u     d15,d11,0x8000372E</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000372A</addr><code>023C</code><mnemonic>j16       0x8000372E</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>286</line><src>                    can_timeout_tick[type][pos] = acan_timeout_val;</src></hll>
+				<asm><cov>never</cov><addr>P:8000371C</addr><code>FBB4</code><mnemonic>st16.h    [a15],d11</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>287</line><src>                    can_timeout_fault[type] |= BIT(pos);</src></hll>
+				<asm><cov>never</cov><addr>P:8000371E</addr><code>1082</code><mnemonic>mov16     d0,#0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003720</addr><code>4F54</code><mnemonic>ld16.w    d15,[a4]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003722</addr><code>0000600F</code><mnemonic>sh        d0,d0,d6</mnemonic><comment>d0,d0,pos</comment></asm>
+				<asm><cov>never</cov><addr>P:80003726</addr><code>0FA6</code><mnemonic>or16      d15,d0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003728</addr><code>4F74</code><mnemonic>st16.w    [a4],d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>288</line><src>                }</src></hll>
+				<hll><line>289</line><src>            } else {</src></hll>
+				<hll><cov>ok</cov><line>290</line><src>                can_timeout_tick[type][pos] = 0;</src></hll>
+				<asm><cov>ok</cov><addr>P:8000372C</addr><code>FDB4</code><mnemonic>st16.h    [a15],d13</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c" type="multiple">
+				<hll><line>291</line><src>            }</src></hll>
+				<hll><line>292</line><src>        }</src></hll>
+				<hll><line>293</line><src>    }</src></hll>
+				<hll><line>294</line><src>    uint32 recov_mask;</src></hll>
+				<hll><line>295</line><src>    recov_mask = BIT(A_FR_CMR_FS_07_30ms_POS + 1) - BIT(A_FR_CMR_Obj_11_30ms_POS);</src></hll>
+				<hll><cov>ok</cov><line>296</line><src>    can_timeout_fault[L_FR_CMR_0] &amp;= ~recov_mask;</src></hll>
+				<asm><cov>ok</cov><addr>P:80003738</addr><code>0A08C249</code><mnemonic>lea       a2,[a12]0x8</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000373C</addr><code>2F54</code><mnemonic>ld16.w    d15,[a2]</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003746</addr><code>F7910FB7</code><mnemonic>insert    d15,d15,#0x0,0x0F,#0x11</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000374A</addr><code>2F74</code><mnemonic>st16.w    [a2],d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c" type="multiple">
+				<hll><line>297</line><src>    recov_mask = (BIT(A_FR_RDR_Obj_29_50ms_POS + 1) - BIT(A_FR_RDR_Obj_17_50ms_POS)) | BIT(A_FR_RDR_Genrl_02_50ms_POS);</src></hll>
+				<hll><cov>ok</cov><line>298</line><src>    can_timeout_fault[L_FR_RDR_0] &amp;= ~recov_mask;</src></hll>
+				<asm><cov>ok</cov><addr>P:8000373E</addr><code>0FFFD0BB</code><mnemonic>mov.u     d0,#0xFFFD</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003742</addr><code>0A0CC449</code><mnemonic>lea       a4,[a12]0x0C</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000374C</addr><code>0000709B</code><mnemonic>addih     d0,d0,#0x7</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003750</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003754</addr><code>4F54</code><mnemonic>ld16.w    d15,[a4]</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000375A</addr><code>0F26</code><mnemonic>and16     d15,d0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000375C</addr><code>4F74</code><mnemonic>st16.w    [a4],d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c" type="multiple">
+				<hll><line>299</line><src></src></hll>
+				<hll><line>300</line><src>#if CCAN == CANFD</src></hll>
+				<hll><line>301</line><src>    /* Recover group 1 */</src></hll>
+				<hll><cov>ok</cov><line>302</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_1], ABS_ESC_TIMEOUT))</src></hll>
+				<asm><cov>ok</cov><addr>P:8000374C</addr><code>0000709B</code><mnemonic>addih     d0,d0,#0x7</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003750</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003754</addr><code>4F54</code><mnemonic>ld16.w    d15,[a4]</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003756</addr><code>507AFFD9</code><mnemonic>lea       a15,[a15]0x57A</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000375E</addr><code>1F08</code><mnemonic>ld16.bu   d15,[a15]0x1</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003760</addr><code>052E</code><mnemonic>jz16.t    d15,#0x0,0x8000376A</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>303</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(ABS_ESC_01_10ms_POS);</src></hll>
+				<asm><cov>never</cov><addr>P:80003762</addr><code>C054</code><mnemonic>ld16.w    d0,[a12]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003764</addr><code>000100B7</code><mnemonic>insert    d0,d0,#0x0,0x0,#0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003768</addr><code>C074</code><mnemonic>st16.w    [a12],d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>304</line><src>#if VEH_TYPE == EV</src></hll>
+				<hll><line>305</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_1], VCU_HCU_TIMEOUT))</src></hll>
+				<hll><line>306</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~(BIT(VCU_01_10ms_POS) | BIT(VCU_03_100ms_POS));</src></hll>
+				<hll><line>307</line><src>#elif VEH_TYPE == HEV</src></hll>
+				<hll><line>308</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_1], VCU_HCU_TIMEOUT))</src></hll>
+				<hll><line>309</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~(BIT(HCU_03_POS) | BIT(HCU_05_POS));</src></hll>
+				<hll><line>310</line><src>#endif /* VEH_TYPE */</src></hll>
+				<hll><cov>taken</cov><line>311</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_1], BCM_TIMEOUT))</src></hll>
+				<asm><cov>taken</cov><addr>P:8000376A</addr><code>252E</code><mnemonic>jz16.t    d15,#0x2,0x80003774</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>312</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~(BIT(BCM_10_200ms_POS));</src></hll>
+				<asm><cov>never</cov><addr>P:8000376C</addr><code>C054</code><mnemonic>ld16.w    d0,[a12]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000376E</addr><code>010100B7</code><mnemonic>insert    d0,d0,#0x0,0x2,#0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003772</addr><code>C074</code><mnemonic>st16.w    [a12],d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>taken</cov><line>313</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_1], CLU_TIMEOUT))</src></hll>
+				<asm><cov>taken</cov><addr>P:80003774</addr><code>352E</code><mnemonic>jz16.t    d15,#0x3,0x8000377E</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>314</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~(BIT(CLU_01_20ms_POS) | BIT(CLU_02_100ms_POS));</src></hll>
+				<asm><cov>never</cov><addr>P:80003776</addr><code>C054</code><mnemonic>ld16.w    d0,[a12]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003778</addr><code>018200B7</code><mnemonic>insert    d0,d0,#0x0,0x3,#0x2</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000377C</addr><code>C074</code><mnemonic>st16.w    [a12],d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>315</line><src>#if VEH_TYPE == NORMAL</src></hll>
+				<hll><cov>taken</cov><line>316</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_1], EMS_TIMEOUT))</src></hll>
+				<asm><cov>taken</cov><addr>P:8000377E</addr><code>452E</code><mnemonic>jz16.t    d15,#0x4,0x80003788</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>317</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~(BIT(EMS_01_10ms_POS) | BIT(EMS_02_10ms_POS) | BIT(EMS_03_10ms_POS) | BIT(EMS_05_100ms_POS));</src></hll>
+				<asm><cov>never</cov><addr>P:80003780</addr><code>C054</code><mnemonic>ld16.w    d0,[a12]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003782</addr><code>028400B7</code><mnemonic>insert    d0,d0,#0x0,0x5,#0x4</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003786</addr><code>C074</code><mnemonic>st16.w    [a12],d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>318</line><src>#elif VEH_TYPE == HEV</src></hll>
+				<hll><line>319</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_1], EMS_TIMEOUT))</src></hll>
+				<hll><line>320</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~(BIT(EMS_07_POS) | BIT(EMS_11_POS));</src></hll>
+				<hll><line>321</line><src>#endif /* VEH_TYPE */</src></hll>
+				<hll><cov>taken</cov><line>322</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_1], ESC_TIMEOUT))</src></hll>
+				<asm><cov>taken</cov><addr>P:80003788</addr><code>552E</code><mnemonic>jz16.t    d15,#0x5,0x80003792</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>323</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~(BIT(ESC_01_10ms_POS) | BIT(ESC_03_20ms_POS));</src></hll>
+				<asm><cov>never</cov><addr>P:8000378A</addr><code>CF54</code><mnemonic>ld16.w    d15,[a12]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000378C</addr><code>F5820FB7</code><mnemonic>insert    d15,d15,#0x0,0x0B,#0x2</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003790</addr><code>CF74</code><mnemonic>st16.w    [a12],d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>324</line><src></src></hll>
+				<hll><line>325</line><src>    /* Recover group 2 */</src></hll>
+				<hll><cov>taken</cov><line>326</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_2], HU_CLU_PE_TIMEOUT))</src></hll>
+				<asm><cov>ok</cov><addr>P:80003792</addr><code>2F08</code><mnemonic>ld16.bu   d15,[a15]0x2</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003794</addr><code>052E</code><mnemonic>jz16.t    d15,#0x0,0x8000379E</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>327</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(HU_CLU_PE_05_POS);</src></hll>
+				<asm><cov>never</cov><addr>P:80003796</addr><code>C054</code><mnemonic>ld16.w    d0,[a12]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003798</addr><code>068100B7</code><mnemonic>insert    d0,d0,#0x0,0x0D,#0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000379C</addr><code>C074</code><mnemonic>st16.w    [a12],d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>taken</cov><line>328</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_2], HU_GW_PE_TIMEOUT))</src></hll>
+				<asm><cov>taken</cov><addr>P:8000379E</addr><code>152E</code><mnemonic>jz16.t    d15,#0x1,0x800037A8</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>329</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(HU_GW_PE_01_POS);</src></hll>
+				<asm><cov>never</cov><addr>P:800037A0</addr><code>C054</code><mnemonic>ld16.w    d0,[a12]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800037A2</addr><code>070100B7</code><mnemonic>insert    d0,d0,#0x0,0x0E,#0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800037A6</addr><code>C074</code><mnemonic>st16.w    [a12],d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>taken</cov><line>330</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_2], HU_MON_PE_TIMEOUT))</src></hll>
+				<asm><cov>taken</cov><addr>P:800037A8</addr><code>252E</code><mnemonic>jz16.t    d15,#0x2,0x800037B2</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>331</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(HU_MON_PE_01_POS);</src></hll>
+				<asm><cov>never</cov><addr>P:800037AA</addr><code>C054</code><mnemonic>ld16.w    d0,[a12]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800037AC</addr><code>078100B7</code><mnemonic>insert    d0,d0,#0x0,0x0F,#0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800037B0</addr><code>C074</code><mnemonic>st16.w    [a12],d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>taken</cov><line>332</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_2], HU_NAVI_V2_POS_PE_TIMEOUT))</src></hll>
+				<asm><cov>taken</cov><addr>P:800037B2</addr><code>352E</code><mnemonic>jz16.t    d15,#0x3,0x800037BC</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>333</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(HU_NAVI_V2_POS_PE_POS);</src></hll>
+				<asm><cov>never</cov><addr>P:800037B4</addr><code>C054</code><mnemonic>ld16.w    d0,[a12]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800037B6</addr><code>080100B7</code><mnemonic>insert    d0,d0,#0x0,0x10,#0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800037BA</addr><code>C074</code><mnemonic>st16.w    [a12],d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>taken</cov><line>334</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_2], ICSC_TIMEOUT))</src></hll>
+				<asm><cov>taken</cov><addr>P:800037BC</addr><code>452E</code><mnemonic>jz16.t    d15,#0x4,0x800037C6</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>335</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(ICSC_02_100ms_POS);</src></hll>
+				<asm><cov>never</cov><addr>P:800037BE</addr><code>C054</code><mnemonic>ld16.w    d0,[a12]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800037C0</addr><code>088100B7</code><mnemonic>insert    d0,d0,#0x0,0x11,#0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800037C4</addr><code>C074</code><mnemonic>st16.w    [a12],d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>taken</cov><line>336</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_2], ICU_TIMEOUT))</src></hll>
+				<asm><cov>taken</cov><addr>P:800037C6</addr><code>552E</code><mnemonic>jz16.t    d15,#0x5,0x800037D0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>337</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~(BIT(ICU_02_200ms_POS) | BIT(ICU_04_200ms_POS) | BIT(ICU_06_200ms_POS));</src></hll>
+				<asm><cov>never</cov><addr>P:800037C8</addr><code>C054</code><mnemonic>ld16.w    d0,[a12]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800037CA</addr><code>090300B7</code><mnemonic>insert    d0,d0,#0x0,0x12,#0x3</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800037CE</addr><code>C074</code><mnemonic>st16.w    [a12],d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>taken</cov><line>338</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_2], MDPS_TIMEOUT)) {</src></hll>
+				<asm><cov>taken</cov><addr>P:800037D0</addr><code>672E</code><mnemonic>jz16.t    d15,#0x6,0x800037DE</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>339</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(MDPS_01_10ms_POS);</src></hll>
+				<asm><cov>never</cov><addr>P:800037D2</addr><code>C054</code><mnemonic>ld16.w    d0,[a12]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800037D4</addr><code>0B0100B7</code><mnemonic>insert    d0,d0,#0x0,0x16,#0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800037D8</addr><code>C074</code><mnemonic>st16.w    [a12],d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>340</line><src>        MDPS_01_indir.fault = FALSE;</src></hll>
+				<asm><cov>never</cov><addr>P:800037DA</addr><code>0082</code><mnemonic>mov16     d0,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800037DC</addr><code>D034</code><mnemonic>st16.b    [a13],d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>341</line><src>    }</src></hll>
+				<hll><cov>taken</cov><line>342</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_2], MFSW_TIMEOUT))</src></hll>
+				<asm><cov>taken</cov><addr>P:800037DE</addr><code>752E</code><mnemonic>jz16.t    d15,#0x7,0x800037E8</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>343</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~(BIT(MFSW_01_200ms_POS));</src></hll>
+				<asm><cov>never</cov><addr>P:800037E0</addr><code>CF54</code><mnemonic>ld16.w    d15,[a12]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800037E2</addr><code>FB810FB7</code><mnemonic>insert    d15,d15,#0x0,0x17,#0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800037E6</addr><code>CF74</code><mnemonic>st16.w    [a12],d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>344</line><src></src></hll>
+				<hll><line>345</line><src>    /* Recover group 3 */</src></hll>
+				<hll><cov>taken</cov><line>346</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_3], RR_C_RDR_TIMEOUT))</src></hll>
+				<asm><cov>ok</cov><addr>P:800037E8</addr><code>3F08</code><mnemonic>ld16.bu   d15,[a15]0x3</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:800037EA</addr><code>062E</code><mnemonic>jz16.t    d15,#0x0,0x800037F6</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>347</line><src>        //can_timeout_fault[CHASSIS_0] &amp;= ~BIT(RR_C_RDR_02_50ms_POS);</src></hll>
+				<hll><cov>never</cov><line>348</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_3], SAS_TIMEOUT))</src></hll>
+				<asm><cov>never</cov><addr>P:800037EC</addr><code>152E</code><mnemonic>jz16.t    d15,#0x1,0x800037F6</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>349</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(SAS_01_10ms_POS);</src></hll>
+				<asm><cov>never</cov><addr>P:800037EE</addr><code>C054</code><mnemonic>ld16.w    d0,[a12]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800037F0</addr><code>0C0100B7</code><mnemonic>insert    d0,d0,#0x0,0x18,#0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800037F4</addr><code>C074</code><mnemonic>st16.w    [a12],d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>taken</cov><line>350</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_3], SWRC_TIMEOUT))</src></hll>
+				<asm><cov>taken</cov><addr>P:800037F6</addr><code>252E</code><mnemonic>jz16.t    d15,#0x2,0x80003800</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>351</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(SWRC_03_20ms_POS);</src></hll>
+				<asm><cov>never</cov><addr>P:800037F8</addr><code>C054</code><mnemonic>ld16.w    d0,[a12]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800037FA</addr><code>0D8100B7</code><mnemonic>insert    d0,d0,#0x0,0x1B,#0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800037FE</addr><code>C074</code><mnemonic>st16.w    [a12],d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>352</line><src>#if VEH_TYPE == NORMAL</src></hll>
+				<hll><cov>taken</cov><line>353</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_3], TCU_TIMEOUT))</src></hll>
+				<asm><cov>taken</cov><addr>P:80003800</addr><code>352E</code><mnemonic>jz16.t    d15,#0x3,0x8000380A</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>354</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(TCU_01_10ms_POS);</src></hll>
+				<asm><cov>never</cov><addr>P:80003802</addr><code>C054</code><mnemonic>ld16.w    d0,[a12]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003804</addr><code>050100B7</code><mnemonic>insert    d0,d0,#0x0,0x0A,#0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003808</addr><code>C074</code><mnemonic>st16.w    [a12],d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>355</line><src>#elif VEH_TYPE == HEV</src></hll>
+				<hll><line>356</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_3], TCU_TIMEOUT))</src></hll>
+				<hll><line>357</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(HTCU_04_POS);</src></hll>
+				<hll><line>358</line><src>#endif /* VEH_TYPE */</src></hll>
+				<hll><cov>taken</cov><line>359</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_3], WHL_TIMEOUT))</src></hll>
+				<asm><cov>taken</cov><addr>P:8000380A</addr><code>452E</code><mnemonic>jz16.t    d15,#0x4,0x80003814</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>360</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(WHL_01_10ms_POS);</src></hll>
+				<asm><cov>never</cov><addr>P:8000380C</addr><code>C054</code><mnemonic>ld16.w    d0,[a12]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000380E</addr><code>0E0100B7</code><mnemonic>insert    d0,d0,#0x0,0x1C,#0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003812</addr><code>C074</code><mnemonic>st16.w    [a12],d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>taken</cov><line>361</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_3], YRS_TIMEOUT))</src></hll>
+				<asm><cov>taken</cov><addr>P:80003814</addr><code>552E</code><mnemonic>jz16.t    d15,#0x5,0x8000381E</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>362</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(YRS_01_10ms_POS);</src></hll>
+				<asm><cov>never</cov><addr>P:80003816</addr><code>C054</code><mnemonic>ld16.w    d0,[a12]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003818</addr><code>0E8100B7</code><mnemonic>insert    d0,d0,#0x0,0x1D,#0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000381C</addr><code>C074</code><mnemonic>st16.w    [a12],d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>taken</cov><line>363</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_3], SBCM_TIMEOUT))</src></hll>
+				<asm><cov>taken</cov><addr>P:8000381E</addr><code>652E</code><mnemonic>jz16.t    d15,#0x6,0x80003828</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>364</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~(BIT(SBCM_AST_02_200ms_POS) | BIT(SBCM_DRV_01_200ms_POS));</src></hll>
+				<asm><cov>never</cov><addr>P:80003820</addr><code>CF54</code><mnemonic>ld16.w    d15,[a12]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003822</addr><code>FC820FB7</code><mnemonic>insert    d15,d15,#0x0,0x19,#0x2</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003826</addr><code>CF74</code><mnemonic>st16.w    [a12],d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>365</line><src></src></hll>
+				<hll><line>366</line><src>#elif CCAN == HSCAN</src></hll>
+				<hll><line>367</line><src>    /* Recover group 1 */</src></hll>
+				<hll><line>368</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_1], CGW1_TIMEOUT))</src></hll>
+				<hll><line>369</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(CGW1_POS);</src></hll>
+				<hll><line>370</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_1], CGW2_TIMEOUT))</src></hll>
+				<hll><line>371</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(CGW2_POS);</src></hll>
+				<hll><line>372</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_1], CGW8_TIMEOUT))</src></hll>
+				<hll><line>373</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(CGW8_POS);</src></hll>
+				<hll><line>374</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_1], CGW_PC4_TIMEOUT))</src></hll>
+				<hll><line>375</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(CGW_PC4_POS);</src></hll>
+				<hll><line>376</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_1], CGW_PC5_TIMEOUT))</src></hll>
+				<hll><line>377</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(CGW_PC5_POS);</src></hll>
+				<hll><line>378</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_1], CLU11_TIMEOUT))</src></hll>
+				<hll><line>379</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(CLU11_POS);</src></hll>
+				<hll><line>380</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_1], CLU13_TIMEOUT))</src></hll>
+				<hll><line>381</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(CLU13_POS);</src></hll>
+				<hll><line>382</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_1], EMS12_TIMEOUT))</src></hll>
+				<hll><line>383</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(EMS12_POS);</src></hll>
+				<hll><line>384</line><src></src></hll>
+				<hll><line>385</line><src>    /* Recover group 2 */</src></hll>
+				<hll><line>386</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_2], EMS16_TIMEOUT))</src></hll>
+				<hll><line>387</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(EMS16_POS);</src></hll>
+				<hll><line>388</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_2], ESP12_TIMEOUT))</src></hll>
+				<hll><line>389</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(ESP12_POS);</src></hll>
+				<hll><line>390</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_2], HU_CLU_PE_05_TIMEOUT))</src></hll>
+				<hll><line>391</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(HU_CLU_PE_05_POS);</src></hll>
+				<hll><line>392</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_2], HU_GW_PE_01_TIMEOUT))</src></hll>
+				<hll><line>393</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(HU_GW_PE_01_POS);</src></hll>
+				<hll><line>394</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_2], HU_MON_PE_01_TIMEOUT))</src></hll>
+				<hll><line>395</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(HU_MON_PE_01_POS);</src></hll>
+				<hll><line>396</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_2], MDPS11_TIMEOUT))</src></hll>
+				<hll><line>397</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(MDPS11_POS);</src></hll>
+				<hll><line>398</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_2], MDPS12_TIMEOUT))</src></hll>
+				<hll><line>399</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(MDPS12_POS);</src></hll>
+				<hll><line>400</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_2], NAVI_V2_POS_E_POS_TIMEOUT))</src></hll>
+				<hll><line>401</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(NAVI_V2_POS_E_POS);</src></hll>
+				<hll><line>402</line><src></src></hll>
+				<hll><line>403</line><src>    /* Recover group 3 */</src></hll>
+				<hll><line>404</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_3], P_STS_TIMEOUT))</src></hll>
+				<hll><line>405</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(P_STS_POS);</src></hll>
+				<hll><line>406</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_3], RR_C_RDR_02_TIMEOUT))</src></hll>
+				<hll><line>407</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(RR_C_RDR_02_50ms_POS);</src></hll>
+				<hll><line>408</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_3], SAS11_TIMEOUT))</src></hll>
+				<hll><line>409</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(SAS11_POS);</src></hll>
+				<hll><line>410</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_3], TCS11_TIMEOUT))</src></hll>
+				<hll><line>411</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(TCS11_POS);</src></hll>
+				<hll><line>412</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_3], TCS13_TIMEOUT))</src></hll>
+				<hll><line>413</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(TCS13_POS);</src></hll>
+				<hll><line>414</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_3], VSM11_TIMEOUT))</src></hll>
+				<hll><line>415</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(VSM11_POS);</src></hll>
+				<hll><line>416</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_3], WHL_SPD11_TIMEOUT))</src></hll>
+				<hll><line>417</line><src>        can_timeout_fault[CHASSIS_0] &amp;= ~BIT(WHL_SPD11_POS);</src></hll>
+				<hll><line>418</line><src>#endif /* CCAN */</src></hll>
+				<hll><line>419</line><src></src></hll>
+				<hll><line>420</line><src>    /* Recover group 4 */</src></hll>
+				<hll><cov>taken</cov><line>421</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_4], L_FR_CMR_TIMEOUT))</src></hll>
+				<asm><cov>ok</cov><addr>P:80003828</addr><code>4F08</code><mnemonic>ld16.bu   d15,[a15]0x4</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:8000382A</addr><code>032E</code><mnemonic>jz16.t    d15,#0x0,0x80003830</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>422</line><src>        can_timeout_fault[L_FR_CMR_0] = 0UL;</src></hll>
+				<asm><cov>never</cov><addr>P:8000382C</addr><code>0082</code><mnemonic>mov16     d0,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000382E</addr><code>2074</code><mnemonic>st16.w    [a2],d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>taken</cov><line>423</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_4], L_FR_RDR_TIMEOUT))</src></hll>
+				<asm><cov>taken</cov><addr>P:80003830</addr><code>132E</code><mnemonic>jz16.t    d15,#0x1,0x80003836</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>424</line><src>        can_timeout_fault[L_FR_RDR_0] = 0UL;</src></hll>
+				<asm><cov>never</cov><addr>P:80003832</addr><code>0082</code><mnemonic>mov16     d0,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003834</addr><code>4074</code><mnemonic>st16.w    [a4],d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>taken</cov><line>425</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_4], L_FR_C_RDR_TIMEOUT)) {</src></hll>
+				<asm><cov>taken</cov><addr>P:80003836</addr><code>242E</code><mnemonic>jz16.t    d15,#0x2,0x8000383E</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>426</line><src>        can_timeout_fault[L_FR_C_RDR_0] = 0UL;</src></hll>
+				<asm><cov>never</cov><addr>P:80003838</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000383A</addr><code>C46C</code><mnemonic>st16.w    [a12]0x10,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>427</line><src>        can_timeout_fault[L_FR_C_RDR_1] = 0UL;</src></hll>
+				<asm><cov>never</cov><addr>P:8000383C</addr><code>C56C</code><mnemonic>st16.w    [a12]0x14,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>428</line><src>    }</src></hll>
+				<hll><line>429</line><src></src></hll>
+				<hll><cov>ok</cov><line>430</line><src>}</src></hll>
+				<asm><cov>ok</cov><addr>P:8000383E</addr><code>9000</code><mnemonic>ret16     </mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.h" type="multiple">
+				<hll><line>709</line><src>}</src></hll>
+				<hll><line>710</line><src></src></hll>
+				<hll><line>711</line><src>static inline boolean internal_error_occurred(void)</src></hll>
+				<hll><line>712</line><src>{</src></hll>
+				<hll><line>713</line><src>    return !!(int_err_info.hw_err_cnt &gt; ERR_CNT_THR || int_err_info.sw_err_cnt &gt; ERR_CNT_THR);</src></hll>
+				<hll><line>714</line><src>}</src></hll>
+				<hll><line>715</line><src></src></hll>
+				<hll><line>716</line><src></src></hll>
+				<hll><line>717</line><src>/* SWC_ISR */</src></hll>
+				<hll><line>718</line><src>extern volatile uint32 e2e_err_flags[MSG_GRP_NUM];</src></hll>
+				<hll><line>719</line><src>extern volatile uint32 msg_received_flags[MSG_GRP_NUM]; </src></hll>
+				<hll><line>720</line><src>extern volatile uint32 msg_received_bus[MSG_GRP_NUM];</src></hll>
+				<hll><line>721</line><src></src></hll>
+				<hll><line>722</line><src>static inline boolean is_updated(uint8 msg_grp, uint8 pos)</src></hll>
+				<hll><line>723</line><src>{</src></hll>
+				<hll><cov>ok</cov><line>724</line><src>    return !!(msg_received_flags[msg_grp] &amp; BIT(pos));</src></hll>
+				<asm><cov>ok</cov><addr>P:8000340C</addr><code>49004091</code><mnemonic>movh.a    a4,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000341A</addr><code>203844D9</code><mnemonic>lea       a4,[a4]0xB8</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003422</addr><code>098CA489</code><mnemonic>st.a      [a10]0x0C,a4</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003442</addr><code>098CA409</code><mnemonic>ld.a      a4,[a10]0x0C</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003446</addr><code>4054</code><mnemonic>ld16.w    d0,[a4]</mnemonic><comment>meet_precond,[a4]</comment></asm>
+				<asm><cov>ok</cov><addr>P:80003448</addr><code>2200007B</code><mnemonic>movh      d2,#0x2000</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000344C</addr><code>2026</code><mnemonic>and16     d0,d2</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800035B0</addr><code>1182</code><mnemonic>mov16     d1,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800035B2</addr><code>1000E10F</code><mnemonic>sh        d1,d1,d14</mnemonic><comment>d1,d1,pos</comment></asm>
+				<asm><cov>ok</cov><addr>P:800035B8</addr><code>098CA209</code><mnemonic>ld.a      a2,[a10]0x0C</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800035C2</addr><code>F026</code><mnemonic>and16     d0,d15</mnemonic><comment>meet_precond,meet_precond</comment></asm>
+				<asm><cov>ok</cov><addr>P:800035C4</addr><code>2F54</code><mnemonic>ld16.w    d15,[a2]</mnemonic><comment>meet_precond,[a2]</comment></asm>
+				<asm><cov>ok</cov><addr>P:800035C6</addr><code>1F26</code><mnemonic>and16     d15,d1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800035C8</addr><code>C154</code><mnemonic>ld16.w    d1,[a12]</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800035CA</addr><code>F2200F8B</code><mnemonic>ne        d15,d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000363E</addr><code>098CA209</code><mnemonic>ld.a      a2,[a10]0x0C</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003642</addr><code>1004007B</code><mnemonic>movh      d1,#0x40</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003648</addr><code>2F54</code><mnemonic>ld16.w    d15,[a2]</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000364A</addr><code>1F26</code><mnemonic>and16     d15,d1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800036C8</addr><code>03D8</code><mnemonic>ld16.a    a15,[a10]0x0C</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800036D4</addr><code>5602F501</code><mnemonic>addsc.a   a5,a15,d5,#0x2</mnemonic><comment>a5,a15,type,#2</comment></asm>
+				<asm><cov>ok</cov><addr>P:800036E2</addr><code>F6C2</code><mnemonic>add16     d6,#-0x1</mnemonic><comment>pos,#-1</comment></asm>
+				<asm><cov>ok</cov><addr>P:800036E4</addr><code>5054</code><mnemonic>ld16.w    d0,[a5]</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800036EC</addr><code>1282</code><mnemonic>mov16     d2,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800036EE</addr><code>1000120F</code><mnemonic>sh        d1,d2,d1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800036F2</addr><code>1026</code><mnemonic>and16     d0,d1</mnemonic></asm>
+			</mixed>
+		</List.EXPORT>
+	</listing>
+</TRACE32>

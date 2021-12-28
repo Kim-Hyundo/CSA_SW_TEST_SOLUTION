@@ -1,0 +1,955 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags
+; @Author: TI
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: omap4430_iva1_basicemulation.cmm 8886 2015-11-18 18:06:51Z mobermeir $
+
+ENTRY &menu_type
+
+
+GLOBAL &CMM_DIR
+&CMM_DIR="~~~~"
+
+IF (Var.VALUE(&menu_type)==0x1)
+(   
+  GOSUB Load_Asm_program_ITCM
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0x2)
+( 
+  GOSUB Basic_Execution_control_ITCM
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0x3)
+(   
+  GOSUB Load_Asm_program_DTCM
+  ENDDO
+)
+
+//if (V.VALUE(&menu_type)==0x4)
+//( 
+//  gosub Basic_Execution_control_DTCM
+//  ENDDO
+//)
+
+IF (Var.VALUE(&menu_type)==0x5)
+(   
+  GOSUB Load_Asm_program_SL2_MEM
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0x6)
+( 
+  GOSUB Basic_Execution_control_SL2_MEM
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0x7)
+(   
+  GOSUB Load_Asm_program_icont1_DMEM
+  ENDDO
+)
+
+//if (V.VALUE(&menu_type)==0x8)
+//( 
+//  gosub Basic_Execution_control_icont1_DMEM
+//  ENDDO
+//)
+
+IF (Var.VALUE(&menu_type)==0x9)
+(   
+  GOSUB Load_Asm_program_icont1_IMEM
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0xA)
+( 
+  GOSUB Basic_Execution_control_icont1_IMEM
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0xB)
+(   
+  GOSUB Load_Asm_program_icont2_DMEM
+  ENDDO
+)
+
+//if (V.VALUE(&menu_type)==0xC)
+//( 
+//  gosub Basic_Execution_control_icont2_DMEM
+//  ENDDO
+//)
+
+IF (Var.VALUE(&menu_type)==0xD)
+(   
+  GOSUB Load_Asm_program_icont2_IMEM
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0xE)
+( 
+  GOSUB Basic_Execution_control_icont2_IMEM
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0xF)
+( 
+  GOSUB Load_Asm_program_ECD3_MEM
+  ENDDO
+)
+
+
+IF (Var.VALUE(&menu_type)==0x10)
+( 
+  GOSUB Basic_Execution_control_ECD3_MEM
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0x11)
+( 
+  GOSUB Load_Asm_program_CALC3_MEM
+  ENDDO
+)
+
+
+IF (Var.VALUE(&menu_type)==0x12)
+( 
+  GOSUB Basic_Execution_control_CALC3_MEM
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0x13)
+( 
+  GOSUB Load_Asm_program_MC3_MEM
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0x14)
+( 
+  GOSUB Basic_Execution_control_MC3_MEM
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0x15)
+( 
+  GOSUB Load_Asm_program_IPE3_MEM
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0x16)
+( 
+  GOSUB Basic_Execution_control_IPE3_MEM
+  ENDDO
+)
+
+
+ENDDO
+
+Load_Asm_program_ITCM:
+(
+  ENTRY
+
+  &__V2=0x00000200+0x80 
+
+  Var.Assign *((Long *)&__V2)=0x12345678
+
+  Var.Assign *((Long *)0x00000200)=0x0
+  &__V2=0x00000200+0x04 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00000200+0x08 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00000200+0x0C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00000200+0x10 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00000200+0x14 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00000200+0x18 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00000200+0x1C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00000200+0x20 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00000200+0x24 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00000200+0x28 
+  Var.Assign *((Long *)&__V2)=0xEAFFFFF6
+  &__V2=0x00000200+0x2C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00000200+0x30
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00000200+0x34 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00000200+0x38 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00000200+0x3C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00000200+0x40 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00000200+0x44 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00000200+0x48 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00000200+0x50 
+  Var.Assign *((Long *)&__V2)=0x0
+
+  Register.Set PC 0x00000200 
+  AREA.Create TESTS
+  AREA.view TESTS  
+  AREA.Select TESTS
+  PRINT "ASM ITCM PROGRAM LOADED"
+  RETURN 0x0
+  RETURN
+)
+
+Load_Asm_program_DTCM:
+(
+  ENTRY
+  &__V2=0x00400A00+0x80 
+
+  Var.Assign *((Long *)&__V2)=0x12345678
+
+  Var.Assign *((Long *)0x00400A00)=0x0
+  &__V2=0x00400A00+0x04 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00400A00+0x08 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00400A00+0x0C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00400A00+0x10 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00400A00+0x14 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00400A00+0x18 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00400A00+0x1C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00400A00+0x20 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00400A00+0x24 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00400A00+0x28 
+  Var.Assign *((Long *)&__V2)=0xEAFFFFF6
+  &__V2=0x00400A00+0x2C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00400A00+0x30 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00400A00+0x34 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00400A00+0x38 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00400A00+0x3C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00400A00+0x40 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00400A00+0x44 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00400A00+0x48 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00400A00+0x50 
+  Var.Assign *((Long *)&__V2)=0x0
+
+  Register.Set PC 0x00400A00 
+  AREA.Create TESTS
+  AREA.view TESTS  
+  AREA.Select TESTS
+  PRINT "ASM DDR2 PROGRAM LOADED"
+  RETURN 0x0
+  RETURN
+)
+
+
+Load_Asm_program_SL2_MEM:
+(
+  ENTRY
+  &__V2=0x00800A00+0x80 
+
+  Var.Assign *((Long *)&__V2)=0x12345678
+
+  Var.Assign *((Long *)0x00800A00)=0x0
+  &__V2=0x00800A00+0x04 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00800A00+0x08 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00800A00+0x0C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00800A00+0x10 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00800A00+0x14 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00800A00+0x18 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00800A00+0x1C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00800A00+0x20 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00800A00+0x24 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00800A00+0x28 
+  Var.Assign *((Long *)&__V2)=0xEAFFFFF6
+  &__V2=0x00800A00+0x2C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00800A00+0x30 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00800A00+0x34 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00800A00+0x38 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00800A00+0x3C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00800A00+0x40 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00800A00+0x44 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00800A00+0x48 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00800A00+0x50 
+  Var.Assign *((Long *)&__V2)=0x0
+
+  Register.Set PC 0x00800A00 
+  AREA.Create TESTS
+  AREA.view TESTS  
+  AREA.Select TESTS
+  PRINT "ASM SL2 MEM PROGRAM LOADED"
+  RETURN 0x0
+  RETURN
+)
+
+Load_Asm_program_icont1_DMEM:
+(
+  ENTRY
+  &__V2=0x00880A00+0x80 
+
+  Var.Assign *((Long *)&__V2)=0x12345678
+
+  Var.Assign *((Long *)0x00880A00)=0x0
+  &__V2=0x00880A00+0x04 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00880A00+0x08 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00880A00+0x0C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00880A00+0x10 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00880A00+0x14 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00880A00+0x18 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00880A00+0x1C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00880A00+0x20 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00880A00+0x24 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00880A00+0x28 
+  Var.Assign *((Long *)&__V2)=0xEAFFFFF6
+  &__V2=0x00880A00+0x2C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00880A00+0x30 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00880A00+0x34 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00880A00+0x38 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00880A00+0x3C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00880A00+0x40 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00880A00+0x44
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00880A00+0x48 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00880A00+0x50 
+  Var.Assign *((Long *)&__V2)=0x0
+
+  Register.Set PC 0x00880A00 
+  AREA.Create TESTS
+  AREA.view TESTS  
+  AREA.Select TESTS
+  PRINT "ASM icont1_DMEM PROGRAM LOADED"
+  RETURN 0x0
+  RETURN
+)
+
+Load_Asm_program_icont1_IMEM:
+(
+  ENTRY
+  &__V2=0x00888A00+0x80 
+
+  Var.Assign *((Long *)&__V2)=0x12345678
+
+  Var.Assign *((Long *)0x00888A00)=0x0
+  &__V2=0x00888A00+0x04 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00888A00+0x08 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00888A00+0x0C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00888A00+0x10 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00888A00+0x14 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00888A00+0x18 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00888A00+0x1C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00888A00+0x20 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00888A00+0x24 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00888A00+0x28 
+  Var.Assign *((Long *)&__V2)=0xEAFFFFF6
+  &__V2=0x00888A00+0x2C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00888A00+0x30 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00888A00+0x34 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00888A00+0x38 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00888A00+0x3C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00888A00+0x40 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00888A00+0x44 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00888A00+0x48 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00888A00+0x50 
+  Var.Assign *((Long *)&__V2)=0x0
+
+  Register.Set PC 0x00888A00 
+  AREA.Create TESTS
+  AREA.view TESTS  
+  AREA.Select TESTS
+  PRINT "ASM icont1_IMEM PROGRAM LOADED"
+  RETURN 0x0
+  RETURN
+)
+
+Load_Asm_program_icont2_DMEM:
+(
+  ENTRY
+  &__V2=0x00892A00+0x80 
+
+  Var.Assign *((Long *)&__V2)=0x12345678
+
+  Var.Assign *((Long *)0x00892A00)=0x0
+  &__V2=0x00892A00+0x04 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00892A00+0x08 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00892A00+0x0C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00892A00+0x10 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00892A00+0x14 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00892A00+0x18 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00892A00+0x1C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00892A00+0x20 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00892A00+0x24 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00892A00+0x28 
+  Var.Assign *((Long *)&__V2)=0xEAFFFFF6
+  &__V2=0x00892A00+0x2C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00892A00+0x30 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00892A00+0x34 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00892A00+0x38 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00892A00+0x3C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00892A00+0x40 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00892A00+0x44 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00892A00+0x48 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x00892A00+0x50 
+  Var.Assign *((Long *)&__V2)=0x0
+
+  Register.Set PC 0x00892A00 
+  AREA.Create TESTS
+  AREA.view TESTS  
+  AREA.Select TESTS
+  PRINT "ASM icont2_DMEM PROGRAM LOADED"
+  RETURN 0x0
+  RETURN
+)
+
+Load_Asm_program_icont2_IMEM:
+(
+  ENTRY
+  &__V2=0x0089AA00+0x80 
+
+  Var.Assign *((Long *)&__V2)=0x12345678
+
+  Var.Assign *((Long *)0x0089AA00)=0x0
+  &__V2=0x0089AA00+0x04 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x0089AA00+0x08 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x0089AA00+0x0C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x0089AA00+0x10 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x0089AA00+0x14 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x0089AA00+0x18 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x0089AA00+0x1C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x0089AA00+0x20 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x0089AA00+0x24 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x0089AA00+0x28 
+  Var.Assign *((Long *)&__V2)=0xEAFFFFF6
+  &__V2=0x0089AA00+0x2C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x0089AA00+0x30 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x0089AA00+0x34 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x0089AA00+0x38 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x0089AA00+0x3C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x0089AA00+0x40 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x0089AA00+0x44 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x0089AA00+0x48 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x0089AA00+0x50 
+  Var.Assign *((Long *)&__V2)=0x0
+
+  Register.Set PC 0x0089AA00 
+  AREA.Create TESTS
+  AREA.view TESTS  
+  AREA.Select TESTS
+  PRINT "ASM icont2_IMEM PROGRAM LOADED"
+  RETURN 0x0
+  RETURN
+)
+
+Load_Asm_program_ECD3_MEM:
+(
+  ENTRY
+  &__V2=0x008A2A00+0x80 
+
+  Var.Assign *((Long *)&__V2)=0x12345678
+
+  Var.Assign *((Long *)0x008A2A00)=0x0
+  &__V2=0x008A2A00+0x04 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A2A00+0x08 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A2A00+0x0C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A2A00+0x10 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A2A00+0x14 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A2A00+0x18 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A2A00+0x1C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A2A00+0x20 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A2A00+0x24 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A2A00+0x28 
+  Var.Assign *((Long *)&__V2)=0xEAFFFFF6
+  &__V2=0x008A2A00+0x2C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A2A00+0x30 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A2A00+0x34 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A2A00+0x38 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A2A00+0x3C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A2A00+0x40 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A2A00+0x44 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A2A00+0x48 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A2A00+0x50 
+  Var.Assign *((Long *)&__V2)=0x0
+
+  Register.Set PC 0x008A2A00 
+  AREA.Create TESTS
+  AREA.view TESTS  
+  AREA.Select TESTS
+  PRINT "ASM icont2_ECD3 MEM PROGRAM LOADED"
+  RETURN 0x0
+  RETURN
+)
+
+Load_Asm_program_CALC3_MEM:
+(
+  ENTRY
+  &__V2=0x008A8A00+0x80 
+
+  Var.Assign *((Long *)&__V2)=0x12345678
+
+  Var.Assign *((Long *)0x008A8A00)=0x0
+  &__V2=0x008A8A00+0x04 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A8A00+0x08 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A8A00+0x0C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A8A00+0x10 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A8A00+0x14 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A8A00+0x18 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A8A00+0x1C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A8A00+0x20 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A8A00+0x24 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A8A00+0x28 
+  Var.Assign *((Long *)&__V2)=0xEAFFFFF6
+  &__V2=0x008A8A00+0x2C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A8A00+0x30 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A8A00+0x34 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A8A00+0x38 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A8A00+0x3C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A8A00+0x40 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A8A00+0x44 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A8A00+0x48 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008A8A00+0x50 
+  Var.Assign *((Long *)&__V2)=0x0
+
+  Register.Set PC 0x008A8A00 
+  AREA.Create TESTS
+  AREA.view TESTS  
+  AREA.Select TESTS
+  PRINT "ASM icont2_CALC3 MEM PROGRAM LOADED"
+  RETURN 0x0
+  RETURN
+)
+
+Load_Asm_program_MC3_MEM:
+(
+  ENTRY
+  &__V2=0x008B4A00+0x80 
+
+  Var.Assign *((Long *)&__V2)=0x12345678
+
+  Var.Assign *((Long *)0x008B4A00)=0x0
+  &__V2=0x008B4A00+0x04 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B4A00+0x08 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B4A00+0x0C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B4A00+0x10 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B4A00+0x14 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B4A00+0x18 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B4A00+0x1C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B4A00+0x20 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B4A00+0x24 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B4A00+0x28 
+  Var.Assign *((Long *)&__V2)=0xEAFFFFF6
+  &__V2=0x008B4A00+0x2C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B4A00+0x30 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B4A00+0x34 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B4A00+0x38 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B4A00+0x3C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B4A00+0x40 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B4A00+0x44 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B4A00+0x48 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B4A00+0x50 
+  Var.Assign *((Long *)&__V2)=0x0
+
+  Register.Set PC 0x008B4A00 
+  AREA.Create TESTS
+  AREA.view TESTS  
+  AREA.Select TESTS
+  PRINT "ASM icont2_MC3 MEM PROGRAM LOADED"
+  RETURN 0x0
+  RETURN
+)
+
+Load_Asm_program_IPE3_MEM:
+(
+  ENTRY
+  &__V2=0x008B8A00+0x80 
+
+  Var.Assign *((Long *)&__V2)=0x12345678
+
+  Var.Assign *((Long *)0x008B8A00)=0x0
+  &__V2=0x008B8A00+0x04 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B8A00+0x08 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B8A00+0x0C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B8A00+0x10 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B8A00+0x14 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B8A00+0x18 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B8A00+0x1C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B8A00+0x20 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B8A00+0x24 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B8A00+0x28 
+  Var.Assign *((Long *)&__V2)=0xEAFFFFF6
+  &__V2=0x008B8A00+0x2C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B8A00+0x30 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B8A00+0x34 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B8A00+0x38 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B8A00+0x3C 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B8A00+0x40 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B8A00+0x44 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B8A00+0x48 
+  Var.Assign *((Long *)&__V2)=0x0
+  &__V2=0x008B8A00+0x50 
+  Var.Assign *((Long *)&__V2)=0x0
+
+  Register.Set PC 0x008B8A00 
+  AREA.Create TESTS
+  AREA.view TESTS  
+  AREA.Select TESTS
+  PRINT "ASM icont2_IPE3 MEM PROGRAM LOADED"
+  RETURN 0x0
+  RETURN
+)
+
+
+Basic_Execution_control_ITCM:
+(
+  ENTRY
+  Break.Delete /SOFT
+  Break.Delete /Onchip
+  &__V1=0x00000200+0x10 
+  Break.Set &__V1 /SOFT
+  Go.direct
+
+  PRINT "Basic_Execution_control ITCM at address " %Hex Register(PC) " "
+  PRINT ""
+  AREA.Select TESTS
+  PRINT "TEST PASS"
+  RETURN 0x0
+  RETURN
+)
+
+//Basic_Execution_control_DTCM:
+//(
+//ENTRY
+//BREAK.DELETE /SOFT
+//BREAK.DELETE /ONCHIP
+//&__V1=0x00400A00+0x10 
+//BREAK.SET &__V1 /SOFT
+//GO
+
+//PRINT "Basic_Execution_control DTCM at address " %HEX REGISTER(PC) " "
+//PRINT ""
+//AREA.SELECT TESTS
+//PRINT "TEST PASS"
+//RETURN 0x0
+//RETURN
+//)
+
+Basic_Execution_control_SL2_MEM:
+(
+  ENTRY
+  Break.Delete /SOFT
+  Break.Delete /Onchip
+  &__V1=0x00800A00+0x10 
+  Break.Set &__V1 /SOFT
+  Go.direct
+
+  PRINT "Basic_Execution_control SL2_MEM at address " %Hex Register(PC) " "
+  PRINT ""
+  AREA.Select TESTS
+  PRINT "TEST PASS"
+  RETURN 0x0
+  RETURN
+)
+
+//Basic_Execution_control_icont1_DMEM:
+//(
+//ENTRY
+//BREAK.DELETE /SOFT
+//BREAK.DELETE /ONCHIP
+//&__V1=0x00880A00+0x10 
+//BREAK.SET &__V1 /SOFT
+//GO
+
+//PRINT "Basic_Execution_control icont1 DMEM at address " %HEX REGISTER(PC) " "
+//PRINT ""
+//AREA.SELECT TESTS
+//PRINT "TEST PASS"
+//RETURN 0x0
+//RETURN
+//)
+
+Basic_Execution_control_icont1_IMEM:
+(
+  ENTRY
+  Break.Delete /SOFT
+  Break.Delete /Onchip
+  &__V1=0x00888A00+0x10 
+  Break.Set &__V1 /SOFT
+  Go.direct
+
+  PRINT "Basic_Execution_control icont1 IMEM at address " %Hex Register(PC) " "
+  PRINT ""
+  AREA.Select TESTS
+  PRINT "TEST PASS"
+  RETURN 0x0
+  RETURN
+)
+
+//Basic_Execution_control_icont2_DMEM:
+//(
+//ENTRY
+//BREAK.DELETE /SOFT
+//BREAK.DELETE /ONCHIP
+//&__V1=0x00892A00+0x10 
+//BREAK.SET &__V1 /SOFT
+//GO
+
+//PRINT "Basic_Execution_control icont2 DMEM at address " %HEX REGISTER(PC) " "
+//PRINT ""
+//AREA.SELECT TESTS
+//PRINT "TEST PASS"
+//RETURN 0x0
+//RETURN
+//)
+
+Basic_Execution_control_icont2_IMEM:
+(
+  ENTRY
+  Break.Delete /SOFT
+  Break.Delete /Onchip
+  &__V1=0x0089AA00+0x10 
+  Break.Set &__V1 /SOFT
+  Go.direct
+
+  PRINT "Basic_Execution_control icont2 IMEM at address " %Hex Register(PC) " "
+  PRINT ""
+  AREA.Select TESTS
+  PRINT "TEST PASS"
+  RETURN 0x0
+  RETURN
+)
+
+Basic_Execution_control_ECD3_MEM:
+(
+  ENTRY
+  Break.Delete /SOFT
+  Break.Delete /Onchip
+  &__V1=0x008A2A00+0x10 
+  Break.Set &__V1 /SOFT
+  Go.direct
+
+  PRINT "Basic_Execution_control ECD3 MEM at address " %Hex Register(PC) " "
+  PRINT ""
+  AREA.Select TESTS
+  PRINT "TEST PASS"
+  RETURN 0x0
+  RETURN
+)
+
+Basic_Execution_control_CALC3_MEM:
+(
+  ENTRY
+  Break.Delete /SOFT
+  Break.Delete /Onchip
+  &__V1=0x008A8A00+0x10 
+  Break.Set &__V1 /SOFT
+  Go.direct
+
+  PRINT "Basic_Execution_control CALC3 MEM at address " %Hex Register(PC) " "
+  PRINT ""
+  AREA.Select TESTS
+  PRINT "TEST PASS"
+  RETURN 0x0
+  RETURN
+)
+
+Basic_Execution_control_MC3_MEM:
+(
+  ENTRY
+  Break.Delete /SOFT
+  Break.Delete /Onchip
+  &__V1=0x008B4A00+0x10 
+  Break.Set &__V1 /SOFT
+  Go.direct
+
+  PRINT "Basic_Execution_control MC3 MEM at address " %Hex Register(PC) " "
+  PRINT ""
+  AREA.Select TESTS
+  PRINT "TEST PASS"
+  RETURN 0x0
+  RETURN
+)
+
+Basic_Execution_control_IPE3_MEM:
+(
+  ENTRY
+  Break.Delete /SOFT
+  Break.Delete /Onchip
+  &__V1=0x008B8A00+0x10 
+  Break.Set &__V1 /SOFT
+  Go.direct
+
+  PRINT "Basic_Execution_control IPE3 MEM at address " %Hex Register(PC) " "
+  PRINT ""
+  AREA.Select TESTS
+  PRINT "TEST PASS"
+  RETURN 0x0
+  RETURN
+)

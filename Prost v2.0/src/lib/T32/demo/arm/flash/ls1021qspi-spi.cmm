@@ -1,0 +1,136 @@
+; --------------------------------------------------------------------------------
+; @Title: LS1021A Quad SPI FLASH Program script
+; @Description:
+; The N25Q128 (Micron) is on the QuadSPI controller
+;
+; SRAM: 0x10000000
+; QuadSPI(controller) Base: 0x1550000
+; FLASH BASE ADDRESS(Qspi mapped): 0x40000000
+;
+; @Author: jjeong
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; @Chip: LS1021A
+; @Keywords: N25Q128 Flash SPI QuadSPI
+; --------------------------------------------------------------------------------
+; $Id: ls1021qspi-spi.cmm 7602 2019-11-05 15:02:25Z bschroefel $
+
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+
+; assumptions: SW2[1..5] = 0y00010 - Boot from QSPI, IFC disable, QSPI enable
+; QSPI is empty
+
+&QSPI_BASE=0x1550000
+
+RESet
+SYStem.RESet
+SYStem.CPU LS1021A
+CORE.ASSIGN 1.
+SYStem.Option ResBreak OFF
+
+; overwrite the RCW
+SYStem.Option HRCWOVerRide ON
+SYStem.Mode.Prepare
+; set RCW_SRC 0x9a -> HARDCODED
+Data.Set EDBG:0x42000040 %Long 0x9A
+
+; do a SYStem.UP -> Connect should work regardless of FLASH content now
+SYStem.Up
+
+; now overwrite the RCW partly - skip PBL & Clk-Setup sections Bits 0-127 & 192-223
+//Data.Set DBG:0x42000000 %Long 0x0608000a // 0
+//Data.Set DBG:0x42000004 %Long 0x00000000 // 32
+//Data.Set DBG:0x42000008 %Long 0x00000000 // 64
+//Data.Set DBG:0x4200000c %Long 0x00000000 // 96
+Data.Set DBG:0x42000010 %Long 0x70000000 // 128
+Data.Set DBG:0x42000014 %Long 0x00007900 // 160
+//Data.Set DBG:0x42000018 %Long 0xe0025a00 // 192
+Data.Set DBG:0x4200001c %Long 0x21046000 // 224
+Data.Set DBG:0x42000020 %Long 0x00000000 // 256
+Data.Set DBG:0x42000024 %Long 0x00000000 // 288
+Data.Set DBG:0x42000028 %Long 0x00000000 // 320
+Data.Set DBG:0x4200002c %Long 0x20000000 // 352
+Data.Set DBG:0x42000030 %Long 0x20024800 // 384
+Data.Set DBG:0x42000034 %Long 0x881b7340 // 416
+Data.Set DBG:0x42000038 %Long 0x00000000 // 448
+Data.Set DBG:0x4200003c %Long 0x00000000 // 480
+WAIT 0.1s
+; issue another SYStem.Up
+SYStem.Up
+
+; we should now have access to the QSPI & SD card pins ;-)
+Data.Assemble 0x10000000 b $-0x0
+Register.Set PC 0x10000000
+
+MAP.BE &QSPI_BASE++0xFFFF
+
+PER.Set.simple C15:0x1 %LE %Long  (Data.Long(C15:0x1)&~(0x5)) ; disable interrupt and mmu
+
+Data.Set ZSD:0x1550000 %BE %Long 0xF0000   ; QSPI_MCR[END_CFG], 64BE
+
+GOSUB READ_ID_TEST
+
+programFlash:
+
+  Break.RESet
+
+  FLASHFILE.RESet
+
+//FLASHFILE.CONFIG <QuadSPI Base>   <FLASH_BASE_ADDR>
+  FLASHFILE.CONFIG &QSPI_BASE       0x40000000
+
+//FLASHFILE.TARGET <Code_range>        <Data_range>          <Algorithm file>
+  FLASHFILE.TARGET 0x10000000++0x1FFF  0x10002000++0x1FFF   ~~/demo/arm/flash/byte/spi64_ls1021.bin   /KEEP  /STACKSIZE 0x200
+
+  FLASHFILE.GETID
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+ENDDO
+
+  FLASHFILE.DUMP 0x0
+
+//Erase Serial FLASH
+  ;FLASHFILE.ERASE 0x0--0xFFFFF
+
+//Write
+  ;FLASHFILE.LOAD   * 0x0
+  ;FLASHFILE.LOAD   * 0x0  /ComPare   ;verify
+
+ENDDO
+
+READ_ID_TEST:
+
+PRINT "READ_ID_TEST..."
+&temp=Data.Long(A:&QSPI_BASE)
+Data.Set A:&QSPI_BASE %Long %BE (&temp|0x0c00)   //clear Tx/Rx buffer
+
+Data.Set A:(&QSPI_BASE+0x300)  %Long %BE 0x5AF05AF0  ;  LUTKEY
+Data.Set A:(&QSPI_BASE+0x304)  %Long %BE 0x2  ;  LCKCR
+
+//SEQID 5
+Data.Set A:(&QSPI_BASE+0x360) %Long %BE 0x1c04049f   ; LUT0, SEQID0
+Data.Set A:(&QSPI_BASE+0x364)  %Long %BE 0x0
+Data.Set A:(&QSPI_BASE+0x368) %Long %BE 0x0
+Data.Set A:(&QSPI_BASE+0x36C)  %Long %BE 0x0
+
+Data.Set A:(&QSPI_BASE+0x100) %Long %BE 0x40000000      ; SFAR , FLASH BASE ADDRESS
+
+// assert Read id command
+Data.Set A:(&QSPI_BASE+0x008) %Long %BE (5.<<24.)  ;    (5.<<24.)
+WAIT 100.ms
+
+&temp=Data.Long(A:&QSPI_BASE)
+Data.Set ZSD:&QSPI_BASE %Long %BE (&temp|0x0800)   //clear Tx buffer
+
+PRINT "1st 0x" Data.Long(A:&QSPI_BASE+0x200)>>24.        " (Manufacture)"
+PRINT "2nd 0x" (Data.Long(A:&QSPI_BASE+0x200)>>16.)&0xFF " (Device ID)"
+PRINT "3rd 0x" (Data.Long(A:&QSPI_BASE+0x200)>>8.)&0xFF
+PRINT "4th 0x" Data.Long(A:&QSPI_BASE+0x200)&0xFF
+
+
+RETURN
+
+

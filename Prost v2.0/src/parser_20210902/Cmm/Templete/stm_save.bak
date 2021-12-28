@@ -1,0 +1,164 @@
+; -------------------------------------------------------------------------------
+; @Title: STM(System Timer Module) Save CMM
+; Script arguments:
+;
+;   DO stm_save.cmm
+;
+; --------------------------------------------------------------------------------
+B::
+
+LOCAL &Flags_Idx &Start_Timer_Value &End_Timer_Value &BASE_TIMER_ADDR
+LOCAL &cnt
+LOCAL &Start_VM_Addr &End_VM_Addr
+winclear
+area.clear
+area
+
+//go main
+print "target run until main function"
+&Start_VM_Addr=0x90000010
+&Flags_Idx=-1
+
+&MAX_BREAK_CNT=100.
+&Timer_Flags_Var_Size=0.
+print "init timer settings..."
+
+Var.NEWGLOBAL char[&MAX_BREAK_CNT] \Old_Time_Buf
+
+//------------Break Point Count Detect------------//
+print "check symbol name..."
+IF Symbol.Exist(__T15_RUNNABLE_FLAGS)==FALSE()
+(
+  print "Timer Flags Variable is not exist!"
+  ENDDO
+)
+
+&Array_Size=0.
+&Array_Data_Temp="__T15_RUNNABLE_FLAGS[0]"
+&Array_Data_Type=Var.TypeOf(&Array_Data_Temp)
+&Array_Total_Byte_Size=Format.decimal(1.,Var.SIZEOF(__T15_RUNNABLE_FLAGS))
+&Array_One_Byte_Size=Format.decimal(1.,Var.SIZEOF(&Array_Data_Type))
+&Array_Size=format.decimal(1.,&Array_Total_Byte_Size./&Array_One_Byte_Size.)
+
+if (&Array_Size==0.)
+(
+  print "Timer Flags Variable Size is not zero!"
+  ENDDO
+)
+
+&Timer_Flags_Var_Size=&Array_Size
+
+//------------STM_TIM0 System Timer Suspend------------//
+&BASE_TIMER_ADDR=0xF0001010
+PER.Set.simple D:0xF00010E8 %Long (d.l(D:0xF00010E8)&~0x1F000000)|0x12000000
+print "Set Write Breakpoint"
+//------------Set Write Breakpoint------------//
+Break.Delete
+//Break.Set (__T15_RUNNABLE_FLAGS)--(__T15_RUNNABLE_FLAGS+0x3) /Write /Onchip
+Break.Set Symbol.Range(__T15_RUNNABLE_FLAGS) /Write /Onchip
+print "Clear VM Memory"
+//------------Clear VM Memory------------//
+Data.CLEARVM
+print "Clear VM Memory"
+data.set VM:&Start_VM_Addr++0xffff 0x0
+Data.Dump (VM:&Start_VM_Addr)
+print "save STM timer value"
+;PBREAK.Set 14. stm_save.cmm
+//------------Pbreak Event Handler------------//
+ON PBREAK GOSUB Break_Handler
+
+STOP
+
+Break_Handler:
+(
+  &tmp_state=STATE.TARGET()
+  print "&tmp_state"
+  IF ("&tmp_state"=="stopped by r/w breakpoint"||"&tmp_state"=="stopped byr/w breakpoint")
+  (
+    GOSUB Variable_Check
+    ENTRY &return_idx &return_val
+
+    IF &return_val==1.
+    (
+      &Start_Timer_Value=data.long(A:&BASE_TIMER_ADDR)
+      &Flags_Idx=&return_idx
+    )
+    ELSE
+    (
+      &End_Timer_Value=data.long(A:&BASE_TIMER_ADDR)
+
+      IF &Flags_Idx!=-1
+      (
+      	IF &return_idx==&Flags_Idx
+      	(
+        	GOSUB Time_Data_Log
+      	)
+      )
+    )
+
+    print "pbreak done!"
+
+    if !run()
+	go
+
+  )
+
+
+  RETURN
+)
+
+Variable_Check:
+(
+  LOCAL &idx
+  LOCAL &changed_val
+
+  IF &Timer_Flags_Var_Size!=0.
+  (
+    &idx=0.
+    &changed_val=0.
+    &found=FALSE()
+
+Repeat_loop:
+    IF &found==FALSE()
+    (
+      repeat &Timer_Flags_Var_Size
+      (
+        &old_value=var.value(\Old_Time_Buf[&idx])
+        &new_value=var.value(__T15_RUNNABLE_FLAGS[&idx])
+
+        if &old_value!=&new_value
+        (
+          &found=TRUE()
+          Var.Set \Old_Time_Buf[&idx]=&new_value
+          &changed_val=&new_value
+          GOTO Repeat_loop
+        )
+
+        &idx=&idx+1.
+      )
+    )
+  )
+
+  RETURN &idx &changed_val
+)
+
+Time_Data_Log:
+(
+    //------------Save STM Value------------//
+	//0x10??Ï¶ùÍ?
+    IF &Flags_Idx!=-1.&&&Start_Timer_Value!=-1.&&&End_Timer_Value!=-1.
+    (
+      Data.Set (VM:&Start_VM_Addr) %LE %long &Flags_Idx //0x90000010
+      Data.Set (VM:&Start_VM_Addr+0x4) %LE %long &Start_Timer_Value
+      Data.Set (VM:&Start_VM_Addr+0x8) %LE %long &End_Timer_Value
+      Data.Set (VM:&Start_VM_Addr+0xC) %LE %long (&End_Timer_Value-&Start_Timer_Value) //0x9000001C
+
+      &Start_VM_Addr=&Start_VM_Addr+0x10
+    )
+
+    &Flags_Idx=-1.
+    &Start_Timer_Value=-1.
+    &End_Timer_Value=-1.
+
+    RETURN
+)

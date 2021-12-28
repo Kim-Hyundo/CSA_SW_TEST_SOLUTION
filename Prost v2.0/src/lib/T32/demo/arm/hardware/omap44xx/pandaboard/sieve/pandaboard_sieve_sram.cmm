@@ -1,0 +1,74 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo script for OMAP4430 on PANDABOARD (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   Hardware initialization is done by executing u-boot-spl.
+;   Use this script for getting started.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to J8 using adapter LA-7748
+;      or
+;      Connect Debug Cable/Combiprobe to Mictor connector using LA-3840
+; @Keywords: ARM, Cortex-A9
+; @Author: AME
+; @Board: PANDABOARD
+; @Chip: OMAP4430
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: pandaboard_sieve_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+PRIVATE &ppd
+&ppd=OS.PPD()
+IF !OS.FILE("&ppd/u-boot-spl")
+(
+  UNZIP "&ppd/u-boot-spl.gz" "&ppd/u-boot-spl"
+)
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU OMAP4430
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+CORE.ASSIGN 1.
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; execute BootROM, run MLO/U-Boot-SPL for board setup
+Go
+WAIT 1.s
+Break
+Data.LOAD.Elf "~~~~/u-boot-spl"
+Go spl_boot_device
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_arm_v7.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

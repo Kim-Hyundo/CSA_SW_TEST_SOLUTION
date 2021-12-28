@@ -1,0 +1,84 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for MKW36Z512VHT4 on FRDM-KW36 (FLASH)
+; @Description:
+;   Programs the sieve demo application into the processor internal flash and
+;   sets up a demo debug scenario.
+;   This script can be used as a template for flashing an application.
+;   Prerequisites:
+;    * Connect Debug Cable to J12 using Adapter LA-3770
+;      or
+;      Connect Combiprobe/uTrace to J12
+; @Keywords: ARM, Cortex-M0+, Flash
+; @Author: STK
+; @Board: FRDM-KW36
+; @Chip: MKW36Z512VHT4
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: frdm-kw36_sieve_flash.cmm 14481 2019-06-05 06:24:14Z sphilipp $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU MKW36Z512VHT4
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock 10MHz
+Trace.DISable
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; Flash programming
+
+; prepare flash programming (declarations)
+DO ~~/demo/arm/flash/mkw36 PREPAREONLY
+
+; ReProgram Flash
+FLASH.ReProgram ALL
+Data.LOAD.Elf "~~~~/sieve_flash_thumb_v6m.elf"
+FLASH.ReProgram OFF
+
+; --------------------------------------------------------------------------------
+; Reset the target again
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO
+
+DisableWatchdog:
+(
+  Data.Set SD:0x40048100 %Long 0  ; this register can only be accessed once after reset.
+  RETURN
+)

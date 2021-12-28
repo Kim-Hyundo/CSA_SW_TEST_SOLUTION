@@ -1,0 +1,62 @@
+; --------------------------------------------------------------------------------
+; @Title: Off chip ETM trace script for OMAP5432 PandaBoard
+; @Description:
+;   This is a small demo how to setup off chip ETM trace on OMAP5432
+;   PandaBoard
+; @Keywords:  off-chip, TI
+; @Author: KJM
+; @Board: PandaBoard
+; @Chip: OMAP5430
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: omap5432_offchip_etm_demo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+  RESet
+  SYStem.CPU OMAP5432ES2
+  SYStem.Up
+
+  Data.Set C15:0x1 %Long 0xC5087A
+
+  CORE.select 0.
+  Data.LOAD.Elf ~~~~/demo.axf /PlusVM
+  Register.Set PC main
+  Register.Set CPSR 0x1d3
+  Register.Set R13 0x40304000
+  CORE.select 1.
+  Register.RESet
+  Register.Set PC background
+  Register.Set CPSR 0x1d3
+  CORE.select 0.
+
+  IF Analyzer()
+  (
+    Data.Set AD:0x0:0x4A002904 %Long 0x50005 ; EMU18, EMU19
+    Data.Set AD:0x0:0x4A002908 %Long 0x50005 ; EMU16, EMU17
+    Data.Set AD:0x0:0x4A00290C %Long 0x50005 ; EMU14, EMU15
+    Data.Set AD:0x0:0x4A002910 %Long 0x50005 ; EMU12, EMU13
+    Data.Set AD:0x0:0x4A002914 %Long 0x50005 ; EMU10, EMU11
+    Data.Set AD:0x0:0x4A002918 %Long 0x50005 ; EMU8, EMU9
+    Data.Set AD:0x0:0x4A00291C %Long 0x50005 ; EMU6, EMU7
+    Data.Set AD:0x0:0x4A002920 %Long 0x50005 ; EMU4, EMU5
+    Data.Set AD:0x0:0x4A002924 %Long 0x50005 ; EMU2, EMU3
+
+    ETM.PortSize 16a
+    Analyzer.AutoFocus
+  )
+
+  ;open some window
+  WinCLEAR
+
+  WinPOS 0% 0% 50% 50%
+  List.auto
+
+  WinPOS 50% 0% 50% 50%
+  Register.view /SpotLight
+
+  WinPOS 0% 50% 50% 50%
+  Frame /Locals /Caller
+
+  WinPOS 50% 50% 50% 50%
+  Trace.List
+
+  ENDDO

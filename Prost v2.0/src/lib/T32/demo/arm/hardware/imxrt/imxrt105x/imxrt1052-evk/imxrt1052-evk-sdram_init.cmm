@@ -1,0 +1,159 @@
+; --------------------------------------------------------------------------------
+; @Title: DRAM setup example IMXRT1050-EVK
+; @Description:
+;   Initialize DRAM on IMXRT1050-EVK.
+;   DRAM-Address: 0x80000000
+; @Keywords: ARM, Cortex-M7
+; @Author: AME
+; @Board: IMXRT1050-EVK
+; @Chip: IMXRT1052
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imxrt1052-evk-sdram_init.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+GOSUB clockInit
+GOSUB sdrInit
+
+ENDDO
+
+clockInit: ;()
+(
+  // Enable all clocks
+  Data.Set 0x400FC068 %Long 0xffffffff
+  Data.Set 0x400FC06C %Long 0xffffffff
+  Data.Set 0x400FC070 %Long 0xffffffff
+  Data.Set 0x400FC074 %Long 0xffffffff
+  Data.Set 0x400FC078 %Long 0xffffffff
+  Data.Set 0x400FC07C %Long 0xffffffff
+  Data.Set 0x400FC080 %Long 0xffffffff
+
+  Data.Set 0x400D8030 %Long 0x00002001
+  Data.Set 0x400D8100 %Long 0x00100000
+  Data.Set 0x400FC014 %Long 0x00050D40
+  RETURN
+)
+
+sdrInit: ;()
+(
+  // Config IOMUX
+  Data.Set 0x401F8014 %Long 0x00000000
+  Data.Set 0x401F8018 %Long 0x00000000
+  Data.Set 0x401F801C %Long 0x00000000
+  Data.Set 0x401F8020 %Long 0x00000000
+  Data.Set 0x401F8024 %Long 0x00000000
+  Data.Set 0x401F8028 %Long 0x00000000
+  Data.Set 0x401F802C %Long 0x00000000
+  Data.Set 0x401F8030 %Long 0x00000000
+  Data.Set 0x401F8034 %Long 0x00000000
+  Data.Set 0x401F8038 %Long 0x00000000
+  Data.Set 0x401F803C %Long 0x00000000
+  Data.Set 0x401F8040 %Long 0x00000000
+  Data.Set 0x401F8044 %Long 0x00000000
+  Data.Set 0x401F8048 %Long 0x00000000
+  Data.Set 0x401F804C %Long 0x00000000
+  Data.Set 0x401F8050 %Long 0x00000000
+  Data.Set 0x401F8054 %Long 0x00000000
+  Data.Set 0x401F8058 %Long 0x00000000
+  Data.Set 0x401F805C %Long 0x00000000
+  Data.Set 0x401F8060 %Long 0x00000000
+  Data.Set 0x401F8064 %Long 0x00000000
+  Data.Set 0x401F8068 %Long 0x00000000
+  Data.Set 0x401F806C %Long 0x00000000
+  Data.Set 0x401F8070 %Long 0x00000000
+  Data.Set 0x401F8074 %Long 0x00000000
+  Data.Set 0x401F8078 %Long 0x00000000
+  Data.Set 0x401F807C %Long 0x00000000
+  Data.Set 0x401F8080 %Long 0x00000000
+  Data.Set 0x401F8084 %Long 0x00000000
+  Data.Set 0x401F8088 %Long 0x00000000
+  Data.Set 0x401F808C %Long 0x00000000
+  Data.Set 0x401F8090 %Long 0x00000000
+  Data.Set 0x401F8094 %Long 0x00000000
+  Data.Set 0x401F8098 %Long 0x00000000
+  Data.Set 0x401F809C %Long 0x00000000
+  Data.Set 0x401F80A0 %Long 0x00000000
+  Data.Set 0x401F80A4 %Long 0x00000000
+  Data.Set 0x401F80A8 %Long 0x00000000
+  Data.Set 0x401F80AC %Long 0x00000000
+  Data.Set 0x401F80B0 %Long 0x00000000
+  Data.Set 0x401F80B4 %Long 0x00000000
+  Data.Set 0x401F80B8 %Long 0x00000000
+
+  // PAD ctrl
+  Data.Set 0x401F8204 %Long 0x000000F1
+  Data.Set 0x401F8208 %Long 0x000000F1
+  Data.Set 0x401F820C %Long 0x000000F1
+  Data.Set 0x401F8210 %Long 0x000000F1
+  Data.Set 0x401F8214 %Long 0x000000F1
+  Data.Set 0x401F8218 %Long 0x000000F1
+  Data.Set 0x401F821C %Long 0x000000F1
+  Data.Set 0x401F8220 %Long 0x000000F1
+  Data.Set 0x401F8224 %Long 0x000000F1
+  Data.Set 0x401F8228 %Long 0x000000F1
+  Data.Set 0x401F822C %Long 0x000000F1
+  Data.Set 0x401F8230 %Long 0x000000F1
+  Data.Set 0x401F8234 %Long 0x000000F1
+  Data.Set 0x401F8238 %Long 0x000000F1
+  Data.Set 0x401F823C %Long 0x000000F1
+  Data.Set 0x401F8240 %Long 0x000000F1
+  Data.Set 0x401F8244 %Long 0x000000F1
+  Data.Set 0x401F8248 %Long 0x000000F1
+  Data.Set 0x401F824C %Long 0x000000F1
+  Data.Set 0x401F8250 %Long 0x000000F1
+  Data.Set 0x401F8254 %Long 0x000000F1
+  Data.Set 0x401F8258 %Long 0x000000F1
+  Data.Set 0x401F825C %Long 0x000000F1
+  Data.Set 0x401F8260 %Long 0x000000F1
+  Data.Set 0x401F8264 %Long 0x000000F1
+  Data.Set 0x401F8268 %Long 0x000000F1
+  Data.Set 0x401F826C %Long 0x000000F1
+  Data.Set 0x401F8270 %Long 0x000000F1
+  Data.Set 0x401F8274 %Long 0x000000F1
+  Data.Set 0x401F8278 %Long 0x000000F1
+  Data.Set 0x401F827C %Long 0x000000F1
+  Data.Set 0x401F8280 %Long 0x000000F1
+  Data.Set 0x401F8284 %Long 0x000000F1
+  Data.Set 0x401F8288 %Long 0x000000F1
+  Data.Set 0x401F828C %Long 0x000000F1
+  Data.Set 0x401F8290 %Long 0x000000F1
+  Data.Set 0x401F8294 %Long 0x000000F1
+  Data.Set 0x401F8298 %Long 0x000000F1
+  Data.Set 0x401F829C %Long 0x000000F1
+  Data.Set 0x401F82A0 %Long 0x000000F1
+  Data.Set 0x401F82A4 %Long 0x000000F1
+  Data.Set 0x401F82A8 %Long 0x000000F1
+
+  Data.Set 0x402F0000 %Long 0x1000E000
+  Data.Set 0x402F0008 %Long 0x00030524
+  Data.Set 0x402F000C %Long 0x06030524
+  Data.Set 0x402F0010 %Long 0x80000021
+  Data.Set 0x402F0014 %Long 0x90000021
+  Data.Set 0x402F0004 %Long 0x00000008
+  Data.Set 0x402F0040 %Long 0x00000B27
+  Data.Set 0x402F0044 %Long 0x00100100
+  Data.Set 0x402F0048 %Long 0x00020201
+  Data.Set 0x402F004C %Long 0x08193D0E
+  Data.Set 0x402F0080 %Long 0x00000021
+  Data.Set 0x402F0084 %Long 0x00888888
+  Data.Set 0x402F0094 %Long 0x00000002
+  Data.Set 0x402F0098 %Long 0x00000000
+
+  Data.Set 0x402F0090 %Long 0x80000000
+  Data.Set 0x402F009C %Long 0xA55A000F
+  WAIT (Data.Long(AD:0x402F003C)&0x3)!=0x0
+  Data.Set 0x402F0090 %Long 0x80000000
+  Data.Set 0x402F009C %Long 0xA55A000C
+  WAIT (Data.Long(AD:0x402F003C)&0x3)!=0x0
+  Data.Set 0x402F0090 %Long 0x80000000
+  Data.Set 0x402F009C %Long 0xA55A000C
+  WAIT (Data.Long(AD:0x402F003C)&0x3)!=0x0
+  Data.Set 0x402F00A0 %Long 0x00000022
+  Data.Set 0x402F0090 %Long 0x80000000
+  Data.Set 0x402F009C %Long 0xA55A000A
+  WAIT (Data.Long(AD:0x402F003C)&0x3)!=0x0
+  PRINT "SDRAM init done";
+
+  RETURN
+)
+
+

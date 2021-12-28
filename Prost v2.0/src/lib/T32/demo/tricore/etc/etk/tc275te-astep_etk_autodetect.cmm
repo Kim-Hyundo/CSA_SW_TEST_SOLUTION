@@ -1,0 +1,69 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for ETK arbitration with TC275TE-Astep on TriBoard-TC2X5
+; @Description:
+;   The script shows a setup for TRACE32 versions with ETK autodetection,
+;   depending whether the debugger is connected to the target directly or
+;   via an ETK.
+;
+;   The debugger will hold the target in reset as long as SYStem.Mode NoDebug
+;   is not reached. Asserting the reset will prevent the ETK tool from
+;   accessing the target.
+;   There are several strategies possible for setting up the debugger for use
+;   with an ETK, depending on the user's requirements.
+;
+;   Hints:
+;   - for using SYStem.Up, SYStem.CONFIG SLAVE ON is required
+;   - for information about known issues see the demo scripts in
+;     demo/tricore/hardware/
+;
+; @Keywords: etk, Infineon, TriCore
+; @Author: MAX
+; @Board: TriBoard-TC2X5
+; @Chip: TC275TE.Astep
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc275te-astep_etk_autodetect.cmm 7494 2014-07-29 14:02:09Z mobermeir $
+
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+
+RESet
+SYStem.CPU TC275TE-Astep
+//SYStem.JtagClock 10.0MHz       ; default, recommended minimum
+SYStem.Option DUALPORT ON        ; enable realtime memory access (optional)
+
+SYStem.CONFIG DEBUGPORTTYPE DAP2 ; required (ETK-S20 does not support JTAG)
+
+; configure for arbitration with ETK
+SYStem.DETECT PortSHaRing
+IF PORTSHARING()==1
+(
+  ; ETK detected
+  SYStem.Mode NoDebug
+
+  ; recommendation is to set SYStem.CONFIG values to defaults
+  SYStem.CONFIG TRISTATE OFF     ; do not tristate debug cable when not
+                                 ; accessing target (recommended)
+  SYStem.CONFIG SLAVE ON         ; prevent debugger from performing
+                                 ; any reset (optional)
+
+  SYStem.Mode Attach             ; connect to target
+
+  ; Memory accesses to invalid addresses should be avoided,
+  ; otherwise ETK may be blocked too long.
+)
+ELSE
+(
+  ; no ETK detected
+  SYStem.Up
+  Go ; start program execution
+)
+
+; --------------------------------------------------------------------------------
+; open a window
+
+WinCLEAR
+Data.dump 0xD0000000
+
+ENDDO

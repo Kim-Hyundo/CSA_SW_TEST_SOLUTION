@@ -1,0 +1,110 @@
+; --------------------------------------------------------------------------------
+; @Title: GRUB Module Debugging Script
+; @Description:
+;    This script waits for a grub module to be started,
+;    loads its symbols and halts cpu after module symbol loaded, in case
+;    user want to set breakpoint at specific function in grub module.
+;
+;    NOTE: GRUB awareness must be up, it is recommended to set grub rootpath
+;    directory using EXTension.sYmbol.RPATH "path/to/grub/modules/"
+;
+;    USAGE: cd.do ~~/demo/<arch>/bootloader/grub/mod_debug.cmm <module>
+;
+; @Keywords: GRUB module awareness
+; @Author: MSA
+; @Copyright: (c) 1989-2018 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mod_debug.cmm 3160 2018-04-10 15:25:28Z msamet $
+
+
+LOCAL &modname &epilog
+ENTRY &modname
+
+PRINT "&modname"
+
+IF "&modname"==""
+(
+DIALOG
+        (
+          HEADER "enter module name"
+          POS 0. 0. 30. 3.
+          BOX "Module name"
+          POS 1. 1. 20. 1.
+modl:     DEFEDIT "" ""
+          POS 22. 1. 7. 1.
+          BUTTON "Browse..."
+          (
+            DIALOG.FILE "*.mod"
+            ENTRY %LINE &file
+            DIALOG.SET modl "&file"
+          )
+          POS 6. 3. 7. 1.
+          DEFBUTTON "Ok"
+          (
+            LOCAL &modl
+            &modl=DIALOG.STRING(modl)
+			IF "&modl"==""
+              PRINT %ERROR "please enter module name to debug before press 'Ok' button"
+			ELSE
+			(
+			  &modname="&modl"
+              DIALOG.END
+            )
+          )
+          POS 17. 3. 7. 1.
+          BUTTON "Cancel"  "DIALOG.END"
+        )
+)
+
+GOSUB waitforstart &modname
+
+PRINT "module &module started, loading symbols..."
+
+
+ENDDO
+
+
+; Subroutines
+
+waitforstart:
+  ENTRY &modname
+  LOCAL &epilog &breakaddr
+
+
+  &epilog=sYmbol.END(grub_dl_load)
+
+  &breakaddr=ADDRESS.OFFSET(&epilog)
+
+  Break.Set &breakaddr
+
+  ON PBREAKAT &breakaddr GOTO continue1  // if breakpoint reached: continue
+
+cc1:
+  Go.direct         // let the target run and load the module
+
+  STOP
+
+ // breakpoint hit, continue script
+continue1:
+  LOCAL &magic
+  &magic=task.mod.magic("&modname")
+  IF &magic==0xFFFFFFFF
+  (
+    GOTO cc1
+  )
+  ELSE
+  (
+    Break.Delete &breakaddr
+    ON PBREAKAT &breakaddr
+    GOSUB loadsymbols &modname
+  )
+  RETURN
+ 
+ 
+loadsymbols:
+  LOCAL &modname &init &size
+  ENTRY &modname
+  ; load module using GRUB awareness
+  EXTension.sYmbol.LOADM "&modname" 
+  RETURN
+

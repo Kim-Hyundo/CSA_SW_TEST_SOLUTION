@@ -1,0 +1,32 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple SRAM demo start-up script for PandaBoard
+; @Description:
+;  This script start the OMAP4430APP1 and loads a demo
+;  application into the SAR-RAM to demonstrate basic debug
+; @Author: PEG
+; @Keywords: PandaBoard OMAP4430 SAR sieve
+; @Board: PandaBoard
+; @Chip: OMAP4430
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo_sieve_sar-ram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; connect debugger with first Cortex-A9
+  RESet
+  SYStem.CPU OMAP4430APP1
+  SYStem.Up
+  
+  Go
+  WAIT 1.s
+  Break
+
+; load demo program to SAR-RAM
+  DO ~~/demo/arm/compiler/gnu-pic/demo_sieve 0x40300000
+
+; open some windows
+  WinCLEAR
+  WinPOS 0% 0% 100% 50%
+  List.auto
+  WinPOS 0% 50% 50% 50%
+  Register.view /SpotLight
+ENDDO

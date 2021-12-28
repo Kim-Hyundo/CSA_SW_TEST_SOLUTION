@@ -1,0 +1,203 @@
+; --------------------------------------------------------------------------------
+; @Title: WatchPin demo for AURIX devices (TC2* and TC3*)
+; @Description:
+;   Assembles a nop-loop into the program scratch pad ram and sets some
+;   watchpoints
+;   When using an Infineon TriBoard, please note that /BRKOUT and /BRKIN are not
+;   connected by default ( => assemble 0R resistor!)
+; @Keywords: AURIX, Infineon, TriCore, WatchPin, WatchPoint
+; @Author: MOB
+; @Chip: TC2*, TC3*
+; @Copyright: (C) 1989-2015 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: aurix_watchpin.cmm 14608 2019-07-10 08:03:16Z meick $
+
+GOSUB Initialize
+
+GOSUB AssembleLoop
+
+GOSUB SetWatchBreakpoints
+
+; GOSUB ConfigureWatchpinsBrkInOut
+GOSUB ConfigureWatchpinsTdiTdo // alternatively
+
+GOSUB OpenWindows
+
+GOSUB OptionalSettings
+
+ENDDO
+
+Initialize:
+(
+  RESet
+  SYStem.RESet
+  SYStem.CONFIG.DEBUGPORTTYPE DAP2
+  SYStem.DETECT CPU
+  PRINT "CPU: "+CPU()
+  SYStem.Up
+
+  RETURN
+)
+
+AssembleLoop:
+(
+  sYmbol.NEW loopStart 0xC0000000
+  sYmbol.NEW loopEnd loopStart+0x1000
+
+  Data.Assemble loopStart--loopEnd nop
+  Data.Assemble loopEnd j loopStart
+  Register.Set PC loopStart
+
+  RETURN
+)
+
+SetWatchBreakpoints:
+(
+  Break.Delete
+
+  sYmbol.NEW.Function rangeWatch 0xC0000000--0xC00003FD
+  sYmbol.NEW.Function rangeAlpha 0xC0000400--0xC00005FD
+  sYmbol.NEW.Function rangeBeta 0xC0000700--0xC00007FD
+  sYmbol.NEW.Function rangeCharly 0xC0000800--0xC00008FD
+
+  Var.Break.Set rangeWatch /Program /WATCH
+  Var.Break.Set rangeAlpha /Program /Alpha
+  Var.Break.Set rangeBeta /Program /Beta
+  Var.Break.Set rangeCharly /Program /Charly
+
+  RETURN
+)
+
+ConfigureWatchpinsBrkInOut:
+(
+  SYStem.CONFIG BreakPIN PortPort // (default)
+  ; SYStem.CONFIG BreakPIN TdiTdo // alternatively (e.g. with DAP)
+
+  PRINT "DEBUGPORTTYPE: "+SYStem.CONFIG.DEBUGPORTTYPE()
+
+  ; Change speed grade to Speedgrade1:
+  ; Otherwise short pulses are not visible at all
+  GOSUB SetSpeedgrade1 "Pin0"
+  GOSUB SetSpeedgrade1 "Pin1"
+
+  ; Enable driving of nBRKOUT pin (CBS_TGO0/P20.0) and nBRKIN pin (CBS_TGO1/P20.1)
+  ;   Note: Routing a Trigger Line to a Trigger Pin will automatically enable this pin as Trigger
+  ;   Output Pin. This enabling will override any user configuration of this port pin and
+  ;   will be maintained for all reset classes except Power-on Reset and Debug Reset.
+  TrOnchip.WatchPin.Watch.Pin0
+  TrOnchip.WatchPin.Alpha.Pin1
+  TrOnchip.WatchPin.Beta.Pin0
+  TrOnchip.WatchPin.Charly.Pin1
+
+  RETURN
+)
+
+ConfigureWatchpinsTdiTdo:
+(
+  IF SYStem.CONFIG.DEBUGPORTTYPE()!="DAP2"
+  (
+    PRINT "Setting TdiTdo requires DAP2"
+    ENDDO
+  )
+
+  SYStem.CONFIG BreakPIN TdiTdo // alternatively (e.g. with DAP)
+
+  ; Change speed grade to Speedgrade1:
+  ; Otherwise short pulses are not visible at all
+  GOSUB SetSpeedgrade1 "Pin2"
+  GOSUB SetSpeedgrade1 "Pin3"
+
+  ; Enable driving of TDI pin (CBS_TGO2/P21.6) and TDO pin (CBS_TGO3/P21.7)
+  ;   Note: Routing a Trigger Line to a Trigger Pin will automatically enable this pin as Trigger
+  ;   Output Pin. This enabling will override any user configuration of this port pin and
+  ;   will be maintained for all reset classes except Power-on Reset and Debug Reset.
+  TrOnchip.WatchPin.Watch.Pin2
+  TrOnchip.WatchPin.Alpha.Pin3
+  TrOnchip.WatchPin.Beta.Pin2
+  TrOnchip.WatchPin.Charly.Pin3
+
+  SYStem.CONFIG DAP.USER0 IN
+  SYStem.CONFIG DAP.USER1 IN
+
+  RETURN
+)
+
+
+SetSpeedgrade1:
+(
+  PARAMETERS &pin
+
+  PRIVATE &addr_P20_PDR0 &addr_P21_PDR0
+  PRIVATE &addr_P32_PDR0 &addr_P33_PDR0
+  IF CPUIS("TC2*")
+  (
+    &addr_P20_PDR0=D:0xF003C040
+    &addr_P21_PDR0=D:0xF003C140
+    &addr_P32_PDR0=D:0xF003D240
+    &addr_P33_PDR1=D:0xF003D344
+  )
+  ELSE IF CPUIS("TC3*")
+  (
+    &addr_P20_PDR0=D:0xF003B440
+    &addr_P21_PDR0=D:0xF003B540
+    &addr_P32_PDR0=D:0xF003C040
+    &addr_P33_PDR1=D:0xF003C144
+  )
+  ELSE
+  (
+    PRINT %ERROR "CPU " CPU() " not supported by script"
+    ENDDO
+  )
+
+  IF "&pin"=="Pin0"
+    PER.Set.Field &addr_P20_PDR0 %LONG 0x0000000F 0x0
+  ELSE IF "&pin"=="Pin1"
+    PER.Set.Field &addr_P20_PDR0 %LONG 0x000000F0 0x0
+  ELSE IF "&pin"=="Pin2"
+    PER.Set.Field &addr_P21_PDR0 %LONG 0x0F000000 0x0
+  ELSE IF "&pin"=="Pin3"
+    PER.Set.Field &addr_P21_PDR0 %LONG 0xF0000000 0x0
+  ELSE IF  "&pin"=="Pin4"
+    PER.Set.Field &addr_P32_PDR0 %LONG 0x0F000000 0x0
+  ELSE IF  "&pin"=="Pin5"
+    PER.Set.Field &addr_P32_PDR0 %LONG 0xF0000000 0x0
+  ELSE IF  "&pin"=="Pin6"
+    PER.Set.Field &addr_P33_PDR1 %LONG 0x0F000000 0x0
+  ELSE IF  "&pin"=="Pin7"
+    PER.Set.Field &addr_P33_PDR1 %LONG 0xF0000000 0x0
+  ELSE
+  (
+    PRINT %ERROR "Unknown pin &pin"
+    ENDDO
+  )
+
+  RETURN
+)
+
+OpenWindows:
+(
+  WinCLEAR
+  WinPOS 0.0 0.0 80. 25. 13. 1. W000
+  Data.List
+  IF CHIP.EmulationDevice()
+  (
+    WinPOS 0.0 31.5 81. 13. 10. 1. W003
+    Onchip.List
+  )
+  WinPOS 0.42857 51.25 38. 10. 0. 0. W005
+  TrBus
+  WinPOS 85.571 0.0 85. 6. 23. 1. W001
+  Break.List
+  WinPOS 47.0 51.333 27. 15. 0. 0. W002
+  TrOnchip
+  RETURN
+)
+
+OptionalSettings:
+(
+  SYStem.Option.DUALPORT ON
+  SETUP.Var %SpotLight.on
+  ; TrBus.Set.Break ON
+  TrBus.Out.Break.ON
+  RETURN
+)

@@ -1,0 +1,170 @@
+;
+; @Title: Start-Up script for Mainstone Evaluation Board
+;
+; @Description:
+; Startup script for Mainstone Evaluation Board with XScale
+; Bulverde 1P8 daugther card
+; The memory configuration of Mainstone board is depending on
+; position of DIP switch SW2 (SWAP_FLASH).and SW1 (Width Select)
+; of Mainstone main board.
+;
+; SW2 dot position (SW1 doesn't care):
+; - Flash at 0x0--0x1ffffff
+;   2 Intel 28F128K18 flash devices parallel on 32 bit data bus
+;
+; SW2 no dot position and SW1 dot position:
+; - Flash at 0x0--0x1ffffff
+;   2 Intel 28F128J3 flash devices parallel on 32 bit data bus
+;
+; SW2 no dot position and SW1 no dot position:
+; - Flash at 0x0--0x0ffffff
+;   1 Intel 28F128J3 flash device on 16 bit data bus
+;
+; SDRAM at 0xa0000000--0xa3ffffff
+;
+; @Author: WRD
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; @Board: Mainstone
+; $Id: mainstone.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; wrd - 19.08.2003
+
+; --------------------------------------------------------------------------------
+; Select flash configuration as shown by switches SW1 and SW2 on
+; Mainstone main board, "dot" or "nodot"..
+&SW2="nodot"
+&SW1="dot"
+;
+; Select target controlled flash programming or TRACE32 tool based
+; flash programming
+; &flashtarget="yes" | "no"
+&flashtarget="no"
+
+; --------------------------------------------------------------------------------
+; CPU setup
+SYStem.RESet
+SYStem.CPU XSCALE
+SYStem.Option WAITRESET ON
+SYStem.Up
+
+; set data bus width to 16 bit for flash access in case of SW1 and SW2
+; in dot position. One Intel 28F128J3 flash device on 16 bit data bus.
+IF ("&SW2"=="nodot")&&("&SW1"=="nodot")&&((Data.Long(ASD:0x48000008)&0x08)==0x00)
+(
+  Data.Set 0x48000008 %Long Data.Long(ASD:0x48000008)|0x08
+)
+
+; --------------------------------------------------------------------------------
+; SDRAM Initialization
+
+;data.set ASD:48000008 %long 0x39f2a7a3 ; MSC0
+Data.Set ASD:4800000c %Long 0x0000a691 ; MSC1
+Data.Set ASD:48000010 %Long 0x0000b884 ; MSC2
+Data.Set ASD:48000014 %Long 0x00000001 ; MECR
+Data.Set ASD:48000028 %Long 0x00010204 ; MCMEM0
+Data.Set ASD:4800002c %Long 0x00010204 ; MCMEM1
+Data.Set ASD:48000030 %Long 0x00010204 ; MCATT0
+Data.Set ASD:48000034 %Long 0x00010204 ; MCATT1
+Data.Set ASD:48000038 %Long 0x0000c108 ; MCIO0
+Data.Set ASD:4800003c %Long 0x0001c108 ; MCIO1
+Data.Set ASD:48000004 %Long 0x20ca2018 ; MDREFR
+Data.Set ASD:48000004 %Long 0x20cb2018 ; MDREFR
+Data.Set ASD:48000004 %Long 0x208b2018 ; MDREFR
+Data.Set ASD:48000004 %Long 0x208ba018 ; MDREFR
+Data.Set ASD:48000000 %Long 0x00000ac8 ; MDCNFG
+WAIT 10.ms
+&tmp = Data.Long(d:0xa0000000)
+&tmp = Data.Long(d:0xa0000000)
+&tmp = Data.Long(d:0xa0000000)
+&tmp = Data.Long(d:0xa0000000)
+&tmp = Data.Long(d:0xa0000000)
+&tmp = Data.Long(d:0xa0000000)
+&tmp = Data.Long(d:0xa0000000)
+&tmp = Data.Long(d:0xa0000000)
+Data.Set ASD:48000000 %Long 0x00000ac9 ; MDCNFG
+Data.Set ASD:48000040 %Long 0x00000000 ; MDMRS
+Data.Set ASD:48000004 %Long 0x209ba018 ; MDREFR
+
+; --------------------------------------------------------------------------------
+; Flash declaration
+;
+IF "&SW2"=="dot"
+(
+  ; 2 Intel 28F128K18 flash devices parallel on 32 bit data bus.
+  IF "&flashtarget"=="yes"
+  (
+    ; Flash declaration for TRACE32 tool based flash programming
+    FLASH.RESet
+    FLASH.Create 1. 0x0000000++0x1ffffff 0x40000 TARGET Long
+    FLASH.TARGET 0xa0000000 0xa0002000 0x1000 ~~/demo/arm/flash/long/i28f200k3.bin
+  )
+  ELSE
+  (
+    ; Flash declaration for TRACE32 tool based flash programming
+    FLASH.RESet
+    FLASH.Create 1. 0x0000000++0x1ffffff 0x40000 I28F200K3 Long
+  )
+)
+ELSE
+(
+  IF "&SW1"=="dot"
+  (
+    ; 2 Intel 28F128J3 flash devices parallel on 32 bit data bus.
+    IF "&flashtarget"=="yes"
+    (
+      ; Flash declaration for TRACE32 tool based flash programming
+      FLASH.RESet
+      FLASH.Create 1. 0x0000000++0x1ffffff 0x40000 TARGET Long
+      FLASH.TARGET 0xa0000000 0xa0002000 0x1000 ~~/demo/arm/flash/long/i28f200j3.bin
+    )
+    ELSE
+    (
+      ; Flash declaration for TRACE32 tool based flash programming
+      FLASH.RESet
+      FLASH.Create 1. 0x0000000++0x1ffffff 0x40000 I28F200J3 Long
+    )
+  )
+  ELSE
+  (
+    ; 1 Intel 28F128J3 flash devices parallel on 16 bit data bus.
+    IF "&flashtarget"=="yes"
+    (
+      ; Flash declaration for TRACE32 tool based flash programming
+      FLASH.RESet
+      FLASH.Create 1. 0x0000000++0x0ffffff 0x20000 TARGET Word
+      FLASH.TARGET 0xa0000000 0xa0002000 0x1000 ~~/demo/arm/flash/word/i28f200j3.bin
+    )
+    ELSE
+    (
+      ; Flash declaration for TRACE32 tool based flash programming
+      FLASH.RESet
+      FLASH.Create 1. 0x0000000++0x0ffffff 0x20000 I28F200J3 Word
+    )
+  )
+)
+
+; --------------------------------------------------------------------------------
+; Load demo application to RAM
+
+; load demo file
+Data.LOAD.Elf ~~~~/arm.elf
+
+; initialize CPSR and stack pointer
+Register.Set CPSR 0x13
+Register.Set R13 0xa0001000
+
+; set program counter at program start
+Register.Set PC main
+
+; open some windows
+WinCLEAR
+WinPOS 0% 0% 66% 50%
+List.auto
+WinPOS 66% 0%
+Register.view /SpotLight
+WinPOS 0% 50% 50% 50%
+Frame /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch flags ast
+
+ENDDO

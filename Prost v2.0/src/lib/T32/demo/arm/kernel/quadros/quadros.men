@@ -1,0 +1,471 @@
+; --------------------------------------------------------------------------------
+; @Title: RTXC Quadros  awareness menu
+; @Description: -
+; @Author: DIE
+; @Copyright: (c) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: quadros.men 10497 2017-02-24 07:49:44Z rdienstbeck $
+
+
+add
+menu
+(
+  popup "&Quadros"
+  (
+    default
+    menuitem "Display &Tasks"         "TASK.TaSK"
+    menuitem "Display &Semaphores"    "TASK.SEMaphore"
+    menuitem "Display &Mailboxes"     "TASK.MailBoX"
+    menuitem "Display &Partitions"    "TASK.PaRTition"
+    menuitem "Display &Queues"        "TASK.QUEue"
+    menuitem "Display M&utexes"       "TASK.MuTeX"
+    menuitem "Display T&hreads"       "TASK.THRead"
+    menuitem "Display &Levels"        "TASK.LeVeL"
+    menuitem "Display P&ipes"         "TASK.PIPe"
+    menuitem "Display &Event Sources" "TASK.EVenT"
+    menuitem "Display &Counters"      "TASK.CouNTer"
+    menuitem "Display &Alarms"        "TASK.ALaRm"
+    menuitem "Display E&xceptions"    "TASK.EXCeption"
+    separator
+    popup "&Stack Coverage"
+    (
+      menuitem "&List Stacks"    "TASK.STacK"
+      menuitem "Add Task"        "TASK.STacK.ADD"
+      menuitem "Remove Task"     "TASK.STacK.ReMove"
+      enable ice()||fire()
+      menuitem "&Reset Coverage" "TASK.STacK.RESet"
+    )
+  )
+  popup "Trace"
+  (
+    popup "[:alist]List"
+    (
+      separator
+      menuitem "&Task Switches"     "Trace.List List.TASK"
+      menuitem "&Default and Tasks" "Trace.List List.TASK DEFault"
+    )
+  )
+  popup "Perf"
+  (
+    separator
+    popup "&Task Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+        )
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak&&Write
+          )
+          Break.Delete /Alpha
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+        )
+        if a.mode.flow()
+        (
+          if cpufamily()!="SC100"
+          (
+            Break.Delete /TraceEnable
+            Break.Set task.config(magic) /TraceEnable
+          )
+          else
+          (
+            Break.Delete /TraceData
+            Break.Set task.config(magic) /TraceData
+          )
+        )
+      )
+      menuitem "[:perf]Show &Numerical"   "Trace.STATistic.TASK"
+      menuitem "[:achart]Show as &Timing" "Trace.CHART.TASK"
+      menuitem "[:achart]Tracking with Trace &List"
+      (
+        Trace.List List.TASK DEFault /Track
+        Trace.CHART.TASK /Track
+      )
+    )
+    popup "Task &Function Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+          Analyzer.STATistic.PreFetch on
+        )
+
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          if a.config.hac()
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak
+               Sample.Enable if BetaBreak
+               Mark.A        if AlphaBreak
+               Mark.B        if BetaBreak
+             )
+          )
+          else
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak||BetaBreak
+               Mark.A if AlphaBreak
+               Mark.B if BetaBreak
+             )
+          )
+          Break.Delete /Alpha /Beta /Charly
+          Break.SetFunc
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+        )
+        if a.mode.flow()
+        (
+          Break.Delete /TraceData
+          Break.Set task.config(magic) /TraceData
+        )
+      )
+      menuitem "[:perf]Show &Numerical"     "Trace.STATistic.TASKFUNC"
+      menuitem "[:perf]Show as &Tree"       "Trace.STATistic.TASKTREE"
+      menuitem "[:perf]Show &Detailed Tree" "Trace.STATistic.TASKTREE ALL"
+      menuitem "[:achart]Show as &Timing"   "Trace.CHART.TASKFUNC"
+      menuitem "[:alist]Show N&esting"      "Trace.List List.TASK FUNC TI.FUNC"
+    )
+    popup "Task &Status"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+        )
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak&&Write
+          )
+        )
+	    Break.Delete /Alpha
+	    Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+	    ;TASK.TASKState
+      )
+      menuitem "[:perf]Show &Numerical"   "Trace.STATistic.TASKSTATE"
+      menuitem "[:achart]Show as &Timing" "Trace.CHART.TASKSTATE"
+      menuitem "[:achart]Tracking with Trace &List"
+      (
+        Trace.List List.TASK DEFault /Track
+        Trace.CHART.TASKSTATE /Track
+      )
+    )
+  )
+  popup "&Help"
+  (
+    menuitem "Quadros Awareness Manual" "HELP __RTOS_QUADROS_"
+  )
+)
+
+
+menu "task.tsk"
+(
+  default
+  menuitem "Display detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.TaSK &address
+  )
+  menuitem "Display task struct"
+  (
+    &address=address.offset(track.address())
+    &struct=task.task.struct()
+    Var.View %Open (&struct)*&address
+  )
+  separator
+  menuitem "Display Stack Frame"
+  (
+    &address=address.offset(track.address())
+    Var.Frame /Locals /Caller /Task &address
+  )
+  menuitem "Switch context"       "Register.TASK address.offset(track.address())"
+  separator
+  menuitem "Add to Stack Cov"  "TASK.STK.ADD address.offset(track.address())"
+  menuitem "Rm from Stack Cov" "TASK.STK.RM  address.offset(track.address())"
+  separator
+  menuitem "Dump task entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+menu "task.sem"
+(
+  default
+  menuitem "Display detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.SEMaphore &address
+  )
+  menuitem "Display semaphore struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %m %s (struct _sheader*)&address
+  )
+  separator
+  menuitem "Dump semaphore entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+menu "task.mbx"
+(
+  default
+  menuitem "Display detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.MeilBoX &address
+  )
+  menuitem "Display mailbox struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %m %s (struct _mheader*)&address
+  )
+  separator
+  menuitem "Dump mailbox entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+menu "task.prt"
+(
+  default
+  menuitem "Display detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.PaRTition &address
+  )
+  menuitem "Display partition struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %m %s (struct _pheader*)&address
+  )
+  separator
+  menuitem "Dump partition entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+menu "task.que"
+(
+  default
+  menuitem "Display detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.QUEue &address
+  )
+  menuitem "Display queue struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %m %s (struct _qheader*)&address
+  )
+  separator
+  menuitem "Dump queue entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+menu "task.mtx"
+(
+  default
+  menuitem "Display detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.MuTeX &address
+  )
+  menuitem "Display mutex struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %m %s (struct _uheader*)&address
+  )
+  separator
+  menuitem "Dump mutex entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+menu "task.thr"
+(
+  default
+  menuitem "Display detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.THRead &address
+  )
+  menuitem "Display thread struct"
+  (
+    &address=address.offset(track.address())
+    if cpufamily()!="C5000"
+      Var.View %m %s (struct _tcheader*)&address
+    else
+      Var.View %m %s (TCHEADER*)&address
+  )
+  separator
+  menuitem "Dump thread entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+menu "task.lvl"
+(
+  default
+  menuitem "Display detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.LeVeL &address
+  )
+  menuitem "Display level struct"
+  (
+    &address=address.offset(track.address())
+    if cpufamily()!="C5000"
+      Var.View %m %s (struct _lcheader*)&address
+    else
+      Var.View %m %s (LCHEADER*)&address
+  )
+  separator
+  menuitem "Dump level entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+menu "task.exc"
+(
+  default
+  menuitem "Display exception struct"
+  (
+    &address=address.offset(track.address())
+    if cpufamily()!="C5000"
+      Var.View %m %s (struct _eheader*)&address
+    else
+      Var.View %m %s (EHEADER*)&address
+  )
+  ;separator
+  menuitem "Dump exception entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+menu "task.evt"
+(
+  default
+  menuitem "Display detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.EVenT &address
+  )
+  menuitem "Display event source struct"
+  (
+    &address=address.offset(track.address())
+    if cpufamily()!="C5000"
+      Var.View %m %s (struct _scheader*)&address
+    else
+      Var.View %m %s (SCHEADER*)&address
+  )
+  separator
+  menuitem "Dump event source entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+menu "task.cnt"
+(
+  default
+  menuitem "Display detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.CouNTer &address
+  )
+  menuitem "Display counter struct"
+  (
+    &address=address.offset(track.address())
+    if cpufamily()!="C5000"
+      Var.View %m %s (struct _ccheader*)&address
+    else
+      Var.View %m %s (CCHEADER*)&address
+  )
+  separator
+  menuitem "Dump counter entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+menu "task.alr"
+(
+  default
+  menuitem "Display detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.ALaRm &address
+  )
+  menuitem "Display alarm struct"
+  (
+    &address=address.offset(track.address())
+    if cpufamily()!="C5000"
+      Var.View %m %s (struct _acheader*)&address
+    else
+      Var.View %m %s (ACHEADER*)&address
+  )
+  separator
+  menuitem "Dump alarm entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+menu "task.pip"
+(
+  default
+  menuitem "Display detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.PIPe &address
+  )
+  menuitem "Display pipe struct"
+  (
+    &address=address.offset(track.address())
+    if cpufamily()!="C5000"
+      Var.View %m %s (struct _pcheader*)&address
+    else
+      Var.View %m %s (PCHEADER*)&address
+  )
+  separator
+  menuitem "Dump pipe entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+

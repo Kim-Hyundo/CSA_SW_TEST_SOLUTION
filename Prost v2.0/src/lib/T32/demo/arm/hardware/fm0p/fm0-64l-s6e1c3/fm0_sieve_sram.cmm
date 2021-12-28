@@ -1,0 +1,74 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo script for S6E1C32D on FM0-64L-S6E1C3 (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   Use this script for getting started.
+;   Prerequisites:
+;    * Connect Debug Cable to CN2 using Adapter LA-3770
+;      or
+;      Connect Combiprobe/uTrace to CN2
+; @Keywords: ARM, Cortex-M0+
+; @Author: AME
+; @Board: FM0-64L-S6E1C3
+; @Chip: S6E1C32D
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: fm0_sieve_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU S6E1C32D
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_v6m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO
+
+DisableWatchdog:
+(
+  ; disable the Watchdog
+  Data.Set AD:0x40011C00 %Long 0x1ACCE551
+  Data.Set AD:0x40011C00 %Long 0xE5331AAE
+  Data.Set AD:0x40011008 %Byte 0x0
+  RETURN
+)

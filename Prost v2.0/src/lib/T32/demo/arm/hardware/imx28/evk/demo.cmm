@@ -1,0 +1,183 @@
+; --------------------------------------------------------------------------------
+; @Title: Start-up script for the Freescale i.MX28 EVK board
+; @Description:
+;   This scripts connects to the IMX287, initializes the External Memory
+;   and loads a simple sieve demo.
+; @Keywords: DDR, Freescale, sieve
+; @Author: PEG
+; @Board: i.MX28 EVK
+; @Chip: IMX287
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+;   PEG, 23-02-2011
+
+; Memory MAP:
+; 0x00000000-0x0001FFFF   On-Chip SRAM
+; 0x40000000-0x7FFFFFFF   External Memory
+; 0xC0000000-0xFFFFFFFF   On-Chip ROM
+
+
+  WinCLEAR
+
+  SYStem.RESet
+  SYStem.CPU IMX287
+  SYStem.JtagClock RTCK
+  SYStem.Option ResBreak OFF
+  SYStem.Option WaitReset 100ms
+  SYStem.Up
+
+  GOSUB InitDDR
+
+  Data.LOAD.Elf ~~~~/demo.axf
+  Register.Set PC main
+  Register.Set R13 0x20000
+
+  ; open some windows
+  WinCLEAR
+  WinPOS 0% 0% 100% 50%
+  List.auto
+  WinPOS 0% 50% 50% 50%
+  Frame /Locals /Caller
+  WinPOS 50% 50% 50% 50%
+  Var.Watch flags ast
+
+  ENDDO
+
+
+InitDDR:
+
+; VDDD
+  Data.Set 0x80044040 %Long 0x0022071e
+
+; Clock setup
+  Data.Set 0x80040000 %Long 0x00020000
+  Data.Set 0x800400F0 %Long 0x80000002
+  Data.Set 0x800401B0 %Long 0x92921614
+  Data.Set 0x80040060 %Long 0x00000003
+  Data.Set 0x800401D8 %Long 0x00040080
+  Data.Set 0x80040160 %Long 0x28000000
+  Data.Set 0x80040040 %Long 0x00800000
+
+; DCDD_VDDA (DDR2)
+  Data.Set 0x80044050 %Long 0x0000270C
+
+; init Power control
+  Data.Set 0x80044000 %Long 0x00119026
+  Data.Set 0x80044010 %Long 0x20308513
+  Data.Set 0x80044020 %Long 0x00000040
+  Data.Set 0x80044030 %Long 0x00010000
+  Data.Set 0x80044040 %Long 0x0002041e
+  Data.Set 0x80044050 %Long 0x0000270a
+  Data.Set 0x80044060 %Long 0x00042608
+  Data.Set 0x80044070 %Long 0x00000230
+  Data.Set 0x80044080 %Long 0x00000018
+  Data.Set 0x80044090 %Long 0x00000000
+  Data.Set 0x800440a0 %Long 0x0000305f
+  Data.Set 0x800440b0 %Long 0x00167021
+  Data.Set 0x800440c0 %Long 0x2007822e
+  Data.Set 0x800440d0 %Long 0x00000100
+  Data.Set 0x800440e0 %Long 0x020c0e0f
+  Data.Set 0x800440f0 %Long 0x00000000
+  Data.Set 0x80044120 %Long 0x00000080
+  Data.Set 0x80044130 %Long 0x0000000e
+  Data.Set 0x80044140 %Long 0x00000000
+  Data.Set 0x80044150 %Long 0x04000000
+  Data.Set 0x80044160 %Long 0x84000400
+  Data.Set 0x80044170 %Long 0x00000000
+
+; DCDD_VDDA (DDR2)
+  Data.Set 0x80018008 %Long 0xC0000000
+
+; EMI pads init
+  Data.Set 0x80019B80 %Long 0x00030000
+  Data.Set 0x800181A8 %Long 0xFFFFFFFF
+  Data.Set 0x800181B8 %Long 0xFFFFFFFF
+  Data.Set 0x800181C8 %Long 0xFFFFFFFF
+  Data.Set 0x800181D8 %Long 0xFFFFFFFF
+  Data.Set 0x800400F0 %Long 0x00000002
+
+; EMI DDR2 init
+  Data.Set 0x800E0000 %Long 0x00000000
+  Data.Set 0x800E0040 %Long 0x00000000
+  Data.Set 0x800E0054 %Long 0x00000000
+  Data.Set 0x800E0058 %Long 0x00000000
+  Data.Set 0x800E005C %Long 0x00000000
+  Data.Set 0x800E0060 %Long 0x00000000
+  Data.Set 0x800E0064 %Long 0x00000000
+  Data.Set 0x800E0068 %Long 0x00010101
+  Data.Set 0x800E006C %Long 0x01010101
+  Data.Set 0x800E0070 %Long 0x000f0f01
+  Data.Set 0x800E0074 %Long 0x0302020A
+  Data.Set 0x800E007C %Long 0x00010101
+  Data.Set 0x800E0080 %Long 0x00000100
+  Data.Set 0x800E0084 %Long 0x00000100
+  Data.Set 0x800E0088 %Long 0x00000000
+  Data.Set 0x800E008C %Long 0x00000002
+  Data.Set 0x800E0090 %Long 0x01010000
+  Data.Set 0x800E0094 %Long 0x07080403
+  Data.Set 0x800E0098 %Long 0x06005003
+  Data.Set 0x800E009C %Long 0x0a0000c8
+  Data.Set 0x800E00A0 %Long 0x02009c40
+  Data.Set 0x800E00A4 %Long 0x0002030c
+  Data.Set 0x800E00A8 %Long 0x0036a609
+  Data.Set 0x800E00AC %Long 0x031a0612
+  Data.Set 0x800E00B0 %Long 0x02030202
+  Data.Set 0x800E00B4 %Long 0x00c8001c
+  Data.Set 0x800E00C0 %Long 0x00011900
+  Data.Set 0x800E00C4 %Long 0xffff0303
+  Data.Set 0x800E00C8 %Long 0x00012100
+  Data.Set 0x800E00CC %Long 0xffff0303
+  Data.Set 0x800E00D0 %Long 0x00012100
+  Data.Set 0x800E00D4 %Long 0xffff0303
+  Data.Set 0x800E00D8 %Long 0x00012100
+  Data.Set 0x800E00DC %Long 0xffff0303
+  Data.Set 0x800E00E0 %Long 0x00000003
+  Data.Set 0x800E00E8 %Long 0x00000000
+  Data.Set 0x800E0108 %Long 0x00000612
+  Data.Set 0x800E010C %Long 0x01000f02
+  Data.Set 0x800E0114 %Long 0x00000200
+  Data.Set 0x800E0118 %Long 0x00020007
+  Data.Set 0x800E011C %Long 0xf4004a27
+  Data.Set 0x800E0120 %Long 0xf4004a27
+  Data.Set 0x800E012C %Long 0x07400300
+  Data.Set 0x800E0130 %Long 0x07400300
+  Data.Set 0x800E013C %Long 0x00000005
+  Data.Set 0x800E0140 %Long 0x00000000
+  Data.Set 0x800E0144 %Long 0x00000000
+  Data.Set 0x800E0148 %Long 0x01000000
+  Data.Set 0x800E014C %Long 0x01020408
+  Data.Set 0x800E0150 %Long 0x08040201
+  Data.Set 0x800E0154 %Long 0x000f1133
+  Data.Set 0x800E015C %Long 0x00001f04
+  Data.Set 0x800E0160 %Long 0x00001f04
+  Data.Set 0x800E016C %Long 0x00001f04
+  Data.Set 0x800E0170 %Long 0x00001f04
+  Data.Set 0x800E0288 %Long 0x00010000
+  Data.Set 0x800E028C %Long 0x00030404
+  Data.Set 0x800E0290 %Long 0x00000003
+  Data.Set 0x800E02AC %Long 0x01010000
+  Data.Set 0x800E02B0 %Long 0x01000000
+  Data.Set 0x800E02B4 %Long 0x03030000
+  Data.Set 0x800E02B8 %Long 0x00010303
+  Data.Set 0x800E02BC %Long 0x01020202
+  Data.Set 0x800E02C0 %Long 0x00000000
+  Data.Set 0x800E02C4 %Long 0x02030303
+  Data.Set 0x800E02C8 %Long 0x21002103
+  Data.Set 0x800E02CC %Long 0x00061200
+  Data.Set 0x800E02D0 %Long 0x06120612
+  Data.Set 0x800E02D4 %Long 0x04420442
+  Data.Set 0x800E02D8 %Long 0x04420442
+  Data.Set 0x800E02DC %Long 0x00040004
+  Data.Set 0x800E02E0 %Long 0x00040004
+  Data.Set 0x800E02E4 %Long 0x00000000
+  Data.Set 0x800E02E8 %Long 0x00000000
+  Data.Set 0x800E02EC %Long 0x00000000
+  Data.Set 0x800E02F0 %Long 0x00000000
+  Data.Set 0x800E02F4 %Long 0xffffffff
+  Data.Set 0x800E0040 %Long 0x00000001
+
+  RETURN
+
+

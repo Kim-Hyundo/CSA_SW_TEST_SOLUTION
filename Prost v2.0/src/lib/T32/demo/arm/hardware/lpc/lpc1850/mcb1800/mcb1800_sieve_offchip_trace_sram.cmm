@@ -1,0 +1,123 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for LPC1850 with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The Offchip Trace using a Combiprobe/uTrace or PowerTrace is set up.
+;   Use this script for testing the Offchip-Trace.
+;
+;   As the device has a internal bootrom we let the SoC boot for ~20ms till the 
+;   bootrom execution is finished, see SYStem.Option WaitReset/ResBreak.
+;   Prerequisites:
+;    *  Combiprobe/uTrace is connected to MIPI20 PinHeader J7
+;      or
+;       AutoFocus Preprocessor is connected to MIPI20 PinHeader J7 
+;       using adapter LA-3809
+;       Connect DebugCable to LA-3809
+;      
+; @Keywords: ARM, Cortex-M3, ETM
+; @Author: AME
+; @Board: MCB1800
+; @Chip: LPC18??
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mcb1800_sieve_offchip_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU LPC1850
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF hardware.COMBIPROBE()||hardware.UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+; trigger RESET but wait additional 20ms
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 20.000ms
+SYStem.Option DisableSoftReset ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+; force onchip-breakpoints in the SPIFI memory range
+MAP.BOnchip 0x1c000000--0x1fffffff
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; initialize offchip-trace (ETM ON, ITM ON)
+IF hardware.COMBIPROBE()||hardware.UTRACE()||Analyzer()
+(
+  ; set PinMux
+  IF TRUE()
+  (
+    ; use PortF for TraceD[0..3]
+    ; set pin function + drive strength
+    Data.Set D:0x40086794 %Long 0x00000023     ; TRACEDATA[0]
+    Data.Set D:0x40086798 %Long 0x00000023     ; TRACEDATA[1]
+    Data.Set D:0x4008679C %Long 0x00000023     ; TRACEDATA[2]
+    Data.Set D:0x400867A0 %Long 0x00000023     ; TRACEDATA[3]
+    Data.Set D:0x40086790 %Long 0x00000022     ; TraceClk
+  )
+  ELSE
+  (
+    ; use Port7 for TraceD[0..3]
+    ; set pin function + drive strength
+    Data.Set D:0x40086390 %Long 0x00000025     ; TRACEDATA[0]
+    Data.Set D:0x40086394 %Long 0x00000025     ; TRACEDATA[1]
+    Data.Set D:0x40086398 %Long 0x00000025     ; TRACEDATA[2]
+    Data.Set D:0x4008639C %Long 0x00000025     ; TRACEDATA[3]
+    Data.Set D:0x40086790 %Long 0x00000022     ; TraceClk
+  )
+  
+  TPIU.PortSize 4
+  TPIU.PortMode Continuous
+  ITM.DataTrace CorrelatedData
+  ITM.ON
+  ETM.Trace ON
+  ETM.ON
+)
+IF hardware.COMBIPROBE()||hardware.UTRACE()
+(
+  Trace.METHOD CAnalyzer
+)
+IF Analyzer()
+(
+  ; make sure AutoFocus uses the SRAM
+  Trace.METHOD Analyzer 0x10000000++0xff
+  Trace.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO

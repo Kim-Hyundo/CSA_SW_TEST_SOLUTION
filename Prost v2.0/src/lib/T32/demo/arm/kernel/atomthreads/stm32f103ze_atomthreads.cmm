@@ -1,0 +1,87 @@
+; --------------------------------------------------------------------------------
+; @Title: AtomThreads Demo for TRACE32 OS Awareness
+; @Description:
+; This batchfile demonstrates the OS Awareness for AtomThreads.
+; This script will only work the STM32F103ZE development board. It can be used
+; as a template to create your own script.
+;
+; Make sure that you add -g to the CFLAGS option in your:
+;      ports/<cpu>/platforms/<board>/Makefile
+;      For stack views, please enable STACK_CHECK in your Makefile/build
+; @Keywords: awareness, RTOS, AtomThreads, Cortex-M
+; @Author: RIC
+; @Chip: STM32F103ZE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: stm32f103ze_atomthreads.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+LOCAL &image &knlaware
+&image="t32demo.elf"
+&knlaware="~~/demo/arm/kernel/atomthreads"
+
+SCREEN.ON                    ; all messages are displayed
+AREA.RESet
+WinPAGE.RESet
+TASK.RESet
+MENU.RESet
+
+; Debugger reset
+
+PRINT "resetting..."
+RESet
+
+; Initializing Debugger
+PRINT "initializing..."
+
+SYStem.Option DisMode THUMB
+SYStem.CPU STM32F103ZE
+
+;next two options required for E: memory class & dual port access
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+
+;Enable Serial Wire DEbug
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+SYStem.CONFIG CONNECTOR MIPI20T
+
+SYStem.Up
+Data.LOAD.Elf "&image" /DIFF
+IF FOUND()
+(
+  ;;need to update flash
+  DO ~~/demo/arm/flash/stm32f10x.cmm CPU=STM32F103ZE PREPAREONLY
+  FLASH.ReProgram.ALL /ERASE
+  Data.LOAD.Elf "&image"
+  FLASH.ReProgram OFF
+  SYStem.Down
+  WAIT 200.ms
+  SYStem.Up
+)
+ELSE
+(
+  Data.LOAD.Elf "&image" /NOCODE
+)
+
+Mode.Hll
+
+; Declare flash area for onchip breakpoints
+MAP.BOnchip 0x00000000--0x1fffffff
+
+
+; initialize RTOS support
+PRINT "initializing AtomThreads support..."
+TASK.CONFIG "&knlaware/atomthreads.t32"    ; load AtomThreads Awareness
+MENU.ReProgram "&knlaware/atomthreads.men"
+ PRINT "load complete."  ; send to Message Line
+
+; open some windows
+WinPOS 0. 0. 73. 23. 11. 1. W001
+List.auto
+
+Go.direct main
+WAIT !STATE.RUN()
+
+PRINT "done."
+
+ENDDO

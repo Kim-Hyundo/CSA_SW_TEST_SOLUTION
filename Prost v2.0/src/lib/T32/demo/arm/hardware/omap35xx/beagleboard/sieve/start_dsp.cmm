@@ -1,0 +1,44 @@
+; --------------------------------------------------------------------------------
+; @Title: C64+ (IVA) on OMAP3530 BeagleBoard Startup
+; @Description:
+;   Script to debug the C64+ IVA on the OMAP3530 BeagleBoard
+;   Thi script must be executed in the C64x TRACE32 Interface.
+; @Keywords: beagle, c6000, C64x, DSP, IVA, TI
+; @Props: Template
+; @Author: STK
+; @Board: BeagleBoard
+; @Chip: OMAP3530
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: start_dsp.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; STK, 2009-04-22
+
+
+; Basic setup
+  SYStem.RESet
+  SYStem.CPU OMAP3530IVA
+  SYStem.JtagClock RTCK
+  MAP.DenyAccess 0x00000000--0x007DFFFF
+  SYStem.Mode Attach
+
+  IF STATE.RUN()
+    Break
+
+; Load demo application
+  Data.LOAD.COFF ~~~~/cppdemo.out /include /singleline /GLOBTYPES
+  Register.Set PC c_int00
+  Go main
+
+; Open some windows
+  WinCLEAR
+  WinPOS 0% 0% 100% 50%
+  List.auto
+  WinPOS 0% 50% 50% 50%
+  Frame /Locals /Caller
+  WinPOS 50% 50% 50% 50%
+  Var.Watch
+  Var.AddWatch ast; flags;
+
+  ENDDO

@@ -1,0 +1,260 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux Demo for TRACE32 OS Awareness on the HiCO.ARM9 Board
+; @Description: 
+;   This batchfile demonstrates the use of the OS Awareness for Linux
+;   The example is generated for the emtrion HiCO.ARM9 board using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   Linux is downloaded to the board via ICD.
+; @Keywords: awareness, hico*
+; @Author: DIE
+; @Board: HiCO.ARM9
+; @Chip: AT91RM9200
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: hicoarm9_linux.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; Set jumper to boot bootloader
+
+; CHANGED: arch/arm/mach-at91rm9200/time.c: at91rm9200_timer_interrupt():
+;       moved timer_tick() out of while loop;
+;       breaks would cause permanent timer ticks.
+
+; Starting Linux example with TRACE32 and Hyperterminal:
+; - Connect NULL modem cable to COM1
+; - Start TRACE32
+; - Open Hyperterminal:
+;   - 115200 baud, 8/N/1, no(!) handshake
+; - Switch on the board
+; - (T32) "do linux"
+; - (HT)  start "hello"
+
+
+ LOCAL &srcdrive
+ LOCAL &srcpath
+ &srcdrive="S:"
+ &srcpath="&srcdrive"+"\"
+ LOCAL &ka_path &awareness
+
+
+ SCREEN.ON
+
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 25. 75. 9. 0. 0. W000
+ AREA.view
+ 
+ PRINT "resetting..."
+
+ RESet
+
+
+;Initializing Debugger
+ 
+ PRINT "initializing..."
+ SYStem.CPU AT91RM9200
+ SYStem.JtagClock 1MHz          ; be slow after reset!
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ SYStem.Option ResBreak ON      ; hardware dependent (see manual)
+ SYStem.Option WaitReset OFF    ; hardware dependent (see manual)
+ SYStem.Option BigEndian OFF    ; this demo is in little endian
+ TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set UNDEF OFF         ; my be used by Linux for FPU detection
+ SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+
+; RESET: The standard layout of the board prevents
+; the debugger from inserting a reset signal. In this
+; case, only a SYStem.Mode Attach/Break works, and only
+; after a manual reset of the board. 
+; A modified board (see PCBErrata in board documentation), that 
+; allows resetting by the debugger, can use this sequence:
+
+ SYStem.Up
+
+ SETUP.IMASKASM ON              ; lock interrupts while single stepping
+ 
+
+; Target Setup: initialize DRAM controller and peripherals
+
+ ; The target setup is only necessary, if the board is
+ ; in Reset state after SYStem.Up (see above comment).
+ 
+ ; Either let the boot monitor setup the board
+    Go
+    PRINT "target setup..."
+    WAIT 2.s
+    Break
+    
+    ; prepare for Linux boot
+    ; switch off MMU and other stuff
+    PER.Set.simple C15:0x1 %Long 0xc0004078
+    ; mask timer int
+    PER.Set.simple ASD:0xFFFFFD18 %Long 0x1
+    ;usart1 mode
+    PER.Set.simple ASD:0xFFFC4004 %Long 0x8c0
+    ;usart1 dma transfer disable
+    PER.Set.simple ASD:0xFFFC4120 %Long 0x202
+    
+ ; or use the debugger to initialize it
+    ;print "target setup..."
+    ;do init_hicoarm9           ; do basic setup
+
+ SYStem.JtagClock 10MHz         ; speedup after PLL set
+
+; configure ETM on target and on TRACE32 for HiCO.ARM9
+ ;print "ETM setup..."
+ ;do init_etm
+
+
+; Load the Linux kernel
+
+ ; If you are using a flashed kernel, or if you're loading 
+ ; your kernel via TFTP, use the boot monitor to do so.
+ 
+ ; Use the next lines (loading the kernel, setting registers
+ ; and boot parameters) only to load the kernel into
+ ; RAM using the debugger.
+
+ ; vmlinux starts physically at RAM start (=0x10000000) + 0x8000 
+ ; We have to adjust it from the virtual start address at the label
+ ; "stext" from the System.map ("nm vmlinux | sort")
+ ; i.e.: Data.LOAD.Elf vmlinux <physical start>-<virtual start>
+
+ PRINT "loading Linux image..."
+ Data.LOAD.Elf vmlinux 0x20008000-0xc0008000 /gnu /NosYmbol
+ 
+ Register.RESet
+
+ ; Set PC on start address of image
+ Register.Set PC 0x20008000
+
+ ; Set machine type in R1; see arch/arm/tools/mach-types
+ Register.Set R1 0x030D
+ 
+ ; Set boot parameters
+ DO hicoarm9_atag_list
+ Register.Set R2 0x20000100
+ 
+
+; Loading initial ram disk (initrd)
+
+ ; Use the next lines only, if you want to use an initrd,
+ ; and if you want to download this with the debugger.
+ 
+ ; Load ram file system image into ram disk
+ ; The load address is either hardcoded in arch/arm/<board>/arch.c,
+ ; or must be passed by a boot parameter, or as command line option
+ 
+ PRINT "loading ram disk..."
+ Data.LOAD.Binary _rootfs.cramfs 0x22000000 /NoClear /NosYmbol
+ 
+
+; Load the Linux kernel symbols into the debugger
+ ; use /strippart and /path to map source paths, if necessary
+
+ PRINT "loading Linux kernel symbols..."
+ Data.LOAD.Elf vmlinux /gnu /NoCODE /StripPART 3 /PATH "&srcpath"
+
+
+; Open a Code Window -- we like to see something
+
+ WinPOS 0. 0. 75. 20.
+ List.auto
+ SCREEN.display
+
+
+; Run over MMU & Interrupt initialization
+
+ Go __init_end /Onchip
+ PRINT "initializing target and debugger MMU..."
+ WAIT !STATE.RUN()
+ 
+
+; Declare the MMU format to the debugger
+ ; - table format is "LINUX"
+ ; - table base address is at label "swapper_pg_dir"
+ ; - kernel address translation
+ ; Map the virtual kernel symbols to physical addresses to give 
+ ; the debugger access to it before CPU MMU is initialized
+
+ PRINT "initializing debugger MMU..."
+ MMU.FORMAT LINUX swapper_pg_dir 0xc0000000--0xc3ffffff 0x20000000
+ TRNASlation.COMMON 0xc0000000--0xffffffff            ; common area for kernel and processes
+ TRNASlation.TableWalk ON   ; debugger uses a table walk to decode virtual addresses
+ TRNASlation.ON             ; switch on debugger(!) address translation 
+ 
+
+; Initialize Linux Awareness
+
+ ; Note that the Linux awareness needs the kernel symbols to work
+ 
+ PRINT "initializing Linux support..."
+ ; check linux major version
+ IF STRing.SCAN(Data.STRing(linux_banner), "Linux version 2.", 0)==0
+ (
+     &ka_path="~~/demo/arm/kernel/linux/linux-2.x"
+     &awareness="linux.t32"
+ )
+ ELSE
+ (
+     &ka_path="~~/demo/arm/kernel/linux/linux-3.x"
+     &awareness="linux3.t32"  
+ )
+ 
+ PRINT "initializing RTOS support..."
+ TASK.CONFIG &ka_path/&awareness               ; loads Linux awareness 
+ MENU.ReProgram &ka_path/linux            ; loads Linux menu 
+  
+ ; Group kernel area to be displayed with red bar
+ GROUP.Create "kernel" 0xc0000000--0xffffffff /RED
+
+; enable tracing of task switch
+ ;if etm()
+ ;  Break.Set task.config(magic)++3 /TraceData
+
+
+; Ok, we're done, let's start Linux
+
+ Go
+ PRINT "starting Linux... (please wait)"
+ WAIT 5.s
+ Break
+
+ PRINT "done."
+ 
+
+; --------------------------------------------------------------------------------
+; Application Debugging 
+; e.g. "helloworld"
+; --------------------------------------------------------------------------------
+
+ ; activate autoloader for processes:
+ TASK.sYmbol.Option AutoLoad Process
+
+ PRINT "please log in and start 'helloworld'"
+
+ ; script based
+   ; using the script based application debugging
+   ; gives more control over the single commands
+   ; see file "app_debug.cmm"
+   
+   ;LOCAL &extdir
+   ;&extdir=TASK.GETDIR()
+   ;DO &extdir/app_debug helloworld
+   
+ ; process watch system
+   ; the process watch system automates the actions
+   ; for application debugging
+   
+   WinPOS 55. 25. 40. 4.
+   TASK.Watch.View "helloworld"
+
+   Go
+
+ ENDDO
+

@@ -1,0 +1,768 @@
+; --------------------------------------------------------------------------------
+; @Title: Start-Up Script for PandaBoard (OMAP4430APP1, CortexA9_CPU0)
+; @Description:
+;   This script is the starting point for ti-script. The first core to connect
+;   is the CortexA9 CPU0. Other scripts are available in the TRACE32 window
+;   (CMM menu)  and executing by clicking on them
+;   (see omap4430_lauterbach_startup_guide.doc)
+; @Keywords: OMAP4430 PandaBoard
+; @Author: TI
+; @Board: PandaBoard
+; @Chip: OMAP4430
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: omap4430_cortexa9_cpu0.cmm 12265 2018-03-07 11:36:33Z amerkle $
+
+SYStem.RESet
+SYStem.CPU OMAP4430APP1
+SYStem.JtagClock 10MHz
+
+SYStem.CONFIG CTIBASE 0xd4148000
+
+SYStem.Option ResBreak ON
+
+IF Analyzer()
+(
+  ETM.OFF
+  Analyzer.TERMination OFF
+)
+
+SYStem.Up
+
+AREA.Create results
+AREA.CLEAR results
+AREA.view results
+
+GLOBAL &CMM_DIR &CORTEXM3_RESET_STATE &TESLA_RESET_STATE &SILICON_TYPE &DEVICE_TYPE &PHOENIX_REVISION &PHOENIX_VERSION &DEBUG_INFO
+&DEBUG_INFO=0
+&CORTEXM3_RESET_STATE=0
+&TESLA_RESET_STATE=0
+
+ChDir ~~~~/
+
+&CMM_DIR="~~~~"
+&SILICON_TYPE=(Data.Long(SR:0x4A002204)&0xF0000000)>>28.
+&DEVICE_TYPE=(Data.Long(SR:0x4A0022C4)&0x300)>>8.
+
+LOCAL &memory_type &memory_size &memory_tech &MEMORY_8GB &MEMORY_4GB
+
+&memory_size=0.
+
+&MEMORY_8GB=2.
+
+&MEMORY_4GB=1.
+
+PRINT " CortexA9 CPU0 connected ..."
+
+;ENDDO
+
+GOSUB silicon_type
+
+GOSUB device_type
+
+GOSUB emu_test_hs_device
+
+// detect phoenix release
+// init I2C
+DO &CMM_DIR/omap4430_i2c_driver 0x0 0x48070000 0x3 24. 24. 8. 9.
+
+//Configure I2C
+DO &CMM_DIR/omap4430_i2c_driver 0x1 0x48070000 0x0 0x0 0x0 0x19 0x5
+
+//master send polling
+DO &CMM_DIR/omap4430_i2c_driver 0x2 0x48070000 0x4A 0xDF 0x0 0x1
+
+//master receive polling
+DO &CMM_DIR/omap4430_i2c_driver 0x3 0x48070000 0x4A 0x0 0x1
+
+IF (&PHOENIX_REVISION>=5)
+(
+  &PHOENIX_VERSION=2;
+)
+ELSE
+(
+  IF (&PHOENIX_REVISION<5)
+  (
+    &PHOENIX_VERSION=1;
+  )
+)
+
+PRINT "--->>> PHOENIX RELEASE => (&PHOENIX_VERSION), EEPROM => (&PHOENIX_REVISION)  <<<---"
+
+PRINT " SET VOLTAGE to all VCORES to 1100mv "
+; setting i2c sr base cfg
+Data.Set SR:0x4A307BAC %Long 0x6026
+Data.Set SR:0x4A307BA8 %Long 0
+
+IF (&PHOENIX_VERSION<2)
+(
+  ; upping VCORE1
+  Data.Set SR:0x4A307BA0 %Long 0x1295512
+)
+ELSE
+(
+  ; upping VCORE1
+  Data.Set SR:0x4A307BA0 %Long 0x1215512
+)
+
+; setting i2c sr base cfg
+Data.Set SR:0x4A307BAC %Long 0x6026
+Data.Set SR:0x4A307BA8 %Long 0
+IF (&PHOENIX_VERSION<2)
+(
+  ; upping VCORE2
+  Data.Set SR:0x4A307BA0 %Long 0x1295B12
+)
+ELSE
+(
+  ; upping VCORE2
+  Data.Set SR:0x4A307BA0 %Long 0x1215B12
+)
+
+PRINT " Increasing CORE voltage for DDR Issue"
+; setting i2c sr base cfg
+Data.Set SR:0x4A307BAC %Long 0x6026
+Data.Set SR:0x4A307BA8 %Long 0
+
+IF (&PHOENIX_VERSION<2)
+(
+  ; upping VCORE3
+  Data.Set SR:0x4A307BA0 %Long 0x1296112
+)
+ELSE
+(
+  ; upping VCORE3
+  Data.Set SR:0x4A307BA0 %Long 0x1216112
+)
+
+DO &CMM_DIR/omap4430_disable_watchdog
+
+;SDRAM CONFIG
+Data.Set SR:0x4C000008 %Long 0x98800EB9;
+
+;DDR PHY CTRL 1
+Data.Set SR:0x4C0000E4 %Long 0x449FFFF4;
+
+;set MR0 (line CS0) register and poll
+Data.Set SR:0x4C000050 %Long 0x00000000;
+;while ( (*(int*)0x4C000040&0x1)!=0x0);
+WAIT (Data.Long(NSR:0x4C000040)&0x1)==0x0
+
+;set MR0 (line CS1) register and poll
+Data.Set SR:0x4C000050 %Long 0x80000000;
+;while ( (*(int*)0x4C000040&0x1)!=0x0);
+WAIT (Data.Long(NSR:0x4C000040)&0x1)==0x0
+
+Data.Set SR:0x4C000050 %Long 0x5;
+&memory_type=Data.Long(SR:0x4c000040)
+
+&memory_type=&memory_type&0xFF
+
+IF (&memory_type==0x1)
+(
+  PRINT "Memory type is SAMSUNG"
+)
+
+IF (&memory_type==0x3)
+(
+  PRINT "Memory type is ELPIDA"
+
+  Data.Set SR:0x4c000050 %Long 0x6
+  &memory_tech=Data.Long(SR:0x4c000040)
+  &memory_tech=&memory_tech&0x1
+
+  IF (&memory_tech==0)
+  (
+    PRINT "Memory tech is 50nm"
+  )
+
+  IF (&memory_tech==1)
+  (
+    PRINT "Memory tech is 40nm"
+  )
+
+  ;SDRAM CONFIG
+  Data.Set SR:0x4D000008 %Long 0x98800EB9
+
+  ;DDR PHY CTRL 1
+  Data.Set SR:0x4D0000E4 %Long 0x449FFFF4
+
+  ;set MR0 (line CS0) register and poll
+  Data.Set SR:0x4D000050 %Long 0x00000000
+  WAIT (Data.Long(NSR:0x4D000040)&0x1)==0x0
+
+  ;set MR0 (line CS1) register and poll
+  Data.Set SR:0x4D000050 %Long 0x80000000
+  WAIT (Data.Long(NSR:0x4D000040)&0x1)==0x0
+
+  Data.Set SR:0x4D000050 %Long 0x5
+
+  &temp=Data.Long(NSR:0x4D000040)
+  &temp=&temp&0xFF
+
+  IF (&temp==0x03)
+  (
+    PRINT "--->>> MEMORY SIZE is 8GB <<<---"
+    &memory_size=&MEMORY_8GB;
+  )
+  ELSE
+  (
+    PRINT "--->>> MEMORY SIZE is 4GB <<<---"
+    &memory_size=&MEMORY_4GB;
+  )
+)
+
+IF (&memory_type==0x6)
+(
+  PRINT "Memory type is HYNIX "
+
+  ;SDRAM CONFIG
+  Data.Set SR:0x4D000008 %Long 0x98800EB9
+
+  ;DDR PHY CTRL 1
+  Data.Set SR:0x4D0000E4 %Long 0x449FFFF4
+
+  // set MR0 (line CS0) register and poll
+  Data.Set SR:0x4D000050 %Long 0x00000000
+  WAIT (Data.Long(NSR:0x4D000040)&0x1)==0x0
+
+  // set MR0 (line CS1) register and poll
+  Data.Set SR:0x4D000050 %Long 0x80000000
+  WAIT (Data.Long(NSR:0x4D000040)&0x1)==0x0
+
+  Data.Set SR:0x4D000050 %Long 0x5;
+
+  &temp=Data.Long(NSR:0x4D000040)
+  &temp=&temp&0xFF
+
+  IF (&temp==0x06)
+  (
+    PRINT "--->>> MEMORY SIZE is 8GB <<<---"
+    &memory_size=&MEMORY_8GB
+  )
+  ELSE
+  (
+    PRINT "--->>> MEMORY SIZE is 4GB <<<---"
+    &memory_size=&MEMORY_4GB
+  )
+)
+
+IF (&memory_type==0xFF)
+(
+  PRINT "Memory type is MICRON"
+)
+
+// Set sysclock to 38.4 MHZ
+DO &CMM_DIR/omap4430_prcm 3
+
+// ES2.3
+IF (&SILICON_TYPE==0x6)
+(
+  PRINT " CONFIGURE OPP100 settings"
+  //PRINT " CONFIGURE OPP50 settings"
+  IF ((&memory_type==3)||(&memory_type==0x6)||(&memory_type==0x1))
+  (
+    IF ((&memory_size==&MEMORY_8GB)||(&memory_type==0x1))
+    (
+      // Elpida 4x2 to OPP100
+      DO &CMM_DIR/omap4430_ddr 13.
+      // Elpida 4x2 to OPP50
+      // do &CMM_DIR/omap4430_ddr 8.
+    )
+    ELSE
+    (
+      // Elpida 2x2 to OPP100
+      DO &CMM_DIR/omap4430_ddr 11.
+    )
+  )
+
+  // Configure OPP100
+  DO &CMM_DIR/omap4430_prcm 6
+  // Configure OPP50
+  //do &CMM_DIR/omap4430_prcm 8
+)
+ELSE
+(
+  // ES2.2.1
+  IF (&SILICON_TYPE==0x5)
+  (
+    PRINT " CONFIGURE OPP100 settings"
+    //PRINT " CONFIGURE OPP50 settings"
+    IF ((&memory_type==3)||(&memory_type==0x6)||(&memory_type==0x1))
+    (
+      IF ((&memory_size==&MEMORY_8GB)||(&memory_type==0x1))
+      (
+        // Elpida 4x2 to OPP100
+        DO &CMM_DIR/omap4430_ddr 13.
+        // Elpida 4x2 to OPP50
+        // do &CMM_DIR/omap4430_ddr 8.
+      )
+      ELSE
+      (
+        // Elpida 2x2 to OPP100
+        DO &CMM_DIR/omap4430_ddr 11.
+      )
+    )
+
+    // Configure OPP100
+    DO &CMM_DIR/omap4430_prcm 6
+    // Configure OPP50
+    //do &CMM_DIR/omap4430_prcm 8
+  )
+  ELSE
+  (
+    // ES2.2
+    IF (&SILICON_TYPE==0x4)
+    (
+      PRINT " CONFIGURE OPP100 settings"
+      //PRINT " CONFIGURE OPP50 settings"
+      IF ((&memory_type==3)||(&memory_type==0x6)||(&memory_type==0x1))
+      (
+        IF ((&memory_size==&MEMORY_8GB)||(&memory_type==0x1))
+        (
+          // Elpida 4x2 to OPP100
+          DO &CMM_DIR/omap4430_ddr 13.
+          // Elpida 4x2 to OPP50
+          // do &CMM_DIR/omap4430_ddr 8.
+        )
+        ELSE
+        (
+          // Elpida 2x2 to OPP100
+          DO &CMM_DIR/omap4430_ddr 11.
+        )
+      )
+
+      // Configure OPP100
+      DO &CMM_DIR/omap4430_prcm 6
+      // Configure OPP50
+      //do &CMM_DIR/omap4430_prcm 8
+    )
+    ELSE
+    (
+      // ES2.1
+      IF (&SILICON_TYPE==0x3)
+      (
+        PRINT " CONFIGURE OPP100 settings"
+        IF ((&memory_type==3)||(&memory_type==0x6)||(&memory_type==0x1))
+        (
+          IF ((&memory_size==&MEMORY_8GB)||(&memory_type==0x1))
+          (
+            // Elpida 4x2 to OPP100
+            DO &CMM_DIR/omap4430_ddr 13.
+          )
+          ELSE
+          (
+            // Elpida 2x2 to OPP100
+            DO &CMM_DIR/omap4430_ddr 11.
+          )
+        )
+
+        // Configure OPP100
+        DO &CMM_DIR/omap4430_prcm 6
+      )
+      ELSE
+      (
+
+        // ES2.0
+        IF (&SILICON_TYPE==0x1)
+        (
+          PRINT " CONFIGURE OPP100 ES2 settings"
+          IF ((&memory_type==3)||(&memory_type==0x6)||(&memory_type==0x1))
+          (
+            IF ((&memory_size==&MEMORY_8GB)||(&memory_type==0x1))
+            (
+              // Elpida 4x2 to OPP100_ES2
+              DO &CMM_DIR/omap4430_ddr 12.
+            )
+            ELSE
+            (
+              // Elpida 2x2 to OPP100_ES2
+              DO &CMM_DIR/omap4430_ddr 10.
+            )
+          )
+
+          // Configure OPP100_ES2
+          DO &CMM_DIR/omap4430_prcm 5
+        )
+        ELSE
+        (
+          // non fused
+          IF (&SILICON_TYPE==0x0)
+          (
+            ; ES1.0 or non fused with TEST DEVICE
+            IF (&DEVICE_TYPE==0x0)
+            (
+              PRINT " CONFIGURE OPP100_ES2 settings (DDR at 200MHzs)"
+              IF ((&memory_type==3)||(&memory_type==0x6)||(&memory_type==0x1))
+              (
+                IF ((&memory_size==&MEMORY_8GB)||(&memory_type==0x1))
+                (
+                  // Elpida 4x2 to OPP100_ES2
+                  DO &CMM_DIR/omap4430_ddr 12.
+                )
+                ELSE
+                (
+                  // Elpida 2x2 to OPP100_ES2
+                  DO &CMM_DIR/omap4430_ddr 10.
+                )
+              )
+              // Configure OPP100 ES2
+              DO &CMM_DIR/omap4430_prcm 5
+            )
+            ELSE
+            (
+              IF ((&memory_type==3)||(&memory_type==0x6)||(&memory_type==0x1))
+              (
+                IF ((&memory_size==&MEMORY_8GB)||(&memory_type==0x1))
+                (
+                  // Elpida 4x2 to OPP100
+                  DO &CMM_DIR/omap4430_ddr 13.
+                )
+                ELSE
+                (
+                  // Elpida 2x2 to OPP100
+                  DO &CMM_DIR/omap4430_ddr 11.
+                )
+              )
+              // Configure OPP100
+              DO &CMM_DIR/omap4430_prcm 6
+            )
+          )
+          ELSE
+          (
+            PRINT " UNKNOW CONFIGURATION CHECK DEVICE ID : &SILICON_TYPE"
+            PRINT " UAPPLY DEFAULT CONFIG OPP100 "
+            PRINT " CONFIGURE OPP100 settings"
+
+            IF ((&memory_type==3)||(&memory_type==0x6)||(&memory_type==0x1))
+            (
+              IF ((&memory_size==&MEMORY_8GB)||(&memory_type==0x1))
+              (
+                // Elpida 4x2 to OPP100
+                DO &CMM_DIR/omap4430_ddr 13.
+              )
+              ELSE
+              (
+                // Elpida 2x2 to OPP100
+                DO &CMM_DIR/omap4430_ddr 11.
+              )
+            )
+
+            // Configure OPP100
+            DO &CMM_DIR/omap4430_prcm 6
+          )
+        )
+      )
+    )
+  )
+)
+
+GOSUB psram_reconfiguration
+
+DO &CMM_DIR/omap4430_cortexa9_menu_tests
+DO &CMM_DIR/omap4430_cortexa9_menu_traces
+DO &CMM_DIR/omap4430_cortexa9_emulation_tests
+
+;gosub enter_non_secure_mode
+
+
+// ES2.0
+IF (&SILICON_TYPE==0x1)
+(
+  GOSUB force_keeper
+)
+
+// NON FUSED or ES1.0 TEST device
+IF (&SILICON_TYPE==0x0)
+(
+  IF (&DEVICE_TYPE==0x0)
+  (
+    GOSUB force_keeper
+  )
+)
+
+GOSUB remove_wir_mode_TAP
+
+PRINT " DONE! "
+
+PRINT " CortexA9 CPU0 connected ..."
+
+ENDDO
+
+force_keeper:
+(
+  ENTRY
+
+  PRINT " Setting FORCE KEEPER on EMIF1 and Deselect EMIFS2"
+  Data.Set SR:0x4A10063C %Long 0x9E9E9E9C
+  Data.Set SR:0x4A100640 %Long 0x9C9C9E9C
+  Data.Set SR:0x4A10064C %Long 0x9E9E9E9C
+  Data.Set SR:0x4A100650 %Long 0x9C9C9E9C
+
+  // Dummy read in LPDDR2
+  &toto=Data.Long(SR:0x80000000)
+  &toto=Data.Long(SR:0x80000080)
+
+  Data.Set SR:0x4C000060 %Long 0x00002411
+  Data.Set SR:0x4D000060 %Long 0x00002411
+
+  ;Data.Set SR:0x4E000040 %long 0x80500100
+RETURN
+)
+
+remove_wir_mode_TAP:
+(
+  ENTRY
+
+  LOCAL &previous_tap_value
+
+  PRINT " remove WIR to all other cores "
+
+  &previous_tap_value=Data.Long(edbg:0x84)
+  &previous_tap_value=&previous_tap_value&~(0x7<<14.)
+  Data.Set edbg:0x84 %Long &previous_tap_value
+
+  &previous_tap_value=Data.Long(edbg:0x88)
+  &previous_tap_value=&previous_tap_value&~(0x7<<14.)
+  Data.Set edbg:0x88 %Long &previous_tap_value
+
+  &previous_tap_value=Data.Long(edbg:0x8C)
+  &previous_tap_value=&previous_tap_value&~(0x7<<14.)
+  Data.Set edbg:0x8C %Long &previous_tap_value
+
+  &previous_tap_value=Data.Long(edbg:0x90)
+  &previous_tap_value=&previous_tap_value&~(0x7<<14.)
+  Data.Set edbg:0x90 %Long &previous_tap_value
+
+  &previous_tap_value=Data.Long(edbg:0x94)
+  &previous_tap_value=&previous_tap_value&~(0x7<<14.)
+  Data.Set edbg:0x94 %Long &previous_tap_value
+
+  RETURN
+)
+
+
+psram_reconfiguration_gp:
+(
+  ENTRY
+
+  LOCAL &gpmc_config
+
+  PRINT "Reconfigure PSRAM for accessing if device type = GP "
+
+  &gpmc_config=Data.Long(SR:0x4A004120)
+  &gpmc_config=&gpmc_config&0xFFFFFFF8
+  &gpmc_config=&gpmc_config|0x5
+  Data.Set SR:0x4A004120 &gpmc_config
+
+  Data.Set SR:0x50000060 %Long 0x1200
+
+  Data.Set SR:0x50000078 %Long 0xF48
+
+  Data.Set SR:0x4A100040 %Long 0x01180118
+  Data.Set SR:0x4A100044 %Long 0x01180118
+  Data.Set SR:0x4A100048 %Long 0x01180118
+  Data.Set SR:0x4A10004C %Long 0x01180118
+  Data.Set SR:0x4A100050 %Long 0x01180118
+  Data.Set SR:0x4A100054 %Long 0x01180118
+  Data.Set SR:0x4A100058 %Long 0x01180118
+  Data.Set SR:0x4A10005c %Long 0x01180118
+
+  // GPMC PSRAM Configuration to access all 26 bits of Address
+  Data.Set SR:0x4A100060 %Long 0x01000100
+  Data.Set SR:0x4A100064 %Long 0x01000100
+  Data.Set SR:0x4A100068 %Long 0x01000100
+  Data.Set SR:0x4A10006C %Long 0x01000100
+  Data.Set SR:0x4A100070 %Long 0x01000100
+  // Data.Set SR:0x4A100088 %long 0x01180108
+
+  &gpmc_config=Data.Long(SR:0x4A10007c)
+  &gpmc_config=&gpmc_config&0xFFFFFFFE
+  Data.Set SR:0x4A10007c &gpmc_config
+
+  &gpmc_config=Data.Long(SR:0x50000050)
+  &gpmc_config=&gpmc_config&0xFFFFFFFB
+  Data.Set SR:0x50000050 &gpmc_config
+
+RETURN
+)
+
+psram_reconfiguration:
+(
+  ENTRY
+
+  LOCAL &gpmc_config
+  LOCAL &secure_state
+
+ // GPMC PSRAM Configuration to access all 26 bits of Address
+  Data.Set SR:0x4A100060 %Long 0x01080108
+  Data.Set SR:0x4A100064 %Long 0x01080108
+  Data.Set SR:0x4A100068 %Long 0x01080108
+  Data.Set SR:0x4A10006C %Long 0x01080108
+  Data.Set SR:0x4A100070 %Long 0x01080108
+  Data.Set SR:0x4A100088 %Long 0x01180108
+
+  //GPMC Config to remove limited address restriction */
+  &gpmc_config=Data.Long(SR:0x50000050)
+  &gpmc_config=&gpmc_config|0x2
+  Data.Set SR:0x50000050 &gpmc_config
+
+  &secure_state=Register(ns);
+  IF (&secure_state==0x0)
+  (
+        PRINT "The core is in SECURE state"
+  )
+
+  IF (&secure_state==0x1)
+  (
+        PRINT "The core is in non SECURE state"
+  )
+
+  RETURN
+)
+
+silicon_type:
+(
+  ENTRY
+
+  AREA.Select results
+
+  IF (&SILICON_TYPE==0x6)
+  (
+    PRINT " --->>> OMAP 4430 ES 2.3 Device <<<---"
+  )
+  ELSE
+  (
+    IF (&SILICON_TYPE==0x5)
+    (
+      PRINT " --->>> OMAP 4430 ES 2.2.1 Device <<<---"
+    )
+    ELSE
+    (
+      IF (&SILICON_TYPE==0x4)
+      (
+        PRINT " --->>> OMAP 4430 ES 2.2 Device <<<---"
+      )
+      ELSE
+      (
+        IF (&SILICON_TYPE==0x3)
+        (
+          PRINT " --->>> OMAP 4430 ES 2.1 Device <<<---"
+        )
+        ELSE
+        (
+          IF (&SILICON_TYPE==0x1)
+          (
+            PRINT " --->>> OMAP 4430 ES 2.0 Device <<<---"
+          )
+          ELSE
+          (
+            IF (&SILICON_TYPE==0x0)
+            (
+              IF (&DEVICE_TYPE==0x0)
+              (
+                PRINT " --->>> OMAP 4430 ES 1.0 Device or non FUSED device<<<---"
+              )
+              ELSE
+              (
+                IF (&DEVICE_TYPE!=0x0)
+                (
+                  PRINT " --->>> OMAP 4430 ES 1.0 Device <<<---"
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+  RETURN
+)
+
+device_type:
+(
+  ENTRY
+
+  AREA.Select results
+
+  IF (&DEVICE_TYPE==0x3)
+  (
+    PRINT "--->>> GP device <<<---"
+    GOTO psram_reconfiguration_gp
+  )
+
+  IF (&DEVICE_TYPE==0x2)
+  (
+    PRINT "--->>> HS device <<<---"
+  )
+
+  IF (&DEVICE_TYPE==0x1)
+  (
+    PRINT "--->>> EMU device <<<---"
+  )
+
+  IF (&DEVICE_TYPE==0x0)
+  (
+    PRINT "--->>> TEST device <<<---"
+  )
+
+  RETURN
+)
+
+emu_test_hs_device:
+(
+  ENTRY
+
+  AREA.Select results
+
+  // NOT A GP DEVICE
+  IF (&DEVICE_TYPE!=0x3)
+  (
+    ;do &CMM_DIR/omap4430_disable_secure_watchdog
+    DO &CMM_DIR/omap4430_set_firewalls_to_public
+
+    ;gosub FDIF_SW_change_EFUSE
+    ;GOTO enter_non_secure_mode
+  )
+
+  RETURN
+)
+
+enter_non_secure_mode:
+(
+  ENTRY
+  AREA.Select results
+  IF (&DEBUG_INFO==1)
+  (
+    PRINT " ENTERING enter_non_secure_mode function ..."
+  )
+
+  Register.Set ns 1
+
+  IF (&DEBUG_INFO==1)
+  (
+    AREA.Select results
+    PRINT " ENTER IN NON SECURE MODE "
+    PRINT " EXITING enter_non_secure_mode function ..."
+  )
+  RETURN
+)
+
+enter_secure_mode:
+(
+  ENTRY
+  IF (&DEBUG_INFO==1)
+  (
+    AREA.Select results
+    PRINT " ENTERING enter_secure_mode function ..."
+  )
+
+  Register.Set ns 0
+  IF (&DEBUG_INFO==1)
+  (
+    AREA.Select results
+    PRINT " ENTER IN SECURE MODE "
+    PRINT " EXITING enter_secure_mode function ..."
+  )
+  RETURN
+)

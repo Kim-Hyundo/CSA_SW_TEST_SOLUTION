@@ -1,0 +1,122 @@
+; --------------------------------------------------------------------------------
+; @Title: Setup Script for STM32F103 EVB Demonstrating ITM with CombiProbe
+; @Description: 
+;   This script start the STM32F103 and configure ITM for data traces
+;   Please call setup.cmm first.
+; @Author: ING
+; @Chip: STM32F103ZE
+; @Board: STM32F103 EVB
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: common.cmm 15209 2019-11-04 10:07:55Z bschroefel $
+
+
+; ING 12.08.2008
+
+  LOCAL &swdp &swv
+
+; set to "no" if you do not want to use Serial Wire Debug
+  &swdp="yes"
+
+; set to "no" if you do not want to use Serial Wire Viewer .
+; Serial Wire Viewer only works if you also enabled Serial Wire Debug
+  &swv="yes"
+
+  WinCLEAR
+  SystemTrace.state
+
+
+  SYStem.Down
+  SYStem.RESet
+
+  SYStem.CPU STM32F103
+
+; When using ARM20 Adapter
+  SYStem.CONFIG.CONNECTOR mipi34
+
+; When using narrow half size MIPI 20 pin connector
+; sys.config connector mipi20T
+
+
+  IF "&swdp"=="yes"
+  (
+    ; Use Serial Wire Debug Port
+    SYStem.CONFIG SWDP ON
+  )
+  ELSE
+  (
+    ; Do not use Serial Wire Debug Port (use regular JTAG)
+    SYStem.CONFIG SWDP OFF
+  )
+
+; Setup SystemTrace
+
+; Unload all DLLs
+  SystemTrace.PipePROTO
+
+; Reset SystemTrace
+  SystemTrace.RESet
+
+; Threshold 1.65V
+  SystemTrace.THreshold 1.65
+
+  IF "&swv"=="yes"
+  (
+    ; Decode Mode: ITM via Serial Wire Viewer
+    SystemTrace.DecodeMode SWV
+  )
+  ELSE
+  (
+    ; Decode Mode: ITM via CoreSight TPIU
+    SystemTrace.DecodeMode CSITM
+  )
+
+; Use PIPE mode
+  SystemTrace.Mode PIPE
+
+
+
+; --------------------------------------------------------------------------------
+;     Bring up target
+; --------------------------------------------------------------------------------
+
+; Connect to STM32F103 chip
+  SYStem.Up
+
+; Crank up SYSCLK to   24 Mhz
+; Timer Clock (APB) to 12 Mhz
+  DO stm_setpll_24.cmm
+
+; Do not use ETM
+  ETM.ON
+  ETM.OFF
+
+; Turn on ITM
+  ITM.ON
+  ITM.TraceID 3        ; Set TraceID for ITM to 3
+
+
+  IF "&swv"=="yes"
+  (
+    ; Configure ITM to use Serial Wire Viewer
+    ITM.PortSize SWV
+    ITM.PortMode NRZ/2     ; SWV rate is CPU frequency/2
+
+    ; Automatically detect rate of SWV port
+    SystemTrace.AutoFocus            
+
+    ; Specify Rate manually
+    ;st.exportclock 32Mhz  
+  )
+  ELSE
+  (
+    ; Configure ITM via 4 bit CoreSight TPIU port
+    ITM.PortSize 4
+    ITM.PortMode continuous
+  )
+
+; load application
+  Data.LOAD.Elf ../itmtest/test.elf
+
+
+

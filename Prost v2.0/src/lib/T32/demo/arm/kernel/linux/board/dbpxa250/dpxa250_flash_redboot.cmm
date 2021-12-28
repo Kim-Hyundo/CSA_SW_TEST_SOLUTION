@@ -1,0 +1,29 @@
+; --------------------------------------------------------------------------------
+; @Title: Example for Programming Boot-Loader into Flash for the DBPXA250 Board
+; @Description: 
+;   Example for programming boot loader into Flash
+;   (not necessary for Linux demo)
+;   Flash programming: Set S15 to dot position!
+; @Keywords: Bootloader, DBPXA250, redboot, RTOS
+; @Author: DIE
+; @Board: DBPXA250
+; @Chip: PXA250
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: dpxa250_flash_redboot.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+ SYStem.Down
+ SYStem.CPU PXA250
+ SYStem.Up
+ 
+ FLASH.Create 1. 0x0--0x1ffffff 0x40000 I28F200J3 Long
+ ;FLASH.ERASE ALL
+ 
+ FLASH.Erase 0x0--0x7ffff
+ FLASH.Program.off 0x0--0x7ffff
+ Data.LOAD.Binary redboot.bin 0x0 /Long
+ FLASH.Program.off
+ Data.LOAD.Binary redboot.bin /ComPare
+  
+ 

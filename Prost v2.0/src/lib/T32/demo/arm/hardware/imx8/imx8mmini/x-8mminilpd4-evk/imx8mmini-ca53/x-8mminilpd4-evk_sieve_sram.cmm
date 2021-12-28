@@ -1,0 +1,67 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo script for IMX8MMQ on X-8MMINILPD4-EVK (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   Use this script for getting started.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to J902 using Adapter LA-3770
+;    * set bootmode to SD-Card and remove SD-Card -> A53_0 will stop in BootROM
+;      set SW1101[1..8]=0y01000110 SW1102[1..8]=0y00110100
+; @Keywords: ARM, Cortex-A53
+; @Author: ALI
+; @Board: X-8MMINILPD4-EVK
+; @Chip: IMX8MMQ
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: x-8mminilpd4-evk_sieve_sram.cmm 15576 2020-01-27 10:11:09Z alintner $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF VERSION.BUILD.BASE()<104665.
+(
+  PRINT %ERROR "Please use more recent Software! Contact support@lauterbach.com."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU IMX8MMQ
+SYStem.JtagClock 10MHz
+SYStem.Option ResBreak OFF
+SYStem.Option WaitIDCODE 1.5s
+CORE.ASSIGN 1.
+Trace.DISable
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_aarch64_v8.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

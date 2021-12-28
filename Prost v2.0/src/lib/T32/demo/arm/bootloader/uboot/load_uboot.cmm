@@ -1,0 +1,68 @@
+; --------------------------------------------------------------------------------
+; @Title: Load the u-boot code to memory
+; @Description:
+;   This script loads the u-boot bootloader to the link location.
+;   As u-boot relocates itself you might use load_uboot_symbols_reloc.cmm to
+;   load the symbols again after relocation.
+;   This script is based on:
+;     http://www.denx.de/wiki/view/DULG/DebuggingUBoot
+;   Usage:
+;     1) Load u-boot as in load_uboot.cmm
+;     2) Reload the u-boot symbols with load_uboot_symbols_reloc.cmm
+;
+;   Prerequisites:
+;     * u-boot file contains debug information
+;
+; @Keywords:
+; @Author: AME
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: load_uboot.cmm 15209 2019-11-04 10:07:55Z bschroefel $
+
+; load u-boot to "link address"
+PRIVATE &parameters &filepath &gd
+PARAMETERS &parameters
+
+IF "&parameters"==""
+  &filepath="u-boot"
+ELSE
+  &filepath="&parameters"
+
+Data.LOAD.Elf "&filepath"
+IF OS.FILE("&(filepath).bin")
+(
+  ; load the u-boot binary on top - possibly with DTB ...
+  Data.LOAD.Binary "&(filepath).bin" __image_copy_start /NosYmbol /NoCLEAR
+)
+
+GOSUB FindGlobalDataPtr
+RETURNVALUES &gd
+
+; ensure the *gd* pointer is 0x0
+Var.Assign (&gd)=0x0
+
+; u-boot is loaded now, ready to debug
+
+ENDDO
+
+FindGlobalDataPtr:
+(
+  PRIVATE &gd
+  ; <try to find the *gd* pointer>
+  ON ERROR GOSUB
+  (
+    PRINT "Variable *gd* not found - use Register R9 as fallback."
+    &gd="((gd_t*)\Register(R9))"
+    RETURN
+  )
+  &gd="&"+"gd"
+  sYmbol.ForEach "&gd=""*""" gd
+  ON ERROR inherit
+  IF "&gd"=="&"+"gd"
+  (
+    PRINT "Variable *gd* not found - use Register R9 as fallback."
+    &gd="((gd_t*)\Register(R9))"
+  )
+  ; </try to find the *gd* pointer>
+  RETURN "&gd"
+)

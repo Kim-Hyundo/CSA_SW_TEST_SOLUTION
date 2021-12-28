@@ -1,0 +1,15 @@
+; --------------------------------------------------------------------------------
+; @Title: perf_linux_dcc - readme
+; @Description: -
+; @Author: ABO
+; @Copyright: (C) 1989-2015 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: readme 8551 2015-07-23 11:07:29Z abouassida $
+
+To compile the perf_linux_dcc:
+
+1. export CROSS_COMPILE=<cross_compiler>
+    For example:
+    export CROSS_COMPILE=/opt/arm-none-linux-gnueabi/bin/arm-none-linux-gnueabi-
+
+2. make

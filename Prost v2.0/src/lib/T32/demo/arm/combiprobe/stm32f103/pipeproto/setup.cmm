@@ -1,0 +1,64 @@
+; --------------------------------------------------------------------------------
+; @Title: PIPE Demo Setup Script for STM32F103
+; @Description: -
+; @Keywords: PIPE, PROTO
+; @Author: ING
+; @Chip: STM32F103ZE
+; @Board: STM32F103 EVB
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: setup.cmm 15209 2019-11-04 10:07:55Z bschroefel $
+
+
+; bring up board, load application etc.
+  DO common
+
+; set timer rate
+; for SWV with 32Mbps, ca 1MB/s
+  Var.set timerReload = 1399.
+
+; Start application which will
+; receive data from DLL via a named pipe
+  IF OS.VERSION(0)==0x10
+  (
+; LINUX OS detected
+    OS.screen xterm -fg white -bg black -sl 0 -e ./pread /tmp/pproto00 &
+  )
+  ELSE
+  (
+    OS.screen ./pread.exe \\.\pipe\pproto00
+  )
+  WAIT 2.s
+
+; Configure DLL as trace sink
+  &pproto="pproto"
+
+  IF (OS.VERSION(0)>=0x20)||(OS.VERSION(0)==0x0)
+  (
+    PRINT "Demo unsupported for this OS"
+    ENDDO
+  )
+  ELSE IF OS.VERSION(0)>=0x10
+  (
+    &pproto="pproto"
+  )
+  ELSE
+  (
+    IF SOFTWARE.64BIT()
+      &pproto="pproto64.dll"
+    ELSE
+      &pproto="pproto32.dll"
+  )
+
+
+  IF CAnalyzer()
+  (
+    CAnalyzer.CustomTraceLoad "protoa" dll/"&pproto" pproto00
+  )
+
+  IF Analyzer()
+  (
+    Analyzer.CustomTraceLoad "protoa" dll/"&pproto" pproto00
+  )
+
+; Now start application

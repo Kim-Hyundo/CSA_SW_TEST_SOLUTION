@@ -1,0 +1,35 @@
+; -------------------------------------------------------------------------------
+; @Title: Go CMM
+; Script arguments:
+;
+;   DO go.cmm [Break Address]
+;
+; --------------------------------------------------------------------------------
+B::
+
+LOCAL &parameters &break_address
+ENTRY %LINE &parameters
+
+&break_address="&parameters"
+
+//------------GO & BREAK------------//
+if sYmbol.Exist("&break_address")
+(
+    Break.Set &break_address /onchip
+)
+else
+(
+ //error
+  break
+  print "Please Resettings break address"
+)
+
+if !run()
+(
+      go
+      wait !run()
+)
+
+Break.Delete
+
+ENDDO

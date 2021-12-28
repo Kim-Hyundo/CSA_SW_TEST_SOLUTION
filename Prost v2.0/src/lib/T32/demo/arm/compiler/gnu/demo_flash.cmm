@@ -1,0 +1,219 @@
+; --------------------------------------------------------------------------------
+; @Title: GNU C Example for FLASH
+; @Description:
+;   Simple C++ application for ARM targets
+;   compiled with GNU GCC compiler
+;   running from FLASH
+;
+;   Supported Targets:
+;       EPXA1  Altera Excalibur (ARM922T)
+;       EPXA10 Altera Excalibur (ARM922T)
+;       STM3210D-EVAL board     (STM32F107VC, Cortex-M3)
+;       STM32F4-Discovery       (STM32F407VG, Cortex-M4)
+;       KEIL MCBSTM32F400       (STM32F407IG, Cortex-M4)
+;
+; @Author: HLG
+; @Board: EPXA1/EPXA10 Excalibur; STM3210D-EVAL; STM32F4-Discovery; Keil-MCBSTM32400
+; @Chip: EPXA1, EPXA10, STM32F107VC, STM32F40*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo_flash.cmm 15271 2019-11-13 12:30:49Z bschroefel $
+
+
+AREA.CLEAR
+SYStem.RESet
+Break.RESet
+TRANSlation.RESet
+FramePOS ,,,,Maximized
+
+SYStem.CPU CortexM3
+SYStem.Option IMASKASM ON
+SYStem.Option IMASKHLL ON
+SYStem.Option INTDIS ON
+SYStem.JtagClock CTCK 1MHz
+
+LOCAL &device
+SYStem.DETECT IDCode
+&dev0=IDCODE(0)&0x0fffffff
+&dev1=IDCODE(1)&0x0fffffff
+
+IF &dev0==0x049220DD
+(
+	// Altera Excalibur : http://www.altera.com/products/devices/excalibur
+
+	LOCAL &exc_id &epxa
+
+	SYStem.CPU EPXA
+	SYStem.JtagClock CTCK 10.MHz
+	SYStem.Option BigEndian OFF
+	SYStem.Mode Up
+
+	&exc_id=Data.Long(D:0x7FFFC008) ; read Excalibur-ID
+	PRINT "Excalibur ID: " &exc_id
+
+	IF &exc_id==0x090010DD
+		&epxa=10.
+	ELSE IF &exc_id==0x081010DD
+		&epxa=1.
+	ELSE
+	(
+		PRINT %ERROR "ERROR ! This is not an EPXA1 or EPXA10 target board"
+		ENDDO
+	)
+	PRINT "Detected EPXA"+FORMAT.Decimal(0,&epxa)
+
+	Register.Set CPSR 0xD3   // enable supervisor mode, arm mode and disable interrupts
+	Data.Set D:0x7FFFC0C0 %Long 0x08000A81 // Map FLASH at EBI0 to Address 0x08000000 with a size of 4MiB
+	Data.Set D:0x7FFFC090 %Long 0x20000681 // Map SRAM0 at EBI0 to Address 0x20000000 with a size of 16KiB
+
+	FLASH.RESet
+	FLASH.CFI 0x08000000 Word /TARGET 0x20000000 0x20001000 0x1000
+	FLASH.UNLOCK    0x08000000++0x7FFF
+	FLASH.ReProgram 0x08000000++0x7FFF /Erase
+
+	Data.LOAD.Elf "~~~~/sieve_flash.elf" /NoRegister /RelPath
+
+	// Define some labels
+	sYmbol.CREATE.Label __goto_start 0x08000100
+	sYmbol.CREATE.Label __start_addr 0x08000200
+	sYmbol.CREATE.Label __sram_addr  0x08000204
+	sYmbol.CREATE.Label __flash_addr 0x08000208
+	sYmbol.CREATE.Label __conf_addr  0x0800020c
+	sYmbol.CREATE.Label __cfg_sram0  0x08000210
+	sYmbol.CREATE.Label __cfg_sram1  0x08000214
+	sYmbol.CREATE.Label __cfg_flash  0x08000218
+	sYmbol.CREATE.Done
+
+	Data.Set 0x08000000++0x1f %Long 0xEAFFFFFE  // Initialize exception vectors
+	Data.Assemble 0x08000000 b __goto_start     // Initialize reset vectors
+
+	// Set up data for initialization code
+	Data.Set __start_addr %Long ADDRESS.OFFSET(_start)|1
+	Data.Set __sram_addr  %Long 0x08000000
+	Data.Set __flash_addr %Long 0x20000000
+	Data.Set __conf_addr  %Long 0x7FFFC000
+	Data.Set __cfg_sram0  %Long 0x20000681 // Map SRAM0 to Address 0x20000000 with a size of 16KiB
+	Data.Set __cfg_sram1  %Long 0x20004681 // Map SRAM1 to Address 0x20004000 with a size of 16KiB
+	Data.Set __cfg_flash  %Long 0x08000A81 // Map FLASH at EBI0 to Address 0x08000000 with a size of 4MiB
+
+	// Initialization code: Setup Excalibur memory mampping and jump to crt0.s (while switching to Thumb mode)
+	Data.Assemble __goto_start ldr r0,__conf_addr
+	Data.Assemble ,            ldr r1,__cfg_sram0    str r1,[r0,0x90]
+	Data.Assemble ,            ldr r1,__cfg_sram1    str r1,[r0,0x94]
+	Data.Assemble ,            ldr r1,__cfg_flash    str r1,[r0,0xC0]
+	Data.Assemble ,            ldr r1,__cfg_flash    str r1,[r0,0xC0]
+	Data.Assemble ,            ldr r0,__start_addr
+	Data.Assemble ,            bx r0       // jump to thumb startup code
+
+	FLASH.ReProgram off
+	Register.Set PP 0  // Set program counter to reset vector (On some EPXA10 boards the NSRST pin of the JTAG header is just connected to NCONFIG of the Excalibur device)
+	SYStem.Mode Up  // Reset device and stop at reset vector
+)
+ELSE IF (&dev0==0x06418041)&&(&dev1==0x0BA00477)
+(
+	// STM32F107VC (Cortex-M3) : http://www.st.com/web/catalog/mmc/FM141/SC1169/SS1031/LN1564/PF221020
+
+	SYStem.CPU STM32F107VC
+	SYStem.JtagClock CTCK 10.MHz
+	SYStem.MemAccess DAP
+	SYStem.Mode Up
+
+	DO "~~/demo/arm/flash/stm32f10x.cmm" PREPAREONLY   // Load target flash code
+
+	LOCAL &WRP
+	&WRP=Data.Long(D:0x40022020)
+	IF &WRP!=0xFFFFFFFF
+		DO "~~/demo/arm/flash/stm32f10x-optionbyte" WRP=0xFFFFFFFF RESETDEVICE  //Disable write-protection of Flash
+
+	FLASH.ReProgram ALL /Erase
+
+	Data.LOAD.Elf "~~~~/sieve_cm_flash.elf" /NoRegister /RelPath
+	sYmbol.New.ATTRibute DATA  0x0000
+	sYmbol.New.ATTRibute THUMB 0x0130
+	Data.Set 0x0000++0x012f %Long ADDRESS.OFFSET(_exit)|1  // Initialize exception vectors
+	Data.Set 0x0004         %Long _start                   // Initialize reset vector
+
+	FLASH.ReProgram off
+	SYStem.Mode Up
+)
+ELSE IF (&dev0==0x06413041)&&(&dev1==0x0BA00477) // SGS/Thomson + ARM DAP
+(
+	// KEIL MCBSTM32F400 : http://www.keil.com/mcbstm32f400
+	//  with STM32F407IG (Cortex-M4) : http://www.st.com/web/catalog/mmc/FM141/SC1169/SS1577/LN11/PF252134
+
+	// STM32F4DISCOVERY : http://www.st.com/web/catalog/tools/FM116/SC959/SS1532/PF252419
+	//  with STM32F407VGT6 (Cortex-M4) : http://www.st.com/web/catalog/mmc/FM141/SC1169/SS1577/LN11/PF252140
+
+	SYStem.CPU STM32F407IG
+	SYStem.JtagClock CTCK 10.MHz
+	SYStem.MemAccess DAP
+	IF CABLE.TWOWIRE()
+		SYStem.CONFIG DEBUGPORTTYPE SWD
+	IF hardware.COMBIPROBE()||hardware.UTRACE()
+		SYStem.CONFIG CONNECTOR MIPI20T
+	SYStem.Mode Up
+
+	DO "~~/demo/arm/flash/stm32f4xx.cmm" PREPAREONLY   // Load target flash code
+
+	FLASH.ReProgram ALL /Erase
+
+	Data.LOAD.Elf "~~~~/sieve_cm_flash.elf" /NoRegister /RelPath
+	sYmbol.New.ATTRibute DATA  0x0000
+	sYmbol.New.ATTRibute THUMB 0x0130
+	Data.Set 0x0000++0x012f %Long ADDRESS.OFFSET(_exit)|1   // Initialize exception vectors
+	Data.Set 0x0004         %Long ADDRESS.OFFSET(_start)|1  // Initialize reset vector
+	Data.Set __data_laddr+(monHook-__data_vaddr) %Long ADDRESS.OFFSET(LED_Blink)|1 // add LEDs demo, which blinks all four LEDs on the Discovery board
+
+	FLASH.ReProgram off
+	SYStem.Mode Up
+
+	IF Analyzer()||hardware.COMBIPROBE()||hardware.UTRACE()
+	(
+		Data.Set E:0x40023830 %Long 0yXXXXxxxxXXXXxxxxXXXXxxxxXXX1xxxx  // RCC_AHB1ENR : IO port E clock enable
+		Data.Set E:0x40021000 %Long 0yXXXXxxxxXXXXxxxxXX1010101010xxxx  // GPOIE_PORTMODE : Enable "alternate funtion" on trace pins (PE2..PE6)
+		Data.Set E:0x40021020 %Long 0yXXXX00000000000000000000XXXXxxxx  // GPIOE_AFRL : Use ETM as "alternate funtion" for trace pins (PE2..PE6)
+		Data.Set E:0x40021008 %Long 0yXXXXxxxxXXXXxxxxXX0101010101xxxx  // GPOIE_PORTSPEED : Use "Medium speed" for trace pins (PE2..PE6)
+		ETM.RESet
+		ETM.TImeMode ExternalInterpolated
+		ITM.RESet
+		ITM.ON
+		ITM.DataTrace CorrelatedData
+		TPIU.PortMode Continuous
+		TPIU.PortSize 4
+		Trace.ACCESS AutoVM
+		Trace.AutoArm ON
+		Trace.AutoInit ON
+		Trace.THreshold 1.5
+		Trace.Clock 8.MHz
+		IF Analyzer()
+			Analyzer.TERMination OFF
+	)
+)
+ELSE
+(
+	PRINT %ERROR "Sorry, your CPU is not supported by this demo."
+	ENDDO
+)
+
+WinCLEAR
+
+Mode.Hll
+
+Go main
+
+
+WinPOS 0% 0% 100% 50%
+List
+
+WinPOS 0% 50% 36% 50%
+Var.Ref %Hex %Decimal
+
+WinPOS 36% 50% 28% 50% ,, 5.
+Frame.view /Args /Locals
+
+WinPOS 64% 50% 36% 50%
+Var.Watch
+Var.AddWatch flags; ast;
+
+ENDDO
+

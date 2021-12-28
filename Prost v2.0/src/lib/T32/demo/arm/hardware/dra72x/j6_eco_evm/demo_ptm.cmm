@@ -1,0 +1,65 @@
+; --------------------------------------------------------------------------------
+; @Title: Off chip PTM trace script for Cortex-A15 of DRA72x on J6 ECO EVM
+; @Description: This is a small demo how to setup off chip PTM trace on J6 ECO EVM
+; @Keywords: Jacinto
+; @Author: PEG
+; @Board: J6 ECO EVM CPU Board
+; @Chip: DRA72X
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo_ptm.cmm 15432 2019-12-17 13:49:45Z skrausse $
+
+
+; JTAG adaption at J17 MIPI-60:
+; Use LA-7748 (ARM-20 to TI-14) + converter which comes with the board (TI-14/TI-20C
+; to MIPI-60). If you use an other converter you might step on the issue that the
+; board needs BCE (MIPI-60.8) connected to nTRST (e.g. at MIPI-60.9).
+
+; Trace adaption at J17 MIPI-60:
+; Use LA-7993 (Preprocessor MIPI) and connect it directly. If you do it in a different
+; way you probably need to change the pad muxing below and you might need to use a
+; different PortSize e.g. 16A or 16E.
+
+  RESet
+  SYStem.CPU DRA72X
+  SYStem.Option ResBreak OFF
+  SYStem.Up
+  Data.LOAD.Elf ~~~~/sieve_arm.elf 0x40300000
+
+; open some windows
+  WinCLEAR
+  WinPOS 0% 0% 100% 50%
+  Data.List
+  WinPOS 0% 50% 50% 50%
+  Register.view /SpotLight
+
+IF Analyzer() 
+(
+; pad muxing for 16-bit trace port
+  Data.Set ahb:0x4a003848 %long 0x00090000
+  Data.Set ahb:0x4a00384c %long 0x00090000
+  Data.Set ahb:0x4a0035e4 %long 0x00090002
+  Data.Set ahb:0x4a003604 %long 0x00090002 	
+  Data.Set ahb:0x4a003624 %long 0x00090002    	
+  Data.Set ahb:0x4a0035e8 %long 0x00090002  	
+  Data.Set ahb:0x4a0035ec %long 0x00090002   	
+  Data.Set ahb:0x4a0035f0 %long 0x00090002	
+  Data.Set ahb:0x4a0035f4 %long 0x00090002
+  Data.Set ahb:0x4a0035f8 %long 0x00090002
+  Data.Set ahb:0x4a003608 %long 0x00090002
+  Data.Set ahb:0x4a00360c %long 0x00090002	
+  Data.Set ahb:0x4a003610 %long 0x00090002  	
+  Data.Set ahb:0x4a003614 %long 0x00090002    	
+  Data.Set ahb:0x4a003618 %long 0x00090002    	
+  Data.Set ahb:0x4a003628 %long 0x00090002  	
+  Data.Set ahb:0x4a00362c %long 0x00090002	
+  Data.Set ahb:0x4a003630 %long 0x00090002
+
+  ETM.PortSize 16
+
+; open trace list window
+  WinPOS 50% 50% 50% 50%
+  Analyzer.List
+)
+
+

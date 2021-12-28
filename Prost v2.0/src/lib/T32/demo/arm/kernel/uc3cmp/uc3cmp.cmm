@@ -1,0 +1,49 @@
+; --------------------------------------------------------------------------------
+; @Title: uC3/Compact Demo for TRACE32 OS Awareness
+; @Description: 
+;   This batchfile loads all necessary files to demonstrate
+;   the OS Awareness for uC3/Compact.
+; @Keywords: awareness, RTOS, uc3cmp
+; @Author: DIE
+; @Chip: STM32F207IG
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: uc3cmp.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+ AREA.RESet
+ WinPAGE.RESet
+ WinPOS 0 24. 70. 8. 0. 0. W000
+ AREA.view
+
+; Debugger reset
+ PRINT "resetting..."
+ RESet
+
+; Debugger initializations
+ PRINT "initializing..."
+ SYStem.CPU STM32F207IG
+ SYStem.Up
+ 
+ ; print "loading application..."
+ Data.LOAD.Elf sample.out
+ 
+; initialize RTOS support
+ PRINT "initializing uc3/Cmp support..."
+ TASK.CONFIG uc3cmp.t32         ; load uc3/Cmp awareness
+ MENU.ReProgram uc3cmp.men      ; load uc3/Cmp menu
+ HELP.FILTER.Add rtosuc3cmp
+
+ PRINT "load complete."
+
+; open some windows
+ WinPOS 0. 0. 70. 21.
+ List.auto
+ WinPOS 40. 10. 80. 6.
+ TASK.TASK
+
+; init uc3/Cmp
+ Go MainTask
+
+ ENDDO
+ 

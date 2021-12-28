@@ -1,0 +1,138 @@
+; --------------------------------------------------------------------------------
+; @Title: ZYNQ-ULTRASCALE+ boot with FSBL in JTAG-MODE
+; @Description:
+;   This script how to do a boot/initialization of a Xilinx ZYNQ-ULTRASCALE+ SoC
+;   using the generated FSBL. The script loads the FSBL and demonstrates how to
+;   load the PL/FPGA.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to J6
+;    * set SW6 = 0y1111 (JTAG Bootmode)
+;    * short J14
+;   Optional parameter:
+;    * Call the script with parameter to either select the "APU" or "RPU"
+;    * Calling convention:
+;      DO zynq-ultrascale_fsbl_boot.cmm "<cpu>"
+;      <cpu> = ZYNQ-ULTRASCALE+-APU (default, Cortex-A53) or
+;      <cpu> = ZYNQ-ULTRASCALE+-RPU (Cortex-R5)
+; @Keywords: ARM, Cortex-A53
+; @Author: AME
+; @Board: -
+; @Chip: ZYNQ-ULTRASCALE+*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: zynq-ultrascale_fsbl_boot.cmm 15577 2020-01-27 10:32:22Z bschroefel $
+PRIVATE &cpu
+PARAMETERS &cpu
+
+IF "&cpu"==""
+  &cpu="ZYNQ-ULTRASCALE+-APU"
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF VERSION.BUILD.BASE()<75524.
+(
+  PRINT %ERROR "Please use more recent Software! Contact support@lauterbach.com."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU &cpu
+SYStem.Option TRST OFF
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 500ms
+SYStem.Option NoPRCRReset ON
+SYStem.JtagClock 10MHz
+CORE.ASSIGN 1.
+SYStem.Mode Prepare
+
+IF (Data.Long(ENAXI:0xff5e0204)&0xf)!=0x0
+(
+  PRINT %WARNING "Please use JTAG Bootmode!"
+)
+
+IF CPUIS(*RPU)
+(
+  ; start the RPU subsystem
+  ; DO ~~/demo/arm/hardware/zynq_ultrascale/scripts/zynq-ultrascale_kick_bootcore.cmm R5_SINGLE
+  DO ~~~~/../scripts/zynq-ultrascale_kick_bootcore.cmm R5_SINGLE
+)
+ELSE
+(
+  ; start the APU subsystem
+  ; DO ~~/demo/arm64/hardware/zynq_ultrascale/scripts/zynq-ultrascale_kick_bootcore.cmm A53_X64
+  DO ~~~~/../scripts/zynq-ultrascale_kick_bootcore.cmm A53_X64
+)
+
+SYStem.Mode.Attach
+IF STATE.RUN()
+  Break
+
+; --------------------------------------------------------------------------------
+; load the PMU firmware [optional]
+(
+  ; Trigger IPI only for first PMUFW partition
+  ; Enable PMU_0 IPI
+  Data.Set AD:0xff300000+0x30018 %Long 0x00010000
+  ; Trigger PMU0 IPI in PMU IPI TRIG Reg
+  Data.Set AD:0xff300000+0x30000 %Long 0x00010000
+  ; Wait until PMU Microblaze goes to sleep state,
+  ; before starting firmware download to PMU RAM
+  ; WAIT PMU_GLOBAL_GLOBAL_CNTRL.MB_SLEEP != 0
+  WAIT (Data.Long(AD:0xffd80000)&0x00010000)!=0x0
+
+  Data.LOAD.Elf "<path to>/pmu.elf" /NosYmbol /NoRegister
+
+  ; Wakeup the processor (PMU)
+  ; PMU_GLOBAL_GLOBAL_CNTRL.DONT_SLEEP = 1
+  Data.Set AD:0xffd80000 %Long Data.Long(AD:0xffd80000)|0x1
+  ; WAIT PMU_GLOBAL_GLOBAL_CNTRL.FW_IS_PRESENT != 0
+  WAIT (Data.Long(AD:0xffd80000)&0x00000010)!=0x0
+)
+
+; --------------------------------------------------------------------------------
+; load the FSBL into the OCM
+Data.LOAD.Elf "<path to>/zynqmp_fsbl.elf"
+
+; --------------------------------------------------------------------------------
+; start FSBL execution
+Go XFsbl_Loop
+WAIT !STATE.RUN() 3.s
+IF STATE.RUN()
+(
+  Break.direct
+)
+
+IF Register(PC)!=ADDRESS.OFFSET(XFsbl_Loop)
+(
+  PRINT %ERROR "Boot flow error"
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; the FSBL initialization is finished - optionally program the FPGA fabric
+(
+  ; DO ~~/demo/arm64/hardware/zynq_ultrascale/scripts/zynq-ultrascale_load_bitstream.cmm "path_to_bitstream" 0x10000000
+  DO ~~~~/../scripts/zynq-ultrascale_load_bitstream.cmm "<path to>/bitstream.bit" 0x10000000
+
+  ; call the post-configuration to finalize FPGA loading
+  ; requires that FSBL is not stripped/compiled with debug info
+  Var.Assign psu_ps_pl_isolation_removal_data()
+  Var.Assign psu_ps_pl_reset_config_data()
+)
+
+; --------------------------------------------------------------------------------
+; the FSBL initialization is finished - optional ATF handoff
+(
+  ; clear PMU_GLOBAL.GLOBAL_GEN_STORAGE6 - used as ATF Handoff
+  Data.Set AD:0xFFD80048 %Long 0x0
+)
+
+; --------------------------------------------------------------------------------
+; continue e.g. loading uboot/bl31/....
+; ...
+Data.LOAD.Elf <tbd>.elf
+
+ENDDO

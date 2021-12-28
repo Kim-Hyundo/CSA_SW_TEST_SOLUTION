@@ -1,0 +1,101 @@
+; --------------------------------------------------------------------------------
+; @Title: ITM benchmark counters for XMC4500 Hexagon board
+; @Description:
+;   This script sets up a small demo showing how to use the ITM benchmark
+;   counters on XMC4500 Hexagon board for code profiling.
+; @Keywords: BMC, Cortex-M4, ITM, performance, PMU, profiling, SWD
+; @Author: HDA
+; @Board: XMC4500 Hexagon
+; @Chip: XMC4500
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: xmc4500_itm_bmc.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+  IF INTERFACE.SIM()
+  (
+    PRINT %ERROR "This script is not supported by the SIMULATOR."
+    ENDDO FALSE()
+  )
+
+  Break.RESet
+  SYStem.RESet
+  SYStem.CPU XMC4500
+  SYStem.Option ResBreak OFF
+  SYStem.CONFIG.DEBUGPORTTYPE SWD
+  SYStem.CONFIG.CONNECTOR MIPI20T
+
+  SYStem.Up
+
+; Init internal SRAM
+  Data.Set 0x20000000++0FFFF %Long 0
+
+;load demo application
+  Data.LOAD.Elf ~~~~/demo.axf /RELPATH /PlusVM
+; load stack pointer and PC from vector table
+  Register.RESet
+  Register.Set PC main
+  Register.Set R13 0x20005000
+
+
+  IF CAnalyzer()
+  (
+    CAnalyzer.RESet
+    CAnalyzer.THreshold 1.4
+    CAnalyzer.Init
+    Trace.METHOD CAnalyzer   ; Using CombiProbe
+    CAnalyzer.CLOCKDelay MED
+
+    CAnalyzer.Init
+    ITM.PortMode NRZ
+    ITM.PortSize SWV
+
+    CAnalyzer.AutoFocus
+  )
+  ELSE IF Analyzer()
+  (
+    Trace.METHOD Analyzer    ; Using ARM preprocessor
+    ; Set Pin-Multiplexing for enabling the trace
+    Data.Set E:0x48028274 %Long 0x00401405                           ; Enable ETM Pins P2
+    Data.Set E:0x48028244 %Long Data.Long(E:0x48028244)&0xF00000FF   ; Inclease driver strength P2
+    Data.Set E:0x48028674 %Long 0x00001405                           ; Enable ETM Pins P6
+    Data.Set E:0x48028640 %Long Data.Long(E:0x48028640)&0xF00FF000   ; Inclease driver strength P6
+
+    ITM.PortMode Continuous
+    ITM.PortSize 4.
+  )
+
+
+; Create groups to group the different functions
+  GROUP.RESet
+  GROUP.Create "hsort" \\demo\sort\heapsort /RED
+  GROUP.Create "isort" \\demo\sort\is_h /GREEN
+  GROUP.Create "isort" \\demo\sort\isort /GREEN
+  GROUP.Create "qsort" \\demo\sort\qs_h /OLIVE
+  GROUP.Create "qsort" \\demo\sort\quicksort /OLIVE
+  GROUP.Create "shell" \\demo\sort\shell_h /PURPLE
+  GROUP.Create "shell" \\demo\sort\shellsort /PURPLE
+
+;Turn on ITM
+  ETM.OFF
+  ITM.ON
+; Turn on ITM benchmark counter trace
+  ITM.ProfilingTrace ON
+  ITM.DataTrace OFF
+; Sample PC to be able to correlate benchmark
+; counters to code regions.
+  ITM.PCSampler 1/128
+
+; Setup Benchmark Counter Display
+  BMC.CLOCK 75Mhz
+  BMC.Init
+; Select to display Load/Stores
+  BMC.SELect LSU
+
+; Open window showing distribution via GROUPs
+  BMC.ProfileChart.GROUP
+
+; Set breakpoint after return of main()
+  Break.Delete
+  Break.Set     T:0x200002B8 /Program
+  Go.direct
+  ENDDO

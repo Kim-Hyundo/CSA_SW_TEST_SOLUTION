@@ -1,0 +1,114 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for ZYNQ-7000 on ZC702 with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Offchip-Trace. Trace is exported using
+;   the FPGA fabric, thus the FSBL is used to setup DRAM and to handle the clock
+;   initializations. See also ~~/pdf/app_xilinx_zynq.pdf .
+;   Use this script to test the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to J58
+;    * plug FMC-105-DEBUG card to FMC2
+;    * short TDI-TDO on FMC-105-DEBUG card
+;    * Set SW12[1..2]=0y11 (FPGA design specific)
+;    * Connect AutoFocus Preprocessor to P1 on FMC-105-DEBUG card using
+;      Mictor38 cable
+;    * Set SW10 to 0y11
+;    * Set SW16
+;       MIO[2..6]=0y00000 - JTAG BOOT
+;      or
+;       MIO[2..6]=0y00110 - SD BOOT and remove the SD-Card
+; @Keywords: ARM, Cortex-A9, ETM
+; @Author: AME
+; @Board: ZC702
+; @Chip: ZYNQ-7000
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: zc702_sieve_offchip_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU ZYNQ-7000
+SYStem.JtagClock CTCK 10MHz
+; set DaisyChaining Parameters of the board
+; check e.g. SYStem.DETECT.ShowCHAIN
+SYStem.CONFIG DAPIRPRE  6.
+SYStem.CONFIG DAPIRPOST 0.
+SYStem.CONFIG DAPDRPRE  1.
+SYStem.CONFIG DAPDRPOST 0.
+; Reset line is connected on ZC702 - give BootROM time to execute
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 40.ms
+Trace.DISable
+CORE.ASSIGN 1.
+SYStem.Up
+
+; load the FSBL - FirstStageBootloader
+; set both cores to the Entry Point (0x0)
+Data.LOAD.Elf ~~~~/fsbl.elf
+
+; execute FSBL
+Go Loop
+WAIT !STATE.RUN() 0.5s
+Break
+IF Register(PC)!=ADDRESS.OFFSET(Loop)
+(
+  PRINT %ERROR "Boot fail!"
+  STOP
+)
+
+; load FPGA Design
+; see also ~~/pdf/app_xilinx_zynq.pdf
+&filepath=OS.PPD()+"/zynq_wrapper.bit.bin"
+IF OS.FILE("&(filepath).gz")
+  UNZIP "&(filepath).gz" "&(filepath)"
+DO ~~/demo/arm/hardware/zynq-7000/scripts/zynq_bitstream.cmm "&filepath" 0x00100000
+
+; call ps7_post_config() function (part of fsbl.elf)
+Var.Assign ps7_post_config()
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_arm_v7.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace if Analyzer is plugged (ETM)
+IF Analyzer()
+(
+  Trace.Method Analyzer
+  TPIU.PortSize 16
+  TPIU.PortMode Continuous
+  ETM.Trace ON
+  ETM.ON
+  ; use Autofocus based calibration
+  Analyzer.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

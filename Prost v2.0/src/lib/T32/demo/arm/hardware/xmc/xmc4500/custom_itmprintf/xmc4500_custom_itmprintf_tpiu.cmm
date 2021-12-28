@@ -1,0 +1,80 @@
+; --------------------------------------------------------------------------------
+; @Title: Custom ITM printf demo for XMC4500 Hexagon board
+; @Description:
+;   This is a very simple demo to show how to extend the TRACE32 tracing
+;   functionality via your own DLL. Printf traces are exported on TPIU.
+; @Keywords: Cortex-M4, DLL, printf, SWD
+; @Author: HDA
+; @Board: XMC4500 Hexagon
+; @Chip: XMC4500
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: xmc4500_custom_itmprintf_tpiu.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+  Break.RESet
+  SYStem.RESet
+  SYStem.CPU XMC4500
+  SYStem.Option ResBreak OFF
+  SYStem.CONFIG.DEBUGPORTTYPE SWD
+  SYStem.CONFIG.CONNECTOR MIPI20T
+
+; Init CombiProbe
+  CAnalyzer.RESet
+  CAnalyzer.THreshold 1.6
+  SYStem.Up
+
+
+; Init internal SRAM
+  Data.Set 0x20000000++0FFFF %Long 0
+
+;load demo application
+  Data.LOAD.Elf ~~~~/demo.axf
+; load stack pointer and PC from vector table
+  Register.RESet
+  Register.Set PC main
+  Register.Set R13 0x20005000
+
+; Set Pin-Multiplexing for enabling the trace
+  Data.Set E:0x48028274 %Long 0x00401405                           ; Enable ETM Pins P2
+  Data.Set E:0x48028244 %Long Data.Long(E:0x48028244)&0xF00000FF   ; Inclease driver strength P2
+  Data.Set E:0x48028674 %Long 0x00001405                           ; Enable ETM Pins P6
+  Data.Set E:0x48028640 %Long Data.Long(E:0x48028640)&0xF00FF000   ; Inclease driver strength P6
+
+; Init CombiProbe
+  CAnalyzer.CLOCKDelay MED
+  CAnalyzer.Init
+  ITM.PortMode Continuous
+  ITM.PortSize 4.
+
+
+;Turn on ITM and ETM
+  ETM.OFF
+  ITM.CLEAR
+
+  ;load custom trace dll
+  IF (OS.VERSION(0)>=0x20)||(OS.VERSION(0)==0x0)
+  (
+    PRINT "Demo unsupported for this OS"
+    ENDDO
+  )
+  ELSE IF OS.VERSION(0)>=0x10
+  (
+    CAnalyzer.CustomTraceLoad "printf" dll/viewprintf
+  )
+  ELSE
+  (
+    IF SOFTWARE.64BIT()
+      CAnalyzer.CustomTraceLoad "printf" dll/viewprintf64.dll
+    ELSE
+      CAnalyzer.CustomTraceLoad "printf" dll/viewprintf32.dll
+  )
+  CAnalyzer.Mode PIPE
+  CAnalyzer.PipePROTO.LOG
+
+  GO.direct
+
+;break
+;CAnalyzer.CustomTrace.printf.List
+
+  ENDDO

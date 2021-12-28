@@ -1,0 +1,34 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to connect to the NETPAC Board
+; @Description:
+;   This script connects to the NETPAC Board by calling the
+;   netx_common_init.cmm and does some initialization using
+;   Data.Set commands
+; @Keywords: Hilscher, NetX*
+; @Board: NETPAC
+; @Chip: NETX500
+; @Author: Hilscher
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: netpac64_init.cmm 12065 2018-02-07 12:26:30Z amerkle $
+
+
+; This board has no HW Reset attached to JTAG, so reset all registers
+DO ~~~~/netx_common_init.cmm
+
+FLASH.RESet
+;32MB Flash at 0xc0000000 with a sector size of 128kByte of type S29GL256N
+FLASH.Create 1. ASD:0xC0000000++0x1FFFFFF 0x20000 TARGET Word
+FLASH.TARGET ASD:0x00001000 ASD:0x00002000 0x1000 word/am29lv256.bin
+
+MAP.BOnchip 0xC0000000++0x1FFFFFF
+
+;Setup Flash controller for 16Bit Flash on CS0 @0xc0000000
+Data.Set ASD:0x100100 %Long 0x0103030F
+
+;setup SDRam Timing
+Data.Set ASD:0x00100140 %Long 0x0
+Data.Set ASD:0x00100144 %Long 0x03C13251
+Data.Set ASD:0x00100140 %Long 0x030D0121
+
+ENDDO

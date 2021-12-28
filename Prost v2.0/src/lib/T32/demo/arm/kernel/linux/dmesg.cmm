@@ -1,0 +1,184 @@
+; --------------------------------------------------------------------------------
+; @Title: Save TASK.DMESG window into a file
+; @Description:
+;   This script is called by the Linux Awareness to save the TASK.DMESG window
+;   to a file.
+;
+; @Keywords: Linux dmesg
+; @Author: kjmal
+; @Props: NoWelcome NoIndex
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: dmesg.cmm 4125 2019-03-22 17:16:46Z kjmal $
+
+  LOCAL &levels &facilities &flags &size &detailed &colors
+  LOCAL &logfile
+  
+  &logfile=OS.PWD()+"/dmesg.txt"
+  
+  ENTRY &levels &facilities &flags &size
+  
+  IF "&levels"==""
+    ENDDO
+  
+  &detailed=(&flags&0x1)!=0
+  &use_colors=(&flags&0x2)!=0
+  
+  DIALOG
+  (
+         HEADER "Export kernel log"
+         POS 0. 0. 40. 4.
+         BOX "File name"
+         POS 1. 1. 38. 1.
+LOGFILE: EDIT "" "GOSUB set_filename"
+         POS 1. 2. 38. 1
+PRTYPE:  PULLDOWN "ASCII,XHTML" "GOSUB set_printer_type"
+
+         POS 0. 4. 19. 10.
+         BOX "Log levels"
+         POS 1. 5. 10. 1.
+L0:      CHECKBOX "0-emerg" "GOSUB set_level 0"
+         POS 1. 6. 10. 1.
+L1:      CHECKBOX "1-alert" "GOSUB set_level 1"
+         POS 1. 7. 10. 1.
+L2:      CHECKBOX "2-crit" "GOSUB set_level 2"
+         POS 1. 8. 10. 1.
+L3:      CHECKBOX "3-err" "GOSUB set_level 3"
+         POS 1. 9. 10. 1.
+L4:      CHECKBOX "4-warn" "GOSUB set_level 4"
+         POS 1. 10. 10. 1.
+L5:      CHECKBOX "5-notice" "GOSUB set_level 5"
+         POS 1. 11. 10. 1.
+L6:      CHECKBOX "6-info" "GOSUB set_level 6"
+         POS 1. 12. 10. 1.
+L7:      CHECKBOX "7-debug" "GOSUB set_level 7"
+
+         POS 20. 4. 20. 10.
+         BOX "Log facilities"
+         POS 21. 5. 10. 1.
+F0:      CHECKBOX "0-kern" "GOSUB set_facility 0"
+         POS 21. 6. 10. 1.
+F1:      CHECKBOX "1-user" "GOSUB set_facility 1"
+         POS 21. 7. 10. 1.
+F2:      CHECKBOX "2-mail" "GOSUB set_facility 2"
+         POS 21. 8. 10. 1.
+F3:      CHECKBOX "3-daemon" "GOSUB set_facility 3"
+         POS 21. 9. 10. 1.
+F4:      CHECKBOX "4-auth" "GOSUB set_facility 4"
+         POS 21. 10. 10. 1.
+F5:      CHECKBOX "5-syslog" "GOSUB set_facility 5"
+         POS 21. 11. 10. 1.
+F6:      CHECKBOX "6-lpr" "GOSUB set_facility 6"
+         POS 21. 12. 10. 1.
+F7:      CHECKBOX "7-news" "GOSUB set_facility 7"
+
+         POS 1. 14. 38. 1.
+DET:     CHECKBOX "decode facility and level to readable string" "GOSUB set_detailed"
+
+         POS 10. 16. 7. 1.
+         BUTTON "Save" "GOTO save_log"
+         POS 20. 16. 7. 1.
+         BUTTON "Cancel"  "GOTO winclose"
+  )
+  DIALOG.SET LOGFILE "&logfile"
+  &i=0
+  RePeaT 8
+  (
+    LOCAL &label &tmp
+    &tmp=FORMAT.DECIMAL(1,&i);
+    &label="L&tmp"
+    IF (&levels&(1<<(&i+1)))!=0
+      DIALOG.SET &label
+    &label="F&tmp"
+    IF (&facilities&(1<<(&i+1)))!=0
+      DIALOG.SET &label
+    &i=&i+1
+  )
+  DIALOG.SET DET &detailed
+  STOP
+
+  
+; --------------------------------------------------------------------------------
+winclose:
+  DIALOG.END
+  ENDDO
+
+set_filename:
+  &logfile=DIALOG.STRING(LOGFILE)
+  RETURN
+
+set_printer_type:
+  &logfile=STRing.CUT("&logfile",-STRing.LENgth(OS.FILE.EXTENSION(&logfile)))
+  IF DIALOG.STRING(PRTYPE)=="ASCII"
+    &logfile="&logfile"+".txt"
+  ELSE
+    &logfile="&logfile"+".html"
+  DIALOG.SET LOGFILE "&logfile"
+  RETURN
+  
+set_level:
+  LOCAL &level &label
+  ENTRY &level
+  &label="L&level"
+  &level=&level+1
+  IF DIALOG.BOOLEAN(&label)
+    &levels=&levels|(1<<&level)
+  ELSE
+    &levels=&levels&~(1<<&level)
+  RETURN
+  
+set_facility:
+  LOCAL &facility &label
+  ENTRY &facility
+  &label="F&facility"
+  &facility=&facility+1
+  IF DIALOG.BOOLEAN(&label)
+    &facilities=&facilities|(1<<&facility)
+  ELSE
+    &facilities=&facilities&~(1<<&facility)
+  RETURN
+
+set_detailed:
+  &detailed=DIALOG.BOOLEAN(DET)
+  RETURN
+
+save_log:
+  LOCAL &params &i &opt &filetype
+  &logfile=DIALOG.STRING(LOGFILE)
+  &filetype=DIALOG.STRING(PRTYPE)
+  IF &levels!=0x1fe&&(&levels!=0)
+  (
+    &i=0.
+    RePeaT 8
+    (
+      &opt=FORMAT.DECIMAL(1,&i)
+      IF (&levels&(1<<(&i+1)))!=0
+        &params="&params"+" /l &opt "
+      &i=&i+1.
+    )
+  )
+  IF &facilities!=0x1fe&&(&facilities!=0)
+  (
+    &i=0.
+    RePeaT 8
+    (
+      &opt=FORMAT.DECIMAL(1,&i)
+      IF (&facilities&(1<<(&i+1)))!=0
+        &params="&params"+" /f &opt "
+      &i=&i+1.
+    )
+  )
+  IF &detailed
+    &params="&params"+" /DETAILED "
+  IF &use_colors
+    &params="&params"+" /COLOR "
+  PRinter.FileType &filetype
+  PRinter.File &logfile
+  IF &size>2000.
+    EXT.MaxVSize &size+10
+  WinPrint.TASK.DMESG &params
+  IF &size>2000.
+    EXT.MaxVSize 2000.
+  PRINT "Kernel log saved to &logfile"
+  DIALOG.END
+  ENDDO

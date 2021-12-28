@@ -1,0 +1,84 @@
+; --------------------------------------------------------------------------------
+; @Title: Generic Flash script file for TC234 Serial EEPROM
+; @Description:
+;   Example script for flash declaration and programming of Infineon
+;   TriCore TC234 Serial EEPROM 16KB(ATMEL, AT24C02AN, 128KB (16384bits x8)).
+;
+;   Serial EEPROM 16KB(ATMEL, AT24C02AN ) is connected to SLSO7(P33.5).
+;   S(D)RAM: 0x70000000
+;   Quad SPI Controller Base Addr: 0xF0001C00 (QSPI0)
+;
+; @Keywords: Flash, Infineon, TriCore, eeprom, spi
+; @Author: JIM
+; @Chip: TC23*
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc23x-spi16ee.cmm 6608 2019-02-08 13:51:45Z jjeong $
+; $Rev: 6608 $
+
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+&QSPI_BASE=0xF0001C00
+
+RESet
+SYStem.CPU TC234LP
+
+SYStem.Up
+
+//Pin Mux
+PER.Set.simple D:0xF003C018 %Long 0x98101010   ;P20.11 QSPI0_SCLK0
+PER.Set.simple D:0xF003C044 %Long 0x33330333   ;speed grade 1
+PER.Set.simple D:0xF003C01C %Long 0x10981008   ;P20.14 QSPI0_MOSI , P20.12 QSPI0_MISO
+PER.Set.simple D:0xF003D314 %Long 0x80809010   ;P33.5  QSPI0_CS 
+
+//Init Quad SPI controller
+PER.Set.simple D:&QSPI_BASE+0x00 %Long 0x0  ;     QSPI0_CLC
+
+PER.Set.simple D:&QSPI_BASE+0x48 %Long 0x00010000  ; QSPI0_SSOC
+
+PER.Set.simple D:&QSPI_BASE+0x04 %Long 0x0
+
+PER.Set.simple D:&QSPI_BASE+0x10 %Long 0x10f3003  ; QSPI2_GLOBALCON
+
+PER.Set.simple D:&QSPI_BASE+0x60 %Long 0x7FA32501 ; QSPI2_BACONENTRY, use cs slso7, bit0: keeps the cs low or not
+
+PER.Set.simple D:&QSPI_BASE+0x48 %Long 0x800000  ; enable SLSO7, active low
+
+PER.Set.simple D:&QSPI_BASE+0x3C %Long 0x450   ; ECON7, mode 0,0  CPOL=0, CPH=0
+
+//BCON setup with read ID test
+PER.Set.simple D:&QSPI_BASE+0x60 %Long 0x7BA32501  ; cs:7, 24bit, last, msb
+PER.Set.simple D:&QSPI_BASE+0x64 %Long 0x009F0000  ; the bcon is changed when dataentry0 is inputed
+WAIT 10.ms
+&temp=Data.Long(a:&QSPI_BASE+0x90)
+PRINT "read 1st 0x"  (&temp>>16.)&0xFF
+PRINT "read 2nd 0x"  (&temp>>8.)&0xFF
+PRINT "read 3rd 0x"  (&temp)&0xFF
+
+Break.RESet
+
+FLASHFILE.RESet
+
+//FLASFILE.CONFIG <Base Reg>  0x0  0x0  <SLSO#>
+FLASHFILE.CONFIG &QSPI_BASE   0x0  0x0 0x7
+
+//FLASHFILE.TARGET <Code Range>    <Data Range>         <Algorithm File>
+FLASHFILE.TARGET 0x70000000++0x1FFF 0x70002000++0x1FFF   ~~/demo/tricore/flash/byte/spi16ee_tcqspi.bin  /KEEP
+
+FLASHFILE.GETID
+
+//End of the test prepareonly
+if "&arg1"=="PREPAREONLY"
+  ENDDO
+
+FLASHFILE.DUMP 0x0  ; open the spi flash dump window
+
+//Fill the data 0xFF to the defined range
+;FLASHFILE.ERASE 0x0--0x3FFF  
+
+;FLASHFILE.LOAD * 0x0
+;FLASHFILE.LOAD * 0x0 /ComPare  ; Verify
+
+END

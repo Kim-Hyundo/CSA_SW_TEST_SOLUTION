@@ -1,0 +1,49 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for ZYNQ-ULTRASCALE+-APU with reset catch
+; @Description:
+;   Connect to Cortex-A53 Core0 as early as possible.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to J6
+;    * Connect AutoFocus Preprocessor to P6 using Mictor38 cable
+;    * set SW6 = 0y1100 (SD Bootmode)
+;    * inset a SD-Card with FSBL for A53 programmed e.g. use boot.bin from
+;      ~~~~/../zcu102-binaries/boot.bin
+;    * ensure debugger is connected to PS_SRST_B
+;    * short J14, J83, J88
+;
+; @Keywords: ARM, Cortex-A53, Zynq, Ultrascale
+; @Author: AME
+; @Board: ZCU102
+; @Chip: ZYNQ-ULTRASCALE+*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: zcu102-apu_reset_connect.cmm 15576 2020-01-27 10:11:09Z alintner $
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF VERSION.BUILD.BASE()<75524.
+(
+  PRINT %ERROR "Please use more recent Software! Contact support@lauterbach.com."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU ZYNQ-ULTRASCALE+-APU
+SYStem.Option TRST OFF
+SYStem.JtagClock CTCK 10MHz
+CORE.ASSIGN 1.                          ; Only connect to first core
+ETM.OFF
+Trace.DISable
+SYStem.Mode Up
+TrOnchip.Set RESET ON
+SYStem.Mode Up
+TrOnchip.Set RESET OFF
+
+ENDDO
+
+

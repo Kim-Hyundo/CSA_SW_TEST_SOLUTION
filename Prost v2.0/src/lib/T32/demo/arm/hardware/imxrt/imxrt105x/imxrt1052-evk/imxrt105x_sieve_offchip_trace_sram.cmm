@@ -1,0 +1,123 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for IMXRT1052 on IMXRT1050-EVK with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The Offchip Trace using a Combiprobe/uTrace or PowerTrace is set up.
+;   Use this script for testing the Offchip-Trace.
+;   Prerequisites:
+;    * this board has no trace connector, for connection we did:
+;    * we removed R255, R247, R248, R249, R250
+;    * we used CombiProbe with converter LA-3771 and wired the trace signals to
+;      the converter
+; @Keywords: ARM, Cortex-M7, ETM, ITM
+; @Author: AME
+; @Board: IMXRT1050-EVK
+; @Chip: IMXRT1052
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imxrt105x_sieve_offchip_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU IMXRT1052
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace (ETM, ITM)
+IF COMBIPROBE()||UTRACE()||Analyzer()
+(
+  ; set PinMux and enable Clocks
+  ; TRACECLK - IOMUX_GPIO_B0_12 - ALT2
+  ; TRACEDATA0 - IOMUX_GPIO_B0_4 - ALT3
+  ; TRACEDATA1 - IOMUX_GPIO_B0_5 - ALT3
+  ; TRACEDATA2 - IOMUX_GPIO_B0_6 - ALT3
+  ; TRACEDATA3 - IOMUX_GPIO_B0_7 - ALT3
+  Data.Set AD:0x401F816C %Long 0x2
+  Data.Set AD:0x401F814C %Long 0x3
+  Data.Set AD:0x401F8150 %Long 0x3
+  Data.Set AD:0x401F8154 %Long 0x3
+  Data.Set AD:0x401F8158 %Long 0x3
+
+  ; lower driver strength for trace signals
+  ; needed to lower reflections caused by bad trace port connection
+  ; TRACECLK   - SW_PAD_CTL_PAD_GPIO_B0_12
+  ; TRACEDATA0 - SW_PAD_CTL_PAD_GPIO_B0_4
+  ; TRACEDATA1 - SW_PAD_CTL_PAD_GPIO_B0_5
+  ; TRACEDATA2 - SW_PAD_CTL_PAD_GPIO_B0_6
+  ; TRACEDATA3 - SW_PAD_CTL_PAD_GPIO_B0_7
+  Data.Set AD:0x401F835C %Long 0x1018
+  Data.Set AD:0x401F833C %Long 0x1018
+  Data.Set AD:0x401F8340 %Long 0x1018
+  Data.Set AD:0x401F8344 %Long 0x1018
+  Data.Set AD:0x401F8348 %Long 0x1018
+
+  TPIU.PortSize 4
+  TPIU.PortMode Continuous
+  ITM.DataTrace CorrelatedData
+  ITM.ON
+  ETM.Trace ON
+  ETM.COND ALL
+  ETM.ON
+)
+IF COMBIPROBE()||UTRACE()
+(
+  Trace.METHOD CAnalyzer
+  Trace.AutoInit ON
+  IF VERSION.BUILD.BASE()>=74752.
+  (
+    CAnalyzer.AutoFocus
+  )
+  ELSE
+  (
+    ; for uTrace & Combiprobe use manual calibration
+    ; CAnalyzer.ClockDELAY Large
+  )
+)
+IF Analyzer()
+(
+  Trace.METHOD Analyzer
+  Trace.AutoInit ON
+  Trace.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO

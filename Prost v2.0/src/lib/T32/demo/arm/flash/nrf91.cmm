@@ -1,0 +1,151 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash declaration for Nordic Semiconductor NRF9160SICA internal flash
+; @Description:
+;   Script arguments:
+;     DO nrf91 [PREPAREONLY] [CPU=<cpu>] [DUALPORT=<0|1>]
+;       PREPAREONLY    only declares flash but does not execute flash programming
+;       CPU=<cpu>      selects CPU derivative <cpu>
+;       DUALPORT=<0|1> use dual port memory access, default 1
+;       MASSERASE      forces mass erase of device before establishing debug
+;                      connection
+;                      Mass erase erases code flash and UICR registers
+;   Example:
+;     DO ~~/demo/arm/flash/nrf91 PREPAREONLY
+;   Note:
+;     This file must NOT be modified.
+;     This file is intended to stay within TRACE32 installation.
+;     Usage examples are available in the ~~/demo/arm/hardware/... subdirectories.
+;
+;   List of NRF91 derivatives and their configuration:
+;      CPU-Type       Flash    RamSize
+;                     [byte]   [byte]
+; --------------------------------------------------------------------------------
+;     NRF9160SIAA     1 MB     256 KB          Flash at 0x0
+;     NRF9160SIBA     1 MB     256 KB          RAM at 0x20000000
+;     NRF9160SICA     1 MB     256 KB
+;
+; @Chip: NRF91*
+; @Author: PHI
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 8632 $
+; $Id: nrf91.cmm 8632 2020-08-28 17:52:27Z bwright $
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+PRIVATE &param_prepareonly &param_cpu &param_dualport
+&parameters=STRing.UPpeR("&parameters")
+&param_prepareonly=(STRing.SCAN("&parameters","PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract("&parameters","CPU=","")
+&param_dualport=STRing.SCANAndExtract("&parameters","DUALPORT=","1")
+&param_masserase=(STRing.SCAN("&parameters","MASSERASE",0)!=-1)
+
+; --------------------------------------------------------------------------------
+; Initialize and start the debugger
+IF !SYStem.Up()||&param_masserase
+(
+  SYStem.RESet
+
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  IF !CPUIS(NRF91*)
+    SYStem.CPU NRF91*
+
+  SYStem.MemAccess DAP
+
+  IF &param_masserase
+    FLASH.UNSECUREerase
+
+  SYStem.Up
+)
+
+
+; --------------------------------------------------------------------------------
+; disable MPU
+Data.Set ZSD:0xE000ED94 %Long (Data.Long(ZSD:0xE000ED94)&(~0x1)) ; disable MPU
+
+
+; --------------------------------------------------------------------------------
+; Flash declaration
+FLASH.RESet
+GOSUB FlashDeclaration "&param_dualport"
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; --------------------------------------------------------------------------------
+; Flash programming example
+DIALOG.YESNO "Program flash memory?"
+PRIVATE &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram ALL /Erase
+  Data.LOAD.auto *
+  FLASH.ReProgram OFF
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+)
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+; SUBROUTINES
+
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU
+;
+;   Please do NOT modify the TRACE32 flash declaration.
+;
+;   Modifications can result in unpredictable behavior.
+;   Please contact support@lauterbach.com for any changes.
+FlashDeclaration: ;(param_dualport)
+(
+  PARAMETERS &param_dualport
+  PRIVATE &FlashDriver &secured
+
+  &FlashDriver="nrf91.bin"
+  
+  ; Read out security mode of the core
+  if ((Register(NS)&0x1)==0x0)
+    &secured=0x1
+  else
+    &secured=0x0
+
+  ; Declare code flash and OTP area of UICR
+  FLASH.Create 1. 0x0++(0x100000-0x1) 0x1000 TARGET long  &secured 
+
+  ; Declare UICR registers
+  ; Programming UICR data has to be done very carefully. It is possible to disable debugger access
+  ; to retisters and memory.
+  ;
+  ; Therefore the script declares the UICR registers, but programming can only be done after 
+  ; changing the type and using OTP otion for programming :
+  ;
+  ; 1.   FLASH.CHANGEtype address-range TARGET 
+  ; 2.   FLASH.Program address-range /OTP
+  ; 3.   prgram UICR data
+  ; 4.   FLASH.CHANGEtype address-range NOP
+  
+  FLASH.Create 1. 0x00FF8000++0x3 0x4 NOP Long  &secured /OTP /info "UICR : APROTECT"
+  FLASH.Create 1. 0x00FF8014++0x3 0x4 NOP Long  &secured /OTP /info "UICR : XOSC32M"
+  FLASH.Create 1. 0x00FF801C++0x3 0x4 NOP Long  &secured  /OTP /info "UICR : HFXOSRC"
+  FLASH.Create 1. 0x00FF8020++0x3 0x4 NOP Long  &secured  /OTP /info "UICR : HFXOCNT"
+  FLASH.Create 1. 0x00FF802C++0x3 0x4 NOP Long  &secured  /OTP /info "UICR : SECUREAPPROTECT"
+  FLASH.Create 1. 0x00FF8030++0x3 0x4 NOP Long  &secured  /OTP  /info "UICR : ERASEPROTECT"
+  FLASH.Create 1. 0x00FF8108++(190.*4.-1.) TARGET Long &secured /OTP  /info "UICR : OTP"
+  FLASH.Create 1. 0x00FF8400++(128.*8.-1.) NOP Long  &secured  /OTP /info "UICR  KEYSLOT.CONFIG.DEST and PERM"
+  FLASH.Create 1. 0x00FF8800++(128.*16.-1.) NOP Long  &secured  /OTP /info "UICR : APROTECT"
+
+ IF (("&param_dualport"!="1")||SYStem.ACCESS.DENIED())
+    FLASH.TARGET 0x20000000 0x20001000 0x1000 ~~/demo/arm/flash/long/&FlashDriver
+  ELSE
+    FLASH.TARGET 0x20000000 E:0x20001000 0x1000 ~~/demo/arm/flash/long/&FlashDriver /DualPort
+
+  RETURN
+)
+                 

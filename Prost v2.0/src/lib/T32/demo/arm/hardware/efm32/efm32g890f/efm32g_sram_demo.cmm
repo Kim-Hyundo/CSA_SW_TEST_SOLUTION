@@ -1,0 +1,54 @@
+; --------------------------------------------------------------------------------
+; @Title: Sample start script for the EnergyMircro EFM32G chips.
+; @Description:
+;   This demo demonstrates the debugging of the EFM32G890F Cortex-M3
+;   using a simple sieve demo loaded on the SRAM.
+;
+;   SRAM START : 0x20000000
+;
+;   The board contains a debugger, which need to be disabled before connecting
+;   an external debugger:
+;   After the board has been powered up and the display shows the label of 
+;   Energy Micro, press the 'CFG' button.
+;   'Debug Control' need to be set to 'IN'.
+;
+; @Author: MSA
+; @Board: EFM32-G8xx-DK
+; @Chip: EFM32G890F
+; @Keywords: Cortex-M3, EnergyMircro
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: efm32g_sram_demo.cmm 15217 2019-11-04 16:17:15Z bschroefel $  
+
+   SYStem.RESet
+   SYStem.CPU EFM32G890F
+   SYStem.CONFIG SWDP ON   ; The chip does not support legacy JTAG
+   SYStem.JtagClock 500Khz
+   SYStem.Option ResBreak OFF
+   SYStem.Up
+
+   SYStem.JtagClock 10Mhz
+  
+   ; Load demo app
+   Data.LOAD.Elf ~~~~/demo.axf
+   Register.Set PC  main
+   Register.Set R13 0x20004000
+
+   ; open some windows
+   WinCLEAR
+
+   WinPOS 0% 0% 50% 50%
+   List.auto
+
+   WinPOS 50% 0% 50% 50%
+   Register.view /SpotLight
+
+   WinPOS 0% 50% 50% 50%
+   Frame /Locals /Caller
+
+   WinPOS 50% 50% 50% 50%
+   Var.Watch
+   Var.AddWatch ast
+
+   ENDDO
+

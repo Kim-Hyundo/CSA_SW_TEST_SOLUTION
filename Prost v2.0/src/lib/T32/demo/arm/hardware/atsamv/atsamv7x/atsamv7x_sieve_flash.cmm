@@ -1,0 +1,95 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for ATSAMV71Q21 on ATSAMV71-XULT (FLASH)
+; @Description:
+;   Programs the sieve demo application into the processor internal flash and
+;   sets up a demo debug scenario.
+;   This script can be used as a template for flashing an application.
+;   Prerequisites:
+;    * Connect Debug Cable to Coresight20 using Adapter LA-3770
+;      or
+;      Connect Combiprobe/uTrace to Coresight20
+;    * JTAGSEL line must be LOW
+; @Keywords: ARM, Cortex-M7, Flash
+; @Author: AME
+; @Board: ATSAMV71-XULT
+; @Chip: ATSAMV7* ATSAMS7* ATSAME7*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: atsamv7x_sieve_flash.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU ATSAMV71Q21
+; for RevA devices select ATSAMV7xxxxA
+; e.g. SYStem.CPU ATSAMV71Q21A
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock 10MHz
+; trace infrastructure is unclocked after reset
+Trace.DISable
+ETM.OFF
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; Flash programming
+
+; prepare flash programming (declarations)
+DO ~~/demo/arm/flash/atsamv.cmm PREPAREONLY
+
+; ReProgram Flash
+FLASH.ReProgram ALL
+Data.LOAD.Elf "~~~~/sieve_flash_thumb_ii_v7m.elf"
+FLASH.ReProgram OFF
+
+; after factory programming the NVM should be set to FLASH
+IF ((Data.Long(AD:0xE000EF90)&0x1)==0x0)&&(Data.Quad(AD:0x0)!=Data.Quad(A:0x00400000))
+  DO ~~/demo/arm/flash/atsamv-nvm BOOT=FLASH
+
+; --------------------------------------------------------------------------------
+; Reset the target again
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO
+
+DisableWatchdog:
+(
+  ; disable the Watchdog
+  ; WDT_MR, set WDDIS
+  Data.Set A:0x400E1854 %Long Data.Long(A:0x400E1854)|0x8000
+  RETURN
+)

@@ -1,0 +1,78 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo running from Flash for EnergyMicro EFM32 Wonder Gecko
+; @Description: 
+;   This is a small demo how to setup a debug session on EnergyMicro 
+;   EFM32 Wonder Gecko. The sieve application is loaded on FLash using 
+;   the board support scripts of the TRACE32.
+;   Prequisites:
+;     The debug mode should be set to In. This mode lets you use TRACE32 as
+;     external debugger instead of embedded J-Link debug. The debug mode could 
+;     be changed using energyAware Commander application.
+;
+; @Keywords: Cortex-M4, SWD, debug, Flash
+; @Author: HDA
+; @Board: EFM32WG-STK3800
+; @Chip: EFM32WG*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: efm32wg_flash_demo.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+  Break.RESet
+  SYStem.RESet
+
+  SYStem.CPU EFM32WG990F
+  ;SYStem.CPU EFM32WG*
+  SYStem.CONFIG.DEBUGPORTTYPE SWD
+  SYStem.CONFIG.CONNECTOR MIPI20T
+  SYStem.Option ResBreak OFF
+
+  SYStem.Up
+
+; Flash programming warning
+  DIALOG.YESNO "This demo will program flash memory. Do you want to continue?"
+  LOCAL &progflash
+  ENTRY &progflash
+  IF !&progflash
+  (
+    ENDDO
+  )
+
+  ; Setup flash configuration using the board support scripts of the TRACE32 installation
+  DO ~~/demo/arm/flash/efm32wg PREPAREONLY
+
+  ; Program the internal flash
+  FLASH.ReProgram.ALL /Erase
+  Data.LOAD.Elf ~~~~/demo_flash.axf /NosYmbol
+  FLASH.ReProgram.off
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+  
+  ; Loading symbol information
+  Data.LOAD.Elf ~~~~/demo_flash.axf /NoCODE
+  
+  Break.Set T:sYmbol.END(sieve)-1. /Program
+  Go.direct
+  WAIT !STATE.RUN();
+
+  ; open some windows
+  WinCLEAR
+
+  WinPOS 0% 0% 50% 50%
+  List.auto
+
+  WinPOS 50% 0% 50% 50%
+  Register.view /SpotLight
+
+  WinPOS 0% 50% 50% 30%
+  Frame /Locals /Caller
+
+  WinPOS 0% 80% 50% 20%
+  Var.Watch %E %SpotLight.on flags
+  Var.AddWatch ast
+
+  WinPOS 50% 50% 50% 50%
+  Var.DRAW sinewave
+
+  ENDDO

@@ -1,0 +1,55 @@
+; --------------------------------------------------------------------------------
+; @Title: Timer Simulator Model for the LPC2xxx (64 bit TRACE32)
+; @Description: 
+;   Load Model for TRACE32 64-bit version
+;   timer 0 has no external ports except interrupt port connected directly to cpu
+; @Keywords: API, Model, Simulator
+; @Board: TRACE32 Simulator
+; @Chip: LPC2*
+; @Author: JER
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo_x64.cmm 15209 2019-11-04 10:07:55Z bschroefel $
+
+
+SYStem.Down
+
+; unload all modules
+SIM.UNLOAD
+
+SYStem.CPU LPC2104
+
+; Load Model for TRACE32 64-bit version
+; timer 0 has no external ports except interrupt port connected directly to cpu
+SIM.LOAD timer_lpc2xxx_x64.dll "timer0" "noport" "noport" "cpu"
+
+SYStem.Up
+
+; --- processor infinite loop ---
+Data.Assemble 0x0 nop
+Data.Assemble 0x4 nop
+Data.Assemble 0x8 b $ - 8			; infinite loop
+
+; --- interrupt service routine ---
+Data.Assemble 0x18 str r0, [r1, #0x00]	; clear interupt flag
+Data.Assemble 0x1c subs pc, r14, #4	; return from interrupt
+
+; --- ARM core configuration ---
+Register.Set PC 0x0			; set program counter to 0x0
+Register.Set r0 0x1			; value to write to T0IR register
+Register.Set r1 0xe0004000		; base address of Timer 0
+
+; --- Timer 0 configuration ---
+Data.Set d:0xe0004018 %Long 32.		; generate interrupt every 32 bus clocks
+Data.Set d:0xe0004014 %Word 3		; enable interrupt and counter reset on match
+Data.Set d:0xe0004004 %Byte 1		; enable timer
+Register.Set I 0				; enable interrupts
+
+Break.Set 0x18			; set breakpoint on beginning of interrupt
+
+PER.view
+List.auto
+
+ENDDO
+
+

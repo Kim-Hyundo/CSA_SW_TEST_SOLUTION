@@ -1,0 +1,300 @@
+; --------------------------------------------------------------------------------
+; @Title: PrKERNEL specific menu
+; @Description: -
+; @Author: DIE
+; @Copyright: (c) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: utkernel.men 10497 2017-02-24 07:49:44Z rdienstbeck $
+
+
+add
+menu
+(
+  popup "&T-Kernel"
+  (
+    default
+    menuitem "Display &Tasks"           "TASK.TaSK"
+    menuitem "Display &Semaphores"      "TASK.SEMaphore"
+    menuitem "Display Mute&xes"         "TASK.MuTeX"
+    menuitem "Display &Event Flags"     "TASK.FLaG"
+    menuitem "Display &Mailboxes"       "TASK.MailBoX"
+    menuitem "Display Message &Buffers" "TASK.MsgBuFfer"
+    menuitem "Display &Ports"           "TASK.PORt"
+    menuitem "Display &Var MemPools"    "TASK.MemPoolL"
+    menuitem "Display &Fixed MemPools"  "TASK.MemPoolF"
+    menuitem "Display &Cyclic Handlers" "TASK.CYClic"
+    menuitem "Display &Alarm Handlers"  "TASK.ALarM"
+    separator
+    popup "&Stack Coverage"
+    (
+      menuitem "&List Stacks"
+      (
+        if icd()
+          TASK.STacK.PATtern 0
+        TASK.STacK
+      )
+      menuitem "Add Task"        "TASK.STacK.ADD"
+      menuitem "Remove Task"     "TASK.STacK.ReMove"
+      enable ice()
+      menuitem "&Reset Coverage" "TASK.STacK.RESet"
+    )
+  )
+  popup "Trace"
+  (
+    popup "List"
+    (
+      separator
+      menuitem "&Task Switches"     "Trace.List List.TASK"
+      menuitem "&Default and Tasks" "Trace.List List.TASK DEFault"
+    )
+  )
+  popup "Perf"
+  (
+    separator
+    popup "&Task Runtime"
+    (
+        menuitem "&Prepare"
+        (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+        )
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak&&Write
+          )
+        )
+	    Break.Delete /Alpha
+	    Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+        )
+        menuitem "[:perf]Show &Numerical"   "Trace.STATistic.TASK"
+        menuitem "[:achart]Show as &Timing" "Trace.CHART.TASK"
+        menuitem "[:achart]Tracking with Trace &List"
+        (
+          Trace.List List.TASK DEFault /Track
+          Trace.CHART.TASK /Track
+        )
+    )
+    popup "Task &Function Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+          Analyzer.STATistic.PreFetch on
+        )
+
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          if a.config.hac()
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak
+               Sample.Enable if BetaBreak
+               Mark.A        if AlphaBreak
+               Mark.B        if BetaBreak
+             )
+          )
+          else
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak||BetaBreak
+               Mark.A if AlphaBreak
+               Mark.B if BetaBreak
+             )
+          )
+	    )
+
+        Break.Delete /Alpha /Beta /Charly
+        Break.SetFunc
+	    Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+      )
+      menuitem "[:perf]Show &Numerical"     "Trace.STATistic.TASKFUNC"
+      menuitem "[:perf]Show as &Tree"       "Trace.STATistic.TASKTREE"
+      menuitem "[:perf]Show &Detailed Tree" "Trace.STATistic.TASKTREE ALL"
+      menuitem "[:achart]Show as &Timing"   "Trace.CHART.TASKFUNC"
+      menuitem "[:alist]Show N&esting"      "Trace.List List.TASK FUNC TI.FUNC"
+    )
+    popup "Task &Status"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+        )
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak&&Write
+          )
+        )
+	    Break.Delete /Alpha
+	    Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+	    TASK.TASKState
+      )
+      menuitem "[:perf]Show &Numerical"   "Trace.STATistic.TASKSTATE"
+      menuitem "[:achart]Show as &Timing" "Trace.CHART.TASKSTATE"
+      menuitem "[:achart]Tracking with Trace &List"
+      (
+        Trace.List List.TASK DEFault /Track
+        Trace.CHART.TASKSTATE /Track
+      )
+    )
+  )
+  popup "&Help"
+  (
+    menuitem "PrKERNEL Awareness Manual" "HELP __RTOS_PRKERNEL_"
+  )
+)
+
+
+menu "task.tsk"
+(
+  default
+  menuitem "Display Detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.TaSK &address
+  )
+  menuitem "Display Task struct"
+  (
+    &address=address.offset(track.address())
+    &type=task.struct(tcb)
+    Var.View %o (&type*)&address
+  )
+  separator
+  menuitem "Display Stack Frame"
+  (
+    &address=address.offset(track.address())
+    Var.Frame /Locals /Caller /Task &address
+  )
+  menuitem "Switch Context"      "Register.TASK address.offset(track.address())"
+  separator
+  menuitem "Add to Stack Cov"    "TASK.STK.ADD address.offset(track.address())"
+  menuitem "Rm from Stack Cov"   "TASK.STK.RM  address.offset(track.address())"
+  separator
+  menuitem "Dump task entry"   "Data.dump track.address() /l /dialog"
+)
+
+menu "task.sem"
+(
+  default
+  menuitem "Display semaphore struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %o (SEMCB*)&address
+  )
+  menuitem "Dump semaphore entry"   "Data.dump track.address() /l /dialog"
+)
+
+menu "task.mtx"
+(
+  default
+  menuitem "Display mutex struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %o (MTXCB*)&address
+  )
+  menuitem "Dump mutex entry"   "Data.dump track.address() /l /dialog"
+)
+
+menu "task.flg"
+(
+  default
+  menuitem "Display event flag struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %o (FLGCB*)&address
+  )
+  menuitem "Dump event flag entry"   "Data.dump track.address() /l /dialog"
+)
+
+menu "task.mbx"
+(
+  default
+  menuitem "Display detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.MailBoX &address
+  )
+  menuitem "Display mailbox struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %o (MBXCB*)&address
+  )
+  menuitem "Dump mailbox entry"   "Data.dump track.address() /l /dialog"
+)
+
+menu "task.mbf"
+(
+  default
+  menuitem "Display message buffer struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %o (MBFCB*)&address
+  )
+  menuitem "Dump message buffer entry"   "Data.dump track.address() /l /dialog"
+)
+
+menu "task.por"
+(
+  default
+  menuitem "Display port struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %o (PORCB*)&address
+  )
+  menuitem "Dump port entry"   "Data.dump track.address() /l /dialog"
+)
+
+menu "task.mpl"
+(
+  default
+  menuitem "Display memory pool struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %o (MPLCB*)&address
+  )
+  menuitem "Dump memory pool entry"   "Data.dump track.address() /l /dialog"
+)
+
+menu "task.mpf"
+(
+  default
+  menuitem "Display memory pool struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %o (MPFCB*)&address
+  )
+  menuitem "Dump memory pool entry"   "Data.dump track.address() /l /dialog"
+)
+
+menu "task.cyc"
+(
+  default
+  menuitem "Display cyclic handler control struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %o (CYCCB*)&address
+  )
+  menuitem "Dump cyclic handler control entry"   "Data.dump track.address() /l /dialog"
+)
+
+menu "task.alm"
+(
+  default
+  menuitem "Display alarm handler control struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %o (ALMCB*)&address
+  )
+  menuitem "Dump alarm handler control entry"   "Data.dump track.address() /l /dialog"
+)
+

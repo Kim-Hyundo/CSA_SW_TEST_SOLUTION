@@ -1,0 +1,240 @@
+; --------------------------------------------------------------------------------
+; @Title: i.MX6 QUAD NAND FLASH Programming Script
+; @Description:
+; NAND FLASH(SAMSUNG,K9F4G08) is connected to the NAND_CS0
+;
+; S(D)RAM: 0x900000
+; APBH-Bridge-DMA Register : 0x110000
+; GPMI  Register           : 0x112000
+;
+;
+; @Author: jjeong
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; @Chip: IMX6QUAD
+; @Keywords: SAMSUNG K9F4G08 NAND
+; --------------------------------------------------------------------------------
+; $Id: imx6quad-nand2g08.cmm 7577 2019-10-30 15:30:31Z bschroefel $
+
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+&GPMI_BASE=0x112000
+&APBHDMA_BASE=0x110000
+&DMABUFF_BASE=0x907000 ; any address in the ram for using dma access
+
+; reset chip, connect to core #0 only
+  RESet
+  SYStem.RESet
+  SYStem.CPU iMX6Quad
+  CORE.ASSIGN 1
+  SYStem.Option ResBreak OFF
+  IF VERSION.BUILD()<92177.
+  (
+    SYStem.Option WaitReset 1.3s
+  )
+  ELSE
+  (
+    SYStem.Option WaitIDCODE 1.5s
+  )
+  TrOnchip.Set DABORT OFF
+  TrOnchip.Set PABORT OFF
+  TrOnchip.Set UNDEF OFF
+  Trace.METHOD Onchip
+  SYStem.Up
+
+  Data.Set C15:0x1 %Long  (Data.Long(C15:0x1)&~(0x1005))  ; disable interrupt and mmu
+
+  Data.Set A:0x020d8000 %Long 0x01C00521
+  Data.Set A:0x020bc000 %Word 0x30 ;Watchdog disable
+  Data.Set A:0x020c0000 %Word 0x30 ;Watchdog disable
+
+  GOSUB NAND_SETUP
+
+  GOSUB READ_ID_TEST
+
+  Break.RESet
+
+  FLASHFILE.RESet
+
+//FLASHFILE.config <APBH-Bridge-DMA>   <GPMI reg>
+  FLASHFILE.CONFIG   0x110000          0x112000
+
+// FLASHFILE.TARGET <<code range>>    <<data range>>    <<algorithm file>>
+  FLASHFILE.TARGET 0x900000++0x3fff   EAHB:0x904000++0x3fff  ~~/demo/arm/flash/byte/nand2g08_gpmimx6.bin /KEEP /STACKSIZE 0x500  /dualport
+
+  FLASHFILE.GETID
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+ENDDO
+
+  FLASHFILE.DUMP 0x0                             ; Read NAND
+
+ ;FLASHFILE.ERASE 0x0--0xFFFFF  /EraseBadBlock   ; Erase NAND
+
+ ;FLASHFILE.LOAD * 0x0                           ; Write NAND
+
+ ;FLASHFILE.DUMP 0x0   /spare                    ; Read NAND spare area
+
+ENDDO
+
+
+NAND_SETUP:
+
+Data.Set 0x020C8100 %Long 0x5058505B   ;HW_ANADIG_PFD_528_RW
+Data.Set 0x020C4078 %Long 0x00FFFFFF   ;CCM_CCGR4
+Data.Set 0x020C402C %Long 0x007036C1   ;CCM_CS2CDR
+Data.Set 0x020C402C %Long 0x007236C1   ;CCM_CS2CDR
+Data.Set 0x020C402C %Long 0x000236C1   ;CCM_CS2CDR
+Data.Set 0x020C402C %Long 0x007236C1
+Data.Set 0x020C4078 %Long 0xFFFFFFFF   ;CCM_CCGR4
+Data.Set 0x020C4080 %Long 0xFFFFFFFF   ;CCM_CCGR6
+Data.Set 0x020C4068 %Long 0xFFFFFFFF   ;CCM_CCGR0
+
+Data.Set 0x00112000 %Long 0xC0000000   ;HW_GPMI_CTRL0_WR
+Data.Set 0x00112008 %Long 0x40000000   ;HW_GPMI_CTRL0_CLR
+Data.Set 0x00112008 %Long 0x80000000   ;HW_GPMI_CTRL0_CLR
+Data.Set 0x00112004 %Long 0x80000000   ;HW_GPMI_CTRL0_SET
+Data.Set 0x00112008 %Long 0xC0000000   ;HW_GPMI_CTRL0_CLR
+Data.Set 0x00112028 %Long 0x1000       ;HW_GPMI_ECCCTRL_CLR
+
+Data.Set 0x00112070 %Long 0x00030303   ;HW_GPMI_TIMING0_WR
+Data.Set 0x00112080 %Long 0xFFFF0000   ;HW_GPMI_TIMING1_WR
+
+//gpmi_nand_pinmux_config
+Data.Set 0x020E02E0 %Long 0x0          ;IOMUXC_SW_MUX_CTL_PAD_NANDF_RB0
+Data.Set 0x020E06C8 %Long 0xF0E0       ;IOMUXC_SW_PAD_CTL_PAD_NANDF_RB0
+Data.Set 0x020E02E4 %Long 0x0          ;IOMUXC_SW_MUX_CTL_PAD_NANDF_CS0
+Data.Set 0x020E06CC %Long 0x000100B1   ;IOMUXC_SW_PAD_CTL_PAD_NANDF_CS0
+Data.Set 0x020E02E8 %Long 0x0          ;IOMUXC_SW_MUX_CTL_PAD_NANDF_CS1
+Data.Set 0x020E06D0 %Long 0x000100B1   ;IOMUXC_SW_PAD_CTL_PAD_NANDF_CS1
+Data.Set 0x020E02EC %Long 0x0          ;IOMUXC_SW_PAD_CTL_PAD_NANDF_CS2
+Data.Set 0x020E06D4 %Long 0x000100B1   ;IOMUXC_SW_PAD_CTL_PAD_NANDF_CS2
+Data.Set 0x020E02F0 %Long 0x0          ;IOMUXC_SW_MUX_CTL_PAD_NANDF_CS3
+Data.Set 0x020E06D8 %Long 0x000100B1   ;IOMUXC_SW_PAD_CTL_PAD_NANDF_CS3
+Data.Set 0x020E02D4 %Long 0x0          ;IOMUXC_SW_MUX_CTL_PAD_NANDF_CLE
+Data.Set 0x020E06BC %Long 0x000100B1   ;IOMUXC_SW_PAD_CTL_PAD_NANDF_CLE
+Data.Set 0x020E02D8 %Long 0x0          ;IOMUXC_SW_MUX_CTL_PAD_NANDF_ALE
+Data.Set 0x020E06C0 %Long 0x000100B1   ;IOMUXC_SW_PAD_CTL_PAD_NANDF_ALE
+Data.Set 0x020E02DC %Long 0x0          ;IOMUXC_SW_MUX_CTL_PAD_NANDF_WP_B
+Data.Set 0x020E06C4 %Long 0x000100B1   ;IOMUXC_SW_PAD_CTL_PAD_NANDF_WP_B
+Data.Set 0x020E02FC %Long 0x0          ;IOMUXC_SW_MUX_CTL_PAD_NANDF_D0
+Data.Set 0x020E06E4 %Long 0x000100B1   ;IOMUXC_SW_PAD_CTL_PAD_NANDF_D0
+Data.Set 0x020E0300 %Long 0x0          ;IOMUXC_SW_MUX_CTL_PAD_NANDF_D1
+Data.Set 0x020E06E8 %Long 0x000100B1   ;IOMUXC_SW_PAD_CTL_PAD_NANDF_D1
+Data.Set 0x020E0304 %Long 0x0          ;IOMUXC_SW_MUX_CTL_PAD_NANDF_D2
+Data.Set 0x020E06EC %Long 0x000100B1   ;IOMUXC_SW_PAD_CTL_PAD_NANDF_D2
+Data.Set 0x020E0308 %Long 0x0          ;IOMUXC_SW_MUX_CTL_PAD_NANDF_D3
+Data.Set 0x020E06F0 %Long 0x000100B1   ;IOMUXC_SW_PAD_CTL_PAD_NANDF_D3
+Data.Set 0x020E030C %Long 0x0          ;IOMUXC_SW_MUX_CTL_PAD_NANDF_D4
+Data.Set 0x020E06F4 %Long 0x000100B1   ;IOMUXC_SW_PAD_CTL_PAD_NANDF_D4
+Data.Set 0x020E0310 %Long 0x0          ;IOMUXC_SW_MUX_CTL_PAD_NANDF_D5
+Data.Set 0x020E06F8 %Long 0x000100B1   ;IOMUXC_SW_PAD_CTL_PAD_NANDF_D5
+Data.Set 0x020E0314 %Long 0x0          ;IOMUXC_SW_MUX_CTL_PAD_NANDF_D6
+Data.Set 0x020E06FC %Long 0x000100B1   ;IOMUXC_SW_PAD_CTL_PAD_NANDF_D6
+Data.Set 0x020E0318 %Long 0x0          ;IOMUXC_SW_MUX_CTL_PAD_NANDF_D7
+Data.Set 0x020E0700 %Long 0x000100B1   ;IOMUXC_SW_PAD_CTL_PAD_NANDF_D7
+Data.Set 0x020E02F4 %Long 0x1          ;IOMUXC_SW_MUX_CTL_PAD_SD4_CMD
+Data.Set 0x020E06DC %Long 0x000100B1   ;IOMUXC_SW_PAD_CTL_PAD_SD4_CMD
+Data.Set 0x020E02F8 %Long 0x1          ;IOMUXC_SW_MUX_CTL_PAD_SD4_CLK
+Data.Set 0x020E06E0 %Long 0x000100B1   ;IOMUXC_SW_PAD_CTL_PAD_SD4_CLK
+Data.Set 0x020E031C %Long 0x2          ;IOMUXC_SW_MUX_CTL_PAD_SD4_DAT0
+Data.Set 0x020E0704 %Long 0xB1         ;IOMUXC_SW_PAD_CTL_PAD_SD4_DAT0
+
+Data.Set 0x00112068 %Long 0x1  ;GPMI_CTRL1_CLR
+Data.Set 0x00112064 %Long 0x0  ;GPMI_CTRL1_SET
+Data.Set 0x00112060 %Long 0xC  ;GPMI_CTRL1
+
+Data.Set 0x00110008 %Long 0xC0000000   ;APBH_CTRL0_CLR
+Data.Set 0x00110030 %Long 0x10000      ;APBH_CHANNEL_CTRLn
+Data.Set 0x00110018 %Long 0x1          ;APBH_CTRL1_CLR
+
+
+RETURN
+
+
+READ_ID_TEST:
+(
+//Write Command
+Data.Set A:&DMABUFF_BASE+0x00 %LE %Long 0x90          ;cmd
+Data.Set A:&DMABUFF_BASE+0x04 %LE %Long 0x00000000    ;next_buff
+Data.Set A:&DMABUFF_BASE+0x08 %LE %Long 0x0001409A    ;gdma0.cmd
+Data.Set A:&DMABUFF_BASE+0x0C %LE %Long (&DMABUFF_BASE+0x00)    ;gdma0.buff_ptr
+Data.Set A:&DMABUFF_BASE+0x10 %LE %Long 0x00c20001    ;gdma0.pioword[0]
+Data.Set A:&DMABUFF_BASE+0x14 %LE %Long 0x00000000    ;gdma0.pioword[1]
+Data.Set A:&DMABUFF_BASE+0x18 %LE %Long 0x00000000    ;gdma0.pioword[2]
+Data.Set A:&DMABUFF_BASE+0x1C %LE %Long 0x00000000    ;gdma0.pioword[3]
+GOSUB DoDMA
+
+//Write Address
+Data.Set A:&DMABUFF_BASE+0x00 %LE %Long 0x00000000    ;address
+Data.Set A:&DMABUFF_BASE+0x04 %LE %Long 0x00000000    ;next_buff
+Data.Set A:&DMABUFF_BASE+0x08 %LE %Long 0x0001109A    ;gdma0.cmd
+Data.Set A:&DMABUFF_BASE+0x0C %LE %Long (&DMABUFF_BASE+0x00) ;gdma0.buff_ptr
+Data.Set A:&DMABUFF_BASE+0x10 %LE %Long 0x00C40001    ;gdma0.pioword[0]
+Data.Set A:&DMABUFF_BASE+0x14 %LE %Long 0x00000000    ;gdma0.pioword[1]
+GOSUB DoDMA
+
+//Read Data
+Data.Set A:&DMABUFF_BASE+0x00 %LE %Long 0x00000000
+Data.Set A:&DMABUFF_BASE+0x04 %LE %Long 0x00000000
+Data.Set A:&DMABUFF_BASE+0x08 %LE %Long 0x00041089
+Data.Set A:&DMABUFF_BASE+0x0C %LE %Long (&DMABUFF_BASE+0x00)
+Data.Set A:&DMABUFF_BASE+0x10 %LE %Long 0x01C00004
+Data.Set A:&DMABUFF_BASE+0x14 %LE %Long 0x00C40001
+Data.Set A:&DMABUFF_BASE+0x18 %LE %Long 0x00000000
+GOSUB DoDMA
+
+&data=Data.Long(A:&DMABUFF_BASE+0x00)
+
+PRINT "1st 0x" (&data&0x0FF) " (Manufacture)"
+PRINT "2nd 0x" ((&data>>8.)&0x0FF)  " (Device ID)"
+PRINT "3rd 0x" ((&data>>16.)&0x0FF)
+PRINT "4th 0x" ((&data>>24.)&0x0FF)
+
+RETURN
+)
+
+DoDMA:
+(
+
+//reset channel NAND0
+Data.Set A:&APBHDMA_BASE+0x34 %LE %Long 0x00010000  ;(APBH_CHANNEL_CTRLn)
+Data.Set A:&APBHDMA_BASE+0x08 %LE %Long 0x00000001  ;HW_APBH_CTRL0_CLR
+Data.Set A:&APBHDMA_BASE+0x18 %LE %Long 0x00000001  ;HW_APBH_CTRL1_CLR
+
+//HW_APBH_CH0_NXTCMDAR 
+Data.Set A:(&APBHDMA_BASE+0x110) %LE %Long (&DMABUFF_BASE+0x4)  ;HW_APBH_CH0_NXTCMDAR
+Data.Set A:(&APBHDMA_BASE+0x140) %LE %Long 0x00000001           ;HW_APBH_CH0_SEMA
+
+//check status
+//print data.long(A:&APBHDMA_BASE+0x010)
+
+WAIT 100.ms
+Data.Set A:(&APBHDMA_BASE+0x018) %LE %Long 0x1   ; HW_APBH_CTRL1 (0x1<<chan)
+
+RETURN
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

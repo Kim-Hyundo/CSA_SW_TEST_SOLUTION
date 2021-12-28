@@ -1,0 +1,404 @@
+; --------------------------------------------------------------------------------
+; @Title: SRI error decoding for AURIX1G CPUs
+; @Description:
+;   Decodes the error registers of the SRI bridge
+; @Keywords: SRI
+; @Author: MEI
+; @Chip: TC2*
+; @Copyright: (C) 1989-2018 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: aurix1g_sri.cmm 16188 2020-06-16 15:12:39Z meick $
+
+IF !CPUIS("TC2*")
+(
+    PRINT %ERROR "Script only applicable for AURIX1G CPUs"
+    ENDDO
+)
+
+PARAMETERS &action &p1 &p2
+
+IF ("&action"=="")
+(
+    GOSUB ShowDialog
+    ENDDO
+)
+
+DIALOG.Select "SRIErrorDecoder"
+
+IF "&action"=="Refresh"
+(
+    GOSUB ForEachSection "CheckSection"
+)
+ELSE IF "&action"=="AckSection"
+(
+    GOSUB AckSection "&p1"
+)
+ELSE IF "&action"=="AckAll"
+(
+    GOSUB ForEachSection "AckSection"
+)
+ELSE 
+(
+    PRINT %ERROR "Invalid action &action"
+)
+
+ENDDO
+
+
+ShowDialog:
+(
+    LOCAL &this
+
+    &this=OS.PPF()
+
+    DIALOG.view
+    (&+
+            HEADER "SRI Error Decoding"
+            NAME "SRIErrorDecoder"
+            POS 1. 0. 20.
+            TEXT "section: slave"
+            POSX 0. 60.
+            TEXT "master: operation [address]"
+            POS 1. 1. 20.
+            TEXT "Default"
+            POSX 0. 60.
+    StateD: DYNTEXT "n/a"
+            POSX 0. 4.
+            BUTTON "ACK"
+            (
+                DO &this "AckSection" "D"
+            )
+
+            POS 1. 2. 20.
+            TEXT " 0: CPU0"
+            POSX 0. 60.
+    State0: DYNTEXT "n/a"
+            POSX 0. 4.
+            BUTTON "ACK"
+            (
+                DO &this "AckSection" "0"
+            )
+
+            POS 1. 3. 20.
+            TEXT " 1: CPU1"
+            POSX 0. 60.
+    State1: DYNTEXT "n/a"
+            POSX 0. 4.
+            BUTTON "ACK"
+            (
+                DO &this "AckSection" "1"
+            )
+
+            POS 1. 4. 20.
+            TEXT " 2: CPU2"
+            POSX 0. 60.
+    State2: DYNTEXT "n/a"
+            POSX 0. 4.
+            BUTTON "ACK"
+            (
+                DO &this "AckSection" "2"
+            )
+
+            POS 1. 5. 20.
+            TEXT " 4: LMU"
+            POSX 0. 60.
+    State4: DYNTEXT "n/a"
+            POSX 0. 4.
+            BUTTON "ACK"
+            (
+                DO &this "AckSection" "4"
+            )
+
+            POS 1. 6. 20.
+            TEXT " 5: EBU"
+            POSX 0. 60.
+    State5: DYNTEXT "n/a"
+            POSX 0. 4.
+            BUTTON "ACK"
+            (
+                DO &this "AckSection" "5"
+            )
+
+            POS 1. 7. 20.
+            TEXT " 6: PMU0: DFlash"
+            POSX 0. 60.
+    State6: DYNTEXT "n/a"
+            POSX 0. 4.
+            BUTTON "ACK"
+            (
+                DO &this "AckSection" "6"
+            )
+
+            POS 1. 8. 20.
+            TEXT " 7: PMU0: PFlash0"
+            POSX 0. 60.
+    State7: DYNTEXT "n/a"
+            POSX 0. 4.
+            BUTTON "ACK"
+            (
+                DO &this "AckSection" "7"
+            )
+
+            POS 1. 9. 20.
+            TEXT " 8: PMU0: PFlash1"
+            POSX 0. 60.
+    State8: DYNTEXT "n/a"
+            POSX 0. 4.
+            BUTTON "ACK"
+            (
+                DO &this "AckSection" "8"
+            )
+
+            POS 1. 10. 20.
+            TEXT " 9: PMU0: PFlash2"
+            POSX 0. 60.
+    State9: DYNTEXT "n/a"
+            POSX 0. 4.
+            BUTTON "ACK"
+            (
+                DO &this "AckSection" "9"
+            )
+
+            POS 1. 11. 20.
+            TEXT "10: PMU0: PFlash3"
+            POSX 0. 60.
+    State10:DYNTEXT "n/a"
+            POSX 0. 4.
+            BUTTON "ACK"
+            (
+                DO &this "AckSection" "10"
+            )
+
+            POS 1. 12. 10.
+            BUTTON "Refresh"
+            (
+                DO &this "Refresh"
+            )
+            
+            POS 12. 12. 10.
+            BUTTON "ACK all"
+            (
+                DO &this "AckAll"
+            )            
+            POS 23. 12. 15.
+    ClrInt: CHECKBOX "clear interrupts" ""
+    )
+
+    GOSUB ForEachSection "CheckSection"
+    Dialog.Set ClrInt TRUE()
+    
+    RETURN
+)
+
+ForEachSection:
+(
+    PARAMETERS &call
+    
+    GOSUB &call "D"
+    IF CPUIS("TC21*")||CPUIS("TC22*")
+    (
+        GOSUB &call "0"
+        GOSUB &call "6"
+        GOSUB &call "7"
+    )
+    ELSE IF CPUIS("TC23*")
+    (
+        GOSUB &call "0"
+        GOSUB &call "4"
+        GOSUB &call "6"
+        GOSUB &call "7"
+    )
+    ELSE IF CPUIS("TC26*")
+    (
+        GOSUB &call "0"
+        GOSUB &call "1"
+        GOSUB &call "4"
+        GOSUB &call "6"
+        GOSUB &call "7"
+        GOSUB &call "8"
+    )
+    ELSE IF CPUIS("TC27*")
+    (
+        GOSUB &call "0"
+        GOSUB &call "1"
+        GOSUB &call "2"
+        GOSUB &call "4"
+        GOSUB &call "6"
+        GOSUB &call "7"
+        GOSUB &call "8"
+    )
+    ELSE IF CPUIS("TC29*")
+    (
+        GOSUB &call "0"
+        GOSUB &call "1"
+        GOSUB &call "2"
+        GOSUB &call "4"
+        GOSUB &call "5"
+        GOSUB &call "6
+        GOSUB &call "7"
+        GOSUB &call "8"
+        GOSUB &call "9"
+        GOSUB &call "10"
+    )
+    ELSE
+    (
+      PRINT %ERROR "CPU "+CPU()+" not supported"
+      ENDDO
+    )
+
+    RETURN
+)
+
+CheckSection:
+(
+    PRIVATE &offset &statMask
+    PRIVATE &err &erraddr &status &trId &tagId &tagName
+    PRIVATE &opc &opName &dirC &dirName &msg &intsat
+    PARAMETERS &secName
+    
+    GOSUB GetSectionParametersFromName "&secName"
+    RETURNVALUES &offset &statMask
+    
+    &status=""
+    &intsat=Data.Long(D:0xF8700410)
+    IF ((&intsat)&(&statMask<<16.))>0.
+        &status="&(status)(protocol error)"
+    IF (Data.Long(D:0xF8700000+&offset+0x04)&(0x10))==(0x10)
+        &status="&(status)(locked)"
+    IF (Data.Long(D:0xF8700000+&offset+0x18)&(0x2))==(0x0)
+        &status="&(status)(debug event)"
+    IF "&status"==""
+    (
+        DIALOG.Set State&(secName) "no error"
+        RETURN
+    )
+
+    &err=Data.Long(D:0xF8700000+&offset+0x14)
+    &trId=((&err>>8.)&0xFF)
+    &tagId=(&trId&0x3F)
+    GOSUB GetTagNameFromId "&tagId"
+    RETURNVALUES &tagName
+
+    &opc=((&err>>4.)&0x0F)
+    GOSUB GetOpNameFromCode "&opc"
+    RETURNVALUES &opName
+
+    &dirC=(&err)&0x03
+    IF &dirC==0y10
+        &dirName="read"
+    ELSE IF &dirC==0y01
+        &dirName="write"
+    ELSE IF &dirC==0y00
+        &dirName="read/write"
+    ELSE
+        &dirName="?"
+        
+    &erraddr=Data.Long(D:0xF8700000+&offset+0x10)
+    &msg="&(tagName)["+FORMAT.BINary(6.,&tagId)+"]: &(opName).&(dirName) [0x"+FORMAT.HEX(8.,&erraddr)+"] &status"
+    DIALOG.Set State&(secName) "&msg"
+
+    RETURN
+)
+
+AckSection:
+(
+    PRIVATE &offset &statMask
+    PARAMETERS &secName
+    GOSUB GetSectionParametersFromName "&secName"
+    RETURNVALUES &offset &statMask
+    
+    Per.Set.Field D:0xF8700000+&offset+0x04 %LONG 0x10 0x1
+    IF (Data.Long(D:0xF8700000+&offset+0x18)&0x2)==(0x0)
+        Per.Set.Field D:0xF8700000+&offset+0x18 %LONG 0x4 0x1
+    IF DIALOG.BOOLEAN(ClrInt)
+        Per.Set.Field D:0xF8700410 %Long &statMask<<16. 0x1
+    GOSUB CheckSection "&secName"
+    RETURN
+)
+
+GetTagNameFromId:
+(
+    PARAMETERS &id
+    IF &id==0y000000
+        RETURN "CPU0.DMI.NonSafe"
+    ELSE IF &id==0y000001
+        RETURN "CPU0.DMI.Safe"
+    ELSE IF &id==0y000010
+        RETURN "CPU1.DMI.NonSafe"
+    ELSE IF &id==0y000011
+        RETURN "CPU1.DMI.Safe"
+    ELSE IF &id==0y000100
+        RETURN "CPU2.DMI.NonSafe"
+    ELSE IF &id==0y000101
+        RETURN "CPU2.DMI.Safe"
+    ELSE IF &id==0y000110
+        RETURN "DMA.Partition0"
+    ELSE IF &id==0y000111
+        RETURN "DMA.Partition1"
+    ELSE IF &id==0y001000
+        RETURN "DMA.Partition2"
+    ELSE IF &id==0y001001
+        RETURN "DMA.Partition3"
+    ELSE IF &id==0y001010
+        RETURN "DMA.Cerberus"
+    ELSE IF &id==0y001011
+        RETURN "HSSL"
+    ELSE IF &id==0y001100
+        RETURN "ETH"
+    ELSE IF &id==0y001101
+        RETURN "HSM"
+    ELSE IF &id==0y010000
+        RETURN "CPU0.PMI"
+    ELSE IF &id==0y010001
+        RETURN "CPU1.PMI"
+    ELSE IF &id==0y010010
+        RETURN "CPU2.PMI"
+    ELSE IF &id==0y011000
+        RETURN "DAM"
+    ELSE
+        RETURN ""
+)
+
+GetOpNameFromCode:
+(
+    PARAMETERS &c
+    IF &c==0y0000
+        RETURN "byte"
+    ELSE IF &c==0y0001
+        RETURN "word"
+    ELSE IF &c==0y0010
+        RETURN "long"
+    ELSE IF &c==0y0011
+        RETURN "quad"
+    ELSE IF &c==0y1000
+        RETURN "2 transfers (wrap around)"
+    ELSE IF &c==0y1001
+        RETURN "4 transfers (wrap around)"
+    ELSE IF &c==0y1010
+        RETURN "2 transfers (linear)"
+    ELSE IF &c==0y1011
+        RETURN "4 transfers (linear)"
+
+    &c="op"+FORMAT.BINary(4.,&c)
+    RETURN "&c"
+)
+
+GetSectionParametersFromName:
+(
+  PRIVATE &offset &mask
+  PARAMETERS &name
+  IF "&name"=="D"
+  (
+      &offset=0x0
+      &mask=0x8000
+  )
+  ELSE
+  (
+      &offset=0x40+&(name).*0x40
+      &mask=(1<<&(name).)
+  )
+    
+  &offset="0x"+FORMAT.HEX(4.,&offset)
+  &mask="0x"+FORMAT.HEX(4.,&mask)
+  RETURN "&offset" "&mask"
+)

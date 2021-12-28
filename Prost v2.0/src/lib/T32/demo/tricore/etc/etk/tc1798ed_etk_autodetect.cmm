@@ -1,0 +1,78 @@
+; --------------------------------------------------------------------------------
+; @Title: Startup demo script for ETK arbitration with TC1798ED on TriBoard TC1798
+; @Description:
+;   The script shows a setup for TRACE32 versions with ETK autodetection,
+;   depending whether the debugger is connected to the target directly or
+;   via an ETK.
+;
+;   ETK Arbitration is supported in JTAG Mode only. DAP Mode is not possible.
+;
+;   The debugger will hold the target in reset as long as SYStem.Mode NoDebug
+;   is not reached. Asserting the reset will prevent the ETK tool from
+;   accessing the target.
+;   There are several strategies possible for setting up the debugger for use
+;   with an ETK, depending on the user's requirements.
+;
+;   Hints:
+;   - for using SYStem.Up, SYStem.CONFIG SLAVE ON is required
+;   - for information about known issues see the demo scripts in
+;     demo/tricore/hardware/
+;
+; @Keywords: etk, Infineon, TriCore
+; @Author: MAX
+; @Board: TriBoard-TC1798
+; @Chip: TC1798ED
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc1798ed_etk_autodetect.cmm 7580 2014-08-27 15:28:49Z mobermeir $
+
+
+; --------------------------------------------------------------------------------
+; Performed tests:
+; Dip Switch S301: SW1=OFF, SW2=OFF, SW3=OFF, SW4=OFF,
+;                  SW5=OFF, SW6=OFF, SW7=OFF, SW8=OFF
+; TriBoard TC1791 V1.0 TC1791 EES-AA 2010-11-12 MOB
+; TriBoard TC1798 V1.0 TC1798ED EES-AB 2011-02-01 MOB
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+
+RESet
+SYStem.CPU TC1798ED
+//SYStem.JtagClock 10.0MHz           ; default, recommended minimum
+SYStem.Option DUALPORT ON            ; enable realtime memory access (optional)
+
+; configure for arbitration with ETK
+SYStem.DETECT PortSHaRing
+IF PORTSHARING()==1
+(
+  ; ETK detected
+  SYStem.Mode NoDebug
+
+  ; recommendation is to set SYStem.CONFIG values to defaults
+  //SYStem.CONFIG TRISTATE OFF    ; do not tristate debug cable when not
+  //                              ; accessing target (recommended)
+  //SYStem.CONFIG SLAVE ON        ; prevent debugger from performing
+  //                              ; any reset (optional)
+  //SYStem.CONFIG TCKLEVEL 0.     ; pulldown on TCK (required)
+  //SYStem.CONFIG TAPSTATE 12.    ; Run-Test/ Idle  (required)
+
+  SYStem.Mode Attach                 ; connect to target
+
+  ; Memory accesses to invalid addresses should be avoided,
+  ; otherwise ETK may be blocked too long.
+)
+ELSE
+(
+  ; no ETK detected
+  SYStem.Up
+  Go    ; start program execution
+)
+
+; --------------------------------------------------------------------------------
+; open a window
+
+WinCLEAR
+Data.dump 0xD0000000
+
+ENDDO

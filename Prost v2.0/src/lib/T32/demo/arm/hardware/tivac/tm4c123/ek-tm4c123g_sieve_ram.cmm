@@ -1,0 +1,43 @@
+; @Title: Simple sieve demo running in RAM
+; @Description:
+;   Run a simple sieve demo in onchip SRAM. 
+;   Tested with Combiprobe, uTrace and DebugCable
+;   Prerequisites:
+;     - Connect TCK,TMS,TDI,TDO,RESET to the pads in the middle of the board 
+;     - Connect VREF-DEBUG to +3.3V
+;     - Connect more than one GND line to the debug cable
+;     - Pull the EXTDBG signal on the board LOW
+;
+; @Keywords: Cortex-M4
+; @Author: AME
+; @Board: EK-TM4C123GXL
+; @Chip: TM4C123GH6PM
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: ek-tm4c123g_sieve_ram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; connect
+RESet
+SYStem.RESet
+SYStem.CPU TM4C123GH6PM
+SYStem.CONFIG.CONNECTOR MIPI20T
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF VERSION.BUILD.BASE()<58225.
+( 
+  SYStem.Option ResBreak OFF
+  SYStem.Option WaitReset 50.0ms
+)
+SYStem.Up
+
+; Load Demo
+Data.LOAD.Elf ~~~~/sieve_ram_thumb_ii_v7.elf
+
+; open some windows
+Mode.Hll
+List.auto
+
+; execute startcode
+Go main
+WAIT !STATE.RUN()
+
+ENDDO

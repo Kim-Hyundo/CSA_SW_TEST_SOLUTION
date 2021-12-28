@@ -1,0 +1,62 @@
+; --------------------------------------------------------------------------------
+; @Title: Template Script to set the Linux ATAG Structure
+; @Description: 
+;   Setup parameter tags for Linux boot
+; @Author: KJM
+; @Props: Template
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: atag-list.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+&tag=0x20000100 ; start address of the ATAG structure which will be written to R2
+
+&tagAddr=&tag
+
+; ATAG_CORE
+Data.Set &tagAddr %Long %LE 0x2
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr  %Long %LE 0x54410001
+&tagAddr=&tagAddr+0x4
+
+; ATAG_MEM
+Data.Set &tagAddr %Long %LE 0x4
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x54410002
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x02000000  // size 32MB
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x02000000  // RAM start address
+&tagAddr=&tagAddr+0x4
+
+; ATAG_INITRD2
+Data.Set &tagAddr %Long %LE 0x4
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x54420005
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x20410000  // start
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x300000    // file size 3MB
+&tagAddr=&tagAddr+0x4
+
+; ATAG_CMDLINE
+&cmdline="console=ttyS0,115200 initrd=0x20410000,3145728 root=/dev/ram0 rw"
+&cmdsize=(STRing.LENgth("&cmdline")+16)&~0x3
+Data.Set &tagAddr %Long %LE &cmdsize/4
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x54410009
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr "&cmdline" 0
+&tagAddr=&tagAddr+(&cmdsize-8)
+
+; ATAG_NONE
+Data.Set &tagAddr %Long %LE 0x0
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x0
+&tagAddr=&tagAddr+0x4
+
+Register.Set R2 &tag
+
+ENDDO
+
+

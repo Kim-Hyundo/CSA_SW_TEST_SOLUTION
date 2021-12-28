@@ -1,0 +1,1609 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags
+; @Author: TI
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: omap4430_prcm.cmm 8886 2015-11-18 18:06:51Z mobermeir $
+
+ENTRY &menu_type &opp_type
+
+GLOBAL &DPLL_MULT_VALUE &DPLL_DIV_VALUE &DPLL_FREQ_SEL_VALUE &OPP119 &OPP100_ES2 &OPP100_SDC &OPP100 &OPP50_SDC &OPP50 &OPP25_SDC &OPP25 &OPPBOOT &OPP100_HDMI &CORE_MPU
+
+&DPLL_MULT_VALUE=0
+&DPLL_DIV_VALUE=0
+&DPLL_FREQ_SEL_VALUE=0
+&OPPBOOT=0
+&OPP25=1
+&OPP25_SDC=2
+&OPP50=3
+&OPP50_SDC=4
+&OPP100=5
+&OPP100_SDC=6
+&OPP100_HDMI=7
+&OPP100_ES2=8
+&OPP119=9
+&CORE_MPU=0
+&CORE_IVA=1
+&CORE_ABE=2
+&CORE_CORE=3
+&CORE_PER=4
+
+&CMM_DIR="~~~~"
+
+
+IF (Var.VALUE(&menu_type)==0)
+( 
+  GOSUB SelectSysClock_13MHz
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==1) 
+( 
+  GOSUB SelectSysClock_19_2MHz
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==2)
+( 
+  GOSUB SelectSysClock_26MHz
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==3)
+( 
+  GOSUB SelectSysClock_38_4MHz
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==4)
+( 
+  GOSUB opp_default_config_board_opp100_es1
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==5)
+( 
+  GOSUB opp_default_config_board_opp100_es2
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==6)
+( 
+  GOSUB opp_default_config_board_opp100
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==7)
+( 
+  GOSUB opp_default_config_board_opp119
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==8)
+( 
+  GOSUB opp_default_config_board_opp50
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==9)
+( 
+  GOSUB opp_default_config_board_opp25
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==10.)
+( 
+  AREA.Select results
+  PRINT "--->>> opp_default_config_board &opp_type <<<--- "
+  GOSUB opp_default_config_board &opp_type
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==11.)
+( 
+  AREA.Select results
+  PRINT "--->>> opp_change_elpida_2gbit_opp100  <<<--- "
+  GOSUB opp_change_elpida_2gbit_opp100
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==12.)
+( 
+  AREA.Select results
+  PRINT "--->>> opp_change_elpida_2gbit_opp50  <<<--- "
+  GOSUB opp_change_elpida_2gbit_opp50
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==13.)
+( 
+  AREA.Select results
+  PRINT "--->>> opp_change_elpida_2gbit_opp25  <<<--- "
+  GOSUB opp_change_elpida_2gbit_opp25
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==14.)
+( 
+  AREA.Select results
+  PRINT "--->>> opp_change_elpida_2gbit_opp100_sdc  <<<--- "
+  GOSUB opp_change_elpida_2gbit_opp100_sdc
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==15.)
+( 
+  AREA.Select results
+  PRINT "--->>> opp_change_elpida_2gbit_opp100_es2  <<<--- "
+  GOSUB opp_change_elpida_2gbit_opp100_es2
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==16.)
+( 
+  AREA.Select results
+  PRINT "--->>> opp_change_elpida_2gbit_opp50_sdc  <<<--- "
+  GOSUB opp_change_elpida_2gbit_opp50_sdc
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==17.)
+( 
+  AREA.Select results
+  PRINT "--->>> opp_change_elpida_2gbit_opp25_sdc  <<<--- "
+  GOSUB opp_change_elpida_2gbit_opp25_sdc
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==18.)
+( 
+  AREA.Select results
+  PRINT "--->>> opp_change_elpida_2gbit_opp100_hdmi  <<<--- "
+  GOSUB opp_change_elpida_2gbit_opp100_hdmi
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==19.)
+( 
+  AREA.Select results
+  PRINT "--->>> OPP100  <<<--- "
+  GOSUB OPP100
+  ENDDO
+)
+
+
+SelectSysClock_12MHz:
+(
+  ENTRY
+  Data.Set SR:0x4A306110 %Long 0x1
+  PRINT "--->>> System clock is set to 12MHz <<<--- "
+  PRINT ""
+  RETURN
+)
+
+SelectSysClock_13MHz:
+(
+  ENTRY
+  Data.Set SR:0x4A306110 %Long 0x2
+  PRINT "--->>> System clock is set to 13MHz <<<--- "
+  PRINT ""
+  RETURN
+)
+
+SelectSysClock_19_2MHz:
+(
+  ENTRY
+  Data.Set SR:0x4A306110 %Long 0x4
+  PRINT "--->>> System clock is set to 19.2MHz <<<--- "
+  PRINT ""
+  RETURN
+)
+
+SelectSysClock_26MHz:
+(
+  ENTRY
+  Data.Set SR:0x4A306110 %Long 0x5
+  PRINT "--->>> System clock is set to 26MHz <<<--- "
+  PRINT ""
+  RETURN
+)
+
+SelectSysClock_38_4MHz:
+(
+  ENTRY
+  Data.Set SR:0x4A306110 %Long 0x7
+  AREA.Select results
+  PRINT "--->>> System clock is set to 38.4MHz <<<--- "
+  PRINT ""
+  RETURN
+)
+
+non_overide:
+(
+  ENTRY
+
+  IF (&DEBUG_INFO==1)
+  (
+    AREA.Select results
+    PRINT "--->>> Start Non override <<<--- "
+  )   
+
+  // DLL_CTRL
+  Data.Set SR:0x4A004110 %Long 0x0
+
+  IF (&DEBUG_INFO==1)
+  (
+    PRINT "--->>> END Non override <<<--- "
+  )
+
+  RETURN
+)
+
+software_code_449FF418:
+(
+  AREA.Select results
+  PRINT "--->>> Start software_code_449FF418 <<<--- "
+
+  // DDR_PHY_CTRL1
+  Data.Set SR:0x4C0000E4 %Long 0x449FF418
+  // DDR_PHY_CTRL1
+  Data.Set SR:0x4D0000E4 %Long 0x449FF418
+
+  PRINT "--->>> Stop software_code_449FF418 <<<--- "
+
+  RETURN
+)
+
+software_code_448C0418:
+(
+  AREA.Select results
+  PRINT "--->>> Start software_code_448C0418 <<<--- "
+  // DDR_PHY_CTRL1
+  Data.Set SR:0x4C0000E4 %Long 0x448C0418
+  // DDR_PHY_CTRL1
+  Data.Set SR:0x4D0000E4 %Long 0x448C0418
+
+  PRINT "--->>> Stop software_code_448C0418 <<<--- "
+
+  RETURN
+)
+
+software_code_448FF418:
+(
+  AREA.Select results
+  PRINT "--->>> Start software_code_448FF418 <<<--- "
+  // DDR_PHY_CTRL1
+  Data.Set SR:0x4C0000E4 %Long 0x448FF418
+  // DDR_PHY_CTRL1
+  Data.Set SR:0x4D0000E4 %Long 0x448FF418
+
+  PRINT "--->>> Stop software_code_448FF418 <<<--- "
+
+  RETURN
+)
+
+
+freq_update:
+(
+  ENTRY &OPP_CONF
+    
+  IF (&DEBUG_INFO==1)
+  (   
+    AREA.Select results 
+    PRINT "--->>> Enter freq update <<<--- "
+  )
+    
+  // Configure MEMIF domain in SW_WKUP
+  Data.Set SR:0x4a008b00 %Long 0x2
+
+  // EMIF1
+  WAIT (Data.Long(SR:0x4a008b30)&0x30000)==0x0
+
+  // EMIF2
+  WAIT (Data.Long(SR:0x4a008b38)&0x30000)==0x0
+
+  // Start freq_update in CM_SHADOW_FREQ_CONFIG1 and CM_SHADOW_FREQ_CONFIG2
+
+  IF &OPP_CONF==&OPP100||&OPP_CONF==&OPP100_SDC
+  (
+    Data.Set SR:0x4a004264 %Long 0x25
+    Data.Set SR:0x4a004260 %Long 0xf09
+    
+    // Wait for CM_SHADOW_FREQ_CONFIG1.FREQ_UPDATE to be cleared by PRCM
+    WAIT (Data.Long(SR:0x4a004260)&0x1)!=0x1
+  
+    // Configure MEMIF domain back in HW_AUTO 
+    Data.Set SR:0x4a008b00 %Long 0x3
+  
+    Data.Set SR:0x4a004264 %Long 0x24
+  
+    GOSUB END1
+    RETURN
+  )
+  ELSE
+  IF &OPP_CONF==&OPP100_ES2
+  ( 
+    Data.Set SR:0x4a004264 %Long 0x25
+    Data.Set SR:0x4a004260 %Long 0x1709 // M2=2 in case of OPP100_ES20 because to keep L3 @ 200MHz but DDR @ 200MHz instead of 400MHz 
+    
+    // Wait for CM_SHADOW_FREQ_CONFIG1.FREQ_UPDATE to be cleared by PRCM
+    WAIT (Data.Long(SR:0x4a004260)&0x1)!=0x1
+  
+    // Configure MEMIF domain back in HW_AUTO 
+    Data.Set SR:0x4a008b00 %Long 0x3
+  
+    Data.Set SR:0x4a004264 %Long 0x24
+
+    GOSUB END1
+    RETURN
+  )
+  ELSE  
+  IF &OPP_CONF==&OPP50||&OPP_CONF==&OPP50_SDC
+  (
+    Data.Set SR:0x4a004264 %Long 0x45
+    Data.Set SR:0x4a004260 %Long 0x1709
+    
+    // Wait for CM_SHADOW_FREQ_CONFIG1.FREQ_UPDATE to be cleared by PRCM
+    WAIT (Data.Long(SR:0x4a004260)&0x1)!=0x1
+  
+    // Configure MEMIF domain back in HW_AUTO 
+    Data.Set SR:0x4a008b00 %Long 0x3
+  
+    Data.Set SR:0x4a004264 %Long 0x44
+  
+    GOSUB END1
+    RETURN
+  )
+  ELSE
+  IF &OPP_CONF==&OPP25||&OPP_CONF==&OPP25_SDC
+  (
+    Data.Set SR:0x4a004264 %Long 0x85
+    Data.Set SR:0x4a004260 %Long 0x2709
+    
+    // Wait for CM_SHADOW_FREQ_CONFIG1.FREQ_UPDATE to be cleared by PRCM
+    WAIT (Data.Long(SR:0x4a004260)&0x1)!=0x1
+  
+    // Configure MEMIF domain back in HW_AUTO 
+    Data.Set SR:0x4a008b00 %Long 0x3
+  
+    Data.Set SR:0x4a004264 %Long 0x84
+  
+    GOSUB END1
+    RETURN
+  )
+  ELSE
+  (
+    PRINT "--->>> Freq update config unkown <<<--- "
+    GOSUB END1
+    RETURN
+  )
+       
+END1: 
+  IF (&DEBUG_INFO==1)
+  (   
+    AREA.Select results   
+    PRINT "--->>> Exit freq update <<<--- "
+  )
+  RETURN
+)
+
+opp_default_config_board_opp100:
+(
+  AREA.Select results
+  PRINT "--->>> Entering OPP_DEFAULT_CONFIG_BOARD_OPP100 <<<--- "
+  GOSUB opp_config_board &OPP100 &OPP100
+  RETURN
+)
+
+opp_default_config_board_opp119:
+(
+  AREA.Select results
+  PRINT "--->>> Entering OPP_DEFAULT_CONFIG_BOARD_OPP119 <<<--- "
+  GOSUB opp_config_board &OPP119 &OPP119
+  RETURN
+)
+
+opp_default_config_board_opp50:
+(
+  AREA.Select results
+  PRINT "--->>> Entering OPP_DEFAULT_CONFIG_BOARD_OPP50 <<<--- "
+  GOSUB opp_config_board &OPP50 &OPP50
+  RETURN
+)
+
+opp_default_config_board_opp25:
+(
+  AREA.Select results
+  PRINT "--->>> Entering OPP_DEFAULT_CONFIG_BOARD_OPP25 <<<--- "
+  GOSUB opp_config_board &OPP25 &OPP25
+  RETURN
+)
+
+opp_default_config_board_opp100_es1:
+(
+  AREA.Select results
+  PRINT "--->>> Entering OPP_DEFAULT_CONFIG_BOARD_OPP100_ES1 <<<--- "
+  GOSUB opp_config_board &OPP100 &OPP100_SDC
+  RETURN
+)
+
+opp_default_config_board_opp100_es2:
+(
+  AREA.Select results
+  PRINT "--->>> Entering OPP_DEFAULT_CONFIG_BOARD_OPP100_ES2 <<<--- "
+  GOSUB opp_config_board &OPP100 &OPP100_ES2
+  RETURN
+)
+
+opp_default_config_board:
+(
+  ENTRY &OPP
+  AREA.Select results
+  PRINT "--->>> Entering opp_default_config_board <<<--- "
+  //if(V.VALUE(&OPP)==&OPP100_SDC)
+  IF &OPP==&OPP100_SDC
+  (
+    PRINT "--->>> opp_default_config_board OPP100_SDC <<<--- "
+  )
+  //if(V.VALUE(&OPP)==&OPP100)
+  IF &OPP==&OPP100
+  (
+    PRINT "--->>> opp_default_config_board OPP100 <<<--- "
+  ) 
+  
+  IF &OPP==&OPP100_ES2
+  (
+    PRINT "--->>> opp_default_config_board OPP100_ES2 <<<--- "
+  )
+  
+  GOSUB opp_config_board &OPP100 &OPP
+  RETURN
+)
+
+
+opp_change_elpida_2gbit_opp100:
+(
+  DO 
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D1_shadow_reg &OPPBOOT
+  DO &CMM_DIR/omap4430_ddr 4 &OPPBOOT
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D2_shadow_reg &OPPBOOT
+  DO &CMM_DIR/omap4430_ddr 5 &OPPBOOT
+  GOSUB core_dpll_unlock
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D1_shadow_reg &OPP100
+  DO &CMM_DIR/omap4430_ddr 4 &OPP100
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D2_shadow_reg &OPP100
+  DO &CMM_DIR/omap4430_ddr 5 &OPP100
+  GOSUB core_dpll_set_dividers &OPP100
+  GOSUB core_dpll_lock &OPP100
+  RETURN
+)
+
+opp_change_elpida_2gbit_opp50:
+(
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D1_shadow_reg &OPPBOOT
+  DO &CMM_DIR/omap4430_ddr 4 &OPPBOOT
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D2_shadow_reg &OPPBOOT
+  DO &CMM_DIR/omap4430_ddr 5 &OPPBOOT
+  GOSUB core_dpll_unlock
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D1_shadow_reg &OPP50
+  DO &CMM_DIR/omap4430_ddr 4 &OPP50
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D2_shadow_reg &OPP50
+  DO &CMM_DIR/omap4430_ddr 5 &OPP50
+  GOSUB core_dpll_set_dividers &OPP50
+  //gosub core_dpll_lock &OPP50
+  RETURN
+)
+
+opp_change_elpida_2gbit_opp25:
+(
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D1_shadow_reg &OPPBOOT
+  DO &CMM_DIR/omap4430_ddr 4 &OPPBOOT
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D2_shadow_reg &OPPBOOT
+  DO &CMM_DIR/omap4430_ddr 5 &OPPBOOT
+  GOSUB core_dpll_unlock
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D1_shadow_reg &OPP25
+  DO &CMM_DIR/omap4430_ddr 4 &OPP25
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D2_shadow_reg &OPP25
+  DO &CMM_DIR/omap4430_ddr 5 &OPP25
+  GOSUB core_dpll_set_dividers &OPP25
+  GOSUB core_dpll_lock &OPP25
+  RETURN
+)   
+
+opp_change_elpida_2gbit_opp100_sdc:
+(
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D1_shadow_reg &OPPBOOT
+  DO &CMM_DIR/omap4430_ddr 4 &OPPBOOT
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D2_shadow_reg &OPPBOOT
+  DO &CMM_DIR/omap4430_ddr 5 &OPPBOOT
+  GOSUB core_dpll_unlock
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D1_shadow_reg &OPP100_SDC
+  DO &CMM_DIR/omap4430_ddr 4 &OPP100_SDC
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D2_shadow_reg &OPP100_SDC
+  DO &CMM_DIR/omap4430_ddr 5 &OPP100_SDC
+  GOSUB core_dpll_set_dividers &OPP100_SDC
+  GOSUB core_dpll_lock &OPP100_SDC
+  RETURN
+)
+
+opp_change_elpida_2gbit_opp100_es2:
+(
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D1_shadow_reg &OPPBOOT
+  DO &CMM_DIR/omap4430_ddr 4 &OPPBOOT
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D2_shadow_reg &OPPBOOT
+  DO &CMM_DIR/omap4430_ddr 5 &OPPBOOT
+  GOSUB core_dpll_unlock
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D1_shadow_reg &OPP100_ES2
+  DO &CMM_DIR/omap4430_ddr 4 &OPP100_ES2
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D2_shadow_reg &OPP100_ES2
+  DO &CMM_DIR/omap4430_ddr 5 &OPP100_ES2
+  GOSUB core_dpll_set_dividers &OPP100_ES2
+  GOSUB core_dpll_lock &OPP100_ES2
+  RETURN
+)
+
+opp_change_elpida_2gbit_opp50_sdc:
+(
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D1_shadow_reg &OPPBOOT
+  DO &CMM_DIR/omap4430_ddr 4 &OPPBOOT
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D2_shadow_reg &OPPBOOT
+  DO &CMM_DIR/omap4430_ddr 5 &OPPBOOT
+  GOSUB core_dpll_unlock
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D1_shadow_reg &OPP50_SDC
+  DO &CMM_DIR/omap4430_ddr 4 &OPP50_SDC
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D2_shadow_reg &OPP50_SDC
+  DO &CMM_DIR/omap4430_ddr 5 &OPP50_SDC
+  GOSUB core_dpll_set_dividers &OPP50_SDC
+  GOSUB core_dpll_lock &OPP50_SDC
+  RETURN
+)
+
+opp_change_elpida_2gbit_opp25_sdc:
+(
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D1_shadow_reg &OPPBOOT
+  DO &CMM_DIR/omap4430_ddr 4 &OPPBOOT
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D2_shadow_reg &OPPBOOT
+  DO &CMM_DIR/omap4430_ddr 5 &OPPBOOT
+  GOSUB core_dpll_unlock
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D1_shadow_reg &OPP25_SDC
+  DO &CMM_DIR/omap4430_ddr 4 &OPP25_SDC
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D2_shadow_reg &OPP25_SDC
+  DO &CMM_DIR/omap4430_ddr 5 &OPP25_SDC
+  GOSUB core_dpll_set_dividers &OPP25_SDC
+  GOSUB core_dpll_lock &OPP25_SDC
+  RETURN
+)     
+
+opp_change_elpida_2gbit_opp100_hdmi:
+(
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D1_shadow_reg &OPPBOOT
+  DO &CMM_DIR/omap4430_ddr 4 &OPPBOOT
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D2_shadow_reg &OPPBOOT
+  DO &CMM_DIR/omap4430_ddr 5 &OPPBOOT
+  GOSUB core_dpll_unlock
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D1_shadow_reg &OPP100_HDMI
+  DO &CMM_DIR/omap4430_ddr 4 &OPP100_HDMI
+  ;gosub elpida_EDB8064B1PB8DF_EMIF4D2_shadow_reg &OPP100_HDMI
+  DO &CMM_DIR/omap4430_ddr 5 &OPP100_HDMI
+  GOSUB core_dpll_set_dividers &OPP100_HDMI
+  GOSUB core_dpll_lock &OPP100_HDMI
+  RETURN
+)
+
+// core_dpll_unlock() : CORE DPLL unlock sequence
+core_dpll_unlock:
+(
+  //&test=0x0
+
+  IF (&DEBUG_INFO==1)
+  (   
+    AREA.Select results 
+    PRINT "--->>> START setting CORE DPLL in bypass mode <<<--- "
+  )
+
+    
+  // configure MEMIF domain in SW_WKUP
+  Data.Set SR:0x4a008b00 %Long 0x2
+    
+  // EMIF1
+  ;while (((*(int*)0x4a008b30)&0x30000)!=0x0);
+  WAIT (Data.Long(NSR:0x4a008b30)&0x30000)==0x0
+  
+  // EMIF2
+  ;while (((*(int*)0x4a008b38)&0x30000)!=0x0);
+  WAIT (Data.Long(NSR:0x4a008b38)&0x30000)==0x0
+
+  // CM_SHADOW_FREQ_CONFIG_2 (GPMC FREQ_UPDATE = 1)
+  Data.Set SR:0x4a004264 %Long 0x1
+
+  // CM_SHADOW_FREQ_CONFIG_1 (start freq update to go to bypass mode)
+  Data.Set SR:0x4a004260 %Long 0x40D
+    
+  // wait for CM_SHADOW_FREQ_CONFIG1.FREQ_UPDATE to be cleared by PRCM
+  ;while ((*(int*)0x4a004260&0x1)==0x1);
+  WAIT (Data.Long(NSR:0x4a004260)&0x1)!=0x1
+    
+  // configure MEMIF domain back in HW_AUTO
+  Data.Set SR:0x4a008b00 %Long 0x3
+
+  // CM_SHADOW_FREQ_CONFIG_2 (GPMC FREQ_UPDATE back to 0)
+  Data.Set SR:0x4a004264 %Long 0x0
+  
+  //IF V.VALUE(&test)<10000
+  //(
+  //  V.VALUE(&test)=V.VALUE(&test)+1
+  //)       
+
+  IF (&DEBUG_INFO==1)
+  (   
+    AREA.Select results     
+    PRINT "--->>> END setting CORE DPLL in bypass mode <<<--- "
+  )
+  RETURN
+) 
+
+// core_dpll_unlock() : CORE DPLL lock from bypass sequence
+core_dpll_lock:
+(
+  ENTRY &OPP
+  //LOCAL &test=0
+
+  IF (&DEBUG_INFO==1)
+  (   
+    AREA.Select results 
+    PRINT "--->>> START setting CORE DPLL in lock mode <<<--- "
+  )
+
+  // configure MEMIF domain in SW_WKUP
+  Data.Set SR:0x4a008b00 %Long 0x2
+    
+  // EMIF1
+  ;while (((*(int*)0x4a008b30)&0x30000)!=0x0);
+  WAIT (Data.Long(NSR:0x4a008b30)&0x30000)==0x0
+  
+  // EMIF2
+  ;while (((*(int*)0x4a008b38)&0x30000)!=0x0);
+  WAIT (Data.Long(NSR:0x4a008b38)&0x30000)==0x0
+  
+  // start freq_update in CM_SHADOW_FREQ_CONFIG1 and CM_SHADOW_FREQ_CONFIG2
+  IF &OPP==&OPP100||&OPP==&OPP100_SDC||&OPP==&OPP100_HDMI
+  (
+    Data.Set SR:0x4a004264 %Long 0x25
+    Data.Set SR:0x4a004260 %Long 0xF09
+    //Data.Set SR:0x4a004260 %long 0xF0D
+  )
+
+  IF &OPP==&OPP50||&OPP==&OPP50_SDC
+  (
+    Data.Set SR:0x4a004264 %Long 0x45
+    Data.Set SR:0x4a004260 %Long 0x1709
+    //Data.Set SR:0x4a004260 %long 0x170D
+  )
+  
+  IF &OPP==&OPP25||&OPP==&OPP25_SDC
+  (
+    Data.Set SR:0x4a004264 %Long 0x85
+    Data.Set SR:0x4a004260 %Long 0x2709
+    //Data.Set SR:0x4a004260 %long 0x270D
+  )
+  
+
+  // wait for CM_SHADOW_FREQ_CONFIG1.FREQ_UPDATE to be cleared by PRCM
+  IF (&DEBUG_INFO==1)
+  (   
+    AREA.Select results     
+    PRINT "--->>> waiting for FREQ_UPDATE bit to be cleared <<<--- "
+  )   
+  ;while ((*(int*)0x4a004260&0x1)==0x1);
+  WAIT (Data.Long(SR:0x4a004260)&0x1)!=0x1
+  IF (&DEBUG_INFO==1)
+  (   
+    AREA.Select results     
+    PRINT "--->>> FREQ_UPDATE bit cleared <<<--- "
+  )
+    
+  // configure MEMIF domain back in HW_AUTO
+  Data.Set SR:0x4a008b00 %Long 0x3
+    
+  // CM_SHADOW_FREQ_CONFIG_2 (GPMC FREQ_UPDATE back to 0)
+  IF &OPP==&OPP100||&OPP==&OPP100_SDC||&OPP==&OPP100_HDMI
+  (
+    Data.Set SR:0x4a004264 %Long 0x24;
+  )
+  IF &OPP==&OPP50||&OPP==&OPP50_SDC
+  (
+    Data.Set SR:0x4a004264 %Long 0x44;
+  )
+  IF &OPP==&OPP25||&OPP==&OPP25_SDC
+  (
+    Data.Set SR:0x4a004264 %Long 0x84;
+  )
+
+    //IF(&test<10000)
+//  (
+//    &test=&test+1
+//  )       
+
+  PRINT "--->>> END setting CORE DPLL in lock mode <<<--- "
+  RETURN
+)             
+
+
+// core_dpll_set_dividers() : set CORE DPLL dividers
+core_dpll_set_dividers:
+(
+  ENTRY &OPP
+
+  // LOCAL &test = 0
+    
+  IF (&DEBUG_INFO==1)
+  (   
+    AREA.Select results 
+    PRINT "--->>> START setting CORE DPLL dividers <<<--- "
+  )
+    
+  // Program L3 & L4 dividers from CORE DPLL
+  // L3 clock = CORE CLK /2; L4 clock = L3 clock /2; CORE_CLK=CORE_X2_CLK/1
+  Data.Set SR:0x4a004100 %Long 0x110
+
+  // set HS DIVIDERS
+  IF &OPP==&OPP100||&OPP==&OPP100_SDC||&OPP==&OPP100_HDMI
+  (
+    // CM_DIV_M2_DPLL_CORE.DPLL_CLKOUT_DIV = 1
+    //CM_DIV_M2_DPLL(CM_CORE_BASE) = 0x1;
+    Data.Set SR:0x4a004130 %Long 0x1
+
+    // CM_DIV_M3_DPLL_CORE.DPLL_CLKOUT_DIV = 5
+    //CM_DIV_M3_DPLL(CM_CORE_BASE) = 0x5;
+    Data.Set SR:0x4a004134 %Long 0x5
+
+    // CM_DIV_M4_DPLL_CORE.HSDIVIDER_CLKOUT1_DIV = 8
+    //CM_DIV_M4_DPLL(CM_CORE_BASE) = 0x8;
+    Data.Set SR:0x4a004138 %Long 0x8
+
+    // CM_DIV_M5_DPLL_CORE.HSDIVIDER_CLKOUT2_DIV = 4
+    //CM_DIV_M5_DPLL(CM_CORE_BASE) = 0x4;
+    Data.Set SR:0x4a00413C %Long 0x4
+
+    // CM_DIV_M6_DPLL_CORE.HSDIVIDER_CLKOUT2_DIV = 8
+    // M6 clock is used for debugSS and EMU Clock
+    // Should be equals to CORE_DPLL / 0x8 (1322/0x8 -> 166MHzs on SDC)
+    //CM_DIV_M6_DPLL(CM_CORE_BASE) = 0x8;
+    Data.Set SR:0x4a004140 %Long 0x8
+
+    // CM_DIV_M7_DPLL_CORE.HSDIVIDER_CLKOUT3_DIV = 8
+    //CM_DIV_M7_DPLL(CM_CORE_BASE) = 0x8;
+    Data.Set SR:0x4a004144 %Long 0x8
+  )
+  IF &OPP==&OPP50||&OPP==&OPP50_SDC
+  (
+    // CM_DIV_M2_DPLL_CORE.DPLL_CLKOUT_DIV = 2
+    //CM_DIV_M2_DPLL(CM_CORE_BASE) = 0x2;
+    Data.Set SR:0x4a004130 %Long 0x2
+
+    // CM_DIV_M3_DPLL_CORE.DPLL_CLKOUT_DIV = 5
+    //CM_DIV_M3_DPLL(CM_CORE_BASE) = 0x5;
+    Data.Set SR:0x4a004134 %Long 0x5
+
+    // CM_DIV_M4_DPLL_CORE.HSDIVIDER_CLKOUT1_DIV = 8
+    //CM_DIV_M4_DPLL(CM_CORE_BASE) = 0x8;
+    Data.Set SR:0x4a004138 %Long 0x8
+
+    // CM_DIV_M5_DPLL_CORE.HSDIVIDER_CLKOUT2_DIV = 8
+    //CM_DIV_M5_DPLL(CM_CORE_BASE) = 0x8;
+    Data.Set SR:0x4a00413c %Long 0x8
+
+    // CM_DIV_M6_DPLL_CORE.HSDIVIDER_CLKOUT2_DIV = 8
+    // M6 clock is oused for debugSS and EMU Clock
+    // Should be equals to CORE_DPLL / 0x8 (1322/0x8 -> 166MHzs on SDC)
+    //CM_DIV_M6_DPLL(CM_CORE_BASE) = 0x8;
+    Data.Set SR:0x4a004140 %Long 0x8
+
+    // CM_DIV_M7_DPLL_CORE.HSDIVIDER_CLKOUT3_DIV = 8
+    //CM_DIV_M7_DPLL(CM_CORE_BASE) = 0x8;
+    Data.Set SR:0x4a004144 %Long 0x8
+  )
+  IF &OPP==&OPP25||&OPP==&OPP25_SDC
+  (
+    // CM_DIV_M2_DPLL_CORE.DPLL_CLKOUT_DIV = 4
+    //CM_DIV_M2_DPLL(CM_CORE_BASE) = 0x4;
+    Data.Set SR:0x4a004130 %Long 0x4
+
+    // CM_DIV_M3_DPLL_CORE.DPLL_CLKOUT_DIV = 5
+    //CM_DIV_M3_DPLL(CM_CORE_BASE) = 0x5;
+    Data.Set SR:0x4a004134 %Long 0x5
+
+    // CM_DIV_M4_DPLL_CORE.HSDIVIDER_CLKOUT1_DIV = 8
+    //CM_DIV_M4_DPLL(CM_CORE_BASE) = 0x8;
+    Data.Set SR:0x4a004138 %Long 0x8
+
+    // CM_DIV_M5_DPLL_CORE.HSDIVIDER_CLKOUT2_DIV = 16
+    //CM_DIV_M5_DPLL(CM_CORE_BASE) = 0x10;
+    Data.Set SR:0x4a00413c %Long 0x10
+
+    // CM_DIV_M6_DPLL_CORE.HSDIVIDER_CLKOUT2_DIV = 8
+    // M6 clock is oused for debugSS and EMU Clock */
+    // Should be equals to CORE_DPLL / 0x8 (1322/0x8 -> 166MHzs on SDC)
+    //CM_DIV_M6_DPLL(CM_CORE_BASE) = 0x8;
+    Data.Set SR:0x4a004140 %Long 0x8
+
+    // CM_DIV_M7_DPLL_CORE.HSDIVIDER_CLKOUT3_DIV = 8
+    //CM_DIV_M7_DPLL(CM_CORE_BASE) = 0x8;
+    Data.Set SR:0x4a004144 %Long 0x8
+  )
+
+  // set CORE DPLL MUL & DIV parameters
+  IF &OPP==&OPP100||&OPP==&OPP50||&OPP==&OPP25
+  (
+    //CM_CLKSEL_DPLL(CM_CORE_BASE) = 0x7D05;
+    Data.Set SR:0x4a00412c %Long 0x7D05
+  )
+
+  IF &OPP==&OPP100_SDC||&OPP==&OPP50_SDC||&OPP==&OPP25_SDC
+  (
+    //CM_CLKSEL_DPLL(CM_CORE_BASE) = 0x1B018;
+    Data.Set SR:0x4a00412c %Long 0x1B018
+  )
+
+  IF &OPP==&OPP100_HDMI
+  (
+    //CM_CLKSEL_DPLL(CM_CORE_BASE) = 0x1F018;
+    Data.Set SR:0x4a00412c %Long 0x1F018
+  )
+    
+  IF (&DEBUG_INFO==1)
+  (   
+    AREA.Select results 
+    PRINT "--->>> END setting CORE DPLL dividers <<<--- "
+  )
+  RETURN
+)
+
+opp_config_board:
+(
+  ENTRY &OPP &OPP_LPDDR2
+  AREA.Select results
+  PRINT "--->>> Entering OPP config &OPP <<<--- "
+  GOSUB dpll_a9_opp_config_board &OPP
+  GOSUB dpll_core_opp_config_board &OPP_LPDDR2
+  GOSUB dpll_iva_tesla_opp_config_board &OPP
+  GOSUB dpll_per_opp_config_board &OPP
+  GOSUB dpll_abe_opp_config_board &OPP
+  ;gosub dpll_ducati_coreclk_opp_config_board 0x1
+  PRINT "--->>> Exiting OPP config &OPP <<<--- "
+  RETURN
+)
+
+dpll_lock_board:
+(
+  ENTRY &opp_type &core_type
+  LOCAL &clkmode_dpll_register_value &clksel_dpll_register_value
+
+  IF (&DEBUG_INFO==1)
+  (       
+    AREA.Select results
+    ;PRINT "--->>> Entering dpll_lock_board <<<--- "
+  )
+  
+  IF (Var.VALUE(&core_type)==&CORE_IVA)
+  (
+    &clkmode_dpll_register_value=Data.Long(SR:0x4A0041A0)
+    &clkmode_dpll_register_value=&clkmode_dpll_register_value&~(0x7)
+    &clkmode_dpll_register_value=&clkmode_dpll_register_value|0x4
+    Data.Set SR:0x4A0041A0 %LE %Long &clkmode_dpll_register_value
+    
+    IF &opp_type==&OPP119
+    ( 
+      &clksel_dpll_value=Data.Long(SR:0x4A0041AC)
+      &clksel_dpll_value= &clksel_dpll_value|(0x107<<8)
+      Data.Set SR:0x4A0041AC %LE %Long &clksel_dpll_value
+    )
+    IF &opp_type==&OPP100_SDC||&opp_type==&OPP100
+    (  
+      &clksel_dpll_value=Data.Long(SR:0x4A0041AC)
+      &clksel_dpll_value= &clksel_dpll_value|(0x61<<8)
+      Data.Set SR:0x4A0041AC %LE %Long &clksel_dpll_value
+    )
+    IF &opp_type==&OPP50
+    ( 
+      &clksel_dpll_value=Data.Long(SR:0x4A0041AC)
+      &clksel_dpll_value= &clksel_dpll_value|(0x61<<8)
+      Data.Set SR:0x4A0041AC %LE %Long &clksel_dpll_value
+    )
+    IF &opp_type==&OPP25
+    ( 
+      &clksel_dpll_value=Data.Long(SR:0x4A0041AC)
+      &clksel_dpll_value= &clksel_dpll_value|(0x61<<8)
+      Data.Set SR:0x4A0041AC %LE %Long &clksel_dpll_value
+    )
+    Data.Set SR:0x4A0041A0 %LE %Long 0x7    
+
+    ;while ((Data.Long(SR:0x4A0041A4)&0x1)!=1)
+    WAIT (Data.Long(SR:0x4A0041A4)&0x1)==0x1
+    ;PRINT "--->>> dpll_iva_lock_config2" %x  d.l %long SR:0x4A0041A4 "<<<--- "
+    GOTO _END_ 
+  )
+  ELSE
+  IF (Var.VALUE(&core_type)==&CORE_ABE)
+  (
+    &clkmode_dpll_register_value=Data.Long(SR:0x4A0041e0)
+    &clkmode_dpll_register_value=&clkmode_dpll_register_value&~(0x4)
+    &clkmode_dpll_register_value=&clkmode_dpll_register_value|0x7
+    Data.Set SR:0x4A0041E0 %LE %Long &clkmode_dpll_register_value
+
+    ;&clksel_dpll_value=Data.Long(SR:0x4A0041EC)
+    ;&clksel_dpll_value=&clksel_dpll_value|(0x40<<8)
+    ;Data.Set SR:0x4A0041EC %le %long &clksel_dpll_value
+
+    ;Data.Set SR:0x4A0041E0 %le %long 0x7    
+
+     ;PRINT "--->>> dpll_abe_lock_config1" %x  d.l %long SR:0x4A0041E0 "<<<--- "
+
+    ;while ((Data.Long(SR:0x4A0041E4)&0x1)!=1)
+    WAIT (Data.Long(SR:0x4A0041E4)&0x1)==0x1
+    ;PRINT "--->>> dpll_abe_lock_config2" %x  d.l %long SR:0x4A0041E4 "<<<--- "
+    GOTO _END_ 
+  )
+  ELSE
+  IF (Var.VALUE(&core_type)==&CORE_MPU)
+  (
+    &clkmode_dpll_register_value=Data.Long(SR:0x4A004160)
+    &clkmode_dpll_register_value=&clkmode_dpll_register_value&~0x7
+    &clkmode_dpll_register_value=&clkmode_dpll_register_value|0x4
+    Data.Set SR:0x4A004160 %LE %Long &clkmode_dpll_register_value
+
+    &clksel_dpll_value=Data.Long(SR:0x4A00416C)
+
+    IF (Var.VALUE(&opp_type)==&OPP119)
+    (
+      &clksel_dpll_value=&clksel_dpll_value|(0x4B<<8)
+      ;PRINT "--->>> dpll MPU settings for OPP119 <<<--- "
+    )
+
+    IF (Var.VALUE(&opp_type)==&OPP100_SDC)
+    (
+      &clksel_dpll_value=&clksel_dpll_value|(0x1A<<8)
+      ;PRINT "--->>> dpll MPU settings for OPP100_SDC <<<--- "
+    )
+
+    IF (Var.VALUE(&opp_type)==&OPP100)
+    (
+      &clksel_dpll_value=&clksel_dpll_value|(0x1F4<<8)
+      ;PRINT "--->>> dpll MPUsettings for OPP100 <<<--- "
+    )
+
+    IF (Var.VALUE(&opp_type)==&OPP50)
+    (
+      &clksel_dpll_value=&clksel_dpll_value|(0x7D<<8)
+      ;PRINT "--->>> dpll MPUsettings for OPP50 <<<--- "
+    )
+
+    IF (Var.VALUE(&opp_type)==&OPP25)
+    (
+      &clksel_dpll_value=&clksel_dpll_value|(0x7D<<8)
+      ;PRINT "--->>> dpll MPUsettings for OPP25 <<<--- "
+    )        
+    Data.Set SR:0x4A00416C %LE %Long &clksel_dpll_value
+    
+    Data.Set SR:0x4A004160 %LE %Long 0x7
+
+    ;PRINT "--->>> dpll_a9_lock_config1" %x  d.l %long SR:0x4A004160 "<<<--- "
+    ;PRINT "--->>> dpll_a9_lock_config2" %x  d.l %long SR:0x4A00416c "<<<--- "
+
+    ;while ((Data.Long(SR:0x4A004164)&0x1)!=0x1)
+    WAIT (Data.Long(SR:0x4A004164)&0x1)==0x1
+
+    ;PRINT "--->>> dpll_a9_lock_config3" %x  d.l %long SR:0x4A004164 "<<<--- "
+    GOTO _END_ 
+  )
+  ELSE
+  IF (Var.VALUE(&core_type)==&CORE_CORE)
+  (
+    &clkmode_dpll_register_value=Data.Long(SR:0x4A004120)
+    &clkmode_dpll_register_value=&clkmode_dpll_register_value&~(0x7)
+    &clkmode_dpll_register_value=&clkmode_dpll_register_value|0x4
+    Data.Set SR:0x4A004120 %LE %Long &clkmode_dpll_register_value
+
+    &clksel_dpll_value=Data.Long(SR:0x4A00412C)
+
+    IF &opp_type==&OPP100_SDC||&opp_type==&OPP50_SDC||&opp_type==&OPP25_SDC
+    (
+      &clksel_dpll_value=&clksel_dpll_value|(0x1b0<<8)  
+      Data.Set SR:0x4A00412C %LE %Long &clksel_dpll_value
+    )
+    ELSE
+    IF &opp_type==&OPP100||&opp_type==&OPP50||&opp_type==&OPP25||&opp_type==&OPP100_ES2
+    (
+      &clksel_dpll_value=&clksel_dpll_value|(0x7D<<8)  
+      Data.Set SR:0x4A00412C %LE %Long &clksel_dpll_value
+    )
+
+    GOSUB freq_update &opp_type   
+    ;while ((Data.Long(SR:0x4A004124)&0x1)!=1)
+    WAIT (Data.Long(SR:0x4A004124)&0x1)==0x1
+    GOTO _END_ 
+  )
+  ELSE
+  IF (Var.VALUE(&core_type)==&CORE_PER)
+  (
+    &clkmode_dpll_register_value=Data.Long(SR:0x4A008140)
+    &clkmode_dpll_register_value=&clkmode_dpll_register_value&~(0x7)
+    &clkmode_dpll_register_value=&clkmode_dpll_register_value|0x4
+    Data.Set SR:0x4A008140 %LE %Long &clkmode_dpll_register_value
+
+    IF &opp_type==&OPP100_SDC||&opp_type==&OPP100||&opp_type==&OPP50||&opp_type==&OPP25
+    (
+      &clksel_dpll_value=Data.Long(SR:0x4A00814C)
+      &clksel_dpll_value=&clksel_dpll_value|(0xA<<8)
+      Data.Set SR:0x4A00814C %LE %Long &clksel_dpll_value
+    )
+
+    Data.Set SR:0x4A008140 %LE %Long 0x7    
+
+    ;PRINT "--->>> dpll_per_lock_config1" %x  d.l %long SR:0x4A008140 "<<<--- "
+
+    ;while ((Data.Long(SR:0x4A008144)&0x1)!=1)
+    WAIT (Data.Long(SR:0x4A008144)&0x1)==0x1
+    ;PRINT "--->>> dpll_per_lock_config2" %x  d.l %long SR:0x4A008144 "<<<--- "
+    GOTO _END_ 
+  )
+  ELSE
+  (
+    PRINT "--->>> dpll_lock_board " %Decimal &core_type" config not implemented <<<--- "
+    RETURN
+  )
+  
+_END_:
+
+  IF (&DEBUG_INFO==1)
+  (   
+    AREA.Select results    
+    PRINT "--->>> Exiting dpll_lock_board <<<--- "  
+  )
+  RETURN
+)
+
+//dpll_a9_opp_config_board() : Cortex A9 DPLL OPP configurations (OPP100 for SDC)
+dpll_a9_opp_config_board:
+(
+  ENTRY &opp_type
+  IF (&DEBUG_INFO==1)
+  (   
+    AREA.Select results 
+    PRINT "--->>> Entering dpll_a9_opp_config config <<<--- "
+  )
+  
+  IF (Var.VALUE(&opp_type)==&OPP25)
+  (
+    Data.Set SR:0x4A00416C %LE %Long 0x7
+    Data.Set SR:0x4A004170 %LE %Long 0x4
+    GOSUB dpll_lock_board &opp_type &CORE_MPU
+    IF (&DEBUG_INFO==1)
+    (   
+      AREA.Select results     
+      PRINT "--->>> OPP &opp_type dpll_a9_opp_config done <<<--- "
+    )
+  RETURN
+  )
+  
+  IF (Var.VALUE(&opp_type)==&OPP50)
+  (
+    Data.Set SR:0x4A00416C %LE %Long 0x7
+    Data.Set SR:0x4A004170 %LE %Long 0x2
+    GOSUB dpll_lock_board &opp_type &CORE_MPU
+    IF (&DEBUG_INFO==1)
+    (   
+      AREA.Select results 
+      PRINT "--->>> OPP &opp_type dpll_a9_opp_config done <<<--- "
+    )
+    RETURN
+  )
+
+  IF (Var.VALUE(&opp_type)==&OPP100_SDC)
+  (
+    Data.Set SR:0x4A00416C %LE %Long 0x2
+    Data.Set SR:0x4A004170 %LE %Long 0x1
+    GOSUB dpll_lock_board &opp_type &CORE_MPU
+      IF (&DEBUG_INFO==1)
+      (   
+        AREA.Select results 
+        PRINT "--->>> OPP &opp_type dpll_a9_opp_config done <<<--- "
+      )
+    RETURN
+  )
+  IF (Var.VALUE(&opp_type)==&OPP100)
+  (
+    Data.Set SR:0x4A00416C %LE %Long 0x1F
+    Data.Set SR:0x4A004170 %LE %Long 0x1
+    GOSUB dpll_lock_board &opp_type &CORE_MPU
+    IF (&DEBUG_INFO==1)
+    (   
+      AREA.Select results 
+      PRINT "--->>> OPP &opp_type dpll_a9_opp_config done <<<--- "
+    )
+    RETURN
+  )
+  IF (Var.VALUE(&opp_type)==&OPP119)
+  (
+    Data.Set SR:0x4A00416C %LE %Long 0x3
+    Data.Set SR:0x4A004170 %LE %Long 0x1
+    GOSUB dpll_lock_board &opp_type &CORE_MPU
+    IF (&DEBUG_INFO==1)
+    (   
+      AREA.Select results 
+      PRINT "--->>> OPP &opp_type dpll_a9_opp_config done <<<--- "
+    )
+    RETURN
+  )
+
+  PRINT "--->>> OPP &opp_type dpll_a9_opp_config not implemented <<<--- "
+  RETURN  
+)
+
+dpll_core_opp_config_board:
+(
+  ENTRY &opp_type
+  IF (&DEBUG_INFO==1)
+  (   
+    AREA.Select results 
+    PRINT "--->>> Entering dpll_core_opp_config config <<<--- "
+  )
+    
+  // Program L3 & L4 dividers from CORE DPLL
+  // L3 clock = CORE CLK /2; L4 clock = L3 clock /2; CORE_CLK=CORE_X2_CLK/1
+  Data.Set SR:0x4A004100 %LE %Long 0x110
+  
+  IF (Var.VALUE(&opp_type)==&OPP100_SDC)||(Var.VALUE(&opp_type)==&OPP50_SDC)||(Var.VALUE(&opp_type)==&OPP25_SDC)
+  (
+   // CM_CLKSEL_DPLL_CORE.PLL_DIV = 0x18
+   Data.Set SR:0x4A00412c %LE %Long 0x18
+  )
+  
+  IF (Var.VALUE(&opp_type)==&OPP100)||(Var.VALUE(&opp_type)==&OPP50)||(Var.VALUE(&opp_type)==&OPP25)||(Var.VALUE(&opp_type)==&OPP100_ES2)
+  (
+    ;PRINT "--->>> Entering dpll_core_opp ES2 <<<--- "
+    // CM_CLKSEL_DPLL_CORE.PLL_DIV = 0x05
+    Data.Set SR:0x4A00412c %LE %Long 0x05
+  )
+
+  IF (Var.VALUE(&opp_type)==&OPP100_SDC)||(Var.VALUE(&opp_type)==&OPP100)||(Var.VALUE(&opp_type)==&OPP100_ES2)
+  (
+    IF (Var.VALUE(&opp_type)!=&OPP100_ES2) 
+    ( 
+      // CM_DIV_M2_DPLL_CORE.DPLL_CLKOUT_DIV = 1
+      Data.Set SR:0x4A004130 %LE %Long 0x1
+    ) 
+    ELSE 
+    (   
+      // In case of OMAP4430 ES2.0, we need to program the EMIF @ 200MHz 
+      // and keep CORE @ 400MHz (i.e. L3 @ 200MHz) 
+      // i.e. CM_DIV_M2_DPLL_CORE.DPLL_CLKOUT_DIV = 2
+      Data.Set SR:0x4A004130 %LE %Long 0x2
+    )                   
+            
+    // CM_DIV_M3_DPLL_CORE.DPLL_CLKOUT_DIV = 5
+    Data.Set SR:0x4A004134 %LE %Long 0x5
+    // CM_DIV_M4_DPLL_CORE.HSDIVIDER_CLKOUT1_DIV = 8 
+    Data.Set SR:0x4A004138 %LE %Long 0x8
+    // CM_DIV_M5_DPLL_CORE.HSDIVIDER_CLKOUT2_DIV = 4 
+    Data.Set SR:0x4A00413C %LE %Long 0x4
+    // CM_DIV_M6_DPLL_CORE.HSDIVIDER_CLKOUT2_DIV = 8 
+    // M6 clock is oused for debugSS and EMU Clock 
+    // Should be equals to CORE_DPLL / 0x8 (1322/0x8 -> 166MHzs on SDC) 
+    Data.Set SR:0x4A004140 %LE %Long 0x8
+    // CM_DIV_M7_DPLL_CORE.HSDIVIDER_CLKOUT3_DIV = 8 
+    Data.Set SR:0x4A004144 %LE %Long 0x8
+    GOSUB dpll_lock_board &opp_type &CORE_CORE
+    IF (&DEBUG_INFO==1)
+    (   
+      AREA.Select results 
+      PRINT "--->>> Exiting dpll_core_opp_config config <<<--- "
+    )
+    RETURN  
+  )
+
+  IF (Var.VALUE(&opp_type)==&OPP50_SDC)||(Var.VALUE(&opp_type)==&OPP50)
+  (
+    // CM_DIV_M2_DPLL_CORE.DPLL_CLKOUT_DIV = 2
+    Data.Set SR:0x4A004130 %LE %Long 0x2
+    // CM_DIV_M3_DPLL_CORE.DPLL_CLKOUT_DIV = 5
+    Data.Set SR:0x4A004134 %LE %Long 0x5
+    // CM_DIV_M4_DPLL_CORE.HSDIVIDER_CLKOUT1_DIV = 8 
+    Data.Set SR:0x4A004138 %LE %Long 0x8
+    // CM_DIV_M5_DPLL_CORE.HSDIVIDER_CLKOUT2_DIV = 8 
+    Data.Set SR:0x4A00413C %LE %Long 0x8
+    // CM_DIV_M6_DPLL_CORE.HSDIVIDER_CLKOUT2_DIV = 8 
+    // M6 clock is oused for debugSS and EMU Clock 
+    // Should be equals to CORE_DPLL / 0x8 (1322/0x8 -> 166MHzs on SDC) 
+    Data.Set SR:0x4A004140 %LE %Long 0x8
+    // CM_DIV_M7_DPLL_CORE.HSDIVIDER_CLKOUT3_DIV = 8 
+    Data.Set SR:0x4A004144 %LE %Long 0x8 
+    GOSUB dpll_lock_board &opp_type &CORE_CORE
+    IF (&DEBUG_INFO==1)
+    (   
+      AREA.Select results 
+      PRINT "--->>> Exiting dpll_core_opp_config config <<<--- "
+    )
+    RETURN
+  )
+
+  IF (Var.VALUE(&opp_type)==&OPP25_SDC)||(Var.VALUE(&opp_type)==&OPP25)
+  (
+    // CM_DIV_M2_DPLL_CORE.DPLL_CLKOUT_DIV = 4
+    Data.Set SR:0x4A004130 %LE %Long 0x4
+    // CM_DIV_M3_DPLL_CORE.DPLL_CLKOUT_DIV = 5
+    Data.Set SR:0x4A004134 %LE %Long 0x5
+    // CM_DIV_M4_DPLL_CORE.HSDIVIDER_CLKOUT1_DIV = 8 
+    Data.Set SR:0x4A004138 %LE %Long 0x8
+    // CM_DIV_M5_DPLL_CORE.HSDIVIDER_CLKOUT2_DIV = 16 
+    Data.Set SR:0x4A00413C %LE %Long 0x10
+    // CM_DIV_M6_DPLL_CORE.HSDIVIDER_CLKOUT2_DIV = 8 
+    // M6 clock is oused for debugSS and EMU Clock 
+    // Should be equals to CORE_DPLL / 0x8 (1322/0x8 -> 166MHzs on SDC) 
+    Data.Set SR:0x4A004140 %LE %Long 0x8
+    // CM_DIV_M7_DPLL_CORE.HSDIVIDER_CLKOUT3_DIV = 8 
+    Data.Set SR:0x4A004144 %LE %Long 0x8 
+    GOSUB dpll_lock_board &opp_type &CORE_CORE
+    IF (&DEBUG_INFO==1)
+    (   
+      AREA.Select results 
+      PRINT "--->>> Exiting dpll_core_opp_config config <<<--- "
+    )
+    RETURN
+  )
+  PRINT "--->>> OPP dpll_core_opp_config not implemented <<<--- "
+  RETURN
+)
+
+dpll_iva_tesla_opp_config_board:
+(
+  ENTRY &opp_type
+  IF (&DEBUG_INFO==1)
+  (   
+    AREA.Select results 
+    PRINT "--->>> Entering dpll_iva_tesla_opp_config config <<<--- "
+  )
+  ;Data.Set SR:0x4A0041DC %le %long 0x00000001
+    
+  IF (Var.VALUE(&opp_type)==&OPP119)
+  ( 
+    // CKGEN_CM1.CM_CLKSEL_DPLL_IVA D =10
+    Data.Set SR:0x4A0041AC %LE %Long 0x0000000A
+    // CKGEN_CM1.CM_DIV_M4_DPLL_IVA.HSDIVIDER_CLKOUT1_DIV = 4
+    Data.Set SR:0x4A0041B8 %LE %Long 0x00000004
+    // CKGEN_CM1.CM_DIV_M5_DPLL_IVA.HSDIVIDER_CLKOUT2_DIV = 6
+    Data.Set SR:0x4A0041BC %LE %Long 0x00000006
+    // lock DPLL   
+    GOSUB dpll_lock_board &opp_type &CORE_IVA
+
+    IF (&DEBUG_INFO==1)
+    (   
+      AREA.Select results   
+      PRINT "--->>> Exiting dpll_iva_tesla_opp_config config <<<--- "
+    )
+
+    RETURN
+  )  
+
+  IF (Var.VALUE(&opp_type)==&OPP100)
+  ( 
+    // CKGEN_CM1.CM_CLKSEL_DPLL_IVA D =3
+    Data.Set SR:0x4A0041AC %LE %Long 0x00000003
+    // CKGEN_CM1.CM_DIV_M4_DPLL_IVA.HSDIVIDER_CLKOUT1_DIV = 4
+    Data.Set SR:0x4A0041B8 %LE %Long 0x00000004
+    // CKGEN_CM1.CM_DIV_M5_DPLL_IVA.HSDIVIDER_CLKOUT2_DIV = 7
+    Data.Set SR:0x4A0041BC %LE %Long 0x00000007
+    // lock DPLL   
+    GOSUB dpll_lock_board &opp_type &CORE_IVA
+
+    IF (&DEBUG_INFO==1)
+    (   
+      AREA.Select results   
+      PRINT "--->>> Exiting dpll_iva_tesla_opp_config config <<<--- "
+    )
+
+    RETURN
+  )  
+ 
+  IF (Var.VALUE(&opp_type)==&OPP50)
+  ( 
+    // CKGEN_CM1.CM_CLKSEL_DPLL_IVA D =3
+    Data.Set SR:0x4A0041AC %LE %Long 0x00000003
+    // CKGEN_CM1.CM_DIV_M4_DPLL_IVA.HSDIVIDER_CLKOUT1_DIV = 8
+    Data.Set SR:0x4A0041B8 %LE %Long 0x00000008
+    // CKGEN_CM1.CM_DIV_M5_DPLL_IVA.HSDIVIDER_CLKOUT2_DIV = 14
+    Data.Set SR:0x4A0041BC %LE %Long 0x0000000E
+    // lock DPLL   
+    GOSUB dpll_lock_board &opp_type &CORE_IVA
+    IF (&DEBUG_INFO==1)
+    (   
+      AREA.Select results   
+      PRINT "--->>> Exiting dpll_iva_tesla_opp_config config <<<--- "
+    )
+
+    RETURN
+  )  
+ 
+  IF (Var.VALUE(&opp_type)==&OPP25)
+  ( 
+    // CKGEN_CM1.CM_CLKSEL_DPLL_IVA D =3
+    Data.Set SR:0x4A0041AC %LE %Long 0x00000003
+    // CKGEN_CM1.CM_DIV_M4_DPLL_IVA.HSDIVIDER_CLKOUT1_DIV = 16
+    Data.Set SR:0x4A0041B8 %LE %Long 0x00000010
+    // CKGEN_CM1.CM_DIV_M5_DPLL_IVA.HSDIVIDER_CLKOUT2_DIV = 28
+    Data.Set SR:0x4A0041BC %LE %Long 0x0000001C
+    // lock DPLL   
+    GOSUB dpll_lock_board &opp_type &CORE_IVA
+    IF (&DEBUG_INFO==1)
+    (   
+      AREA.Select results   
+      PRINT "--->>> Exiting dpll_iva_tesla_opp_config config <<<--- "
+    )
+
+    RETURN
+  )      
+  
+  RETURN
+)
+
+dpll_abe_opp_config_board:
+(
+  ENTRY &opp_type
+  IF (&DEBUG_INFO==1)
+  (   
+    AREA.Select results 
+    PRINT "--->>> Entering dpll_abe_opp_config config <<<--- "
+  )
+    
+  Data.Set SR:0x4A30610C %LE %Long 0x1 ; set 32k as abe clock source
+  Data.Set SR:0x4A0041e0 %LE %Long 0xC04  ; Set DPLL 
+  Data.Set SR:0x4A0041ec %LE %Long 0x2EE00
+  GOSUB dpll_lock_board &opp_type &CORE_ABE
+      
+  IF (&DEBUG_INFO==1)
+  (   
+    AREA.Select results     
+    PRINT "--->>> Exiting dpll_abe_opp_config config <<<--- "
+  )
+  RETURN
+)
+
+dpll_per_opp_config_board:
+(
+  ENTRY &opp_type
+  IF (&DEBUG_INFO==1)
+  (   
+    AREA.Select results 
+    PRINT "--->>> Entering dpll_per_opp_config config <<<--- "
+  )
+  
+  IF (Var.VALUE(&opp_type)==&OPP25)
+  (
+    Data.Set SR:0x4A00814c %LE %Long 0x0
+    // CM_DIV_M2_DPLL_PER.DPLL_CLKOUT_DIV = 4, UnForce DPLL CLKOUTX2 and CLKOUT to stay enabled 
+     Data.Set SR:0x4A008150 %LE %Long 0x04
+    // CM_DIV_M3_DPLL_PER.DPLL_CLKOUT_DIV = 8, UnForce DPLL CLKOUTHIF to stay enabled
+     Data.Set SR:0x4A008154 %LE %Long 0x08
+    // CM_DIV_M4_DPLL_PER.HSDIVIDER_CLKOUT1_DIV = 6, UnForce HSDIVIDER_CLKOUT1 to stay enabled
+     Data.Set SR:0x4A008158 %LE %Long 0x06
+    // CM_DIV_M5_DPLL_PER.HSDIVIDER_CLKOUT2_DIV = 9, UnForce HSDIVIDER_CLKOUT2 to stay enabled
+     Data.Set SR:0x4A00815C %LE %Long 0x09
+    // CM_DIV_M6_DPLL_PER.HSDIVIDER_CLKOUT2_DIV = 8, UnForce HSDIVIDER_CLKOUT3 to stay enabled
+     Data.Set SR:0x4A008160 %LE %Long 0x08
+    // CM_DIV_M7_DPLL_PER.HSDIVIDER_CLKOUT3_DIV = 10, UnForce HSDIVIDER_CLKOUT4 to stay enabled 
+     Data.Set SR:0x4A008164 %LE %Long 0x0A
+
+    ; Visu on OBS_CLK 0 On  J9 – E10 – B25 (QSH)   
+    ; Data.Set SR:0x4a002440 %le %long 0x0
+    ; Data.Set SR:0x4a002480 %le %long 0x1
+    ; Data.Set SR:0x4a002350 %le %long 0x8
+    ; Data.Set SR:0x4A002400 %le %long 0x1
+    ; Data.Set SR:0x4A1001AC %le %long 0x60007  
+
+    GOSUB dpll_lock_board &opp_type &CORE_PER
+  
+    IF (&DEBUG_INFO==1)
+    (   
+      AREA.Select results   
+      PRINT "--->>> Exiting dpll_per_opp_config config <<<--- "
+    )
+
+    RETURN    
+  )
+
+  IF (Var.VALUE(&opp_type)==&OPP50)
+  (
+    Data.Set SR:0x4A00814c %LE %Long 0x0
+    // CM_DIV_M2_DPLL_PER.DPLL_CLKOUT_DIV = 4, UnForce DPLL CLKOUTX2 and CLKOUT to stay enabled 
+    Data.Set SR:0x4A008150 %LE %Long 0x04
+    // CM_DIV_M3_DPLL_PER.DPLL_CLKOUT_DIV = 4, UnForce DPLL CLKOUTHIF to stay enabled
+    Data.Set SR:0x4A008154 %LE %Long 0x04
+    // CM_DIV_M4_DPLL_PER.HSDIVIDER_CLKOUT1_DIV = 6, UnForce HSDIVIDER_CLKOUT1 to stay enabled
+    Data.Set SR:0x4A008158 %LE %Long 0x06
+    // CM_DIV_M5_DPLL_PER.HSDIVIDER_CLKOUT2_DIV = 4, UnForce HSDIVIDER_CLKOUT2 to stay enabled
+    Data.Set SR:0x4A00815C %LE %Long 0x04
+    // CM_DIV_M6_DPLL_PER.HSDIVIDER_CLKOUT2_DIV = 9, UnForce HSDIVIDER_CLKOUT3 to stay enabled
+    Data.Set SR:0x4A008160 %LE %Long 0x09
+    // CM_DIV_M7_DPLL_PER.HSDIVIDER_CLKOUT3_DIV = 5, UnForce HSDIVIDER_CLKOUT4 to stay enabled 
+    Data.Set SR:0x4A008164 %LE %Long 0x05
+     
+    ; Visu on OBS_CLK 0 On  J9 – E10 – B25 (QSH)   
+    ; Data.Set SR:0x4a002440 %le %long 0x0
+    ; Data.Set SR:0x4a002480 %le %long 0x1
+    ; Data.Set SR:0x4a002350 %le %long 0x8
+    ; Data.Set SR:0x4A002400 %le %long 0x1
+    ; Data.Set SR:0x4A1001AC %le %long 0x60007  
+        
+    GOSUB dpll_lock_board &opp_type &CORE_PER
+  
+    IF (&DEBUG_INFO==1)
+    (   
+      AREA.Select results   
+      PRINT "--->>> Exiting dpll_per_opp_config config <<<--- "
+    )
+
+    RETURN    
+  )
+
+  IF (Var.VALUE(&opp_type)==&OPP100)||(Var.VALUE(&opp_type)==&OPP100_SDC)
+  (
+    Data.Set SR:0x4A00814c %LE %Long 0x0
+    // CM_DIV_M2_DPLL_PER.DPLL_CLKOUT_DIV = 4, UnForce DPLL CLKOUTX2 and CLKOUT to stay enabled 
+    Data.Set SR:0x4A008150 %LE %Long 0x04
+    // CM_DIV_M3_DPLL_PER.DPLL_CLKOUT_DIV = 3, UnForce DPLL CLKOUTHIF to stay enabled
+    Data.Set SR:0x4A008154 %LE %Long 0x03
+    // CM_DIV_M4_DPLL_PER.HSDIVIDER_CLKOUT1_DIV = 6, UnForce HSDIVIDER_CLKOUT1 to stay enabled
+    Data.Set SR:0x4A008158 %LE %Long 0x06
+    // CM_DIV_M5_DPLL_PER.HSDIVIDER_CLKOUT2_DIV = 4, UnForce HSDIVIDER_CLKOUT2 to stay enabled
+    Data.Set SR:0x4A00815C %LE %Long 0x04
+    // CM_DIV_M6_DPLL_PER.HSDIVIDER_CLKOUT2_DIV = 2, UnForce HSDIVIDER_CLKOUT3 to stay enabled
+    Data.Set SR:0x4A008160 %LE %Long 0x02
+    // CM_DIV_M7_DPLL_PER.HSDIVIDER_CLKOUT3_DIV = 3, UnForce HSDIVIDER_CLKOUT4 to stay enabled 
+    Data.Set SR:0x4A008164 %LE %Long 0x03
+
+    ; Visu on OBS_CLK 0 On  J9 – E10 – B25 (QSH)   
+    ; Data.Set SR:0x4a002440 %le %long 0x0
+    ; Data.Set SR:0x4a002480 %le %long 0x1
+    ; Data.Set SR:0x4a002350 %le %long 0x8
+    ; Data.Set SR:0x4A002400 %le %long 0x1
+    ; Data.Set SR:0x4A1001AC %le %long 0x60007  
+
+    GOSUB dpll_lock_board &opp_type &CORE_PER
+
+    IF (&DEBUG_INFO==1)
+    (   
+      AREA.Select results 
+      PRINT "--->>> Exiting dpll_per_opp_config config <<<--- "
+    )
+    
+    RETURN     
+  )
+
+  IF (Var.VALUE(&opp_type)==&OPP119)
+  (
+    PRINT "--->>> OPP &opp_type dpll_per_opp_config not implemented <<<--- "
+    RETURN
+  )
+)
+
+dpll_ducati_coreclk_opp_config_board:
+(
+  ENTRY &opp_type
+  IF (&DEBUG_INFO==1)
+  (   
+    AREA.Select results 
+    PRINT "--->>> Entering dpll_ducati_coreclk_opp_config config <<<--- "
+  )
+  IF (Var.VALUE(&opp_type)==0x5)
+  (
+    Data.Set SR:0x4A008920 %LE %Long 0x00000001
+    Data.Set SR:0x4A008900 %LE %Long 0x00000002
+
+    ;PRINT "--->>> dpll_ducati_coreclk_opp_config1" %x  d.l %long SR:0x4A008920 "<<<--- " 
+    ;PRINT "--->>> dpll_ducati_coreclk_opp_config2" %x  d.l %long SR:0x4A008900 "<<<--- "
+
+    ;PRINT "Basic_Execution_control DDR1 at address " %HEX REGISTER(PC) " "
+
+    ;while ((Data.Long(SR:0x4A008900)&0x100)==0x100)
+    WAIT (Data.Long(SR:0x4A008900)&0x100)==0x100
+
+    ;PRINT "--->>> dpll_ducati_coreclk_opp_config3" %x  d.l %long SR:0x4A008900 "<<<--- "
+
+    RETURN      
+  )
+
+  PRINT "--->>> OPP " %Decimal &opp_type" dpll_ducati_coreclk_opp_config not implemented <<<--- "
+  // PRINT "--->>> Exiting dpll_ducati_coreclk_opp_config config <<<--- "
+  RETURN
+)        
+    
+OPP25:
+(
+  ENTRY 
+  AREA.Select results
+  PRINT "--->>> Entering OPP25 config <<<--- "
+  GOSUB dpll_a9_opp_config 0x1
+  GOSUB dpll_per_opp_config 0x1
+  GOSUB dpll_core_opp_config 0x1
+  GOSUB dpll_abe_opp_config 0x1
+  ;gosub dpll_ducati_coreclk_opp_config 0x1
+  GOSUB dpll_iva_tesla_opp_config 0x1
+  PRINT "--->>> Exiting OPP25 config <<<--- "
+  RETURN
+)
+
+OPP50:
+(
+  ENTRY
+  AREA.Select results
+  PRINT "--->>> Entering OPP50 config <<<--- "
+  GOSUB dpll_a9_opp_config 0x2
+  GOSUB dpll_per_opp_config 0x2
+  GOSUB dpll_core_opp_config 0x2
+  GOSUB dpll_abe_opp_config 0x2
+  ;gosub dpll_ducati_coreclk_opp_config 0x2
+  GOSUB dpll_iva_tesla_opp_config 0x2
+  PRINT "--->>> Exiting OPP50 config <<<--- "
+  RETURN
+)
+
+OPP80:
+(
+  ENTRY
+  AREA.Select results
+  PRINT "--->>> Entering OPP80 config <<<--- "
+  GOSUB dpll_a9_opp_config 0x3
+  GOSUB dpll_per_opp_config 0x3
+  GOSUB dpll_core_opp_config 0x3
+  GOSUB dpll_abe_opp_config 0x3
+  ;gosub dpll_ducati_coreclk_opp_config 0x3
+  GOSUB dpll_iva_tesla_opp_config 0x3
+  PRINT "--->>> Exiting OPP80 config <<<--- "
+  RETURN
+)
+
+
+OPP100:
+(
+  ENTRY
+  AREA.Select results
+  PRINT "--->>> Entering OPP100 config <<<--- "
+  GOSUB dpll_a9_opp_config 0x4
+  GOSUB dpll_per_opp_config 0x4
+  GOSUB dpll_core_opp_config 0x4
+  GOSUB dpll_abe_opp_config 0x4
+  ;gosub dpll_ducati_coreclk_opp_config 0x4
+  GOSUB dpll_iva_tesla_opp_config 0x4
+  PRINT "--->>> Exiting OPP100 config <<<--- "
+  RETURN
+)
+
+OPP100_SDC:
+(
+  ENTRY
+  AREA.Select results
+  PRINT "--->>> Entering OPP100_SDC config <<<--- "
+  GOSUB dpll_a9_opp_config 0x5
+  GOSUB dpll_per_opp_config 0x5
+  GOSUB dpll_core_opp_config 0x5
+  GOSUB dpll_abe_opp_config 0x5
+  ;gosub dpll_ducati_coreclk_opp_config 0x5
+  GOSUB dpll_iva_tesla_opp_config 0x5
+  PRINT "--->>> Exiting OPP100 SDC config <<<--- "
+  RETURN
+)
+
+OPP119:
+(
+  ENTRY
+  AREA.Select results
+  PRINT "--->>> Entering OPP119 config <<<--- "
+  GOSUB dpll_a9_opp_config 0x6
+  GOSUB dpll_per_opp_config 0x6
+  GOSUB dpll_core_opp_config 0x6
+  GOSUB dpll_abe_opp_config 0x6
+  ;gosub dpll_ducati_coreclk_opp_config 0x6
+  GOSUB dpll_iva_tesla_opp_config 0x6
+  PRINT "--->>> Exiting OPP119 config <<<--- "
+  RETURN
+)

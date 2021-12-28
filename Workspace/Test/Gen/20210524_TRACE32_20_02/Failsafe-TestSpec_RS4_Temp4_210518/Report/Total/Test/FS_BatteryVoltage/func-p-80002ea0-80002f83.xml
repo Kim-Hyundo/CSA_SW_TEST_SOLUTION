@@ -1,0 +1,1004 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="t32transform.xsl"?>
+<TRACE32 file="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Gen\20210524_TRACE32_20_02\Failsafe-TestSpec_RS4_Temp4_210518\Report\Total\Test\FS_BatteryVoltage\func-p-80002ea0-80002f83.xml">
+	<coverage>
+		<COVerage.EXPORT.ListLine ts="1621823192" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE" metric="object">
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\Rte_SWC_Diag</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>-</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>0</never>
+				<bytes>638</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\FS_HWFailure</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>16</never>
+				<bytes>236</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\SWC_Failsafe</tree>
+				<cov>partial</cov>
+				<exec metric="object">0.600%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>16</never>
+				<bytes>1666</bytes>
+				<bytesok>10</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80002DEA</addrFrom>
+				<addrTo>P:80002F83</addrTo>
+				<tree>\\Test\FS_BatteryVoltage</tree>
+				<cov>partial</cov>
+				<exec metric="object">59.512%</exec>
+				<branches>52.000%</branches>
+				<ok>8</ok>
+				<taken>3</taken>
+				<nottaken>7</nottaken>
+				<never>7</never>
+				<bytes>410</bytes>
+				<bytesok>244</bytesok>
+				<function>
+					<addrFrom>P:80002EA0</addrFrom>
+					<addrTo>P:80002F83</addrTo>
+					<tree uid="p-80002ea0-80002f83">\\Test\FS_BatteryVoltage\update_vol_info</tree>
+					<cov>partial</cov>
+					<exec metric="object">83.333%</exec>
+					<branches>67.647%</branches>
+					<ok>8</ok>
+					<taken>3</taken>
+					<nottaken>4</nottaken>
+					<never>2</never>
+					<bytes>228</bytes>
+					<bytesok>190</bytesok>
+					<line>
+						<addrFrom>P:80002EA0</addrFrom>
+						<addrTo>P:80002EA1</addrTo>
+						<tree>FS_BatteryVoltage.c \1--40</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002EA2</addrFrom>
+						<addrTo>P:80002EA5</addrTo>
+						<tree>FS_BatteryVoltage.c \41--41</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>0.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>1</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002EA6</addrFrom>
+						<addrTo>P:80002EA7</addrTo>
+						<tree>FS_BatteryVoltage.c \42--42</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002EA8</addrFrom>
+						<addrTo>P:80002EAB</addrTo>
+						<tree>FS_BatteryVoltage.c \43--44</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>0.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>1</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002EAC</addrFrom>
+						<addrTo>P:80002EAD</addrTo>
+						<tree>FS_BatteryVoltage.c \45--45</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_BatteryVoltage.c \46--49</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>6</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_BatteryVoltage.c \50--51</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>not taken</cov>
+						<exec metric="object">90.000%</exec>
+						<branches>-</branches>
+						<ok>2</ok>
+						<taken>0</taken>
+						<nottaken>1</nottaken>
+						<bytes>20</bytes>
+						<bytesok>18</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002EC8</addrFrom>
+						<addrTo>P:80002ECB</addrTo>
+						<tree>FS_BatteryVoltage.c \52--53</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>not taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>1</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002ECC</addrFrom>
+						<addrTo>P:80002EDB</addrTo>
+						<tree>FS_BatteryVoltage.c \54--54</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>16</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002EDC</addrFrom>
+						<addrTo>P:80002EDF</addrTo>
+						<tree>FS_BatteryVoltage.c \55--55</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002EE0</addrFrom>
+						<addrTo>P:80002EE1</addrTo>
+						<tree>FS_BatteryVoltage.c \56--57</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_BatteryVoltage.c \58--59</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>not taken</cov>
+						<exec metric="object">90.000%</exec>
+						<branches>-</branches>
+						<ok>2</ok>
+						<taken>0</taken>
+						<nottaken>1</nottaken>
+						<bytes>20</bytes>
+						<bytesok>18</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002EFC</addrFrom>
+						<addrTo>P:80002EFF</addrTo>
+						<tree>FS_BatteryVoltage.c \60--61</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>not taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>1</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002F00</addrFrom>
+						<addrTo>P:80002F0F</addrTo>
+						<tree>FS_BatteryVoltage.c \62--62</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>16</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002F10</addrFrom>
+						<addrTo>P:80002F13</addrTo>
+						<tree>FS_BatteryVoltage.c \63--63</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002F14</addrFrom>
+						<addrTo>P:80002F19</addrTo>
+						<tree>FS_BatteryVoltage.c \64--65</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>6</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_BatteryVoltage.c \66--66</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>6</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002F1A</addrFrom>
+						<addrTo>P:80002F1D</addrTo>
+						<tree>FS_BatteryVoltage.c \67--69</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002F1E</addrFrom>
+						<addrTo>P:80002F21</addrTo>
+						<tree>FS_BatteryVoltage.c \71--71</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002F22</addrFrom>
+						<addrTo>P:80002F31</addrTo>
+						<tree>FS_BatteryVoltage.c \72--72</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>16</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002F32</addrFrom>
+						<addrTo>P:80002F3B</addrTo>
+						<tree>FS_BatteryVoltage.c \73--75</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>100.000%</branches>
+						<ok>1</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>10</bytes>
+						<bytesok>10</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002F3C</addrFrom>
+						<addrTo>P:80002F3F</addrTo>
+						<tree>FS_BatteryVoltage.c \76--76</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002F40</addrFrom>
+						<addrTo>P:80002F49</addrTo>
+						<tree>FS_BatteryVoltage.c \77--78</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>100.000%</branches>
+						<ok>1</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>10</bytes>
+						<bytesok>10</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002F4A</addrFrom>
+						<addrTo>P:80002F4D</addrTo>
+						<tree>FS_BatteryVoltage.c \79--79</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002F4E</addrFrom>
+						<addrTo>P:80002F57</addrTo>
+						<tree>FS_BatteryVoltage.c \80--81</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>100.000%</branches>
+						<ok>1</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>10</bytes>
+						<bytesok>10</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002F58</addrFrom>
+						<addrTo>P:80002F5B</addrTo>
+						<tree>FS_BatteryVoltage.c \82--82</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002F5C</addrFrom>
+						<addrTo>P:80002F65</addrTo>
+						<tree>FS_BatteryVoltage.c \83--84</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>100.000%</branches>
+						<ok>1</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>10</bytes>
+						<bytesok>10</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002F66</addrFrom>
+						<addrTo>P:80002F69</addrTo>
+						<tree>FS_BatteryVoltage.c \85--85</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002F6A</addrFrom>
+						<addrTo>P:80002F75</addrTo>
+						<tree>FS_BatteryVoltage.c \86--88</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">83.333%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>10</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002F76</addrFrom>
+						<addrTo>P:80002F79</addrTo>
+						<tree>FS_BatteryVoltage.c \89--89</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002F7A</addrFrom>
+						<addrTo>P:80002F7D</addrTo>
+						<tree>FS_BatteryVoltage.c \90--91</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">50.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002F7E</addrFrom>
+						<addrTo>P:80002F81</addrTo>
+						<tree>FS_BatteryVoltage.c \92--92</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002F82</addrFrom>
+						<addrTo>P:80002F83</addrTo>
+						<tree>FS_BatteryVoltage.c \93--94</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<total>
+						<cov>partial</cov>
+						<exec metric="object">83.333%</exec>
+						<branches>-</branches>
+						<ok>8</ok>
+						<taken>3</taken>
+						<nottaken>4</nottaken>
+						<bytes>228</bytes>
+						<bytesok>190</bytesok>
+					</total>
+				</function>
+				<total>
+					<cov>partial</cov>
+					<exec metric="object">83.333%</exec>
+					<branches>67.647%</branches>
+					<ok>8</ok>
+					<taken>3</taken>
+					<nottaken>4</nottaken>
+					<never>2</never>
+					<bytes>228</bytes>
+					<bytesok>190</bytesok>
+				</total>
+			</module>
+			<module>
+				<addrFrom>P:80002F84</addrFrom>
+				<addrTo>P:800030BB</addrTo>
+				<tree>\\Test\FS_CANBusOff</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>17</never>
+				<bytes>312</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\FS_CANTimeout</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>350</never>
+				<bytes>2458</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\FS_InvalidSignal</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>350</never>
+				<bytes>6758</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\FS_SWFailure</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>17</never>
+				<bytes>304</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_cstart</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>5</never>
+				<bytes>806</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_cstart_tc1</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>402</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_cstart_tc2</tree>
+				<cov>partial</cov>
+				<exec metric="object">81.094%</exec>
+				<branches>87.500%</branches>
+				<ok>3</ok>
+				<taken>0</taken>
+				<nottaken>1</nottaken>
+				<never>0</never>
+				<bytes>402</bytes>
+				<bytesok>326</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_cstart_tc3</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_main</tree>
+				<cov>partial</cov>
+				<exec metric="object">27.835%</exec>
+				<branches>31.818%</branches>
+				<ok>1</ok>
+				<taken>4</taken>
+				<nottaken>1</nottaken>
+				<never>5</never>
+				<bytes>388</bytes>
+				<bytesok>108</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:800065B6</addrFrom>
+				<addrTo>P:8000674B</addrTo>
+				<tree>\\Test\prost_cstart_tc4</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:8000674C</addrFrom>
+				<addrTo>P:800068E1</addrTo>
+				<tree>\\Test\prost_cstart_tc5</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80006A62</addrFrom>
+				<addrTo>P:80006A91</addrTo>
+				<tree>\\Test\prost_stubs</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>2</never>
+				<bytes>48</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<total>
+				<cov>partial</cov>
+				<exec metric="object">4.287%</exec>
+				<branches>2.412%</branches>
+				<ok>12</ok>
+				<taken>7</taken>
+				<nottaken>9</nottaken>
+				<never>801</never>
+				<bytes>16046</bytes>
+				<bytesok>688</bytesok>
+			</total>
+		</COVerage.EXPORT.ListLine>
+	</coverage>
+	<marker>
+		<BookMark.EXPORT ts="1621823192" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE">
+		</BookMark.EXPORT>
+	</marker>
+	<listing>
+		<List.EXPORT ts="1621823192" t32ver="R.2020.09.000128638" t32pv="TRICORE" order="source">
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><line>1</line><src>/*</src></hll>
+				<hll><line>2</line><src> * Author: Insub Song (insub.song@halla.com)</src></hll>
+				<hll><line>3</line><src> * Date  : 2019.02.01</src></hll>
+				<hll><line>4</line><src> */</src></hll>
+				<hll><line>5</line><src></src></hll>
+				<hll><line>6</line><src>#include &quot;Rte_SWC_DiagnosticMonitor.h&quot;</src></hll>
+				<hll><line>7</line><src></src></hll>
+				<hll><line>8</line><src>#include &quot;SWC_Failsafe.h&quot;</src></hll>
+				<hll><line>9</line><src>#include &quot;FS_BatteryVoltage.h&quot;</src></hll>
+				<hll><line>10</line><src></src></hll>
+				<hll><line>11</line><src>static vol_cond_t bat_cond = {</src></hll>
+				<hll><line>12</line><src>    .high = {16000, 17000},</src></hll>
+				<hll><line>13</line><src>    .low = {8000, 9000},</src></hll>
+				<hll><line>14</line><src>    .detect_tick_thr = MS2TICK(10000),</src></hll>
+				<hll><line>15</line><src>    .recover_tick_thr = MS2TICK(4000),</src></hll>
+				<hll><line>16</line><src>};</src></hll>
+				<hll><line>17</line><src></src></hll>
+				<hll><line>18</line><src>vol_info_t bat_info = {</src></hll>
+				<hll><line>19</line><src>    .p_vol = &amp;vol_grp[VOL_BAT],</src></hll>
+				<hll><line>20</line><src>};</src></hll>
+				<hll><line>21</line><src></src></hll>
+				<hll><line>22</line><src>void update_vol_info(boolean meet_precond, vol_info_t *info, vol_cond_t *cond)</src></hll>
+				<hll><line>23</line><src>{</src></hll>
+				<hll><line>24</line><src>/*</src></hll>
+				<hll><line>25</line><src> * T: True / F: False / X: Don&apos;t care / D: Detect / R: Recover</src></hll>
+				<hll><line>26</line><src> *</src></hll>
+				<hll><line>27</line><src> * [Logic Table]</src></hll>
+				<hll><line>28</line><src> * ----------------------------------------------------</src></hll>
+				<hll><line>29</line><src> * |          Vol range          | fault | High | Low |</src></hll>
+				<hll><line>30</line><src> * ----------------------------------------------------</src></hll>
+				<hll><line>31</line><src> * |        v &gt; high_upper       |   X   |   D  |  R  |</src></hll>
+				<hll><line>32</line><src> * | high_lower &lt; v &lt; high_upper |   T   |   D  |  R  |</src></hll>
+				<hll><line>33</line><src> * | high_lower &lt; v &lt; high_upper |   F   |   R  |  R  |</src></hll>
+				<hll><line>34</line><src> * |  low_upper &lt; v &lt; high_lower |   X   |   R  |  R  |</src></hll>
+				<hll><line>35</line><src> * |  low_lower &lt; v &lt; low_upper  |   F   |   R  |  R  |</src></hll>
+				<hll><line>36</line><src> * |  low_lower &lt; v &lt; low_upper  |   T   |   R  |  D  |</src></hll>
+				<hll><line>37</line><src> * |        v &lt; low_lower        |   X   |   R  |  D  |</src></hll>
+				<hll><line>38</line><src> * ----------------------------------------------------</src></hll>
+				<hll><line>39</line><src> */</src></hll>
+				<hll><cov>taken</cov><line>40</line><src>    if (meet_precond == FALSE) {</src></hll>
+				<asm><cov>taken</cov><addr>P:80002EA0</addr><code>47F6</code><label>update_vol_info:                                                                                                                                                                                                                                                </label><mnemonic>jnz16     d4,0x80002EAE</mnemonic><comment>meet_precond,0x80002EAE</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>never</cov><line>41</line><src>        if (info-&gt;high.fault == FALSE) {</src></hll>
+				<asm><cov>never</cov><addr>P:80002EA2</addr><code>4F14</code><mnemonic>ld16.bu   d15,[a4]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80002EA4</addr><code>02EE</code><mnemonic>jnz16     d15,0x80002EA8</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>never</cov><line>42</line><src>            info-&gt;high.detect_tick = 0;</src></hll>
+				<asm><cov>never</cov><addr>P:80002EA6</addr><code>41AC</code><mnemonic>st16.h    [a4]0x2,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><line>43</line><src>        }</src></hll>
+				<hll><cov>never</cov><line>44</line><src>        if (info-&gt;low.fault == FALSE) {</src></hll>
+				<asm><cov>never</cov><addr>P:80002EA8</addr><code>460C</code><mnemonic>ld16.bu   d15,[a4]0x6</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80002EAA</addr><code>02EE</code><mnemonic>jnz16     d15,0x80002EAE</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>never</cov><line>45</line><src>            info-&gt;low.detect_tick = 0;</src></hll>
+				<asm><cov>never</cov><addr>P:80002EAC</addr><code>44AC</code><mnemonic>st16.h    [a4]0x8,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c" type="multiple">
+				<hll><line>46</line><src>        }</src></hll>
+				<hll><line>47</line><src>    }</src></hll>
+				<hll><line>48</line><src></src></hll>
+				<hll><cov>ok</cov><line>49</line><src>    uint16 vol = *info-&gt;p_vol;</src></hll>
+				<asm><cov>ok</cov><addr>P:80002EAE</addr><code>43CC</code><mnemonic>ld16.a    a15,[a4]0x0C</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002EB4</addr><code>08C0F009</code><mnemonic>ld.hu     d0,[a15]0x0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c" type="multiple">
+				<hll><line>50</line><src></src></hll>
+				<hll><cov>ok</cov><line>51</line><src>    if ((vol &gt; cond-&gt;high.upper) || ((vol &gt; cond-&gt;high.lower) &amp;&amp; (info-&gt;high.fault == TRUE))) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80002EB0</addr><code>08C25F09</code><mnemonic>ld.hu     d15,[a5]0x2</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002EB8</addr><code>80080F3F</code><mnemonic>jlt.u     d15,d0,0x80002EC8</mnemonic><comment>d15,vol,0x80002EC8</comment></asm>
+				<asm><cov>ok</cov><addr>P:80002EBC</addr><code>08C05F09</code><mnemonic>ld.hu     d15,[a5]0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002EC0</addr><code>80110F7F</code><mnemonic>jge.u     d15,d0,0x80002EE2</mnemonic><comment>d15,vol,0x80002EE2</comment></asm>
+				<asm><cov>ok</cov><addr>P:80002EC4</addr><code>4F14</code><mnemonic>ld16.bu   d15,[a4]</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:80002EC6</addr><code>1E5E</code><mnemonic>jne16     d15,#0x1,0x80002EE2</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><line>52</line><src>        // High detect &amp; Low recover</src></hll>
+				<hll><did>not</did><dec>taken</dec><cov>taken</cov><line>53</line><src>        if (meet_precond == TRUE) {</src></hll>
+				<asm><cov>not taken</cov><addr>P:80002EC8</addr><code>802B14DF</code><mnemonic>jne       d4,#0x1,0x80002F1E</mnemonic><comment>meet_precond,#1,0x80002F1E</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>ok</cov><line>54</line><src>            info-&gt;high.detect_tick = (uint16)__min((info-&gt;high.detect_tick + 1), cond-&gt;detect_tick_thr);</src></hll>
+				<asm><cov>ok</cov><addr>P:80002ECC</addr><code>08C24F09</code><mnemonic>ld.hu     d15,[a4]0x2</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002ED0</addr><code>08C85009</code><mnemonic>ld.hu     d0,[a5]0x8</mnemonic><comment>vol,[a5]8</comment></asm>
+				<asm><cov>ok</cov><addr>P:80002ED4</addr><code>1FC2</code><mnemonic>add16     d15,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002ED6</addr><code>F1800F0B</code><mnemonic>min       d15,d15,d0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002EDA</addr><code>41AC</code><mnemonic>st16.h    [a4]0x2,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>ok</cov><line>55</line><src>            info-&gt;high.recover_tick = 0;</src></hll>
+				<asm><cov>ok</cov><addr>P:80002EDC</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002EDE</addr><code>42AC</code><mnemonic>st16.h    [a4]0x4,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><line>56</line><src>        }</src></hll>
+				<hll><cov>ok</cov><line>57</line><src>        info-&gt;low.detect_tick = 0;</src></hll>
+				<asm><cov>ok</cov><addr>P:80002EE0</addr><code>1F3C</code><mnemonic>j16       0x80002F1E</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c" type="multiple">
+				<hll><line>58</line><src>        info-&gt;low.recover_tick = (uint16)__min((info-&gt;low.recover_tick + 1), cond-&gt;recover_tick_thr);</src></hll>
+				<hll><cov>ok</cov><line>59</line><src>    } else if (vol &lt; cond-&gt;low.lower || (vol &lt; cond-&gt;low.upper &amp;&amp; info-&gt;low.fault)) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80002EE6</addr><code>08C45F09</code><mnemonic>ld.hu     d15,[a5]0x4</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002EEC</addr><code>8008F03F</code><mnemonic>jlt.u     d0,d15,0x80002EFC</mnemonic><comment>vol,d15,0x80002EFC</comment></asm>
+				<asm><cov>ok</cov><addr>P:80002EF0</addr><code>08C65F09</code><mnemonic>ld.hu     d15,[a5]0x6</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002EF4</addr><code>8013F07F</code><mnemonic>jge.u     d0,d15,0x80002F1A</mnemonic><comment>vol,d15,0x80002F1A</comment></asm>
+				<asm><cov>ok</cov><addr>P:80002EF8</addr><code>460C</code><mnemonic>ld16.bu   d15,[a4]0x6</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:80002EFA</addr><code>106E</code><mnemonic>jz16      d15,0x80002F1A</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><line>60</line><src>        // High recover &amp; Low detect</src></hll>
+				<hll><did>not</did><dec>taken</dec><cov>taken</cov><line>61</line><src>        if (meet_precond == TRUE) {</src></hll>
+				<asm><cov>not taken</cov><addr>P:80002EFC</addr><code>800C14DF</code><mnemonic>jne       d4,#0x1,0x80002F14</mnemonic><comment>meet_precond,#1,0x80002F14</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>ok</cov><line>62</line><src>            info-&gt;low.detect_tick = (uint16)__min((info-&gt;low.detect_tick + 1), cond-&gt;detect_tick_thr);</src></hll>
+				<asm><cov>ok</cov><addr>P:80002F00</addr><code>08C84F09</code><mnemonic>ld.hu     d15,[a4]0x8</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002F04</addr><code>08C85009</code><mnemonic>ld.hu     d0,[a5]0x8</mnemonic><comment>vol,[a5]8</comment></asm>
+				<asm><cov>ok</cov><addr>P:80002F08</addr><code>1FC2</code><mnemonic>add16     d15,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002F0A</addr><code>F1800F0B</code><mnemonic>min       d15,d15,d0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002F0E</addr><code>44AC</code><mnemonic>st16.h    [a4]0x8,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>ok</cov><line>63</line><src>            info-&gt;low.recover_tick = 0;</src></hll>
+				<asm><cov>ok</cov><addr>P:80002F10</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002F12</addr><code>45AC</code><mnemonic>st16.h    [a4]0x0A,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><line>64</line><src>        }</src></hll>
+				<hll><cov>ok</cov><line>65</line><src>        info-&gt;high.detect_tick = 0;</src></hll>
+				<asm><cov>ok</cov><addr>P:80002F14</addr><code>FF6BFF61</code><mnemonic>fcall     0x80002DEA</mnemonic><comment>.cocofun_3</comment></asm>
+				<asm><cov>ok</cov><addr>P:80002F18</addr><code>0D3C</code><mnemonic>j16       0x80002F32</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c" type="multiple">
+				<hll><cov>ok</cov><line>66</line><src>        info-&gt;high.recover_tick = (uint16)__min((info-&gt;high.recover_tick + 1), cond-&gt;recover_tick_thr);</src></hll>
+				<asm><cov>ok</cov><addr>P:80002EE2</addr><code>08C44109</code><mnemonic>ld.hu     d1,[a4]0x4</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002EEA</addr><code>11C2</code><mnemonic>add16     d1,#0x1</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><line>67</line><src>    } else {</src></hll>
+				<hll><line>68</line><src>        // High &amp; Low recover</src></hll>
+				<hll><cov>ok</cov><line>69</line><src>        info-&gt;high.detect_tick = 0;</src></hll>
+				<asm><cov>ok</cov><addr>P:80002F1A</addr><code>FF68FF61</code><mnemonic>fcall     0x80002DEA</mnemonic><comment>.cocofun_3</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>ok</cov><line>71</line><src>        info-&gt;low.detect_tick = 0;</src></hll>
+				<asm><cov>ok</cov><addr>P:80002F1E</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002F20</addr><code>44AC</code><mnemonic>st16.h    [a4]0x8,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>ok</cov><line>72</line><src>        info-&gt;low.recover_tick = (uint16)__min((info-&gt;low.recover_tick + 1), cond-&gt;recover_tick_thr);</src></hll>
+				<asm><cov>ok</cov><addr>P:80002F22</addr><code>08CA4F09</code><mnemonic>ld.hu     d15,[a4]0x0A</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002F26</addr><code>08CA5009</code><mnemonic>ld.hu     d0,[a5]0x0A</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002F2A</addr><code>1FC2</code><mnemonic>add16     d15,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002F2C</addr><code>F1800F0B</code><mnemonic>min       d15,d15,d0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002F30</addr><code>45AC</code><mnemonic>st16.h    [a4]0x0A,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><line>73</line><src>    }</src></hll>
+				<hll><line>74</line><src></src></hll>
+				<hll><cov>ok</cov><line>75</line><src>    if (info-&gt;high.detect_tick == cond-&gt;detect_tick_thr) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80002F32</addr><code>08C24F09</code><mnemonic>ld.hu     d15,[a4]0x2</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002F36</addr><code>08C85009</code><mnemonic>ld.hu     d0,[a5]0x8</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002F3A</addr><code>037E</code><mnemonic>jne16     d15,d0,0x80002F40</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>ok</cov><line>76</line><src>        info-&gt;high.fault = TRUE;</src></hll>
+				<asm><cov>ok</cov><addr>P:80002F3C</addr><code>01DA</code><mnemonic>mov16     d15,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002F3E</addr><code>4F34</code><mnemonic>st16.b    [a4],d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><line>77</line><src>    }        </src></hll>
+				<hll><cov>ok</cov><line>78</line><src>    if (info-&gt;high.recover_tick == cond-&gt;recover_tick_thr) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80002F40</addr><code>08C44F09</code><mnemonic>ld.hu     d15,[a4]0x4</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002F44</addr><code>08CA5009</code><mnemonic>ld.hu     d0,[a5]0x0A</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002F48</addr><code>037E</code><mnemonic>jne16     d15,d0,0x80002F4E</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>ok</cov><line>79</line><src>        info-&gt;high.fault = FALSE;</src></hll>
+				<asm><cov>ok</cov><addr>P:80002F4A</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002F4C</addr><code>4F34</code><mnemonic>st16.b    [a4],d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><line>80</line><src>    }        </src></hll>
+				<hll><cov>ok</cov><line>81</line><src>    if (info-&gt;low.detect_tick == cond-&gt;detect_tick_thr) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80002F4E</addr><code>08C84F09</code><mnemonic>ld.hu     d15,[a4]0x8</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002F52</addr><code>08C85009</code><mnemonic>ld.hu     d0,[a5]0x8</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002F56</addr><code>037E</code><mnemonic>jne16     d15,d0,0x80002F5C</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>ok</cov><line>82</line><src>        info-&gt;low.fault = TRUE;</src></hll>
+				<asm><cov>ok</cov><addr>P:80002F58</addr><code>01DA</code><mnemonic>mov16     d15,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002F5A</addr><code>462C</code><mnemonic>st16.b    [a4]0x6,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><line>83</line><src>    }        </src></hll>
+				<hll><cov>ok</cov><line>84</line><src>    if (info-&gt;low.recover_tick == cond-&gt;recover_tick_thr) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80002F5C</addr><code>08CA4F09</code><mnemonic>ld.hu     d15,[a4]0x0A</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002F60</addr><code>08CA5009</code><mnemonic>ld.hu     d0,[a5]0x0A</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002F64</addr><code>037E</code><mnemonic>jne16     d15,d0,0x80002F6A</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>ok</cov><line>85</line><src>        info-&gt;low.fault = FALSE;</src></hll>
+				<asm><cov>ok</cov><addr>P:80002F66</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002F68</addr><code>462C</code><mnemonic>st16.b    [a4]0x6,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><line>86</line><src>    }    </src></hll>
+				<hll><line>87</line><src></src></hll>
+				<hll><cov>taken</cov><line>88</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_0], VOL_HIGH)) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80002F6A</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002F6E</addr><code>7056FFD9</code><mnemonic>lea       a15,[a15]0x5D6</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002F72</addr><code>FF14</code><mnemonic>ld16.bu   d15,[a15]</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80002F74</addr><code>032E</code><mnemonic>jz16.t    d15,#0x0,0x80002F7A</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>never</cov><line>89</line><src>        info-&gt;high.fault = FALSE;</src></hll>
+				<asm><cov>never</cov><addr>P:80002F76</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80002F78</addr><code>4F34</code><mnemonic>st16.b    [a4],d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><line>90</line><src>    }        </src></hll>
+				<hll><cov>taken</cov><line>91</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_0], VOL_LOW)) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80002F7A</addr><code>FF14</code><mnemonic>ld16.bu   d15,[a15]</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80002F7C</addr><code>132E</code><mnemonic>jz16.t    d15,#0x1,0x80002F82</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>never</cov><line>92</line><src>        info-&gt;low.fault = FALSE;</src></hll>
+				<asm><cov>never</cov><addr>P:80002F7E</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80002F80</addr><code>462C</code><mnemonic>st16.b    [a4]0x6,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><line>93</line><src>    }        </src></hll>
+				<hll><cov>ok</cov><line>94</line><src>}</src></hll>
+				<asm><cov>ok</cov><addr>P:80002F82</addr><code>9000</code><mnemonic>ret16     </mnemonic></asm>
+			</mixed>
+		</List.EXPORT>
+	</listing>
+</TRACE32>

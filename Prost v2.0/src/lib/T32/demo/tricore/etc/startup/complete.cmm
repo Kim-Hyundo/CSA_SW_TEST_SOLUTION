@@ -1,0 +1,27 @@
+; --------------------------------------------------------------------------------
+; @Title: Initialize TriCore
+;
+; @Description:
+;     Initialize TriCore as the startup-code of a c-compiler would do.
+;     This allows to run single functions of a c-program, e.g., by using commands
+;     like Var.set and Var.CALL.
+;
+;     Edit script to set addresses to unused memory areas.
+;
+; @Author: MEI
+; @Chip: TC*
+; @Copyright: Lauterbach
+; @Props: Template
+; --------------------------------------------------------------------------------
+; $Id: complete.cmm 11366 2017-09-14 13:12:32Z meick $
+
+PRIVATE &addrStack &addrFirstCSA &nCSA
+&addrStack=0x70008000
+&addrFirstCSA=0x70007000
+&nCSA=4.
+
+Register.Set A10 &addrStack
+
+DO ~~~~/csa.cmm "&addrFirstCSA" "&nCSA"
+
+ENDDO

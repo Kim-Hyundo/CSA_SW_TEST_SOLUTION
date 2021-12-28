@@ -1,0 +1,9 @@
+B::
+ENTRY &SavePath &FileName
+
+PRinTer.OPEN "&SavePath" ASCIIE
+WinTABS 100. 20. 20. 20.
+WinPrint.y.b.Function \\*\&FileName\*
+PRinTer.CLOSE
+
+END

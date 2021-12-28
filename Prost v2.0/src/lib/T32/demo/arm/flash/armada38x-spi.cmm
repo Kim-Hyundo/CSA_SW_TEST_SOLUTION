@@ -1,0 +1,103 @@
+; --------------------------------------------------------------------------------
+; @Title: ARMADA380 SPI FLASH Programming Script
+; @Description:
+; W25Q32BV (Winbond, 4MB flash) is connected to the SPI_Controller1
+; 
+; SRAM: 0x40000000
+; SPI FLASH CONtroller(CPU-specific): 0xD0010680 ;SPI_Cntr1,
+; 0xD0010600==SPI_Cntr0
+;
+; @Author: jjeong
+; @Chip: 88F6820
+; @Keywords: SPI W25Q32
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: armada38x-spi.cmm 7605 2019-11-05 16:45:28Z bschroefel $
+
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+
+&SPIBASE=0xD0010680
+
+SYStem.RESet
+SYStem.CPU 88F6820
+CORE.ASSIGN 1.
+TrOnchip.Set RESET OFF
+SYStem.Up
+
+Break.direct 0x40000000 /Write  
+Go.direct 
+WAIT !STATE.RUN()
+Break.RESet
+
+PER.Set.simple C15:0x1 %Long (Data.Long(C15:0x1)&(~0x1004))
+
+//memory map to 0x40000000
+  Data.Set A:0xD0020040 %LE %Long  0xf1991 
+  Data.Set A:0xD0020044 %LE %Long  0x40000000
+  Data.Set A:0xD0020048 %LE %Long  0x40000000
+
+//pin mux
+  Data.Set A:0xD001801C %LE %Long 0x4444
+
+//spi controller configuration
+  Data.Set A:&SPIBASE+0x0  %LE %Long 0x0
+  Data.Set A:&SPIBASE+0x4  %LE %Long 0x215   ; clk div, addr_length
+  Data.Set A:&SPIBASE+0x10 %LE %Long 0x1
+  Data.Set A:&SPIBASE+0x14 %LE %Long 0x1
+
+  GOSUB READ_ID_TEST
+
+  FLASHFILE.RESet
+ 
+//FLASHFILE.CONFIG  <tx_reg>        <rx_reg>        <cs_reg>     <cs_bit>
+  FLASHFILE.CONFIG  (&SPIBASE+0x8)  (&SPIBASE+0xC)  &SPIBASE     0x0
+
+// FLASHFILE.TARGET <code range>       <data range>        <Algorithm file>
+  FLASHFILE.TARGET 0x40000000++0x1FFF  0x40002000++0x1FFF  ~~/demo/arm/flash/byte/spi64_marvell.bin  /KEEP 
+
+//Read FLASH Manufacture and Device ID
+  FLASHFILE.GETID
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+ENDDO
+
+
+  FLASHFILE.DUMP 0x0
+
+//Erase Serial FLASH  
+  ;FLASHFILE.ERASE 0x0--0x1FFFFF
+
+//Write
+  ;FLASHFILE.LOAD   * 0x0
+  ;FLASHFILE.LOAD   * 0x0  /ComPare   ;verify
+
+ENDDO
+
+
+READ_ID_TEST:
+
+&tx_reg=0xD0010688   
+&rx_reg=0xD001068C   
+&cs_reg=0xD0010680    
+
+Data.Set &cs_reg %Long 0x1  ;CS Eable
+
+Data.Set &tx_reg %Long 0x9F    ; Write command
+PRINT "Read 1st :0x" Data.Byte(SD:&rx_reg)  " (dummy)" ; dummy
+
+Data.Set &tx_reg %Long 0x00    ; Write dummy
+PRINT "Read 2nd :0x" Data.Byte(SD:&rx_reg) " (Manufacture ID)" ; Manufacture ID
+
+Data.Set &tx_reg %Long 0x00    ; Write dummy
+PRINT "Read 3rd :0x" Data.Byte(SD:&rx_reg) " (Device ID)" ; Device  ID
+
+Data.Set &tx_reg %Long 0x00    ; Write dummy
+PRINT "Read 4th :0x" Data.Byte(SD:&rx_reg) 
+
+Data.Set &cs_reg %Long 0x0  ;CS disable
+
+RETURN

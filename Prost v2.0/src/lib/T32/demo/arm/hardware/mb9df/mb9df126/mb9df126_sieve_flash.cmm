@@ -1,0 +1,125 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo script for MB9DF126 (FLASH)
+; @Description:
+;   Programs the sieve demo application into the processor internal flash and
+;   sets up a demo debug scenario.
+;   This script can be used as a template for flashing an application.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe
+; @Keywords: ARM, Cortex-R4, Flash
+; @Author: AME
+; @Board: MB9DF126
+; @Chip: MB9DF126
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mb9df126_sieve_flash.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU MB9DF126
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 2.ms
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+; manually force ONCHIP Breakpoints in FLASH (write buffer problem)
+MAP.BOnchip 0x00800000++0x7fffff
+MAP.BOnchip 0x01000000++0x7fffff
+; fix RUNTIME memory accesses in TCM
+IF VERSION.BUILD()<85819.
+(
+  SYStem.Option DAPREMAP 0x0++0x00FFFFFF 0x05000000
+)
+; --------------------------------------------------------------------------------
+; connect and handle watchdog
+; <timing critical>
+SYStem.Up
+
+&val=Data.Long(AD:0xB0608048)
+IF (&val&0x01000000)==0
+(
+  ; disable watchdog
+  Data.Set AD:0xB0608000 %Long 0xEDACCE55
+  Data.Set AD:0xB0608048 %Long 0x01000000
+)
+ELSE IF (&val&0xb)==(0x1||0x2||0x3)
+(
+  ; watchdog already locked - bug DBGEN not set
+  DIALOG.OK "Watchdog enabled BUT DBGEN not set!"
+  STOP
+)
+; </timing critical>
+
+; --------------------------------------------------------------------------------
+; initialize ECC TCM SRAM
+;Data.Set AD:0x0++0x1ffff %Long 0x0
+Data.Set AD:0x0++0xbfff %Long 0x0
+
+; --------------------------------------------------------------------------------
+; Flash programming
+
+; prepare flash programming (declarations)
+DO ~~/demo/arm/flash/mb9df126.cmm PREPAREONLY
+
+; ReProgram Flash
+FLASH.ReProgram ALL
+Data.LOAD.Elf "~~~~/sieve_flash_arm_v7r_le.elf"
+FLASH.ReProgram OFF
+
+; set BDR 0x017FFFF0++0xF
+FLASH.AUTO 0x017FFFF0++0xF /CENSORSHIP
+; example - set start address to AXI FLASH START
+Data.Set 0x017FFFF8 %Long ADDRESS.OFFSET(_start) 0x292D3A7B
+FLASH.AUTO OFF
+; set SDR 0x017F0000++0x7f
+; FLASH.AUTO 0x017F0000++0x7f /CENSORSHIP
+; Data.Set ...
+; Data.LOAD ...
+; FLASH.AUTO OFF
+
+; --------------------------------------------------------------------------------
+; Reset the target again
+; <timing critical>
+SYStem.Up
+
+&val=Data.Long(AD:0xB0608048)
+IF (&val&0x01000000)==0
+(
+  ; disable watchdog
+  Data.Set AD:0xB0608000 %Long 0xEDACCE55
+  Data.Set AD:0xB0608048 %Long 0x01000000
+)
+ELSE IF (&val&0xb)==(0x1||0x2||0x3)
+(
+  ; watchdog already locked - bug DBGEN not set
+  DIALOG.OK "Watchdog enabled BUT DBGEN not set!"
+  STOP
+)
+; </timing critical>
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+ENDDO
+

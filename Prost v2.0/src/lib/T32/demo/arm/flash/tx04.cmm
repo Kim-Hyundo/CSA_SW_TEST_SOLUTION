@@ -1,0 +1,253 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash declaration for Toshiba TX04 AND TXZ4 family internal flash derivativs
+; @Description: 
+;   Script arguments:
+;     DO tx04 [PREPAREONLY] [CPU=<cpu>] [DUALPORT=<0|1>]
+;       PREPAREONLY    only declares flash but does not execute flash programming
+;       CPU=<cpu>      selects CPU derivative <cpu>
+;       DUALPORT=<0|1> use dual port memory access, default 1
+;   Example:
+;     DO ~~/demo/arm/flash/tx04 PREPAREONLY
+;   Note:
+;     This file must NOT be modified.
+;     This file is intended to stay within TRACE32 installation.
+;     Usage examples are available in the ~~/demo/arm/hardware/... subdirectories.
+;
+;   List of Toshiba TX04 and TXZ4 derivatives and their configuration:
+;      CPU-Type       Code Flash   Data Flash   RamSize
+;                        [KB]       [KB]         [KB]
+; --------------------------------------------------------------------------------
+;	TMPM440FEXBG		 768					  8
+;	TMPM46BF10FG		1024					256
+;	TMPM46BF10FG		1024					256
+;	TMPM461F10FG		1024					192
+;	TMPM461F15FG		1536					192
+;	TMPM462F10FG		1024					192
+;	TMPM462F15FG		1536					192
+;	TMPM470FDFG			 512					 32
+;	TMPM470FZFG			 384					 32
+;	TMPM470FYFG			 256					 32
+;	TMPM475FDFG			 512					 32
+;	TMPM475FZFG			 384					 32
+;	TMPM475FYFG			 256					 32
+;	TMPM4L1FWUG			 128					  6
+;	TMPM4L2FWDUG		 128					  6
+;	TMPM4K4FYAUG		 256					 18
+;	TMPM4K4FWAUG		 128					 18
+;	TMPM4K4FUAUG		  96					 18
+;	TMPM4K4FSAUG		  64					 18
+;	TMPM4K4FYAFG		 256					 18
+;	TMPM4K4FWAFG		 128					 18
+;	TMPM4K4FUAFG		  96					 18
+;	TMPM4K4FSAFG		  64					 18
+;	TMPM4K2FYADUG		 256					 18
+;	TMPM4K2FWADUG		 128					 18
+;	TMPM4K2FUADUG		  96					 18
+;	TMPM4K2FSADUG		  64					 18
+;	TMPM4K1FYAUG		 256					 18
+;	TMPM4K1FWAUG		 128					 18
+;	TMPM4K1FUAUG		  96					 18
+;	TMPM4K1FSAUG		  64					 18
+;	TMPM4K0FSADUG		  64					 18
+;	TMPM4KQFDFG			 512		32			 24
+;	TMPM4KQFYFG			 256		32			 24
+;	TMPM4KQFWFG			 128		32			 24
+;	TMPM4KPFDDFG		 512		32			 24
+;	TMPM4KPFYDFG		 256		32			 24
+;	TMPM4KPFWDFG		 128		32			 24
+;	TMPM4KNFDDFG		 512		32			 24
+;	TMPM4KNFYDFG		 256		32			 24
+;	TMPM4KNFWDFG		 128		32			 24
+;	TMPM4KMFDDFG		 512		32			 24
+;	TMPM4KMFYDFG		 256		32			 24
+;	TMPM4KMFWDFG		 128		32			 24
+;	TMPM4KLFDUG			 512		32			 24
+;	TMPM4KLFYUG			 256		32			 24
+;	TMPM4KLFWUG			 128		32			 24
+;	TMPM4KNFDFG			 512		32			 24
+;	TMPM4KNFYFG			 256		32			 24
+;	TMPM4KNFWFG			 128		32			 24
+;	TMPM4KMFDFG			 512		32			 24
+;	TMPM4KMFYFG			 256		32			 24
+;	TMPM4KMFWFG			 128		32			 24
+;	TMPM4KLFDFG			 512		32			 24
+;	TMPM4KLFYFG			 256		32			 24
+;	TMPM4KLFWFG			 128		32			 24
+;	TMPM4G6FDFG			 512		32			192
+;	TMPM4G6FEFG			 768		32			192
+;	TMPM4G6F10FG		1024		32			192
+;	TMPM4G6F15FG		1536		32			192
+;	TMPM4G7FDFG			 512		32			192
+;	TMPM4G7FEFG			 768		32			192
+;	TMPM4G7F10FG		1024		32			192
+;	TMPM4G7F15FG		1536		32			192
+;	TMPM4G8FDFG			 512		32			192
+;	TMPM4G8FEFG			 768		32			192
+;	TMPM4G8F10FG		1024		32			192
+;	TMPM4G8F15FG		1536		32			192
+;	TMPM4G9FDFG			 512		32			192
+;	TMPM4G9FEFG			 768		32			192
+;	TMPM4G9F10FG		1024		32			192
+;	TMPM4G9F15FG		1536		32			192
+
+
+;
+; @Chip: TMPM4*
+; @Author: MAM
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 8107 $
+; $Id: tx04.cmm 8107 2020-03-21 15:38:28Z mmauser $
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+PRIVATE &param_prepareonly &param_cpu &param_dualport
+&parameters=STRing.UPpeR("&parameters")
+&param_prepareonly=(STRing.SCAN("&parameters","PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract("&parameters","CPU=","")
+&param_dualport=STRing.SCANAndExtract("&parameters","DUALPORT=","1")
+
+; --------------------------------------------------------------------------------
+; Initialize and start the debugger
+IF !SYStem.Up()
+(
+  SYStem.RESet
+
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  IF (!CPUIS(TMPM47*))
+    SYStem.CPU TMPM47*
+
+  SYStem.MemAccess DAP
+
+  IF CABLE.TWOWIRE()
+    SYStem.CONFIG DEBUGPORTTYPE SWD
+  ELSE
+    SYStem.CONFIG DEBUGPORTTYPE JTAG
+
+  SYStem.Up
+)
+
+; --------------------------------------------------------------------------------
+; Flash declaration and target preparation
+FLASH.RESet
+GOSUB FlashDeclaration "&param_dualport"
+GOSUB DisableWatchdog
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; --------------------------------------------------------------------------------
+; Flash programming example
+DIALOG.YESNO "Program flash memory?"
+PRIVATE &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram ALL /Erase
+  Data.LOAD.auto *
+  FLASH.ReProgram OFF
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+)
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+; SUBROUTINES
+
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU
+;
+;   Please do NOT modify the TRACE32 flash declaration.
+;
+;   Modifications can result in unpredictable behavior.
+;   Please contact support@lauterbach.com for any changes.
+FlashDeclaration: ;(param_dualport)
+(
+  PARAMETERS &param_dualport
+  PRIVATE &SRAMAddress &FlashDriver &CodeFlashSize
+  
+    &SRAMAddress=0x20000000
+
+; Determine flash driver
+  IF CPUIS(TMPM44*)
+  	&FlashDriver="tmpm440.bin"
+  ELSE IF CPUIS(TMPM46*)
+   	&FlashDriver="tmpm461.bin"
+  ELSE IF CPUIS(TMPM47*)
+    &FlashDriver="tmpm475.bin"
+  ELSE IF CPUIS(TMPM4G*)
+    &FlashDriver="tmpm4g.bin"
+  ELSE IF CPUIS(TMPM4K*)
+    &FlashDriver="tmpm4g.bin" // this driver should work for the tmpm4k family too.
+  ELSE IF CPUIS(TMPM4L*)
+    &FlashDriver="tmpm4l.bin"
+  ELSE
+  (
+    PRINT %ERROR " Onchip FLASH of CPU type is not supported by the script"
+    ENDDO
+  )
+
+; Determine code flash size
+  IF CPUIS(TMPM4???E)
+    &CodeFlashSize=0xC0000 
+  ELSE IF CPUIS(TMPM4???10*)
+    &CodeFlashSize=0x100000 
+  ELSE IF CPUIS(TMPM4???15*)
+    &CodeFlashSize=0x180000 
+  ELSE IF CPUIS(TMPM4???D*)
+    &CodeFlashSize=0x80000 
+   ELSE IF CPUIS(TMPM4???Z*)
+    &CodeFlashSize=0x60000 
+   ELSE IF CPUIS(TMPM4???Y*)
+    &CodeFlashSize=0x40000 
+   ELSE IF CPUIS(TMPM4???W*)
+    &CodeFlashSize=0x20000 
+   ELSE IF CPUIS(TMPM4???U*)
+    &CodeFlashSize=0x18000 
+   ELSE IF CPUIS(TMPM4???S*)
+    &CodeFlashSize=0x10000 
+   ELSE
+  (
+    PRINT %ERROR " Onchip FLASH of CPU type is not supported by the script"
+    ENDDO
+  )
+
+
+  FLASH.Create 1. 0x0++(&CodeFlashSize-1) 0x8000 TARGET LONG	
+
+; If available create data flash 
+  IF CPUIS(TMPM4G*)||CPUIS(TMPM4KQ*)||CPUIS(TMPM4KQ*)
+    FLASH.Create 1. 30000000x0++(0x8000-1) 0x1000 TARGET LONG	
+  
+  IF (("&param_dualport"!="1")||SYStem.ACCESS.DENIED())
+    FLASH.TARGET &SRAMAddress &SRAMAddress+0x1000 0x1000 ~~/demo/arm/flash/long/&FlashDriver
+  ELSE
+    FLASH.TARGET &SRAMAddress E:&SRAMAddress+0x1000 0x1000 ~~/demo/arm/flash/long/&FlashDriver /DualPort
+
+  RETURN
+)
+
+DisableWatchdog:
+(
+  PRIVATE &WDTBaseAddress
+  
+  
+  IF CPUIS(TMPM44*)||CPUIS(TMPM47*)
+    &WDTBaseAddress=0x400F2000
+  ELSE IF CPUIS(TMPM46*)
+    &WDTBaseAddress=0x402F2000
+  ELSE
+	// No watchdog timer
+  	RETURN
+    
+  Data.Set SD:&WDTBaseAddress %LE %Long 0x2	;Watchdog Timer Mode Register: Disable control
+  Data.Set SD:&WDTBaseAddress+4. %LE %Long 0xb1	;Watchdog Timer Control Register: Disable Code	
+  
+  RETURN
+)

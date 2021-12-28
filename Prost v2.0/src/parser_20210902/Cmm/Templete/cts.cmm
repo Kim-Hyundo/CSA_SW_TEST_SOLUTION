@@ -1,0 +1,37 @@
+; -------------------------------------------------------------------------------
+; @Title: CTS debugging for trace result CMM
+; Script arguments:
+;
+;   DO cts.cmm [Testcase Number]
+;
+; --------------------------------------------------------------------------------
+LOCAL &adFilePath &testcaes_number
+ENTRY &testcase_number &debug_path
+
+;&testcase_number=7.
+&testcase_number=format.decimal(1.,&testcase_number)
+&adFilePath="&debug_path\ad"
+
+IF RUN()
+(
+  BREAK
+)
+
+//------------Trace file(.ad) load------------//
+
+Trace.Init
+
+&adFile="&adFilePath"+"\trace"+"&testcase_number"+".ad"
+
+IF !OS.FILE("&adFile")
+(
+  print "'&adFile'"+" Not Found. Please check about the trace result file."
+)
+
+Trace.LOAD "&adFile"
+
+//------------Set CTS Mode------------//
+Winclear
+CTS.ON
+CTS.Chart
+Trace.List

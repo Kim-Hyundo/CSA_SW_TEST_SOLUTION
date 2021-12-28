@@ -1,0 +1,164 @@
+; --------------------------------------------------------------------------------
+; @Title: Chorus Demo for TRACE32 OS Awareness
+; @Description: 
+;   
+;   This batchfile loads all necessary files to demonstrate
+;   the RTOS-Debugger for Chorus micro on ARM (thumb mode)
+;   in stand-alone-mode.
+;   
+;   This version supplies table display and analyzer check. System call
+;   trace is not supported yet.
+;   
+;   Used memory locations are computed internally by global
+;   system variables. See below for the changes.
+;   
+;   This script has been tested with following Chorus ClassiX versions:
+;   
+;   Version 3.1b       Proc: ARM (arm/thumb)   
+;   
+; @Keywords: chorus, Emulator, ICE, RTOS, v31x
+; @Props: NoWelcome
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: chorusbt.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+;   Created by Rudolf Dienstbeck / Lauterbach GmbH at 25.02.97
+
+ SCREEN.ON
+
+; Emulator
+ E::
+
+; Emulator reset
+ PRINT "resetting..."
+ SYStem.RESet
+ SYStem.Option dm access
+ SYStem.Access cs
+ VCO.Clock 3.
+ MAP.RESet
+ WinPAGE.RESet
+
+ PRINT "initializing..."
+
+; define workbenches
+ MAP.PRE       0x0++0x0fffff
+ MAP.PRE  0x1000000++0x0fffff
+ MAP.PRE  0x2000000++0x0fffff
+ MAP.PRE  0x3000000++0x3fffff
+ MAP.PRE 0x0a000000++0x0fffff
+
+; mirroring first 4M
+; map.mirror     d:0--1fff   1000000
+; map.mirror  d:2000--7ffff  2002000
+; map.mirror d:80000--3fffff 3080000
+; don't mirror, use normal ram
+ MAP.Data 0x0++0x0effff
+ MAP.Flag 0x0++0x0effff
+ MAP.Data 0x0a000000++0x0ff
+
+; 128k SSRAM
+ MAP.Data  0x1000000++0x01ffff
+; 512k SRAM
+ MAP.Data  0x2000000++0x07ffff
+; 2 (1/4?) MB DRAM
+ MAP.Data  0x3000000++0x2fffff
+
+; internal
+ MAP.Intern
+
+; Stand alone internal mode
+ SYStem.Mode AloneInt
+
+; load sample application
+ PRINT "loading sample application..."
+ Data.LOAD.AIF ktmt
+ Register.Set PC 0x2000
+
+; switch on C++ demangler
+ sYmbol.DEMangle ON
+
+; simulate SWI
+ DO swi 0x70000
+
+; patch PutChar routine
+; d.a armpidPutChar push {r1,r2,r14}
+  Data.Set armpidPutChar %Word 0x0b506
+; d.a , mov  r1,#8
+  Data.Set armpidPutChar+0x2 %Word 0x02108
+; d.a , lsl  r1,r1,#10
+  Data.Set armpidPutChar+0x4 %Word 0x00409
+; d.a , ldrb r2,[r1,#1]
+  Data.Set armpidPutChar+0x6 %Word 0x0784a
+; d.a , cmp  r2,#0
+  Data.Set armpidPutChar+0x8 %Word 0x02a00
+; d.a , bne  $-6
+  Data.Set armpidPutChar+0x0a %Word 0x0d1fc
+; d.a , strb r0,[r1,#1]
+  Data.Set armpidPutChar+0x0c %Word 0x07048
+; d.a , pop  {r1,r2,pc}
+  Data.Set armpidPutChar+0x0e %Word 0x0bd06
+
+; patch PollChar routine
+; d.a armpidPollChar push {r1,r2,r14}
+  Data.Set armpidPollChar %Word 0x0b506
+; d.a , mov  r1,#8
+  Data.Set armpidPollChar+0x2 %Word 0x02108
+; d.a , lsl  r1,r1,#10
+  Data.Set armpidPollChar+0x4 %Word 0x00409
+; d.a , ldrb r0,[r1,#2]
+  Data.Set armpidPollChar+0x6 %Word 0x07888
+; d.a , cmp  r0,#0
+  Data.Set armpidPollChar+0x8 %Word 0x02800
+; d.a , beq  $+4
+  Data.Set armpidPollChar+0x0a %Word 0x0d001
+; d.a , mov  r2,#0
+  Data.Set armpidPollChar+0x0c %Word 0x02200
+; d.a , strb r2,[r1,#2]
+  Data.Set armpidPollChar+0x0e %Word 0x0708a
+; d.a , pop  {r1,r2,pc}
+  Data.Set armpidPollChar+0x10 %Word 0x0bd06
+
+; set "interrupt controller status register" to timer int
+  Data.Set 0x0a000000 %Byte 0x10
+
+; configure timer
+  x.puls irq
+  eXception.PERiod  5.ms
+  eXception.OFF
+; start timer later !
+
+; initialize mutitasking support
+ PRINT "initializing RTOS support..."
+ SCREEN.OFF
+
+ TASK.CONFIG chorus 0x2000000 0x0 0x2000c60
+
+; --------------------------------------------------------------------------------
+; PREPARE Analyzer for OS tracing
+; --------------------------------------------------------------------------------
+
+; The analyzer is prepared to trace taskswitches
+
+  Break.Delete /Alpha 
+  Break.Set 0x2000000 /Alpha 
+
+; start analyzer with focus on alpha breakpoints: 
+  Analyzer.ReProgram
+  (
+    Sample.Enabled IF AB&&WRITE
+  )
+
+
+ ;new menu items
+ MENU.ReProgram chorus
+ 
+;initial window configuration
+ DO taskwin
+ PRINT "load complete."
+
+; the following is for quicker access to the emulation ram
+; delete if you want to use target ram
+ TASK.ACCESS e:
+
+ PRINT "start with 'g' and 'x.on'"

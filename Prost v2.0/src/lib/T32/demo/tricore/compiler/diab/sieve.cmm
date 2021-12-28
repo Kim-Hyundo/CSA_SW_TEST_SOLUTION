@@ -1,0 +1,34 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for loading DIAB object file in ELF format
+; @Description:
+;   Compiler: DIAB DCC, Release 5.5.1.0:TriCore
+;   CPU: TC1796
+;
+;   Application is linked to internal flash memory.
+;   Use the simulator to avoid conflicts with undecleared flash memory.
+;
+; @Keywords: compiler, diab, Infineon, sieve, TriCore
+; @Author: MAX
+; @Chip: TC1796
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: sieve.cmm 7822 2014-10-29 13:57:15Z kjmal $
+
+
+WinCLEAR
+
+SYStem.RESet
+SYStem.CPU TC1796
+SYStem.Up
+
+Data.LOAD.Elf "~~~~/sieve.elf"
+
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch
+Var.AddWatch ast flags
+
+ENDDO

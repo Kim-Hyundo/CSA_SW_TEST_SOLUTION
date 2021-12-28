@@ -1,0 +1,209 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to gain data access to Emulation Memory (EMEM) on AURIX devices
+; @Description:
+;   The EMEM is usually used by TRACE32 for trace data. This script shows how it
+;   can be used as data memory.
+; @Keywords: EMEM, Infineon, MCDS, TriCore
+; @Author: MOB
+; @Chip: TC2???[AEF]* TC3*
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: emem_aurix.cmm 15091 2019-10-15 14:54:16Z rsagerer $
+
+
+LOCAL &configureManually &accessViaLMU
+LOCAL &Register_EMEM_CLC &Register_EMEM_TILECONFIG &Register_EMEM_TILECC
+LOCAL &Register_EMEM_TILECT &Register_EMEM_SBRCTR &Register_EMEM_TILECONFIGXM
+LOCAL &EMEM_LMUBaseAddr &EMEM_EECBaseAddr &EMEM_Size
+PRIVATE &Register_EMEM_Base &enableOnly &parameters &init
+
+ENTRY %LINE &parameters
+
+&enableOnly=(STRING.SCAN("&parameters","ENABLEONLY",0.)>=0)
+&init=(STRING.SCAN("&parameters","NOINIT",0.)==0)
+  
+; define how to set up:
+&configureManually=TRUE()
+&accessViaLMU=TRUE()
+
+IF (!SYStem.UP())
+(
+  GOSUB SetCPU
+  SYStem.Up
+)
+
+IF (CHIP.EmulationDevice()&&CPUIS(TC2*))
+(
+  ; open EMEM part of periphery window
+  IF !(&enableOnly)
+  (
+    PER.view , "EEC (Emulation Extension Chip),EMEM (Emulation Memory)"
+  )
+  
+  &Register_EMEM_Base="EEC:0xF00E6000"
+  &EMEM_LMUBaseAddr="0xBF000000"
+  &EMEM_EECBaseAddr="0xAF000000"
+)
+ELSE IF (CHIP.EmulationDevice()&&CPUIS(TC3*))
+(
+  ; open EMEM part of periphery window
+  IF !(&enableOnly)
+  (
+    PER.view , "EEC (Emulation Extension Chip),EMEM (Extension Memory)"
+  )
+  
+  &Register_EMEM_Base="EEC:0xFA006000"
+  &EMEM_LMUBaseAddr="0xB9000000"
+  &EMEM_EECBaseAddr="0xB9000000"
+)
+ELSE IF CPUIS(TC2???X)
+(
+  ; device with memory extension
+  &Register_EMEM_Base="D:0xF90E6000"
+  &EMEM_LMUBaseAddr="0xBF000000"
+  &EMEM_EECBaseAddr="0xAF000000"
+)
+ELSE
+(
+  PRINT "CPU "+CPU()+" not supported by this script"
+  ENDDO
+)
+
+; Register addresses:
+&Register_EMEM_CLC="&(Register_EMEM_Base)+0x00" // Clock Control Register
+&Register_EMEM_TILECONFIG="&(Register_EMEM_Base)+0x20" // Tile Configuration Register
+&Register_EMEM_TILECC="&(Register_EMEM_Base)+0x24" // Calibration Tile Control Register
+&Register_EMEM_TILECT="&(Register_EMEM_Base)+0x28" // Trace Tile Control Register
+&Register_EMEM_SBRCTR="&(Register_EMEM_Base)+0x34" // Stand-by RAM Control Register
+&Register_EMEM_TILECONFIGXM="" //  Extended Tile Configuration Register
+
+IF CPUIS("TC39*")
+(
+  &EMEM_Size=0x400000  // 4MB
+)
+ELSE IF CPUIS("TC37*")
+(
+  &EMEM_Size=0x300000  // 3MB
+)
+ELSE IF CPUIS("TC35*")
+(
+  &EMEM_Size=0x200000  // 2MB
+)
+ELSE IF CPUIS("TC33*")
+(
+  &EMEM_Size=0x100000  // 1MB
+)
+ELSE IF CPUIS("TC29*")
+(
+  &EMEM_Size=0x204000  // 2MB+16kB
+  &Register_EMEM_TILECONFIGXM="&(Register_EMEM_Base)+0x4C"
+)
+ELSE IF CPUIS("TC27*")
+(
+  &EMEM_Size=0x100000  // 1MB
+)
+ELSE
+(
+  &EMEM_Size=0x080000  // 512kB
+)
+
+
+IF (&configureManually)
+(
+  IF (CHIP.EmulationDevice()&&(MCDS.Module.NAME()=="MCDS"))
+  (
+    IF (Analyzer())
+    (
+      Analyzer.DISable // make sure TRACE32 does not interfere
+    )
+    IF (Onchip.STATE()!=5.)
+    (
+      Onchip.DISable // make sure TRACE32 does not interfere
+    )
+    MCDS.OFF
+  )
+
+  WAIT 200.ms
+  PER.Set.simple &Register_EMEM_CLC %Long 0x0
+  WAIT 200.ms
+  ; write unlock sequence:
+  PER.Set.simple &Register_EMEM_SBRCTR %Long (0x1<<1.)
+  PER.Set.simple &Register_EMEM_SBRCTR %Long (0x3<<1.)
+  PER.Set.simple &Register_EMEM_SBRCTR %Long (0x7<<1.)
+  WAIT 200.ms
+)
+ELSE
+(
+  ; Initialize EMEM with TRACE32 (easier)
+  Onchip.OFF // initialize EMEM (don't confuse with Onchip.DISable)
+  MCDS.TraceBuffer.SIZE 0. // make sure TRACE32 does not use the EMEM for tracing.
+)
+
+; configure tiles:
+PER.Set.simple &Register_EMEM_TILECONFIG %Long 0xFFFFffff // set all tiles to "unused" (switching directly between calibration and trace is not possible)
+PER.Set.simple &Register_EMEM_TILECONFIG %Long 0x0 // set all tiles "calibration"
+IF "&Register_EMEM_TILECONFIGXM"!=""
+(
+  PER.Set.simple &Register_EMEM_TILECONFIGXM %Long 0xFFFFffff // set all tiles to "unused" (switching directly between calibration and trace is not possible)
+  PER.Set.simple &Register_EMEM_TILECONFIGXM %Long 0x0 // set all tiles "calibration"
+)
+
+IF CPUIS(TC3*)
+(
+  PER.Set.simple &Register_EMEM_TILECC %Long 0xFFFFffff
+  IF !(&enableOnly)
+  (
+    Data.dump EEC:(&EMEM_EECBaseAddr)
+    Data.dump D:(&EMEM_LMUBaseAddr) // access via LMU
+  )
+  IF !(&init)
+  (
+    Data.Set EEC:(&EMEM_EECBaseAddr)++(&EMEM_Size-1) %Long 0x0 // EMEM is EEC protected => Initalize to zero
+  )
+)
+ELSE
+(
+  IF (&accessViaLMU)
+  (
+    PER.Set.simple &Register_EMEM_TILECC %Long 0x0 // EMEM will be accessible via LMU (and BBB)
+    IF !(&enableOnly)
+    (
+      Data.dump D:(&EMEM_LMUBaseAddr) // access via LMU
+    )
+    IF !(&init)
+    ( 
+      Data.Set D:(&EMEM_LMUBaseAddr)++(&EMEM_Size-1) %Long 0x0 // EMEM is EEC protected => Initalize to zero
+    )
+  )
+  ELSE
+  (
+    PER.Set.simple &Register_EMEM_TILECC %Long 0xFFFFffff // EMEM will be accessible via BBB only, i.e. EEC: access class
+    IF !(&enableOnly)
+    (
+      Data.dump EEC:(&EMEM_EECBaseAddr) // please keep Erratum OCDS_TC_044 in mind!
+    )
+    IF !(&init)
+    (
+      Data.Set EEC:(&EMEM_EECBaseAddr)++(&EMEM_Size-1) %Long 0x0 // EMEM is EEC protected => Initalize to zero
+    )
+  )
+)
+
+; End of script
+ENDDO
+
+; Helper function to set the CPU
+SetCPU:
+(
+  ON.ERROR GOTO TryWithDAP
+  SYStem.DETECT.CPU
+  RETURN
+TryWithDAP:
+  ON.ERROR GOTO SetManually
+  SYStem.CONFIG.DEBUGPORTTYPE DAP2
+  SYStem.DETECT.CPU
+  RETURN
+SetManually:
+  SYStem.CPU TC2*
+  RETURN
+)

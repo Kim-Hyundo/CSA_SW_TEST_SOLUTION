@@ -1,0 +1,68 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo script for LPC1850 on MCB1800 (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   As the device has a internal bootrom we let the SoC boot for ~20ms till the 
+;   bootrom execution is finished, see SYStem.Option WaitReset/ResBreak.
+;   Use this script for getting started.
+;   Prerequisites:
+;    * DebugCable/CombiProbe/uTrace is connected to J6/J7/J8
+; @Keywords: ARM, Cortex-M3
+; @Author: AME
+; @Board: MCB1800
+; @Chip: LPC18??
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mcb1800_sieve_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU LPC1850
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF hardware.COMBIPROBE()||hardware.UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+; trigger RESET but wait additional 20ms
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 20.000ms
+SYStem.Option DisableSoftReset ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+; force onchip-breakpoints in the SPIFI memory range
+MAP.BOnchip 0x1c000000--0x1fffffff
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

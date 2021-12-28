@@ -1,0 +1,367 @@
+; --------------------------------------------------------------------------------
+; @Title: Windows Standard Module/Driver Debugging Script
+; @Description:
+;   Windows Standard Module/Driver Debugging Script
+;
+;   This script waits for a driver to be started,
+;   loads the symbols and halts the driver at the entry point
+;
+;   NOTE: Windows and the Windows awareness must be up.
+;
+;   Start this script with the driver name (without suffix)
+;   as argument to run the script as command line version
+;   or use /dialog to run the script in a dialog.
+;
+;   Examples:
+;     do mod_debug mydriver   ; waits for "mydriver.sys" to be started
+;     do mod_debug /dialog    ; opens a dialog window
+;
+;   Prerequisites:
+;   - Windows must be booted
+;   - Windows awareness must be configured
+;   - Autoloader must be configured
+;
+; @Keywords: awareness, windows
+; @Author: DIE
+; @Copyright: (C) 1989-2018 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mod_debug.cmm 4754 2019-11-06 10:55:10Z rdienstbeck $
+
+
+; Define local macros
+ LOCAL  &para1
+ LOCAL  &driver &spaceid &dialog
+ GLOBAL &true &false &breakaddr
+ &true=(1==1)
+ &false=(1==0)
+ &breakaddr=0
+
+
+; get the driver name as parameter to the script
+ ENTRY &para1
+
+
+; Check parameters
+ IF "&para1"==""
+ (
+    ; no parameter given -> print usage
+    PRINT "Usage: ""do mod_debug <modulename>"" or ""do app_debug /dialog"""
+    ENDDO 1.
+ )
+ IF STRing.LoWeR("&para1")=="/dialog"
+ (
+    ; /dialog -> open a dialog to select driver
+    &dialog=&true
+    &driver=""
+ )
+ ELSE
+ (
+    ; parameter contains driver name
+    &dialog=&false
+    &driver="&para1"
+ )
+
+ IF !sYmbol.EXIST(PsLoadedModuleList)
+ (
+    GOSUB message "Error: This action could not be performed: Please ensure that Kernel symbols are loaded!"
+    ENDDO 1.
+ )
+
+; Check against TASK.Watch that interferes with this script
+ ;if (task.watch.active()==1)
+ ;(
+ ;   gosub message "Please close TASK.Watch window" "before using this menu item"
+ ;   enddo 1.
+ ;)
+
+
+; Activate autoloader for modules:
+ TASK.sYmbol.Option AutoLoad KModule
+
+; Ensure windows update
+ SCREEN.ALways
+
+
+; Dialog or Command line version?
+
+ IF &dialog
+   GOTO dialog
+
+
+; --------------------------------------------------------------------------------
+; Command line interface
+
+ ; Check if the driver already exists in the module list.
+
+ LOCAL &existed &main
+
+ GOSUB checkexisting &driver
+ ENTRY &existed
+ IF &existed
+   ENDDO 2.
+
+ ; Wait for module to be loaded.
+ ; The module must be inserted in the target system.
+
+ PRINT "Please create module &driver..."
+ GOSUB waitforstart &driver
+
+ ; Yep! The driver is loaded and we found it.
+ ; Now load the driver symbols.
+
+ PRINT "module &driver started, loading symbols..."
+ GOSUB loadsymbols &driver
+ ENTRY &main
+ IF &main==0
+    ENDDO 1.
+
+ ; We got the entry point of the driver.
+ ; We let the system run until it reaches the entry routine.
+
+ PRINT "waiting for reaching entry..."
+ GOSUB waitformain &driver &main
+
+ // That's it, we halted at entry!
+
+ PRINT "done."
+
+ ENDDO 0.
+
+
+; --------------------------------------------------------------------------------
+; Dialog interface
+
+dialog:
+ DIALOG.view
+ (
+        HEADER "Debug Module on entry"
+        POS 0. 0. 24. 3.
+        BOX "module name (without .sys)"
+        POS 1. 1. 22. 1.
+driv:   DEFHOTEDIT ""
+        (
+            IF DIALOG.STRing(driv)!=""
+                DIALOG.Enable bok
+            ELSE
+                DIALOG.Disable bok
+        )
+        POS 2. 4.5 8.
+bok:    DEFBUTTON "Ok"
+        (
+            LOCAL &driver &existed &main
+            DIALOG.Disable bok
+            DIALOG.Disable driv
+            &driver=DIALOG.STRing(driv)
+            DIALOG.Set mess "Checking module &driver..."
+
+            GOSUB checkexisting &driver
+            ENTRY &existed
+            IF &existed
+                JUMPTO close
+
+            DIALOG.Set mess "Please create module &driver"
+
+            GOSUB waitforstart &driver
+
+            DIALOG.Set mess "Module &driver started. Loading symbols..."
+
+            GOSUB loadsymbols &driver
+            ENTRY &main
+            IF &main==0
+                JUMPTO close
+
+            DIALOG.Set mess "Waiting for reaching entry..."
+
+            GOSUB waitformain &driver &main
+
+            JUMPTO close
+        )
+        POS 14. 4.5 8.
+        BUTTON "Cancel" "JUMPTO close"
+        POS 0. 6. 24. 1.
+mess:   EDIT "Please enter module name" ""
+        CLOSE "JUMPTO close"
+ )
+
+ DIALOG.Disable bok
+ DIALOG.Disable mess
+
+ STOP
+
+close:
+
+ IF &breakaddr!=0
+ (
+    IF STATE.RUN()
+        Break.direct
+    Break.Delete &breakaddr
+    ON PBREAKAT &breakaddr
+    &breakaddr=0
+ )
+
+ DIALOG.END
+ ENDDO 0.
+
+
+; --------------------------------------------------------------------------------
+; Subroutine: Check if driver already exists
+
+checkexisting:
+ ENTRY &driver
+
+ IF STATE.RUN()
+    Break.direct
+
+ IF (task.mod.magic("&driver")&0xFFFFFFFF)!=0xFFFFFFFF
+ (
+    sYmbol.AutoLOAD.CLEAR "&driver"
+    sYmbol.AutoLOAD.CHECK
+    sYmbol.AutoLOAD.TOUCH "&driver"
+    IF sYmbol.EXIST(\\&driver)
+        GOSUB message "Module &driver already started." "Symbols loaded."
+    ELSE
+        GOSUB message "Module &driver already started." "No symbol file found."
+    RETURN &true
+ )
+
+; Delete possibly existing breakpoints of previous driver runs
+
+ IF sYmbol.EXIST("\\&driver")
+   Break.Delete sYmbol.SECRANGE(\\&driver\.text)
+
+ RETURN &false
+
+
+; --------------------------------------------------------------------------------
+; Subroutine: Wait for start of driver
+
+waitforstart:
+ LOCAL &createdriver
+ ENTRY &driver
+
+; Wait for driver to be loaded.
+; The driver must be inserted in the target system.
+
+ ; We cannot load driver symbols as long as we do not
+ ; know where the driver is located. The addresses
+ ; are set up, right before the driver is started after
+ ; IopPrepareDriverLoading()
+
+ &createdriver="PnpPrepareDriverLoading"
+ IF !sYmbol.EXIST(&createdriver)
+ (
+   &createdriver="_PnpPrepareDriverLoading@20"
+   IF !sYmbol.EXIST(&createdriver)
+   (
+     &createdriver="PnpPrepareDriverLoading"
+     IF !sYmbol.EXIST(&createdriver)
+     (
+       &createdriver="_IopPrepareDriverLoading@16"
+     )
+   )
+ )
+
+ ; we need access to the kernel symbols, ensure they are loaded
+
+ IF !sYmbol.EXIST(&createdriver)
+ (
+   TASK.sYmbol.Option AutoLoad KModule
+   sYmbol.AutoLOAD.CHECK
+   sYmbol.AutoLOAD.TOUCH "ntkr*"
+   IF !sYmbol.EXIST(&createdriver)
+   (
+     GOSUB message "Error: driver creation location not found!"
+     ENDDO 1.
+   )
+ )
+
+ ; The driver creation is called for every driver to start -
+ ; the conditional breakpoint halts only, if the desired driver
+ ; is found in the driver table.
+
+ &breakaddr=ADDRESS.OFFSET(&createdriver)
+ Break.Delete &breakaddr                    ; delete previous set breakpoints
+ Break.Set &breakaddr /Program /CONDition (task.mod.magic("&driver")&0xFFFFFFFF)!=0xFFFFFFFF
+ ON PBREAKAT &breakaddr GOTO wfs_continue   ; if breakpoint reached: continue
+
+ Go.direct         ; let the target run and load the driver
+
+ STOP       ; halt script until breakpoint reached
+
+ ; breakpoint hit, continue script
+wfs_continue:
+
+ Break.Delete &breakaddr    // delete breakpoint
+ &breakaddr=0
+ ON PBREAKAT &breakaddr     // delete script action
+
+ RETURN
+
+
+; --------------------------------------------------------------------------------
+; Subroutine: Load symbols of driver
+
+loadsymbols:
+ LOCAL &driver &magic &main
+ ENTRY &driver
+
+; Yep! The driver is loaded and we found it.
+
+; Now load the driver symbols
+
+ sYmbol.AutoLOAD.CLEAR "&driver"    ; clear possibly previous set
+ sYmbol.AutoLOAD.CHECK              ; force new autoloader list
+ sYmbol.AutoLOAD.TOUCH "&driver"    ; force loading of driver symbols
+
+
+; Now set a breakpoint at the entry point.
+
+ &magic=task.mod.magic("&driver")
+ &main=task.mod.entry(&magic)
+ IF &main==0
+ (
+    GOSUB message "Entry point of module &driver doesn't exist!"
+    RETURN     ; return with empty return parameter
+ )
+
+ RETURN &main
+
+
+; --------------------------------------------------------------------------------
+; Subroutine: Wait for reaching entry point
+
+waitformain:
+ LOCAL &driver &main &breakaddr
+ ENTRY &driver &main
+
+ &breakaddr=&main
+ Break.Set &breakaddr /Program
+
+ ; if breakpoint reached: continue
+ ON PBREAKAT &breakaddr GOTO wfm_continue
+
+ Go.direct  ; let the target run and start the driver
+
+ STOP       ; halt script until breakpoint reached
+
+ ; breakpoint hit, continue script
+wfm_continue:
+
+ Break.Delete &breakaddr    // delete breakpoint
+ &breakaddr=0
+ ON PBREAKAT &breakaddr     // delete script action
+
+ RETURN
+
+
+; --------------------------------------------------------------------------------
+; Subroutine: print message in dialog box or command line
+
+message:
+ LOCAL &msg1 &msg2
+ ENTRY &msg1 &msg2
+ IF &dialog
+    DIALOG.OK &msg1 &msg2
+ ELSE
+    PRINT &msg1 " " &msg2
+ RETURN

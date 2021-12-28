@@ -1,0 +1,91 @@
+; --------------------------------------------------------------------------------
+; @Title: Go To Xen Guest
+; @Description:
+;
+;  This script runs the target until control is given to
+;  a given guest. Specify the guest vmid as parameter.
+;  NOTE: Xen and the Xen awareness must be up.
+;
+;  Examples:
+;   do go_guest 1       ; go until guest with vmid 1 is scheduled
+;
+; @Keywords: awareness 1 
+; @Author: DIE
+; @Copyright: (c) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: go_guest.cmm 4761 2019-11-07 15:54:49Z bschroefel $
+
+LOCAL &guest &vmid &runstate &pc
+ENTRY &guest
+
+IF "&guest"==""
+(
+    PRINT "Please specify a guest vmid."
+    ENDDO
+)
+
+&runstate=STATE.RUN()
+IF STATE.RUN()
+    Break
+
+
+IF ext.vm.magic(&guest)==0xffffffff
+
+(
+    DIALOG.YESNO "Guest with vmid &guest not found!" "Continue anyway?"
+    ENTRY &yes
+    IF !&yes
+    (
+        IF &runstate
+            GO
+        ENDDO
+    )
+)
+
+; remove all breakpoints for a clean run
+Break.Delete /Program
+
+
+; set breakpoint if vm is changed
+Break.Set return_to_hypervisor /Onchip
+
+; try until the started guest is the specified one
+PRINT "waiting for guest vmid &guest..."
+&end=0
+RePeaT
+(
+    Go
+    WAIT !STATE.RUN()()
+    &active=ext.current(vmid)
+    &mode=Data.Long(H:Register(sp)+0x40)&0x1f
+    IF (&guest==0)&&(&mode==0x1a)
+        &end=1  ; hypervisor start
+    IF (&guest==&active)&&(&mode!=0x1a)
+        &end=1  ; selected guest start
+
+)
+WHILE &end==0
+
+Break.Delete return_to_hypervisor
+
+PRINT "guest vmid &guest scheduled, starting it..."
+; get returned PC
+&pc=Data.Long(H:Register(sp)+0x3c)
+
+IF (&guest==0)
+    Break.Set HP:&pc /Onchip
+else
+    Break.Set NP:&pc /Onchip
+
+Go
+WAIT !STATE.RUN()()
+Break.Delete /Program
+
+&vmid=ext.current(vmid)
+
+IF (r(cpsr)&0x1f)==0x1a
+    PRINT "halted in hypervisor."
+else
+    PRINT "halted in guest vmid &vmid."
+
+ENDDO

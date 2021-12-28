@@ -1,0 +1,89 @@
+; --------------------------------------------------------------------------------
+; @Title: VxWorks Demo for TRACE32 OS Awareness
+; @Description: 
+;   
+;   This script demonstrates the OS Awareness for VxWorks.
+;   See also rtos_vxworks.pdf
+;   
+; @Keywords: Awareness, RTOS, VxWorks
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: vxworks.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; Open Area window
+  
+WinPAGE.RESet
+AREA.RESet
+WinPOS 0. 32. 80. 17.
+AREA.view
+SCREEN.ALways
+
+
+; Reset debugger
+
+PRINT "resetting debugger..."
+RESet
+
+
+; Initialize debugger
+
+print "initializing debugger..."
+
+SYStem.CPU CortexA9
+ 
+SYStem.Option DACR ON          ; give Debugger global write permissions
+SETUP.IMASKASM ON              ; lock interrupts while single stepping
+
+SYStem.Up
+
+
+; Initialize target
+; Ensure that target is set up and RAM is accessible
+; e.g. by letting u-boot initialize everything.
+ 
+
+; Open List window -- we like to see something
+
+WinPOS 0. 0. 86. 26.
+List.auto
+
+
+; Download VxWorks image
+
+PRINT "downloading VxWorks image..."
+Data.LOAD.Elf C:\WindRiver\workspace\VIP\default\vxWorks
+  
+
+; Initialize kernel
+
+Go usrRoot
+PRINT "starting VxWorks..."
+WAIT !STATE.RUN()
+
+
+; Load VxWorks support
+
+PRINT "loading VxWorks support..." 
+TASK.CONFIG ~~/demo/arm/kernel/vxworks/vxworks.t32
+  
+
+; Open task list window
+
+WinPOS 86. 28. 85. 23.
+TASK.TaskInfo
+
+
+; Start application
+    
+Go usrAppInit
+PRINT "starting application..."
+WAIT !STATE.RUN()
+
+
+; That's it
+
+PRINT "done."
+
+ENDDO

@@ -1,0 +1,101 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for MK21FN1M0VMC12 on TWR-K21F120M with Onchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Onchip-Trace.
+;   Prerequisites:
+;    * Connect Debug Cable to J1 using Adapter LA-3770 
+;      or
+;      Connect Combiprobe/uTrace to J1
+; @Keywords: ARM, Cortex-M4, ETB, ETM
+; @Author: STK
+; @Board: TWR-K21F120M
+; @Chip: MK21FN1M0VMC12
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: twr-k21f120m_sieve_onchip_etb_trace_sram.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU MK21FN1M0VMC12
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF hardware.COMBIPROBE()||hardware.UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; initialize offchip-trace (ETM ON, ITM OFF)
+Trace.METHOD Onchip
+Trace.AutoInit ON
+ETM.Trace ON
+ETM.ON
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO
+
+DisableWatchdog:
+(
+  ; disable the Watchdog
+  LOCAL &tmp1 &tmp2
+  &tmp1=Data.Long(ST:0x20000000)
+  &tmp2=Data.Long(ST:0x20000004)
+  Register.SWAP
+  
+  ; The watchdog has a restrictive timing. It has to be configured and unlocked within a peripod
+  ; of 20+256 cycles. Therefor the unlock sequence need to be done by a small target program.
+  Data.Assemble ST:0x20000000  strh r1,[r0]  ;SD:0x4005200E = 0xC520   (Key 1)
+  Data.Assemble ,              strh r2,[r0]  ;SD:0x4005200E = 0xD928   (Key 2)
+  Data.Assemble ,              strh r4,[r3]  ;SD:0x40052000 = 0x0000   (Config register)
+  Data.Assemble ,              bkpt #0
+  Register.Set PC 0x20000000
+  Register.Set R0 0x4005200E
+  Register.Set R1 0xC520
+  Register.Set R2 0xD928
+  Register.Set R3 0x40052000
+  Register.Set R4 0x0
+  Go.direct
+  WAIT !STATE.RUN()
+  
+  Register.SWAP
+  Data.Set ST:0x20000000 %Long &tmp1
+  Data.Set ST:0x20000004 %Long &tmp2
+
+  RETURN
+)

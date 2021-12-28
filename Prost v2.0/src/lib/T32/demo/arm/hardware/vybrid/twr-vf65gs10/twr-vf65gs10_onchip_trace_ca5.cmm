@@ -1,0 +1,147 @@
+; --------------------------------------------------------------------------------
+; @Title: On-chip trace demo on Cortex-A5 of twr-vf65gs10 board
+; @Description:
+;   This demo shows how to configure on chip trace session on CA5 core
+;   of twr-vf65gs10.
+;   To debug TWR-VF65GS10 revision H you have to solder a 10K resistor at R161.
+; @Keywords: Cortex-A5, ETM, on-chip, trace, vybrid
+; @Author: HDA
+; @Board: TWR-Vf65GS10
+; @Chip: VF6*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: twr-vf65gs10_onchip_trace_ca5.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+  LOCAL &PATH
+  LOCAL &M4_PRESENT
+  LOCAL &ExecuteM4
+  LOCAL &Port
+  LOCAL &RemotePort
+
+  &PATH=OS.PPD()
+
+  &M4_PRESENT="FALSE"
+  &ExecuteM4="GOSUB ExecuteM4"
+  &Port=INTERCOM.PORT()
+
+; Basic settings
+  RESet
+  SYStem.CPU VF6XX-CA5
+  ETM.OFF
+  SYStem.CONFIG.CORE 1. 1.
+  SYStem.Mode Attach
+  Break.direct
+
+; Un-gate trace module clocks
+  Data.Set ZSD:0x4006B048 %Long 0xFFFFFFFF
+  Data.Set ZSD:0x4006B04C %Long 0xFFFFFFFF
+  Data.Set ZSD:0x4006B008 %Long 0x01000000
+
+; Enable trace clock and SWO and set divider
+  Data.Set ZSD:0x4006B01c %Long 0x14000000
+  ETM.ON
+  Trace.METHOD onchip
+
+
+; Load demo program
+  Data.LOAD.Elf ~~~~/demo.axf
+  Register.Set PC main
+  Register.Set CPSR 0x1d3
+  Register.Set R13 0x3f000100
+
+; Avoid touching areas which react badly
+  MAP.DenyAccess 0x30000000--0x3effffff
+  MAP.DenyAccess 0x80000000--0xffffffff
+
+; Open some windows
+  WinCLEAR
+  WinPOS 93.429 0.0 83. 34. 0. 0.
+  Register.view /SpotLight
+  WinPOS 0.0 0.0 86. 32. 16. 1. W001
+  List.auto
+  WinPOS 0.28571 39.083 86. 3. 0. 0. W003
+  Var.Watch flags ast
+  WinPOS 0.57143 50.0 86. 15. 5. 0. W005
+  Frame.view /Locals /Caller
+  WinPOS 93.286 39.167 83. 26. 12. 1.
+  Trace.List
+
+; Check remote instance of TRACE32
+  GOSUB SetupRemote
+
+  ENDDO
+
+
+ExecuteM4:
+  ENTRY %LINE &param
+
+  IF "&M4_PRESENT"=="TRUE"
+  (
+    INTERCOM.executeNoWait &RemotePort &param
+    INTERCOM.WAIT &RemotePort
+  )
+
+  RETURN
+
+
+SetupRemote:
+  IF &Port==0
+    RETURN
+
+  &RemotePort=&Port+1
+
+  IF INTERCOM.PING("&RemotePort")
+    &M4_PRESENT="TRUE"
+
+  ; Connect to M0
+  IF "&M4_PRESENT"=="TRUE"
+  (
+    &ExecuteM4 CD "&PATH"
+
+    ; Apply power and clock to M4
+    Data.Set 0x4006B08C %Long 0x00015a5a
+
+    &ExecuteM4 RESet
+    &ExecuteM4 SYStem.CPU VF6xx-CM4
+    &ExecuteM4 SYStem.CONFIG.CORE 2. 1.
+    &ExecuteM4 SYStem.Up
+
+    &ExecuteM4 Register.RESet
+
+    ; Load symbols
+    &ExecuteM4 Data.LOAD.Elf demo_cm4.axf
+    &ExecuteM4 Register.Set PC main
+    &ExecuteM4 Register.Set R13 0x3f010100
+
+    &ExecuteM4 Trace.METHOD onchip
+
+    &ExecuteM4 WinCLEAR
+    &ExecuteM4 WinPOS 93.429 0.0 83. 34. 0. 0.
+    &ExecuteM4 Register.view /SpotLight
+    &ExecuteM4 WinPOS 0.0 0.0 86. 32. 16. 1. W001
+    &ExecuteM4 List.auto
+    &ExecuteM4 WinPOS 0.28571 39.083 86. 3. 0. 0. W003
+    &ExecuteM4 Var.Watch flags ast
+    &ExecuteM4 WinPOS 0.57143 50.0 86. 15. 5. 0. W005
+    &ExecuteM4 Frame.view /Locals /Caller
+    &ExecuteM4 WinPOS 93.286 39.167 83. 26. 12. 1.
+    &ExecuteM4 Trace.List
+
+    ; Set synch control
+    SYnch.ON
+    SYnch.Connect &RemotePort
+    SYnch.MasterGo    ON
+    SYnch.SlaveGo     ON
+    SYnch.MasterBreak ON
+    SYnch.SlaveBreak  ON
+
+    &ExecuteM4 SYnch.ON
+    &ExecuteM4 SYnch.Connect &Port
+    &ExecuteM4 SYnch.MasterGo    ON
+    &ExecuteM4 SYnch.SlaveGo     ON
+    &ExecuteM4 SYnch.MasterBreak ON
+    &ExecuteM4 SYnch.SlaveBreak  ON
+  )
+
+  RETURN

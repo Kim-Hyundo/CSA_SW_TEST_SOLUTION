@@ -1,0 +1,78 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for MKL05Z32VFM4 on FRDM-KL05Z with MTB-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the MTB.
+;   Prerequisites:
+;    * Connect Debug Cable to J1 using Adapter LA-3770
+;      or
+;      Connect Combiprobe/uTrace to J1
+; @Keywords: ARM, Cortex-M0+, MTB
+; @Author: STK
+; @Board: FRDM-KL05Z
+; @Chip: MKL05Z32VFM4
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: frdm-kl05z_sieve_onchip_mtb_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU MKL05Z32VFM4
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/midi_ram_thumb_v6m.elf"
+
+; --------------------------------------------------------------------------------
+; initialize ONCHIP trace (MTB)
+Trace.METHOD Onchip
+Trace.TBADDRESS ADDRESS.OFFSET(sYmbol.SECADDRESS(.mtb))
+Trace.SIZE 64.
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO
+
+DisableWatchdog:
+(
+  ; Disable watchdog
+  Data.Set SD:0x40048100 %Long 0x00000000 ; this register can only be accessed once after reset.
+  RETURN
+)

@@ -1,0 +1,739 @@
+; --------------------------------------------------------------------------------
+; @Title: Infineon TC2xx Flash Dialog to program HSM configuration.
+;
+; @Description:
+;
+; The script enables to program all HSM related settings with in the UCBs. All
+; settings only take effect after a reset of the device. The programming of HSM
+; code is not done by this script, but by tc2xx-hsm.cmm.
+;
+; HSM code need to be flashed BEFORE changing the confguration using this script!
+;
+; If you have a complete image of TriCore, HSM their UCB data, the TriCore flash
+; scripts can be called directly tc2xx-hsm.cmm.
+;
+; The script must be executed on a TriCore debugger!
+;
+; Please take the script as it is. Modifications can cause a lock of the device!
+;
+; Script arguments:
+;
+;   DO ~~/demo/tricore/flash/tc2xx-hsm-config.cmm
+;
+;       Opens the TC2xx HSM configuration programming dialog.
+;
+;       The dialog offers a button "Show", that generates a script snippet with
+;       all made settings, that you can embed into your own scripts.
+;
+;   DO ~~/demo/tricore/flash/tc2xx-hsm-config.cmm PROGRAM_REGISTER
+;                                                 [PROCONHSM=<value>]
+;                                                 [PROCONHSMCOTP=<value>]
+;                                                 [FORCE]
+;
+;       Program the HSM UCBs with specific register values:
+;             PROCONHSM     Value for PROCONHSM, that specifies the HSM debug
+;                           configuration.
+;             PROCONHSMCOTP Set the flags for OTP access of HSM flash sectors.
+;             FORCE         Force programming without asking for confirmation.
+;
+;   DO ~~/demo/tricore/flash/tc2xx-hsm-config.cmm PROGRAM_SETTINGS
+;                                                 [HSMBOOT=ENABLE|DISABLE]
+;                                                 [FORCE]
+;             HSMBOOT       Enable or disable HSM booting.
+;             FORCE         Force programming without asking for confirmation.
+;
+; CAUTION: It is very important, that the HSM contains valid code in its
+;          flash area, before enabling the HSM! The HSM must be able to boot after
+;          reset! Otherwise the device gets LOCKED forever!
+;          There is no way for the debugger to recover the device from this state!
+;
+; @Author: STK
+; @Copyright: (C) 1989-2018 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 8346 $
+; $Id: tc2xx-hsm-config.cmm 8346 2020-05-29 18:23:51Z skrausse $
+
+  LOCAL &parameters
+  ENTRY %LINE &parameters
+
+  ; LOCAL macros used as script global macros
+  LOCAL &DMU_SP_PROCONHSM
+  &DMU_SP_PROCONHSM=C:0xAF101800
+
+  LOCAL &DMU_SP_PROCONHSMCOTP
+  &DMU_SP_PROCONHSMCOTP=C:0xAF100800
+
+  LOCAL &script
+  &script=OS.PPF()
+
+  ; Check debugger instance
+  IF CPUFAMILY()!="TRICORE"
+  (
+    PRINT %ERROR "This script need to be run from a TriCore debugger!"
+    ENDDO
+  )
+
+  ; Check selected CPU
+  IF (!CPUIS("TC2*"))
+  (
+    PRINT %ERROR "Selected device is not a TC2xx device!"
+    ENDDO
+  )
+
+  IF (!CPUIS("TC2???P*")&&!CPUIS("TC2???F*")&&!CPUIS("TC2???A*")&&!CPUIS("TC2???X*"))
+  (
+    PRINT %ERROR "Selected TC2xx device doesn't have an HSM!"
+    ENDDO
+  )
+
+  ; Script only woks, if CPU is Up and Stopped
+  IF !SYStem.Up()||RUN()
+  (
+    PRINT %ERROR "System must be in Up state and being stopped!"
+    ENDDO
+  )
+
+  ; Prepare flash setup
+  LOCAL &flashscript
+  &flashscript="~~/demo/tricore/flash/tc2"+STring.MID(CPU(),3.,1.)+"x-hsm.cmm"
+  DO &flashscript PREPAREONLY
+
+  ; No parameters? Open dialog!
+  IF "&parameters"==""
+  (
+    GOSUB openDialog
+    ENDDO
+  )
+
+  ; Parsing parameters
+  PRIVATE &param_program_register &param_program_settings &param_programgui &show_programming &param_refresh
+
+  ; Internal parameter usage to handle the dialog (requires an open dialog)
+  &param_refresh=(STRing.SCAN(STRing.UPpeR("&parameters"),"_REFRESH",0)!=-1)
+  &param_programgui=(STRing.SCAN(STRing.UPpeR("&parameters"),"_PROGRAM",0)!=-1)
+  &show_programming=(STRing.SCAN(STRing.UPpeR("&parameters"),"_SHOWPROGRAMMING",0)!=-1)
+
+  ; Parameters intended to be used by customers to embed the script into other scripts
+  &param_program_register=(STRing.SCAN(STRing.UPpeR("&parameters"),"PROGRAM_REGISTER",0)!=-1)
+  &param_program_settings=(STRing.SCAN(STRing.UPpeR("&parameters"),"PROGRAM_SETTINGS",0)!=-1)
+
+  IF &param_refresh
+  (
+    GOSUB refreshDialog
+    ENDDO
+  )
+
+  IF &show_programming
+  (
+    GOSUB showProgramming
+    ENDDO
+  )
+
+  IF &param_program_register
+  (
+    GOSUB programUCBFromCommandLine &parameters
+    ENDDO
+  )
+
+  IF &param_program_settings
+  (
+    GOSUB programSettingsFromCommandLine &parameters
+    ENDDO
+  )
+
+  IF &param_programgui
+  (
+    GOSUB programFromGUI
+    ENDDO
+  )
+
+  ENDDO
+
+
+; --------------------------------------------------------------------------------
+; Open dialog for changing the HSM settings. The dialog is opended, if no
+; script parameters were set.
+;
+openDialog:
+(
+  ; If any other HSM configuration dialog is opened, then close it!
+  IF WINDOW.NAME("TCHSMCONFIGDIALOG")
+    DIALOG.END
+
+  ; Creating the main dialog. (& afer DIALOG command must be in first column!
+  WinPOS 50. 5. 59. 17.
+  DIALOG.view
+  (&+
+                        NAME "TCHSMCONFIGDIALOG"
+
+                        HEADER CPU()+" HSM settings"
+
+; HSM debug configuration
+                        POS 1. 0. 57. 4.
+                        BOX "HSM Debug Configuration"
+
+                        POS 2. 1. 25. 1.
+TCHSMDBGDIS:            CHECKBOX "HSM Debug Disable" ""
+
+                        POS 2. 2. 25. 1.
+TCDBGIFLCK:             CHECKBOX "Debug Interface Locked" ""
+
+                        POS 31. 1. 25. 1.
+TCTSTIFLCK:             CHECKBOX "Test Interface Locked" ""
+
+                        POS 31. 2. 25. 1.
+TCHSMTSTDIS:            CHECKBOX "HSM Test Disable" ""
+
+
+; HSM configuration
+                        POS 1. 4. 57. 5.
+                        BOX "HSM Configuration"
+
+                        POS 2. 5. 25. 1.
+TCHSMBOOTEN:            CHECKBOX "HSM Boot Enable" ""
+
+                        POS 2. 6. 25. 1.
+TCHSMSSWWAIT:           CHECKBOX "SSW Wait" ""
+
+                        POS 2. 7. 25. 1.
+TCHSMENPINS:            CHECKBOX "HSM can force pins" ""
+
+                        POS 31. 5. 25. 1.
+TCHSMTRIGRESET:         CHECKBOX "Enable HSM Triggering Resets" ""
+
+                        POS 31. 6. 25. 1.
+TCHSMDESTDBG:           CHECKBOX "Destructive Debug Entry" ""
+
+                        POS 31. 7. 25. 1.
+TCHSMBLKFLANA:          CHECKBOX "Block Flash Analysis on all ranges" ""
+
+
+
+; Exclusive sector protection
+                        POS 1. 9. 28. 6.
+                        BOX "HSM Sector Exclusive Protection"
+
+                        POS 2. 10. 25. 1.
+TCHSMC06X:              CHECKBOX "Code Sector 06" ""
+                        POS 2. 11. 25. 1.
+TCHSMC16X:              CHECKBOX "Code Sector 16" ""
+                        POS 2. 12. 25. 1.
+TCHSMC17X:              CHECKBOX "Code Sector 17" ""
+                        POS 2. 13. 25. 1.
+TCHSMDX:                CHECKBOX "Data Sector" ""
+
+
+; OTP protection
+                        POS 30. 9. 28. 6.
+                        BOX "HSM Sector OTP Protection"
+
+                        POS 31. 10. 25. 1.
+TCHSMC06OTP:            CHECKBOX "Code Sector 06" ""
+                        POS 31. 11. 25. 1.
+TCHSMC16OTP:            CHECKBOX "Code Sector 16" ""
+                        POS 31. 12. 25. 1.
+TCHSMC17OTP:            CHECKBOX "Code Sector 17" ""
+
+
+
+                        POS 1. 15. 10. 1.5
+TCHSMPROGRAM:           BUTTON "Program"
+                        (
+                          DO "&script" _PROGRAM
+                        )
+
+                        POS 24. 15. 10. 1.5
+TCHSMREFRESH:           BUTTON "Refresh"
+                        (
+                          PRIVATE &result
+
+                          DIALOG.YESNO "Do you really want to refresh the dialog with target setting?" "" "All changes get lost!"
+                          ENTRY &result
+
+                          IF &result
+                            DO "&script" _REFRESH
+                        )
+
+                        POS 48. 15. 10. 1.5
+TCHSMSHPOWPROG:         BUTTON "Show"
+                        (
+                          DO "&script" _SHOWPROGRAMMING
+                        )
+
+                        CLOSE "DIALOG.END"
+  )
+
+  GOSUB refreshDialog
+
+  RETURN
+)
+
+
+
+; --------------------------------------------------------------------------------
+; This functions creates a temporary file with the current dialog settings.
+; Its format fits CMM scripts, so that its content can be embed into own scripts.
+;
+showProgramming:
+(
+  PRIVATE &hsmcotp &hsmdbgconfig
+
+  ; readout configuration from dialog
+  GOSUB getUCBConfigFromDialog
+  RETURNVALUES &hsmcotp &hsmdbgconfig
+
+  ; Open a temporary file and store programming command
+  &tmpfilename=OS.PresentTemporaryDirectory()
+  &tmpfilename="&tmpfilename/"+"tc2xx_hsm_ucb_programming.cmm"
+
+  OPEN #1 "&tmpfilename" /CREATE
+
+  WRITE #1 "// Generated by tc2xx-hsm-config.cmm, "+DATE.DATE()+", "+DATE.TIME()
+  WRITE #1 ""
+
+  WRITE #1 "DO ~~/demo/tricore/flash/tc2xx-hsm-config.cmm PROGRAM_REGISTER PROCONHSM=0x"+FORMAT.HEX(8.,&hsmdbgconfig)+" ; FORCE"
+  WRITE #1 "DO ~~/demo/tricore/flash/tc2xx-hsm-config.cmm PROGRAM_REGISTER PROCONHSMCOTP=0x"+FORMAT.HEX(8.,&hsmcotp)+" ; FORCE"
+  WRITE #1 ""
+  WRITE #1 "ENDDO"
+
+  CLOSE #1
+
+  ; Show file content
+  PEDIT "&tmpfilename"
+
+  RETURN
+)
+
+
+
+; --------------------------------------------------------------------------------
+; Updates an open dialog with current settings read from target.
+;
+refreshDialog:
+(
+  IF !WINDOW.NAME("TCHSMCONFIGDIALOG")
+    ENDDO
+
+  PRIVATE &hsmcotp &hsmdbgconfig
+
+  ; Read out configuration
+  &hsmcotp=Data.Long(&DMU_SP_PROCONHSMCOTP)
+  DIALOG.Set TCHSMBOOTEN    (&hsmcotp&0x00000001)==0x00000001
+  DIALOG.Set TCHSMSSWWAIT   (&hsmcotp&0x00000002)==0x00000002
+  DIALOG.Set TCHSMDX        (&hsmcotp&0x00000004)==0x00000004
+  DIALOG.Set TCHSMC06X      (&hsmcotp&0x00000008)==0x00000008
+  DIALOG.Set TCHSMC16X      (&hsmcotp&0x00000010)==0x00000010
+  DIALOG.Set TCHSMC17X      (&hsmcotp&0x00000020)==0x00000020
+  DIALOG.Set TCHSMC06OTP    (&hsmcotp&0x00000040)==0x00000040
+  DIALOG.Set TCHSMENPINS    (&hsmcotp&0x00000180)==0x00000180
+  DIALOG.Set TCHSMTRIGRESET (&hsmcotp&0x00000600)==0x00000600
+  DIALOG.Set TCHSMDESTDBG   (&hsmcotp&0x00001800)==0x00001800
+  DIALOG.Set TCHSMBLKFLANA  (&hsmcotp&0x00002000)!=0x00002000
+  DIALOG.Set TCHSMC16OTP    (&hsmcotp&0x00010000)==0x00010000
+  DIALOG.Set TCHSMC17OTP    (&hsmcotp&0x00020000)==0x00020000
+
+
+  ; Read out debug configuration (this register only exists once)
+  &hsmdbgconfig=Data.Long(&DMU_SP_PROCONHSM)
+
+  DIALOG.Set TCHSMDBGDIS    (&hsmdbgconfig&0x00000001)==0x00000001
+  DIALOG.Set TCDBGIFLCK     (&hsmdbgconfig&0x00000002)==0x00000002
+  DIALOG.Set TCTSTIFLCK     (&hsmdbgconfig&0x00000004)==0x00000004
+  DIALOG.Set TCHSMTSTDIS    (&hsmdbgconfig&0x00000008)==0x00000008
+
+  RETURN
+)
+
+
+; --------------------------------------------------------------------------------
+; Brings all settings from an open dialog into UCB register format.
+;
+getUCBConfigFromDialog:
+(
+  IF !WINDOW.NAME("TCHSMCONFIGDIALOG")
+    ENDDO
+
+  PRIVATE &hsmcotp &hsmdbgconfig
+
+  ; Get configuration value (PROCONHSMCFG)
+  &hsmcotp=0x0
+
+  IF DIALOG.BOOLEAN("TCHSMBOOTEN")
+    &hsmcotp=&hsmcotp|0x00000001
+
+  IF DIALOG.BOOLEAN("TCHSMSSWWAIT")
+    &hsmcotp=&hsmcotp|0x00000002
+
+  IF DIALOG.BOOLEAN("TCHSMDX")
+    &hsmcotp=&hsmcotp|0x00000004
+
+  IF DIALOG.BOOLEAN("TCHSMC06X")
+    &hsmcotp=&hsmcotp|0x00000008
+
+  IF DIALOG.BOOLEAN("TCHSMC16X")
+    &hsmcotp=&hsmcotp|0x00000010
+
+  IF DIALOG.BOOLEAN("TCHSMC17X")
+    &hsmcotp=&hsmcotp|0x00000020
+
+  IF DIALOG.BOOLEAN("TCHSMC06OTP")
+    &hsmcotp=&hsmcotp|0x00000040
+
+  IF DIALOG.BOOLEAN("TCHSMENPINS")
+    &hsmcotp=&hsmcotp|0x00000180
+
+  IF DIALOG.BOOLEAN("TCHSMTRIGRESET")
+    &hsmcotp=&hsmcotp|0x00000600
+
+  IF DIALOG.BOOLEAN("TCHSMDESTDBG")
+    &hsmcotp=&hsmcotp|0x00001800
+
+  IF !DIALOG.BOOLEAN("TCHSMBLKFLANA")
+    &hsmcotp=&hsmcotp|0x00002000
+
+   IF DIALOG.BOOLEAN("TCHSMC16OTP")
+    &hsmcotp=&hsmcotp|0x00010000
+
+  IF DIALOG.BOOLEAN("TCHSMC17OTP")
+    &hsmcotp=&hsmcotp|0x00020000
+
+  ; Get debug configuration value (DMU_SP_PROCONHSM)
+  &hsmdbgconfig=0x0
+
+  IF DIALOG.BOOLEAN("TCHSMDBGDIS")
+    &hsmdbgconfig=&hsmdbgconfig|0x00000001
+
+  IF DIALOG.BOOLEAN("TCDBGIFLCK")
+    &hsmdbgconfig=&hsmdbgconfig|0x00000002
+
+  IF DIALOG.BOOLEAN("TCTSTIFLCK")
+    &hsmdbgconfig=&hsmdbgconfig|0x00000004
+
+  IF DIALOG.BOOLEAN("TCHSMTSTDIS")
+    &hsmdbgconfig=&hsmdbgconfig|0x00000008
+
+  RETURN "&hsmcotp" "&hsmdbgconfig"
+)
+
+
+; --------------------------------------------------------------------------------
+; Programming UCB settings with parameters from command line using the command
+; PROGRAM_REGISTER. This function can be used, if a HSM UCB register value is
+; known.
+;
+programUCBFromCommandLine:
+(
+  PRIVATE &parameters &hsmcotp &hsmdbgconfig &force &confirm
+
+  ENTRY %LINE &parameters
+
+  ; Check parameters
+  &hsmdbgconfig=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"PROCONHSM=","")
+  &hsmcotp=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"PROCONHSMCOTP=","")
+
+  &force=(STRing.SCAN(STRing.UPpeR("&parameters"),"FORCE",0)!=-1)
+
+  IF !&force
+  (
+    DIALOG.YESNO "Do you really want to program the HSM UCBs?"
+    ENTRY &confirm
+
+    IF !&confirm
+      RETURN
+  )
+
+  ; Check for valid HSM code
+  IF "&hsmcotp"!=""
+  (
+    IF &hsmcotp&0x00000001
+    (
+      GOSUB checkHSMBootVectors
+      RETURNVALUES &valid
+
+      IF !&valid
+      (
+        PRINT %ERROR "No valid HSM code found! UCBs not programmed!"
+        ENDDO
+      )
+    )
+  )
+
+  IF "&hsmdbgconfig"!=""
+  (
+    GOSUB programUCB "&DMU_SP_PROCONHSM"    "&hsmdbgconfig"
+  )
+
+  IF "&hsmcotp"!=""
+  (
+    GOSUB programUCB "&DMU_SP_PROCONHSMCOTP" "&hsmcotp"
+  )
+
+  GOSUB refreshDialog
+
+  RETURN
+)
+
+
+
+; --------------------------------------------------------------------------------
+; Programming UCB settings with parameters from command line using the command
+; PROGRAM_SETTINGS. This function can be used, if individual bits of the HSM
+; configuration need to be set (like enable or disable the HSM).
+;
+programSettingsFromCommandLine:
+(
+  PRIVATE &parameters &hsmcotp &param_hsmen &confirm &force &valid
+
+  ENTRY %LINE &parameters
+
+  ; Check parameters
+  &param_hsmen=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"HSMBOOT=","")       ; ENABLE|DISABLE
+  &force=(STRing.SCAN(STRing.UPpeR("&parameters"),"FORCE",0)!=-1)
+
+  IF ("&param_hsmen"!="")
+  (
+    IF ("&param_hsmen"!="ENABLE")&&("&param_hsmen"!="DISABLE")
+    (
+      PRINT %ERROR "HSMBOOT parameter set to &param_hsmen, but only ENABLE or DISABLE are allowed!"
+      ENDDO
+    )
+  )
+  ELSE
+  (
+    ; Nothing to do
+    ENDDO
+  )
+
+  IF !&force
+  (
+    DIALOG.YESNO "Do you really want to program the HSM UCBs?"
+    ENTRY &confirm
+
+    IF !&confirm
+      RETURN
+  )
+
+  IF "&param_hsmen"!=""
+  (
+    &hsmcotp=Data.Long(&DMU_SP_PROCONHSMCOTP)
+
+    IF "&param_hsmen"=="ENABLE"
+    (
+      ; Check for valid HSM code
+      GOSUB checkHSMBootVectors
+      RETURNVALUES &valid
+
+      IF !&valid
+      (
+        PRINT %ERROR "No valid HSM code found! UCBs not programmed!"
+        ENDDO
+      )
+
+      &hsmcotp=&hsmcotp|0x00000001
+    )
+    ELSE
+      &hsmcotp=&hsmcotp&0xFFFFFFFE
+
+    GOSUB programUCB "&DMU_SP_PROCONHSMCOTP" "&hsmcotp"
+  )
+
+  GOSUB refreshDialog
+
+  RETURN
+)
+
+
+; --------------------------------------------------------------------------------
+; Programming UCB settings with all settings made in the dialog.
+;
+programFromGUI:
+(
+  PRIVATE &hsmcotp &hsmdbgconfig &confirm &valid
+
+  DIALOG.YESNO "Do you really want to program the HSM UCBs?"
+  ENTRY &confirm
+
+  IF !&confirm
+    RETURN
+
+  ; readout configuration from dialog
+  GOSUB getUCBConfigFromDialog
+  RETURNVALUES &hsmcotp &hsmdbgconfig
+
+  ; Check for valid HSM code
+  IF (&hsmcotp&0x00000001)==0x00000001
+  (
+    GOSUB checkHSMBootVectors
+    RETURNVALUES &valid
+
+    IF !&valid
+    (
+      PRINT %ERROR "No valid HSM code found! UCBs not programmed!"
+      ENDDO
+    )
+  )
+
+  GOSUB programUCB "&DMU_SP_PROCONHSMCOTP" "&hsmcotp"
+  GOSUB programUCB "&DMU_SP_PROCONHSM"    "&hsmdbgconfig"
+
+  GOSUB refreshDialog
+
+  RETURN
+)
+
+
+; --------------------------------------------------------------------------------
+; Programming of a HSM UCB
+;
+programUCB:
+(
+  PRIVATE &ucbbase &value &found1
+  PARAMETERS &ucbbase &value
+
+  ; Check confirmation state and program
+  Data.Set D:(&ucbbase+0x70)--(&ucbbase+0x7F) %LE %Long 0x00000000 0x00000000 0x00000000 0x00000000 /DIFF
+  LOCAL &found1
+  &found1=FOUND()
+  Data.Set D:(&ucbbase+0x70)--(&ucbbase+0x7F) %LE %Long 0x43211234 0x00000000 0x43211234 0x00000000 /DIFF
+  IF !&found1||!FOUND()
+  (
+    ; Set HSMBOOTEN only, no protection/exclusive flags are configured.
+    FLASH.CHANGEtype &ucbbase++3FF TARGET
+    FLASH.AUTO &ucbbase++3FF
+    (
+      Data.Set &ucbbase+0x00 %Long &value
+      Data.Set &ucbbase+0x10 %Long &value
+      Data.Set &ucbbase+0x70 %Long 0x43211234
+      Data.Set &ucbbase+0x78 %Long 0x43211234
+    )
+    FLASH.AUTO.off
+    FLASH.CHANGEtype &ucbbase++3FF NOP
+  )
+  ELSE
+  (
+    PRINT %ERROR "Wrong confirmation state for UCB (0x" +FORMAT.HEX(8.,&ucbbase)+ ")!"
+    ENDDO
+  )
+
+  RETURN
+)
+
+
+
+; --------------------------------------------------------------------------------
+; Check, if HSM has valid code in case it is enabled. This should make sure,
+; that the TriCore chip gets not locked, in case there is no HSM code, but
+; HSMBOOT is set. At least one HSM Code Sector need to have a valid vector table.
+; Skip it only in case HSM is disabled and its debug interface is locked.
+checkHSMBootVectors:
+(
+  PRIVATE &valid
+
+  &valid=FALSE()
+  
+  IF (Data.Long(D:0xF800205C)&0x00000001)==0x00000001
+  (
+    ; HSM debug interface is disabled, cannot check boot vectors
+    &valid=TRUE()
+    RETURN "&valid"
+  )
+
+  ; Check PFLASH HSM Code Sector 1
+  GOSUB checkHSMVectorTable "0x80018000"
+  RETURNVALUES &valid
+
+  IF &valid
+    RETURN "&valid"
+
+  ; Check PFLASH HSM Code Sector 2
+  GOSUB checkHSMVectorTable "0x80060000"
+  RETURNVALUES &valid
+
+  IF &valid
+    RETURN "&valid"
+
+  ; Check PFLASH HSM Code Sector 3
+  GOSUB checkHSMVectorTable "0x80070000"
+  RETURNVALUES &valid
+
+  RETURN "&valid"
+)
+
+
+; --------------------------------------------------------------------------------
+; Check a specific HSM code area for a valid vector table.
+;
+checkHSMVectorTable:
+(
+  PRIVATE &vectorbase &valid &stackpointer &resetvector &hsmsramstart &hsmsramend
+  PARAMETERS &vectorbase
+
+  &valid=FALSE()
+
+  ; Check for empty flash arround boot address
+  &stackpointer=0
+  &resetvector=0
+
+  &hsmsramstart=0x20000000
+  &hsmsramend=0x20009FFF
+
+  ; Check stackpointer
+  GOSUB readLong "&vectorbase"
+  RETURNVALUES &stackpointer
+
+  IF "&stackpointer"=="?"
+    RETURN "&valid"
+
+  IF (&stackpointer&0x3)!=0x0
+    RETURN "&valid"      ; Stackpointer is not 4 byte alligned
+
+  IF !(&stackpointer>=&hsmsramstart)&&(&stackpointer<=&hsmsramend+1)
+    RETURN "&valid"      ; stack pointer not in SRAM area
+
+  ; Check reset vector
+  &vectorbase=&vectorbase+0x4
+  GOSUB readLong "&vectorbase"
+  RETURNVALUES &resetvector
+
+  IF "&resetvector"=="?"
+    RETURN "&valid"
+
+  IF (&resetvector&0x1)!=0x1
+    RETURN "&valid"      ; reset vector has even address
+
+  &resetvector=&resetvector&0xFFFFFFFE
+
+  IF (!((&resetvector>0x80018000)&&(&resetvector<0x8001BFFF)))&&(!((&resetvector>0x80060000)&&(&resetvector<0x8006FFFF)))&&(!((&resetvector>0x80070000)&&(&resetvector<0x8007FFFF)))
+    RETURN "&valid"      ; reset vector out of valid flash area
+
+  ; Check accessibility of reset vector code
+  GOSUB readLong "&resetvector"
+  RETURNVALUES &resetvector
+
+  IF ("&resetvector"!="?")&&("&resetvector"!="")
+    &valid=TRUE()      ; Flash is not empty at reset entry.
+
+  RETURN "&valid"
+)
+
+
+
+; --------------------------------------------------------------------------------
+; Read a long word and return its value or "?" in case of a bus error.
+;
+readLong:
+(
+  PRIVATE &addr &value
+  PARAMETERS &addr
+
+  ON ERROR GOTO BusError
+  &value=Data.Long(D:&addr)
+  ON ERROR inherit
+
+  RETURN "&value"
+
+BusError:
+  ON ERROR inherit
+  PRINT " "
+  RETURN "?"
+)

@@ -1,0 +1,173 @@
+; --------------------------------------------------------------------------------
+; @Title: Access to SJC Registers on i.MX6
+; @Description:
+;   Example shows how to access the SJC Registers of an i.MX6 Solo/Dual/Quad.
+;   The example verifies the IDCODE of the i.MX6 first and tries to access the
+;   EXTRA_DEBUG register afterwards. Script uses READ ACCESS ONLY.
+;   Note:
+;     * With SJC_MOD=0 the total IR-Lenght is 5+4+4 = 13
+;     * The script is respects only this specific daisy chaining configuration
+;   Prerequisites:
+;     * JTAG is connected to MIPI Connector
+;     * SJC_MOD=0 (for SabreLite don't connect pin 7 and pin 9 of MIPI connector)
+;     * i.MX6 is not DaisyChained with other chips
+; @Keywords: Freescale, SDMA, SecureJtag
+; @Author: AME
+; @Board: iMX6-SabreLite
+; @Chip: IMX6*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx6-sjc-access.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+LOCAL &value &SdmaDapIrPattern &SdmaDapDrPattern
+ON CMD GShiftIr GOSUB GotoShiftIr
+ON CMD GShiftDr GOSUB GotoShiftDr
+ON CMD GDef GOSUB GotoDefault
+
+&SdmaDapIrPattern="1 1 1 1 1 1 1 1 "
+&SdmaDapDrPattern="0 0"
+
+
+; enable JTAG output driver
+; RESET TAP CONTROLLER
+JTAG.PIN ENable
+GOSUB Init
+
+
+; shift in BYPASS IR
+GShiftIr
+JTAG.SHIFTREG %Long 0xffffffff 0xffffffff
+GDef
+GShiftDr
+JTAG.SHIFTREG 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+GDef
+
+; Set IDCODE IR
+GShiftIr
+JTAG.SHIFTREG &SdmaDapIrPattern 0 0 0 0 0
+GDef
+GShiftDr
+; shift in 32 dummy bits to get the IDCODE
+JTAG.SHIFTREG &SdmaDapDrPattern 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+GOSUB GetSjcOut JTAG.SHIFT()
+ENTRY &value
+PRINT "Sjc JTAG ID = " &value
+IF (&value&0x7fe)!=0x1c
+(
+  PRINT %ERROR "JTAG ID INVALID"
+  ENDDO
+)
+GDef
+
+
+; set EXTRA_DEBUG IR - Command 0x5 READ (SSR)
+GShiftIr
+JTAG.SHIFTREG &SdmaDapIrPattern 0 0 1 0 0
+GDef
+GShiftDr
+JTAG.SHIFTREG &SdmaDapDrPattern 1 0 1 0 0 1
+GDef
+GShiftDr
+JTAG.SHIFTREG &SdmaDapDrPattern 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+GOSUB GetSjcOut JTAG.SHIFT()
+ENTRY &value
+PRINT "SSR value " &value
+GDef
+
+; set EXTRA_DEBUG IR - Command 0x0 READ (GPUSR1)
+GShiftIr
+JTAG.SHIFTREG &SdmaDapIrPattern 0 0 1 0 0
+GDef
+GShiftDr
+JTAG.SHIFTREG &SdmaDapDrPattern 0 0 0 0 0 1
+GDef
+GShiftDr
+JTAG.SHIFTREG &SdmaDapDrPattern 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+GOSUB GetSjcOut JTAG.SHIFT()
+ENTRY &value
+PRINT "GPUSR1 value " &value
+GDef
+
+; set EXTRA_DEBUG IR - Command 0x1 READ (GPUSR2)
+GShiftIr
+JTAG.SHIFTREG &SdmaDapIrPattern 0 0 1 0 0
+GDef
+GShiftDr
+JTAG.SHIFTREG &SdmaDapDrPattern 1 0 0 0 0 1
+GDef
+GShiftDr
+JTAG.SHIFTREG &SdmaDapDrPattern 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+GOSUB GetSjcOut JTAG.SHIFT()
+ENTRY &value
+PRINT "GPUSR2 value " &value
+GDef
+
+; set EXTRA_DEBUG IR - Command 0x2 READ (GPUSR2)
+GShiftIr
+JTAG.SHIFTREG &SdmaDapIrPattern 0 0 1 0 0
+GDef
+GShiftDr
+JTAG.SHIFTREG &SdmaDapDrPattern 0 1 0 0 0 1
+GDef
+GShiftDr
+JTAG.SHIFTREG &SdmaDapDrPattern 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+GOSUB GetSjcOut JTAG.SHIFT()
+ENTRY &value
+PRINT "GPUSR3 value " &value
+GDef
+
+; set EXTRA_DEBUG IR - Command 0x3 READ (GPSSR)
+GShiftIr
+JTAG.SHIFTREG &SdmaDapIrPattern 0 0 1 0 0
+GDef
+GShiftDr
+JTAG.SHIFTREG &SdmaDapDrPattern 1 1 0 0 0 1
+GDef
+GShiftDr
+JTAG.SHIFTREG &SdmaDapDrPattern 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+GOSUB GetSjcOut JTAG.SHIFT()
+ENTRY &value
+PRINT "GPSSR value " &value
+GDef
+
+JTAG.PIN DISable                                                                ; disable JTAG output driver
+ENDDO
+
+; --------------------------------------------------------------------------------
+; Subroutines
+
+Init: ;()
+(
+  ; soft reset of the JTAG interface, goto Test-Logic Reset state
+  JTAG.SHIFTTMS 1 1 1 1 1
+  ; enter Rti as default state
+  JTAG.SHIFTTMS 0
+  RETURN
+)
+
+GotoShiftIr: ;()
+(
+  JTAG.SHIFTTMS 1 1 0 0
+  RETURN
+)
+
+GotoShiftDr: ;()
+(
+  JTAG.SHIFTTMS 1 0 0
+  RETURN
+)
+
+GotoDefault: ;()
+(
+  JTAG.SHIFTTMS 1 0
+  RETURN
+)
+
+GetSjcOut: ;(value)
+(
+  LOCAL &value
+  ENTRY &value
+  &value=&value>>2.
+  RETURN &value
+)

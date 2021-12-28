@@ -1,0 +1,284 @@
+; --------------------------------------------------------------------------------
+; @Title: Generic Flash script file for TC2Dx devices
+; @Description:
+;   Script for flash declaration and programming of Infineon TriCore TC2Dx
+;   internal flash.
+; @Keywords: AURIX, Flash, Infineon, TriCore
+; @Author: WRD
+; @Chip: TC2D*
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 7165 $
+; $Id: tc2dx.cmm 7165 2019-07-18 14:35:29Z mobermaier $
+
+
+; Important information, read this before using this script:
+;
+;   Do not edit this script. Instead, call this script from your project using the
+;   command line arguments described below. See the triboard demo scripts for an
+;   example.
+;
+;   If changing the sector type from NOP to TARGET is required, use the command
+;   FLASH.CHANGETYPE instead of modifying this script.
+;
+;   This script checks the programmed application to avoid permanent locking of the
+;   device. This script is constantly improved, but it is not guaranteed that all
+;   cases are covered.
+;
+; Script arguments:
+;
+;   DO tc2dx [PREPAREONLY] [CPU=<cpu>] [DUALPORT=0|1]
+;
+;     PREPAREONLY only declares flash but does not execute flash programming example
+;
+;     CPU=<cpu> selects CPU derivative <cpu>
+;
+;     DUALPORT default value is 0 (disabled). If DualPort mode is enabled
+;             flash algorithm stays running until flash programming is
+;             finished. Data is tranferred via dual port memory access.
+;
+; Example:
+;
+;   DO ~~/demo/tricore/flash/tc2dx CPU=TC2D5TE DUALPORT=1 PREPAREONLY
+;
+; Supported devices:
+;
+;   All TC2DxT and TC2DxTE devices, e.g. TC2D5T, TC2D7T.
+;
+; Flash:
+;
+;         4 MByte on-chip program flash   at 0x80000000--0x803FFFFF (cached)
+;                                         or 0xA0000000--0xA03FFFFF (non cached)
+;   2 * 288 KByte data flash EEPROM       at 0xAF000000--0xAF047FFF
+;                                        and 0xAF100000--0xAF147FFF
+;   2 *   8 KByte data flash UCB sectors  at 0xAF080000--0xAF081FFF
+;                                        and 0xAF180000--0xAF181FFF
+;   2 *   8 KByte data flash HSM sectors  at 0xAF082000--0xAF083FFF
+;                                        and 0xAF182000--0xAF183FFF
+;
+; RAM:
+;
+;   128 KByte Data Scratch-Pad RAM (DSPR)          at 0xD0000000--0xD001FFFF
+;     8 KByte  Instruction Scratch-Pad RAM (PSPR)  at 0xC0000000--0xC0001FFF
+;
+; CAUTION:
+;
+;   Do not reboot or unpower your device in case all BMHD (Boot Mode Headers)
+;   do not contain valid information. This is normally the case after having
+;   erased the internal program flash or loading an object or binary file
+;   without a valid BMHD. The BMHD are located at:
+;     BMHD0 0xA0000000--0xA000001F
+;     BMHD1 0xA0020000--0xA002001F
+;   See the Infineon documentation for more information.
+;   Note that for the AURIX demonstrator devices the pin configuration can
+;   have priority over BMI Headers when HWCFG[3]=0.
+;
+;   Do not enable HSM boot when no valid HSM code is present. This will lock
+;   your device permanently. See the Infineon documentation and contact your
+;   Infineon FAE for more information on HSM.
+;
+;   Pay special attention when modifying the UCB. An invalid or erroneous
+;   content will lock your device permanently. This also happens in case the
+;   confirmation code is neither "unlocked" nor "confirmed". See the Infineon
+;   documentation for more information.
+;
+; HINTS:
+;
+;   Erased PFlash is showing bus error caused by ECC error. The ECC width of
+;   PFlash an aligned group of 32 bytes.
+;
+;   The flash algorithm is programming PFlash in an aligned group of 32 bytes.
+;   When using FLASH.Program command the download has to care about this
+;   alignment.
+
+LOCAL &parameters &param_prepareonly &param_cpu &param_dualport
+ENTRY %LINE &parameters
+
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CPU=","")
+&param_dualport=0
+IF VERSION.BUILD.BASE()>=48610.
+  &param_dualport=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"DUALPORT=","0")
+
+; ------------------------------------------------------------------------------
+; Initialize
+
+IF SYStem.MODE()<5.
+(
+  SYStem.RESet
+
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  IF !CPUIS(TC2D*)
+    SYStem.CPU TC2D*
+
+  CORE.select 0.        ; CPU0 is selected for flash programming.
+  SYStem.Up
+)
+
+; Disable Watchdog Timers on TC2Dx[ED]
+
+; Disable the Safety Watchdog Timer (overall system level watchdog):
+PER.Set.simple D:0xF00360F4 %Long 0x00000008 // SCU_WDTSCON1, Request to disable the WDT
+; Disable the CPU Watchdog Timers:
+PER.Set.simple D:0xF0036104 %Long 0x00000008 // SCU_WDTCPU0CON1, Request to disable the WDT
+PER.Set.simple D:0xF0036110 %Long 0x00000008 // SCU_WDTCPU1CON1, Request to disable the WDT
+PER.Set.simple D:0xF003611C %Long 0x00000008 // SCU_WDTCPU2CON1, Request to disable the WDT
+
+; ------------------------------------------------------------------------------
+; Flash Declaration
+
+IF VERSION.BUILD()<38225.
+(
+  DIALOG.OK "Please request a Trace32 software update to support Boot Mode Header handling"
+  ENDDO
+)
+
+FLASH.RESet
+
+; Program flash PF0
+FLASH.Create  1. 0xA0000000--0xA000BFFF  0x4000 TARGET Long /BootModeHeaDer 0xA0000000--0xA000001F  ; PS0, S0..S2
+FLASH.Create  1. 0xA000C000--0xA0013FFF  0x4000 TARGET Long   ; PS0, S3..S4
+FLASH.Create  1. 0xA0014000--0xA0017FFF  0x4000 NOP    Long   ; PS0, S5 (Tuning Protection)
+FLASH.Create  1. 0xA0018000--0xA001BFFF  0x4000 NOP    Long   ; PS0, S6 (HSM)
+FLASH.Create  1. 0xA001C000--0xA001FFFF  0x4000 TARGET Long   ; PS0, S7
+FLASH.Create  1. 0xA0020000--0xA005FFFF  0x8000 TARGET Long /BootModeHeaDer 0xA0020000--0xA002001F  ; PS0, S8..S15
+FLASH.Create  1. 0xA0060000--0xA007FFFF 0x10000 NOP    Long   ; PS0, S16..S17 (HSM)
+FLASH.Create  2. 0xA0080000--0xA009FFFF 0x10000 TARGET Long   ; PS1, S18..S19
+FLASH.Create  2. 0xA00A0000--0xA00FFFFF 0x20000 TARGET Long   ; PS1, S20..S22
+FLASH.Create  3. 0xA0100000--0xA017FFFF 0x40000 TARGET Long   ; PS2, S23..S24
+FLASH.Create  4. 0xA0180000--0xA01FFFFF 0x40000 TARGET Long   ; PS3, S25..S26
+; Program flash PF1
+FLASH.Create  5. 0xA0200000--0xA021FFFF  0x4000 TARGET Long   ; PS0, S0..S7
+FLASH.Create  5. 0xA0220000--0xA025FFFF  0x8000 TARGET Long   ; PS0, S8..S15
+FLASH.Create  5. 0xA0260000--0xA027FFFF 0x10000 TARGET Long   ; PS0, S16..S17
+FLASH.Create  6. 0xA0280000--0xA029FFFF 0x10000 TARGET Long   ; PS1, S18..S19
+FLASH.Create  6. 0xA02A0000--0xA02FFFFF 0x20000 TARGET Long   ; PS1, S20..S22
+FLASH.Create  7. 0xA0300000--0xA037FFFF 0x40000 TARGET Long   ; PS2, S23..S24
+FLASH.Create  8. 0xA0380000--0xA03FFFFF 0x40000 TARGET Long   ; PS3, S25..S26
+
+; Data flash DF0
+FLASH.Create  9. 0xAF000000--0xAF047FFF 0x48000 TARGET Long   ; DF0, DF_EEPROM0
+FLASH.Create 10. 0xAF080000--0xAF0803FF   0x400 NOP    Long   ; DF0, UCB0 = UCB_PFlash
+FLASH.Create 10. 0xAF080400--0xAF0807FF   0x400 NOP    Long   ; DF0, UCB1 = UCB_DFlash
+FLASH.Create 10. 0xAF080800--0xAF080BFF   0x400 NOP    Long   ; DF0, UCB2 = UCB_HSMCOTP
+FLASH.Create 10. 0xAF080C00--0xAF080FFF   0x400 NOP    Long   ; DF0, UCB3 = UCB_OTP
+FLASH.Create 10. 0xAF081000--0xAF0813FF   0x400 NOP    Long   ; DF0, UCB4 = UCB_IFX
+FLASH.Create 10. 0xAF081400--0xAF0817FF   0x400 NOP    Long   ; DF0, UCB5 = UCB_HSMC
+FLASH.Create 10. 0xAF081800--0xAF081BFF   0x400 NOP    Long   ; DF0, UCB6 = UCB_HSM
+FLASH.Create 10. 0xAF081C00--0xAF081FFF   0x400 NOP    Long   ; DF0, UCB7 = UCB_HSMCFG
+FLASH.Create 11. 0xAF082000--0xAF083FFF  0x2000 NOP    Long   ; DF0, HSM0
+; Data flash DF1
+FLASH.Create 12. 0xAF100000--0xAF147FFF 0x48000 TARGET Long   ; DF1, DF_EEPROM1
+FLASH.Create 13. 0xAF180000--0xAF180FFF   0x400 NOP    Long   ; DF1, UCB8..UCB11
+FLASH.Create 13. 0xAF181000--0xAF181FFF   0x400 NOP    Long   ; DF1, UCB12..UCB15 = Erase Counter
+FLASH.Create 14. 0xAF182000--0xAF183FFF  0x2000 NOP    Long   ; DF1, HSM1
+
+; Cached program flash address range
+FLASH.CreateALIAS 0x80000000--0x80FFFFFF 0xA0000000
+
+IF &param_dualport==0
+  FLASH.TARGET 0xC0000000 0xD0000000 0x1000 ~~/demo/tricore/flash/long/tc2.bin
+ELSE
+  FLASH.TARGET 0xC0000000 0xD0000000 0x1000 ~~/demo/tricore/flash/long/tc2.bin /DualPort
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; ------------------------------------------------------------------------------
+; Example for download
+
+DIALOG.YESNO "Program internal flash memory?"
+LOCAL &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram.ALL
+
+  Data.LOAD.auto *
+
+  ; Program a valid default BMHD (see comment above)
+  //Data.Set 0xA0000000++0x17 %Long 0xA0000020 0xB3590070 0x00000000 0x00000000 0x00000000 0x00000000
+  //Data.SUM 0xA0000000++0x17 /Long /ByteSWAP /CRC32
+  //Data.Set 0xA0000018 %Long DATA.SUM()
+  //Data.Set 0xA000001C %Long ~DATA.SUM()
+
+  ; Check if at one valid boot mode header is available
+  GOSUB CheckBootModeHeader 0xA0000000
+  ENTRY &progflash
+  IF &progflash
+    GOTO ProgramFlash
+  GOSUB CheckBootModeHeader 0xA0020000
+  ENTRY &progflash
+  IF &progflash
+    GOTO ProgramFlash
+
+  DIALOG.YESNO "No valid Boot Mode Header found!" "Do you really want to program flash?"
+  ENTRY &progflash
+  IF !&progflash
+  (
+    ; Revert loaded data
+    IF VERSION.BUILD()>=51257.
+      FLASH.ReProgram.CANCEL
+    ELSE
+    (
+      FLASH.ReProgram.ALL
+      FLASH.ReProgram.off
+    )
+  )
+
+ProgramFlash:
+  FLASH.ReProgram.off
+)
+
+ENDDO
+
+
+; --------------------------------------------------------------------------------
+; Check if Boot Mode Header has valid contents
+
+CheckBootModeHeader:
+(
+  LOCAL &addr
+  ENTRY &addr
+
+  LOCAL &result
+  &result=TRUE()
+
+  ON.ERROR GOSUB
+  (
+    &result=FALSE()
+    RETURN
+  )
+
+  ; Check Boot Mode Header ID
+  IF !STRing.FIND("&addr",":")
+    &addr="C:&addr"
+  IF Data.Word(&addr+6)!=0xB359
+  (
+    &result=FALSE()
+    RETURN &result
+  )
+
+  ; Check Boot Mode Header CRC
+  Data.SUM &addr++0x17 /Long /ByteSWAP /CRC32
+  IF &result
+  (
+    Data.Set &addr+0x18 %Long Data.SUM() /DIFF
+    IF &result
+    (
+      &result=!FOUND()
+      IF &result
+      (
+        Data.Set &addr+0x1C %Long ~Data.SUM() /DIFF
+        IF &result
+        (
+          &result=!FOUND()
+        )
+      )
+    )
+  )
+
+  RETURN &result
+)

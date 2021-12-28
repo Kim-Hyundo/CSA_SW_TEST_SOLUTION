@@ -1,0 +1,73 @@
+; --------------------------------------------------------------------------------
+; @Title: OSE Delta Demo for TRACE32 OS Awareness
+; @Description:
+;   This batchfile loads all necessary files to demonstrate
+;   the OS Awareness for OSE Delta.
+; @Keywords: awareness, osed, osedelta, RTOS
+; @Author: DIE
+; @Chip: ARM7TDMI
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: osed.cmm 15227 2019-11-06 11:57:41Z bschroefel $
+
+
+ SCREEN.ON
+
+; Debugger reset
+ PRINT "resetting..."
+ SYStem.RESet
+ MAP.RESet
+ WinPAGE.RESet
+ WinPOS 0 26. 70. 8. 0. 0. W000
+ AREA.view
+
+ PRINT "initializing..."
+
+ SYStem.CPU ARM7TDMI
+ SYStem.Up
+
+; load sample application
+ PRINT "loading sample application..."
+ Data.LOAD.Elf tutorial.elf
+ sYmbol.SourcePATH.Set .
+
+; initialize RTOS support
+ PRINT "initializing RTOS support..."
+ TASK.CONFIG osed.t32       ; load OSE awareness
+ MENU.ReProgram osed.men    ; load OSE specific menu
+ HELP.FILTER.Add rtososed   ; add OSE awareness manual to help system
+
+ PRINT "load complete."
+
+; open some windows
+ IF !hardware.ICD()
+ (
+   TERM.Protocol BufferE    ; buffer transfer through dualport memory
+ )
+ ELSE
+ (
+   ; buffer transfer with stop mode
+   IF (sYmbol.EXIST(T32PutBuffer)&&!sYmbol.EXIST(T32PUTBUF))    ; if stop address not defined
+     sYmbol.NEW T32PUTBUF Var.END(T32PutBuffer)-0x0f         ;   enter it manually
+   TERM.Protocol BufferC ADDRESS.OFFSET(T32PUTBUF)
+   Break.Set T32PUTBUF
+ )
+
+ WinPOS 0 0 80. 24.
+ TERM.view T32OUTBUF T32INBUF    ; IO terminal for dbgprintf - see t32printf.c
+
+ WinPOS 45. 0. 75. 12. 10. 1. W002
+ List.auto
+ WinPOS 45. 14.5 75. 22. 0. 1. W001
+ TASK.DProc
+
+; start application
+
+ Go phoneSwitch
+ WAIT !STATE.RUN()
+
+ ; start terminal output - see t32printf.c
+ Var.set T32started = 1
+
+ ENDDO
+

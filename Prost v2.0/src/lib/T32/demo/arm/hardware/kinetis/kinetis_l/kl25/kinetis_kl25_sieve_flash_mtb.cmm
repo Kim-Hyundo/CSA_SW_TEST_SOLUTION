@@ -1,0 +1,62 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple sieve demo running from flash for Kinetis-L2x series
+; @Description: 
+;   This is a small demo how to setup a SWD debug session on Cortex-M0
+;   for Kinetis-L series. The sieve demo is loaded on flash using the 
+;   board support scripts of the TRACE32 installation.
+;
+; @Keywords: Cortex-M0, debug, Flash, Freescale, KL0, Kinetis, SWD, MTB
+; @Author: AME
+; @Board:  Freedom-KL25Z
+; @Chip: MKL2*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: kinetis_kl25_sieve_flash_mtb.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; Basic setup
+RESet
+SYStem.RESet
+SYStem.CPU MKL25Z128VLK4
+;SYStem.CPU MKL2*
+SYStem.CONFIG.CONNECTOR MIPI20T 
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+SYStem.MemAccess DAP
+SYStem.Option DUALPORT ON
+SYStem.Up
+
+
+; Flash programming warning
+DIALOG.YESNO "This demo will program flash memory. Do you want to continue?"
+LOCAL &progflash
+ENTRY &progflash
+IF !&progflash
+(
+  ENDDO
+)
+  
+; setup FLASH PROGRAMMING
+DO ~~/demo/arm/flash/mkl20 PREPAREONLY
+; load code into flash
+FLASH.ReProgram ALL
+Data.LOAD.Elf ~~~~/sieve_flash_thumb_v6m.elf
+FLASH.ReProgram OFF
+
+; reset the target
+SYStem.Up
+GOSUB DisableWatchdog
+;setup MTB
+Trace.METHOD Onchip
+Trace.TBADDRESS 0x1fffff00
+Trace.Size 256.
+
+; open some window
+List.auto
+Trace.List
+
+ENDDO
+; --------------------------------------------------------------------------------
+; Disable watchdog
+
+DisableWatchdog:
+  Data.Set SD:0x40048100 %Long 0x00000000 ; this register can only be accessed once after reset.
+  RETURN

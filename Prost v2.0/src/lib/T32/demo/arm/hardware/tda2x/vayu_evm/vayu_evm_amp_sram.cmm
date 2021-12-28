@@ -1,0 +1,142 @@
+; --------------------------------------------------------------------------------
+; @Title: AMP-Demo script for TI TDA2x on teh VAYU-EVM (AMP, RAM)
+; @Description:
+;   Setup a AMP debug session using a single script approach.
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   Use this script to test the AMP-Debugging.
+;   Prerequisites:
+;    * Connect Debug Cable (via LA-3818) to J17
+;    * TRACE32 is started using the .bat/.sh file in this directory
+; @Keywords: ARM
+; @Author: STK
+; @Board: VAYU-EVM
+; @Chip: TDA2x
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: vayu_evm_amp_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF SYStem.INSTANCE()<1.
+(
+  PRINT %ERROR "TRACE32 is not running in AMP mode! Use .bat/.sh file in this directory."
+  ENDDO
+)
+
+; store current script path in &ppd
+PRIVATE &ppd
+&ppd=OS.PPD()
+
+IF !INTERCOM.PING(IPU1)
+  TargetSystem.NewInstance IPU1 /ARCHitecture ARM
+IF !INTERCOM.PING(IPU2)
+  TargetSystem.NewInstance IPU2 /ARCHitecture ARM
+IF !INTERCOM.PING(IVA)
+  TargetSystem.NewInstance IVA /ARCHitecture ARM
+IF !INTERCOM.PING(DSP1)
+  TargetSystem.NewInstance DSP1 /ARCHitecture C6000
+IF !INTERCOM.PING(DSP2)
+  TargetSystem.NewInstance DSP2 /ARCHitecture C6000
+IF !INTERCOM.PING(EVE)
+  TargetSystem.NewInstance EVE /ARCHitecture ARP32
+
+; --------------------------------------------------------------------------------
+; set titles for SLAVE GUIs
+TITLE "TRACE32 for ARM - TDA2X - MASTER"
+InterCom IPU1 TITLE "TRACE32 for ARM - TDA2XIPU1-CORE0 - SLAVE1"
+InterCom IPU2 TITLE "TRACE32 for ARM - TDA2XIPU1-CORE1 - SLAVE2"
+InterCom IVA  TITLE "TRACE32 for ARM - TDA2XIVA        - SLAVE3"
+InterCom DSP1 TITLE "TRACE32 for C6000 - TDA2XDSP1     - SLAVE4"
+InterCom DSP2 TITLE "TRACE32 for C6000 - TDA2XDSP2     - SLAVE5"
+InterCom EVE  TITLE "TRACE32 for ARP32 - TDA2XEVE      - SLAVE6"
+
+; --------------------------------------------------------------------------------
+; common SYStem settings
+InterCom All RESet
+InterCom All SYStem.RESet
+
+SYStem.CPU TDA2X
+SYStem.Option ResBreak OFF
+SYStem.CONFIG CORE 1. 1.
+SYStem.CONFIG SLAVE OFF
+
+InterCom IPU1 SYStem.CPU TDA2XIPU1-CORE0
+InterCom IPU1 SYStem.CONFIG CORE 2. 1.
+InterCom IPU2 SYStem.CPU TDA2XIPU1-CORE1
+InterCom IPU2 SYStem.CONFIG CORE 3. 1.
+InterCom IVA  SYStem.CPU TDA2XIVA1
+InterCom IVA  SYStem.CONFIG CORE 4. 1.
+InterCom DSP1 SYStem.CPU TDA2XDSP1
+InterCom DSP1 SYStem.CONFIG CORE 5. 1.
+InterCom DSP2 SYStem.CPU TDA2XDSP2
+InterCom DSP2 SYStem.CONFIG CORE 6. 1.
+InterCom EVE  SYStem.CPU TDA2XEVE
+InterCom EVE  SYStem.CONFIG CORE 7. 1.
+
+InterCom Others SYStem.CONFIG SLAVE ON
+
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; kick slave cores cores and attach to all slave cores on all sessions
+; 
+DO ~~~~/tools/tda2x_prcm_config.cmm TDA2x_PRCM_Module_AllEnable_Config
+DO ~~~~/tools/tda2x_prcm_config.cmm TDA2x_PRCM_Clock_Config_OPPNOM_DRA7x_GENERIC
+
+InterCom IPU1 SYStem.Mode.Attach
+InterCom IPU2 SYStem.Mode.Attach
+InterCom IVA  SYStem.Mode.Attach
+
+DO ~~~~/tools/tda2x_multicore_reset.cmm TDA2x_MULTICORE_EnableAllCores
+
+InterCom DSP1 SYStem.Mode.Attach
+InterCom DSP2 SYStem.Mode.Attach
+InterCom EVE  SYStem.Mode.Attach
+
+; --------------------------------------------------------------------------------
+; load demo program on all sessions (use internal RAM only)
+CORE.select 0.
+Data.LOAD.Elf &(ppd)/master/sieve_ram_arm_v7.elf
+InterCom IPU1 Data.LOAD.Elf &(ppd)/slave1/sieve_ram_thumb_ii_v7m.elf
+InterCom IPU2 Data.LOAD.Elf &(ppd)/slave2/sieve_ram_thumb_ii_v7m.elf
+InterCom IVA  Data.LOAD.Elf ~~/demo/arm/compiler/gnu-pic/midi_arm.elf 0x00000000 /RelPATH
+
+Register.Set PC _start_secondary /CORE 1.
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main\1
+InterCom IPU1 Go.direct main\1
+InterCom IPU2 Go.direct main\1
+InterCom IVA  Go.direct main\1
+InterCom DSP1 Break.direct
+InterCom DSP2 Break.direct
+InterCom EVE  Break.direct
+InterCom ALL WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+InterCom ALL WinCLEAR
+InterCom ALL Mode.Hll
+InterCom ALL WinPOS 0. 0. 116. 26.
+InterCom ALL List.auto
+InterCom ALL WinPOS 121. 0. 48. 9.
+InterCom ALL Register.view
+WinPOS 0. 33. 116. 3.
+CORE.List
+WinPOS 122. 14. 46. 22.
+
+TargetSystem.state
+
+; --------------------------------------------------------------------------------
+; Setup sync start
+InterCom ALL SYnch.Connect 10000 10001 10002 10003 10004 10005 10006
+InterCom ALL SYnch.MasterGo    ON
+InterCom ALL SYnch.MasterBreak ON
+InterCom ALL SYnch.SlaveGo     ON
+InterCom ALL SYnch.SlaveBreak  ON
+
+ENDDO

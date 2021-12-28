@@ -1,0 +1,242 @@
+; --------------------------------------------------------------------------------
+; @Title: GNU C Example on a Mistral Board
+; @Description:
+;   Simple C application for ARM targets
+;   compiled with GNU GCC compiler
+;   running from SRAM
+;
+;   Supported Targets:
+;      TI OMAP3530 Mistral (Cortex-A8)
+;
+; @Author: HLG
+; @Board: Mistral
+; @Chip: OMAP3530
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo_mistral.cmm 15309 2019-11-22 19:14:20Z hlohn $
+
+
+WinCLEAR
+AREA.CLEAR
+SYStem.RESet
+Break.RESet
+TRANSlation.RESet
+FramePOS ,,,,Maximized
+
+IF !STATE.POWER()
+(
+	PRINT %ERROR "Please power your target board!"
+	ENDDO
+)
+
+SYStem.CPU OMAP3530
+SYStem.JtagClock RTCK
+SYStem.Option IMASKASM ON
+SYStem.Option IMASKHLL ON
+SYStem.Option INTDIS ON
+SYStem.Up
+
+Register.RESet
+Register.Set CPSR 0x0013
+Register.Set NS 1 // required for emulation device
+
+//Disable Watchdog
+Data.Set 0x48004C10 %Long 0x20 // Enable Interface Clock
+Data.Set 0x48004C00 %Long 0x20 // Enable functional clock
+WAIT (Data.Long(sd:0x48004C20)&0x20)==0 // Check that module is IDLE
+Data.Set sd:0x48314048 %LE %Long 0x0000AAAA //Disable watchdog timer
+WAIT (Data.Long(sd:0x48314034)&0x10)==0
+Data.Set sd:0x48314048 %LE %Long 0x00005555
+WAIT (Data.Long(sd:0x48314034)&0x10)==0
+IF Data.Long(d:0x48314048)!=0x00005555 // Check if the watchdog timer is running
+(
+	// Disable Watchdog 2
+	WAIT (Data.Long(d:0x48314014)&0x01)!=0  // Wait until reset complete
+
+	Data.Set 0x48314048 %Long 0x0000AAAA  // Disable 32Khz watchdog timer
+	WAIT (Data.Long(d:0x48314034)&0x10)==0
+	Data.Set 0x48314048 %Long 0x00005555  // Disable 32Khz watchdog timer
+	WAIT (Data.Long(d:0x48314034)&0x10)==0
+)
+
+// prcm_clocking_conf_IIa :
+Data.Set sd:0x48306D40 %LE %Long 0x2  // Set system clock to 19.2MHz (PRM_CLKSEL_REG)
+Data.Set sd:0x48004D00 %LE %Long (Data.Long(d:0x48004D00)&(~0x07))|(5<<0)      // Put DPLL into bypass
+WAIT (Data.Long(d:0x48004d20)&((0x1)))!=0x1
+Data.Set sd:0x48004A40 %LE %Long ((2<<0)|(2<<2)|(2<<4)|(0<<6)|(0<<7)|(3<<8))   // Program CM_CLKSEL_CORE_REG
+Data.Set sd:0x48004D40 %LE %Long ((1<<27.)|(242.<<16.)|(13.<<8)|(0<<5)|(0<<3)) // Program DPLL
+Data.Set sd:0x48004d00 %LE %Long (Data.Long(d:0x48004D00)|(5<<4)|(7<<0))       // Put DPLL into lock mode
+WAIT (Data.Long(d:0x48004d20)&((0x1)))==0x1  // Wait for DPLL to be in lock mode
+
+// Reconfiguring firewalls to Public accessible
+Data.Set 0x68012848 %Long 0xFFFFFFFF
+Data.Set 0x68012448 %Long 0xFFFFFFFF
+Data.Set 0x68014048 %Long 0xFFFFFFFF
+Data.Set 0x6C000048 %Long 0xFFFFFFFF
+
+// set gpmcsdrc
+Data.Set sd:0x6D000010 %LE %Long 0x0000000a  // issues software reset of SDRAM interface
+WAIT 10.ms
+Data.Set sd:0x6D000010 %LE %Long 0x00000008  // remove reset
+Data.Set sd:0x6D000080 %LE %Long 0x01702019  // set up sram mux mode for external connection
+Data.Set sd:0x6D0000B0 %LE %Long 0x01702019
+Data.Set sd:0x6D000044 %LE %Long 0x00000100
+WAIT 2.ms
+Data.Set sd:0x6D00009c %LE %Long 0x7A9DB485  // ACTIMA
+Data.Set sd:0x6D0000C4 %LE %Long 0x629DB485
+Data.Set sd:0x6D0000A0 %LE %Long 0x00001012  // ACTIMB
+Data.Set sd:0x6D0000C8 %LE %Long 0x00001012
+Data.Set sd:0x6D0000A4 %LE %Long 0x00005D01  // SDRC_RFR_CTRL_0
+Data.Set sd:0x6D0000D4 %LE %Long 0x00005D01
+Data.Set sd:0x6D0000A8 %LE %Long 0x00000000  // Manual Command sequence
+Data.Set sd:0x6D0000A8 %LE %Long 0x00000001
+Data.Set sd:0x6D0000A8 %LE %Long 0x00000002
+Data.Set sd:0x6D0000A8 %LE %Long 0x00000002
+Data.Set sd:0x6D0000D8 %LE %Long 0x00000000
+Data.Set sd:0x6D0000D8 %LE %Long 0x00000001
+Data.Set sd:0x6D0000D8 %LE %Long 0x00000002
+Data.Set sd:0x6D0000D8 %LE %Long 0x00000002
+Data.Set sd:0x6D000084 %LE %Long 0x00000032  // CS0 SDRC Mode Register
+Data.Set sd:0x6D0000B4 %LE %Long 0x00000032
+Data.Set sd:0x6D00008C %LE %Long 0x00000020  // Configure EMR_0 and EMR_1
+Data.Set sd:0x6D0000BC %LE %Long 0x00000020
+Data.Set sd:0x6D000060 %LE %Long 0x0000000a  // SDRC DLLA control register
+WAIT 50.ms  //  Wait for DLL lock time.
+
+// Increasing the core and trace frequency (500/166) on a OMAP3 device (STK 2008.11.21)
+Data.Set ASD:0x48004D00  %Long 0x00110015 // Disable PLL settings
+Data.Set ASD:0x48004D00  %Long 0x00110015
+Data.Set ASD:0x48004904  %Long 0x00000015
+Data.Set ASD:0x48005140  %Long 0x02030A50
+Data.Set ANSD:0x48004D40 %Long 0x094C0C00 // Setup PLL's
+Data.Set ANSD:0x48004D44 %Long 0x0001B00C
+Data.Set ANSD:0x48004D48 %Long 0x00000009
+Data.Set ANSD:0x48004D00 %Long 0x00310035
+Data.Set ANSD:0x48004C40 %Long 0x00000015
+Data.Set ANSD:0x48004A10 %Long 0x00000042
+Data.Set ANSD:0x48004A40 %Long 0x0000020A
+Data.Set ANSD:0x48004940 %Long 0x0011F40C
+Data.Set ANSD:0x48004904 %Long 0x00000035
+Data.Set ANSD:0x48004D00 %Long 0x00370037  // Enable PLL's
+Data.Set ANSD:0x48004904 %Long 0x00000037
+Data.Set ANSD:0x48004944 %Long 5.
+Data.Set ASD:0x48005140  %Long 0x03020A55   //  Increase trace clock.
+
+IF Analyzer()
+(
+	Data.Set a:0x5401d058 %Long 0x40000000
+	Data.Set a:0x5401d058 %Long 0x80000000
+	Data.Set a:0x5401d058 %Long 0x80004444
+	Data.Set a:0x5401d054 %Long 0x40040000
+	Data.Set a:0x5401d050 %Long 0x00000400
+
+	Data.Set a:(0x48002030+0x5A8) %Long 0  // CONTROL_PADCONF_ETK_CLK
+	Data.Set a:(0x48002030+0x5AC) %Long 0  // CONTROL_PADCONF_ETK_D0
+	Data.Set a:(0x48002030+0x5B0) %Long 0  // CONTROL_PADCONF_ETK_D2
+	Data.Set a:(0x48002030+0x5B4) %Long 0  // CONTROL_PADCONF_ETK_D4
+	Data.Set a:(0x48002030+0x5B8) %Long 0  // CONTROL_PADCONF_ETK_D6
+	Data.Set a:(0x48002030+0x5BC) %Long 0  // CONTROL_PADCONF_ETK_D8
+	Data.Set a:(0x48002030+0x5C0) %Long 0  // CONTROL_PADCONF_ETK_D10
+	Data.Set a:(0x48002030+0x5C4) %Long 0  // CONTROL_PADCONF_ETK_D12
+	Data.Set a:(0x48002030+0x5C8) %Long 0  // CONTROL_PADCONF_ETK_D14
+
+	ETM.RESet
+	ETM.DataTrace OFF
+	ETM.PortSize 16.
+	ETM.PortMode Bypass
+	ETM.TImeMode ExternalInterpolated
+
+	//Analyzer.RESet
+	Analyzer.Mode FlowTrace
+	Analyzer.Mode.SLAVE ON
+	Analyzer.SIZE Analyzer.MAXSIZE()
+	Analyzer.TraceCONNECT AUTO
+	Analyzer.TERMination ON
+	PRINT "Testing AutoFocus..."
+	IF OS.FILE("~~~/t32-af-mistral.cmm")
+	(
+		PRINT "Loading AutoFocus Config..."
+		DO "~~~/t32-af-mistral.cmm"
+	)
+	Analyzer.TestFocus // test trace port
+	IF FOUND() // if trace port test failed...
+	(
+		PRINT "Performing AutoFocus..."
+		Analyzer.AutoFocus
+		STOre "~~~/t32-af-mistral.cmm" AnalyzerFocus
+	)
+	PRINT ""
+	Analyzer.AutoArm  ON
+	Analyzer.AutoInit ON
+	Analyzer.SelfArm  OFF
+	Analyzer.Mode Fifo
+	Analyzer.TraceClock 332.MHz
+	Analyzer.Init
+)
+
+// Configure the MMU to map 32KiB of SRAM at physical address 0x40200000 to virtual address 0x0000--0x7fff
+Data.Set c15:1 %Long Data.Long(c15:1)&~1 // disable MMU
+Data.Set SD:0x40208000++0x3fff %Long 0   // clear 16KiB Translation Table
+Data.Set SD:0x40208000 %Long 0x4020C011  // create level one entry, which points to Coarse Page Table
+Data.Set SD:0x4020C000++0x03ff %Long 0   // clear 1KiB Coarse Page
+&i=0
+WHILE &i<10.                             // creating Small Page entries in Coarse Page Table
+(                                        // mapping lower 32KiB of OCM_RAM to address 0x0000
+	Data.Set SD:0x4020C000+(&i*4) %Long 0x40200002+(&i*0x1000)
+	&i=&i+1
+)
+Data.Set c15:0x0002 %Long 0x40208000     // set Translation Table Base register 0
+Data.Set c15:0x0102 %Long 0x40208000     // set Translation Table Base register 1
+Data.Set c15:0x0003 %Long 0x00000003     // set domain 0 access to Manager
+Data.Set c15:0x0001 %Long 0x00000079     // enable MMU
+
+// Adding translation table for debugger to get memory access with logical addresses via DAP during runtime
+TRANSlation.Create C:0x0000++0x7fff A:0x40200000++0x7fff
+TRANSlation.SHADOW ON  // use VM with logical addresses (instead of translating VM to VMA)
+TRANSlation.ON
+SYStem.MemAccess DAP
+
+// Init Eception Vectors
+Data.Set 0x00--0x3ff %Word 0xE7FE
+Register.Set T 1    // Enable thumb mode
+
+
+Data.LOAD.Elf "~~~~/sieve.elf" /RelPath /PlusVM
+Data.LOAD.Elf "~~~~/sieve.elf" /DIFF /NosYmbol
+IF FOUND()
+(
+	AREA.view
+	PRINT %ERROR "ERROR ! Failed to download the code of the example. Please check the memory settings of your target."
+	Data.LOAD.Elf "~~~~/sieve.elf"  /ComPare /NosYmbol
+	ENDDO
+)
+
+Mode.Hll
+
+Go main
+
+
+WinPOS 0% 0% 100% 50%
+List
+
+WinPOS 64% 50% 36% 50%
+Var.Watch
+Var.AddWatch mcount; flags; ast;
+
+IF Analyzer()&&!INTERFACE.SIM()
+(
+	WinPOS 0% 50% 64% 50%
+	Analyzer.List List.ADDRESS DEFault
+)
+ELSE
+(
+	WinPOS 0% 50% 36% 50%
+	Var.Ref %Hex %Decimal
+
+	WinPOS 36% 50% 28% 50% ,, 5.
+	Frame.view /Args /Locals
+)
+
+
+ENDDO
+

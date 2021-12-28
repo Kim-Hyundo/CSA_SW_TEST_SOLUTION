@@ -1,0 +1,63 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux Demo for TRACE32 OS Awareness on the NVIDIA Jetson Pro Board
+; @Description: 
+;     This script demonstrates the use of the OS Awareness for Linux
+;     The example is generated for the NVIDIA Jetson Pro Board.
+;     This script assume that Linux Kernel is already running on the board,
+;     only symbols are loaded using this script
+;
+; @Author: MSA
+; @Board: NVIDIA Jetson Pro
+; @Chip: TEGRAK1
+; @Keywords: awareness, Linux, NVIDIA
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tegrak1_linux.cmm 15210 2019-11-04 10:51:00Z bschroefel $  
+
+
+   LOCAL &ka_path &awareness
+
+   RESet
+   SYStem.RESet
+   SYStem.CPU TEGRAK1
+   SYStem.Option ResBreak OFF
+   SYStem.Option WaitReset 2.s
+   ETM.OFF
+
+   SYStem.Option DACR ON ; give Debugger global write permissions
+   TrOnchip.Set DABORT OFF ; used by Linux for page miss!
+   TrOnchip.Set PABORT OFF ; used by Linux for page miss!
+   TrOnchip.Set UNDEF OFF ; may be used by Linux for FPU detection
+   SYStem.Option MMUSPACES ON ; enable space ids to virtual addresses
+
+   SYStem.Up
+
+   DO ~~/demo/etc/terminal/serial/term.cmm COM1 115200.
+
+   Data.LOAD.Elf vmlinux /NoCODE /NoClear
+
+   Go.direct start_kernel /Onchip
+   WAIT !STATE.RUN()
+
+   MMU.FORMAT LINUX swapper_pg_dir 0xc0000000--0xdfffffff 0x80a00000
+   TRANSlation.COMMON 0xbf000000--0xffffffff
+   TRANSlation.TableWalk ON
+   TRANSlation.ON
+
+   ; check linux major version
+   IF STRing.SCAN(Data.STRing(linux_banner), "Linux version 2.", 0)==0
+   (
+      &ka_path="~~/demo/arm/kernel/linux/linux-2.x"
+      &awareness="linux.t32"
+   )
+   ELSE
+   (
+      &ka_path="~~/demo/arm/kernel/linux/linux-3.x"
+      &awareness="linux3.t32"  
+   )
+
+   PRINT "initializing RTOS support..."
+   TASK.CONFIG &ka_path/&awareness               ; loads Linux awareness 
+   MENU.ReProgram &ka_path/linux            ; loads Linux menu 
+
+   ENDDO

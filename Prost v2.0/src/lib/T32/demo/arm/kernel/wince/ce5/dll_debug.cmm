@@ -1,0 +1,95 @@
+; --------------------------------------------------------------------------------
+; @Title: WinCE 5.0 DLL Debugging Script
+; @Description: 
+;   This script waits for a DLL to be started,
+;   loads the symbols and halts the DLL at DllMain()
+;   NOTE: Windows CE and the Windows CE awareness must be up.
+;   start this script with the following arguments:
+;   first argument: symbol file (with path, if necessary) WITHOUT .dll extension
+;                   the file name MUST match the DLL name
+;   examples: do dll_debug mydll
+;             do dll_debug C:\WINCE500\PBWorkspaces\\mydesing\mydll
+; @Keywords: awareness, Windows
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: dll_debug.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+ ENTRY &dllpath
+ LOCAL &dll &dllcreate 
+ 
+ ; get the DLL name from the symbol file path
+ &dll=OS.FILE.NAME("&dllpath")
+
+ ; delete possibly existing symbols
+ 
+ IF sYmbol.EXIST("\\&dll")
+   sYmbol.Delete \\&dll
+
+; Wait for DLL to be loaded.
+; The DLL must be started by a process loading it.
+
+ ; we cannot load DLL symbols as long as we don't
+ ; know the address translation. The MMU for the new
+ ; DLL is set up, right before it is started
+ ; at CallDLLEntry()
+
+ IF STATE.RUN()
+   Break
+   
+ IF sYmbol.EXIST(CallDLLEntry)
+   &dllcreate=ADDRESS.OFFSET(CallDLLEntry)
+ ELSE IF sYmbol.EXIST(DoImports)
+   &dllcreate=ADDRESS.OFFSET(DoImports)
+ ELSE
+ (
+    PRINT "Error: DLL creation location not found!"
+    ENDDO
+ )
+ 
+ ; The DLL creation is called for every DLL to start -
+ ; the conditional breakpoint halts only, if the desired DLL
+ ; is found in the DLL table.
+ 
+ Break.Set &dllcreate /Onchip /CONDition task.dll.codeaddr("&dll")!=0xffffffff
+ Go
+ PRINT "waiting for &dll DLL to be started..."
+ WAIT !STATE.RUN()
+ Break.Delete &dllcreate
+ 
+ ; Yep! The DLL is loaded and we found it.
+ ; Now load the symbols of the DLL
+ 
+ PRINT "loading &dll.exe symbols..."
+ TASK.sYmbol.LOADDLL "&dllpath"
+
+ ; Now set a breakpoint at it's main entry point.
+ 
+ IF sYmbol.EXIST(DllMain)
+   &entry=ADDRESS.OFFSET(DllMain)
+ ELSE
+ (
+    PRINT "Error: main routine of DLL not found!"
+    ENDDO
+ )
+ 
+ Break.Set &entry /Onchip 
+
+ ; Let the system run. As soon as the process
+ ; is started at main(), it halts.
+ 
+ Go
+ PRINT "starting &dll..."
+ WAIT !STATE.RUN()
+ Break.Delete &entry
+
+ PRINT "done."
+ 
+ ; NOTE: if finished debugging with a DLL, or if restarting
+ ; the DLL, you have to delete the symbols and restart the
+ ; DLL debugging. Delete the symbols with
+ ; sYmbol.Delete \\<module_name>
+
+ ENDDO
+ 

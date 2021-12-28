@@ -1,0 +1,68 @@
+; --------------------------------------------------------------------------------
+; @Title: eCos Demo for TRACE32 OS Awareness
+; @Description: 
+;   
+;   This batchfile loads all necessary files to demonstrate
+;   the OS Awareness for eCos.
+;   
+; @Keywords: awareness, RTOS
+; @Author: DIE
+; @Chip: ARM7TDMI
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: ecos.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+;   Created by Rudolf Dienstbeck / Lauterbach GmbH at 23.10.2002
+
+; NOTE:
+; currently the demo runs only with Simulator
+
+ SCREEN.ON
+ WinPAGE.RESet
+ WinPOS 0. 22. 70. 8. 0. 0. W000
+ AREA.view
+
+; Emulator reset
+ PRINT "resetting..."
+ SYStem.RESet
+ MAP.RESet
+
+; initialize Simulator
+ PRINT "initializing..."
+ SYStem.CPU ARM7TDMI
+ SYStem.Up
+
+; load sample application
+ PRINT "loading sample application..."
+
+ Data.LOAD.Elf twothreads.elf /GNUCPP /cygdrive
+
+ ; patch IO to output to TRACE32 terminal
+ Data.Assemble haldiag_putc mov r2,#0x1000
+ Data.Assemble , ldrb r3,[r2]
+ Data.Assemble , cmp  r3,#0x0
+ Data.Assemble , bne  $-8
+ Data.Assemble , strb r1,[r2]
+ Data.Assemble , mov  pc,r14
+ 
+ WinPOS 0. 0.
+ TERM.Protocol SingleE
+ TERM.view 0x1000 0x1001
+
+; initialize mutitasking support
+ PRINT "initializing RTOS support..."
+ SCREEN.OFF
+ TASK.CONFIG ecos           ; load ecos awareness (ecos.t32)
+ MENU.ReProgram ecos        ; load ecos menu (ecos.men)
+ HELP.FILTER.Add rtosecos   ; add ecos manual to filtered help
+
+ PRINT "load complete."
+ 
+; open windows
+ WinPOS 48. 0. 65. 6. 0. 1. W001
+ TASK.THRead
+ WinPOS 50. 8. 70. 21.
+ List.auto
+
+ Go simple_program
+ 

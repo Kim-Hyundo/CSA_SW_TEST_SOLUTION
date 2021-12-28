@@ -1,0 +1,47 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo for Evaluator-7T
+; @Description:
+;   Install and start the debugger and enter "do arm" in the command line
+;   of the debugger.
+;
+;   "SYStem.Option.ResBreak OFF" let the BSL code in the flash run to map
+;   RAM at address 0.
+;   To be independent of any program in the flash, this command should be
+;   removed and the appropriate memory mapping should be done with Data.Set
+;   commands before the Data.LOAD command.
+;
+; @Author: PEG
+; @Board: Evaluator-7T
+; @Chip: S3C4510B
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: arm.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+;   PEG, 07/04/02
+
+ WinCLEAR
+ RESet
+ SYStem.CPU S3C4510B
+ SYStem.Option ResBreak OFF
+ SYStem.Up
+
+ Data.LOAD.Elf ~~~~/thumble.axf /StripPATH /LPATH /NODEBUGFRAME
+
+ WinPOS 0% 0% 100% 50%
+ List.auto
+ WinPOS 0% 50% 50% 50%
+ Frame.view /Locals /Caller
+ WinPOS 50% 50% 50% 50%
+ Var.Watch flags ast
+
+ Register.Set cpsr 0x33
+ Register.Set PC main
+ Register.Set r13 0x1000
+
+ ENDDO
+
+
+
+
+
+

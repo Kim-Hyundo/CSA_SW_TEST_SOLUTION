@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="../../t32transform.xsl"?>
+<TRACE32 file="D:\svn\demo\demo\coverage\multi_file_report\example_report\sieve\isr\func-p-488-4af.xml">
+	<coverage>
+		<COVerage.EXPORT.ListLine ts="1539005269" t32ver="S.2018.10.000101728" t32pv="ARM">
+			<module>
+				<addrFrom>P:0x460</addrFrom>
+				<addrTo>P:0x4AF</addrTo>
+				<tree>\\sieve\isr</tree>
+				<cov>never</cov>
+				<exec>0.000%</exec>
+				<branches>-</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>-</never>
+				<bytes>80</bytes>
+				<bytesok>0</bytesok>
+				<function>
+					<addrFrom>P:0x488</addrFrom>
+					<addrTo>P:0x4AF</addrTo>
+					<tree uid="p-488-4af">\\sieve\isr\exc_snoop</tree>
+					<cov>never</cov>
+					<exec>0.000%</exec>
+					<branches>-</branches>
+					<ok>0</ok>
+					<taken>0</taken>
+					<nottaken>0</nottaken>
+					<never>-</never>
+					<bytes>40</bytes>
+					<bytesok>0</bytesok>
+					<line>
+						<addrFrom>P:0x488</addrFrom>
+						<addrTo>P:0x48F</addrTo>
+						<tree>isr.c \14--22</tree>
+						<srcpath>.\src</srcpath>
+						<cov>never</cov>
+						<exec>0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>-</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:0x490</addrFrom>
+						<addrTo>P:0x493</addrTo>
+						<tree>isr.c \23--23</tree>
+						<srcpath>.\src</srcpath>
+						<cov>never</cov>
+						<exec>0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>-</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:0x494</addrFrom>
+						<addrTo>P:0x49F</addrTo>
+						<tree>isr.c \24--24</tree>
+						<srcpath>.\src</srcpath>
+						<cov>never</cov>
+						<exec>0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>-</never>
+						<bytes>12</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:0x4A0</addrFrom>
+						<addrTo>P:0x4AF</addrTo>
+						<tree>isr.c \25--25</tree>
+						<srcpath>.\src</srcpath>
+						<cov>never</cov>
+						<exec>0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>-</never>
+						<bytes>16</bytes>
+						<bytesok>0</bytesok>
+					</line>
+				</function>
+			</module>
+		<total>
+			<cov>never</cov>
+			<exec>0.000%</exec>
+			<branches>-</branches>
+			<ok>0</ok>
+			<taken>0</taken>
+			<nottaken>0</nottaken>
+			<never>0</never>
+			<bytes>80</bytes>
+			<bytesok>0</bytesok>
+		</total>
+		</COVerage.EXPORT.ListLine>
+	</coverage>
+	<marker>
+		<BookMark.EXPORT ts="1539005269" t32ver="S.2018.10.000101728" t32pv="ARM">
+		</BookMark.EXPORT>
+	</marker>
+	<listing>
+		<List.EXPORT ts="1539005269" t32ver="S.2018.10.000101728" t32pv="ARM" cpu="ARM922T">
+			<mixed module="\\sieve\isr\isr.c">
+				<hll><line>14</line><src></src></hll>
+				<hll><line>15</line><src></src></hll>
+				<hll><line>16</line><src>/* Interrupt Service Routine for Timer0 to serve monitor code</src></hll>
+				<hll><line>17</line><src> *  for real-time snooping of the PC</src></hll>
+				<hll><line>18</line><src> * on an ARM922T Excalibur device</src></hll>
+				<hll><line>19</line><src> */</src></hll>
+				<hll><line>20</line><src>void exc_snoop() __attribute__ ((interrupt (&quot;IRQ&quot;)));</src></hll>
+				<hll><line>21</line><src>void exc_snoop()</src></hll>
+				<hll><cov>never</cov><line>22</line><src>{</src></hll>
+				<asm><cov>never</cov><addr>SR:00000488</addr><code>E92D080C</code><label>exc_snoop:</label><mnemonic>stmdb   r13!,{r2-r3,r11}</mnemonic></asm>
+				<asm><cov>never</cov><addr>SR:0000048C</addr><code>E28DB008</code><mnemonic>add     r11,r13,#0x8</mnemonic><comment>r11,r13,#8</comment></asm>
+			</mixed>
+			<mixed module="\\sieve\isr\isr.c">
+				<hll><cov>never</cov><line>23</line><src>    __asm__(&quot;mcr p14,0,r14,c1,c0&quot;); // save location at which interrupt occured to DCC register</src></hll>
+				<asm><cov>never</cov><addr>SR:00000490</addr><code>EE01EE10</code><mnemonic>mcr     p14,0x0,r14,c1,c0,0x0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\isr\isr.c">
+				<hll><cov>never</cov><line>24</line><src>    *((unsigned int*)0x7FFFC200)=0x1C; // remove interrrupt from Timer0</src></hll>
+				<asm><cov>never</cov><addr>SR:00000494</addr><code>E59F3010</code><mnemonic>ldr     r3,0x4AC</mnemonic></asm>
+				<asm><cov>never</cov><addr>SR:00000498</addr><code>E3A0201C</code><mnemonic>mov     r2,#0x1C</mnemonic><comment>r2,#28</comment></asm>
+				<asm><cov>never</cov><addr>SR:0000049C</addr><code>E5832000</code><mnemonic>str     r2,[r3]</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\isr\isr.c">
+				<hll><cov>never</cov><line>25</line><src>}</src></hll>
+				<asm><cov>never</cov><addr>SR:000004A0</addr><code>E24BD008</code><mnemonic>sub     r13,r11,#0x8</mnemonic><comment>r13,r11,#8</comment></asm>
+				<asm><cov>never</cov><addr>SR:000004A4</addr><code>E8BD080C</code><mnemonic>ldmia   r13!,{r2-r3,r11}</mnemonic></asm>
+				<asm><cov>never</cov><addr>SR:000004A8</addr><code>E25EF004</code><mnemonic>subs    pc,r14,#0x4</mnemonic><comment>pc,r14,#4</comment></asm>
+				<asm><cov>never</cov><addr>SP:000004AC</addr><code>7FFFC200</code><mnemonic>dcd     0x7FFFC200</mnemonic></asm>
+			</mixed>
+				<mixed module="\\sieve\isr\isr.c">
+				<hll><line>26</line><src></src></hll>
+				<hll><line>27</line><src></src></hll>
+				</mixed>
+		</List.EXPORT>
+	</listing>
+</TRACE32>

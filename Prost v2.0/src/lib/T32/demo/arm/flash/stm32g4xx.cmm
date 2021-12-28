@@ -1,0 +1,197 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash declaration for ST STM32G4 internal flash
+; @Description:
+;   Script arguments:
+;     DO stm32g4 [PREPAREONLY] [CPU=<cpu>] [DUALPORT=<0|1>]
+;       PREPAREONLY    only declares flash but does not execute flash programming
+;       CPU=<cpu>      selects CPU derivative <cpu>
+;       DUALPORT=<0|1> use dual port memory access, default 1
+;   Example:
+;     DO ~~/demo/arm/flash/stm32g4 PREPAREONLY
+;   Note:
+;     This file must NOT be modified.
+;     This file is intended to stay within TRACE32 installation.
+;     Usage examples are available in the ~~/demo/arm/hardware/... subdirectories.
+;
+;   List of STM32G4 derivatives and their configuration:
+;      CPU-Type         Flash    RamSize   Pagesize                      Category
+;                      [KByte]   [KByte]
+; --------------------------------------------------------------------------------
+;   STM32G4x1 :                              0x800
+;     STM32G431x6         32        32                   x = K/C/R/M/V       2
+;     STM32G431x8         64        32                   x = K/C/R/M/V       2
+;     STM32G431xB        128        32                   x = K/C/R/M/V       2
+;     STM32G441xB        128        32                   x = K/C/R/M/V       2
+;   STM32G4x3 :                           0x800/0x1000
+;     STM32G473xB        128       128                   x = C/R/M/V/Q       3
+;     STM32G473xC        256       128                   x = C/R/M/V/Q       3
+;     STM32G473xE        512       128                   x = C/R/M/V/Q       3
+;     STM32G483xE        512       128                   x = C/R/M/V/Q
+;   STM32G4x4 :                           0x800/0x1000
+;     STM32G474xB        128       128                   x = C/R/M/V/Q       3
+;     STM32G474xC        256       128                   x = C/R/M/V/Q       3
+;     STM32G474xE        512       128                   x = C/R/M/V/Q       3
+;     STM32G484xE        512       128                   x = C/R/M/V/Q       3
+;
+;   Flash base address is 0x08000000
+;   RAM base address is   0x20000000
+;
+; @Chip: STM32G4*
+; @Author: PHI
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 7696 $
+; $Id: stm32g4xx.cmm 7696 2019-12-03 08:51:00Z sphilipp $
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+PRIVATE &param_prepareonly &param_cpu &param_masserase &param_dualport
+&parameters=STRing.UPpeR("&parameters")
+&param_prepareonly=(STRing.SCAN("&parameters","PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract("&parameters","CPU=","")
+&param_masserase=(STRing.SCAN("&parameters","MASSERASE",0)!=-1)
+&param_dualport=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"DUALPORT=","0")
+
+; --------------------------------------------------------------------------------
+; Initialize and start the debugger
+; --------------------------------------------------------------------------------
+; Initialize and start the debugger
+IF !SYStem.Up()
+(
+  SYStem.RESet
+
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  IF !CPUIS(STM32G4*)
+    SYStem.CPU STM32G4*
+
+  SYStem.MemAccess DAP
+
+  IF CABLE.TWOWIRE()
+    SYStem.CONFIG DEBUGPORTTYPE SWD
+  ELSE
+    SYStem.CONFIG DEBUGPORTTYPE JTAG
+
+  IF &param_masserase
+    FLASH.UNSECUREerase
+  
+  SYStem.Up
+)
+ELSE
+(
+  IF !CPUIS(STM32G4*)
+  (
+    PRINT %ERROR "Please select STM32G4 CPU derivative"
+    ENDDO
+  )
+)
+
+; --------------------------------------------------------------------------------
+; Flash declaration
+FLASH.RESet
+GOSUB FlashDeclaration "&param_dualport"
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; --------------------------------------------------------------------------------
+; Flash programming example
+DIALOG.YESNO "Program flash memory?"
+PRIVATE &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram ALL /Erase
+  Data.LOAD.auto *
+  FLASH.ReProgram OFF
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+)
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+; SUBROUTINES
+
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU
+FlashDeclaration:
+(
+  PARAMETERS &param_dualport
+  PRIVATE &FlashDriver &FlashSize &dualbank &pagesize
+
+  IF CPUIS(STM32G4?1?6)
+  (
+    &FlashSize=0x8000
+    &FlashDriver="stm32g46.bin"
+  )
+  ELSE IF CPUIS(STM32G431?8)
+  (
+    &FlashSize=0x10000
+    &FlashDriver="stm32g48.bin"
+  )
+  ELSE IF (CPUIS(STM32G431?B)||CPUIS(STM32G441?B))
+  (
+    &FlashSize=0x20000
+    &FlashDriver="stm32g4x1b.bin"
+  )
+  ELSE IF (CPUIS(STM32G473?B)||CPUIS(STM32G474?B))
+  (
+    &FlashSize=0x20000
+    &FlashDriver="stm32g4b.bin"
+  )
+  ELSE IF CPUIS(STM32G4???C)
+  (
+    &FlashSize=0x40000
+    &FlashDriver="stm32g4c.bin"
+  )
+  ELSE IF CPUIS(STM32G4???E)
+  (
+    &FlashSize=0x80000
+    &FlashDriver="stm32g4e.bin"
+  )
+  ELSE
+  (
+    PRINT %ERROR "FLASH size of CPU type is unknown"
+    ENDDO
+  )
+
+  &dualbank=(Data.Long(SD:0x1FFF7800)&(0x1<<22.))==(0x1<<22.)
+  IF (&dualbank==TRUE())
+  (
+    &pagesize=0x800
+  )
+  ELSE
+  (
+    &pagesize=0x1000
+  )
+
+  IF CPUIS(STM32G4?1?6)||CPUIS(STM32G431?8)
+  (
+    &dualbank==FALSE()
+    &pagesize=0x800
+  )
+
+  IF (&dualbank==TRUE())
+  (
+    FLASH.Create 1.  0x08000000++(&FlashSize/2.-0x1) &pagesize TARGET Quad
+    FLASH.Create 2.  (0x08000000+&FlashSize/2.)++(&FlashSize/2.-0x1) &pagesize TARGET Quad
+  )
+  ELSE
+    FLASH.Create 1.  0x08000000++(&FlashSize-0x1) &pagesize TARGET Quad
+
+  Data.ComPare 0x0--0xf 0x08000000
+  IF !FOUND()
+    FLASH.CreateALIAS 0x00000000++(&FlashSize-1) 0x08000000
+
+  IF "&param_dualport"=="0" 
+    FLASH.TARGET 0x20000000 0x20001000 0x1000 ~~/demo/arm/flash/byte/&FlashDriver
+  ELSE
+    FLASH.TARGET 0x20000000 EAHB:0x20001000 0x1000 ~~/demo/arm/flash/byte/&FlashDriver /DualPort
+
+  RETURN
+)

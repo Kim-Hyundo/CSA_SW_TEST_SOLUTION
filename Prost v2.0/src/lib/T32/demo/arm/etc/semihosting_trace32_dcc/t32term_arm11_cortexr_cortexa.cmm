@@ -1,0 +1,53 @@
+; --------------------------------------------------------------------------------
+; @Title: TRACE32 Compatible Semihosting via DCC Channel for ARM11, Cortex-R, Cortex-A
+; @Description: -
+; @Author: PEG
+; @Chip: ARM11*, Cortex-A*, Cortex-R?
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: t32term_arm11_cortexr_cortexa.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; The example assumes RAM at address 0.
+; After executing this script you need to run the loaded example program (-> 'Go').
+; It outputs 'Hello World!' in the TERM.GATE window and offers you a menu to 
+; 'r' read and type an ascii file named test1 which needs to be in the current directory.
+; 'w' write the text 'Hello World!' in an ascii file named test2 in the current directory.
+; 'p' print 32 times the line 'Performance Test Text'.
+
+; For further functions of the TRACE32 compatible semihosting see t32term.c.
+; See the target manual of the arm debugger (debugger_arm.pdf) for more details about 'semihosting'.
+
+; The debugger is expected to be in 'UP' state, therefore a target specific start-up script
+; probably similar to the following one for the simulator will be needed to run first.
+
+
+; start-up in case of simulator
+  if INTERFACE.SIM()
+  (
+    RESet
+    SYStem.CPU ARM1136JF
+    SYStem.Up
+  )
+
+; load demo application
+  Data.LOAD.Elf ~~~~/t32term_arm11_cortexr_cortexa.axf /Verify
+
+; configure and open semihosting channel
+  TERM.METHOD dcc3
+  TERM.Mode ascii
+
+; open some windows
+  WinCLEAR
+  WinPOS 0% 0% 100% 48%
+  List.auto
+  WinPOS 0% 50% 50% 48%
+  Frame /Locals /Caller
+  WinPOS 50% 50% 50% 48%
+  TERM.GATE
+
+  ENDDO
+
+
+
+

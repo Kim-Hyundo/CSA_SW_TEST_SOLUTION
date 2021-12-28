@@ -1,0 +1,505 @@
+; --------------------------------------------------------------------------------
+; @Title: Additional EPOC Menues
+; @Description: -
+; @Author: DIE
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: symbian2.men 7320 2014-07-03 08:57:49Z kjmal $
+
+
+add
+menu
+(
+  popup "Symbian"
+  (
+    menuitem "Display &Processes" "TASK.PROCess"
+    menuitem "Display &Threads"   "TASK.THRead"
+    menuitem "Display &Libraries" "TASK.LIBrary"
+    menuitem "Display &Chunks"    "TASK.CHUNK"
+    menuitem "Display &Modules"   "TASK.CodeSeg"
+    menuitem "Display &Condition" "TASK.CONDition"
+    separator
+    popup "&Process Debugging"
+    (
+      menuitem "&Load Symbols..."
+      (
+        dialog
+        (
+          header "sYmbol.AutoLOAD.TOUCH"
+          pos 0. 0. 30. 3.
+          box "Process name"
+          pos 1. 1. 20. 1.
+procl:    defedit "" ""
+          pos 22. 1. 7. 1.
+          button "Browse..."
+          (
+            dialog.file "*.exe"
+            entry %line &file
+            dialog.set procl "&file"
+          )
+          pos 6. 3. 7. 1.
+          defbutton "Ok"
+          (
+            local &procl &cwd
+            &procl=dialog.string(procl)
+            sYmbol.AutoLOAD.TOUCH "&procl"
+            dialog.end
+          )
+          pos 17. 3. 7. 1.
+          button "Cancel"  "dialog.end"
+        )
+      )
+      menuitem "&Delete Symbols..."
+      (
+        dialog
+        (
+          header "sYmbol.AutoLOAD.CLEAR"
+          pos 0. 0. 30. 3.
+          box "Process name"
+          pos 1. 1. 20. 1.
+procd:    defedit "" ""
+          pos 22. 1. 7. 1.
+          button "Browse..."
+          (
+            dialog.file "*.exe"
+            entry %line &file
+            dialog.set procd "&file"
+          )
+          pos 6. 3. 7. 1.
+          defbutton "Ok"
+          (
+            local &procd
+            &procd=dialog.string(procd)
+            sYmbol.AutoLOAD.CLEAR "&procd"
+            dialog.end
+          )
+          pos 17. 3. 7. 1.
+          button "Cancel"  "dialog.end"
+        )
+      )
+      menuitem "Debug Process on E32Main..."
+      (
+        do ~~/demo/arm/kernel/symbian/eka2/procentry /dialog
+      )
+      popup "&Watch Processes"
+      (
+        menuitem "&Add..."
+        (
+          dialog
+          (
+            header "TASK.Watch.Add"
+            pos 0. 0. 24. 3.
+            box "Process name"
+            pos 1. 1. 22. 1.
+wproca:     defedit "" ""
+            pos 2. 3. 7. 1.
+            defbutton "Ok"
+            (
+              local &wproca
+              &wproca=dialog.string(wproca)
+              TASK.Watch.View "&wproca"
+              dialog.end
+            )
+            pos 15. 3. 7. 1.
+            button "Cancel"  "dialog.end"
+          )
+        )
+        menuitem "&Remove..."
+        (
+          dialog
+          (
+            header "TASK.Watch.DELete"
+            pos 0. 0. 24. 3.
+            box "Process name"
+            pos 1. 1. 22. 1.
+wprocd:     defedit "" ""
+            pos 2. 3. 7. 1.
+            defbutton "Ok"
+            (
+              local &wprocd
+              &wprocd=dialog.string(wprocd)
+              TASK.Watch.DELete "&wprocd"
+              dialog.end
+            )
+            pos 15. 3. 7. 1.
+            button "Cancel"  "dialog.end"
+          )
+        )
+      )
+    )
+    popup "&Library Debugging"
+    (
+      menuitem "&Load Symbols..."
+      (
+        dialog
+        (
+          header "sYmbol.AutoLOAD.TOUCH"
+          pos 0. 0. 30. 3.
+          box "Library name"
+          pos 1. 1. 20. 1.
+dlll:     defedit "" ""
+          pos 22. 1. 7. 1.
+          button "Browse..."
+          (
+            dialog.file "*.dll"
+            entry %line &file
+            dialog.set dlll "&file"
+          )
+          pos 6. 3. 7. 1.
+          defbutton "Ok"
+          (
+            local &dlll &cwd
+            &dlll=dialog.string(dlll)
+            sYmbol.AutoLOAD.TOUCH "&dlll"
+            dialog.end
+          )
+          pos 17. 3. 7. 1.
+          button "Cancel"  "dialog.end"
+        )
+      )
+      menuitem "&Delete Symbols..."
+      (
+        dialog
+        (
+          header "sYmbol.AutoLOAD.CLEAR"
+          pos 0. 0. 30. 3.
+          box "Library name"
+          pos 1. 1. 20. 1.
+dlld:     defedit "" ""
+          pos 22. 1. 7. 1.
+          button "Browse..."
+          (
+            dialog.file "*.dll"
+            entry %line &file
+            dialog.set dlld "&file"
+          )
+          pos 6. 3. 7. 1.
+          defbutton "Ok"
+          (
+            local &dlld
+            &dlld=dialog.string(dlld)
+            sYmbol.AutoLOAD.CLEAR "&dlld"
+            dialog.end
+          )
+          pos 17. 3. 7. 1.
+          button "Cancel"  "dialog.end"
+        )
+      )
+    )
+    separator
+    popup "&Autoloader"
+    (
+        menuitem "List Components" "sYmbol.AutoLoad.List"
+        menuitem "Check Now!"       "sYmbol.AutoLoad.CHECK"
+        menuitem "Configuration..."
+        (
+            dialog
+            (
+                header "Configure Autoloader"
+	            pos 0. 0. 40. 3.
+                box "rombuild log file"
+                pos 1. 1. 30. 1.
+logfile:        defedit "rombuild.log" ""
+                pos 32. 1. 7. 1.
+                button "Browse..."
+                (
+                    dialog.file "*.log"
+                    entry %line &file
+                    dialog.set logfile "&file"
+                )
+	            pos 0. 2.5 40. 3.
+                box "autoload batch script"
+                pos 1. 3.5 30. 1
+cmmfile:        edit "autoload.cmm" ""
+                pos 32. 3.5 7. 1.
+                button "Browse..."
+                (
+                    dialog.file "*.cmm"
+                    entry %line &file
+                    dialog.set cmmfile "&file"
+                )
+                pos 1. 5.5 16. 1.
+check:          checkbox "dynamic autoloader"
+                (
+                    if dialog.boolean(check)
+                        dialog.enable checkon
+                    else
+                        dialog.disable checkon
+                )
+                pos 18. 5.5 16. 1.
+                ;enable check
+checkon:        checkbox "automatic check" ""
+                pos 10. 7 8.
+                defbutton "Ok"
+                (
+                    local &log &cmm
+                    &log=dialog.string(logfile)
+                    &cmm=dialog.string(cmmfile)
+                    if ("&log"!="")&&("&cmm"!="")
+                        sYmbol.AutoLoad.LOADEPOC &log "do &cmm "
+                    if dialog.boolean(check)&&("&cmm"!="")
+                    (
+                        sYmbol.AutoLoad.CHECKEPOC "do &cmm "
+                        sYmbol.AutoLoad.CHECK       ; trigger check manually
+                        if dialog.boolean(checkon)
+                            sYmbol.AutoLoad.CHECK ON    ; automatic check enabled
+                        else
+                            sYmbol.AutoLoad.CHECK OFF   ; automatic check disabled
+                    )
+                    dialog.end
+                )
+                pos 22. 7 8.
+                button "Cancel" "dialog.end"
+            )
+            dialog.disable checkon
+        )
+    )
+    separator
+    popup "&Stack Coverage"
+    (
+      menuitem "&List Stacks"
+      (
+        if icd()||simulator()
+          TASK.STacK.PATtern 0xee
+        TASK.STacK
+      )
+      menuitem "Add Task"        "TASK.STacK.ADD"
+      menuitem "Remove Task"     "TASK.STacK.ReMove"
+      enable ice()||fire()
+      menuitem "&Reset Coverage" "TASK.STacK.RESet"
+    )
+    separator
+    menuitem "Help Symbian Awareness" "HELP __RTOS_Symbian2_"
+  )
+  popup "Trace"
+  (
+    popup "List"
+    (
+      separator
+      menuitem "&Task Switches"     "Trace.List List.TASK"
+      menuitem "&Default and Tasks" "Trace.List List.TASK DEFault"
+    )
+  )
+  popup "Perf"
+  (
+    separator
+    popup "&Task Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+        )
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak&&Write
+          )
+          Break.Delete /Alpha
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+        )
+        if a.mode.flow()
+        (
+          Break.Delete /TraceEnable
+          Break.Set task.config(magic) /TraceEnable
+        )
+        Trace.Init
+      )
+      menuitem "[:perf]Show &Numerical"   "Trace.STATistic.TASK"
+      menuitem "[:achart]Show as &Timing" "Trace.CHART.TASK"
+      menuitem "[:achart]Tracking with Trace &List"
+      (
+        Trace.List List.TASK DEFault /Track
+        Trace.CHART.TASK /Track
+      )
+    )
+    popup "Task &Function Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+          Analyzer.STATistic.PreFetch on
+        )
+
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          if a.config.hac()
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak
+               Sample.Enable if BetaBreak
+               Mark.A        if AlphaBreak
+               Mark.B        if BetaBreak
+             )
+          )
+          else
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak||BetaBreak
+               Mark.A if AlphaBreak
+               Mark.B if BetaBreak
+             )
+          )
+          Break.Delete /Alpha /Beta /Charly
+          Break.SetFunc
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+        )
+        if a.mode.flow()
+        (
+          Break.Delete /TraceData
+          Break.Set task.config(magic) /TraceData
+        )
+        Trace.Init
+      )
+      menuitem "[:perf]Show &Numerical"     "Trace.STATistic.TASKFUNC"
+      menuitem "[:perf]Show as &Tree"       "Trace.STATistic.TASKTREE"
+      menuitem "[:perf]Show &Detailed Tree" "Trace.STATistic.TASKTREE ALL"
+      menuitem "[:achart]Show as &Timing"   "Trace.CHART.TASKFUNC"
+      menuitem "[:alist]Show N&esting"      "Trace.List List.TASK FUNC TI.FUNC"
+    )
+    popup "Task &State"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+        )
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak&&Write
+          )
+          Break.Delete /Alpha
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+          TASK.TASKState
+        )
+        Trace.Init
+      )
+      menuitem "[:perf]Show &Numerical"   "Trace.STATistic.TASKSTATE"
+      menuitem "[:achart]Show as &Timing" "Trace.CHART.TASKSTATE"
+      menuitem "[:achart]Tracking with Trace &List"
+      (
+        Trace.List List.TASK DEFault /Track
+        Trace.CHART.TASKSTATE /Track
+      )
+    )
+  )
+  popup "&Help"
+  (
+    menuitem "Symbian OS Awareness Manual" "HELP __RTOS_SYMBIAN2_"
+  )
+)
+
+
+menu "task.thr"
+(
+  default
+  menuitem "Display Detailed"  "TASK.THRead track.address()"
+  menuitem "Display DThread Object"       
+  (
+    &address=address.offset(track.address())-task.config(magicoffs)
+    Var.View %m %in (DThread*)&address
+  )
+  separator
+  menuitem "Add to Stack Cov"  "TASK.STK.ADD address.offset(track.address())"
+  menuitem "Rm from Stack Cov" "TASK.STK.RM  address.offset(track.address())"
+  separator
+  menuitem "Dump Thread Object"  "Data.dump track.address()"
+)
+
+menu "task.proc"
+(
+  default
+  menuitem "Display Detailed"  "TASK.PROCess track.address()"
+  menuitem "Display DProcess Object"       
+  (
+    &address=address.offset(track.address())
+    Var.View %m %in (DProcess*)&address
+  )
+  menuitem "Display DMemModelProcess Object"       
+  (
+    &address=address.offset(track.address())
+    Var.View %m %in (DMemModelProcess*)&address
+  )
+  menuitem "Dump Process Object"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address
+  )
+)
+
+
+menu "task.lib"
+(
+  default
+  menuitem "Display Detailed"  "TASK.LIBrary track.address()"
+  menuitem "Display Library Object"       
+  (
+    &address=address.offset(track.address())
+    Var.View %m %in (DLibrary*)&address
+  )
+  menuitem "Dump Library Object"  "Data.dump track.address()"
+)
+
+
+menu "task.chunk"
+(
+  default
+  menuitem "Display Detailed"  "TASK.CHUNK track.address()"
+  menuitem "Display DChunk Object"       
+  (
+    &address=address.offset(track.address())
+    Var.View %m %in (DChunk*)&address
+  )
+  menuitem "Display DMemModelChunk Object"       
+  (
+    &address=address.offset(track.address())
+    Var.View %m %in (DMemModelChunk*)&address
+  )
+  menuitem "Dump Chunk Object"  "Data.dump track.address()"
+)
+
+
+menu "task.cs"
+(
+  default
+  menuitem "Display Detailed"  "TASK.CodeSeg track.address()"
+  menuitem "Display DCodeSeg Object"       
+  (
+    &address=address.offset(track.address())
+    Var.View %m %in (DCodeSeg*)&address
+  )
+  menuitem "Display DMemModelCodeSeg Object"       
+  (
+    &address=address.offset(track.address())
+    Var.View %m %in (DMemModelCodeSeg*)&address
+  )
+  menuitem "Dump CodeSeg Object"  "Data.dump track.address()"
+)
+
+
+menu "task.w"
+(
+  default
+  menuitem "Display Process"
+  (
+    &address=address.offset(track.address())
+    TASK.PROCess &address
+  )
+  menuitem "Delete from List" 
+  (
+    &name=track.string()
+    TASK.Watch.DELete "&name"
+  )
+)
+
+
+

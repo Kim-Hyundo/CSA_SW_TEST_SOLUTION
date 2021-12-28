@@ -1,0 +1,157 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux Demo for TRACE32 OS Awareness on the TRACE32 Simulator (ARM926EJ)
+; @Description: 
+;   This batchfile demonstrates the use of the OS Awareness for Linux.
+;   Linux runs here in the TRACE32 Simulator for ARM926EJ.
+;   Filesystem, timer, display, mouse and keyboard are simulated using a DLL.
+; @Keywords: awareness, RTOS, Simulator
+; @Author: KJM
+; @Board: TRACE32 Simulator
+; @Chip: ARM926EJ-S
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: arm926_sim_linux.cmm 15672 2020-02-12 13:23:37Z slauterbach $
+
+
+SYStem.RESet
+SIM.UNLOAD
+
+DIALOG.YESNO "This script can only run on the Windows 32 bit version of TRACE32. Continue?"
+ENTRY &yesno
+IF !&yesno
+  ENDDO
+
+TITLE "TRACE32 Simulator: ARM926 Linux Demo"
+
+
+SYStem.CPU ARM926EJ
+SETUP.IMASKASM ON          ; lock interrupts while single stepping
+SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+
+IF !OS.FILE(hdd_filesystem_us)&&!OS.FILE(vmlinux.926)
+(
+    IF OS.FILE(bin.zip)
+    (
+       DIALOG
+       (
+            HEADER "Extract Files.."
+            POS 0. 0. 40. 5.
+            BOX ""
+            POS 1. 1. 35. 1.
+            TEXT "Please extract bin.zip and then press ""Continue"""
+            POS 10. 3. 10. 1. 
+            DEFBUTTON "Continue"
+            (
+                CONTinue
+            )
+            POS 21. 3. 10. 1
+            DEFBUTTON "Abort"
+            (
+                DIALOG.END
+                ENDDO
+            )
+        )
+STOP
+
+done:
+DIALOG.END  
+    )
+)
+
+
+; Load a DLL for peripheral simulation
+SIM.LOAD virtual_hardware.dll 0xFF000000 640. 480. 1 2 3 0 4 "hdd_filesystem_us"
+
+; Enable the MMU and Cache simulation in TRACE32 which is disabled by default
+SIM.CACHE.ON
+
+SYStem.Up
+
+TrOnchip.Set IRQ OFF
+
+Break.SELect Program ONCHIP
+
+Data.LOAD.Elf vmlinux.926 0x20008000-0xC0008000 /NoSYMBOL
+
+Register.RESet
+
+Register.Set r1 0x8D5 // this is machine number located in arch/arm/tools/mach-types
+
+DO sim_atag_list
+
+Register.Set PC 0x20008000 //Set PC on start address of image
+
+
+print "loading Linux kernel symbols..."
+Data.LOAD.Elf vmlinux.926 /nocode /strippart "sources"
+
+print "initializing debugger MMU..."
+MMU.FORMAT LINUX swapper_pg_dir 0xc0000000--0xc3ffffff 0x20000000
+TRANSlation.COMMON 0xbf000000--0xffffffff            ; common area for kernel and processes
+TRANSlation.TableWalk ON   ; debugger uses a table walk to decode virtual addresses
+TRANSlation.ON             ; switch on debugger(!) address translation 
+ 
+
+; Initialize Linux Awareness
+; Note that the Linux awareness needs the kernel symbols to work
+TASK.CONFIG ~~/demo/arm/kernel/linux/linux-2.x/linux.t32
+MENU.ReProgram ~~/demo/arm/kernel/linux/linux-2.x/linux.men
+
+
+GROUP.Create "kernel" 0xc0000000--0xffffffff /RED
+
+Go start_kernel /ONCHIP
+wait !STATE.RUN()
+
+
+; Terminal simulation
+Break.Set trace32simarmvh9260_poweroff
+Break.Set DebugTerminalSynchro
+TERM.SIZE 80. 1000.
+TERM.SCROLL ON
+TERM.Protocol #1 SingleC DebugTerminalSynchro 0xFE003000 0xFE003004
+TERM.MODE vt100
+
+
+; Open some windows
+WINCLEAR
+WINPOS 91.0 0.076923 87. 21. 0. 0. W001
+TERM
+WINPAN 0. 31.
+ 
+WINPOS 0.14286 23.923 87. 15. 20. 1. W004
+CACHE.DUMP IC
+ 
+WINPOS 0.0 44.231 87. 16. 20. 1. W005
+CACHE.DUMP DC
+ 
+WINPOS 0.0 0.076923 87. 18. 21. 1. W000
+WINTABS 10. 10. 25. 62.
+List.auto
+ 
+WINPOS 90.857 50.769 95. 11. 0. 0. W002
+PER vh
+ 
+WINPOS 91.143 23.923 87. 9. 6. 2. W003
+SIM.CACHE.View
+ 
+WINPOS 91.143 37.077 87. 10. 6. 2. W006
+SIM.CACHE.ViewTLB
+
+PER.S D:0x0:0xFE001000 %LONG 0xffff
+
+Go
+
+print "login as root/root and start ./test.sh in the Virtual Display window"
+
+ENDDO
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,70 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags, NoIndex
+; @Author: MSA
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: stm.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+   ETM.OFF
+
+   Onchip.RESet
+   Onchip.Init
+   
+   ; Assume ATCLK to be 100MHz (Only needed for timestamps)
+   TRACE.CLOCK 100MHz
+
+   SYS.CONFIG.STM STP
+   trace.method onchip
+   systemTrace.Method onchip
+   STM.RESET
+
+   ; Use ETB as data sink
+   STM.PORTROUTE ONCHIP
+
+   STM.syncperiod 20.
+
+   ; Turn on STM module
+   STM.ON
+
+   StatCol.RESet
+   Onchip.AutoArm off
+   Onchip.ARM
+   
+   StatCol.LAT1.Counter 0 FunCTion HistPayloadLen
+   StatCol.LAT1.Counter 0 min.0
+   StatCol.LAT1.Counter 0 max.1.
+
+   StatCol.LAT1.Counter 1 FunCTion HistPayloadLen
+   StatCol.LAT1.Counter 1 min.2
+   StatCol.LAT1.Counter 1 max.3.
+
+   StatCol.LAT1.Counter 2 FunCTion HistPayloadLen
+   StatCol.LAT1.Counter 2 min.4
+   StatCol.LAT1.Counter 2 max.5.
+
+   StatCol.LAT1.Counter 3 FunCTion HistPayloadLen
+   StatCol.LAT1.Counter 3 min.6
+   StatCol.LAT1.Counter 3 max.7.
+
+
+   ; Sampling period
+   StatCol.LAT1.CollectTime 255.
+
+   Go
+
+   ; Switch on the probe.
+   StatCol.LAT1.ON
+
+   ; Switch off the probe 
+   StatCol.LAT1.OFF
+
+   Break.direct
+
+   Onchip.off
+
+   ; Display trace data
+   StatColTrace.List -100000000000000. CYCle SCC0 SCC1 SCC2 SCC3 List.NoDummy
+
+   PRINTFTRACE.List -100000000000000. message list.nodummy
+
+   STMOnchip.List cycle data stptits stmmaster stmchannel list.nodummy

@@ -1,0 +1,160 @@
+; --------------------------------------------------------------------------------
+; @Title: VxWorks Demo for TRACE32 OS Awareness on Sabre AI Board
+; @Description: 
+;   
+;   This batchfile loads all necessary files to demonstrate
+;   the OS Awareness for VxWorks on the iMX6 Sabre AI board.
+;   
+; @Keywords: Awareness, RTOS, VxWorks
+; @Author: DIE
+; @Chip: iMX6Quad
+; @Board: Sabre-AI
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: vxworks.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; set terminal connection
+
+&term="COM3"
+
+
+; Reset debugger
+
+RESet
+WinPAGE.RESet
+SCREEN.ALways
+
+
+; Open Area window
+  
+WinPOS 0. 32. 80. 17.
+AREA.view
+PRINT
+PRINT "=== VxWorks 7 Demo on Sabre AI ==="
+PRINT "resetting debugger..."
+
+
+; Open serial terminal window
+  
+SCREEN.ALways
+PRINT "starting terminal on &term"
+TERM.METHOD COM &term 115200.
+TERM.SIZE 80. 1000.
+TERM.Mode VT100
+TERM.SCROLL ON
+WinPOS 91. 0. 80. 25.  
+TERM.view
+
+
+; Initialize debugger
+
+print "initializing debugger..."
+
+SYStem.CPU iMX6Quad
+ 
+; start with one core
+CORE.ASSIGN 1
+ 
+SYStem.JtagClock 20MHz         ; use faster JTAG clock
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 1.3s   ; let bootloader setup the CPU
+SYStem.Option DACR ON          ; give Debugger global write permissions
+SYStem.Option MMUSPACES ON     ; enable space ids for RTPs
+TrOnchip.Set DABORT OFF        ; used by MMU
+TrOnchip.Set PABORT OFF        ; used by MMU
+TrOnchip.Set UNDEF OFF         ; may be used for FPU emulation
+SETUP.IMASKASM ON              ; lock interrupts while single stepping
+
+Trace.METHOD Onchip
+
+MAP.DENYACCESS     ; prevent accesses to non-existent memory
+MAP.NODENYACCESS 0x02000000--0x020fffff     ; internal periphery
+MAP.NODENYACCESS 0x10000000--0x4fffffff     ; physical RAM
+; early access to MMU-mapped kernel (before MMU.FORMAT command)
+MAP.NODENYACCESS 0x0--0x01ffffff            
+
+SYStem.Up
+ 
+
+; Disable watchdog
+PER.Set ASD:0x20BC000 %W (d.w(ASD:0x20BC000)&~0x1)|0x0
+PER.Set ASD:0x20BC000 %W (d.w(ASD:0x20BC000)&~0x4)|0x0
+
+
+; Open List window -- we like to see something
+
+WinPOS 0. 0. 86. 26.
+List.auto
+
+
+; Download VxWorks image
+
+PRINT "downloading VxWorks image..."
+Data.LOAD.Elf C:\WindRiver\workspace\SabreVIP\default\vxWorks
+  
+
+; Initialize kernel
+
+Go usrRoot
+PRINT "starting VxWorks..."
+WAIT !STATE.RUN()
+
+
+; Load VxWorks support
+
+PRINT "loading VxWorks Support..." 
+TASK.CONFIG ~~/demo/arm/kernel/vxworks/vxworks.t32      ; load VxWorks awareness
+  
+
+; Open task list window
+
+WinPOS 86. 28. 85. 23.
+TASK.TaskInfo
+
+
+; Start application
+    
+Go usrAppInit
+PRINT "starting application..."
+WAIT !STATE.RUN()
+
+
+; Declare MMU format to the debugger
+
+ ; necessary to debug RTPs:
+ ; - table format is "STD" (standard)
+ ; - table base address is TTB of kernel
+ ; - kernel range is fixed (KERNEL_SYS_MEM_RGN_BASE/SIZE, adrSpaceArchLibP.h)
+ ; - kernel physical address is physical RAM start address (see DTS file)
+ ; MMU.FORMAT <format> <kernel TTB> <kernel range> <phys. addr>
+
+ ; MMU will be initialized in usrRoot->usrMmuInit,
+ ; so run until usrAppInit to have kernel MMU pages available
+
+PRINT "initializing debugger translation..."
+MMU.FORMAT STD task.rtp.ttb(0) 0x0--0x1fffffff 0x10000000
+TRANSlation.COMMON 0x0--0x1fffffff  ; kernel area is common for all RTPs
+TRANSlation.TableWalk ON
+TRANSlation.ON
+
+
+; Assign to all cores
+
+PRINT "attaching to other cores..."
+SYStem.Down             ; detach from CPU
+CORE.ASSIGN 1 2         ; assign to all configured cores
+SYStem.Attach           ; reattach to CPU
+
+ 
+; Start demo
+  
+PRINT "starting demo..."
+Go usrDemo
+
+
+; That's it
+
+PRINT "done."
+
+ENDDO

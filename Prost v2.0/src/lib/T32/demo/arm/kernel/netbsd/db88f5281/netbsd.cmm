@@ -1,0 +1,157 @@
+; --------------------------------------------------------------------------------
+; @Title: NetBSD Demo for TRACE32 OS Awareness on Marvell DB88F5281 Board
+; @Description: 
+;   
+;   This batchfile demonstrates the use of the OS Awareness for NetBSD
+;   
+;   The example is generated for a Marvell DB88F5281 board using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   
+;   NetBSD will be downloaded via ICD.
+;   
+; @Keywords: awareness, db88f5281, Marvell, netbsd, RTOS
+; @Author: DIE
+; @Board: DB88F5281
+; @Chip: 88FR531
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: netbsd.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+; Starting NetBSD example with TRACE32 and Terminal:
+; - Connect NULL modem cable to CON2
+; - Start TRACE32
+; - Open Terminal: 115200 baud, 8/N/1, no(!) handshake
+; - TRACE32: do netbsd
+; - Terminal: "bootm 0x800000 fs=disk rootdev=wd0c"
+; - Terminal: login: root, password: .
+
+
+ ;screen.on
+ SCREEN.ALways      ; to update terminal window permanently
+
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 21. 70. 9. 0. 0. W000
+ AREA.view
+ 
+ PRINT "resetting..."
+
+ sYmbol.RESet
+ SYStem.RESet
+ TASK.RESet
+ Break.RESet
+ MAP.RESet
+ TRANSlation.RESet
+
+
+; Open terminal window
+ TERM.METHOD COM COM1 115200.
+ WinPOS 20. 3. ,,,,, TERM.view 
+ TERM.view
+ 
+
+; Initializing Debugger
+
+ PRINT "initializing..."
+ SYStem.CPU 88FR531
+ SYStem.JtagClock RTCK
+ SYStem.Option BigEndian ON
+ SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+ TrOnchip.Set DABORT OFF
+ TrOnchip.Set PABORT OFF
+ SETUP.IMASKASM ON
+ 
+ ;MAP.DENYACCESS 0x00000000--0x003fffff
+ MAP.DenyAccess 0x00756000--0x00756fff
+ MAP.DenyAccess 0x08000000--0xbfffffff
+
+ SYStem.Mode Go
+
+
+; Target Setup
+
+ PRINT "target setup..."
+
+ ; let the boot monitor setup the board
+ WAIT 2.s
+ TERM.Out 0x0d      ; interrupt boot process
+ WAIT 2.s
+ Break
+
+
+; Load the NetBSD image
+   
+ ; Use the next lines only to load the NetBSD image into
+ ; RAM using the debugger.
+   
+ PRINT "loading NetBSD image..."
+ Data.LOAD.Binary netbsd.uImage 0x800000
+
+
+; Load the NetBSD kernel symbols into the debugger
+
+ PRINT "loading NetBSD kernel symbols..."
+ Data.LOAD.Elf netbsd.gdb /NoCODE
+   
+
+; Initializing Debugger MMU
+
+ TRANSlation.RESet
+ TRANSlation.Create 0xC0000000--0xC0FFFFFF 0x0  // map kernel pages manually
+ TRANSlation.COMMON 0xC0000000--0xFFFFFFFF      // valid for all space ids
+ TRANSlation.ON
+ 
+ TRANSlation.Create 0xc2653000--0xc2653fff 0x07e15000
+   
+ WinPOS 0. 0. 75. 18.
+ List.auto
+
+ wintop TERM.view
+ 
+
+; Initialize RTOS Support
+
+ ; Note that the NetBSD awareness needs the kernel symbols to work
+ 
+ PRINT "initializing NetBSD support..."
+ TASK.CONFIG ../netbsd       ; loads NetBSD awareness (netbsd.t32)
+ MENU.ReProgram ../netbsd    ; loads NetBSD menu (netbsd.men)
+ HELP.FILTER.Add rtosnetbsd  ; add NetBSD awareness manual to help filter
+
+ ; switch on autoloader
+ 
+ sYmbol.AutoLOAD.CHECKLINUX "do "+OS.PPD()+"/../autoload "
+
+; Group kernel area to be displayed with red bar
+
+ GROUP.Create "kernel" 0xC0000000--0xC0FFFFFF /RED
+
+
+; Let's boot NetBSD
+ Go
+ PRINT "booting NetBSD (please wait)..."
+ TERM.Out "bootm 0x800000 fs=disk rootdev=wd0c" 0x0d
+ WAIT 25.s
+ PRINT "logging in..."
+ TERM.Out "root" 0x0d
+ WAIT 1.s
+ TERM.Out "." 0x0d
+ WAIT 2.s
+ 
+ PRINT "done."     ; done with loading and starting NetBSD
+ 
+
+; ----- Application Debugging ----------------------------------------------------
+; ----- e.g. "hello" -------------------------------------------------------------
+
+ ;do ../app_debug hello
+
+ ENDDO
+ 
+ 
+ 

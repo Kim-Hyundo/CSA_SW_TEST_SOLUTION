@@ -1,0 +1,98 @@
+; --------------------------------------------------------------------------------
+; @Title: netX90MPW SPI Flash Programming CMM
+; @Description:
+; Board info: NXHX90-JTAG REV2 evaluation board
+; Flash info: SPI Flash (Macronix MX25L12835FZNI)
+; 
+; internal RAM: 0x00020000 (NETX_RAM0)
+;
+; SPI Flash is connected to the SQI (Serial Quad I/O) interface CS0
+; SQI Tx/Rx Register : 0xF801d308  
+; SQI CS Register (SQI_CTRL1) : 0xF801d304
+;
+; @Keywords:
+; @Author: jjeong
+; @Board: NXHX90-JTAG REV2
+; @Chip: netX90MPW
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: netx90-spi64.cmm 7602 2019-11-05 15:02:25Z bschroefel $
+
+&SQI_BASE=0xff401640  
+
+  RESet
+  SYStem.CPU NETX90MPW-COM
+  SYStem.Option ResBreak OFF
+  SYStem.Up
+
+; enable NETX90-APP
+  &ioconfig=Data.Long(ASD:0xff401250) 
+  Data.Set ASD:0xff4012c0 %Long Data.Long(ASD:0xff4012c0)
+  Data.Set ASD:0xff401250 %Long (&ioconfig|0x00000800)
+
+  Data.Set ASD:&SQI_BASE+0x38 %LE %LONG 0x0         ; sqi_sqirom_cfg
+  Data.Set ASD:&SQI_BASE+0x10 %LE %LONG 0x0         ; SQI transfer control, 1bit Standard SPI mode
+  Data.Set ASD:&SQI_BASE+0x00 %LE %LONG 0x00080007  ; spi_clk 50Mhz
+
+//dummy access
+  Data.Set ASD:&SQI_BASE+0x04 %LE %LONG 0x18180902  ; cs0 low
+  Data.Set ASD:&SQI_BASE+0x8 %LE %LONG 0xF0
+  print "dummy: 0x" data.long(ASD:&SQI_BASE+0x8)
+  Data.Set ASD:&SQI_BASE+0x4 %LE %LONG 0x18180802   ; cs0 high
+
+//FLASH READ ID TEST
+  GOSUB READ_ID_TEST
+
+  Break.RESet
+
+  FLASHFILE.RESet
+  
+//FLASFILE.CONFIG   <Tx Reg>        <Rx Reg>        <SQI_CTRL1>       <CS#>
+  FLASHFILE.CONFIG  &SQI_BASE+0x8   &SQI_BASE+0x8   &SQI_BASE+0x4        0
+
+//FLASHFILE.TARGET <code range>        <data range>           <Algorithm file>
+  FLASHFILE.TARGET 0x00020000++0x1FFF   0x00022000++0x1FFF     ~~/demo/arm/flash/byte/spi64_netx51.bin    /KEEP   
+
+ FLASHFILE.GETID
+
+ //Dump window for Serial FLASH
+ FLASHFILE.DUMP 0x0
+
+ //Unlock Serial FLASH
+ ;FLASHFILE.UNLOCK 0x0--0x3FFFFF
+
+ //Write Serial FLASH
+ ;FLASHFILE.ERASE 0x0--0x3FFFFF
+
+ //Write Serial FLASH
+ ;FLASHFILE.LOAD  * 0x0
+ ;FLASHFILE.LOAD  * 0x0  /CP
+
+ENDDO
+
+READ_ID_TEST:
+
+Data.Set ASD:&SQI_BASE+0x0 %LE %Long 0x80080007
+
+Data.Set ASD:&SQI_BASE+0x4 %LE %Long 0x08080902  ; cs0 low
+
+Data.Set ASD:&SQI_BASE+0x8 %LE %Long 0x9F
+PRINT "1st: 0x" Data.Long(ASD:&SQI_BASE+0x8)
+
+Data.Set ASD:&SQI_BASE+0x8 %LE %Long 0xFF
+PRINT "2nd: 0x" Data.Long(ASD:&SQI_BASE+0x8)
+
+Data.Set ASD:&SQI_BASE+0x8 %LE %Long 0xFF
+PRINT "3rd: 0x" Data.Long(ASD:&SQI_BASE+0x8)
+
+Data.Set ASD:&SQI_BASE+0x8 %LE %Long 0xFF
+PRINT "4th: 0x" Data.Long(ASD:&SQI_BASE+0x8)
+
+Data.Set ASD:&SQI_BASE+0x8 %LE %Long 0xFF
+PRINT "5th: 0x" Data.Long(ASD:&SQI_BASE+0x8)
+
+Data.Set ASD:&SQI_BASE+0x4 %LE %Long 0x08080802  ; cs0 high
+
+RETURN
+
+

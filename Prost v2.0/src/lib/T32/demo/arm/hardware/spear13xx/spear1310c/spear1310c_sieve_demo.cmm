@@ -1,0 +1,43 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple sieve demo for the SPEAR1310C
+; @Description:
+;   Loads the sieve demo and sets up a
+;   demo debug scenario.
+; @Keywords: sieve, SPEAR SPEAR1310REVC
+; @Author: MFE
+; @Board: SPEAR1310C
+; @Chip: SPEAR1310
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: spear1310c_sieve_demo.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+  SYStem.RESet
+  SYStem.CPU SPEAR1310REVC
+
+  PRINT "Please powerup the board now"
+  ON.POWERUP GOTO start
+  STOP
+
+start:
+  SYStem.Up
+  Go
+  WAIT 1.s
+  Break
+
+  Data.LOAD.Elf ~~~~/demo
+
+  Go main
+  WAIT !STATE.RUN()
+
+ ; open some windows
+  WinCLEAR
+  WinPOS 0% 0% 100% 50%
+  List.auto
+  WinPOS 0% 50% 50% 50%
+  Frame /Locals /Caller
+  WinPOS 50% 50% 50% 50%
+  Var.Watch
+  Var.AddWatch ast; flags;
+
+  ENDDO

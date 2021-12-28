@@ -1,0 +1,298 @@
+; --------------------------------------------------------------------------------
+; @Title: eMMC Flash program script for IMX8QXP (by FLASH command)
+; @Description:
+;   Prerequisites:
+;
+;   !! No support the empty flash target, because the debugger
+;                              can not access the SECO (Secure Controller) !!
+;
+;   It does not matter of the boot mode (SD/eMMC/QSPI and so on)
+;
+; @Keywords: ARM, Cortex-M4
+; @Author: JIM
+; @Board: MCIMX8QXP-CPU
+; @Chip: IMX8QXP-CM4
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx8qx-emmc.cmm 7741 2019-12-18 11:35:51Z jjeong $
+
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+&MMC_BASE=0x5b010000  ;SDHC1
+&ipc_addr=0x41480000  ; CM4_0_MU1_A_BASE , Messaging Unit
+
+; --------------------------------------------------------------------------------
+; SYSTEM.UP
+; --------------------------------------------------------------------------------
+SYStem.RESet
+SYStem.CPU IMX8QXP-CM4
+SYStem.Option.ResBreak off
+
+SYStem.Mode Attach
+
+IF STATE.RUN()
+    Break.direct
+
+GOSUB WDOG_DISABLE
+GOSUB IOMUX_CONFIG
+GOSUB CLOCK_ENABLE
+
+; --------------------------------------------------------------------------------
+; Config SDHC1
+; --------------------------------------------------------------------------------
+Data.Set A:&MMC_BASE+0x04 %LE %Long 0x00010200  ; blk size,cnt
+Data.Set A:&MMC_BASE+0x28 %LE %Long 0x08800020  ; bus width, endian
+Data.Set A:&MMC_BASE+0x2C %LE %Long 0x008E1088  ; 400KHz clk
+Data.Set A:&MMC_BASE+0x34 %LE %Long 0x007F0037  ; BRR,BWR, TCI, CCI interrupt enable
+Data.Set A:&MMC_BASE+0x38 %LE %Long 0x007F0037  ; BRR,BWR, TCI, CCI interrupt enable
+Data.Set A:&MMC_BASE+0x44 %LE %Long 0x00100010  ;read/write fifo threshold level 64bytes
+
+GOSUB READ_ID_TEST
+
+  FLASHFILE.RESet
+
+;FLASHFILE.CONFIG  <eMMC controller> <#partition>  <0x0>
+  FLASHFILE.CONFIG  &MMC_BASE         0x0
+
+;FLASHFILE.TARGET <<code range>> <<data range>> <<algorithm file>>
+  FLASHFILE.TARGET  0x20010000++0x2fff   0x20013000++0x1fff  ~~/demo/arm/flash/byte/emmc_imx8.bin  /KEEP
+
+  Data.Set &MMC_BASE+0x2C %LE %Long 0x8e8018 ; 400KHz clk
+
+  FLASHFILE.GETID
+
+  Data.Set &MMC_BASE+0x2C %LE %Long 0x008E0408  ; 25Mhz clk
+
+ FLASHFILE.GETEXTCSD
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+ENDDO
+
+  FLASHFILE.DUMP 0x0
+
+ENDDO
+
+IOMUX_CONFIG:
+(
+; --------------------------------------------------------------------------------
+; IO Mux for SDHC1
+; --------------------------------------------------------------------------------
+
+Data.Set A:&ipc_addr+0x24 %Long 0x0  ; /* Clear GIEn, RIEn, TIEn, GIRn and ABFn. */
+
+//     SC_PAD_SET    &padNum &mux &ctrl &cfg
+GOSUB  SC_PAD_SET    9.     0x0   0x21  0x3  ;//SC_P_EMMC0_CLK, 209.==0xD1
+GOSUB  SC_PAD_SET    10.    0x0   0x21  0x0  ;//SC_P_EMMC0_CMD
+GOSUB  SC_PAD_SET    11.    0x0   0x21  0x0  ;//SC_P_EMMC0_DATA0
+GOSUB  SC_PAD_SET    12.    0x0   0x21  0x0  ;//SC_P_EMMC0_DATA1
+GOSUB  SC_PAD_SET    13.    0x0   0x21  0x0  ;//SC_P_EMMC0_DATA2
+GOSUB  SC_PAD_SET    14.    0x0   0x21  0x0  ;//SC_P_EMMC0_DATA3
+GOSUB  SC_PAD_SET    16.    0x0   0x21  0x0  ;//SC_P_EMMC0_DATA4
+GOSUB  SC_PAD_SET    17.    0x0   0x21  0x0  ;//SC_P_EMMC0_DATA5
+GOSUB  SC_PAD_SET    18.    0x0   0x21  0x0  ;//SC_P_EMMC0_DATA6
+GOSUB  SC_PAD_SET    19.    0x0   0x21  0x0  ;//SC_P_EMMC0_DATA7
+GOSUB  SC_PAD_SET    20.    0x0   0x40  0x0  ;//SC_P_EMMC0_STROBE
+GOSUB  SC_PAD_SET    21.    0x0   0x60  0x0  ;//SC_P_EMMC0_RESET_B
+
+RETURN
+)
+
+CLOCK_ENABLE:
+(
+; --------------------------------------------------------------------------------
+; Power ON SDHC1
+; --------------------------------------------------------------------------------
+//    SC_POWER_ON_SET  &resource &mode
+GOSUB SC_POWER_ON_SET  0xF8      0x03
+
+; --------------------------------------------------------------------------------
+; CLK Enable SDHC1
+; --------------------------------------------------------------------------------
+//    SC_CLK_ENABLE    &resource  &clk 
+GOSUB SC_CLK_ENABLE    0xF8       0x02
+
+RETURN
+)
+
+READ_ID_TEST:
+(
+//CMD0
+RePeaT 2.
+(
+Data.Set &MMC_BASE+0x30 %Long 0xFFFFFFFF ;clear status
+Data.Set &MMC_BASE+0x8 %Long 0x0  ;arg
+Data.Set &MMC_BASE+0xc %Long 0x0  ;cmd
+WAIT 10.ms
+)
+
+//CMD1
+RePeaT 10.
+(
+Data.Set &MMC_BASE+0x30 %Long 0xFFFFFFFF ;clear status
+Data.Set &MMC_BASE+0x8 %Long 0x40FF8000 ;arg
+Data.Set &MMC_BASE+0xc %Long 0x01020000 ;cmd1
+WAIT 100.ms
+&resp=Data.Long(A:(&MMC_BASE+0x10))
+//print "CMD1 resp: 0x" &resp
+IF (&resp&0x80000000)==0x80000000
+(
+GOTO jump_cmd2
+)
+)
+
+PRINT "CMD1 fail"
+END
+
+jump_cmd2:
+//CMD2
+Data.Set &MMC_BASE+0x30 %Long 0xFFFFFFFF ;clear status
+Data.Set &MMC_BASE+0x8 %Long 0x0     ;arg
+Data.Set &MMC_BASE+0xc %Long 0x02010000 ;cmd2
+WAIT 10.ms
+
+//CMD3
+Data.Set &MMC_BASE+0x30 %Long 0xFFFFFFFF ;clear status
+Data.Set &MMC_BASE+0x8 %Long 0x00010000  ; arg, MMC RCA is (0x0001<<16.)
+Data.Set &MMC_BASE+0xc %Long 0x03020000  ;cmd3
+WAIT 10.ms
+
+//CMD10
+Data.Set &MMC_BASE+0x30 %Long 0xFFFFFFFF ;clear status
+Data.Set &MMC_BASE+0x8 %Long 0x00010000 ; arg, MMC RCA is (0x0001<<16.)
+Data.Set &MMC_BASE+0xc %Long 0x0A010000  ;cmd10
+WAIT 10.ms
+
+//Response2
+PRINT "CID register"
+PRINT "[127:104] 0x" Data.Long(A:(&MMC_BASE+0x1c))
+PRINT "[103:72]  0x" Data.Long(A:(&MMC_BASE+0x18))
+PRINT "[71:40]   0x" Data.Long(A:(&MMC_BASE+0x14))
+PRINT "[39:8]    0x" Data.Long(A:(&MMC_BASE+0x10))
+
+RETURN
+)
+
+SC_PAD_SET:
+(
+ENTRY  &padNum &mux &ctrl &cfg
+
+&data=0x00000001        ;version
+&data=&data|0x00000400  ;message size
+&data=&data|0x00060000  ;svc_pad
+&data=&data|0x05000000  ;func
+
+;wait until Tx buffer empty
+Data.Set A:&ipc_addr     %Long  &data 
+Data.Set A:&ipc_addr+0x4 %Long  &ctrl
+
+&data=&padNum
+&data=&data|(&mux<<16.)
+&data=&data|(&cfg<<24.)
+Data.Set A:&ipc_addr+0x8 %Long  &data
+
+Data.Set A:&ipc_addr+0xC %Long 0x00
+
+&status=Data.Long(A:&ipc_addr+0x20)
+&rxBuff=(&ipc_addr+0x10)
+WHILE (((&status>>24.)&0xF)!=0)
+(
+&data=Data.Long(A:&rxBuff)
+&rxBuff=&rxBuff+0x4
+&status=Data.Long(A:&ipc_addr+0x20)
+)
+RETURN
+)
+
+//Power_ON_SDHC1
+SC_POWER_ON_SET:
+(
+ENTRY  &resource &mode
+
+&data=0x00000001        ;version
+&data=&data|0x00000200  ;message size
+&data=&data|0x00020000  ;svc_pm
+&data=&data|0x03000000  ;func, POWER_MODE
+
+;wait until Tx buffer empty
+Data.Set A:&ipc_addr     %Long  &data 
+
+&data=&resource
+&data=&data|(&mode<<16.)
+&data=&data|0x07000000
+Data.Set A:&ipc_addr+0x4 %Long  &data
+
+&status=Data.Long(A:&ipc_addr+0x20)
+&rxBuff=(&ipc_addr+0x10)
+WHILE (((&status>>24.)&0xF)!=0)
+(
+&data=Data.Long(A:&rxBuff)
+&rxBuff=&rxBuff+0x4
+&status=Data.Long(A:&ipc_addr+0x20)
+)
+
+wait  200.ms ;dummy wait
+
+RETURN
+)
+
+//Clock_Enable_SDHC1
+SC_CLK_ENABLE: 
+(
+ENTRY  &resource &clk 
+
+&data=0x00000001        ;version
+&data=&data|0x00000300  ;message size
+&data=&data|0x00020000  ;svc_pm
+&data=&data|0x07000000  ;func, POWER_MODE
+
+;wait until Tx buffer empty
+Data.Set A:&ipc_addr     %Long  &data 
+
+&data=&resource
+&data=&data|(&clk<<16.)
+&data=&data|0x01000000
+Data.Set A:&ipc_addr+0x4 %Long  &data
+
+;&data=0x00CA0001
+&data=0x00C81301  ;imx8qx
+Data.Set A:&ipc_addr+0x8 %Long  &data
+
+&status=Data.Long(A:&ipc_addr+0x20)
+&rxBuff=(&ipc_addr+0x10)
+WHILE (((&status>>24.)&0xF)!=0)
+(
+&data=Data.Long(A:&rxBuff)
+&rxBuff=&rxBuff+0x4
+&status=Data.Long(A:&ipc_addr+0x20)
+)
+
+wait  200.ms ;dummy wait
+
+RETURN
+)
+
+//Watchdog disable
+WDOG_DISABLE:
+(
+  //the changing wdog register works only internal code running not by a cmm script.
+  //Data.Set SD:0x41420004 %LE %Long 0xd928c520  ;unlock
+  //Data.Set SD:0x41420000 %LE %Long (data.long(SD:0x41420000)&~0x80)   ;disable watchdog
+
+  &WDOG_CS=Data.Long(SD:0x41420000)&~0x80
+  Register.Set r0 0x41420000
+  Register.Set r1 0xd928c520
+  Register.Set r2 &WDOG_CS
+
+  Data.Assemble ST:0x20000800 str r1,[r0,#0x4]
+  Data.Assemble ST:0x20000802 str r2,[r0]
+  Data.Assemble ST:0x20000804 b 20000804
+
+  Register.Set pc 0x20000800
+  Break.Set 0x20000804
+  Go
+  WAIT !STATE.RUN()
+  RETURN
+)

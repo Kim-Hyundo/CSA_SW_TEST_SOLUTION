@@ -1,0 +1,72 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to wait for the start of a specific virtual board
+; @Description:
+; Wait for start of a Virtual Board
+;
+; This script waits for a virtual board to be started,
+; and halts the target at the entry pooint of the VB.
+;
+; NOTE: Hypervisor and Awareness must be up.
+;
+; Start this script with the VB name as argument.
+;
+; Examples:
+;   do wait_for_vb_start init1      ; waits for "init1" to be started
+;
+; Prerequisites:
+; - Hypervisor must be booted
+; - Hypervisor awareness must be configured
+;
+; @Keywords: wrhv vxworks653 awareness
+; @Author: DIE
+; @Copyright: (C) 1989-2015 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: wait_for_vb_start.cmm 4754 2019-11-06 10:55:10Z rdienstbeck $
+
+
+LOCAL &vbname &vbiscurrent &vbthrmagic &spaceid &pc &vbmagic
+ENTRY &vbname
+
+; wait for start of the specified VB manager
+
+Break.Set hmVbMgr
+REPEAT
+(
+  Go
+  WAIT !STATE.RUN()
+  GOSUB check_current_vb
+  ENTRY &vbiscurrent &vbthrmagic
+)
+WHILE !&vbiscurrent
+Break.Delete
+
+; set breakpoint on start address of VB (usually "vbeInit")
+&pc=task.thread.pc(&vbthrmagic)
+&vbmagic=task.runboard.magic("&vbname")
+&spaceid=task.runboard.id(&vbmagic)
+Break.Set G:&spaceid:&pc /Program
+
+; start VB
+Go
+WAIT !STATE.RUN()
+Break.Delete
+
+ENDDO &spaceid
+
+
+check_current_vb:
+LOCAL &mgrid &vbid &i &thrmagic &ctx
+
+&thrmagic=task.magic("&vbname")
+;&mgrid=var.value(ctx->id)
+&ctx=HS:data.long(HS:task.priv2hyp(address.offset(var.address(ctx)),core()))
+&mgrid=var.value((*((ctx_t*)(&ctx))).id)
+&vbid=task.thread.id(&thrmagic)
+&i=0
+WHILE &i<var.value(hmNumVbs)
+(
+  IF (var.value(hmVbHmCtx[&i]->hmCtxId)==&mgrid)&&(var.value(hmVbHmCtx[&i]->vbCtxId)==&vbid)
+    RETURN (1==1) &thrmagic
+  &i=&i+1
+)
+RETURN (1==0) 0

@@ -1,0 +1,87 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple SMP demo script for the CYCLONE V SOC
+; @Description:
+;   Loads the sieve demo into RAM and sets up a
+;   demo debug scenario on both cores.
+;   Prerequisites:
+;   * Please set bootsel pins to SDCARD
+;     BOOTSEL[0..2] = 2-3 2-3 1-2
+;   * Please REMOVE SD Card
+;     => Device will stop in BOOT ROM
+;   * Assume HPS-FPGA-MAX scanchain
+;     for CycloneV SoC Devkit
+;       * SW4[0..3]=0010, JTAG SEL=1, JTAG_HPS_SEL=1
+;       * connection via J24 10pin connector
+; @Keywords: ALTERA, Cortex-A9, Cyclone, Cyclonev
+; @Author: AME
+; @Board: CYCLONEVSOC, Cyclone V SoC Dev Kit
+; @Chip: CYCLONEVSOC
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: cyclonevsoc_sieve_smp_sram.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; Start-up the debugger
+  RESet
+  SYStem.CPU CYCLONEVSOC
+  SYStem.JtagClock CTCK 5MHz
+  CORE.ASSIGN 1                             ; "1" = first core, "2" = second core, "1 2" = both cores (SMP)
+  
+; settings for HPS-FPGA scanchain - hardwired on SoCrates
+  SYStem.CONFIG DAPIRPOST 0.
+  SYStem.CONFIG DAPIRPRE 20.
+  SYStem.CONFIG DAPDRPOST 0.
+  SYStem.CONFIG DAPDRPRE 2.
+  
+; initially connect to the platform
+  SYStem.Up
+; Write to the clock manage to prevent the system from gating the debug clocks during a warm reset
+  Data.Set AHB:0xffd04010 %Long 0x1  
+; Watchdog is activated by BOOTROM 
+; the only way is to use the RESET MANAGER
+; disable Watchdog - Toggle RESET in PERMODRST
+  Data.Set A:0xFFD05014 %Long Data.Long(A:0xFFD05014)|0x40
+  Data.Set A:0xFFD05014 %Long Data.Long(A:0xFFD05014)&(~0x40)
+  
+  ; use inifinite loops as exception vectors
+  Data.Assemble A:0xffff0000 b $+0
+  Data.Assemble , b $+0
+  Data.Assemble , b $+0
+  Data.Assemble , b $+0
+  Data.Assemble , b $+0
+  Data.Assemble , b $+0
+  Data.Assemble , b $+0
+  ; remap exception vectors to SRAM - I-Cache Enabled, MMU OFF
+  Data.Set C15:0x1 0xC53878 
+  
+  ; now start the second core, ensure it boots to 0xffff0000
+  ; sysmgr.romcodegrp.warmramgrp.enable
+  ; magic pattern to let the boot rom code jump to onchip ram
+  Data.Set A:0xFFD080E0 %Long %LE 0xAE9EFEBC
+  ; sysmgr.romcodegrp.warmramgrp.length of region to check with CRC
+  ; 0 means do NOT check
+  Data.Set A:0xFFD080E8 %Long %LE 0x0
+  ; sysmgr.romcodegrp.warmramgrp.execution
+  ; address offset where code starts
+  ; start vector := 0xFFFF0000 | <value below>
+  Data.Set A:0xFFD080EC %Long %LE 0x0
+  ; mpumodrst.cpu1 = 0 -> no reset
+  Data.Set AZSD:0xFFD05010 %Long Data.Long(AZSD:0xFFD05010)&~0x2
+  
+  ; now both cores are running - switch to SMP
+  SYStem.Down
+  CORE.ASSIGN 1.,2.
+  SYStem.Mode.Attach
+  
+  ; load Position Independent SIEVE demo into SRAM
+  CORE 0.
+  DO ~~/demo/arm/compiler/gnu-pic/demo_sieve 0xffff1000
+  Register.Set PC _start_secondary /CORE 1.
+  Go main
+  WAIT !STATE.RUN()
+  List.auto
+  
+  ENDDO
+  
+
+

@@ -1,0 +1,78 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo script for AWR1843 on AWR1843 EVM (AWR1843BOOST) (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug scenario.
+;   Use this script for getting started.
+;   Prerequisites:
+;    * You need to mount the add-on board named MMWAVE-DEVPACK (AR1XXXEVM-012)
+;      and interconnect the boards by 60-pin Samtec cable.
+;    * Disconnect on AWR1843 EVM the JTAG lines from on-board XDS110 by removing
+;      R30, R69, R70, R71.
+;    * Power AWR1843 EVM with 5V power supply connected to P6.
+;    * Power MMWAVE-DEVPACK via MicroUSB connector J1.
+;    * Connect Debug Cable to P8 using LA-7748.
+; @Keywords: ARM, Cortex-R4
+; @Author: PEG
+; @Board: AWR1843 EVM (AWR1843BOOST)
+; @Chip: AWR1843
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: awr1843evm_sieve_sram.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+  WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+  RESet
+  SYStem.RESet
+  SYStem.CPU AWR1843
+  SYStem.Option EnReset OFF ; Disable driving nRESET and use soft resets instead
+  SYStem.MemAccess DAP
+  SYStem.Up
+
+;---------------------------------------------------------------------------------
+; Execute boot ROM until user code shows up on address 0.
+  TrOnchip.Set DABORT OFF
+  TrOnchip.Set RESET ON
+  Go
+  WAIT !STATE.RUN() 1.s
+  IF STATE.RUN()
+    Break
+  IF Register(PC)!=0x0
+  (
+    PRINT %ERROR "ROM code did not branch to user code"
+    ENDDO
+  )
+  IF Data.Long(D:0x200000)!=Data.Long(D:0x0)
+  (
+    PRINT %ERROR "ROM code did not branch to user code"
+    ENDDO
+  )
+  TrOnchip.Set DABORT ON
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+  Data.LOAD.Elf "~~~~/sieve_ram_arm_v7r_le.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+  Go.direct main
+  WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+  WinCLEAR
+  Mode.Hll
+  WinPOS 0. 0. 116. 26.
+  List.auto
+  WinPOS 120. 0. 100. 8.
+  Frame.view
+  WinPOS 120. 14.
+  Var.Watch
+  Var.AddWatch %SpotLight ast flags
+  WinPOS 120. 25.
+  Register.view /SpotLight
+  WinPOS 0. 32.
+  Var.DRAW %DEFault sinewave
+  ENDDO
+

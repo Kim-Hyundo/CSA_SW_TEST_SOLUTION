@@ -1,0 +1,190 @@
+; --------------------------------------------------------------------------------
+; @Title:  TDA3x EVM QSPI FLASH Program script
+; @Description:
+;   SRAM: 0x40300000
+;   QSPI Base Register Address : 0x4B300000
+;   Prerequisites:
+;    * Connect Debug Cable to J17 using Adapter
+;        Spectrum Digital 701282-0001 (TI20Compact -> MIPI60)
+;        Lauterbach LA-3780 (ARM20 -> TI20Compact) please do not use TI-14!
+;      or
+;      Connect Debug Cable to J17 using Adapter
+;        Lauterbach LA-3818 (ARM20/Mictor38 -> MIPI60)
+;    * The RESET line must be wired to the EVM, using the TI20Compact/MIPI60
+;      header this is possible.
+;    * set SYSBOOT[3..0] = 0y0000 - QSPI_1 nonXIP
+;    * set SYSBOOT[4]    = 0y1    - Memory preferred booting
+;
+; @Keywords: TDA3xx (ADAS Low) QSPI
+; @Author: AME JIM
+; @Board: TDA3X EVM
+; @Chip: TDA3x
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tda3x-spi.cmm 7602 2019-11-05 15:02:25Z bschroefel $
+
+ &QSPI_BASE=0x4B300000
+
+ LOCAL &arg1
+ ENTRY &arg1
+ &arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF VERSION.BUILD.BASE()<76582.
+(
+  PRINT %ERROR "Please use more recent Software! Contact support@lauterbach.com."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU TDA3XIPU-CORE0
+SYStem.CONFIG.DEBUGPORTTYPE JTAG
+SYStem.Option DUALPORT ON
+; enable RESET using the reset line only
+; <reset settings>
+SYStem.Option EnReset ON
+SYStem.Option ResBreak ON
+SYStem.Option SYSRESETREQ OFF
+SYStem.Option VECTRESET OFF
+SYStem.Option ICEPICK SystemReset.OFF WaitInReset.OFF
+; </reset settings>
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+; assert RESET line and stop at reset vector
+SYStem.Up
+
+; clear the ROM_AUXBOOT0 and reset again
+Data.Set AD:0x4A003CA8 %Long 0x00
+SYStem.Up
+
+; setup MMU
+; mapping channel=0, size=large, 0x40000000++0x1fffffff->0x40000000
+; => OCRAM, QSPI controller, Clock controller, IO Mux
+GOSUB SetMmuEntry "0." "0." "0x40000000" "0x40000000" "0x3"
+; mapping channel=0; size=small; 0x0++0x3fff->0x55020000
+GOSUB SetMmuEntry "0." "2." "0x0" "0x55020000" "0x1000B "
+
+// Enable source clocks to qspi... could also ensure pll lock but will skip
+Data.Set AD:0x4A009838 %Long 0x01000002
+
+// setup io's for 15x15 package on cs0
+Data.Set AD:0x4A002558 %Long 0x00000100  ; make linear show up at 0x5c000000
+Data.Set AD:0x4A003420 %Long 0x00060001  ; d3
+Data.Set AD:0x4A003424 %Long 0x00060001  ; d2
+Data.Set AD:0x4A003428 %Long 0x00060001  ; d0
+Data.Set AD:0x4A00342C %Long 0x00060001  ; d1
+Data.Set AD:0x4A003430 %Long 0x00060001  ; sck
+Data.Set AD:0x4A003434 %Long 0x00060000  ; not-rck
+
+Data.Set AD:&QSPI_BASE+0x40 %LE %Long 0x00000009  ; clk DIV (can be faster)
+Data.Set AD:&QSPI_BASE+0x40 %LE %Long 0x80000009  ; QSPI_SPI_CLOCK_CNTRL_REG, clken[31] + clk div[11:0]
+Data.Set AD:&QSPI_BASE+0x44 %LE %Long 0x00000005  ; sck-parks-at-1, falling edge shift
+
+//[28:24] dummy bits if Dbyte=0 (0)
+//[23:16] write command   	(use cmd2 for writes)
+//[13:12] read type       	(reads are quad using all dataX)
+//[11:10] Number of Dummy bytes (0 dummy bytes)
+//[9:8] Number of Bytes n-1	(3 addr bytes)
+//[7:0] Read CMD                (use cmd3 for reads)
+Data.Set AD:&QSPI_BASE+0x54 %LE %Long 0x20203  ; QSPI_SPI_SETUP0_REG
+
+GOSUB READ_ID_TEST
+
+programFlash:
+
+  FLASHFILE.RESet
+
+ //FLASHFILE.CONFIG  <QuadSPI Base>  0x0 0x0 <cs>
+  FLASHFILE.CONFIG  &QSPI_BASE      0x0 0x0  0x0
+
+ //FLASHFILE.TARGET <Code_range>     <Data_range>              <Algorithm file>
+  FLASHFILE.TARGET 0x1000++0x1FFF    EAHB2:0x40302000++0x1FFF   ~~/demo/arm/flash/byte/spi4b64_tiqspi.bin /STACKSIZE 0x200 /DualPort /KEEP
+
+  FLASHFILE.GETID
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+  ENDDO
+
+  FLASHFILE.DUMP 0x0
+
+  ;FLASHFILE.Erase 0x0--0xFFFFF  ; erase range
+  ;FLASHFILE.LOAD *  0x0
+
+ENDDO
+
+READ_ID_TEST:
+(
+  &QSPI_CMD_REG=&QSPI_BASE+0x48
+  &QSPI_DAT_REG=&QSPI_BASE+0x50
+  &QSPI_STAT_REG=&QSPI_BASE+0x4C
+
+  &RE=(0x1<<16.)  ; read
+  &WR=(0x2<<16.)  ; write
+  &END=(0x4<<16.) ;
+  &cmd_reg_def=0x0|(0x7<<19.)|(0x0<<28.)|0xFFF ;
+
+  Data.Set AD:&QSPI_DAT_REG %Long 0x9F              ;write data reg
+  Data.Set AD:&QSPI_CMD_REG %Long (&cmd_reg_def|&WR);cmd reg
+  //print "status 0x" data.long(A:&QSPI_STAT_REG)  ;read status reg
+
+  Data.Set AD:&QSPI_CMD_REG %Long (&cmd_reg_def|&RE)                   ;cmd reg
+  PRINT "read 1st 0x" Data.Long(AD:&QSPI_DAT_REG)  " (manufacture ID)" ; read data reg
+
+  Data.Set AD:&QSPI_CMD_REG %Long (&cmd_reg_def|&RE)             ;cmd reg
+  PRINT "read 2nd 0x" Data.Long(AD:&QSPI_DAT_REG) " (device ID)" ; read data reg
+
+  Data.Set AD:&QSPI_CMD_REG %Long (&cmd_reg_def|&RE);cmd reg
+  PRINT "read 3rd 0x" Data.Long(AD:&QSPI_DAT_REG)  ; read data reg
+
+  Data.Set AD:&QSPI_BASE+0x48 %Long (&cmd_reg_def|&END)
+  WAIT 100.ms
+
+  RETURN
+)
+
+SetMmuEntry: ;(channel, small=2/med=1/large=0, virt, phys, policy)
+(
+  PRIVATE &base
+  PARAMETERS &channel &size &virt &phys &policy
+  &base=0x55080800
+  &base=&base+&channel*0x4
+  IF (&size==0.) ; large
+  (
+    ; ADDR
+    Data.Set AD:&base+0x00 %Long &virt
+    ; XLTE
+    Data.Set AD:&base+0x20 %Long &phys
+    ; POLICY
+    Data.Set AD:&base+0x40 %Long &policy
+  )
+  ELSE IF (&size==1.) ; medium
+  (
+    ; ADDR
+    Data.Set AD:&base+0x60 %Long &virt
+    ; XLTE
+    Data.Set AD:&base+0xA0 %Long &phys
+    ; POLICY
+    Data.Set AD:&base+0xE0 %Long &policy
+  )
+  ELSE IF (&size==2.)
+  (
+    ; ADDR
+    Data.Set AD:&base+0x120 %Long &virt
+    ; XLTE
+    Data.Set AD:&base+0x1A0 %Long &phys
+    ; POLICY
+    Data.Set AD:&base+0x220 %Long &policy
+  )
+  ELSE
+  (
+    PRINT %ERROR "Wrong Usage"
+    STOP
+    ENDDO
+  )
+  RETURN
+)

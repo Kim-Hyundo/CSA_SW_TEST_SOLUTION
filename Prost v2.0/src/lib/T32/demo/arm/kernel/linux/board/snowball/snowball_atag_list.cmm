@@ -1,0 +1,83 @@
+; --------------------------------------------------------------------------------
+; @Title: ATAG Structure Initialization Script for the Snowball
+; @Description: 
+;   Setup parameter tags for Linux boot
+;   Format:
+;   u32 size  \_ header
+;   u32 type  /
+;   n * u32 tag
+; @Keywords: A9500, ARM, ATAG, CortexA9, Linux, RTOS, ST, STE
+; @Author: KJM
+; @Props:NoWelcome
+; @Board: Snowball
+; @Chip: A9500
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: snowball_atag_list.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+&tag=0x00000100
+&tagAddr=&tag
+
+Data.Set &tagAddr++0xef %Long 0x0
+
+; ATAG_CORE
+Data.Set &tagAddr %Long %LE 0x5
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x54410001
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x0
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x0
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x0
+&tagAddr=&tagAddr+0x4
+
+; ATAG_Revision
+Data.Set &tagAddr %Long %LE 0x3
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE  0x54410007
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x00000010
+&tagAddr=&tagAddr+0x4
+
+; ATAG_MEM
+Data.Set &tagAddr %Long %LE 0x4
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x54410002
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x20000000
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x00000000 
+&tagAddr=&tagAddr+0x4
+
+; ATAG_CMDLINE
+&cmdline="root=/dev/ram0 init=init rw console=ttyAMA2,115200n8 mem=256M initrd=0x08000000,4M"
+&cmdsize=(STRing.LENgth("&cmdline")+16)&~0x3
+Data.Set &tagAddr %Long %LE &cmdsize/4
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x54410009
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr "&cmdline" 0
+&tagAddr=&tagAddr+(&cmdsize-8)
+
+; ATAG_NONE
+Data.Set &tagAddr %Long %LE 0x0
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x0
+&tagAddr=&tagAddr+0x4
+
+Register.Set R2 &tag
+
+ENDDO
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,101 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for OMAP4430 on PANDABOARD with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   Hardware initialization is done by executing u-boot-spl.
+;   The program flow is traced using the Offchip-Trace. Pinmuxing and Clock
+;   setup is handled in the script.
+;   Use this script to test the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to Autofocus Preprocessor
+;    * Connect AutoFocus Preprocessor to Mictor header using adapter LA-3840
+; @Keywords: ARM, Cortex-A9, ETM
+; @Author: AME
+; @Board: PANDABOARD
+; @Chip: OMAP4430
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: pandaboard_sieve_offchip_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+PRIVATE &ppd
+&ppd=OS.PPD()
+IF !OS.FILE("&ppd/u-boot-spl")
+(
+  UNZIP "&ppd/u-boot-spl.gz" "&ppd/u-boot-spl"
+)
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU OMAP4430
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+CORE.ASSIGN 1.
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; execute BootROM, run MLO/U-Boot-SPL for board setup
+Go
+WAIT 1.s
+Break
+Data.LOAD.Elf "~~~~/u-boot-spl"
+Go spl_boot_device
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_arm_v7.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace if Analyzer is plugged (ETM)
+IF Analyzer()
+(
+  ; set PinMux and enable Clocks
+  ; configure PAD: EMU[2:19] for 16-bit TPIU (PADx_DPM_EMUx)
+  Data.Set 0x4A1001B0 %Long Data.Long(SD:0x4A1001B0)&0x0000FFFF
+  Data.Set 0x4A1001B4 %Long 0x0
+  Data.Set 0x4A1001B8 %Long 0x0
+  Data.Set 0x4A1001BC %Long 0x0
+  Data.Set 0x4A1001C0 %Long 0x0
+  Data.Set 0x4A1001C4 %Long 0x0
+  Data.Set 0x4A1001C8 %Long 0x0
+  Data.Set 0x4A1001CC %Long 0x0
+  Data.Set 0x4A1001D0 %Long 0x0
+  Data.Set 0x4A1001d4 %Long 0x0
+
+  Trace.Method Analyzer
+  TPIU.PortSize 16a
+  TPIU.PortMode Continuous
+  ETM.Trace ON
+  ETM.ON
+  ; use Autofocus based calibration
+  Analyzer.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

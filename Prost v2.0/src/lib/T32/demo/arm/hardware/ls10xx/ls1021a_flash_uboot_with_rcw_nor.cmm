@@ -1,0 +1,43 @@
+; --------------------------------------------------------------------------------
+; @Title: LS1021A Program U-Boot/RCW/RCW-Checksum into NOR
+; @Description:
+;   Script example how the Bootloader together with RCW including RCW-Checksum
+;   can be programmed into a LS1021. Example is prepared for the TWR-LS1021A
+;   board
+;   Notes:
+;   please ses also
+;     * ls1021a_flash_uboot_with_rcw_qspi.cmm
+;     * ls1021a_set_rcw_crc
+;   Prerequisites:
+;   * connect Debugcable to J12
+;     using the ARM20-MIPI converter LA-3770
+;     OR
+;     connect Combiprobe to J12 directly
+;   * disable MBED debugger SW2[8]=0y1
+;   * set bootsource to hardcoded RCW SW2[5..1]=0y10010
+;
+; @Keywords: Freescale, Layerscape, CortexA7, QorIQ, RCW
+; @Props: Template
+; @Author: AME
+; @Board: TWR-LS1021A
+; @Chip: LS1021A
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: ls1021a_flash_uboot_with_rcw_nor.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; setup CFI/NOR Flash Programming
+DO ~~/demo/arm/hardware/ls10xx/twr-ls1021rev2/twr-ls1021-flash-cfi-failsave
+; calculate RCW with CRC
+DO ~~~~/ls1021a_set_rcw_crc "NORFLASH"
+
+FLASH.ReProgram ALL
+Data.COPY VM:0x0--0xfff 0x60000000
+; the load address must match the scratch register setting
+; in ls1021a_set_rcw_crc
+Data.LOAD.Binary <PATH_TO>/u-boot.bin 0x60100000
+FLASH.ReProgram OFF
+
+print "rcw & uboot are programmed now"
+
+ENDDO
+

@@ -1,0 +1,89 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for STM32H7A3ZI on Nucleo-H7A3ZI with SWV (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The SerialWireViewer is set up to trace some data values using the DWT.
+;   Prerequisites:
+;    * Connect Combiprobe/uTrace to CN5
+; @Keywords: ARM, Cortex-M7, ITM, SWV
+; @Author: BWR
+; @Board: Nucleo-H7A3ZI
+; @Chip: STM32H7A3ZI
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: nucleo-h7a3zi_sieve_swo_trace_sram.cmm 16388 2020-08-06 08:14:32Z skrausse $
+
+
+; Prerequisite: check if a Combiprobe/uTrace is connected
+IF !CAnalyzer()
+(
+  DIALOG.OK "Support for SerialWireViewer requires a Combiprobe or uTrace."
+  ENDDO
+)
+
+IF VERSION.BUILD()<124508.
+(
+  PRINT %ERROR "Please use more recent Software! Contact support@lauterbach.com."
+  ENDDO
+)
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU STM32H7A3ZI
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; initialize SerialWireViewer (clock is stable now)
+Trace.METHOD CAnalyzer
+Trace.TraceCONNECT TPIU2
+Trace.AutoInit ON
+TPIU2.PortSize SWV
+ITM.DataTrace ON
+ITM.ON
+; use auto-calibration script to find most suitable TPIU.SWVPrescaler <divider>
+DO ~~/demo/arm/etc/serial_wire_viewer/swv_autocalibration.cmm
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+ITMTrace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO

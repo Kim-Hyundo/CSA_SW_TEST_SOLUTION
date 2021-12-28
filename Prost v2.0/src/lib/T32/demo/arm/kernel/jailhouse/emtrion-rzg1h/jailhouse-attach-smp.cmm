@@ -1,0 +1,123 @@
+; --------------------------------------------------------------------------------
+; @Title: Jailhouse Demo on emCON-RZ/G1H in SMP mode
+; @Description:
+;
+; This script shows an example setup for a Jailhouse hypervisor system.
+; TRACE32 is set up im SMP mode; all inmates are handled in one common
+; PowerView instance.
+; The demo contains a root cell, an inmate running FreeRTOS, a bare metal
+; inmate and an inmate running Linux.
+; This script attaches to an already running system.
+;
+; @Keywords: hypervisor, awareness, jailhouse
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: jailhouse-attach-smp.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+LOCAL &ppd &imgdir
+
+AREA
+AREA.CLEAR
+PRINT
+PRINT "===== TRACE32 for Jailhouse on emtrion RZG1H - SMP Setup ====="
+
+PRINT "resetting debugger..."
+TASK.RESet
+EXTension.RESet
+SYStem.RESet
+ETM.OFF
+Trace.DISable
+sYmbol.RESet
+
+&ppd=os.ppd()
+&imgdir="&ppd/images"
+
+; Setup debugger
+
+PRINT "Setting up debugger..."
+SYStem.CONFIG DEBUGPORTTYPE SWD    ; JTAG gave errors due to electrical problems
+SYStem.CPU R8A77420
+
+SYStem.Option ResBreak OFF
+;SYStem.Option WaitReset 0.3s
+SYStem.Option DACR ON          ; give Debugger global write permissions
+TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+TrOnchip.Set UNDEF OFF         ; may be used by Linux for FPU detection
+TrOnchip.Set RESET OFF
+
+; assign to all cores in A15-A15-A15-A15-A7-A7-A7-A7 sequence
+CORE.ASSIGN 1. 3. 5. 7. 2. 4. 6. 8.
+SYSTEM.ATTACH
+
+Break
+
+; Load Linux symbols and awareness
+
+SYStem.Option ZONESPACES ON     ; enable symbol separation of secure and non-secure zone
+SYStem.Option MMUSPACES ON      ; enable space ids to virtual addresses
+SYStem.Option.MACHINESPACES ON  ; enabble machine ids to virtual addresses
+
+; In hypervised system, we need to disable the reverse translation
+SYStem.Option.MMUPhysLogMemaccess OFF
+
+PRINT "Loading Linux kernel symbols..."
+Data.LOAD.Elf &imgdir/vmlinux N:1:::0::0 /nocode /name rootcell
+
+; Configure Linux awareness and address translation
+
+PRINT "Configuring debugger address translation..."
+MMU.FORMAT STD \\rootcell\\swapper_pg_dir /machine 1
+TRANSlation.Create N:1:::0xC0000000--0xE77FFFFF I:1:::0x40000000
+TRANSLATION.COMMON N:1:::0xBF000000--0xFFFFFFFF
+TRANSlation.TABLEWALK ON
+TRANSlation.ON
+
+PRINT "configuring Linux awareness..."
+EXTension.LOAD ~~/demo/arm/kernel/linux/linux-3.x/linux3.t32 /machine 1 /name RootCell
+;MENU.ReProgram &demodir/arm/kernel/linux/linux-3.x/linux.men
+DO ~~/demo/arm/kernel/jailhouse/adjust_menu ~~/demo/arm/kernel/linux/linux-3.x/linux.men RootCell
+TASK.RootCell.Option MMUCHECK OFF
+
+; Load Jailhouse symbols and awareness
+
+PRINT "loading Jailhouse symbols..."
+Data.LOAD.Elf &imgdir/hypervisor.o H:0:::0::0 /nocode /noclear
+Data.LOAD.Elf &imgdir/jailhouse.ko N:1:::0::0 /nocode /noclear /reloctype 3
+
+PRINT "loading Jailhouse awareness..."
+EXTension.LOAD ~~/demo/arm/kernel/jailhouse/jailhouse.t32 /machine 0
+MENU.ReProgram ~~/demo/arm/kernel/jailhouse/jailhouse.men
+EXTension.ACCESS H: jailhouse
+TRANSlation.COMMON H:0:::0x0--0xffffffffffffffff
+; Configure dtb access from hypervisor awareness
+&dtbphysical=address.offset(mmu.physical(1:::v.value(initial_boot_params)))
+EXTension.jailhouse.Option DTB &dtbphysical
+
+; Load FreeRTOS symbols and awareness
+
+PRINT "loading freertos-display symbols..."
+Data.LOAD.Elf &imgdir/freertos-display.elf 2:::0::0 /nocode /noclear
+EXTension.LOAD ~~/demo/arm/kernel/freertos/freertos.t32 /machine 2
+Menu.Reprogram ~~/demo/arm/kernel/freertos/freertos.men
+
+; Load LED demo symbols
+
+PRINT "loading led-demo symbols"
+data.load.elf &imgdir/led-demo-linked.o 3:::0::0 /nocode /noclear
+
+; Load Linux inmate symbols and awareness
+
+PRINT "loading Linux inmate symbols..."
+Data.LOAD.Elf &imgdir/vmlinux-inmate N:4:::0::0 /nocode /noclear /name linuxinmate
+MMU.FORMAT STD \\linuxinmate\\swapper_pg_dir /machine 4
+TRANSlation.Create N:4:::0xC0000000--0xC7FFFFFF I:4:::0x70000000
+TRANSLATION.COMMON N:4:::0xBF000000--0xFFFFFFFF
+EXTension.LOAD ~~/demo/arm/kernel/linux/linux-3.x/linux3.t32 /machine 4 /name LinuxInmate
+DO ~~/demo/arm/kernel/jailhouse/adjust_menu &demodir/arm/kernel/linux/linux-3.x/linux.men LinuxInmate
+TASK.LinuxInmate.Option MMUCHECK OFF
+
+print "===== DONE. ====="
+
+ENDDO

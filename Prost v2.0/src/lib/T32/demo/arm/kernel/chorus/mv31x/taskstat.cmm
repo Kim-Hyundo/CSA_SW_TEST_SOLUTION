@@ -1,0 +1,56 @@
+; --------------------------------------------------------------------------------
+; @Title: Perform a Task State Tracing with the Analyzer (MTD)
+; @Description: 
+;   The analyzer is programmed to record the Task States and the magic,
+;   so the analyzer can use it for task specific actions.
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: taskstat.cmm 15227 2019-11-06 11:57:41Z bschroefel $
+
+
+; delete all predefined Alpha breakpoints
+  Break.Delete /Alpha 
+
+; start the demo for 200 ms to set up task control blocks
+  IF (!STATE.RUN())
+    Go
+  WAIT 200.ms
+  Break
+
+; set Alpha Breakpoint on magic
+  Break.Set task.config(magic)++(task.config(magicsize)-0x1) /Alpha
+
+; set Alpha breakpoints on state values in TCBs
+  TASK.TASKState
+
+; program analyzer with focus on alpha and beta breakpoints: 
+  Analyzer.ReProgram 
+  (
+    Sample.Enabled IF (AB||BB)&&WRITE
+  )
+
+; configure analyzer to trace task states
+  IF hardware.ICE()
+   Analyzer.Mode prepost OFF
+  Analyzer.Mode stack
+  Analyzer.SIZE 5000.
+  Analyzer.Init
+  Analyzer.Arm
+
+; start program for 10 seconds
+  SCREEN.ALways
+  PRINT "running program for 10 seconds..."
+  Go
+  WAIT 10.s
+  Break
+  SCREEN.ON
+
+;configure statistic command and window
+  PRINT "initializing analyzer windows..."
+  Analyzer.OFF
+  Analyzer.STATistic.Sort symbol
+  Analyzer.stat.taskstate
+  Analyzer.chart.taskstate
+  PRINT ""
+

@@ -1,0 +1,189 @@
+; --------------------------------------------------------------------------------
+; @Title: SMP-Demo script for ZYNQ-ULTRASCALE+-APU on ZCU102 with Offchip-Trace
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Offchip-Trace. FPGA loading and Clock
+;   setup is handled in the script.
+;   As no core is accessible after Reset we handle the start of the cores in
+;   the script and switch to SMP later.
+;   Use this script to test the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to J6
+;    * Connect AutoFocus Preprocessor to P6 using Mictor38 cable
+;    * set SW6 = 0y1111 (JTAG Bootmode)
+;    * short J14, J38, J88
+; @Keywords: ARM, Cortex-A53, ETM, SMP
+; @Author: AME
+; @Board: ZCU102
+; @Chip: ZYNQ-ULTRASCALE+*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: zcu102-apu_sieve_offchip_trace_smp_dram.cmm 16744 2020-11-06 12:52:40Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF VERSION.BUILD.BASE()<75524.
+(
+  PRINT %ERROR "Please use more recent Software! Contact support@lauterbach.com."
+  ENDDO
+)
+
+; unzip the FPGA Bitstream
+PRIVATE &ppd
+&ppd=OS.PPD()
+;&bitfile="&ppd/../zcu102-binaries/zcu102_arm_trace_16_to_16.bit"
+&bitfile="&ppd/../zcu102-binaries/zcu102_arm_trace_32_to_16.bit"
+IF !OS.FILE("&bitfile")
+(
+  UNZIP "&bitfile.gz" "&bitfile"
+)
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU ZYNQ-ULTRASCALE+-APU
+SYStem.Option TRST OFF
+SYStem.Option ResBreak OFF
+SYStem.Option WaitDAPPWR ON
+SYStem.JtagClock CTCK 10MHz
+CORE.ASSIGN 1.
+; disable Trace infrastructure for the moment - TPIU may be unclocked!
+ETM.OFF
+Trace.DISable
+SYStem.Mode Prepare
+
+; --------------------------------------------------------------------------------
+; Disable watchdog SWDT and reset core 0 to defined state
+GOSUB DisableWatchdog
+
+DO "~~~~/../scripts/zynq-ultrascale_kick_bootcore.cmm" A53_X64
+
+SYStem.Mode.Attach
+IF STATE.RUN()
+  Break.direct
+
+; --------------------------------------------------------------------------------
+; load the FSBL (first-stage boot loader) into the OCM
+Data.LOAD.Elf "~~~~/../zcu102-binaries/zynqmp_fsbl.elf"
+
+; --------------------------------------------------------------------------------
+; start FSBL execution
+Go.direct XFsbl_Loop
+WAIT !STATE.RUN() 3.s
+IF STATE.RUN()
+(
+  Break.direct
+)
+
+IF Register(PC)!=ADDRESS.OFFSET(XFsbl_Loop)
+(
+  PRINT %ERROR "Boot flow error"
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; program the FPGA fabric (routes the TRACE lines to P6)
+DO "~~~~/../scripts/zynq-ultrascale_load_bitstream.cmm" "&bitfile" 0x10000000
+; DBG_TRACE_CTRL - enable clock to have proper access to the TPIU
+Data.Set ENAXI:0xFD1A0064 %Long Data.Long(ENAXI:0xFD1A0064)|0x01003f00
+WAIT 0.1s
+; switch TPIU to clock source provided by PL
+Data.Set EDAP:0x80180FB0 %Long 0xC5ACCE55
+Data.Set EDAP:0x80180404 %Long 0x1
+WAIT 0.1s
+
+; --------------------------------------------------------------------------------
+; kick secondary cores
+DO "~~~~/../scripts/zynq-ultrascale_kick_bootcore.cmm" _A53_234_X64
+
+; disconnect from system and reattach in SMP mode
+SYStem.Mode.Down
+CORE.ASSIGN 1. 2. 3. 4.
+SYStem.Mode.Attach
+
+IF STATE.RUN()
+  Break.direct
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal SRAM only)
+CORE.select 0.
+Data.LOAD.Elf "~~~~/sieve_ram_aarch64_v8.elf"
+Register.Set M 0x5            ; EL1
+Register.Set NS 1.            ; nsec
+; Set PC for all secondary cores
+Register.Init /CORE 1.
+Register.Set PC _start /CORE 1.
+Register.Set M 0x5 /CORE 1.   ; EL1
+Register.Set NS 1. /CORE 1.   ; nsec
+Register.Init /CORE 2.
+Register.Set PC _start /CORE 2.
+Register.Set M 0x5 /CORE 2.   ; EL1
+Register.Set NS 1. /CORE 2.   ; nsec
+Register.Init /CORE 3.
+Register.Set PC _start /CORE 3.
+Register.Set M 0x5 /CORE 3.   ; EL1
+Register.Set NS 1. /CORE 3.   ; nsec
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace if Analyzer is plugged (ETM)
+IF Analyzer()
+(
+  DO "~~~~/../scripts/timestamps.cmm"
+  Trace.Method Analyzer
+  IF STRing.SCAN("&bitfile","16_to_16",0.)>0.
+  (
+    Analyzer.PortSize AUTO
+    TPIU.PortSize 16
+  )
+  ELSE // 32_to_16 ?
+  (
+    Analyzer.PortSize 16
+    TPIU.PortSize 32
+  )
+  TPIU.PortMode Continuous
+  ETM.Trace ON
+  ETM.ON
+  ; use Autofocus based calibration
+  Analyzer.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO
+
+; ================================================================================
+DisableWatchdog:
+(
+  PRIVATE &swdtMode
+  
+  &swdtMode=Data.Long(ENAXI:0xFF150000)
+  &swdtMode=&swdtMode&0xFFE      ; Mode.WDEN = 0
+  &swdtMode=&swdtMode+0xABC000   ; zKEY
+  
+  Data.Set ENAXI:0xFF150000 %LE %Long &swdtMode
+)
+RETURN

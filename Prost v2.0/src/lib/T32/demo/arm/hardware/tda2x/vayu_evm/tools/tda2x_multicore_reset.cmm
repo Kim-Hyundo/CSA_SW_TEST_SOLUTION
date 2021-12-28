@@ -1,0 +1,726 @@
+; --------------------------------------------------------------------------------
+; @Title: Target configuration script for the TI TDA2x device.
+; @Description:
+;   This script contains functions to configure the TDA2x resets.
+;   It is generated out of a CodeComposer GEL file.
+;   Calling the script by
+;
+;     DO tda2x_multicore_reset.cmm
+;
+;   will add a menu for all functions of this script toTRACE32.
+;   Alternatively you can allall these functions directly by:
+;
+;     DO tda2x_multicore_reset.cmm <function>
+;
+; @Keywords: ARM
+; @Author: STK
+; @Board: VAYU-EVM
+; @Chip: TDA2x
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tda2x_multicore_reset.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+LOCAL &function &args
+ENTRY &function %LINE &args
+
+IF "&function"!=""
+(
+	GOSUB &function &args
+)
+ELSE
+(
+	GOSUB __GeL_MeNu_CrEaTe
+)
+
+ENDDO
+
+__GeL_MeNu_CrEaTe:
+(
+	PRIVATE &__FILENAME
+	&__FILENAME=OS.PPF()
+	MENU.REPROGRAM
+	(&+
+		ADD
+		MENU
+		(
+			POPUP "GEL"
+			(
+				POPUP "TDA2x MULTICORE Initialization"
+				(
+					MENUITEM "TDA2x_MULTICORE_EnableAllCores" "DO &__FILENAME TDA2x_MULTICORE_EnableAllCores"
+					MENUITEM "PRUSS_1_2_ClkEnable"             "DO &__FILENAME PRUSS_1_2_ClkEnable"
+					MENUITEM "IPU1SSClkEnable_API"             "DO &__FILENAME IPU1SSClkEnable_API"
+					MENUITEM "IPU2SSClkEnable_API"             "DO &__FILENAME IPU2SSClkEnable_API"
+					MENUITEM "DSP1SSClkEnable_API"             "DO &__FILENAME DSP1SSClkEnable_API"
+					MENUITEM "DSP2SSClkEnable_API"             "DO &__FILENAME DSP2SSClkEnable_API"
+					MENUITEM "EVE1SSClkEnable_API"             "DO &__FILENAME EVE1SSClkEnable_API"
+					MENUITEM "EVE2SSClkEnable_API"             "DO &__FILENAME EVE2SSClkEnable_API"
+					MENUITEM "EVE3SSClkEnable_API"             "DO &__FILENAME EVE3SSClkEnable_API"
+					MENUITEM "EVE4SSClkEnable_API"             "DO &__FILENAME EVE4SSClkEnable_API"
+					MENUITEM "IVAHDSSClkEnable_API"            "DO &__FILENAME IVAHDSSClkEnable_API"
+				)
+			)
+		)
+	)
+	RETURN
+)
+
+IPUSSClkEnable:
+(
+	ENTRY &__VF0
+	
+	Var.NEW unsigned int \cpu_num
+	Var.Assign \cpu_num=&__VF0
+	
+	(
+		Var.NEW unsigned int \regVal
+		Var.NEW unsigned int \regAddr
+		AREA.SELECT 
+		PRINT "--->>> IPU" %DECIMAL Var.VALUE(\cpu_num) "SS Initialization is in progress ... <<<---"
+		PRINT ""
+		&__V0=0
+		V.ASSIGN (((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4AE00000)+(0x6000)))+(0x500)))+(0x10))):(((((((0x4AE00000)+(0x6000)))+(0x700)))+(0x210)))))))))=(((unsigned int)(0x7))))
+		V.ASSIGN (((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4AE00000)+(0x6000)))+(0x500)))+(0x14))):(((((((0x4AE00000)+(0x6000)))+(0x700)))+(0x214)))))))))=(((unsigned int)(0x7))))
+		V.ASSIGN (((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4AE00000)+(0x6000)))+(0x500)))+(0x10))):(((((((0x4AE00000)+(0x6000)))+(0x700)))+(0x210)))))))))=(((unsigned int)(0x3))))
+		&__V1=Var.VALUE((((((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4AE00000)+(0x6000)))+(0x500)))+(0x14))):(((((((0x4AE00000)+(0x6000)))+(0x700)))+(0x214)))))))))&(0x4)))!=(0x4)))
+		WHILE &__V1!=0
+		(
+			(
+			)
+			&__V1=Var.VALUE((((((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4AE00000)+(0x6000)))+(0x500)))+(0x14))):(((((((0x4AE00000)+(0x6000)))+(0x700)))+(0x214)))))))))&(0x4)))!=(0x4)))
+		)
+__L0:
+		V.ASSIGN ((\regAddr)=(((((\cpu_num)==(0x1)))?(((0x58800000)+(0x80000))):(((0x55000000)+(0x80000))))))
+		V.ASSIGN ((\regAddr)+=(0x800))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x40000000))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x80000000))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0xA0000000))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x60000000))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN ((\regAddr)=(((((\cpu_num)==(0x1)))?(((0x58800000)+(0x80000))):(((0x55000000)+(0x80000))))))
+		V.ASSIGN ((\regAddr)+=(0x820))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x40000000))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x80000000))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0xA0000000))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x40000000))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN ((\regAddr)=(((((\cpu_num)==(0x1)))?(((0x58800000)+(0x80000))):(((0x55000000)+(0x80000))))))
+		V.ASSIGN ((\regAddr)+=(0x840))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x00000007))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x000B0007))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x00020007))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x00000007))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN ((\regAddr)=(((((\cpu_num)==(0x1)))?(((0x58800000)+(0x80000))):(((0x55000000)+(0x80000))))))
+		V.ASSIGN ((\regAddr)+=(0x860))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x00300000))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x00400000))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN ((\regAddr)=(((((\cpu_num)==(0x1)))?(((0x58800000)+(0x80000))):(((0x55000000)+(0x80000))))))
+		V.ASSIGN ((\regAddr)+=(0x8A0))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x40300000))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x40400000))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN ((\regAddr)=(((((\cpu_num)==(0x1)))?(((0x58800000)+(0x80000))):(((0x55000000)+(0x80000))))))
+		V.ASSIGN ((\regAddr)+=(0x8E0))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x00000007))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x00020007))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN ((\regAddr)=(((((\cpu_num)==(0x1)))?(((0x58800000)+(0x80000))):(((0x55000000)+(0x80000))))))
+		V.ASSIGN ((\regAddr)+=(0x920))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x00000000))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x40000000))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x00004000))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x00008000))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x20000000))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN ((\regAddr)=(((((\cpu_num)==(0x1)))?(((0x58800000)+(0x80000))):(((0x55000000)+(0x80000))))))
+		V.ASSIGN ((\regAddr)+=(0x9A0))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x55020000))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x55080000))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x55024000))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x55028000))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x55020000))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN ((\regAddr)=(((((\cpu_num)==(0x1)))?(((0x58800000)+(0x80000))):(((0x55000000)+(0x80000))))))
+		V.ASSIGN ((\regAddr)+=(0xA20))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x0001000B))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x0000000B))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x00010007))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x00000007))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(\regAddr)))))=(((unsigned int)(0x00000007))))
+		V.ASSIGN ((\regAddr)+=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((0x58800000)+(0x20000))):(((0x55000000)+(0x20000)))))))))=(((unsigned int)(0x10000))))
+		V.ASSIGN (((*(((unsigned int *)(((((((\cpu_num)==(0x1)))?(((0x58800000)+(0x20000))):(((0x55000000)+(0x20000)))))+(0x4)))))))=(((unsigned int)(0x9))))
+		V.ASSIGN (((*(((unsigned int *)(((((((\cpu_num)==(0x1)))?(((0x58800000)+(0x20000))):(((0x55000000)+(0x20000)))))+(0x8)))))))=(((unsigned int)(0xE7FEE7FE))))
+		&__V2=Var.VALUE((((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((0x58800000)+(0x20000))):(((0x55000000)+(0x20000)))))))))!=(0x10000)))
+		WHILE &__V2!=0
+		(
+			(
+			)
+			&__V2=Var.VALUE((((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((0x58800000)+(0x20000))):(((0x55000000)+(0x20000)))))))))!=(0x10000)))
+		)
+__L1:
+		&__V3=Var.VALUE((((*(((unsigned int *)(((((((\cpu_num)==(0x1)))?(((0x58800000)+(0x20000))):(((0x55000000)+(0x20000)))))+(0x4)))))))!=(0x9)))
+		WHILE &__V3!=0
+		(
+			(
+			)
+			&__V3=Var.VALUE((((*(((unsigned int *)(((((((\cpu_num)==(0x1)))?(((0x58800000)+(0x20000))):(((0x55000000)+(0x20000)))))+(0x4)))))))!=(0x9)))
+		)
+__L2:
+		&__V4=Var.VALUE((((*(((unsigned int *)(((((((\cpu_num)==(0x1)))?(((0x58800000)+(0x20000))):(((0x55000000)+(0x20000)))))+(0x8)))))))!=(0xE7FEE7FE)))
+		WHILE &__V4!=0
+		(
+			(
+			)
+			&__V4=Var.VALUE((((*(((unsigned int *)(((((((\cpu_num)==(0x1)))?(((0x58800000)+(0x20000))):(((0x55000000)+(0x20000)))))+(0x8)))))))!=(0xE7FEE7FE)))
+		)
+__L3:
+		V.ASSIGN (((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4AE00000)+(0x6000)))+(0x500)))+(0x10))):(((((((0x4AE00000)+(0x6000)))+(0x700)))+(0x210)))))))))=(((unsigned int)(0x0))))
+		&__V5=Var.VALUE((((((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4AE00000)+(0x6000)))+(0x500)))+(0x14))):(((((((0x4AE00000)+(0x6000)))+(0x700)))+(0x214)))))))))&(0x3)))!=(0x3)))
+		WHILE &__V5!=0
+		(
+			(
+			)
+			&__V5=Var.VALUE((((((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4AE00000)+(0x6000)))+(0x500)))+(0x14))):(((((((0x4AE00000)+(0x6000)))+(0x700)))+(0x214)))))))))&(0x3)))!=(0x3)))
+		)
+__L4:
+		V.ASSIGN (((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4AE00000)+(0x6000)))+(0x500)))+(0x14))):(((((((0x4AE00000)+(0x6000)))+(0x700)))+(0x214)))))))))=(((unsigned int)(0x7))))
+		AREA.SELECT 
+		PRINT "--->>> IPU" %DECIMAL Var.VALUE(\cpu_num) "SS Initialization is DONE! <<<---"
+		PRINT ""
+		&__V6=0
+	)
+	RETURN
+)
+
+DSPSSClkEnable:
+(
+	ENTRY &__VF0
+	
+	Var.NEW unsigned int \cpu_num
+	Var.Assign \cpu_num=&__VF0
+	
+	(
+		Var.NEW unsigned int \i
+		Var.NEW unsigned int \fail
+		V.ASSIGN (\fail)=(0x0)
+		AREA.SELECT 
+		PRINT "--->>> DSP" %DECIMAL Var.VALUE(\cpu_num) "SS Initialization is in progress ... <<<---"
+		PRINT ""
+		&__V7=0
+		V.ASSIGN (((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((0x4A000000)+(0x2000)))+(0x55C))):(((((0x4A000000)+(0x2000)))+(0x560)))))))))=(((unsigned int)(((((((\cpu_num)==(0x1)))?(((0x40800000)-(0x40000000))):(((0x41000000)-(0x40800000)))))>>(0xA))))))
+		V.ASSIGN (((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4AE00000)+(0x6000)))+(0x400)))+(0x10))):(((((((0x4AE00000)+(0x6000)))+(0x1B00)))+(0x10)))))))))=(((unsigned int)(0x3))))
+		V.ASSIGN (((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4A000000)+(0x5000)))+(0x400)))+(0x0))):(((((((0x4A000000)+(0x5000)))+(0x600)))+(0x0)))))))))=(((unsigned int)(0x2))))
+		V.ASSIGN (((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4A000000)+(0x5000)))+(0x400)))+(0x20))):(((((((0x4A000000)+(0x5000)))+(0x600)))+(0x20)))))))))=(((unsigned int)(0x1))))
+		&__V8=Var.VALUE((((((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4A000000)+(0x5000)))+(0x400)))+(0x0))):(((((((0x4A000000)+(0x5000)))+(0x600)))+(0x0)))))))))&(0x100)))!=(0x100)))
+		WHILE &__V8!=0
+		(
+			(
+			)
+			&__V8=Var.VALUE((((((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4A000000)+(0x5000)))+(0x400)))+(0x0))):(((((((0x4A000000)+(0x5000)))+(0x600)))+(0x0)))))))))&(0x100)))!=(0x100)))
+		)
+__L5:
+		V.IF (0x1)
+		(
+			(
+				PRINT "DEBUG: Clock is active ... "
+				PRINT ""
+				&__V9=0
+			)
+		)
+		V.ASSIGN (((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4AE00000)+(0x6000)))+(0x400)))+(0x10))):(((((((0x4AE00000)+(0x6000)))+(0x1B00)))+(0x10)))))))))=(((unsigned int)(0x1))))
+		&__V10=Var.VALUE((((((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4AE00000)+(0x6000)))+(0x400)))+(0x14))):(((((((0x4AE00000)+(0x6000)))+(0x1B00)))+(0x14)))))))))&(0x2)))!=(0x2)))
+		WHILE &__V10!=0
+		(
+			(
+			)
+			&__V10=Var.VALUE((((((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4AE00000)+(0x6000)))+(0x400)))+(0x14))):(((((((0x4AE00000)+(0x6000)))+(0x1B00)))+(0x14)))))))))&(0x2)))!=(0x2)))
+		)
+__L6:
+		V.ASSIGN (((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(0x40800000):(0x41000000)))))))=(((unsigned int)(0x0000A120))))
+		V.ASSIGN (((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4AE00000)+(0x6000)))+(0x400)))+(0x10))):(((((((0x4AE00000)+(0x6000)))+(0x1B00)))+(0x10)))))))))=(((unsigned int)(0x0))))
+		&__V11=Var.VALUE((((((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4AE00000)+(0x6000)))+(0x400)))+(0x14))):(((((((0x4AE00000)+(0x6000)))+(0x1B00)))+(0x14)))))))))&(0x3)))!=(0x3)))
+		WHILE &__V11!=0
+		(
+			(
+			)
+			&__V11=Var.VALUE((((((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4AE00000)+(0x6000)))+(0x400)))+(0x14))):(((((((0x4AE00000)+(0x6000)))+(0x1B00)))+(0x14)))))))))&(0x3)))!=(0x3)))
+		)
+__L7:
+		&__V12=Var.VALUE((((((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4A000000)+(0x5000)))+(0x400)))+(0x20))):(((((((0x4A000000)+(0x5000)))+(0x600)))+(0x20)))))))))&(0x30000)))!=(0x0)))
+		WHILE &__V12!=0
+		(
+			(
+			)
+			&__V12=Var.VALUE((((((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4A000000)+(0x5000)))+(0x400)))+(0x20))):(((((((0x4A000000)+(0x5000)))+(0x600)))+(0x20)))))))))&(0x30000)))!=(0x0)))
+		)
+__L8:
+		V.IF (0x1)
+		(
+			(
+				PRINT "DEBUG: Checking for data integrity in DSPSS L2RAM ... "
+				PRINT ""
+				&__V13=0
+			)
+		)
+		V.ASSIGN ((\i)=(0x1))
+		&__V14=Var.VALUE(((\i)<(0x10)))
+		WHILE &__V14!=0
+		(
+			(
+				(
+					V.ASSIGN (((*(((unsigned int *)(((((((\cpu_num)==(0x1)))?(0x40800000):(0x41000000)))+(((\i)<<(0x2)))))))))=(((unsigned int)(0x12345678))))
+				)
+			)
+			&__V15=Var.VALUE(\i)
+			V.ASSIGN (\i)=(\i)+1
+			&__V14=Var.VALUE(((\i)<(0x10)))
+		)
+__L9:
+		V.ASSIGN ((\i)=(0x1))
+		&__V16=Var.VALUE(((\i)<(0x10)))
+		WHILE &__V16!=0
+		(
+			(
+				(
+					V.IF ((((*(((unsigned int *)(((((((\cpu_num)==(0x1)))?(0x40800000):(0x41000000)))+(((\i)<<(0x2)))))))))!=(0x12345678)))
+					(
+						(
+							&__V17=Var.VALUE(\fail)
+							V.ASSIGN (\fail)=(\fail)+1
+							GOTO __L10
+						)
+					)
+				)
+			)
+			&__V18=Var.VALUE(\i)
+			V.ASSIGN (\i)=(\i)+1
+			&__V16=Var.VALUE(((\i)<(0x10)))
+		)
+__L10:
+		V.IF (\fail)
+		(
+			(
+				PRINT "ERROR: Data integrity check in GEM L2RAM has failed! "
+				PRINT ""
+				&__V19=0
+			)
+		)
+		ELSE
+		(
+			(
+				V.IF (0x1)
+				(
+					(
+						PRINT "DEBUG: Data integrity check in GEM L2RAM is sucessful! "
+						PRINT ""
+						&__V20=0
+					)
+				)
+			)
+		)
+		AREA.SELECT 
+		PRINT "--->>> DSP" %DECIMAL Var.VALUE(\cpu_num) "SS Initialization is DONE! <<<---"
+		PRINT ""
+		&__V21=0
+	)
+	RETURN
+)
+
+EVESSClkEnable:
+(
+	ENTRY &__VF0
+	
+	Var.NEW unsigned int \cpu_num
+	Var.Assign \cpu_num=&__VF0
+	
+	(
+		AREA.SELECT 
+		PRINT "--->>> EVE" %DECIMAL Var.VALUE(\cpu_num) "SS Initialization is in progress ... <<<---"
+		PRINT ""
+		&__V22=0
+		V.ASSIGN (((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4AE00000)+(0x6000)))+(0x1B40)))+(0x10))):(((((\cpu_num)==(0x2)))?(((((((0x4AE00000)+(0x6000)))+(0x1B80)))+(0x10))):(((((\cpu_num)==(0x3)))?(((((((0x4AE00000)+(0x6000)))+(0x1BC0)))+(0x10))):(((((((0x4AE00000)+(0x6000)))+(0x1C00)))+(0x10)))))))))))))=(((unsigned int)(0x3))))
+		V.ASSIGN (((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4A000000)+(0x5000)))+(0x640)))+(0x0))):(((((\cpu_num)==(0x2)))?(((((((0x4A000000)+(0x5000)))+(0x680)))+(0x0))):(((((\cpu_num)==(0x3)))?(((((((0x4A000000)+(0x5000)))+(0x6C0)))+(0x0))):(((((((0x4A000000)+(0x5000)))+(0x700)))+(0x0)))))))))))))=(((unsigned int)(0x2))))
+		V.ASSIGN (((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4A000000)+(0x5000)))+(0x640)))+(0x20))):(((((\cpu_num)==(0x2)))?(((((((0x4A000000)+(0x5000)))+(0x680)))+(0x20))):(((((\cpu_num)==(0x3)))?(((((((0x4A000000)+(0x5000)))+(0x6C0)))+(0x20))):(((((((0x4A000000)+(0x5000)))+(0x700)))+(0x20)))))))))))))=(((unsigned int)(0x1))))
+		&__V23=Var.VALUE((((((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4A000000)+(0x5000)))+(0x640)))+(0x0))):(((((\cpu_num)==(0x2)))?(((((((0x4A000000)+(0x5000)))+(0x680)))+(0x0))):(((((\cpu_num)==(0x3)))?(((((((0x4A000000)+(0x5000)))+(0x6C0)))+(0x0))):(((((((0x4A000000)+(0x5000)))+(0x700)))+(0x0)))))))))))))&(0x100)))!=(0x100)))
+		WHILE &__V23!=0
+		(
+			(
+			)
+			&__V23=Var.VALUE((((((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4A000000)+(0x5000)))+(0x640)))+(0x0))):(((((\cpu_num)==(0x2)))?(((((((0x4A000000)+(0x5000)))+(0x680)))+(0x0))):(((((\cpu_num)==(0x3)))?(((((((0x4A000000)+(0x5000)))+(0x6C0)))+(0x0))):(((((((0x4A000000)+(0x5000)))+(0x700)))+(0x0)))))))))))))&(0x100)))!=(0x100)))
+		)
+__L11:
+		V.IF (0x1)
+		(
+			(
+				PRINT "DEBUG: Clock is active ... "
+				PRINT ""
+				&__V24=0
+			)
+		)
+		V.ASSIGN (((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4AE00000)+(0x6000)))+(0x1B40)))+(0x10))):(((((\cpu_num)==(0x2)))?(((((((0x4AE00000)+(0x6000)))+(0x1B80)))+(0x10))):(((((\cpu_num)==(0x3)))?(((((((0x4AE00000)+(0x6000)))+(0x1BC0)))+(0x10))):(((((((0x4AE00000)+(0x6000)))+(0x1C00)))+(0x10)))))))))))))=(((unsigned int)(0x1))))
+		&__V25=Var.VALUE((((((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4AE00000)+(0x6000)))+(0x1B40)))+(0x14))):(((((\cpu_num)==(0x2)))?(((((((0x4AE00000)+(0x6000)))+(0x1B80)))+(0x14))):(((((\cpu_num)==(0x3)))?(((((((0x4AE00000)+(0x6000)))+(0x1BC0)))+(0x14))):(((((((0x4AE00000)+(0x6000)))+(0x1C00)))+(0x14)))))))))))))&(0x2)))!=(0x2)))
+		WHILE &__V25!=0
+		(
+			(
+			)
+			&__V25=Var.VALUE((((((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4AE00000)+(0x6000)))+(0x1B40)))+(0x14))):(((((\cpu_num)==(0x2)))?(((((((0x4AE00000)+(0x6000)))+(0x1B80)))+(0x14))):(((((\cpu_num)==(0x3)))?(((((((0x4AE00000)+(0x6000)))+(0x1BC0)))+(0x14))):(((((((0x4AE00000)+(0x6000)))+(0x1C00)))+(0x14)))))))))))))&(0x2)))!=(0x2)))
+		)
+__L12:
+		&__VC26=Var.VALUE(\cpu_num)
+		GOSUB EVE_MMU0_Config &__VC26
+		ENTRY &__V27
+		V.ASSIGN (((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4AE00000)+(0x6000)))+(0x1B40)))+(0x10))):(((((\cpu_num)==(0x2)))?(((((((0x4AE00000)+(0x6000)))+(0x1B80)))+(0x10))):(((((\cpu_num)==(0x3)))?(((((((0x4AE00000)+(0x6000)))+(0x1BC0)))+(0x10))):(((((((0x4AE00000)+(0x6000)))+(0x1C00)))+(0x10)))))))))))))=(((unsigned int)(0x0))))
+		&__V28=Var.VALUE((((((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4AE00000)+(0x6000)))+(0x1B40)))+(0x14))):(((((\cpu_num)==(0x2)))?(((((((0x4AE00000)+(0x6000)))+(0x1B80)))+(0x14))):(((((\cpu_num)==(0x3)))?(((((((0x4AE00000)+(0x6000)))+(0x1BC0)))+(0x14))):(((((((0x4AE00000)+(0x6000)))+(0x1C00)))+(0x14)))))))))))))&(0x3)))!=(0x3)))
+		WHILE &__V28!=0
+		(
+			(
+			)
+			&__V28=Var.VALUE((((((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4AE00000)+(0x6000)))+(0x1B40)))+(0x14))):(((((\cpu_num)==(0x2)))?(((((((0x4AE00000)+(0x6000)))+(0x1B80)))+(0x14))):(((((\cpu_num)==(0x3)))?(((((((0x4AE00000)+(0x6000)))+(0x1BC0)))+(0x14))):(((((((0x4AE00000)+(0x6000)))+(0x1C00)))+(0x14)))))))))))))&(0x3)))!=(0x3)))
+		)
+__L13:
+		&__V29=Var.VALUE((((((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4A000000)+(0x5000)))+(0x640)))+(0x20))):(((((\cpu_num)==(0x2)))?(((((((0x4A000000)+(0x5000)))+(0x680)))+(0x20))):(((((\cpu_num)==(0x3)))?(((((((0x4A000000)+(0x5000)))+(0x6C0)))+(0x20))):(((((((0x4A000000)+(0x5000)))+(0x700)))+(0x20)))))))))))))&(0x30000)))!=(0x0)))
+		WHILE &__V29!=0
+		(
+			(
+			)
+			&__V29=Var.VALUE((((((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4A000000)+(0x5000)))+(0x640)))+(0x20))):(((((\cpu_num)==(0x2)))?(((((((0x4A000000)+(0x5000)))+(0x680)))+(0x20))):(((((\cpu_num)==(0x3)))?(((((((0x4A000000)+(0x5000)))+(0x6C0)))+(0x20))):(((((((0x4A000000)+(0x5000)))+(0x700)))+(0x20)))))))))))))&(0x30000)))!=(0x0)))
+		)
+__L14:
+		V.ASSIGN (((*(((unsigned int *)(((((\cpu_num)==(0x1)))?(((((((0x4AE00000)+(0x6000)))+(0x1B40)))+(0x14))):(((((\cpu_num)==(0x2)))?(((((((0x4AE00000)+(0x6000)))+(0x1B80)))+(0x14))):(((((\cpu_num)==(0x3)))?(((((((0x4AE00000)+(0x6000)))+(0x1BC0)))+(0x14))):(((((((0x4AE00000)+(0x6000)))+(0x1C00)))+(0x14)))))))))))))=(((unsigned int)(0x3))))
+		AREA.SELECT 
+		PRINT "--->>> EVE" %DECIMAL Var.VALUE(\cpu_num) "SS Initialization is DONE! <<<---"
+		PRINT ""
+		&__V30=0
+	)
+	RETURN
+)
+
+IVAHDSSClkEnable:
+(
+	(
+		PRINT "--->>> IVAHD Initialization is in progress ... <<<---"
+		PRINT ""
+		&__V31=0
+		V.ASSIGN (((*(((unsigned int *)(((((((0x4A000000)+(0x8000)))+(0xF00)))+(0x0)))))))=(((unsigned int)(0x2))))
+		V.ASSIGN (((*(((unsigned int *)(((((((0x4A000000)+(0x8000)))+(0xF00)))+(0x20)))))))=(((unsigned int)(0x1))))
+		V.ASSIGN (((*(((unsigned int *)(((((((0x4A000000)+(0x8000)))+(0xF00)))+(0x28)))))))=(((unsigned int)(0x1))))
+		&__V32=Var.VALUE((((((*(((unsigned int *)(((((((0x4A000000)+(0x8000)))+(0xF00)))+(0x0)))))))&(0x100)))!=(0x100)))
+		WHILE &__V32!=0
+		(
+			(
+			)
+			&__V32=Var.VALUE((((((*(((unsigned int *)(((((((0x4A000000)+(0x8000)))+(0xF00)))+(0x0)))))))&(0x100)))!=(0x100)))
+		)
+__L15:
+		V.IF (0x1)
+		(
+			(
+				PRINT "DEBUG: Clock is active ... "
+				PRINT ""
+				&__V33=0
+			)
+		)
+		V.ASSIGN (((*(((unsigned int *)(((((((0x4AE00000)+(0x6000)))+(0xF00)))+(0x10)))))))=(((unsigned int)(0x7))))
+		V.ASSIGN (((*(((unsigned int *)(((((((0x4AE00000)+(0x6000)))+(0xF00)))+(0x14)))))))=(((unsigned int)(0x7))))
+		V.ASSIGN (((*(((unsigned int *)(((((((0x4AE00000)+(0x6000)))+(0xF00)))+(0x10)))))))=(((unsigned int)(0x3))))
+		&__V34=Var.VALUE((((((*(((unsigned int *)(((((((0x4AE00000)+(0x6000)))+(0xF00)))+(0x14)))))))&(0x4)))!=(0x4)))
+		WHILE &__V34!=0
+		(
+			(
+			)
+			&__V34=Var.VALUE((((((*(((unsigned int *)(((((((0x4AE00000)+(0x6000)))+(0xF00)))+(0x14)))))))&(0x4)))!=(0x4)))
+		)
+__L16:
+		V.ASSIGN (((*(((unsigned int *)(((0x5A000000)+(0x08000)))))))=(((unsigned int)(0xEAFFFFFE))))
+		V.ASSIGN (((*(((unsigned int *)(((0x5A000000)+(0x18000)))))))=(((unsigned int)(0xEAFFFFFE))))
+		V.ASSIGN (((*(((unsigned int *)(((((((0x4AE00000)+(0x6000)))+(0xF00)))+(0x10)))))))=(((unsigned int)(0x1))))
+		&__V35=Var.VALUE((((((*(((unsigned int *)(((((((0x4AE00000)+(0x6000)))+(0xF00)))+(0x14)))))))&(0x6)))!=(0x6)))
+		WHILE &__V35!=0
+		(
+			(
+			)
+			&__V35=Var.VALUE((((((*(((unsigned int *)(((((((0x4AE00000)+(0x6000)))+(0xF00)))+(0x14)))))))&(0x6)))!=(0x6)))
+		)
+__L17:
+		V.ASSIGN (((*(((unsigned int *)(((((((0x4AE00000)+(0x6000)))+(0xF00)))+(0x10)))))))=(((unsigned int)(0x0))))
+		&__V36=Var.VALUE((((((*(((unsigned int *)(((((((0x4AE00000)+(0x6000)))+(0xF00)))+(0x14)))))))&(0x7)))!=(0x7)))
+		WHILE &__V36!=0
+		(
+			(
+			)
+			&__V36=Var.VALUE((((((*(((unsigned int *)(((((((0x4AE00000)+(0x6000)))+(0xF00)))+(0x14)))))))&(0x7)))!=(0x7)))
+		)
+__L18:
+		V.ASSIGN (((*(((unsigned int *)(((((((0x4AE00000)+(0x6000)))+(0xF00)))+(0x14)))))))=(((unsigned int)(0x7))))
+		PRINT "--->>> IVAHD Initialization is DONE! ... <<<---"
+		PRINT ""
+		&__V37=0
+	)
+	RETURN
+)
+
+SetupEveMmuEntry:
+(
+	ENTRY &__VF0 &__VF1 &__VF2 &__VF3 &__VF4 &__VF5
+	
+	Var.NEW unsigned int \cpu_num
+	Var.Assign \cpu_num=&__VF0
+	
+	Var.NEW unsigned int \mmu_num
+	Var.Assign \mmu_num=&__VF1
+	
+	Var.NEW unsigned int \entryNum
+	Var.Assign \entryNum=&__VF2
+	
+	Var.NEW unsigned int \virtAddr
+	Var.Assign \virtAddr=&__VF3
+	
+	Var.NEW unsigned int \physAddr
+	Var.Assign \physAddr=&__VF4
+	
+	Var.NEW unsigned int \pageSize
+	Var.Assign \pageSize=&__VF5
+	
+	(
+		AREA.SELECT 
+		PRINT "DEBUG: Configuring EVE" %DECIMAL Var.VALUE(\cpu_num) " MMU" %DECIMAL Var.VALUE(\mmu_num) " TLB entry " %DECIMAL Var.VALUE(\entryNum) ": " %HEX Var.VALUE(\virtAddr) " --> " %HEX Var.VALUE(\physAddr)
+		PRINT ""
+		&__V38=0
+		V.ASSIGN (((*(((unsigned int *)(((((((\mmu_num)==(0x0)))?(((((\cpu_num)==(0x1)))?(((0x42000000)+(0x81000))):(((((\cpu_num)==(0x2)))?(((0x42100000)+(0x81000))):(((((\cpu_num)==(0x3)))?(((0x42200000)+(0x81000))):(((0x42300000)+(0x81000))))))))):(((((\cpu_num)==(0x1)))?(((0x42000000)+(0x82000))):(((((\cpu_num)==(0x2)))?(((0x42100000)+(0x82000))):(((((\cpu_num)==(0x3)))?(((0x42200000)+(0x82000))):(((0x42300000)+(0x82000)))))))))))+(0x58)))))))=(((unsigned int)(((((0x0000000C)|(((\pageSize)&(0x3)))))|(((\virtAddr)&(0xFFFFE000))))))))
+		V.ASSIGN (((*(((unsigned int *)(((((((\mmu_num)==(0x0)))?(((((\cpu_num)==(0x1)))?(((0x42000000)+(0x81000))):(((((\cpu_num)==(0x2)))?(((0x42100000)+(0x81000))):(((((\cpu_num)==(0x3)))?(((0x42200000)+(0x81000))):(((0x42300000)+(0x81000))))))))):(((((\cpu_num)==(0x1)))?(((0x42000000)+(0x82000))):(((((\cpu_num)==(0x2)))?(((0x42100000)+(0x82000))):(((((\cpu_num)==(0x3)))?(((0x42200000)+(0x82000))):(((0x42300000)+(0x82000)))))))))))+(0x5C)))))))=(((unsigned int)(((0x000001C0)|(((\physAddr)&(0xFFFFE000))))))))
+		V.ASSIGN (((*(((unsigned int *)(((((((\mmu_num)==(0x0)))?(((((\cpu_num)==(0x1)))?(((0x42000000)+(0x81000))):(((((\cpu_num)==(0x2)))?(((0x42100000)+(0x81000))):(((((\cpu_num)==(0x3)))?(((0x42200000)+(0x81000))):(((0x42300000)+(0x81000))))))))):(((((\cpu_num)==(0x1)))?(((0x42000000)+(0x82000))):(((((\cpu_num)==(0x2)))?(((0x42100000)+(0x82000))):(((((\cpu_num)==(0x3)))?(((0x42200000)+(0x82000))):(((0x42300000)+(0x82000)))))))))))+(0x50)))))))=(((unsigned int)((((((*(((unsigned int *)(((((((\mmu_num)==(0x0)))?(((((\cpu_num)==(0x1)))?(((0x42000000)+(0x81000))):(((((\cpu_num)==(0x2)))?(((0x42100000)+(0x81000))):(((((\cpu_num)==(0x3)))?(((0x42200000)+(0x81000))):(((0x42300000)+(0x81000))))))))):(((((\cpu_num)==(0x1)))?(((0x42000000)+(0x82000))):(((((\cpu_num)==(0x2)))?(((0x42100000)+(0x82000))):(((((\cpu_num)==(0x3)))?(((0x42200000)+(0x82000))):(((0x42300000)+(0x82000)))))))))))+(0x50)))))))&(0xFFFFFE0F)))|(((\entryNum)<<(0x4))))))))
+		V.ASSIGN (((*(((unsigned int *)(((((((\mmu_num)==(0x0)))?(((((\cpu_num)==(0x1)))?(((0x42000000)+(0x81000))):(((((\cpu_num)==(0x2)))?(((0x42100000)+(0x81000))):(((((\cpu_num)==(0x3)))?(((0x42200000)+(0x81000))):(((0x42300000)+(0x81000))))))))):(((((\cpu_num)==(0x1)))?(((0x42000000)+(0x82000))):(((((\cpu_num)==(0x2)))?(((0x42100000)+(0x82000))):(((((\cpu_num)==(0x3)))?(((0x42200000)+(0x82000))):(((0x42300000)+(0x82000)))))))))))+(0x54)))))))=(((unsigned int)(0x1))))
+	)
+	RETURN
+)
+
+EVE_MMU0_Config:
+(
+	ENTRY &__VF0
+	
+	Var.NEW unsigned int \cpu_num
+	Var.Assign \cpu_num=&__VF0
+	
+	Var.NEW unsigned int \mmu_num
+	V.ASSIGN (\mmu_num)=(0x0)
+	AREA.SELECT 
+	PRINT "DEBUG: Resetting EVE MMU ... "
+	PRINT ""
+	&__V39=0
+	V.ASSIGN (((*(((unsigned int *)(((((((\mmu_num)==(0x0)))?(((((\cpu_num)==(0x1)))?(((0x42000000)+(0x81000))):(((((\cpu_num)==(0x2)))?(((0x42100000)+(0x81000))):(((((\cpu_num)==(0x3)))?(((0x42200000)+(0x81000))):(((0x42300000)+(0x81000))))))))):(((((\cpu_num)==(0x1)))?(((0x42000000)+(0x82000))):(((((\cpu_num)==(0x2)))?(((0x42100000)+(0x82000))):(((((\cpu_num)==(0x3)))?(((0x42200000)+(0x82000))):(((0x42300000)+(0x82000)))))))))))+(0x10)))))))=(((unsigned int)(0x2))))
+	&__V40=Var.VALUE((((((*(((unsigned int *)(((((((\mmu_num)==(0x0)))?(((((\cpu_num)==(0x1)))?(((0x42000000)+(0x81000))):(((((\cpu_num)==(0x2)))?(((0x42100000)+(0x81000))):(((((\cpu_num)==(0x3)))?(((0x42200000)+(0x81000))):(((0x42300000)+(0x81000))))))))):(((((\cpu_num)==(0x1)))?(((0x42000000)+(0x82000))):(((((\cpu_num)==(0x2)))?(((0x42100000)+(0x82000))):(((((\cpu_num)==(0x3)))?(((0x42200000)+(0x82000))):(((0x42300000)+(0x82000)))))))))))+(0x14)))))))&(0x1)))==(0x0)))
+	WHILE &__V40!=0
+	(
+		(
+		)
+		&__V40=Var.VALUE((((((*(((unsigned int *)(((((((\mmu_num)==(0x0)))?(((((\cpu_num)==(0x1)))?(((0x42000000)+(0x81000))):(((((\cpu_num)==(0x2)))?(((0x42100000)+(0x81000))):(((((\cpu_num)==(0x3)))?(((0x42200000)+(0x81000))):(((0x42300000)+(0x81000))))))))):(((((\cpu_num)==(0x1)))?(((0x42000000)+(0x82000))):(((((\cpu_num)==(0x2)))?(((0x42100000)+(0x82000))):(((((\cpu_num)==(0x3)))?(((0x42200000)+(0x82000))):(((0x42300000)+(0x82000)))))))))))+(0x14)))))))&(0x1)))==(0x0)))
+	)
+	&__VC41=Var.VALUE(\cpu_num)
+	&__VC42=Var.VALUE(\mmu_num)
+	&__VC43=Var.VALUE(0x1)
+	&__VC44=Var.VALUE(0x00000000)
+	&__VC45=Var.VALUE(0x40500000)
+	&__VC46=Var.VALUE(0x2)
+	GOSUB SetupEveMmuEntry &__VC41 &__VC42 &__VC43 &__VC44 &__VC45 &__VC46
+	ENTRY &__V47
+	V.ASSIGN (((*(((unsigned int *)(0x40500000)))))=(((unsigned int)(0x00000100))))
+	V.ASSIGN (((*(((unsigned int *)(0x40500100)))))=(((unsigned int)(0x004A03FF))))
+	V.ASSIGN (((*(((unsigned int *)(0x40500104)))))=(((unsigned int)(0x03FF03FF))))
+	&__VC48=Var.VALUE(\cpu_num)
+	&__VC49=Var.VALUE(\mmu_num)
+	&__VC50=Var.VALUE(0x2)
+	&__VC51=Var.VALUE(0x80000000)
+	&__VC52=Var.VALUE(0x80000000)
+	&__VC53=Var.VALUE(0x3)
+	GOSUB SetupEveMmuEntry &__VC48 &__VC49 &__VC50 &__VC51 &__VC52 &__VC53
+	ENTRY &__V54
+	&__VC55=Var.VALUE(\cpu_num)
+	&__VC56=Var.VALUE(\mmu_num)
+	&__VC57=Var.VALUE(0x3)
+	&__VC58=Var.VALUE(0x81000000)
+	&__VC59=Var.VALUE(0x81000000)
+	&__VC60=Var.VALUE(0x3)
+	GOSUB SetupEveMmuEntry &__VC55 &__VC56 &__VC57 &__VC58 &__VC59 &__VC60
+	ENTRY &__V61
+	&__VC62=Var.VALUE(\cpu_num)
+	&__VC63=Var.VALUE(\mmu_num)
+	&__VC64=Var.VALUE(0x4)
+	&__VC65=Var.VALUE(0x82000000)
+	&__VC66=Var.VALUE(0x82000000)
+	&__VC67=Var.VALUE(0x3)
+	GOSUB SetupEveMmuEntry &__VC62 &__VC63 &__VC64 &__VC65 &__VC66 &__VC67
+	ENTRY &__V68
+	&__VC69=Var.VALUE(\cpu_num)
+	&__VC70=Var.VALUE(\mmu_num)
+	&__VC71=Var.VALUE(0x5)
+	&__VC72=Var.VALUE(0x83000000)
+	&__VC73=Var.VALUE(0x83000000)
+	&__VC74=Var.VALUE(0x3)
+	GOSUB SetupEveMmuEntry &__VC69 &__VC70 &__VC71 &__VC72 &__VC73 &__VC74
+	ENTRY &__V75
+	&__VC76=Var.VALUE(\cpu_num)
+	&__VC77=Var.VALUE(\mmu_num)
+	&__VC78=Var.VALUE(0x6)
+	&__VC79=Var.VALUE(0x84000000)
+	&__VC80=Var.VALUE(0x84000000)
+	&__VC81=Var.VALUE(0x3)
+	GOSUB SetupEveMmuEntry &__VC76 &__VC77 &__VC78 &__VC79 &__VC80 &__VC81
+	ENTRY &__V82
+	&__VC83=Var.VALUE(\cpu_num)
+	&__VC84=Var.VALUE(\mmu_num)
+	&__VC85=Var.VALUE(0x7)
+	&__VC86=Var.VALUE(0x85000000)
+	&__VC87=Var.VALUE(0x85000000)
+	&__VC88=Var.VALUE(0x3)
+	GOSUB SetupEveMmuEntry &__VC83 &__VC84 &__VC85 &__VC86 &__VC87 &__VC88
+	ENTRY &__V89
+	&__VC90=Var.VALUE(\cpu_num)
+	&__VC91=Var.VALUE(\mmu_num)
+	&__VC92=Var.VALUE(0x8)
+	&__VC93=Var.VALUE(0x86000000)
+	&__VC94=Var.VALUE(0x86000000)
+	&__VC95=Var.VALUE(0x3)
+	GOSUB SetupEveMmuEntry &__VC90 &__VC91 &__VC92 &__VC93 &__VC94 &__VC95
+	ENTRY &__V96
+	&__VC97=Var.VALUE(\cpu_num)
+	&__VC98=Var.VALUE(\mmu_num)
+	&__VC99=Var.VALUE(0x9)
+	&__VC100=Var.VALUE(0x87000000)
+	&__VC101=Var.VALUE(0x87000000)
+	&__VC102=Var.VALUE(0x3)
+	GOSUB SetupEveMmuEntry &__VC97 &__VC98 &__VC99 &__VC100 &__VC101 &__VC102
+	ENTRY &__V103
+	&__VC104=Var.VALUE(\cpu_num)
+	&__VC105=Var.VALUE(\mmu_num)
+	&__VC106=Var.VALUE(0xA)
+	&__VC107=Var.VALUE(0x40000000)
+	&__VC108=Var.VALUE(0x40000000)
+	&__VC109=Var.VALUE(0x3)
+	GOSUB SetupEveMmuEntry &__VC104 &__VC105 &__VC106 &__VC107 &__VC108 &__VC109
+	ENTRY &__V110
+	V.ASSIGN (((*(((unsigned int *)(((((((\mmu_num)==(0x0)))?(((((\cpu_num)==(0x1)))?(((0x42000000)+(0x81000))):(((((\cpu_num)==(0x2)))?(((0x42100000)+(0x81000))):(((((\cpu_num)==(0x3)))?(((0x42200000)+(0x81000))):(((0x42300000)+(0x81000))))))))):(((((\cpu_num)==(0x1)))?(((0x42000000)+(0x82000))):(((((\cpu_num)==(0x2)))?(((0x42100000)+(0x82000))):(((((\cpu_num)==(0x3)))?(((0x42200000)+(0x82000))):(((0x42300000)+(0x82000)))))))))))+(0x44)))))))=(((unsigned int)((((((*(((unsigned int *)(((((((\mmu_num)==(0x0)))?(((((\cpu_num)==(0x1)))?(((0x42000000)+(0x81000))):(((((\cpu_num)==(0x2)))?(((0x42100000)+(0x81000))):(((((\cpu_num)==(0x3)))?(((0x42200000)+(0x81000))):(((0x42300000)+(0x81000))))))))):(((((\cpu_num)==(0x1)))?(((0x42000000)+(0x82000))):(((((\cpu_num)==(0x2)))?(((0x42100000)+(0x82000))):(((((\cpu_num)==(0x3)))?(((0x42200000)+(0x82000))):(((0x42300000)+(0x82000)))))))))))+(0x44)))))))&(0xFFFFFFFD)))|(0x2))))))
+	&__V111=0
+	RETURN
+)
+
+TDA2x_MULTICORE_EnableAllCores:
+(
+	GOSUB IPU1SSClkEnable_API
+	GOSUB IPU2SSClkEnable_API
+	GOSUB DSP1SSClkEnable_API
+	GOSUB DSP2SSClkEnable_API
+	GOSUB EVE1SSClkEnable_API
+	GOSUB EVE2SSClkEnable_API
+	GOSUB EVE3SSClkEnable_API
+	GOSUB EVE4SSClkEnable_API
+	GOSUB IVAHDSSClkEnable_API
+	GOSUB PRUSS_1_2_ClkEnable
+	RETURN
+)
+
+PRUSS_1_2_ClkEnable:
+(
+	ENTRY
+	(
+		PRINT "--->>> PRUSS 1 and 2 Initialization is in progress ... <<<---"
+		PRINT ""
+		&__V122=0
+		V.ASSIGN (((*(((unsigned int *)(0x4A009718)))))=(((unsigned int)(0x0))))
+		V.ASSIGN (((*(((unsigned int *)(0x4A009720)))))=(((unsigned int)(0x0))))
+		V.ASSIGN (((*(((unsigned int *)(0x4A009718)))))=(((unsigned int)(0x2))))
+		V.ASSIGN (((*(((unsigned int *)(0x4A009720)))))=(((unsigned int)(0x2))))
+		&__V123=Var.VALUE((((((*(((unsigned int *)(0x4A0098FC)))))&(0x100)))!=(0x100)))
+		WHILE &__V123!=0
+		(
+			(
+			)
+			&__V123=Var.VALUE((((((*(((unsigned int *)(0x4A0098FC)))))&(0x100)))!=(0x100)))
+		)
+__L20:
+		PRINT "--->>> PRUSS 1 and 2 Initialization is in complete ... <<<---"
+		PRINT ""
+		&__V124=0
+	)
+	RETURN
+)
+
+IPU1SSClkEnable_API:
+(
+	GOSUB IPUSSClkEnable 0x1
+	RETURN
+)
+
+IPU2SSClkEnable_API:
+(
+	GOSUB IPUSSClkEnable 0x2
+	RETURN
+)
+
+DSP1SSClkEnable_API:
+(
+	GOSUB DSPSSClkEnable 0x1
+	RETURN
+)
+
+DSP2SSClkEnable_API:
+(
+	GOSUB DSPSSClkEnable 0x2
+	RETURN
+)
+
+EVE1SSClkEnable_API:
+(
+	GOSUB EVESSClkEnable 0x1
+	RETURN
+)
+
+EVE2SSClkEnable_API:
+(
+	GOSUB EVESSClkEnable 0x2
+	RETURN
+)
+
+EVE3SSClkEnable_API:
+(
+	GOSUB EVESSClkEnable 0x3
+	RETURN
+)
+
+EVE4SSClkEnable_API:
+(
+	GOSUB EVESSClkEnable 0x4
+	RETURN
+)
+
+IVAHDSSClkEnable_API:
+(
+	GOSUB IVAHDSSClkEnable
+	RETURN
+)

@@ -1,0 +1,325 @@
+; --------------------------------------------------------------------------------
+; @Title: Windows Standard Symbol Autoloader Script
+; @Description: Autoload script, called by TRACE32 if symbols are to be loaded
+; @Keywords: windows
+; @Author: DIE
+; @Copyright: (c) 1989-2018 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: autoload.cmm 4859 2019-12-05 10:51:45Z hdammak $
+
+
+// define local macros
+  LOCAL &magic &filename &basename &progname &symfilename &filepath &cabfilepath &fileguid &machine_option
+  LOCAL &component &pref_download &pref_no_file
+  LOCAL &code &data &space &process &cachepath &params &type &nt &machine &common
+
+// get filename and relocation information
+// these parameters are passed from TRACE32 when calling this script
+  ENTRY %LINE &params
+  &nt=(-1)!=STRing.SCAN("&params","ntKernelModule",0)
+  &type=0
+ 
+  IF &nt
+  (
+    GOSUB decodeNtParams &params
+    &type=1
+    &component="Module"
+    &fileguid=&fileguid+""
+    //print "autoload: " &basename " " &code " " &fileguid " " &machine " " &nt "
+    //&basename:      name of nt module
+    //&code:          text segment address
+    //&fileguid:      nt guid
+    //&machine:       machine type 0=32bit 1=64bit
+  )
+  ELSE
+  (
+    GOSUB decodeParams &params
+    //print "autoload: " &basename " " &type " " &code " " &data " " &space
+    //&basename:      name of process/file
+    //&type:          type of file: 1=kernel modules, 2=processes, 3=libraries 4=uefi module
+    //&code:          text segment address
+    //&data:          data segment address
+    //&space:         space id of process
+  )
+ 
+  IF "&space"==""
+    &space=0
+
+  IF &type==0
+  (
+    PRINT %ERROR "Wrong type specified"
+    PRINT "autoload.cmm &params"
+    ENDDO
+  )
+
+
+  DO ~~/demo/arm/kernel/windows/preferences get
+  ENTRY &pref_download &pref_no_file
+
+
+  &basename=&basename    // remove quotes
+  &filename="&basename"+".pdb"
+
+  IF ((&type==1)&&(!&nt))
+  (
+    IF (STRing.ComPare(STRing.LoWeR("&basename"),"ntkr*"))
+    (
+        ENDDO
+    )
+  )
+
+// delete program if it already exists or other code is already there
+  IF sYmbol.EXIST("\\&basename")
+    sYmbol.Delete \\&basename
+  GROUP.Delete "&basename"
+ 
+// search file in source search path
+  &filepath=sYmbol.SEARCHFILE("&filename")
+
+  IF ((&type==1)&&(&nt==FALSE()))  // kernel modules
+  (
+    &component="Module"
+    &magic=task.mod.yf2m("&basename")
+    IF (TASK.MOD.DEBUG("&basename")!=0)
+    (
+      IF !FILE.EXIST("&filepath")
+      (
+        &filepath=task.mod.pdbpath(&magic)
+        &fileguid=task.mod.guid(&magic)
+      )
+      &machine=task.mod.machine(&magic)
+    )
+  )
+  IF (&type==2)  // processes
+  (
+    &component="Process"
+    &magic=task.proc.magic("&basename")
+    IF (TASK.PROC.DEBUG("&basename")!=0)
+    (
+      IF !FILE.EXIST("&filepath")
+      (
+        &filepath=task.proc.pdbpath(&magic)
+        &fileguid=task.proc.guid(&magic)
+      )
+      &machine=task.proc.machine(&magic)
+    )
+  )
+  IF ((&type&0xffff)==3)  // libraries
+  (
+    &component="Library"
+    &process=task.proc.sid2magic(&space)
+    &magic=task.lib.magic("&basename",&process)
+    IF ((&magic&0xFFFFFFFF)!=0xFFFFFFFF)
+    (
+      IF (TASK.LIB.DEBUG("&basename",&process)!=0)
+      (
+        IF !FILE.EXIST("&filepath")
+        (
+          &filepath=task.lib.pdbpath(&magic,&process)
+          &fileguid=task.lib.guid(&magic,&process)
+        )
+        &machine=task.lib.machine(&magic,&process)
+      )
+      ELSE
+      (
+        GOSUB isCommonLib &basename
+        ENTRY &common
+
+        IF &common
+        (
+          &process=TASK.LIB.DEBUG("&basename",0)
+          IF (&process!=0)
+          (
+            &magic=task.lib.magic("&basename",&process)
+            IF ((&magic&0xFFFFFFFF)!=0xFFFFFFFF)
+            (
+              &filepath=task.lib.pdbpath(&magic,&process)
+              &fileguid=task.lib.guid(&magic,&process)
+              &machine=task.lib.machine(&magic,&process)
+            )
+          )
+        )
+      )
+    )
+  )
+
+  IF !FILE.EXIST("&filepath")
+  (
+    // search file in given pdb path
+    IF "&filepath"!=""
+      &filename=OS.FILE.NAME("&filepath")     // use pdb name
+    // search file in symbol cache
+    &cachepath=task.y.o.s(symcache)
+    IF ("&cachepath"!="")&&("&fileguid"!="")
+    (
+      &filepath="&cachepath"+"/"+"&filename"+"/"+"&fileguid"+"/"+"&filename"
+      IF !FILE.EXIST("&filepath")
+      (
+        LOCAL &message &download &remember &dir
+        IF ("&pref_download"=="ask")
+        (
+          GOSUB download_dialog "&filename"
+          ENTRY &download &remember
+          IF &remember
+          (
+            IF &download
+            (
+
+            DO ~~/demo/arm/kernel/windows/preferences set symbol_download yes
+
+            )
+            ELSE
+            (
+
+            DO ~~/demo/arm/kernel/windows/preferences set symbol_download no
+
+            )
+          )
+        ) 
+        ELSE
+        (
+          IF ("&pref_download"=="yes")
+            &download=TRUE()
+          ELSE
+            &download=FALSE()
+        )
+
+        IF &download
+        (
+          // try to load symbol file from symbol server
+          &dir=OS.PPD()
+          PRINT "&dir\getsymfile &filename &fileguid &cachepath"
+          PRINT "downloading &filename... "
+          OS.Area &dir\getsymfile &filename &fileguid &cachepath
+          IF !FILE.EXIST("&filepath")
+          (
+            &cabfilepath=STRing.Replace("&filepath",".pdb",".pd_",-1.)
+            IF FILE.EXIST("&cabfilepath")
+            (
+              OS.Area expand "&cabfilepath" "&filepath"
+            )
+          )
+          IF FILE.EXIST("&filepath")
+            PRINT %CONTinue "succeeded."
+          ELSE
+            PRINT %CONTinue "failed."
+        )
+      )
+    )
+  )
+
+// open dialog if not found
+  IF !FILE.EXIST("&filepath")
+  (
+      LOCAL &file &cppath
+      PRINT "No symbols found for &component ""&basename"""
+      IF ("&pref_no_file"=="ignore")
+        ENDDO
+
+      &file=OS.FILE.NAME("&filename")
+      WinPOS ,,,,,, filebox normal "Searching symbols for &basename"
+      DIALOG.File "*\&file"
+      ENTRY %LINE &filepath
+      IF "&filepath"==""
+        ENDDO
+      // copy file to symbol store
+      IF ("&cachepath"!="")&&("&fileguid"!="")
+      (
+        &cppath="&cachepath"+"/"+"&filename"
+        IF !OS.DIR(&cppath)
+          mkdir &cppath
+        &cppath="&cppath"+"/"+"&fileguid"
+        IF !OS.DIR(&cppath)
+          mkdir &cppath
+        &cppath="&cppath"+"/"+"&filename"
+        copy "&filepath" "&cppath"
+      )
+  )
+
+// load symbol file (options for sourcepath, e.g. /STRIPPART may need to be added when required)
+  &machine_option=""
+  IF (&machine==1) 
+    &machine_option="/64Bit"
+
+  PRINT "Loading symbols for &component ""&basename"""
+
+  IF (&type==1)  // kernel modules
+  (
+    Data.LOAD.eXe "&filepath" 0:&code /NoCODE /NoClear &machine_option /NAME &basename
+    IF &nt
+    (
+      TRANSlation.CacheFlush
+      TASK.CACHEFLUSH
+    )
+    //GROUP.Create "&basename" 0:0x0--0x6fffffff /YELLOW
+  )
+
+  IF (&type==2) // processes
+  (
+
+    LOCAL &taskaccess
+    &taskaccess=TASK.ACCESS.ZONE()+"U"
+    Data.LOAD.eXe "&filepath" &taskaccess:&space:&code /NoCODE /NoClear &machine_option /NAME &basename
+
+    GROUP.Create "&basename" &space:0x0--0x7fffffff /GREEN
+  )
+
+  IF ((&type&0xffff)==3) // libraries
+  (
+    Data.LOAD.eXe "&filepath" &space:&code /NoCODE /NoClear &machine_option  /NAME &basename
+  )
+
+ENDDO
+
+decodeParams:
+  ENTRY &basename &type &code &data &space
+  RETURN
+
+decodeNtParams:
+  ENTRY &basename &code &fileguid &machine %LINE &params
+  RETURN
+
+isCommonLib:
+  ENTRY &basename
+  LOCAL &compare
+  &compare=STRing.UPpeR("&basename")
+  RETURN ((-1)!=STRing.SCAN(",NTDLL,KERNEL32,KERNELBASE,",",&compare,",0))
+
+download_dialog:
+ LOCAL &file &choice &remember
+ ENTRY &file
+  DIALOG.view
+  (&
+    HEADER "Debug Symbols: &file"
+    POS 2. 0. 37. 
+    TEXT  "Try to download symbols from Microsoft symbol server?"
+    POS 2. 1. 37.
+Remember: CHECKBOX "Remember my choice. Do not ask me again." ""
+    POS 15. 2. 5.
+YesBTN: DEFBUTTON "Yes" "GOTO endYes"
+    POS 21. 2. 5.
+NoBTN: BUTTON "No" "GOTO endNo" 
+    CLOSE "GOTO endClose"
+  )  
+  STOP
+
+endYes:
+      &choice=TRUE()
+      goto rem
+endNo:
+      &choice=FALSE()
+      goto rem
+      
+endClose:
+      &choice=FALSE()
+      &remember=FALSE()
+      goto end
+rem:
+  &remember=DIALOG.BOOLEAN(Remember)
+  IF &remember
+  (
+    DIALOG.MESSAGE "The default behavior could be changed from the menu MSWindows/Autoloader/Set Preferences"
+  )
+end:
+  DIALOG.END
+  RETURN &choice &remember

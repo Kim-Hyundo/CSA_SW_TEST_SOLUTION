@@ -1,0 +1,69 @@
+; --------------------------------------------------------------------------------
+; @Title: LS1021A CFI NOR Flash configuration example (FAILSAVE - Hardcoded RCW)
+; @Description:
+;   Show how to initialize CFI NOR Flash Programming on TWR-LS1021A board using
+;   the hardcoded RCW mode of the SoC. The timing parameters and the mux settings
+;   match the TWR-LS1021A board and are a template for other boards.
+;   Prerequisites:
+;   * connect Debugcable to J12
+;     using the ARM20-MIPI converter LA-3770
+;     OR
+;     connect Combiprobe to J12 directly
+;   * disable MBED debugger SW2[8]=0y1
+;   * set bootsource to RCW SW2[5..1]=0y10010
+; @Keywords: Freescale, Layerscape, CortexA7, QorIQ, RCW
+; @Author: AME
+; @Board: TWR-LS1021A
+; @Chip: LS1021A
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: twr-ls1021-flash-cfi-failsave.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; board setup
+RESet
+SYStem.RESet
+SYStem.CPU LS1021A
+; check SYStem.Detect.ShowCHAIN - these settings match a REV1 silicon
+; on LS1021A Rev1 the USB-JTAG TAP is hardwired
+SYStem.CONFIG DAPIRPRE 8.
+SYStem.CONFIG DAPDRPRE 1.
+SYStem.Option ResBreak OFF
+CORE.ASSIGN 1.
+SYStem.Up
+
+; some initializations for the core
+; lock interrupts
+Register.Set I 1
+Register.Set F 1
+; init SCTLR - MMU OFF, I-Cache ON
+Data.Set C15:0x1 %Long 0xC5187A
+
+; enable the IFC controller
+; NOR on CS0
+; use failsave timings
+; IFC_CSPR0 - 16bit, NOR, Valid, no WriteProtection
+Data.Set A:0x1530010 %Long %BE 0x101
+; IFC_CSOR0_NOR - NOR, ADM_SHFT=4
+Data.Set A:0x1530130 %Long %BE 0x800C
+; set timing
+; IFC_FTIM0_CS0_NOR - TACSE=TEADC=TEAHC=15
+Data.Set A:0x15301C0 %Long %BE 0xF00F000F
+; IFC_FTIM1_CS0_NOR - TAC0=TRAD_NOR=TSEQRAD=0x3f
+Data.Set A:0x15301C4 %Long %BE 0x3F003F3F
+; IFC_FTIM2_CS0_NOR - TCS=TCH=TWPH=15 TWP=0x3f
+Data.Set A:0x15301C8 %Long %BE 0xF3C3C3F
+
+; use either the Misc->Flash Programming dialog
+; or the CLI
+; the board uses 16Bit bus, start address 0x60000000
+; use the target SRAM "Target based programming" 
+;FLASH.CFI 0x60000000 Word /TARGET 0x10000000 0x10001000 0x1000
+FLASH.CFI 0x60000000 Word
+FLASH.List
+
+; Flash.ReProgram ALL
+; Data.LOAD.<Elf/Bin/...>
+; Flash.ReProgram ALL
+
+
+ENDDO

@@ -1,0 +1,250 @@
+; --------------------------------------------------------------------------------
+; @Title: Kick bootcore of ZynqUltrascale when using JTAG-BOOT mode
+; @Description:
+;   This script starts the bootcore of a ZynqUltrascale SoC when using the
+;   JTAG-BOOT mode. As in JTAG-BOOT mode no valid bootheader is available the
+;   bootcode does neither enable one of the A53/APU cores nor one of the R5/RPU
+;   cores after reset. This script mimics the selection of the bootcore.
+;   Parameters:
+;     A53_X64    - kick first A53 in AARCH64 mode
+;     A53_X32    - kick first A53 in AARCH32 mode
+;     R5_SINGLE  - kick first R5  in SPLIT mode
+;     R5_DUAL    - kick first R5  in DUAL/LockStep mode
+;     NOBOOTLOOP - don't assemble a bootloop into OCM
+;     LOVEC      - select LOVEC for R5_1/2
+;   Usage:
+;     DO zynq-ultrascale_kick_bootcore "A53_X64"
+;     DO zynq-ultrascale_kick_bootcore "R5_SINGLE"
+;
+; @Keywords: ARM, Ultrascale, ZYNQ
+; @Author: AME
+; @Board: -
+; @Chip: ZYNQ-ULTRASCALE+*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: zynq-ultrascale_kick_bootcore.cmm 16744 2020-11-06 12:52:40Z bschroefel $
+
+
+PRIVATE &params &a53_x64 &a53_x32 &a53_x64_234 &a53_x32_234 &r5_single &r5_dual &r5_2 &bootloop &bLovec &rwValue
+ENTRY %LINE &params
+
+&params=STRing.UPpeR("&params")
+&a53_x64=STRing.SCAN("&params","A53_X64",0.)>=0.
+&a53_x32=STRing.SCAN("&params","A53_X32",0.)>=0.
+&a53_x64_234=STRing.SCAN("&params","_A53_234_X64",0.)>=0.
+&a53_x32_234=STRing.SCAN("&params","_A53_234_X32",0.)>=0.
+&r5_single=STRing.SCAN("&params","R5_SINGLE",0.)>=0.
+&r5_dual=STRing.SCAN("&params","R5_DUAL",0.)>=0.
+&r5_2=STRing.SCAN("&params","_R5_2",0.)>=0.
+&bootloop=STRing.SCAN("&params","NOBOOTLOOP",0.)<0.
+&bLovec=STRing.SCAN("&params","LOVEC",0.)>=0.
+
+PRIVATE &apuConfigBase &apuPwrctl &crfRstFdpApu &csuJtagDapCfg
+PRIVATE &rpuGlglCntl &rpu0Cfg &rpu1Cfg &crlRstLpdTop
+&apuConfigBase=0xFD5C0000
+&apuPwrctl=0xFD5C0090
+&crfRstFdpApu=0xFD1A0104
+&csuJtagDapCfg=0xFFCA003C
+&rpuGlglCntl=0xFF9A0000
+&rpu0Cfg=0xFF9A0100
+&rpu1Cfg=0xFF9A0200
+&crlRstLpdTop=0xFF5E023C
+
+IF Data.Long(ENAXI:&csuJtagDapCfg)!=0x3f
+(
+  ; enable RPU/APU Secure/NonSecure debugging
+  Data.Set ENAXI:&csuJtagDapCfg %Long %LE 0x3f
+)
+
+IF &bootloop&&!((&bLovec)&&(&r5_single||&r5_dual||&r5_2))
+(
+  Data.Set ENAXI:0xFFFF0000 %Long 0xEA000000       // AArch64: "ands x0,x0,x0"; AArch32: "B $+0x8"
+  Data.Set ENAXI:0xFFFF0004 %Long 0x14000000       // Endless loop in OCM (64bit A64 Code)
+  Data.Set ENAXI:0xFFFF0008 %Long 0xEAFFFFFE       // Endless loop in OCM (32bit ARM code)
+)
+
+IF &a53_x64
+(
+  ; ensure core is in reset
+  // Data.Set ENAXI:&crfRstFdpApu %Long %LE Data.Long(ENAXI:&crfRstFdpApu)|(0x401)
+
+  ; ensure all cores are in reset
+  Data.Set ENAXI:&crfRstFdpApu %Long %LE Data.Long(ENAXI:&crfRstFdpApu)|(0x3C0F)
+
+  ; set AARCH64 mode, Exception Vectors HIGH
+  &rwValue=Data.Long(ENAXI:(&apuConfigBase+0x20))
+  &rwValue=&rwValue&~((1.<<24.)|(1.<<16.)|(1.<<8.)|(1.<<0.))
+  &rwValue=&rwValue|((1.<<8.)|(1.<<0.))
+  Data.Set ENAXI:(&apuConfigBase+0x20) %Long %LE &rwValue
+
+  ; Set reset base address; RVBARADDR0L + RVBARADDR0H
+  Data.Set ENAXI:(&apuConfigBase+0x40) %Long %LE 0xFFFF0000
+  Data.Set ENAXI:(&apuConfigBase+0x44) %Long %LE 0x00000000
+
+  ; release core&l2 from reset
+  Data.Set ENAXI:&crfRstFdpApu %Long %LE Data.Long(ENAXI:&crfRstFdpApu)&~(0x501)
+)
+ELSE IF &a53_x32
+(
+  ; ensure core is in reset
+  Data.Set ENAXI:&crfRstFdpApu %Long %LE Data.Long(ENAXI:&crfRstFdpApu)|(0x401)
+
+  ; set AARCH32 mode, Exception Vectors HIGH
+  &rwValue=Data.Long(ENAXI:(&apuConfigBase+0x20))
+  &rwValue=&rwValue&~((1.<<24.)|(1.<<16.)|(1.<<8.)|(1.<<0.))
+  &rwValue=&rwValue|((1.<<8.))
+  Data.Set ENAXI:(&apuConfigBase+0x20) %Long %LE &rwValue
+
+  ; Set reset base address; RVBARADDR0L + RVBARADDR0H
+  Data.Set ENAXI:(&apuConfigBase+0x40) %Long %LE 0xFFFF0000 /Verify
+  Data.Set ENAXI:(&apuConfigBase+0x44) %Long %LE 0x00000000 /Verify
+
+  ; release core&l2 from reset
+  Data.Set ENAXI:&crfRstFdpApu %Long %LE Data.Long(ENAXI:&crfRstFdpApu)&~(0x501)
+)
+ELSE IF &r5_single
+(
+  ; ensure core is in reset
+  Data.Set ENAXI:&crlRstLpdTop %Long %LE Data.Long(ENAXI:&crlRstLpdTop)|0x1
+
+  IF (!&bLovec)
+  (
+    ; set exception vectors HIGH - OCM, set CPUHALT
+    &rwValue=Data.Long(ENAXI:&rpu0Cfg)
+    &rwValue=(&rwValue|0x4)&~0x1
+    Data.Set ENAXI:&rpu0Cfg %Long %LE &rwValue
+  )
+  ELSE
+  (
+    ; set exception vectors LOW - ATCM, set CPUHALT
+    &rwValue=Data.Long(ENAXI:&rpu0Cfg)
+    &rwValue=&rwValue&~0x5
+    Data.Set ENAXI:&rpu0Cfg %Long %LE &rwValue
+  )
+
+  ; set SPLIT mode, ARM Mode, Little Endian
+  &rwValue=Data.Long(ENAXI:&rpuGlglCntl)
+  &rwValue=&rwValue&~0x7b
+  &rwValue=&rwValue|0x8
+  Data.Set ENAXI:&rpuGlglCntl %Long %LE &rwValue
+
+  ; release core&ocm from reset
+  &rwValue=Data.Long(ENAXI:&crlRstLpdTop)
+  &rwValue=&rwValue&~((1.<<20.)|(1.<<4.)|(1.<<3.)|(1.<<2.)|(1.<<0.))
+  Data.Set ENAXI:&crlRstLpdTop %Long %LE &rwValue
+
+  IF (&bLovec)
+  (
+    Data.Set ENAXI:0xFFE00000++0x1f %Long 0xEAFFFFFE // Endless loop in ATCM (32bit ARM code)
+  )
+
+  ; release CPUHALT
+  &rwValue=Data.Long(ENAXI:&rpu0Cfg)
+  &rwValue=&rwValue|0x1
+  Data.Set ENAXI:&rpu0Cfg %Long %LE &rwValue
+)
+ELSE IF &r5_dual
+(
+  ; ensure core is in reset
+  Data.Set ENAXI:&crlRstLpdTop %Long %LE Data.Long(ENAXI:&crlRstLpdTop)|0x3
+
+  ; set exception vectors HIGH - OCM, set CPUHALT
+  &rwValue=Data.Long(ENAXI:&rpu0Cfg)
+  &rwValue=&rwValue|0x5
+  Data.Set ENAXI:&rpu0Cfg %Long %LE &rwValue
+  Data.Set ENAXI:&rpu1Cfg %Long %LE &rwValue
+
+  ; set LOCK mode, ARM Mode, Little Endian
+  &rwValue=Data.Long(ENAXI:&rpuGlglCntl)
+  &rwValue=&rwValue&~0x7b
+  &rwValue=&rwValue|0x50
+  Data.Set ENAXI:&rpuGlglCntl %Long %LE &rwValue
+
+  ; release cores&ocm from reset
+  &rwValue=Data.Long(ENAXI:&crlRstLpdTop)
+  &rwValue=&rwValue&~((1.<<20.)|(1.<<4.)|(1.<<3.)|(1.<<2.)|(0x3<<0.))
+  Data.Set ENAXI:&crlRstLpdTop %Long %LE &rwValue
+)
+
+IF &r5_2
+(
+  ; check if R5 is in LOCKSTEP (0x10)
+  ; check if first R5 is in RESET (0x1)
+  ; - if not try to kick the core
+  IF (Data.Long(ENAXI:&rpuGlglCntl)&0x10)==0x0
+  (
+    &rwValue=Data.Long(ENAXI:&crlRstLpdTop)
+    IF ((&rwValue&0x1)==0x0)
+    (
+      IF (!&bLovec)
+      (
+        ; set exception vectors HIGH - OCM, set CPUHALT
+        &rwValue=Data.Long(ENAXI:&rpu1Cfg)
+        &rwValue=(&rwValue|0x4)&~0x1
+        Data.Set ENAXI:&rpu1Cfg %Long %LE &rwValue
+      )
+      ELSE
+      (
+        ; set exception vectors LOW - BTCM, set CPUHALT
+        &rwValue=Data.Long(ENAXI:&rpu1Cfg)
+        &rwValue=&rwValue&~0x5
+        Data.Set ENAXI:&rpu1Cfg %Long %LE &rwValue
+      )
+
+      ; release cores from reset
+      &rwValue=Data.Long(ENAXI:&crlRstLpdTop)
+      &rwValue=&rwValue&~((0x1<<1.))
+      Data.Set ENAXI:&crlRstLpdTop %Long %LE &rwValue
+
+      IF (&bLovec)
+      (
+        Data.Set ENAXI:0xFFE90000++0x1f %Long 0xEAFFFFFE // Endless loop in ATCM (32bit ARM code)
+      )
+
+      ; release CPUHALT
+      &rwValue=Data.Long(ENAXI:&rpu1Cfg)
+      &rwValue=&rwValue|0x1
+      Data.Set ENAXI:&rpu1Cfg %Long %LE &rwValue
+    )
+  )
+)
+
+IF &a53_x64_234
+(
+  ; ensure cores are in reset
+  Data.Set ENAXI:&crfRstFdpApu %Long %LE Data.Long(ENAXI:&crfRstFdpApu)|(0x380E)
+
+  ; set AARCH64 mode, Exception Vectors HIGH
+  &rwValue=Data.Long(ENAXI:(&apuConfigBase+0x20))
+  &rwValue=&rwValue&~((0xE<<24.)|(0xE<<16.)|(0xE<<8.)|(0xE<<0.))
+  &rwValue=&rwValue|((0xE<<8.)|(0xE<<0.))
+  Data.Set ENAXI:(&apuConfigBase+0x20) %Long %LE &rwValue
+
+  ; Set reset base address; RVBARADDR0L + RVBARADDR0H
+  Data.Set ENAXI:(&apuConfigBase+0x40) %Long %LE 0xFFFF0000
+  Data.Set ENAXI:(&apuConfigBase+0x44) %Long %LE 0x00000000
+
+  ; release core&l2 from reset
+  Data.Set ENAXI:&crfRstFdpApu %Long %LE Data.Long(ENAXI:&crfRstFdpApu)&~(0x380E)
+)
+ELSE IF &a53_x32_234
+(
+  ; ensure cores are in reset
+  Data.Set ENAXI:&crfRstFdpApu %Long %LE Data.Long(ENAXI:&crfRstFdpApu)|(0x380E)
+
+  ; set AARCH32 mode, Exception Vectors HIGH
+  &rwValue=Data.Long(ENAXI:(&apuConfigBase+0x20))
+  &rwValue=&rwValue&~((0xE<<24.)|(0xE<<16.)|(0xE<<8.)|(0xE<<0.))
+  &rwValue=&rwValue|((0xE<<8.)|(0x0<<0.))
+  Data.Set ENAXI:(&apuConfigBase+0x20) %Long %LE &rwValue
+
+  ; Set reset base address; RVBARADDR0L + RVBARADDR0H
+  Data.Set ENAXI:(&apuConfigBase+0x40) %Long %LE 0xFFFF0000
+  Data.Set ENAXI:(&apuConfigBase+0x44) %Long %LE 0x00000000
+
+  ; release core&l2 from reset
+  Data.Set ENAXI:&crfRstFdpApu %Long %LE Data.Long(ENAXI:&crfRstFdpApu)&~(0x380E)
+)
+
+ENDDO
+

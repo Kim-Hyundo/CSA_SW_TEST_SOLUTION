@@ -1,0 +1,67 @@
+; @Title: Simple sieve demo running in Flash
+; @Description:
+;   Run a simple sieve demo in onchip FLASH.
+;   Note:
+;     The TM4C DebuggerReset does not fully work (See WaitReset Parameter).
+;     In order to have a devined status after SYStem.Up it's required to add
+;     a waiting loop of WaitResetTime*2 at the ResetVector!
+;     Otherwise Peripherals/Interrupts/... are already running after SYStem.Up
+;     as the CPU executed some code.
+;   Tested with Combiprobe, uTrace and DebugCable
+;   Prerequisites:
+;     - Connect uTrace or Combiprobe with MIPI10 cable to
+;       the JTAG/DEBUG connector
+;     or
+;     - Connect DebugCable via LA-3770 with MIPI10 cable to
+;       the JTAG/DEBUG connector
+;
+; @Keywords: Cortex-M4
+; @Author: AME
+; @Board: DK-TM4C123G
+; @Chip: TM4C123GH6PGE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: dk-tm4c123g_sieve_flash.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; connect
+RESet
+SYStem.RESet
+SYStem.CPU TM4C123GH6PGE
+SYStem.CONFIG.CONNECTOR MIPI20T
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF VERSION.BUILD.BASE()<58225.
+( 
+  SYStem.Option ResBreak OFF
+  SYStem.Option WaitReset 50.0ms
+)
+SYStem.Up
+
+; Flash programming warning
+DIALOG.YESNO "This demo will program flash memory. Do you want to continue?"
+LOCAL &progflash
+ENTRY &progflash
+IF !&progflash
+(
+ENDDO
+)
+
+DO ~~/demo/arm/flash/tm4c PREPAREONLY
+
+; Load Demo
+FLASH.ReProgram ALL
+// see special requirements for the BOOTCODE!!!!
+Data.LOAD.Elf ~~~~/sieve_flash_thumb_ii_v7.elf
+FLASH.ReProgram OFF
+
+; Reset the Target again
+SYStem.Up
+
+; open some windows
+Mode.Hll
+List.auto
+
+; execute startcode
+Go main
+WAIT !STATE.RUN()
+
+ENDDO

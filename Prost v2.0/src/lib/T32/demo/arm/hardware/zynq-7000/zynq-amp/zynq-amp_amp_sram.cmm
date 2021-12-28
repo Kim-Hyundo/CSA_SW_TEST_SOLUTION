@@ -1,0 +1,156 @@
+; --------------------------------------------------------------------------------
+; @Title: AMP-Demo script for ZYNQ-7000 (AMP, RAM)
+; @Description:
+;   Setup a AMP debug session on both CortexA9 cores using a single script
+;   approach.
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   Use this script to test the AMP-Debugging.
+;   Note:
+;    The script does not issue any reset of the SoC per default.
+;    For proper example execution, please power cycle the board before each script
+;    invocation.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to the Cascaded JTAG interface
+;    *  MIO[6..2]=0y00000 - JTAG BOOT
+;      or
+;       MIO[6..2]=0y01100 - SD BOOT and remove the SD-Card
+;    * Please power cycle the board before each script call
+;    * TRACE32 is started using the .bat/.sh file in this directory
+; @Keywords: ARM
+; @Author: AME
+; @Board: ZedBoard, ZC702, ZC706
+; @Chip: ZYNQ-7000
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: zynq-amp_amp_sram.cmm 15362 2019-12-03 14:50:48Z mschleinkofer $
+
+PRIVATE &currPath &rclPort &remoteCmd
+&currPath=OS.PPD()
+&rclPort=FORMAT.DecimalU(1.,RCL.PORT(0))+"."
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF SYStem.INSTANCE()<1.
+(
+  PRINT %ERROR "TRACE32 is not running in AMP mode! Use .bat/.sh file in this directory."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; enable INTERCOM if not already specified and prepare related variables
+IF (INTERCOM.PORT()==0)
+(
+  InterCom.ENable MASTER
+)
+&remoteCmd="InterCom.execute Z7000S1"
+
+; --------------------------------------------------------------------------------
+; close any existing REMOTE GUI
+INTERCOM.execute OTHERS QUIT
+; --------------------------------------------------------------------------------
+; open SLAVE GUI with or without enabled remote API
+IF (RCL.PORT(0)!=0)
+(
+  TargetSystem.NewInstance Z7000S1 /ARCHitecture ARM /ChipIndex 2. /APIPORT &rclPort+1. /ONCE
+)
+ELSE
+(
+  TargetSystem.NewInstance Z7000S1 /ARCHitecture ARM /ChipIndex 2. /ONCE
+)
+
+TITLE "TRACE32 for ARM - ZYNQ-7000 - CORE1 - MASTER"
+&remoteCmd TITLE "TRACE32 for ARM - ZYNQ-7000 - CORE2 - SLAVE1"
+
+; --------------------------------------------------------------------------------
+; common SYStem settings
+RESet
+&remoteCmd RESet
+SYStem.RESet
+&remoteCmd SYStem.RESet
+SYStem.CPU ZYNQ-7000
+SYStem.CONFIG CORE 1. 1.
+SYStem.CONFIG SLAVE OFF
+&remoteCmd SYStem.CPU ZYNQ-7000
+&remoteCmd SYStem.CONFIG CORE 2. 1.
+&remoteCmd SYStem.CONFIG SLAVE ON
+
+; GUI1 CORE1, GUI2 CORE1
+CORE.ASSIGN 1.
+&remoteCmd CORE.ASSIGN 2.
+
+; set DaisyChaining Parameters of the board
+; check e.g. SYStem.DETECT.ShowCHAIN
+SYStem.CONFIG DAPIRPRE  6.
+SYStem.CONFIG DAPIRPOST 0.
+SYStem.CONFIG DAPDRPRE  1.
+SYStem.CONFIG DAPDRPOST 0.
+&remoteCmd SYStem.CONFIG DAPIRPRE  6.
+&remoteCmd SYStem.CONFIG DAPIRPOST 0.
+&remoteCmd SYStem.CONFIG DAPDRPRE  1.
+&remoteCmd SYStem.CONFIG DAPDRPOST 0.
+
+IF FALSE()
+(
+  ; trigger a soft-reset using the AHB Bus -> we loose the connection
+  SYStem.Mode.Prepare
+  ON ERROR CONTinue
+  Data.Set EAHB:0xF8000008 %Long 0xDF0D
+  Data.Set EAHB:0xF8000200 %Long 0x1
+  WAIT 0.1s
+  PRINT ""
+  ON ERROR inherit
+)
+
+; --------------------------------------------------------------------------------
+; attach to all cores on all sessions
+SYStem.Mode.Attach
+Break
+&remoteCmd SYStem.Mode.Attach
+&remoteCmd Break
+
+; --------------------------------------------------------------------------------
+; device initialization for demo execution - just in case the target booted some code
+Data.Set AD:0xF8000008 %Long 0xdf0d   ; SLCR unlock
+Data.Set AD:0xF8000910 %Long 0x18     ; map SRAM - 0xffff0000++0xffff & 0x0++0x2ffff
+; disable MMU & Caches
+Data.Set C15:0x1 %Long 0x8C50078
+&remoteCmd Data.Set C15:0x1 %Long 0x8C50078
+; lock interrupts
+Register.Set I 1
+Register.Set F 1
+&remoteCmd Register.Set I 1
+&remoteCmd Register.Set F 1
+
+
+; --------------------------------------------------------------------------------
+; load demo program on all sessions (use internal RAM only)
+; CORE1: uses SRAM 0x0
+; CORE2: uses SRAM 0xffff0000
+Data.LOAD.Elf ~~~~/master/sieve_ram_arm_v7.elf
+&remoteCmd ChDir &currPath
+&remoteCmd Data.LOAD.Elf ./slave1/midi_ram_arm_v7.elf
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main\1
+WAIT !STATE.RUN()
+&remoteCmd Go.direct background\1
+&remoteCmd WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+&remoteCmd WinCLEAR
+&remoteCmd Mode.Hll
+&remoteCmd WinPOS 0. 0.
+&remoteCmd List.auto
+
+TargetSystem DEFault SYnch.All /Global
+
+ENDDO

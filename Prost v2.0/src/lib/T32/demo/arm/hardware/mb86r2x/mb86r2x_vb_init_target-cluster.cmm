@@ -1,0 +1,947 @@
+; --------------------------------------------------------------------------------
+; @Title: Chip initialization for MB86R24 on TritonC
+; @Description:
+;   converted from mb86r2x_vb_init_target-cluster.ssf
+;   not tested successfully - left as reference
+; @Props: NoMetaTags NoErrors
+; @Author: converted by AME
+; @Board: TRITON-C Promotion Board
+; @Chip: MB86R24
+; --------------------------------------------------------------------------------
+; $Id: mb86r2x_vb_init_target-cluster.cmm 10197 2016-11-22 16:28:01Z amerkle $
+
+; cat mb86r2x_vb_init_target-cluster.ssf | sed 's/#/;/g' | sed 's/\([0-9A-Fa-f]\) 0x/\1 %Long 0x/g' | sed 's/^fw/Data.Set/g' > mb86r2x_vb_init_target-cluster.cmm
+;-------------------------------------------------------------------
+; Script file to initialize MB86R2X Validation board
+;
+; last updated: 2014-02-07
+;-------------------------------------------------------------------
+
+; setup CRG_S, EBC (IntBootROM does set like this)
+Data.Set 0x3b500028 %Long 0xe7ff7f9e
+Data.Set 0x3c400000 %Long 0x00000001
+Data.Set 0x3c400020 %Long 0x055ff00f
+Data.Set 0x3c400040 %Long 0x007f0000
+
+; setup SSCG (533MHz)
+Data.Set 0x3b500028 %Long 0x00000001
+Data.Set 0x3d100600 %Long 0x05201040
+
+; clear reset, stop Watchdog Timer B
+Data.Set 0x3b500028 %Long 0xffffffdf
+Data.Set 0x04a00000 %Long 0xedacce55
+Data.Set 0x04a00048 %Long 0x01000000
+
+; initialize BC
+Data.Set 0x3b200050 %Long 0x00000000
+Data.Set 0x3b200054 %Long 0x00000000
+Data.Set 0x3b200058 %Long 0x00000000
+Data.Set 0x3b20005c %Long 0x00000000
+Data.Set 0x3b200060 %Long 0x00000000
+WAIT 10ms
+
+; setup EBC (CS0:NOR 16bit 128MB Storage, CS1:NAND 16bit 1MB I/O)
+Data.Set 0x3c400000 %Long 0x00000021
+Data.Set 0x3c400004 %Long 0x00000001
+Data.Set 0x3c400008 %Long 0x00000000
+Data.Set 0x3c40000c %Long 0x00000000
+Data.Set 0x3c400010 %Long 0x00000000
+Data.Set 0x3c400014 %Long 0x00000000
+Data.Set 0x3c400018 %Long 0x00000000
+Data.Set 0x3c40001c %Long 0x00000000
+Data.Set 0x3c400020 %Long 0x040e0a03
+Data.Set 0x3c400024 %Long 0x055ff00f
+Data.Set 0x3c400028 %Long 0x055ff00f
+Data.Set 0x3c40002c %Long 0x055ff00f
+Data.Set 0x3c400030 %Long 0x055ff00f
+Data.Set 0x3c400034 %Long 0x055ff00f
+Data.Set 0x3c400038 %Long 0x055ff00f
+Data.Set 0x3c40003c %Long 0x055ff00f
+Data.Set 0x3c400040 %Long 0x007f0000
+Data.Set 0x3c400044 %Long 0x00000080
+Data.Set 0x3c400048 %Long 0x000000f0
+Data.Set 0x3c40004c %Long 0x000000ff
+Data.Set 0x3c400050 %Long 0x000000ff
+Data.Set 0x3c400054 %Long 0x000000ff
+Data.Set 0x3c400058 %Long 0x000000ff
+Data.Set 0x3c40005c %Long 0x000000ff
+
+; initialize CRG_0 (CRG_S)
+Data.Set 0x3b500100 %Long 0x00000001
+Data.Set 0x3b500110 %Long 0x00000003
+Data.Set 0x3b500120 %Long 0x00000007
+Data.Set 0x3b500130 %Long 0x0000000f
+Data.Set 0x3b500140 %Long 0x00000007
+Data.Set 0x3b500150 %Long 0x00000015
+Data.Set 0x3b500160 %Long 0x00000004
+Data.Set 0x3b500170 %Long 0x00000007
+Data.Set 0x3b500180 %Long 0x00000007
+Data.Set 0x3b500190 %Long 0x0000000f
+Data.Set 0x3b5001a0 %Long 0x0000000f
+Data.Set 0x3b5001b0 %Long 0x0000000f
+Data.Set 0x3b5001c0 %Long 0x0000000f
+Data.Set 0x3b5001d0 %Long 0x0000000f
+Data.Set 0x3b5001e0 %Long 0x0000000f
+Data.Set 0x3b5001f0 %Long 0x0000000f
+Data.Set 0x3b500030 %Long 0x00000001
+WAIT 10ms
+
+; initialize CRG_1 (CRG_P)
+Data.Set 0x3e200100 %Long 0x0000000f
+Data.Set 0x3e200110 %Long 0x0000000c
+Data.Set 0x3e200120 %Long 0x0000000f
+Data.Set 0x3e200130 %Long 0x0000000f
+Data.Set 0x3e200140 %Long 0x0000000f
+Data.Set 0x3e200150 %Long 0x0000000f
+Data.Set 0x3e200160 %Long 0x0000000f
+Data.Set 0x3e200170 %Long 0x0000000f
+Data.Set 0x3e200180 %Long 0x0000000f
+Data.Set 0x3e200190 %Long 0x0000000f
+Data.Set 0x3e2001a0 %Long 0x0000000f
+Data.Set 0x3e2001b0 %Long 0x0000000f
+Data.Set 0x3e2001c0 %Long 0x0000000f
+Data.Set 0x3e2001d0 %Long 0x0000000f
+Data.Set 0x3e2001e0 %Long 0x0000000f
+Data.Set 0x3e2001f0 %Long 0x0000000f
+Data.Set 0x3e200030 %Long 0x00000001
+WAIT 10ms
+
+; Pin Multi setting(ÉIÉäÉWÉiÉãÇÃèàóù)
+;fw 0x3D100100 %Long 0x00003f00
+;fw 0x3D100204 %Long 0x00000145
+;fw 0x3D100200 %Long 0x80010000
+;fw 0x3b500028 %Long 0xffff7fff
+
+; Pin Multi setting(for 6camera)
+Data.Set 0x3D100100 %Long 0x00003f00
+Data.Set 0x3D100204 %Long 0x00000168
+; fw 0x3D100200 %Long 0x80050000
+Data.Set 0x3D100200 %Long 0x80010000
+Data.Set 0x3b500028 %Long 0xffff7fff
+;
+
+; PMU setting (Use shader1)
+Data.Set 0x3D000020 %Long 0x00000007
+Data.Set 0x3D000000 %Long 0x0000AA01
+
+;
+; Initialize DDR Memory Controller CH0
+;
+
+; Initialization of DDR3 (DDR3-1066F, 16-bit SDRAM - Two devices connected)
+; REG_RST0 (release)
+Data.Set 0x38400800 %Long 0x00000001
+; REG_RST1 (release)
+Data.Set 0x38400804 %Long 0x00000003
+; REG_ASBS
+Data.Set 0x3840081c %Long 0x0000000f
+; REG_INIT0
+Data.Set 0x3840082c %Long 0x55020001
+; REG_INIT1
+Data.Set 0x38400830 %Long 0x03c92222
+; REG_INIT2
+Data.Set 0x38400834 %Long 0x09090909
+; REG_INIT3
+Data.Set 0x38400838 %Long 0x0000aa00
+; REG_TDS0
+Data.Set 0x3840083c %Long 0x000e1b04
+; REG_TDS1
+Data.Set 0x38400840 %Long 0x000e1b04
+; REG_TDS2
+Data.Set 0x38400844 %Long 0x000e1f04
+; REG_TDS3
+Data.Set 0x38400848 %Long 0x000e1f04
+
+; Write needed value for connected SDRAM to MCR_0-MCR_147 (DDR3-1066F)
+; MCR_0
+Data.Set 0x38400000 %Long 0x00000600
+; MCR_1
+Data.Set 0x38400004 %Long 0x00000000
+; MCR_2
+Data.Set 0x38400008 %Long 0x00000006
+; MCR_3
+Data.Set 0x3840000c %Long 0x0001A0AB
+; MCR_4
+Data.Set 0x38400010 %Long 0x000411AB
+; MCR_5
+Data.Set 0x38400014 %Long 0x00000000
+; MCR_6
+Data.Set 0x38400018 %Long 0x0E000200
+; MCR_7
+Data.Set 0x3840001c %Long 0x06040406
+; MCR_8
+Data.Set 0x38400020 %Long 0x0704141B
+; MCR_9
+Data.Set 0x38400024 %Long 0x0C04041B
+; MCR_10
+Data.Set 0x38400028 %Long 0x03009240
+; MCR_11
+Data.Set 0x3840002c %Long 0x08000004
+; MCR_12
+Data.Set 0x38400030 %Long 0x0F010100
+; MCR_13
+Data.Set 0x38400034 %Long 0x00000703
+; MCR_14
+Data.Set 0x38400038 %Long 0x00010000
+; MCR_15
+Data.Set 0x3840003c %Long 0x10400056
+; MCR_16
+Data.Set 0x38400040 %Long 0x00000000
+; MCR_17
+Data.Set 0x38400044 %Long 0x000D0004
+; MCR_18
+Data.Set 0x38400048 %Long 0x005B01F9
+; MCR_19
+Data.Set 0x3840004c %Long 0x00000000
+; MCR_20
+Data.Set 0x38400050 %Long 0x00000000
+; MCR_21
+Data.Set 0x38400054 %Long 0x00000000
+; MCR_22
+Data.Set 0x38400058 %Long 0x00083000
+; MCR_23
+Data.Set 0x3840005c %Long 0x00080006
+; MCR_24
+Data.Set 0x38400060 %Long 0x00000000
+; MCR_25
+Data.Set 0x38400064 %Long 0x00000000
+; MCR_26
+Data.Set 0x38400068 %Long 0x00000000
+; MCR_27
+Data.Set 0x3840006c %Long 0x00000000
+; MCR_28
+Data.Set 0x38400070 %Long 0x00000000
+; MCR_29
+Data.Set 0x38400074 %Long 0x00000000
+; MCR_30
+Data.Set 0x38400078 %Long 0x00000000
+; MCR_31
+Data.Set 0x3840007c %Long 0x00000000
+; MCR_32
+Data.Set 0x38400080 %Long 0x02000000
+; MCR_33
+Data.Set 0x38400084 %Long 0x00400100
+; MCR_34
+Data.Set 0x38400088 %Long 0x00000200
+; MCR_35
+Data.Set 0x3840008c %Long 0x00000000
+; MCR_36
+Data.Set 0x38400090 %Long 0x02000000
+; MCR_37
+Data.Set 0x38400094 %Long 0xFFFF0A01
+; MCR_38
+Data.Set 0x38400098 %Long 0x01010101
+; MCR_39
+Data.Set 0x3840009c %Long 0x00000100
+; MCR_40
+Data.Set 0x384000a0 %Long 0x00010003
+; MCR_41
+Data.Set 0x384000a4 %Long 0x000C0000
+; MCR_42
+Data.Set 0x384000a8 %Long 0x00000100
+; MCR_43
+Data.Set 0x384000ac %Long 0x00000001
+; MCR_44
+Data.Set 0x384000b0 %Long 0x00000000
+; MCR_45
+Data.Set 0x384000b4 %Long 0x000027C9
+; MCR_46
+Data.Set 0x384000b8 %Long 0x00000000
+; MCR_47
+Data.Set 0x384000bc %Long 0x00000000
+; MCR_48
+Data.Set 0x384000c0 %Long 0x00000000
+; MCR_49
+Data.Set 0x384000c4 %Long 0x00000000
+; MCR_50
+Data.Set 0x384000c8 %Long 0x00000000
+; MCR_51
+Data.Set 0x384000cc %Long 0x00000000
+; MCR_52
+Data.Set 0x384000d0 %Long 0x00000000
+; MCR_53
+Data.Set 0x384000d4 %Long 0x00000500
+; MCR_54
+Data.Set 0x384000d8 %Long 0x00000000
+; MCR_55
+Data.Set 0x384000dc %Long 0x00000000
+; MCR_56
+Data.Set 0x384000e0 %Long 0x00000002
+; MCR_57
+Data.Set 0x384000e4 %Long 0x00000000
+; MCR_58
+Data.Set 0x384000e8 %Long 0x00000000
+; MCR_59
+Data.Set 0x384000ec %Long 0x00000000
+; MCR_60
+Data.Set 0x384000f0 %Long 0x00000000
+; MCR_61
+Data.Set 0x384000f4 %Long 0x00281900
+; MCR_62
+Data.Set 0x384000f8 %Long 0x00000000
+; MCR_63
+Data.Set 0x384000fc %Long 0x00000000
+; MCR_64
+Data.Set 0x38400100 %Long 0x000C000C
+; MCR_65
+Data.Set 0x38400104 %Long 0x00100010
+; MCR_66
+Data.Set 0x38400108 %Long 0x00000000
+; MCR_67
+Data.Set 0x3840010c %Long 0x00000000
+; MCR_68
+Data.Set 0x38400110 %Long 0x00000000
+; MCR_69
+Data.Set 0x38400114 %Long 0x00000000
+; MCR_70
+Data.Set 0x38400118 %Long 0x00000000
+; MCR_71
+Data.Set 0x3840011c %Long 0x00000000
+; MCR_72
+Data.Set 0x38400120 %Long 0x00000000
+; MCR_73
+Data.Set 0x38400124 %Long 0x0000001D
+; MCR_74
+Data.Set 0x38400128 %Long 0x00000000
+; MCR_75
+Data.Set 0x3840012c %Long 0x00000000
+; MCR_76
+Data.Set 0x38400130 %Long 0x001D0000
+; MCR_77
+Data.Set 0x38400134 %Long 0x00000000
+; MCR_78
+Data.Set 0x38400138 %Long 0x00000000
+; MCR_79
+Data.Set 0x3840013c %Long 0x00000000
+; MCR_80
+Data.Set 0x38400140 %Long 0x00000022
+; MCR_81
+Data.Set 0x38400144 %Long 0x00000000
+; MCR_82
+Data.Set 0x38400148 %Long 0x00000000
+; MCR_83
+Data.Set 0x3840014c %Long 0x00220000
+; MCR_84
+Data.Set 0x38400150 %Long 0x00000000
+; MCR_85
+Data.Set 0x38400154 %Long 0x00000000
+; MCR_86
+Data.Set 0x38400158 %Long 0x00000000
+; MCR_87
+Data.Set 0x3840015c %Long 0x00000000
+; MCR_88
+Data.Set 0x38400160 %Long 0x00000000
+; MCR_89
+Data.Set 0x38400164 %Long 0x00000000
+; MCR_90
+Data.Set 0x38400168 %Long 0x00000000
+; MCR_91
+Data.Set 0x3840016c %Long 0x00000000
+; MCR_92
+Data.Set 0x38400170 %Long 0x00000000
+; MCR_93
+Data.Set 0x38400174 %Long 0x00000000
+; MCR_94
+Data.Set 0x38400178 %Long 0x00000000
+; MCR_95
+Data.Set 0x3840017c %Long 0x00000000
+; MCR_96
+Data.Set 0x38400180 %Long 0x00000000
+; MCR_97
+Data.Set 0x38400184 %Long 0x00000000
+; MCR_98
+Data.Set 0x38400188 %Long 0x02000000
+; MCR_99
+Data.Set 0x3840018C %Long 0x01010002
+; MCR_100
+Data.Set 0x38400190 %Long 0x00020200
+; MCR_101
+Data.Set 0x38400194 %Long 0x00000000
+; MCR_102
+Data.Set 0x38400198 %Long 0x01000000
+; MCR_103
+Data.Set 0x3840019C %Long 0x00010101
+; MCR_104
+Data.Set 0x384001A0 %Long 0x010103FF
+; MCR_105
+Data.Set 0x384001A4 %Long 0x00010101
+; MCR_106
+Data.Set 0x384001A8 %Long 0x010103FF
+; MCR_107
+Data.Set 0x384001AC %Long 0x00020101
+; MCR_108
+Data.Set 0x384001B0 %Long 0x010103FF
+; MCR_109
+Data.Set 0x384001B4 %Long 0x00030101
+; MCR_110
+Data.Set 0x384001B8 %Long 0x000003FF
+; MCR_111
+Data.Set 0x384001bc %Long 0x00000000
+; MCR_112
+Data.Set 0x384001c0 %Long 0x00000000
+; MCR_113
+Data.Set 0x384001c4 %Long 0x00000000
+; MCR_114
+Data.Set 0x384001c8 %Long 0x00000900
+; MCR_115
+Data.Set 0x384001cc %Long 0x00104000
+; MCR_116
+Data.Set 0x384001d0 %Long 0x00000000
+; MCR_117
+Data.Set 0x384001d4 %Long 0x00000000
+; MCR_118
+Data.Set 0x384001d8 %Long 0x00000000
+; MCR_119
+Data.Set 0x384001dc %Long 0x00000000
+; MCR_120
+Data.Set 0x384001e0 %Long 0x00020605
+; MCR_121
+Data.Set 0x384001e4 %Long 0x060F0000
+; MCR_122
+Data.Set 0x384001e8 %Long 0x001A1401
+; MCR_123
+Data.Set 0x384001ec %Long 0x00000000
+; MCR_124
+Data.Set 0x384001f0 %Long 0x00000000
+; MCR_125
+Data.Set 0x384001f4 %Long 0x00000000
+; MCR_126
+Data.Set 0x384001f8 %Long 0x1101020F
+; MCR_127
+Data.Set 0x384001fc %Long 0x00000013
+; MCR_128
+Data.Set 0x38400200 %Long 0x00000000
+; MCR_129
+Data.Set 0x38400204 %Long 0x00000000
+; MCR_130
+Data.Set 0x38400208 %Long 0x00000000
+; MCR_131
+Data.Set 0x3840020c %Long 0x00000000
+; MCR_132
+Data.Set 0x38400210 %Long 0x00000000
+; MCR_133
+Data.Set 0x38400214 %Long 0x00000000
+; MCR_134
+Data.Set 0x38400218 %Long 0x00000000
+; MCR_135
+Data.Set 0x3840021c %Long 0x00000000
+; MCR_136
+Data.Set 0x38400220 %Long 0x00000000
+; MCR_137
+Data.Set 0x38400224 %Long 0x00000000
+; MCR_138
+Data.Set 0x38400228 %Long 0x06000000
+; MCR_139
+Data.Set 0x3840022c %Long 0x00000001
+; MCR_140
+Data.Set 0x38400230 %Long 0x00000000
+; MCR_141
+Data.Set 0x38400234 %Long 0x00000000
+; MCR_142
+Data.Set 0x38400238 %Long 0x00000000
+; MCR_143
+Data.Set 0x3840023c %Long 0x00000000
+; MCR_144
+Data.Set 0x38400240 %Long 0x00000000
+; MCR_145
+Data.Set 0x38400244 %Long 0x00070000
+; MCR_146
+Data.Set 0x38400248 %Long 0x00000040
+; MCR_147
+Data.Set 0x3840024c %Long 0x00000001
+
+; PHY Reset Release
+; 60ns or more wait
+WAIT 1ms
+Data.Set 0x38400808 %Long 0x0000000f
+; 120ns or more wait
+WAIT 1ms
+Data.Set 0x3840080c %Long 0x00000003
+; tDLL_LOCK or more wait
+WAIT 1ms
+Data.Set 0x38400810 %Long 0x00000001
+
+; PZQ Initial Calibration
+; tPZQ_INIT or more wait
+WAIT 1ms
+Data.Set 0x38400850 %Long 0x00000000
+
+Data.Set 0x38400818 %Long 0x00000001
+
+; Initial Delay Value Update
+; 250ns or more wait
+WAIT 1ms
+Data.Set 0x3840084c %Long 0x01010101
+Data.Set 0x3840084c %Long 0x00000000
+; 150ns or more wait
+WAIT 1ms
+
+; Initialization of SDRAM
+Data.Set 0x38400000 %Long 0x00000601
+; wait for int_status[4] bit of MCR_43 = 1b
+WAIT 10ms
+Data.Set 0x384000b0 %Long 0x00000010
+; wait for int_status[4] bit of MCR_43 = 0b
+WAIT 10ms
+;
+; Initialize DDR Memory Controller CH1
+;
+
+; Initialization of DDR3 (DDR3-1066F, 16-bit SDRAM - Two devices connected)
+; REG_RST0 (release)
+Data.Set 0x38410800 %Long 0x00000001
+; REG_RST1 (release)
+Data.Set 0x38410804 %Long 0x00000003
+; REG_ASBS
+Data.Set 0x3841081c %Long 0x0000000f
+; REG_INIT0
+Data.Set 0x3841082c %Long 0x55020001
+; REG_INIT1
+Data.Set 0x38410830 %Long 0x03c92222
+; REG_INIT2
+Data.Set 0x38410834 %Long 0x09090909
+; REG_INIT3
+Data.Set 0x38410838 %Long 0x0000aa00
+; REG_TDS0
+Data.Set 0x3841083c %Long 0x000e1a04
+; REG_TDS1
+Data.Set 0x38410840 %Long 0x000e1a04
+; REG_TDS2
+Data.Set 0x38410844 %Long 0x000e1f04
+; REG_TDS3
+Data.Set 0x38410848 %Long 0x000e1f04
+
+; Write needed value for connected SDRAM to MCR_0-MCR_147 (DDR3-1066F)
+; MCR_0
+Data.Set 0x38410000 %Long 0x00000600
+; MCR_1
+Data.Set 0x38410004 %Long 0x00000000
+; MCR_2
+Data.Set 0x38410008 %Long 0x00000006
+; MCR_3
+Data.Set 0x3841000c %Long 0x0001A0AB
+; MCR_4
+Data.Set 0x38410010 %Long 0x000411AB
+; MCR_5
+Data.Set 0x38410014 %Long 0x00000000
+; MCR_6
+Data.Set 0x38410018 %Long 0x0E000200
+; MCR_7
+Data.Set 0x3841001c %Long 0x06040406
+; MCR_8
+Data.Set 0x38410020 %Long 0x0704141B
+; MCR_9
+Data.Set 0x38410024 %Long 0x0C04041B
+; MCR_10
+Data.Set 0x38410028 %Long 0x03009240
+; MCR_11
+Data.Set 0x3841002c %Long 0x08000004
+; MCR_12
+Data.Set 0x38410030 %Long 0x0F010100
+; MCR_13
+Data.Set 0x38410034 %Long 0x00000703
+; MCR_14
+Data.Set 0x38410038 %Long 0x00010000
+; MCR_15
+Data.Set 0x3841003c %Long 0x10400056
+; MCR_16
+Data.Set 0x38410040 %Long 0x00000000
+; MCR_17
+Data.Set 0x38410044 %Long 0x000D0004
+; MCR_18
+Data.Set 0x38410048 %Long 0x005B01F9
+; MCR_19
+Data.Set 0x3841004c %Long 0x00000000
+; MCR_20
+Data.Set 0x38410050 %Long 0x00000000
+; MCR_21
+Data.Set 0x38410054 %Long 0x00000000
+; MCR_22
+Data.Set 0x38410058 %Long 0x00083000
+; MCR_23
+Data.Set 0x3841005c %Long 0x00080006
+; MCR_24
+Data.Set 0x38410060 %Long 0x00000000
+; MCR_25
+Data.Set 0x38410064 %Long 0x00000000
+; MCR_26
+Data.Set 0x38410068 %Long 0x00000000
+; MCR_27
+Data.Set 0x3841006c %Long 0x00000000
+; MCR_28
+Data.Set 0x38410070 %Long 0x00000000
+; MCR_29
+Data.Set 0x38410074 %Long 0x00000000
+; MCR_30
+Data.Set 0x38410078 %Long 0x00000000
+; MCR_31
+Data.Set 0x3841007c %Long 0x00000000
+; MCR_32
+Data.Set 0x38410080 %Long 0x02000000
+; MCR_33
+Data.Set 0x38410084 %Long 0x00400100
+; MCR_34
+Data.Set 0x38410088 %Long 0x00000200
+; MCR_35
+Data.Set 0x3841008c %Long 0x00000000
+; MCR_36
+Data.Set 0x38410090 %Long 0x02000000
+; MCR_37
+Data.Set 0x38410094 %Long 0xFFFF0A01
+; MCR_38
+Data.Set 0x38410098 %Long 0x01010101
+; MCR_39
+Data.Set 0x3841009c %Long 0x00000100
+; MCR_40
+Data.Set 0x384100a0 %Long 0x00010003
+; MCR_41
+Data.Set 0x384100a4 %Long 0x000C0000
+; MCR_42
+Data.Set 0x384100a8 %Long 0x00000100
+; MCR_43
+Data.Set 0x384100ac %Long 0x00000001
+; MCR_44
+Data.Set 0x384100b0 %Long 0x00000000
+; MCR_45
+Data.Set 0x384100b4 %Long 0x000027C9
+; MCR_46
+Data.Set 0x384100b8 %Long 0x00000000
+; MCR_47
+Data.Set 0x384100bc %Long 0x00000000
+; MCR_48
+Data.Set 0x384100c0 %Long 0x00000000
+; MCR_49
+Data.Set 0x384100c4 %Long 0x00000000
+; MCR_50
+Data.Set 0x384100c8 %Long 0x00000000
+; MCR_51
+Data.Set 0x384100cc %Long 0x00000000
+; MCR_52
+Data.Set 0x384100d0 %Long 0x00000000
+; MCR_53
+Data.Set 0x384100d4 %Long 0x00000500
+; MCR_54
+Data.Set 0x384100d8 %Long 0x00000000
+; MCR_55
+Data.Set 0x384100dc %Long 0x00000000
+; MCR_56
+Data.Set 0x384100e0 %Long 0x00000002
+; MCR_57
+Data.Set 0x384100e4 %Long 0x00000000
+; MCR_58
+Data.Set 0x384100e8 %Long 0x00000000
+; MCR_59
+Data.Set 0x384100ec %Long 0x00000000
+; MCR_60
+Data.Set 0x384100f0 %Long 0x00000000
+; MCR_61
+Data.Set 0x384100f4 %Long 0x00281900
+; MCR_62
+Data.Set 0x384100f8 %Long 0x00000000
+; MCR_63
+Data.Set 0x384100fc %Long 0x00000000
+; MCR_64
+Data.Set 0x38410100 %Long 0x000B000B
+; MCR_65
+Data.Set 0x38410104 %Long 0x00100010
+; MCR_66
+Data.Set 0x38410108 %Long 0x00000000
+; MCR_67
+Data.Set 0x3841010c %Long 0x00000000
+; MCR_68
+Data.Set 0x38410110 %Long 0x00000000
+; MCR_69
+Data.Set 0x38410114 %Long 0x00000000
+; MCR_70
+Data.Set 0x38410118 %Long 0x00000000
+; MCR_71
+Data.Set 0x3841011c %Long 0x00000000
+; MCR_72
+Data.Set 0x38410120 %Long 0x00000000
+; MCR_73
+Data.Set 0x38410124 %Long 0x0000001C
+; MCR_74
+Data.Set 0x38410128 %Long 0x00000000
+; MCR_75
+Data.Set 0x3841012c %Long 0x00000000
+; MCR_76
+Data.Set 0x38410130 %Long 0x001C0000
+; MCR_77
+Data.Set 0x38410134 %Long 0x00000000
+; MCR_78
+Data.Set 0x38410138 %Long 0x00000000
+; MCR_79
+Data.Set 0x3841013c %Long 0x00000000
+; MCR_80
+Data.Set 0x38410140 %Long 0x00000020
+; MCR_81
+Data.Set 0x38410144 %Long 0x00000000
+; MCR_82
+Data.Set 0x38410148 %Long 0x00000000
+; MCR_83
+Data.Set 0x3841014c %Long 0x00200000
+; MCR_84
+Data.Set 0x38410150 %Long 0x00000000
+; MCR_85
+Data.Set 0x38410154 %Long 0x00000000
+; MCR_86
+Data.Set 0x38410158 %Long 0x00000000
+; MCR_87
+Data.Set 0x3841015c %Long 0x00000000
+; MCR_88
+Data.Set 0x38410160 %Long 0x00000000
+; MCR_89
+Data.Set 0x38410164 %Long 0x00000000
+; MCR_90
+Data.Set 0x38410168 %Long 0x00000000
+; MCR_91
+Data.Set 0x3841016c %Long 0x00000000
+; MCR_92
+Data.Set 0x38410170 %Long 0x00000000
+; MCR_93
+Data.Set 0x38410174 %Long 0x00000000
+; MCR_94
+Data.Set 0x38410178 %Long 0x00000000
+; MCR_95
+Data.Set 0x3841017c %Long 0x00000000
+; MCR_96
+Data.Set 0x38410180 %Long 0x00000000
+; MCR_97
+Data.Set 0x38410184 %Long 0x00000000
+; MCR_98
+Data.Set 0x38410188 %Long 0x02000000
+; MCR_99
+Data.Set 0x3841018C %Long 0x01010002
+; MCR_100
+Data.Set 0x38410190 %Long 0x00020200
+; MCR_101
+Data.Set 0x38410194 %Long 0x00000000
+; MCR_102
+Data.Set 0x38410198 %Long 0x01000000
+; MCR_103
+Data.Set 0x3841019C %Long 0x00010101
+; MCR_104
+Data.Set 0x384101A0 %Long 0x010103FF
+; MCR_105
+Data.Set 0x384101A4 %Long 0x00010101
+; MCR_106
+Data.Set 0x384101A8 %Long 0x010103FF
+; MCR_107
+Data.Set 0x384101AC %Long 0x00020101
+; MCR_108
+Data.Set 0x384101B0 %Long 0x010103FF
+; MCR_109
+Data.Set 0x384101B4 %Long 0x00030101
+; MCR_110
+Data.Set 0x384101B8 %Long 0x000003FF
+; MCR_111
+Data.Set 0x384101bc %Long 0x00000000
+; MCR_112
+Data.Set 0x384101c0 %Long 0x00000000
+; MCR_113
+Data.Set 0x384101c4 %Long 0x00000000
+; MCR_114
+Data.Set 0x384101c8 %Long 0x00000900
+; MCR_115
+Data.Set 0x384101cc %Long 0x00104000
+; MCR_116
+Data.Set 0x384101d0 %Long 0x00000000
+; MCR_117
+Data.Set 0x384101d4 %Long 0x00000000
+; MCR_118
+Data.Set 0x384101d8 %Long 0x00000000
+; MCR_119
+Data.Set 0x384101dc %Long 0x00000000
+; MCR_120
+Data.Set 0x384101e0 %Long 0x00020605
+; MCR_121
+Data.Set 0x384101e4 %Long 0x060F0000
+; MCR_122
+Data.Set 0x384101e8 %Long 0x001A1401
+; MCR_123
+Data.Set 0x384101ec %Long 0x00000000
+; MCR_124
+Data.Set 0x384101f0 %Long 0x00000000
+; MCR_125
+Data.Set 0x384101f4 %Long 0x00000000
+; MCR_126
+Data.Set 0x384101f8 %Long 0x1101020F
+; MCR_127
+Data.Set 0x384101fc %Long 0x00000013
+; MCR_128
+Data.Set 0x38410200 %Long 0x00000000
+; MCR_129
+Data.Set 0x38410204 %Long 0x00000000
+; MCR_130
+Data.Set 0x38410208 %Long 0x00000000
+; MCR_131
+Data.Set 0x3841020c %Long 0x00000000
+; MCR_132
+Data.Set 0x38410210 %Long 0x00000000
+; MCR_133
+Data.Set 0x38410214 %Long 0x00000000
+; MCR_134
+Data.Set 0x38410218 %Long 0x00000000
+; MCR_135
+Data.Set 0x3841021c %Long 0x00000000
+; MCR_136
+Data.Set 0x38410220 %Long 0x00000000
+; MCR_137
+Data.Set 0x38410224 %Long 0x00000000
+; MCR_138
+Data.Set 0x38410228 %Long 0x06000000
+; MCR_139
+Data.Set 0x3841022c %Long 0x00000001
+; MCR_140
+Data.Set 0x38410230 %Long 0x00000000
+; MCR_141
+Data.Set 0x38410234 %Long 0x00000000
+; MCR_142
+Data.Set 0x38410238 %Long 0x00000000
+; MCR_143
+Data.Set 0x3841023c %Long 0x00000000
+; MCR_144
+Data.Set 0x38410240 %Long 0x00000000
+; MCR_145
+Data.Set 0x38410244 %Long 0x00070000
+; MCR_146
+Data.Set 0x38410248 %Long 0x00000040
+; MCR_147
+Data.Set 0x3841024c %Long 0x00000001
+
+; PHY Reset Release
+; 60ns or more wait
+WAIT 1ms
+Data.Set 0x38410808 %Long 0x0000000f
+; 120ns or more wait
+WAIT 1ms
+Data.Set 0x3841080c %Long 0x00000003
+; tDLL_LOCK or more wait
+WAIT 1ms
+Data.Set 0x38410810 %Long 0x00000001
+
+; PZQ Initial Calibration
+; tPZQ_INIT or more wait
+WAIT 1ms
+Data.Set 0x38410850 %Long 0x00000000
+
+Data.Set 0x38410818 %Long 0x00000001
+
+; Initial Delay Value Update
+; 250ns or more wait
+WAIT 1ms
+Data.Set 0x3841084c %Long 0x01010101
+Data.Set 0x3841084c %Long 0x00000000
+; 150ns or more wait
+WAIT 1ms
+
+; Initialization of SDRAM
+Data.Set 0x38410000 %Long 0x00000601
+; wait for int_status[4] bit of MCR_43 = 1b
+WAIT 10ms
+Data.Set 0x384100b0 %Long 0x00000010
+; wait for int_status[4] bit of MCR_43 = 0b
+WAIT 10ms
+;
+; AXI QoS
+;
+; DISP0
+Data.Set 0xd0042100 %Long 0x00000000
+; DISP1
+Data.Set 0xd0043100 %Long 0x00000000
+; CAP0
+Data.Set 0xd0044104 %Long 0x00000000
+; CAP1
+Data.Set 0xd0045104 %Long 0x00000000
+; CAP2
+Data.Set 0xd0046104 %Long 0x00000000
+; CAP3
+Data.Set 0xd0047104 %Long 0x00000000
+; CAP4
+Data.Set 0xd0048104 %Long 0x00000000
+; WBACK
+Data.Set 0xd0049104 %Long 0x00000000
+; IRIS MDP r4
+Data.Set 0xd004a100 %Long 0x00000000
+; IRIS MDP r0
+Data.Set 0xd004b100 %Long 0x00000000
+; IRIS MDP r1
+Data.Set 0xd004c100 %Long 0x00000000
+; IRIS MDP r2
+Data.Set 0xd004d100 %Long 0x00000000
+; IRIS MDP r3
+Data.Set 0xd004e100 %Long 0x00000000
+; IRIS MDP w
+Data.Set 0xd004f104 %Long 0x00000000
+; CPU0 r
+Data.Set 0xd0050100 %Long 0x00000000
+; CPU0 w
+Data.Set 0xd0050104 %Long 0x00000000
+; CPU1 r
+Data.Set 0xd0051100 %Long 0x00000000
+; CPU1 w
+Data.Set 0xd0051104 %Long 0x00000000
+; Command Sequencer r
+Data.Set 0xd0052100 %Long 0x00000000
+; Command Sequencer w
+Data.Set 0xd0052104 %Long 0x00000000
+; XDMAC r
+Data.Set 0xd0053100 %Long 0x00000000
+; XDMAC w
+Data.Set 0xd0053104 %Long 0x00000000
+; AHB0 r
+Data.Set 0xd0054100 %Long 0x00000000
+; AHB0 w
+Data.Set 0xd0054104 %Long 0x00000000
+; AHB1 r
+Data.Set 0xd0055100 %Long 0x00000000
+; AHB1 w
+Data.Set 0xd0055104 %Long 0x00000000
+; CAP5
+Data.Set 0xd0056104 %Long 0x00000000
+;
+; initialize Address Reordering, DDR Port Selection
+;
+Data.Set 0x3d100e44 %Long 0x00000000
+; ---------------------+-
+; [29] DDR1_IRIS_R3    | 0
+; [28] DDR0_IRIS_R3    | 0
+; ---------------------+-
+; [27] DDR1_IRIS_R2    | 0
+; [26] DDR0_IRIS_R2    | 0
+; [25] DDR1_IRIS_R1    | 0
+; [24] DDR0_IRIS_R1    | 0
+; ---------------------+-
+; [23] DDR1_IRIS_R0    | 0
+; [22] DDR0_IRIS_R0    | 0
+; [21] DDR1_IRIS_W     | 1
+; [20] DDR0_IRIS_W     | 1
+; ---------------------+-
+; [19] DDR1_WB         | 1
+; [18] DDR0_WB         | 1
+; [17] DDR1_CAP5       | 1
+; [16] DDR0_CAP5       | 1
+; ---------------------+-
+; [15] DDR1_CAP4       | 1
+; [14] DDR0_CAP4       | 1
+; [13] DDR1_CAP3       | 1
+; [12] DDR0_CAP3       | 1
+; ---------------------+-
+; [11] DDR1_CAP2       | 1
+; [10] DDR0_CAP2       | 1
+; [09] DDR1_CAP1       | 1
+; [08] DDR0_CAP1       | 1
+; ---------------------+-
+; [07] DDR1_CAP0       | 1
+; [06] DDR0_CAP0       | 1
+; [05] DDR1_IRIS_DISP2 | 0
+; [04] DDR0_IRIS_DISP2 | 0
+; ---------------------+-
+; [03] DDR1_DISP1      | 0
+; [02] DDR0_DISP1      | 0
+; [01] DDR1_DISP0      | 0
+; [00] DDR0_DISP0      | 0
+;
+Data.Set 0x3d100e48 %Long 0x3ff00000
+
+ENDDO

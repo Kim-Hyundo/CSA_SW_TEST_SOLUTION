@@ -1,0 +1,112 @@
+; --------------------------------------------------------------------------------
+; @Title: AMP-Demo script for LPC54102 on LPCXpresso54102 (AMP, RAM)
+; @Description:
+;   Setup a AMP debug session using a single script approach.
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   Use this script to test the AMP-Debugging.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to P1
+;    * TRACE32 is started using the .bat/.sh file in this directory
+; @Keywords: ARM
+; @Author: AME
+; @Board: LPCXpresso54102
+; @Chip: LPC5410*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: xpresso_amp_sram.cmm 15362 2019-12-03 14:50:48Z mschleinkofer $
+
+PRIVATE &currPath &rclPort &remoteCmd
+&currPath=OS.PPD()
+&rclPort=FORMAT.DecimalU(1.,RCL.PORT(0))+"."
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF SYStem.INSTANCE()<1.
+(
+  PRINT %ERROR "TRACE32 is not running in AMP mode! Use .bat/.sh file in this directory."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; enable INTERCOM if not already specified and prepare remote command
+IF (INTERCOM.PORT()==0)
+(
+  InterCom.ENable CM4
+)
+&remoteCmd="InterCom.execute CM0"
+
+; --------------------------------------------------------------------------------
+; close any existing REMOTE GUI
+INTERCOM.execute OTHERS QUIT
+
+; --------------------------------------------------------------------------------
+; open SLAVE GUI with or without enabled remote API
+IF (RCL.PORT(0)!=0)
+(
+  TargetSystem.NewInstance CM0 /ARCHitecture ARM /ChipIndex 2. /APIPORT &rclPort+1. /ONCE
+)
+ELSE
+(
+  TargetSystem.NewInstance CM0 /ARCHitecture ARM /ChipIndex 2. /ONCE
+)
+
+TITLE "TRACE32 for ARM - LPC54102J512BD64-M4-CORE0 - MASTER"
+&remoteCmd TITLE "TRACE32 for ARM - LPC54102J512BD64-M0+-CORE1 - SLAVE1"
+
+; --------------------------------------------------------------------------------
+; common SYStem settings
+RESet
+&remoteCmd RESet
+SYStem.RESet
+&remoteCmd SYStem.RESet
+SYStem.CPU LPC54102J512BD64-M4
+SYStem.CONFIG DEBUGPORTTYPE SWD
+SYStem.CONFIG CORE 1. 1.
+SYStem.CONFIG SLAVE OFF
+SYStem.Option ResBreak OFF
+&remoteCmd SYStem.CPU LPC54102J512BD64-M0+
+&remoteCmd SYStem.CONFIG DEBUGPORTTYPE SWD
+&remoteCmd SYStem.CONFIG CORE 2. 1.
+&remoteCmd SYStem.CONFIG SLAVE ON
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; kick secondary cores
+; ensure the M0+ is in Reset
+Data.Set SD:0x40000300 %Long 0xc0c4006D
+&remoteCmd SYStem.Mode.Attach
+; After attach the core is still hold in reset, but the M0 debugger
+; is able to access the debug registers. Because the vector catch on
+; reset is set, the M0 core will stop immmediatelly after releasing
+; reset.
+Data.Set SD:0x40000300 %Long 0xc0c4004D
+WAIT 0.1s
+
+; --------------------------------------------------------------------------------
+; load demo program on all cores (use internal RAM only)
+Data.LOAD.Elf ~~~~/master/sieve_ram_thumb_ii_v7m.elf
+&remoteCmd ChDir &currPath
+&remoteCmd Data.LOAD.Elf ./slave1/sieve_ram_thumb_v6m.elf
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main\1
+WAIT !STATE.RUN()
+&remoteCmd Go.direct main\1
+&remoteCmd WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+&remoteCmd WinCLEAR
+&remoteCmd Mode.Hll
+&remoteCmd WinPOS 0. 0.
+&remoteCmd List.auto
+
+ENDDO

@@ -1,0 +1,78 @@
+; --------------------------------------------------------------------------------
+; @Title: OSE Epsilon (OSARM) Demo for TRACE32 OS Awareness
+; @Description: 
+;   
+;   This batchfile loads all necessary files to demonstrate
+;   the RTOS-Debugger for OSARM.
+;   
+;   
+; @Keywords: oseepsilon, RTOS
+; @Author: DIE
+; @Chip: ARM7TDMI
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: osee.cmm 15227 2019-11-06 11:57:41Z bschroefel $
+
+;   Created by Alexandra Nieser / Lauterbach GmbH at 10.05.2000
+;   Modified by Rudi Dienstbeck / Lauterbach GmbH at 31.10.2001
+
+ SCREEN.ON
+
+; Debugger reset
+ PRINT "resetting..."
+ SYStem.RESet
+ MAP.RESet
+ WinPAGE.RESet
+ WinPOS 0 24. 70. 8. 0. 0. W000
+ AREA.view
+
+; Debugger initializations
+ PRINT "initializing..."
+
+ IF hardware.ICE()||hardware.FIRE()
+ (
+  MAP.Ram 0x0--0xffff
+  MAP.Intern
+  SYStem.Mode AloneInt
+ )
+ ELSE
+ (
+   SYStem.CPU ARM7TDMI
+   SYStem.Up
+ )
+
+ Data.Test 0--0ff
+ IF FOUND()
+ (
+   Go
+   WAIT 1.0s
+   Break
+ )
+
+; load sample application
+ PRINT "loading sample application..."
+ Data.LOAD.Elf motcon.axf
+ Register.Set PC 0x8000
+ 
+; initialize mutitasking support
+ PRINT "initializing RTOS support..."
+ SCREEN.OFF
+ TASK.CONFIG osearmE
+ TASK.STacK.PATtern 0x17
+ MENU.ReProgram osee
+
+ PRINT "load complete."
+
+; open some windows
+ WinPOS 0 0 75. 11. 0. 1. W001
+ TASK.DProc
+ WinPOS 50. 6. 70. 21. 11. 1. W002
+ List.auto
+
+; start application
+ Go motor
+
+
+
+
+

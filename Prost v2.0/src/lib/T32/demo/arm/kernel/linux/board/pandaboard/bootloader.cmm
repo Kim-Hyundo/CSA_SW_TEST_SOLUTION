@@ -1,0 +1,62 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to debug the bootloaders of the OMAP4430 PandaBoard
+; @Description: 
+;  This scrips can be used to debug the X-Loader and u-boot for the OMAP4430
+;  PandaBoard
+; @Keywords: OMAP4*, Panda*, TI, XLoader, uboot
+; @Author: KJM
+; @Board: PandaBoard
+; @Chip: OMAP4430
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: bootloader.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+  SCREEN.ALways      ; permanent update for internal terminal window
+  WinCLEAR
+  RESet
+  TERM.RESet
+  SYStem.RESet
+  
+  WinPOS 0. 0. 80. 20. 0. 0. W000
+  AREA.view
+
+; Open serial terminal window on COM1
+  WinPOS 0. 25. 80. 25. 0. 0. TERM.view
+  DO ~~/demo/etc/terminal/serial/term.cmm COM1 115200.
+   
+; Initializing Debugger 
+  
+  SYStem.CPU OMAP4430
+  SYStem.JtagClock CTCK 30MHz
+  SETUP.IMASKASM ON          ; lock interrupts while single stepping
+  SYStem.Up ;If the SYStem.Up doesn't reset the target correctly please use
+            ;the following block instead of it 
+; --------------------------------------------------------------------------------
+;  ON POWERUP GOTO PoweredUp
+;  PRINT "Please re-power the target ..."
+;  STOP
+;               
+;PoweredUp:  ;Check that there is no spaces before the label
+;  ON POWERUP inherit   
+;  WAIT 0.1s
+;  SYStem.Mode.Attach
+;  Break.direct 
+;
+; --------------------------------------------------------------------------------
+ 
+  WinPOS 90. 0. 80. 20. 0. 0.
+  Data.List
+  SCREEN.display 
+ 
+  Data.LOAD.Elf x-load /NoCODE
+  Data.LOAD.Elf u-boot /NoCODE /NoClear
+
+; set an on-chip breakpoint at the entry point of the X-Loader
+  Break.Set `\\x-load\Global\_start`  /Onchip
+; set an on-chip breakpoint at the entry point of u-boot
+  Break.Set `\\u-boot\Global\_start`  /Onchip
+
+  Go.direct 
+  WAIT !STATE.RUN()
+
+  ENDDO

@@ -1,0 +1,142 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash declaration for Nordic Semiconductor NRF5340QKAA-APP internal flash
+; @Description:
+;   Script arguments:
+;     DO nrf5340app [PREPAREONLY] [CPU=<cpu>] [DUALPORT=<0|1>]
+;       PREPAREONLY    only declares flash but does not execute flash programming
+;       CPU=<cpu>      selects CPU derivative <cpu>
+;       DUALPORT=<0|1> use dual port memory access, default 1
+;       MASSERASE      forces mass erase of device before establishing debug
+;                      connection
+;                      Mass erase erases code flash and UICR registers
+;   Example:
+;     DO ~~/demo/arm/flash/nrf5340app PREPAREONLY
+;   Note:
+;     This file must NOT be modified.
+;     This file is intended to stay within TRACE32 installation.
+;     Usage examples are available in the ~~/demo/arm/hardware/... subdirectories.
+;
+;      CPU-Type         Flash     Addr     RamSize     Addr
+; --------------------------------------------------------------------------------
+;     NRF5340QKAA-APP    1 MB  0x00000000   256 KB  0x20000000
+;
+; @Chip: NRF5340QKAA-APP
+; @Author: PHI, BWR
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 8631 $
+; $Id: nrf5340app.cmm 8631 2020-08-28 17:48:56Z bwright $
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+PRIVATE &param_prepareonly &param_cpu &param_dualport
+&parameters=STRing.UPpeR("&parameters")
+&param_prepareonly=(STRing.SCAN("&parameters","PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract("&parameters","CPU=","")
+&param_dualport=STRing.SCANAndExtract("&parameters","DUALPORT=","1")
+&param_masserase=(STRing.SCAN("&parameters","MASSERASE",0)!=-1)
+
+; --------------------------------------------------------------------------------
+; Initialize and start the debugger
+IF !SYStem.Up()||&param_masserase
+(
+  SYStem.RESet
+
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  IF !CPUIS(NRF5340QKAA-APP)
+    SYStem.CPU NRF5340QKAA-APP
+
+  SYStem.MemAccess DAP
+
+  IF &param_masserase
+    FLASH.UNSECUREerase
+
+  SYStem.Up
+)
+
+; --------------------------------------------------------------------------------
+; disable MPU
+Data.Set ZSD:0xE000ED94 %Long (Data.Long(ZSD:0xE000ED94)&(~0x1)) ; disable MPU
+
+
+; --------------------------------------------------------------------------------
+; Flash declaration
+FLASH.RESet
+GOSUB FlashDeclaration "&param_dualport"
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; --------------------------------------------------------------------------------
+; Flash programming example
+DIALOG.YESNO "Program flash memory?"
+PRIVATE &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram ALL /Erase
+  Data.LOAD.auto *
+  FLASH.ReProgram OFF
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+)
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+; SUBROUTINES
+
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU
+;
+;   Please do NOT modify the TRACE32 flash declaration.
+;
+;   Modifications can result in unpredictable behavior.
+;   Please contact support@lauterbach.com for any changes.
+FlashDeclaration: ;(param_dualport)
+(
+  PARAMETERS &param_dualport
+  PRIVATE &secured
+
+  ; Read out security mode of the core
+  IF ((Register(NS)&0x1)==0x0)
+    &secured=0x1
+  ELSE
+    &secured=0x0
+
+  ; Declare code flash and OTP area of UICR
+  FLASH.Create 1. 0x00000000++(0x100000-0x1) 0x1000 TARGET long  &secured
+
+  ; Declare UICR registers
+  ; Program UICR data with care. An erased UICR should still allow debugger access.
+  ;
+
+  ; 1.   FLASH.CHANGEtype address-range TARGET 
+  ; 2.   FLASH.Program address-range /OTP
+  ; 3.   program UICR data
+  ; 4.   FLASH.CHANGEtype address-range NOP
+  
+  FLASH.Create 1. 0x00FF8000++0x3 0x4 NOP Long  &secured /OTP /info "UICR : APROTECT"
+  FLASH.Create 1. 0x00FF800C++0x3 0x4 NOP Long  &secured /OTP /info "UICR : EXTSUPPLY"
+  FLASH.Create 1. 0x00FF8010++0x3 0x4 NOP Long  &secured /OTP /info "UICR : VREGHVOUT"
+  FLASH.Create 1. 0x00FF8014++0x3 0x4 NOP Long  &secured /OTP /info "UICR : HFXOCNT"
+  FLASH.Create 1. 0x00FF801C++0x3 0x4 NOP Long  &secured  /OTP /info "UICR : SECUREAPPROTECT"
+  FLASH.Create 1. 0x00FF8020++0x3 0x4 NOP Long  &secured  /OTP /info "UICR : ERASEPROTECT"
+  FLASH.Create 1. 0x00FF8024++0x3 0x4 NOP Long  &secured  /OTP /info "UICR : TINSTANCE"
+  FLASH.Create 1. 0x00FF8028++0x3 0x4 NOP Long  &secured  /OTP /info "UICR : NFCPINS"
+  FLASH.Create 1. 0x00FF8100++(192.*4.-1.) TARGET Long &secured /OTP  /info "UICR : OTP"
+  FLASH.Create 1. 0x00FF8400++(128.*8.-1.) NOP Long  &secured  /OTP /info "UICR  KEYSLOT.CONFIG.DEST and PERM"
+  FLASH.Create 1. 0x00FF8800++(128.*16.-1.) NOP Long  &secured  /OTP /info "UICR : KEYSLOT.KEY.VALUE"
+
+  IF (("&param_dualport"!="1")||SYStem.ACCESS.DENIED())
+    FLASH.TARGET 0x20000000 0x20001000 0x1000 ~~/demo/arm/flash/long/nrf5340app.bin
+  ELSE
+    FLASH.TARGET 0x20000000 E:0x20001000 0x1000 ~~/demo/arm/flash/long/nrf5340app.bin /DualPort
+
+  RETURN
+)

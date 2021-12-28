@@ -1,0 +1,103 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for NETX90-APP on NXHX90-JTAG with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The Offchip Trace using a Combiprobe/uTrace is set up.
+;   Use this script for testing the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Combiprobe/uTrace to X400.
+;    * Set S701[1] to "ON".
+; @Keywords: ARM, Cortex-M4, ETM, ITM
+; @Author: ALI
+; @Board: NXHX90-JTAG
+; @Chip: NETX90-APP
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: nxhx90-jtag-app_sieve_offchip_trace_sram.cmm 13919 2019-02-09 09:45:19Z alintner $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF VERSION.BUILD()<105856.
+(
+  PRINT %ERROR "Please use more recent software. Contact support@lauterbach.com."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+
+RESet
+SYStem.RESet
+SYStem.CPU NETX90-APP
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option.DUALPORT ON
+SYStem.Option.EnReset OFF ; don't reset the communication CPU ...
+Trace.DISable
+IF TRUE() ; If application CPU is not enabled by the communication CPU software ...
+(
+  SYStem.Mode Prepare
+  Data.Set EAHB:0xFF4012C0 %LE %Long Data.Long(EAHB:0xFF4012C0) ; asic_ctrl_access_key
+  Data.Set EAHB:0xFF401268 %LE %Long 0x08000800 ; enable application CPU
+)
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace (ETM, ITM)
+
+IF COMBIPROBE()||UTRACE()
+(
+  ; Enable trace pins
+  Data.Set EAHB:0xFF4012C0 %LE %Long Data.Long(EAHB:0xFF4012C0) ; asic_ctrl_access_key
+  Data.Set EAHB:0xFF401240 %LE %LONG 0x00030003
+
+  ; set PinMux and enable Clocks
+  TPIU.PortSize 4
+  TPIU.PortMode Continuous
+  ITM.DataTrace CorrelatedData
+  ITM.ON
+  ETM.Trace ON
+  ETM.ON
+
+  Trace.METHOD CAnalyzer
+  Trace.AutoInit ON
+  CAnalyzer.AutoFocus 0x000B0000
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO

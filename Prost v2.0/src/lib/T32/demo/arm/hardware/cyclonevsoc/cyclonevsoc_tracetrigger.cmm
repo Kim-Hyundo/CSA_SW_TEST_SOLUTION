@@ -1,0 +1,42 @@
+; --------------------------------------------------------------------------------
+; @Title: CTI based TraceTrigger initialization
+; @Description: 
+;   This script contains the intialization sequence using CTM Channel 2 to
+;   connect the Trigger Output of the PTMs with the ETR/ETF/TPIU.
+;   Afterwards the Break.Set <addr> /TraceTrigger functionality is working
+; @Keywords: ALTERA, Cortex-A9, Cyclone, Cyclonev, ETR, ETF, TPIU, trace
+; @Props: Template
+; @Board: -
+; @Chip: CYCLONEVSOC
+; @Author: AME
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: cyclonevsoc_tracetrigger.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+; wire TraceTriggers PTM0 -> CTM2 -> ETF+ETR+TPIU
+; csCTI - ENABLE
+Data.Set EDAP:0x80002000 %Long 0x1
+
+; csCTI - CTM2 -> TPIU-TRIGIN
+Data.Set EDAP:0x800020AC %Long 0x4 
+; csCTI - CTM2 -> ETF-TRIGIN
+Data.Set EDAP:0x800020BC %Long 0x4 
+; csCTI - CTM2 -> ETR-TRIGIN
+Data.Set EDAP:0x800020A4 %Long 0x4
+
+; Core0CTI - ENABLE
+Data.Set EDAP:0x80118000 %Long 0x1
+; Core0CTI - PTM0-Trigger -> CTM2
+Data.Set EDAP:0x80118038 %Long 0x4
+
+; if it's a SMP debug session ....
+IF CORE.NUMBER()==2.
+(
+  ; Core1CTI - ENABLE
+  ; bypass - already done by CORE.ASSIGN/CORE.NUMber
+  ; Data.Set EDAP:0x80119000 %Long 0x1
+  ; Core1CTI - PTM1-Trigger -> CTM2
+  Data.Set EDAP:0x80119038 %Long 0x4
+)
+
+ENDDO

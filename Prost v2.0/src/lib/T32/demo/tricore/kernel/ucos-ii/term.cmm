@@ -1,0 +1,32 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to reroute uC/OS output to terminal
+; @Description:
+;   This script patches the uC/OS function OSputc
+;   to reroute the character output to a TRACE32
+;   terminal. The output memory used is a byte at
+;   address 0xD0007000
+; @Keywords: Infineon, kernel, terminal, TriCore, ucos-ii
+; @Author: DIE
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: term.cmm 7487 2014-07-29 08:16:41Z mobermeir $
+
+
+; patch character output to print on TRACE32 terminal
+
+ Data.Assemble OSputc dsync
+ Data.Assemble , nop16
+ Data.Assemble , movh.a a15,0xd000
+ Data.Assemble , lea    a15,[a15]0x7000
+ Data.Set OSputc+0x0e 09 0f0 00 08  ; d.a , ld.b   d0,[a15]
+ Data.Assemble OSputc+0x12 extr.u d0,d0,0x0,0x8
+ Data.Set OSputc+0x16 76 02         ; d.a , jz16   d0,$+4
+ Data.Assemble OSputc+0x18 j16    $-0x12
+ Data.Set OSputc+0x1a 28 04         ; d.a , st16.b [a15],d4
+ Data.Assemble OSputc+0x1c mov16  d2,0x0
+ Data.Assemble , ret16
+
+; open TRACE32 terminal
+
+ WinPOS 43. 0. 80. 15. 0. 0. W000
+ TERM.view 0xd0007000 0

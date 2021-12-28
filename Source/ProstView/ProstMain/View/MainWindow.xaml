@@ -1,0 +1,172 @@
+﻿<Window x:Class="ProstMain.View.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:view="clr-namespace:ProstMain.View"
+        xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity" 
+        xmlns:local="clr-namespace:ProstMain"
+        xmlns:util="clr-namespace:ProstMain.Util"
+        xmlns:notify="http://www.hardcodet.net/taskbar"
+        Width="1080"
+        AllowsTransparency="True"        
+        mc:Ignorable="d"
+        Title="PROST" DataContext="{Binding Source={StaticResource Locator},Path=MainVM}" ResizeMode="NoResize" Icon="/ProstMain;component/Resources/MainIcon.ico" WindowStyle="None"  x:Name="mainwindow" RenderOptions.BitmapScalingMode="HighQuality" KeyDown="mainwindow_KeyDown">
+
+    <Window.CommandBindings>
+        <CommandBinding Command="{x:Static SystemCommands.MinimizeWindowCommand}" CanExecute="CommandBinding_CanExecute" Executed="CommandBinding_Executed_Minimize" />
+        <CommandBinding Command="{x:Static SystemCommands.MaximizeWindowCommand}" CanExecute="CommandBinding_CanExecute" Executed="CommandBinding_Executed_Maximize" />
+        <CommandBinding Command="{x:Static SystemCommands.RestoreWindowCommand}" CanExecute="CommandBinding_CanExecute" Executed="CommandBinding_Executed_Restore" />
+    </Window.CommandBindings>
+    <Window.Resources>
+        <util:TestStepZeroConver x:Key="teststepzeroconver"/>
+        <util:ProgressVisibleConvert x:Key="progressvisibleconvert"/>
+        <util:BuildProgressTrackbarConvert x:Key="buildprogresstrackbarconvert"/>
+
+        <Style x:Key="CaptionButtonStyle" TargetType="Button">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid x:Name="LayoutRoot" Background="Transparent" Width="44" >
+                            <TextBlock x:Name="txt" Text="{TemplateBinding Content}" FontFamily="Segoe MDL2 Assets" FontSize="10" 
+                                   Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   RenderOptions.ClearTypeHint="Auto" TextOptions.TextRenderingMode="Aliased"  TextOptions.TextFormattingMode="Display"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="LayoutRoot" Property="Background" Value="#E5E5E5"/>
+                                <Setter TargetName="txt" Property="Foreground" Value="#000000"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="MaximizeButtonStyle" TargetType="Button" BasedOn="{StaticResource CaptionButtonStyle}">
+            <Setter Property="Content" Value="&#xE739;"/>
+        </Style>
+
+        <!--Restore-->
+        <Style x:Key="RestoreButtonStyle" TargetType="Button" BasedOn="{StaticResource CaptionButtonStyle}">
+            <Setter Property="Content" Value="&#xE923;"/>
+        </Style>
+    </Window.Resources>
+    <materialDesign:DialogHost IsOpen="{Binding MainModel.isDialogOpen}" DialogContent="{Binding MainModel.DialogContent}" CloseOnClickAway="false" OverlayBackground="Black">
+        <Grid>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="25"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="50"/>
+                        <RowDefinition Height="50"/>
+                        <RowDefinition Height="7*"/>
+                        <RowDefinition Height="3*"/>
+
+                    </Grid.RowDefinitions>
+
+                    <notify:TaskbarIcon x:Name="ProstNotifyIcon" IconSource="/ProstMain;component/Resources/MainIcon.ico" Visibility="{Binding MainModel.isTrackBarVisible}" PopupActivation="LeftClick">
+                        <notify:TaskbarIcon.TrayToolTip>
+                            <Border Background="White">
+                                <Grid Width="80" Height="20">
+                                    <TextBlock Text="SW TEST AUTOMATION TOOL" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource ResourceKey=StandardTextForeground}"/>
+                                </Grid>
+                            </Border>
+                        </notify:TaskbarIcon.TrayToolTip>
+                        <notify:TaskbarIcon.TrayPopup>
+                            <Popup IsOpen="{Binding MainModel.isPopupOpen}" Placement="Right" x:Name="popup" Opened="popup_Opened" StaysOpen="true">
+                                <Grid Background="{DynamicResource ResourceKey=StandardBackground}">
+                                    <GroupBox x:Name="TrackBarPopupGroupbox" >
+                                        <GroupBox.Header>
+                                            <StackPanel Orientation="Horizontal"  Background="Transparent">
+                                                <Image Source="/ProstMain;component/Resources/MainIcon.png" Width="25" Height="25" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                                <TextBlock Text="SW TEST AUTOMATION TOOL" Foreground="{DynamicResource ResourceKey=GroupBoxHeaderForeground}" Margin="8,0,0,0" FontWeight="Bold" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </GroupBox.Header>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="5*"/>
+                                                <ColumnDefinition Width="5*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="5*"/>
+                                                <RowDefinition Height="2*"/>
+                                                <RowDefinition Height="2*"/>
+                                            </Grid.RowDefinitions>
+                                            <Grid Grid.ColumnSpan="2" HorizontalAlignment="Center" Width="210">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="1*"/>
+                                                    <ColumnDefinition Width="1*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Button Grid.Column="1" materialDesign:ShadowAssist.ShadowDepth="Depth3" materialDesign:ShadowAssist.ShadowEdges="Bottom,Right" ToolTip="WINDOW"  Margin="5,0,0,0" Command="{Binding Source={StaticResource Locator},Path=MainVM.ShowWindowCommand}" x:Name="BUTTON_TrackBarShowWindow" Background="{DynamicResource ResourceKey=TrackBarButtonBackground}" Foreground="{DynamicResource ResourceKey=ButtonForeground}">
+                                                    <materialDesign:PackIcon Kind="WindowMaximize" Name="windowicon" Foreground="{DynamicResource ResourceKey=StandardTextForeground}"/>
+                                                </Button>
+                                                <Button Grid.Column="0" materialDesign:ShadowAssist.ShadowDepth="Depth3" materialDesign:ShadowAssist.ShadowEdges="Bottom,Right" ToolTip="LOG VIEW"  Margin="5,0,0,0" Command="{Binding Source={StaticResource Locator}, Path=MainVM.ShowLogWindowCommand}" x:Name="BUTTON_TrackBarShowLogWindow" Background="{DynamicResource ResourceKey=TrackBarButtonBackground}" Foreground="{DynamicResource ResourceKey=ButtonForeground}">
+                                                    <materialDesign:PackIcon Kind="FileEyeOutline" Name="Logicon" Foreground="{DynamicResource ResourceKey=StandardTextForeground}"/>
+                                                </Button>
+                                            </Grid>
+                                            <DockPanel Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2">
+                                                <TextBlock Text="{Binding Source={StaticResource Locator},Path=PopupTestStatusVM.PopupTestStatusModel.TestcaseProgressText}" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" Visibility="{Binding Source={StaticResource Locator},Path=PopupTestStatusVM.PopupTestStatusModel.IsTestStart,Converter={StaticResource progressvisibleconvert}}" TextAlignment="Center" FontWeight="Bold" x:Name="TrackBarText"/>
+                                            </DockPanel>
+
+                                            <Grid Grid.Row="2" Grid.ColumnSpan="2" Grid.Column="0" Visibility="{Binding Source={StaticResource Locator},Path=PopupTestStatusVM.PopupTestStatusModel.IsTestStart,Converter={StaticResource progressvisibleconvert}}">
+                                                <Border Grid.Column="0">
+                                                    <Border.Background>
+                                                        <ImageBrush ImageSource="/ProstMain;component/Resources/bg_full_progressbar.png"/>
+                                                    </Border.Background>
+                                                </Border>
+                                                <util:NinePatchPanel BackgroundImage="/ProstMain;component/Resources/full_progressbar.9.png" HorizontalAlignment="Left" Visibility="{Binding Source={StaticResource Locator},Path=PopupTestStatusVM.PopupTestStatusModel.TestStatusProgress,Converter={StaticResource teststepzeroconver}}" Width="{Binding Source={StaticResource Locator},Path=PopupTestStatusVM.PopupTestStatusModel.TestStatusProgress,Converter={StaticResource buildprogresstrackbarconvert},UpdateSourceTrigger=PropertyChanged}" Grid.Column="0"/>
+
+                                                <TextBlock Foreground="Black" Grid.Column="0" HorizontalAlignment="Center" Text="{Binding Source={StaticResource Locator},Path=PopupTestStatusVM.PopupTestStatusModel.TestStatusProgress,StringFormat={}{0:N1}%}" FontWeight="Bold" FontSize="13" VerticalAlignment="Center" />
+                                            </Grid>
+                                        </Grid>
+                                    </GroupBox>
+                                </Grid>
+                            </Popup>
+
+                        </notify:TaskbarIcon.TrayPopup>
+                    </notify:TaskbarIcon>
+
+                    <DockPanel x:Name="TitleBar" Background="{DynamicResource ResourceKey=TopBarBackground}" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,0" MouseLeftButtonDown="TitleBar_MouseDown" LastChildFill="False">
+                        <Image Source="/ProstMain;component/Resources/MainIcon.png" Margin="4,1,1,1"></Image>
+                        <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" FontSize="16" Margin="5,0,0,0" FontWeight="Bold">SW TEST AUTOMATION TOOL</TextBlock>
+                        <Button Width="45" Style="{DynamicResource CloseButtonStyle}" WindowChrome.IsHitTestVisibleInChrome="True" HorizontalAlignment="Right"
+                            Command="{Binding ExitProgramCommand}" CommandParameter="mainwindow" DockPanel.Dock="Right"/>
+                        <Button DockPanel.Dock="Right" x:Name="RestoreButton" Visibility="Collapsed" Style="{StaticResource RestoreButtonStyle}" 
+                            Command="{x:Static SystemCommands.RestoreWindowCommand}" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                        <Button DockPanel.Dock="Right" x:Name="MaximizeButton" Visibility="Visible" Style="{StaticResource MaximizeButtonStyle}" 
+                            Command="{x:Static SystemCommands.MaximizeWindowCommand}" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                        <Button Width="45" Style="{DynamicResource MinimizeButtonStyle}" WindowChrome.IsHitTestVisibleInChrome="True" HorizontalAlignment="Right"
+                            Command="{Binding HideWindowCommand}" CommandParameter="{Binding ElementName=mainwindow}"  DockPanel.Dock="Right"/>
+                    </DockPanel>
+                    
+                    <view:MenuBarView Grid.Row="1"/>
+                    <view:ToolbarView Grid.Row="2"/>
+
+                    <Grid Grid.Row="3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2.5*"/>
+                            <ColumnDefinition Width="7.5*"/>
+                        </Grid.ColumnDefinitions>
+                        <view:ProjectExplorerView Grid.Column="0" Grid.Row="3"  BorderBrush="{DynamicResource ResourceKey=PrimaryHueMidBrush}" BorderThickness="2,2,2,2"/>
+                        <view:ProjectTabControl Grid.Column="1" Grid.Row="3" BorderBrush="{DynamicResource ResourceKey=PrimaryHueMidBrush}" BorderThickness="0,0,0,2"/>
+
+                    </Grid>
+                    <view:CommandView Grid.Row="4" />
+
+                </Grid>
+                <DockPanel Height="25" Background="DarkGray" Grid.Row="1" LastChildFill="False">
+                    <TextBlock HorizontalAlignment="Right" x:Name="TEXTBLOCK_Trace32Connection" TextAlignment="Left" VerticalAlignment="Center" Text="TRACE32 Disconnection" Margin="10,0,10,0" Foreground="#212121" FontWeight="Bold" DockPanel.Dock="Right"/>
+                    <Border CornerRadius="100" Background="Red"  x:Name="IMAGE_trace32Connect" Width="17" Height="17" Margin="0,0,0,0" DockPanel.Dock="Right"/>
+                </DockPanel>
+
+            </Grid>
+            <materialDesign:Snackbar Foreground="White" Background="Black" MessageQueue="{Binding MainModel.TrackBarMessageQueue}" x:Name="SnackbarSeven" HorizontalAlignment="Stretch" VerticalAlignment="Bottom"/>
+        </Grid>
+    </materialDesign:DialogHost>
+</Window>

@@ -1,0 +1,150 @@
+; --------------------------------------------------------------------------------
+; @Title: Generic Flash script file for TC116x devices
+; @Description:
+;   Example script for flash declaration and programming of Infineon
+;   TriCore TC116x internal flash.
+; @Keywords: Flash, Infineon, TriCore
+; @Author: WRD
+; @Chip: TC116*
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 2935 $
+; $Id: tc116x.cmm 2935 2014-08-05 07:49:32Z mobermeir $
+
+
+; Script arguments:
+;
+;   DO tc116x [PREPAREONLY]
+;
+;     PREPAREONLY only declares flash but does not execute flash programming
+;
+; Example:
+;
+;   DO ~~/demo/tricore/flash/tc116x PREPAREONLY
+;
+; List of TC116x derivatives and their configuration:
+;
+; CPU-Type   ProgFlash   DataFlash   DataRam   ProgRam
+;               (KB)        (KB)       (KB)      (KB)
+; --------------------------------------------------------------------------------
+; TC1161       1024.         16.        32.        8.
+; TC1162       1024.         16.        32.        8.
+; TC1163       1024.         16.        40.        8.
+; TC1164       1024.         16.        40.        8.
+; TC1165       1504.         32.        56.       16.
+; TC1166       1504.         32.        56.       16.
+;
+; Flash:
+;   1504 kByte onchip program flash at 0x80000000--0x80177fff (cached)
+;                                   or 0xa0000000--0xa0177fff (non cached)
+;
+;   1024 kByte onchip program flash at 0x80000000--0x800fffff (cached)
+;                                   or 0xa0000000--0xa00fffff (non cached)
+;
+;   32 kByte onchip data flash at 0x8fe00000--0x8fe03fff (cached)
+;                             and 0x8fe10000--0x8fe13fff (cached)
+;                              or 0xafe00000--0xafe03fff (non cached)
+;                             and 0xafe10000--0xafe13fff (non cached)
+;
+;   16 kByte onchip data flash at 0x8fe00000--0x8fe01fff (cached)
+;                             and 0x8fe10000--0x8fe11fff (cached)
+;                              or 0xafe00000--0xafe01fff (non cached)
+;                             and 0xafe10000--0xafe11fff (non cached)
+;
+; RAM:
+;   DMI Scratch-Pad RAM starting at 0xd0000000 for data
+;   PMI Scratch-Pad RAM starting at 0xd4000000 for flash algorithm
+;
+; NOTES:
+;   This script version is considering Errata regarding address restriction
+;   of program flash. Last 32kByte of program flash are not programmable.
+;   For future steppings the script may need adaption to support of full
+;   program flash address range.
+;
+
+  LOCAL &parameters &param_prepareonly &ProgFlash &DataFlash &CPU
+  ENTRY %LINE &parameters
+  &param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+
+  ; ------------------------------------------------------------------------------
+  ; Initialize
+  ; Example for TC1166
+
+  IF SYStem.MODE()<5.
+  (
+    SYStem.RESet
+    SYStem.CPU TC1166
+    SYStem.Up
+  )
+
+  Data.Set 0xF0000024 %Long 0x00000008    ; disable watchdog for programming
+
+  ; ------------------------------------------------------------------------------
+  ; Flash Declaration
+
+  ; Set flash configuration values depending on selected CPU
+  &CPU=CPU()
+  IF (("&CPU"=="TC1161")||("&CPU"=="TC1162")||("&CPU"=="TC1163")||("&CPU"=="TC1164"))
+  (
+    &ProgFlash=1024.
+    &DataFlash=16.
+  )
+  ELSE IF (("&CPU"=="TC1165")||("&CPU"=="TC1166"))
+  (
+    &ProgFlash=1504.
+    &DataFlash=32.
+  )
+  ELSE
+  (
+    PRINT %ERROR "FLASH size of CPU type is unknown"
+    ENDDO
+  )
+
+  FLASH.RESet
+
+  ; Program flash
+  FLASH.Create 1. 0xa0000000--0xa001ffff 0x04000 TARGET Long
+  FLASH.Create 2. 0xa0020000--0xa003ffff 0x20000 TARGET Long
+  FLASH.Create 2. 0xa0040000--0xa007ffff 0x40000 TARGET Long
+  FLASH.Create 2. 0xa0080000--0xa00fffff 0x80000 TARGET Long
+  IF &ProgFlash==1504.
+  (
+    FLASH.Create 2. 0xa0100000--0xa0177fff 0x78000 TARGET Long
+  )
+
+  ; Data flash
+  IF &DataFlash==16.
+  (
+    FLASH.Create 3. 0xafe00000--0xafe01fff 0x02000 TARGET Long
+    FLASH.Create 4. 0xafe10000--0xafe11fff 0x02000 TARGET Long
+  )
+  IF &DataFlash==32.
+  (
+   FLASH.Create 3. 0xafe00000--0xafe03fff 0x04000 TARGET Long
+   FLASH.Create 4. 0xafe10000--0xafe13fff 0x04000 TARGET Long
+  )
+
+  FLASH.TARGET 0xd4000000 0xd0000000 0x1000 ~~/demo/tricore/flash/long/tc1796.bin
+  FLASH.CreateALIAS 0x80000000--0x8fffffff 0xa0000000
+
+  ; Flash script ends here if called with parameter PREPAREONLY
+  IF &param_prepareonly
+    ENDDO PREPAREDONE
+
+  ; ------------------------------------------------------------------------------
+  ; Example for download
+  ;
+  ; FLASH.ReProgram or FLASH.AUTO is required for flash programming of unsorted
+  ; files. Each write page can only be written once after it was erased.
+
+  DIALOG.YESNO "Program flash memory?"
+  LOCAL &progflash
+  ENTRY &progflash
+  IF &progflash
+  (
+    FLASH.ReProgram ALL /Erase
+    Data.LOAD.auto *
+    FLASH.ReProgram.off
+  )
+
+  ENDDO

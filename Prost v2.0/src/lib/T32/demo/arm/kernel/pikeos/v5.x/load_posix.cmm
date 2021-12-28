@@ -1,0 +1,39 @@
+; --------------------------------------------------------------------------------
+; @Title: Load POSIX Awareness
+; @Description:
+;
+;  This script loads the symbols of a PikeOS POSIX task and loads the POSIX
+;  awareness for this task.
+;  Parameters:
+;  - PikeOS task name
+;
+;  Examples:
+;   DO load_posix myPosxTask
+;
+; @Keywords: awareness pikeos
+; @Author: DIE
+; @Copyright: (c) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: load_posix.cmm 5210 2020-04-16 08:02:04Z rdienstbeck $
+
+LOCAL &posixtask &posixid
+ENTRY &posixtask
+
+PRINT "loading symbols and POSIX awareness for process &posixtask"
+
+; load symbols of PikeOS task
+sYmbol.AutoLOAD.Check
+sYmbol.AutoLOAD.TOUCH "&posixtask"
+
+&posixid=task.task.name2id("&posixtask")
+IF &posixid==0xffffffff
+(
+    PRINT "sorry: PikeOS task named &posixtask not found."
+    ENDDO
+)
+
+; load POSIX awareness
+EXTension.LOAD ~~/demo/arm64/kernel/pikeos/posix/posix.t32 &posixid /NAME &posixtask
+DO ~~/demo/arm64/kernel/pikeos/v5.x/adjust_menu ~~/demo/arm64/kernel/pikeos/posix/posix.men &posixtask
+
+ENDDO

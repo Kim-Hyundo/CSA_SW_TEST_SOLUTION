@@ -1,0 +1,152 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux Demo for TRACE32 OS Awareness for the Sitara Board
+; @Description: 
+;   This batchfile demonstrates the use of the OS Awareness for Linux
+;   The example is generated for the Spectrum Digital Mistral board
+;   using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   Linux is downloaded to the board via ICD.
+; @Keywords: AM37*, ARM, awareness, Linux, RTOS, TI
+; @Author: KJM
+; @Board: Sitara
+; @Chip: AM3715
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: sitara_linux.cmm 15236 2019-11-08 07:27:03Z bschroefel $
+
+
+ LOCAL &ka_path &awareness
+ SCREEN.ON
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 25. 75. 9. 0. 0. W000
+ AREA.view
+ 
+ PRINT "resetting..."
+
+ RESet
+
+; setup of ICD
+ 
+ PRINT "initializing..."
+ SYStem.CPU AM3715
+ SYStem.JtagClock RTCK
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ SYStem.Option ResBreak OFF     ; hardware dependent (see manual)
+ SYStem.Option WaitReset ON     ; hardware dependent (see manual)
+ TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set UNDEF OFF         ; my be used by Linux for FPU detection
+ SYStem.Option MMUSpaces ON     ; enable space ids to virtual addresses
+ SYStem.Up
+
+ 
+ SETUP.IMASKASM ON          ; lock interrupts while single stepping
+ 
+; Target Setup: initialize DRAM controller and peripherals
+ 
+ ; Either let the boot monitor setup the board
+    Go
+    PRINT "target setup..."
+    WAIT 2.s
+    Break
+
+; Load the Linux kernel
+
+ ; If you are using a flashed kernel, or if you're 
+ ; loading your kernel via TFTP, use the boot monitor
+ ; to do so.
+ 
+ ; Use the next lines only to load the kernel into
+ ; RAM using the debugger.
+
+
+ PRINT "loading Linux image..."
+ 
+ ; vmlinux starts physically at RAM start (=0x80000000) + 0x8000 
+ ; We have to adjust it from the virtual start address at the label
+ ; "stext" from the System.map ("nm vmlinux | sort")
+ ; i.e.: Data.LOAD.Elf vmlinux <physical start>-<virtual start>
+
+ Data.LOAD.Elf vmlinux 0x80008000-0xc0008000 80000000--8fffffff /gnu /NosYmbol
+ 
+ Register.RESet
+
+ ; Set PC on start address of image
+ Register.Set PC 0x80008000
+
+ ; Set machine type in R1; see arch/arm/tools/mach-types
+ Register.Set R1 1535. ; OMAP3EVM
+ 
+ DO sitara_atag_list.cmm
+ 
+ 
+; Loading RAM disk
+
+ PRINT "loading ram disk..."
+ 
+ Data.LOAD.Binary ramdisk.image.gz 0x81600000 /NoClear /NosYmbol
+ 
+; Load the Linux kernel symbols into the debugger
+ 
+ PRINT "loading Linux kernel symbols..."
+
+ Data.LOAD.Elf vmlinux /gnu /NoCODE /StripPART "linux+sim"
+
+; Open a Code Window -- we like to see something
+
+ WinPOS 0. 0. 75. 20.
+ List.auto
+ SCREEN.display
+ 
+ 
+ ; Map the virtual kernel symbols to physical addresses
+ ; to give the debugger access to it before CPU MMU is
+ ; initialized
+ 
+ PRINT "initializing debugger MMU..."
+ MMU.FORMAT LINUX swapper_pg_dir 0xc0000000--0xc3ffffff 0x80000000
+ TRANSlation.Create 0c0000000--0c1ffffff 0x80000000 ; map kernel pages at RAM start
+ TRANSlation.COMMON 0c0000000--0ffffffff            ; common area for kernel and processes
+ TRANSlation.TableWalk ON   ; debugger uses a table walk to decode virtual addresses
+ TRANSlation.ON
+ 
+ Go start_kernel /Onchip
+ WAIT !STATE.RUN()
+
+; Initialize Linux Awareness
+; Note that the Linux awareness needs the kernel symbols to work
+ 
+ ; check linux major version
+ IF STRing.SCAN(Data.STRing(linux_banner), "Linux version 2.", 0)==0
+ (
+     &ka_path="~~/demo/arm/kernel/linux/linux-2.x"
+     &awareness="linux.t32"
+ )
+ ELSE
+ (
+     &ka_path="~~/demo/arm/kernel/linux/linux-3.x"
+     &awareness="linux3.t32"  
+ )
+ 
+ PRINT "initializing RTOS support..."
+ TASK.CONFIG &ka_path/&awareness               ; loads Linux awareness 
+ MENU.ReProgram &ka_path/linux            ; loads Linux menu 
+
+ 
+ PRINT "Start Linux"
+ Go 
+ 
+ ENDDO
+
+
+
+
+
+
+
+

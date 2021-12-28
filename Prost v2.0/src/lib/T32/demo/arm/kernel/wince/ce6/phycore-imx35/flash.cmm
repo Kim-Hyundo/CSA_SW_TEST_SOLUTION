@@ -1,0 +1,30 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash Declaration Script for phyCORE-i.MX35 (PCM043) Board
+; @Description: -
+; @Author: DIE
+; @Board: phyCORE-i.MX35
+; @Chip: IMX35
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: flash.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+ RESet
+ SYStem.CPU IMX35
+ SYStem.JtagClock RTCK
+ SYStem.Option ResBreak    OFF
+ SYStem.CONFIG.L2CACHE.Base 0x30000000
+
+ SYStem.Up
+ 
+ FLASH.RESet
+ FLASH.CFI 0xa0000000 Word
+ FLASH.UNLOCK ALL
+ 
+ ;FLASH.Erase 0xa0000000--0xa1ffffff
+ ;FLASH.Program ON
+
+ ;Data.LOAD.Binary EBOOT.nb0 0xa0000000                  ; eboot
+ ;Data.LOAD.EXE    NK.bin    0xa0040000-0x90040000 /word ; WinCE image
+
+ ;FLASH.Program OFF

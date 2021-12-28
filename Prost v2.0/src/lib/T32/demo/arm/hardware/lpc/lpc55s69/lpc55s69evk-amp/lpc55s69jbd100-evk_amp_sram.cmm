@@ -1,0 +1,99 @@
+; --------------------------------------------------------------------------------
+; @Title: AMP-Demo script for LPC55S69JBD100 on LPC55S69JBD100-EVK (AMP, RAM)
+; @Description:
+;   Setup a AMP debug session using a single script approach.
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   Use this script to test the AMP-Debugging.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to P7
+; @Keywords: ARM
+; @Author: STK
+; @Board: LPC55S69JBD100-EVK
+; @Chip: LPC55S69JBD100
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: lpc55s69jbd100-evk_amp_sram.cmm 14842 2019-08-26 15:49:17Z skrausse $
+
+
+WinCLEAR
+
+IF SYStem.INSTANCE()!=1.
+(
+  PRINT %ERROR "This script must be called from MASTER GUI!"
+  ENDDO
+)
+
+; store current script path in &ppd
+PRIVATE &ppd
+&ppd=OS.PPD()
+
+; --------------------------------------------------------------------------------
+; open all SLAVE GUIs
+IF !INTERCOM.PING(CORE1)
+  TargetSystem.NewInstance CORE1 /ARCHitecture ARM
+
+; --------------------------------------------------------------------------------
+; set titles for SLAVE GUIs
+TITLE "TRACE32 for ARM - LPC55S69JBD100-CPU0 - MASTER"
+InterCom CORE1 TITLE "TRACE32 for ARM - LPC55S69JBD100-CPU1 - SLAVE1"
+
+; --------------------------------------------------------------------------------
+; common SYStem settings
+InterCom ALL RESet
+
+SYStem.CPU LPC55S69JBD100-CPU0
+SYStem.CONFIG CORE 1. 1.
+SYStem.Option WaitReset 20ms
+
+InterCom CORE1 SYStem.CPU LPC55S69JBD100-CPU1
+InterCom CORE1 SYStem.CONFIG CORE 2. 1.
+
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo programs (use internal RAM only) via master session
+Data.LOAD.Elf &(ppd)/master/sieve_ram_thumb_ii_v7m.elf
+Data.LOAD.Elf &(ppd)/slave1/sieve_ram_thumb_ii_v7m.elf /NosYmbol /NoClear /NoRegister
+
+; Load symbols for the slave session
+InterCom CORE1 Data.LOAD.Elf &(ppd)/slave1/sieve_ram_thumb_ii_v7m.elf /NoCODE
+
+; --------------------------------------------------------------------------------
+; attach to all cores on slave session
+InterCom CORE1 SYStem.Attach
+
+; --------------------------------------------------------------------------------
+; kick secondary cores
+
+; Set vector table for the slave core
+Data.Set AD:0x40000804 %Long 0x20010000     ; SYSCON.CPBOOT
+
+; Deassert reset for secondary core
+Data.Set AD:0x40000800 %Long 0xc0c40008     ; SYSCON.CPUCTRL
+
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main\1
+WAIT !STATE.RUN()
+InterCom CORE1 Go.direct main\1
+InterCom CORE1 WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+InterCom ALL WinCLEAR
+InterCom ALL Mode.Hll
+InterCom ALL WinPOS 0. 0. 116. 26.
+InterCom ALL List.auto
+
+; --------------------------------------------------------------------------------
+; Activate syncronization
+InterCom ALL SYnch.ON
+InterCom ALL SYnch.Connect     ALL
+InterCom ALL SYnch.MasterGo    ON
+InterCom ALL SYnch.SlaveGo     ON
+InterCom ALL SYnch.MasterBreak ON
+InterCom ALL SYnch.SlaveBreak  ON
+
+ENDDO

@@ -1,0 +1,94 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for STM32H743ZI on Nucleo-H743ZI (FLASH)
+; @Description:
+;   Programs the sieve demo application into the processor internal flash and
+;   sets up a demo debug scenario.
+;   This script can be used as a template for flashing an application.
+;   Prerequisites:
+;    * Connect signals of the Debug Cable/CombiProbe/µTrace as followed:
+;         VREF     : CN8 pin 7 (3.3V)
+;         GND      : CN6 pin 3
+;         TMS/SWDIO: CN4 pin 4
+;         TCK/SWCLK: CN4 pin 2
+;         TDO/SWO  : CN6 pin 6
+;         NSRST    : CN6 pin 5
+;    * Disable the STLink on the board by a solder bridge on SB107
+;    * If power should be supplied by the STLink USB header, set a
+;      solder brigde on SB1. Please take care, that the board
+;      does not exceed maximum power supply capabilities of the
+;      USB port!
+; @Keywords: ARM, Cortex-M7, Flash
+; @Author: AME
+; @Board: Nucleo-H743ZI
+; @Chip: STM32H743ZI
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: nucleo-h743zi_sieve_flash.cmm 16602 2020-10-02 08:02:51Z skrausse $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check Prerequisites
+IF VERSION.BUILD()<95056.
+(
+  PRINT %ERROR "Please use more recent Software! Contact support@lauterbach.com."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU STM32H743ZI
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+; Avoid trying to set software breakpoints in the flash area,
+; because it generates an error in the flash controller
+MAP.BO 0x08000000--0x08FFFFFF
+Trace.DISable
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; Flash programming
+
+; prepare flash programming (declarations)
+DO ~~/demo/arm/flash/stm32h7.cmm PREPAREONLY
+
+; ReProgram Flash
+FLASH.ReProgram ALL
+Data.LOAD.Elf "~~~~/sieve_flash_thumb_ii_v7m.elf"
+FLASH.ReProgram OFF
+
+; --------------------------------------------------------------------------------
+; Reset the target again
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

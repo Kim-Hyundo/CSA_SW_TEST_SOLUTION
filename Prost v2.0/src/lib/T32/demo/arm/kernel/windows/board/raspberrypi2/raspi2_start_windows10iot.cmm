@@ -1,0 +1,186 @@
+; --------------------------------------------------------------------------------
+; @Title: Windows 10 IoT Debug Demo on Raspberry Pi 2 Board
+; @Description: 
+;   This script serves as a demo for debugging Windows 10 IoT on RASPI2 board
+;   Prerequisites : 
+;   The board requires a special adaption and a program running on the target
+;   to enable the JTAG access. Please follow steps in enclosed readme.txt
+;   Script arguments:
+;     DO raspi2_start_windows10iot.cmm [kernel_old=<0|1>]
+;     If no argument is entered, the default used value is kernel_old=1
+;
+; @Keywords: awareness, IoT, raspi2, RTOS, win10, windows
+; @Author: HDA
+; @Board: Raspberry Pi 2
+; @Chip: BCM2836
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: raspi2_start_windows10iot.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+  ENTRY %LINE &parameters
+  LOCAL &kernel_old &kernel_load
+  
+  RESet
+  WinCLEAR
+  SYStem.CPU BCM2836
+  TrOnchip.Set PABORT OFF
+  TrOnchip.Set DABORT OFF
+  TrOnchip.Set UNDEF OFF
+  SYStem.Option.IMASKASM ON
+  SYStem.Option.IMASKHLL ON
+  SYStem.Option MMUSPACES ON
+  SYStem.Mode Attach
+  Break.direct
+  
+; special handling for raspi2 : start windows and keep JTAG enabled
+  GOSUB start_windows
+  
+; load Windows awareness
+  TASK.CONFIG ~~/demo/arm/kernel/windows/win32.t32
+  
+; set symbol file cache directory 
+  &Symcache_dir=OS.PPD()+"/symcache"
+  IF !OS.DIR("&Symcache_dir")
+  (
+    ; create symcache directory if it doesn't exist
+    MKDIR "&Symcache_dir"
+  )
+  PRINT "Setting Symbol cache directory to :"
+  PRINT "&Symcache_dir"
+  TASK.sYmbol.Option SymCache "&Symcache_dir"
+  
+  ; Wait a while until the kernel is loaded
+  WHILE ((TASK.NTBASE()&0xFFFFFFFF)==0xFFFFFFFF)
+  (
+    Go.direct
+    DIALOG.OK "Please Wait a while, until the kernel is loaded, then press OK"
+    Break.direct
+  )
+
+; Load symbols of kernel - necessary for the awareness!
+  PRINT "loading kernel symbols..."
+  TASK.sYmbol.LOADNT
+; refresh task list
+  TASK.CACHEFLUSH
+
+; Setup the kernel page table as MMU default page table
+  MMU.FORMAT STD A:TASK.KERNELPT()
+
+; Group kernel area to be displayed with red bar
+  GROUP.Create "windows" 0x80000000--0xffffffff /RED
+
+; Configure the awareness to enable the autoloader for the Libraries!
+; The autoloader setup for processes and kernel modules is enabled by default
+  TASK.sYmbol.Option Autoload Library
+
+; Refresh the symbol autoloader list
+  sYmbol.AutoLOAD.CHECK now
+
+; Display some windows
+  WinCLEAR
+
+  WinPOS 0% 0% 60% 50%
+  TASK.Process
+
+  WinPOS 60% 0% 40% 50%
+  Register.view
+
+  WinPOS 0% 50% 60% 50%
+  List.auto
+
+  WinPOS 60% 50% 40% 50%
+  Frame.view /Locals /Caller
+
+; That's it!
+  PRINT "done."
+
+  ENDDO
+
+
+; ~~~~~~~~~~~~~~~~~~
+;    start_windows
+; ~~~~~~~~~~~~~~~~~~ 
+start_windows:
+  &kernel_load=0x0000 ;default kernel load address
+  &kernel_old=STRing.MID(STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"KERNEL_OLD=",""),0.,3.)
+  IF ("&kernel_old"!="")
+  (
+    Eval &kernel_old
+    IF (EVAL.TYPE()!=0x04)
+    (
+      PRINT %ERROR "illegal parameter for ""kernel_old"" : kernel load address is set to default 0x0000"
+      &kernel_load=0x0000
+    )
+    ELSE IF (&kernel_old==0)
+    (
+      &kernel_load=0x8000
+    )
+  )
+  PRINT "kernel load address is set to &kernel_load"
+  
+  ; load kernel into ram mamory  
+  Data.LOAD.Binary ~~~~/kernel.img A:&kernel_load
+  
+  &break_count=0.
+  Register.Set PC 0x8000 /CORE 0.
+  Register.Set CPSR 600001D6 /CORE 0.
+  Register.Set R13 0xE3000 /CORE 0.
+  
+  Register.Set PC 0x8000 /CORE 1.
+  Register.Set CPSR 600001D6 /CORE 1.
+  Register.Set R13 0xE4000 /CORE 1.
+  
+  Register.Set PC 0x8000 /CORE 2.
+  Register.Set CPSR 600001D6 /CORE 2.
+  Register.Set R13 0xE5000 /CORE 2.
+
+  Register.Set PC 0x8000 /CORE 3.
+  Register.Set CPSR 600001D6 /CORE 3.
+  Register.Set R13 0xE6000 /CORE 3.
+  
+  Break.Set     NR:0xFFFF:0x3F200000 /Write /Onchip
+  Break.Set     NR:0xFFFF:0x3F200008 /Write /Onchip
+
+  RePeaT
+  (
+    Go.direct
+    WAIT !STATE.RUN() 10.s
+    IF STATE.TARGET()=="stopped by r/w breakpoint"
+    (
+      ;prevent windows 10 from disabling JTAG
+      GOSUB keep_jtag_enabled       
+      &break_count=&break_count+1.
+    )
+  )
+  WHILE &break_count<2.
+  Break.Delete
+  Go.direct
+  WAIT 10.s
+  Break.direct
+  RETURN
+
+; ~~~~~~~~~~~~~~~~~~
+; keep_jtag_enabled
+; ~~~~~~~~~~~~~~~~~~ 
+keep_jtag_enabled:
+  &str_inst=DISASSEMBLE.ADDRESS(P:Register(PC))
+  &str_inst=STRing.Replace("&str_inst",",","",0)
+  &str_inst=STRing.Replace("&str_inst","["," ",0)
+  &str_inst=STRing.Replace("&str_inst","]","",0)
+  &address_reg=STRing.SPLIT("&str_inst"," ",-1)
+  &value_reg=STRing.SPLIT("&str_inst"," ",-2)
+  &add=Register(&address_reg)
+  &value=Register(&value_reg)
+  IF &add==0x3F200000
+  (
+    &value=(&value&((~(7.<<12.))))|(2.<<12.)
+  )
+  ELSE IF &add==0x3F200008
+  (
+    &value=(&value&((~(7.<<6.))))|(3.<<6.)
+    &value=&value&(((~(7.<<12.))))|(3.<<12.)
+    &value=&value&(((~(7.<<15.))))|(3.<<15.)
+    &value=&value&(((~(7.<<21.))))|(3.<<21.)
+  )
+  Register.Set &value_reg &value
+  RETURN

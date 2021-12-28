@@ -1,0 +1,94 @@
+; --------------------------------------------------------------------------------
+; @Title: ITM data trace script for the MCB1760 board
+; @Description: Simple ITM data trace script for the MCB1760 board
+; @Keywords: Cortex-M4, DLL, ITM, trace
+; @Board: MCB1760
+; @Chip: LPC1768
+; @Author: -
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mcb1760_itm_datatrace_demo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+; Basic setup
+
+  Break.Reset
+  SYStem.RESet
+  SYStem.CPU LPC1768
+  SYStem.CONFIG SWDP ON
+  SYStem.Option EnReset OFF
+  SYStem.CONFIG CONNECTOR MIPI20T
+  SYStem.Up
+
+  Register.RESet
+
+; Load the demo code into the SRAM
+  Data.LOAD.ELF ~~~~/demo.axf
+  Register.Set PC main
+  Register.Set R13 0x10005000
+
+; Enalble Trace
+  Data.Set 0x4002C028 %Long 0x00000008
+
+; Trun on ITM and ETM
+  ETM.ON
+  ITM.ON
+
+  ETM.PortMode Continuous
+  ETM.PortSize 4.
+
+; Slect the Analyzer (PowerTrace with Preprocessor)
+  IF hardware.COMBIPROBE()||hardware.UTRACE()
+  (
+    Trace.Method CAnalyzer   ; Using CombiProbe
+  )
+  ELSE IF ANALYZER()
+  (
+    Trace.Method Analyzer    ; Using ARM preprocessor
+  )
+
+  Trace.Off              ; Enable the trace and turn it off
+
+; Enable full data trace with the ITM (address + data)
+  ITM.DataTrace ON       ; Capture both data value and address
+
+; Setup a sample watchpoint for the ITM data trace:
+  Var.Break.Set flags /READWRITE /TRACEDATA
+
+; Open some windows
+ WINCLEAR
+ WINPOS 62.429 45.833 38. 9. 0. 0. W003
+ ITM
+
+ WINPOS 0.0 0.083333 62. 39. 15. 1. W000
+ WINTABS 10. 10. 25. 62.
+ List.auto
+
+ WINPOS 3.5714 47.75 48. 9. 0. 0. W004
+ Register /SpotLight
+
+ WINPOS 107.43 27.583 64. 20. 0. 0. W001
+ Trace
+
+ IF hardware.COMBIPROBE()||hardware.UTRACE()
+ (
+   WINPOS 65.571 0.083333 53. 21. 12. 1. W006
+   WINTABS 32.
+   CAnalyzer.List /Track
+
+   WINPOS 122.14 0.0 56. 21. 12. 1. W002
+   WINTABS 32.
+   ITMCAnalyzer.List /Track
+ )
+ ELSE IF ANALYZER()
+ (
+   WINPOS 65.571 0.083333 53. 21. 12. 1. W006
+   WINTABS 32.
+   Analyzer.List /Track
+
+   WINPOS 122.14 0.0 56. 21. 12. 1. W002
+   WINTABS 32.
+   ITMAnalyzer.List /Track
+ )
+
+  ENDDO

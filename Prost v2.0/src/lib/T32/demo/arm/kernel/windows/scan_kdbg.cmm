@@ -1,0 +1,320 @@
+; --------------------------------------------------------------------------------
+; @Title: Scan KDBG script for windows 32 bit 
+; @Description:
+;   This script is used to scan for KDBG structure on windows 32 bit.
+;   Script arguments:
+;   DO scan_kdbg [KDBG=<kdbg_offset>] [KERNEL_BASE=<kernel_base>]
+;
+;     KDBG=<kdbg_offset> sets old KDBG scan result to accelerate the current scan
+;     KERNEL_BASE=<kernel_base> this script will start searching KDBG from this
+;     address. For first try, entering this parameter will considerably accelerate
+;     the scan process.
+;
+; @Keywords: awareness, windows
+; @Author: HDA
+; @Copyright: (C) 1989-2017 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: scan_kdbg_32.cmm 4859 2019-12-05 10:51:45Z hdammak $
+
+  LOCAL &kdbg_offset
+  LOCAL &readLine
+  LOCAL &value
+  LOCAL &kdbg_log
+  LOCAL &old_scan_offset
+
+  LOCAL &kernel_base
+  LOCAL &magicscan_offset
+  LOCAL &parameters
+  LOCAL &KDBG_signature
+  
+  ENTRY %LINE &parameters
+  
+  &kernel_base=STRing.MID(STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"KERNEL_BASE=",""),0.,18.)
+  IF ("&kernel_base"!="")
+  (
+    Eval &kernel_base
+    IF (EVAL.TYPE()!=0x04)
+    (
+      PRINT %ERROR "illegal parameter for ""KERNEL_BASE"""
+      &kernel_base=0x80000000
+    )
+  )
+  ELSE
+  (
+    &kernel_base=0x80000000
+  )
+  
+  &magicscan_offset=STRing.MID(STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"KDBG=",""),0.,18.)
+  IF ("&magicscan_offset"!="")
+  (
+    Eval &magicscan_offset
+    IF (EVAL.TYPE()!=0x04)
+    (
+      PRINT %ERROR "illegal parameter for ""KDBG"""
+      &magicscan_offset=0
+    )
+  )
+  &kdbg_log="~~~/scan_kdbg_32.log"
+
+  IF FILE.EXIST(&kdbg_log)
+  (
+    OPEN #1 &kdbg_log  /Read
+    READ #1 %LINE &readLine
+    CLOSE #1
+    IF ("&readLine"!="")
+    (
+      Eval &readLine
+      &value=EVAL()
+      &old_scan_offset=&value&0xFFF
+    )
+    ELSE
+    (
+      &old_scan_offset=0
+    )
+
+    TASK.KDBG.SET &value
+    &kdbg_offset=TASK.KDBG()
+    IF (&kdbg_offset!=0)
+    (
+      GOTO scan_end
+    )
+  )
+  ELSE
+  (
+    &old_scan_offset=0
+  )
+
+  SCREEN.OFF
+  &KDBG_signature=0x4742444B
+
+  TRANSlation.Delete
+  MMU.SCAN PageTable &kernel_base--0xFFFFFFFF
+  TRANSlation.CLEANUP
+  PRinTer.FILE ~~~/kdbg_scan_temp.txt
+  WinPrint.TRANSlation.List /Logical
+
+  IF "&magicscan_offset"==""
+    &magicscan_offset=0
+
+  &magicscan_offset=&magicscan_offset&0xFFF
+
+  IF (&magicscan_offset!=0.)
+  (
+    GOSUB scan_magic_offset &magicscan_offset
+    ENTRY &kdbg_offset
+    IF ("&kdbg_offset"!="")
+    (
+      GOTO scan_end
+    )
+  )
+
+  IF (&old_scan_offset!=0)
+  (
+    IF (&old_scan_offset!=&magicscan_offset)
+    (
+      GOSUB scan_magic_offset &old_scan_offset
+      ENTRY &kdbg_offset
+      IF ("&kdbg_offset"!="")
+      (
+        TASK.KDBG.SET &kdbg_offset
+        GOTO scan_end
+      )
+    )
+  )
+
+  GOSUB blind_scan
+  ENTRY &kdbg_offset
+
+scan_end:
+  IF ("&kdbg_offset"=="")
+  (
+    PRINT "KDBG signature not found! Please make sure that windows debug mode is enabled (bcdedit /debug on)"
+  )
+  ELSE
+  (
+    PRINT " KDBG Scan Result"
+    PRINT "KDBG offset = &kdbg_offset"
+    TASK.KDBG.SET &kdbg_offset
+    OPEN #1 &kdbg_log  /Create /Write
+    WRITE #1 "&kdbg_offset"
+    CLOSE #1
+  )
+
+  IF FILE.EXIST(~~~/kdbg_scan_temp.txt)
+    RM ~~~/kdbg_scan_temp.txt
+
+  TRANSlation.Delete
+  SCREEN.ON
+  ENDDO
+
+scan_magic_offset:
+  LOCAL &offset &magic_offset &valid_sug &range &low_limit &hight_limit
+  ENTRY &magic_offset
+  OPEN #2 ~~~/kdbg_scan_temp.txt  /Read
+  &valid_sug=FALSE()
+  WHILE !FILE.EOF(2)
+  (
+    GOSUB next_range
+    ENTRY &range
+
+    IF "&range"==""
+    (
+      CLOSE #2
+      RETURN 
+    )
+
+    GOSUB range_start &range
+    ENTRY &low_limit
+
+    GOSUB range_end &range
+    ENTRY &hight_limit
+
+    &offset=&low_limit+&magic_offset
+    WHILE &offset<&hight_limit
+    (
+      &value=Data.Long(P:&offset+0x10)
+      IF &value==&KDBG_signature
+      (
+        GOSUB isSuggValid &offset
+        ENTRY &valid_sug
+        IF &valid_sug
+        (
+          ; this is a valid suggestion 
+          CLOSE #2
+          RETURN &offset
+
+        )
+      )
+      &offset=&offset+0x1000
+    )
+  )
+  CLOSE #2
+  RETURN
+
+blind_scan:
+  LOCAL &range &offset &valid_sug
+  OPEN #2 ~~~/kdbg_scan_temp.txt  /Read
+
+  WHILE !FILE.EOF(2)
+  (
+    GOSUB next_range
+    ENTRY &range
+
+    IF "&range"==""
+    (
+      CLOSE #2
+      RETURN
+    )
+    Data.Find &range %Long &KDBG_signature /NoFind
+    Data.Find
+    WHILE FOUND()
+    (
+      &offset=ADDRESS.OFFSET(TRACK.ADDRESS())
+      &offset=&offset-0x10
+      GOSUB isSuggValid &offset
+      ENTRY &valid_sug
+
+      IF &valid_sug
+      (
+        CLOSE #2
+        RETURN &offset
+      )
+      Data.Find
+    )
+  )
+  CLOSE #2
+  RETURN
+
+isSuggValid:
+  LOCAL &val1 &val2 &val3 &trans_adress &kdbg
+  ENTRY &kdbg
+
+  ON ERROR GOTO isSuggValidError  
+
+  &val1=Data.Long(P:&kdbg)
+  &val2=Data.Long(P:&kdbg+4.)
+  &val3=Data.Long(P:&kdbg+0x48)
+  &trans_adress=ADDRESS.OFFSET(TRANS.PHYSICAL(P:&val3))
+  IF CPUIS64BIT() 
+  (
+    IF (&trans_adress!=0xFFFFFFFFFFFFFFFF)&&(&val1==&val2)
+    (
+      ON ERROR
+      RETURN TRUE()
+    )
+  )
+  ELSE
+  (
+    IF (&trans_adress!=0xFFFFFFFF)&&(&val1==&val2)
+    (
+      ON ERROR
+      RETURN TRUE()
+    )
+  )
+
+isSuggValidError:
+  ON ERROR
+  RETURN FALSE()
+
+next_range:
+  LOCAL &valid_line &range_start &range_end &range2_start &range2_end
+  &valid_line=FALSE()
+  &range_start=""
+  &range_end=""
+  &range2_start=""
+  &range2_end=""
+  WHILE !FILE.EOF(2)
+  (
+    READ #2 %LINE &readLine
+    GOSUB Check_valid_line &readLine
+    ENTRY &valid_line
+    IF &valid_line
+    (
+      GOSUB Decode_trans_line &readLine
+      ENTRY &range_start &range_end
+      RETURN &range_start--&range_end
+      
+    )
+    ELSE
+    (
+      READ #2 %LINE &readLine
+    )
+  )
+  RETURN
+
+Check_valid_line:
+  LOCAL &offset &line
+  ENTRY %LINE &line
+  &offset=STRing.SCAN("&line","--",0.)
+  IF &offset!=-1
+  (
+    &offset=STRing.SCAN("&line","--",&offset+2.)
+    RETURN (&offset!=-1)
+  )
+  RETURN FALSE()
+    
+Decode_trans_line:
+  LOCAL &logical_range &phys_range &logical_start &logical_end &trans_line
+  ENTRY %LINE &trans_line
+  &trans_line=STRing.TRIM("&trans_line")
+  &logical_range=STRing.Split("&trans_line"," ",0)
+  
+  &logical_range=STRing.Replace("&logical_range","|","",0.)
+  &logical_range=STRing.Replace("&logical_range","*","",0.)
+  &logical_start=STRing.Split("&logical_range","--",0)
+  &logical_start=STRing.Split("&logical_start",":",-1)
+  &logical_end=STRing.Split("&logical_range","--",-1)
+  RETURN  0x&logical_start 0x&logical_end
+
+range_start:
+  LOCAL &range &value
+  ENTRY &range
+  &value=STRing.Split("&range","--",0)
+  RETURN &value
+
+range_end:
+  LOCAL &range &value
+  ENTRY &range
+  &value=STRing.Split("&range","--",-1)
+  RETURN &value
+

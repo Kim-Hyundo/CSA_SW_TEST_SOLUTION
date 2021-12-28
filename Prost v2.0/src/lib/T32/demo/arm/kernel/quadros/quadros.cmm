@@ -1,0 +1,60 @@
+; --------------------------------------------------------------------------------
+; @Title: RTXC Quadros Demo for TRACE32 OS Awareness
+; @Description: 
+;   
+;   This batchfile loads all necessary files to demonstrate
+;   the OS Awareness for RTXC Quadros.
+;   
+; @Keywords: awareness, quadros, RTOS
+; @Author: DIE
+; @Chip: ARM7TDMI
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: quadros.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+;  Created by Rudolf Dienstbeck / Lauterbach GmbH at 15.12.2003
+
+ SCREEN.ON
+
+; Emulator reset
+ PRINT "resetting..."
+ SYStem.Down
+ WinPAGE.RESet
+ WinPOS 0 26. 70. 8. 0. 0. W000
+ AREA.view
+
+ PRINT "initializing..."
+
+; System settings 
+ SYStem.CPU ARM7TDMI
+ SYStem.Up
+ 
+; load sample application
+ PRINT "loading sample application..."
+ Data.LOAD.Elf quadros_dm.elf
+ 
+; initialize mutitasking support
+ PRINT "initializing RTOS support..."
+ SCREEN.OFF
+ TASK.CONFIG quadros       ; load Quadros awareness (quadros.t32)
+ MENU.ReProgram quadros    ; load Quadros specific menu (quadros.men)
+
+ PRINT "load complete."
+ 
+; open a code window
+
+ WinPOS 35. 0. 80. 11.
+ List.auto
+
+; start application
+
+ Go example1 
+ WAIT !STATE.RUN()
+ 
+; now open some Quadros windows
+
+ WinPOS 42. 15. 73. 7. 
+ TASK.THRead
+
+ WinPOS 53. 25. 60. 9.
+ TASK.TASK

@@ -1,0 +1,128 @@
+; --------------------------------------------------------------------------------
+; @Title: OKL4 Demo for TRACE32 OS Awareness on the ARM Versatile Board
+; @Description: 
+;   
+;   This batchfile demonstrates the use of the OS Awareness for OKL4
+;   
+;   The example is generated for the ARM Versatile board using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   KL4 is downloaded to the board via ICD.
+;   
+; @Keywords: awareness
+; @Author: DIE
+; @Board: ARM Versatile
+; @Chip: ARM926EJ-S
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: okl4.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+; - Connect terminal (NULL modem cable) to UART0
+;   - 38400 baud, 8/N/1, no(!) handshake
+
+
+ SCREEN.ALways      ; for terminal refresh
+
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 24. 75. 8. 0. 0. W000
+ AREA.view
+ 
+ PRINT "resetting..."
+
+ RESet
+
+
+; setup of ICD
+ 
+ PRINT "initializing..."
+
+ SYStem.CPU ARM926EJ
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ SYStem.Option ResBreak ON      ; hardware dependent (see manual)
+ SYStem.Option BigEndian OFF    ; this demo is in little endian
+ TrOnchip.Set DABORT OFF        ; used by MMU
+ TrOnchip.Set PABORT OFF        ; used by MMU
+ 
+ SYStem.Up
+ Register.RESet
+
+ SETUP.IMASKASM ON          ; lock interrupts while single stepping
+
+
+; Target Setup: initialize DRAM controller and peripherals
+ 
+ ; Either let the boot monitor setup the board
+    Go
+    PRINT "target setup..."
+    WAIT 2.s
+    Break
+ ; or use the debugger to initialize it
+    ;do versatile_init
+
+
+; Load the OKL4 image
+
+ PRINT "loading OKL4 image..."
+ 
+ Data.LOAD.Elf image.elf.nobits /gcc3
+ sYmbol.DEMangle ON     ; enable C++ demangling
+ 
+ ; set PC on start address of image
+ ; see OKL4_SDK_ROOT/kernel/arm926ejs/{KERNEL-TYPE}-{BUILD}/object/machine.xml: physical_memory "rom"
+ Register.RESet
+ Register.Set PC 0x07900000
+
+
+; Open a Code Window -- we like to see something
+
+ WinPOS 0. 0. 75. 20.
+ List.auto
+ 
+
+; Terminal for debug messages and KDB
+ TERM.METHOD DCC
+ TERM.SIZE 80. 1000.
+ TERM.SCROLL ON
+ TERM.view
+
+
+; Set BPs on cell entries - use Onchip due to MMU enabling
+  Break.Set `chatterbox-main` /Onchip
+  Break.Set `echo-main` /Onchip
+
+
+; Load symbolf of kernel and cells
+  Data.LOAD.Elf kernel /gcc3 /NoCODE /NoClear
+  Data.LOAD.Elf chatterbox /NoCODE /NoClear
+  Data.LOAD.Elf echo /NoCODE /NoClear
+  
+
+; Initialize RTOS Support
+
+ PRINT "initializing OKL4 support..."
+ 
+ TASK.CONFIG ../okl4         ; loads OKL4 awareness (okl4.t32)
+ MENU.ReProgram ../okl4      ; loads OKL4 menu (okl4.men)
+ HELP.FILTER.Add rtosokl4       ; add OKL4 awareness manual to help filter
+
+
+; Enable thread tracing
+ IF etm()
+   Break.Set task.config(magic) /TraceData
+
+
+; Start application
+ Go
+ 
+
+ PRINT "done."
+
+
+ ENDDO
+ 
+  

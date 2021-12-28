@@ -1,0 +1,135 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for CYCLONEVSOC on SoCrates with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Offchip-Trace (ETM via TPIU).
+;   An FPGA image is loaded via JTAG, to route the trace pins to pin-header P18.
+;
+;   Prerequisites:
+;   * Please set bootmode to SD-Card and REMOVE SD-Card
+;     => Device will stop in BOOT ROM
+;     on SoCrates P18[6..8]=0y101
+;   * Connect Debugcable or Combiprobe to P19 header
+;     using LA-3863 (ARM->NIOS halfsize converter)
+;   * Connect TPINTC Adapter to P13
+;   * Connect AutoFocus Preprocessor to TPINTC Adapter using Mictor38 cable
+;
+; @Keywords: ARM, Cortex-A9, ETM
+; @Author: AME, HLG
+; @Board: SoCrates
+; @Chip: CYCLONEVSOC
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: socrates_sieve_offchip_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+AREA.CLEAR
+AREA.view
+RESet
+
+; --------------------------------------------------------------------------------
+; Load FPGA to route the trace signals from the HAPS through the FPGA to pin-header P18
+IF !OS.FILE("~~~~/ep5csxfc6.svf")
+(
+  ; unzip the FPGA design if not yet done
+  UNZIP "~~~~/ep5csxfc6.svf.gz" "~~~~/ep5csxfc6.svf"
+)
+PRINT "loading FPGA design via JTAG (takes about 7 seconds)..."
+SYStem.JtagClock CTCK 20MHz
+JTAG.LOADSVF "~~~~/ep5csxfc6.svf"
+PRINT %CONTinue "done"
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+SYStem.RESet
+SYStem.CPU CYCLONEVSOC
+; settings for HPS-FPGA scanchain - hardwired on SoCrates
+SYStem.CONFIG DAPIRPOST  0.
+SYStem.CONFIG DAPIRPRE  10.
+SYStem.CONFIG DAPDRPOST  0.
+SYStem.CONFIG DAPDRPRE   1.
+SYStem.JtagClock CTCK 10MHz
+CORE.ASSIGN 1.    ; select only 1st core
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; Write to the clock manage to prevent the system from gating the debug clocks during a warm reset
+Data.Set A:0xFFD04010 %Long 0x1
+; Watchdog is activated by BOOTROM
+; the only way is to use the RESET MANAGER
+; disable Watchdog - Toggle RESET in PERMODRST
+Data.Set A:0xFFD05014 %Long Data.Long(A:0xFFD05014)|0x40
+Data.Set A:0xFFD05014 %Long Data.Long(A:0xFFD05014)&(~0x40)
+
+; ensure DBGCTRL.STAYOSC1 is disabled (otherwise the ETR runs with failsafe clock)
+Data.Set A:0xFFD04010 %Long Data.Long(A:0xFFD04010)&~0x1
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal SRAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_arm_v7.elf" /PlusVM
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace if Analyzer is plugged (ETM)
+IF Analyzer()
+(
+  PRIVATE &AutoFocus
+
+  Trace.Method Analyzer
+  Trace.RESet
+  Trace.AutoArm  ON
+  Trace.AutoInit ON
+  Trace.TraceCLOCK 400.MHz   ; data-rate on the physical trace port
+  Trace.PortSize 16   ; Physical trace port has 16 pins
+  TPIU.PortSize  32   ; TPIU exports to FPGA with 32 lines
+  TPIU.PortMode Continuous
+  ETM.ON
+  ETM.Trace ON
+  ETM.TImeMode ExternalInterpolated
+  ETM.CLOCK 200.MHz   ; CPU core clock
+  ETM.TimeStampCLOCK 100.MHz
+
+  ; Calibrate AutoFocus-II preprocessor
+  &AutoFocus=TRUE()
+  IF OS.FILE("~~~~/af.tmp")
+  (
+    ; Load & check previous used settings
+    DO "~~~~/af.tmp"
+    Analyzer.TestFocus
+    &AutoFocus=FOUND()
+  )
+  IF &AutoFocus
+  (
+    PRINT "Performing AutoFocus..."
+    Analyzer.AutoFocus
+    STOre "~~~~/af.tmp" AnalyzerFocus
+    PRINT %CONTinue " DONE"
+  )
+)
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+IF Analyzer()
+(
+  WinPOS 120. 25.
+  Trace.List
+)
+
+ENDDO

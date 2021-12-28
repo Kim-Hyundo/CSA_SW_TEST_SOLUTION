@@ -1,0 +1,49 @@
+; --------------------------------------------------------------------------------
+; @Title: uC3/Standard Demo for TRACE32 OS Awareness
+; @Description: 
+;   This batchfile loads all necessary files to demonstrate
+;   the OS Awareness for uC3/Standard.
+; @Keywords: awareness, RTOS, uc3std
+; @Author: DIE
+; @Chip: ARM926EJ-S
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: uc3std.cmm 16331 2020-07-23 14:24:51Z rdienstbeck $
+
+
+ AREA.RESet
+ WinPAGE.RESet
+ WinPOS 0 24. 70. 8. 0. 0. W000
+ AREA.view
+
+; Debugger reset
+ PRINT "resetting..."
+ RESet
+
+; Debugger initializations
+ PRINT "initializing..."      ; send to message line
+ SYStem.CPU ARM926EJ
+ SYStem.Up
+ 
+ ; print "loading application..."
+ Data.LOAD.Elf sample.out
+ 
+; initialize RTOS support
+ PRINT "initializing uc3/Std support..."
+ TASK.CONFIG uc3std.t32         ; load uc3/Std awareness
+ MENU.ReProgram uc3std.men      ; load uc3/Std menu
+ HELP.FILTER.Add rtosuc3std
+
+ PRINT "load complete."
+
+; open some windows
+ WinPOS 0. 0. 70. 21.
+ List.auto
+ WinPOS 40. 10. 80. 6.
+ TASK.TaSK
+
+; init uc3/Std
+ Go MainTask
+
+ ENDDO
+  

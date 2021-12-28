@@ -1,0 +1,78 @@
+; --------------------------------------------------------------------------------
+; @Title: SMP Startup Script on SRAM for SabreLite i.MX6 Board Dual Core
+; @Description:
+;   This demo demonstrates the debugging of the two Cortex-A9 cores of
+;   the iMX6 using a simple sieve demo loaded on the SRAM. The script
+;   connects to the first core, enables the other core and then connects
+;   to all of them. Connector J13 "JTAG" can be used with our MIPI
+;   connectors (CombiProbe or Debug Cable plus Converter LA-3770) if pin 7
+;   and pin 9 will not be connected. We just bent them over on the J13
+;   connector. A connector for the external trace port is not available on
+;   this board.
+;   WaitReset 0.6s: The required wait time to run the boot rom.
+; @Keywords: Cortex-A9, Freescale, imx6, sabrelite, sieve, SMP
+; @Author: HDA
+; @Board: iMX6-SabreLite, Nitrogen6x, Nitrogen6x-SOM, WandBoard, MCIMX6Q-SDB
+; @Chip: IMX6DUAL*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx6dual_smp_sieve_sram.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; reset chip, connect to first core only
+  RESet
+  SYStem.RESet
+  SYStem.CPU IMX6DUAL
+  ;SYStem.CPU IMX6DUALLITE
+  CORE.ASSIGN 1
+  SYStem.Option ResBreak OFF
+  IF VERSION.BUILD()<92177.
+  (
+    SYStem.Option WaitReset 0.6s
+  )
+  ELSE
+  (
+    SYStem.Option WaitIDCODE 1.5s
+  )
+  Trace.METHOD Onchip
+  SYStem.Up
+
+; enable other cores and connect to all of them
+  Data.Set ASD:0x020d8000 %Long 0x01C00521
+
+  SYStem.Down
+  CORE.ASSIGN 1 2
+  SYStem.Mode Attach
+
+  IF STATE.RUN()
+    Break.direct
+
+
+  CORE.select 0.
+  Register.RESet
+  Data.LOAD.Elf ~~~~/demo_sram.axf
+
+  CORE.select 1.
+  Register.RESet
+  Register.Set PC  background
+  Register.Set R13 0x917000
+
+  CORE.select 0.
+
+; open some windows
+  WinCLEAR
+
+  WinPOS 0% 0% 50% 50%
+  List.auto
+
+  WinPOS 50% 0% 50% 50%
+  Register.view /SpotLight
+
+  WinPOS 0% 50% 50% 50%
+  Frame /Locals /Caller
+
+  WinPOS 50% 50% 50% 50%
+  Var.Watch
+  Var.AddWatch ast; flags;
+
+  ENDDO

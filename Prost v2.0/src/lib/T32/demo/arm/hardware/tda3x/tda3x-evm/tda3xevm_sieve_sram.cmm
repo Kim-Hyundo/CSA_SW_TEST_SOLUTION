@@ -1,0 +1,160 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo script for TDA3XIPU on TDA3x EVM (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario on the first IPU core.
+;   Use this script for getting started.
+;   Prerequisites:
+;    * Connect Debug Cable to J17 using Adapter
+;        Spectrum Digital 701282-0001 (TI20Compact -> MIPI60)
+;        Lauterbach LA-3780 (ARM20 -> TI20Compact) please do not use TI-14!
+;      or
+;      Connect Debug Cable to J17 using Adapter
+;        Lauterbach LA-3818 (ARM20/Mictor38 -> MIPI60)
+;    * The RESET line must be wired to the EVM, using the TI20Compact/MIPI60
+;      header this is possible.
+;
+; @Keywords: ARM, Cortex-M4
+; @Author: AME
+; @Board: TDA3x EVM
+; @Chip: TDA3X
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tda3xevm_sieve_sram.cmm 16561 2020-09-21 05:52:38Z cmorgenstern $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF VERSION.BUILD.BASE()<76582.
+(
+  PRINT %ERROR "Please use more recent Software! Contact support@lauterbach.com."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU TDA3XIPU-CORE0
+SYStem.CONFIG.DEBUGPORTTYPE JTAG
+SYStem.Option DUALPORT ON
+; enable RESET using the reset line only
+; <reset settings>
+SYStem.Option EnReset ON
+SYStem.Option ResBreak ON
+SYStem.Option SYSRESETREQ OFF
+SYStem.Option VECTRESET OFF
+; </reset settings>
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+SYStem.Up
+
+; clear the ROM_AUXBOOT0 and reset again
+Data.Set AD:0x4A003CA8 %Long 0x00
+SYStem.Up
+
+; core should be halted now at reset vector
+IF TRUE()
+(
+  ; Method 1:
+  ; preboot the BOOTROM now till the IPU_UNICACHE_MMU gets initialized
+  ; wait till the CPU writes to the Channel0-Large register
+  Go 0x55080800 /Write
+  WAIT !STATE.RUN() 1.s
+  IF STATE.RUN()
+  (
+    PRINT %ERROR "Preboot failed!"
+    ENDDO
+  )
+  ; now leave this function using SYStem.Up
+  Go.Up
+  WAIT !STATE.RUN() 1.s
+  IF STATE.RUN()
+  (
+    PRINT %ERROR "Preboot failed!"
+    ENDDO
+  )
+  ; now the BootROM initialized the MMU and did some basic setup
+  ; - should be safe now to run simple code!
+)
+ELSE
+(
+  ; Method 2:
+  ; create MMU entries manually
+  ; simple  mapping channel=0, size=medium, 0x00300000->0x40300000
+  GOSUB SetMmuEntry "0." "1." "0x00300000" "0x40300000" "0x1"
+)
+
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+
+SetMmuEntry: ;(channel, small=2/med=1/large=0, virt, phys, policy)
+(
+  PRIVATE &base
+  PARAMETERS &channel &size &virt &phys &policy
+  &base=0x55080800
+  &base=&base+&channel*0x4
+  IF (&size==0.) ; large
+  (
+    ; ADDR
+    Data.Set AD:&base+0x00 %Long &virt
+    ; XLTE
+    Data.Set AD:&base+0x20 %Long &phys
+    ; POLICY
+    Data.Set AD:&base+0x40 %Long &policy
+  )
+  ELSE IF (&size==1.) ; medium
+  (
+    ; ADDR
+    Data.Set AD:&base+0x60 %Long &virt
+    ; XLTE
+    Data.Set AD:&base+0xA0 %Long &phys
+    ; POLICY
+    Data.Set AD:&base+0xE0 %Long &policy
+  )
+  ELSE IF (&size==2.)
+  (
+    ; ADDR
+    Data.Set AD:&base+0x120 %Long &virt
+    ; XLTE
+    Data.Set AD:&base+0x1A0 %Long &phys
+    ; POLICY
+    Data.Set AD:&base+0x220 %Long &policy
+  )
+  ELSE
+  (
+    PRINT %ERROR "Wrong Usage"
+    STOP
+    ENDDO
+  )
+  RETURN
+)

@@ -1,0 +1,171 @@
+; --------------------------------------------------------------------------------
+; @Title: Windows Embedded Compact 2013 Autoloader Script
+; @Description: Autoload script, called by TRACE32 if symbols are to be loaded
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: autoload.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+// define local macros
+ LOCAL &filename &basename &progname &symfilename &filepath &code &data &space
+
+// get filename and relocation information
+ // these parameters are passed from TRACE32 when calling this skript
+ 
+ ENTRY &filename &type &code &data &space
+ 
+ //print "autoload: " &filename " " &type " " &code " " &data " " &space
+ 
+ // &filename:      name of process/file
+ // &type:          type of file: 1=process, 2=library, 3=ROM module
+ // &code:          text segment address
+ // &data:          data segment address
+ // &space:         space id of process
+
+// get symbol file name and program name
+ &basename=STRing.CUT(&filename,-STRing.LENgth(OS.FILE.EXTENSION(&filename)))
+ IF (&type==1)
+   &symfilename="&basename"+".exe"
+ IF ((&type&0xffff)==2)
+   &symfilename="&basename"+".dll"
+ IF (&type==3)
+   &symfilename=&filename
+ &progname=OS.FILE.NAME("&basename")
+
+// delete program if it already exists or other code is already there
+ IF sYmbol.EXIST("\\&progname")
+   sYmbol.Delete \\&progname
+ GROUP.Delete "&progname"
+ 
+// search file in source search path and open dialog when not there
+ &filepath=sYmbol.SEARCHFILE("&symfilename")
+ IF !OS.FILE("&filepath")
+ (
+   LOCAL &file
+   &file=OS.FILE.NAME("&symfilename")
+   WinPOS ,,,,,, filebox normal "Searching symbols for &filename"
+   DIALOG.File "*\&file"
+   ENTRY %LINE &filepath
+   IF "&filepath"==""
+     ENDDO
+ )
+
+// load symbol file (options for sourcepath, e.g. /STRIPPART may need to be added when required)
+
+ GLOBAL &autoload_loadparams
+ IF "&autoload_loadparams"==""      // no global parameters?
+   &autoload_loadparams=""
+
+ IF (&type==1)  // processes
+ (
+   IF "&space"==""     // kernel process
+   (
+     Data.LOAD.eXe "&filepath" 0:0 /NoCODE /NoClear /thumb /RELOC .text at &code /RELOC .data at &data
+   )
+   ELSE         // userland process 
+   (
+     Data.LOAD.eXe "&filepath" &space:0 /NoCODE /NoClear /thumb \
+       /strippart "d:\bt\1318" /PATH "C:\WINCE800" \
+       &autoload_loadparams
+     ;MMU.TaskPageTable.SCAN &space:0     // not necessary: done by TRANSlation.TableWalk
+     GROUP.Create "&progname" &space:0x0--0x6fffffff /GREEN
+   )
+ )
+ 
+ IF ((&type&0xffff)==2) // libraries
+ (
+   GLOBAL &reloc
+   LOCAL  &running
+   
+   // halt target if running to access ROM TOC
+   &running=state.run()
+   IF &running
+     Break
+  
+   IF "&space"==""
+     &space=0 
+
+   &proc=task.proc.s2m(&space)
+   &magic=task.dll.magic(&filename,&proc)
+   &secnum=task.dll.secnum(&magic)
+
+   &reloc=""
+   &i=1
+   WHILE &i<=&secnum
+   (
+     GOSUB add_section_dll &i
+     &i=&i+1
+   )
+
+   // continue target if it was running
+   IF &running
+     Go
+
+   Data.LOAD.eXe "&filepath" &space:0 /NoCODE /NoClear \
+     &reloc \
+     /strippart "c:\chelan" /PATH "C:\WINCE700" \
+     &autoload_loadparams \
+     /name &progname
+ )
+ 
+ IF (&type==3)  // ROM modules
+ (
+   GLOBAL &reloc
+   LOCAL  &running
+   
+   // halt target if running to access ROM TOC
+   &running=state.run()
+   IF &running
+     Break
+     
+   &magic=task.rom.magic(&filename)
+   &secnum=task.rom.secnum(&magic)
+
+   &reloc=""
+   &i=1
+   WHILE &i<=&secnum
+   (
+     GOSUB add_section_rom &i
+     &i=&i+1
+   )
+   
+   // continue target if it was running
+   IF &running
+     Go
+
+   Data.LOAD.eXe "&filepath" 0:0 /NoCODE /NoClear /thumb \
+     &reloc \
+     /strippart "d:\bt\1318" /StripPART "c:\yzkiqfe" /PATH "C:\WINCE600" \
+     &autoload_loadparams \
+     /name &progname
+ )
+ 
+ ENDDO
+
+
+// subprogram for DLL section relocation
+add_section_dll:
+
+ LOCAL &secnum &section
+ ENTRY &secnum
+
+ &section=task.dll.secaddr(&magic,&secnum)
+ &secnum=FORMAT.Decimal(2,&secnum)
+ IF &section!=0
+   &reloc="&reloc"+" /reloc &secnum at &section"
+ 
+ RETURN
+
+// subprogram for ROM Module section relocation
+add_section_rom:
+
+ LOCAL &secnum &section
+ ENTRY &secnum
+
+ &section=task.rom.secaddr(&magic,&secnum)
+ &secnum=FORMAT.Decimal(2,&secnum)
+ IF &section!=0
+   &reloc="&reloc"+" /reloc &secnum at &section"
+ 
+ RETURN

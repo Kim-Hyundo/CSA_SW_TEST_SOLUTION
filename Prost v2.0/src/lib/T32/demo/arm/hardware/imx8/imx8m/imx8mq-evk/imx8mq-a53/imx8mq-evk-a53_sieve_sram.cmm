@@ -1,0 +1,65 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo script for IMX8MQ on IMX8MQ-EVK (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   Use this script for getting started.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to J401 using Adapter LA-3770
+; @Keywords: ARM, Cortex-A53
+; @Author: AME
+; @Board: IMX8MQ-EVK
+; @Chip: IMX8MQ*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx8mq-evk-a53_sieve_sram.cmm 15576 2020-01-27 10:11:09Z alintner $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF VERSION.BUILD.BASE()<104665.
+(
+  PRINT %ERROR "Please use more recent Software! Contact support@lauterbach.com."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU IMX8MQ
+SYStem.JtagClock CTCK 10MHz
+SYStem.Option ResBreak OFF
+SYStem.Option WaitIDCODE 1.5s
+CORE.ASSIGN 1.
+Trace.DISable
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_aarch64_v8.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

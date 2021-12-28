@@ -1,0 +1,35 @@
+﻿<UserControl x:Class="ProstMain.Dialog.EnumScriptLoadingDialogView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:wpf="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
+             xmlns:local="clr-namespace:ProstMain.Dialog"
+             mc:Ignorable="d" 
+             Width="250" Height="130" Background="DarkGray">
+    <Grid>
+        <GroupBox>
+            <GroupBox.Header>
+                <StackPanel Orientation="Horizontal">
+                    <wpf:PackIcon Kind="WarningCircle" Foreground="Orange"/>
+                    <TextBlock Text="Make Enum Script.." Foreground="{DynamicResource ResourceKey=GroupBoxHeaderForeground}" Margin="8,0,0,0" FontWeight="Bold"/>
+                </StackPanel>
+            </GroupBox.Header>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="7*"/>
+                    <RowDefinition Height="3*"/>
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="5*"/>
+                    <ColumnDefinition Width="5*"/>
+                </Grid.ColumnDefinitions>
+
+                <ProgressBar Grid.ColumnSpan="2" Style="{DynamicResource MaterialDesignCircularProgressBar}" HorizontalAlignment="Center"  Width="50" Height="50" IsIndeterminate="True" Value="0" />
+                <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Foreground="Black" FontSize="13" Text="{Binding Source={StaticResource Locator},Path=ETCSettingVM.EnumScriptDialogViewContent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Grid>
+
+        </GroupBox>
+    </Grid>
+</UserControl>

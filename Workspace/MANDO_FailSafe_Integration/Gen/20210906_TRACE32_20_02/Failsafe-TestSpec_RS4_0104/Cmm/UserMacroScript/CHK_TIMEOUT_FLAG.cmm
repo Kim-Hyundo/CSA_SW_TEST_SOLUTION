@@ -1,0 +1,19 @@
+//CAN Timeout Fault 확인
+B::
+ENTRY &para1 &para2
+ON ERROR JUMPTO errorhandler
+
+&result=v.value(can_timeout_fault[&para1]&(1<<&para2))
+if &result!=0
+  &result=1.
+else
+  &result=0
+ 
+print %decimal &result
+ON ERROR
+ENDDO
+
+errorhandler:
+PRINT %error "ERROR2"
+ON ERROR
+ENDDO

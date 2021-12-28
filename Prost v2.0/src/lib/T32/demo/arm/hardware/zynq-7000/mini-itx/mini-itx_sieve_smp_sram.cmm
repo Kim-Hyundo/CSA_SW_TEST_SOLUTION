@@ -1,0 +1,76 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple SMP demo script for ZYNQ-7000 (RAM, SMP)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug scenario
+;   on all cores.
+;   Use this script for getting started.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to J1 using adapter LA-3881
+;      please modify the adapter according to readme.pdf
+;    *  SW7[1..5]=MIO[2..6]=0y00000 - JTAG BOOT
+;      or
+;       SW7[1..5]=MIO[2..6]=0y00110 - SD BOOT and remove the SD-Card
+;    * set short JP1 1-2 - FPGA TDO
+;    * unplug any FMC card
+; @Keywords: ARM, Cortex-A9, SMP
+; @Author: AME
+; @Board: AVNET/ZEDBOARD Zynq Mini-ITX
+; @Chip: ZYNQ-7000
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mini-itx_sieve_smp_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU ZYNQ-7000
+; set DaisyChaining Parameters of the board
+; check e.g. SYStem.DETECT.ShowCHAIN
+SYStem.CONFIG DAPIRPRE  6.
+SYStem.CONFIG DAPIRPOST 0.
+SYStem.CONFIG DAPDRPRE  1.
+SYStem.CONFIG DAPDRPOST 0.
+; due to signal problems max 1.0MHz JtagClock
+SYStem.JtagClock CTCK 1MHz
+; wait 100ms after nReset release for the first connection attempt
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 100ms
+; generic part continues here
+Trace.DISable
+;CORE.ASSIGN 1. 2.
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+CORE.select 0.
+Data.LOAD.Elf "~~~~/sieve_ram_arm_v7.elf"
+; Set PC for all secondary cores
+Register.Init /CORE 1.
+Register.Set PC _start /CORE 1.
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

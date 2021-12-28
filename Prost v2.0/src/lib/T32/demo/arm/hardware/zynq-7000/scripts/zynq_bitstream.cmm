@@ -1,0 +1,298 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to program the FPGA of the Zynq-7000 using the ARM debug cable
+; @Description:
+;  This script can be used to program the Zynq FPGA from TRACE32 PowerView for
+;  ARM. When loading via the PCAP (PS-Side) the file formats *.bit, *.bin and
+;  *.bit.bin are supported.
+;  It's also supported to program the ZYNQ FPGA via JTAG directly, therefore the
+;  JTAG coordinates are required. This mode requires a *.bit file.
+;  Usage:
+;   DO zynq_bitstream <system.bit> 0x<DRAM-Address>
+;   DO zynq_bitstream <system.bit.bin> 0x<DRAM-Address>
+;   DO zynq_bitstream /RAM 0x<DRAM-Address> SIZE=0x<length>"
+;   DO zynq_bitstream <system.bit> IRPOST=<> DRPOST=<> IRPRE=<> DRPRE=<>
+;  see scripts in zynq-7000 folder for futher examples or AR# 46913 on xilinx.com
+; @Chip: Zynq-7000
+; @Board: ZC702 ZC706 ZedBoard
+; @Keywords: FPGA XILINX ZYNQ* PCAP
+; @Author: Xilinx
+; @Copyright: -
+; $Id: zynq_bitstream.cmm 13374 2018-10-24 11:32:20Z amerkle $
+; --------------------------------------------------------------------------------
+
+PRIVATE &file &stream_length &srcAddr &irPost &drPost &irPre &drPre &bNoPostConfig
+
+PRIVATE &params
+ENTRY %LINE &params
+
+GOSUB ParseParameters &params
+RETURNVALUES &file &srcAddr &stream_length &irPost &drPost &irPre &drPre &bNoPostConfig
+
+IF STATE.RUN()
+(
+  Break.direct
+)
+
+IF (&irPost+&drPost+&irPre+&drPre)==0.
+(
+  ; via PCAP
+  IF "&file"=="/RAM"
+  (
+    &stream_length=(&stream_length+0x3)&~0x3
+
+    IF &stream_length<=0.
+    (
+      PRINT %ERROR "Invalid SIZE=<> argument!"
+      ENDDO FALSE()
+    )
+  )
+  ELSE
+  (
+    GOSUB LoadBitfile "&file" "&srcAddr"
+    RETURNVALUES &stream_length
+  )
+  PRINT "&stream_length"
+
+  PRIVATE &dstAddr &srcLen &dstLen
+  &dstAddr=0xFFFFFFFF
+  &srcLen=&stream_length
+  &dstLen=&stream_length
+  PRINT "slcr unlock"
+  Data.Set AZD:0xF8000008 %Long 0xDF0DDF0D
+  PRINT "disable axi interface"
+  Data.Set AZD:0xF8000240 %Long 0xFFFFFFFF
+  PRINT "set level shifter"
+  &value=Data.Long(AZD:0xF8000900)
+  &value=&value|0x0000000A
+  Data.Set AZD:0xF8000900 %Long &value
+  PRINT "read pcap control"
+  &value=Data.Long(AZD:0xF8007000)
+  PRINT "Setting PCFG_PROG_B signal to high"
+  &value=&value|0x40000000
+  Data.Set AZD:0xF8007000 %Long &value
+  PRINT "Setting PCFG_PROG_B signal to low"
+  &value=&value&~0x40000000
+  Data.Set AZD:0xF8007000 %Long &value
+  PRINT "Polling the PCAP_INIT status for Reset"
+  &value=Data.Long(AZD:0xF8007014)
+  &match=&value&0x00000010
+  PRINT "&match"
+  WAIT 1.s
+  ;WHILE &match!=0x0
+  ;(
+  ;	&value=DATA.LONG(ZSD:0xF8007014)
+  ;	&match=&value&0x00000010
+  ;)
+  PRINT "read pcap control"
+  &value=Data.Long(AZD:0xF8007000)
+  PRINT "Setting PCFG_PROG_B signal to high"
+  &value=&value|0x40000000
+  PRINT "&value"
+  Data.Set AZD:0xF8007000 %Long &value
+  PRINT "Polling the PCAP_INIT status for Set"
+  &value=Data.Long(AZD:0xF8007014)
+  &match=&value&0x00000010
+  PRINT "&match"
+  WHILE &match==0
+  (
+    &value=Data.Long(AZD:0xF8007014)
+    &match=&value&0x00000010
+  )
+  PRINT "slcr lock"
+  Data.Set AZD:0xF8000004 %Long 0x767B767B
+  PRINT "- - -"
+  &value=Data.Long(AZD:0xF8007014)
+  &value=&value&0x30000000
+  Data.Set AZD:0xF8007014 %Long &value
+  PRINT "- - -"
+  &value=Data.Long(AZD:0xF8007000)
+  &value=&value&~0x02000000
+  Data.Set AZD:0xF8007000 %Long &value
+  PRINT "Disable AES engine"
+  &value=Data.Long(AZD:0xF8007000)
+  &value=&value&~0x00000E00
+  Data.Set AZD:0xF8007000 %Long &value
+  PRINT "set SRC address: &srcAddr"
+  Data.Set AZD:0xF8007018 %Long &srcAddr
+  PRINT "set DST address: &dstAddr"
+  Data.Set AZD:0xF800701C %Long &dstAddr
+  PRINT "set SRC length: &srcLen"
+  Data.Set AZD:0xF8007020 %Long &srcLen
+  PRINT "set DST length: &dstLen"
+  Data.Set AZD:0xF8007024 %Long &dstLen
+  PRINT "poll for completion"
+  &value=Data.Long(ZSD:0xF800700C)
+  &match=&value&0x00002000
+  WHILE &match==0
+  (
+    &value=Data.Long(AZD:0xF800700C)
+    &match=&value&0x00002000
+  )
+  PRINT "Check FPGA configuration completion"
+  &value=Data.Long(AZD:0xF800700C)
+  &match=&value&0x00000004
+  WHILE &match==0
+  (
+    &value=Data.Long(AZD:0xF800700C)
+    &match=&value&0x00000004
+  )
+  ; clear out the status
+  &value=&value&0x00002000
+  Data.Set AZD:0xF800700C %Long &value
+  WAIT 0.1s
+)
+ELSE
+(
+  ; using JTAG-DiasyChain
+  PRIVATE &bSysUp
+  &bSysUp=SYStem.Up()
+
+  SYStem.Down
+  JTAG.PROGRAM.XILINX "&file" /IRPOST &irPost /DRPOST &drPost /IRPRE &irPre /DRPRE &drPre
+  IF &bSysUp
+  (
+    SYStem.Mode.Attach
+  )
+)
+IF (!&bNoPostConfig)
+(
+  PRINT "slcr unlock"
+  Data.Set AZD:0xF8000008 %Long 0xDF0DDF0D
+  PRINT "set level shifter"
+  &value=Data.Long(AZD:0xF8000900)
+  &value=&value|0x0000000F
+  Data.Set AZD:0xF8000900 %Long &value
+  PRINT "toggle reset of programmable logic"
+  Data.Set AZD:0xF8000240 %Long 0xFFFFFFFF
+  WAIT 0.1s
+  Data.Set AZD:0xF8000240 %Long 0x00000000
+  PRINT "slcr lock"
+  Data.Set AZD:0xF8000004 %Long 0x767B767B
+)
+PRINT "Done"
+
+ENDDO TRUE()
+
+; --------------------------------------------------------------------------------
+; Subroutines
+
+ParseParameters: ;(params)
+(
+  PRIVATE &params &file &ram_start &size &irPost &drPost &irPre &drPre &bNoPostConfig
+  ENTRY &file %LINE &params
+  &file=STRing.Replace("&file","""","",0.)
+  &ram_start=STRing.SCANAndExtract("&params","0x","")
+  &size=STRing.SCANAndExtract("&params","SIZE=0x","0")
+  &irPost=STRing.SCANAndExtract("&params","IRPOST=","0")
+  &drPost=STRing.SCANAndExtract("&params","DRPOST=","0")
+  &irPre=STRing.SCANAndExtract("&params","IRPRE=","0")
+  &drPre=STRing.SCANAndExtract("&params","DRPRE=","0")
+  &bNoPostConfig=STRing.SCAN("&params","SKIPPOSTCONFIG",0.)>=0
+  IF "&irPost&drPost&irPre&drPre"=="0000"
+  (
+    IF (("&file"!="/RAM")&&!OS.FILE("&file"))||"&ram_start"==""
+    (
+      GOSUB PrintUsage
+      ENDDO FALSE()
+    )
+
+    &ram_start="0x&ram_start"
+    &size="0x&size"
+    IF (&ram_start&0x3)!=0x0
+    (
+      PRINT %ERROR "Address must be aligned to 32-bit boundary"
+      ENDDO FALSE()
+    )
+  )
+  ELSE
+  (
+    ON ERROR GOSUB
+    (
+      GOSUB PrintUsage
+      ENDDO FALSE()
+    )
+    &irPost="&irPost."
+    &drPost="&drPost."
+    &irPre="&irPre."
+    &drPre="&drPre."
+    ON ERROR inherit
+  )
+
+  RETURN "&file" "&ram_start" "&size" "&irPost" "&drPost" "&irPre" "&drPre" "&bNoPostConfig"
+)
+
+
+; load Xilinx .bit or .bin file to given address
+; returns length of the file or -1 on error
+LoadBitfile: ;(filename , file address)
+(
+  PRIVATE &filename &addr &file_size &stream_offset &stream_length
+  PARAMETERS &filename &addr
+
+
+  IF !OS.FILE("&filename")
+  (
+    PRINT %ERROR "File &filename does not exist"
+    ENDDO FALSE()
+  )
+
+  &file_size=OS.FILE.SIZE("&filename")
+
+  ; search for the magic pattern at the start of the bitstream.
+  ; in a .bin file, this should be at offset zero.
+  ; in a .bit file, there is a header containing some ASCII strings, which we must skip.
+  Data.LOAD.Binary "&filename" AVM:0x0 /NosYmbol /NoCLEAR
+  PRIVATE &x &isBit &isBitBin
+  &x="0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF"
+
+  Data.Find AVM:0x0++(&file_size-0x1) %Byte &x &x &x &x 0x00 0x00 0x00 0xBB 0x11 0x22 0x00 0x44 &x 0xAA 0x99 0x55 0x66
+  &isBit=FOUND()
+  Data.Find AVM:0x0++(&file_size-0x1) %Byte &x &x &x &x 0xBB 0x00 0x00 0x00 0x44 0x00 0x22 0x11 &x 0x66 0x55 0x99 0xaa
+  &isBitBin=FOUND()
+
+  IF !(&isBit||&isBitBin)
+  (
+    PRINT %ERROR "Sync pattern not found - is this a .bit or .bin file?"
+    ENDDO FALSE()
+  )
+
+  ; calculate bitstream offset (can be unaligned) and length, rounded up to a multiple of 4 bytes
+  &stream_offset=ADDRESS.OFFSET(TRACK.ADDRESS())
+  &stream_length=(&file_size-&stream_offset+0x3)&~0x3
+  PRINT "stream starts at &stream_offset, length &stream_length"
+
+  ; if it's a bitstream load bitstream into RAM and swap (the FPGA expects big endian words)
+  IF &isBit
+  (
+    Data.LOAD.Binary "&filename" AVM:0x0 /LongSWAP /SKIP &stream_offset
+  )
+  Data.COPY AVM:0x0++(&stream_length-0x1) &addr /Long
+  CACHE.FLUSH.DC
+  CACHE.FLUSH.L2
+
+  RETURN "&stream_length"
+)
+
+PrintUsage: ;()
+(
+  PRINT "Usage:"
+  PRINT "    DO zynq_bitstream.cmm ""/path/to/bitfile.bit"" 0x<address>"
+  PRINT "    DO zynq_bitstream.cmm ""/path/to/bitfile.bin"" 0x<address>"
+  PRINT "    DO zynq_bitstream.cmm /RAM 0x<address> SIZE=0x<length>"
+  PRINT "    DO zynq_bitstream.cmm ""/path/to/bitfile.bit"" IRPOST=<> DRPOST=<> IRPRE=<> DRPRE=<>"
+  PRINT ""
+  PRINT "The first two versions load the bitfile to the given address and then load"
+  PRINT "the FPGA. Previous memory contents are not preserved."
+  PRINT "The third version only loads the FPGA with data already in RAM."
+  PRINT "The last version loads the FPGA directly via JTAG."
+  PRINT ""
+  PRINT "Example:"
+  PRINT "    ; load bitstream for the first time"
+  PRINT "    DO zynq_bitstream.cmm ""design_1_wrapper.bit"" 0x10000000"
+  PRINT ""
+  PRINT "    ; re-load the same bitstream at a later time"
+  PRINT "    DO zynq_bitstream.cmm /RAM 0x10000000 SIZE=<size>"
+  PRINT ""
+  PRINT %ERROR "Invalid Usage! Type AREA for more details."
+  ENDDO FALSE()
+)

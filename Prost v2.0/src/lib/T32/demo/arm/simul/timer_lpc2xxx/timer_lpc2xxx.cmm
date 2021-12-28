@@ -1,0 +1,24 @@
+; --------------------------------------------------------------------------------
+; @Title: LPC2xxx Timer Initialization Script for TRACE32 32-bit
+; @Description: 
+;   Load Model for TRACE32 32-bit version
+;   timer 0 has no external ports except interrupt port connected directly to cpu
+; @Keywords: API, Model, Simulator
+; @Board: TRACE32 Simulator
+; @Chip: LPC2*
+; @Author: JER
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: timer_lpc2xxx.cmm 15209 2019-11-04 10:07:55Z bschroefel $
+
+
+SIM.UNLOAD timer_lpc2xxx.dll
+
+; Load Model for TRACE32 32-bit version
+; timer 0 has no external ports except interrupt port connected directly to cpu
+SIM.LOAD timer_lpc2xxx.dll "timer0" "noport" "noport" "cpu"
+
+; timer 1 has no external ports
+SIM.LOAD timer_lpc2xxx.dll "timer1"
+
+ENDDO

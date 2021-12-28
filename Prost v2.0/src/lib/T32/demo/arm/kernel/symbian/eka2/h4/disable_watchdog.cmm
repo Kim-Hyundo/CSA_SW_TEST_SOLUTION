@@ -1,0 +1,15 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to disable the Watchdog Timer for the TI OMAP H4 Board
+; @Description: -
+; @Author: -
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: disable_watchdog.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+  Data.Set ASD:0x48022048 %Long 0x0000aaaa
+  WAIT (Data.Long(ASD:0x48022034)&0x10)==0
+  Data.Set ASD:0x48022048 %Long 0x00005555
+  WAIT (Data.Long(ASD:0x48022034)&0x10)==0
+
+  ENDDO

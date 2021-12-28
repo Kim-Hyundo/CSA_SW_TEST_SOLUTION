@@ -1,0 +1,173 @@
+; --------------------------------------------------------------------------------
+; @Title: WinCE 5.0 Demo for TRACE32 OS Awareness on HiCO.ARM9 Board
+; @Description:
+;
+;   This batchfile demonstrates the use of the OS Awareness for WinCE
+;
+;   The example is generated for an emtrion HiCO.ARM9 board using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   Windows CE is downloaded to the target via ICD.
+;
+; @Keywords: awareness, Windows
+; @Author: DIE
+; @Board: HiCO.ARM9
+; @Chip: AT91RM9200
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: wince.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+;   Created by Rudi Dienstbeck / Lauterbach GmbH at 17.08.2006
+
+; Set jumper to boot bootloader
+
+; Starting WinCE example with TRACE32:
+; - Start TRACE32
+; - TRACE32: do wince
+; - on WinCE: start "ping.exe"
+
+
+ LOCAL &srcdrive
+ LOCAL &srcpath
+ &srcdrive="C:"
+ &srcpath="&srcdrive"+"\DevTools\WinCE\WINCE500"
+
+
+ SCREEN.ON
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 26. 75. 8. 0. 0. W000
+ AREA.view
+
+ PRINT "resetting..."
+
+ SYStem.Down
+ TASK.RESet
+ Break.Delete
+ MAP.RESet
+ sYmbol.RESet
+ TRANSlation.RESet
+
+
+; setup of ICD
+
+ PRINT "initializing..."
+ SYStem.CPU AT91RM9200
+ SYStem.JtagClock 1MHz          ; be slow after reset!
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ SYStem.Option ResBreak ON      ; hardware dependent (see manual)
+ SYStem.Option WaitReset OFF    ; hardware dependent (see manual)
+ SYStem.Option BigEndian OFF    ; this demo is in little endian
+ TrOnchip.Set DABORT OFF        ; used by wince for page miss!
+ TrOnchip.Set PABORT OFF        ; used by wince for page miss!
+ TrOnchip.Set UNDEF OFF         ; used to detect not present FPU
+ SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+
+
+; RESET: The standard layout of the board prevents
+; the debugger from inserting a reset signal. In this
+; case, only a SYStem.Mode Attach/Break works, and only
+; after a manual reset of the board.
+; A modified board (see PCBErrata in board documentation), that
+; allows resetting by the debugger, can use this sequence:
+
+ SYStem.Up
+
+ SETUP.IMASKASM ON              ; disable interrupts at assembler single step
+
+
+; Target Setup: initialize DRAM controller and peripherals
+
+ ; The target setup is only necessary, if the board is
+ ; in Reset state after SYStem.Up (see above comment).
+
+ ; Either let the boot monitor setup the board
+    Go
+    PRINT "target setup..."
+    WAIT 2.s
+    Break
+    DO init_hicoarm9_attach     ; prepare for WinCE boot
+ ; or use the debugger to initialize it
+    ;print "target setup..."
+    ;do init_hicoarm9           ; do basic setup
+
+ SYStem.JtagClock 20MHz         ; speedup after PLL set
+
+; configure ETM on target and on TRACE32 for HiCO.ARM9
+ ;print "ETM setup..."
+ ;do init_etm
+
+
+; Load Windows CE image
+
+ PRINT "loading Windows CE image..."
+ PER.Set.simple C15:0x1 %Long 0x7b     ; switch on MMU for download to virtual addresses
+ Data.LOAD.eXe nk.bin
+ PER.Set.simple C15:0x1 %Long 0x78     ; switch off MMU for start of WinCE
+ Register.Set PC 0x20030000     ; entry point of WinCE image
+
+; Load and Relocate Symbols of WinCE kernel (nk)
+
+; The WinCE Awareness needs the symbols contained in nk.exe!
+; Use the nk.exe file, which you used to build your WinCE system
+; (which resides in your build directory).
+; Please refer to the Windows CE Awareness Manual on how to download
+; and relocate kernel symbols
+
+ PRINT "loading kernel symbols..."
+ DO ../nk HiCOARM9_1SKit_CE500
+ DO loadnk
+ sYmbol.SourcePATH.Set &srcpath
+
+
+; We'd like to see something, open a code window.
+ WinPOS 0. 0. 77. 22. 13. 1. W001
+ List.auto
+
+
+; Run over MMU initialization
+
+ Go ARMInit /Onchip
+ PRINT "wait for init..."
+ WAIT !STATE.RUN()
+
+
+; Switch on debugger address translation
+ ; set common area for common DLLs and kernel
+ TRANSlation.COMMON 0x02000000--0x03ffffff 0x80000000--0xffffffff
+ TRANSlation.ON
+
+
+; Initialize RTOS Support
+
+ PRINT "initializing WinCE support..."
+ TASK.CONFIG ../wince       ; loads WinCE awareness (wince.t32)
+ MENU.ReProgram ../wince    ; loads WinCE menu (wince.men)
+ HELP.FILTER.Add rtoswince  ; add WinCE awareness manual to help
+
+; Group kernel area to be displayed with red bar
+
+ GROUP.Create "kernel" 0x80000000--0xffffffff /RED
+
+
+; Now let's boot and start WinCE!
+
+ Go
+ PRINT "booting WinCE... (please wait)"
+ WAIT 15.s
+ Break
+
+ PRINT "done."
+
+
+; --------------------------------------------------------------------------------
+; Application Debugging
+; e.g. "ping"
+
+ DO ../app_debug ping /strippart "c:\macallan\"
+
+ ENDDO
+

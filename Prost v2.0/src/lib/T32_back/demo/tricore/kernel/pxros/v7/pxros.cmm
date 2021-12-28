@@ -1,0 +1,112 @@
+; --------------------------------------------------------------------------------
+; @Title: PXROS (v7) Demo for TRACE32 OS Awareness
+; @Description:
+;   This script loads all necessary files to demonstrate
+;   the OS Awareness for PXROS.
+; @Keywords: awareness, Infineon, kernel, PXROS, RTOS, TriCore
+; @Author: DIE
+; @Chip: TC397XE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: pxros.cmm 15010 2019-10-01 15:30:55Z rdienstbeck $
+
+
+LOCAL &elffile
+
+&elffile="PXROS-HR-System.elf"
+
+SCREEN.ON
+WinPAGE.RESet
+WinPOS 0. 25. 70. 7. 0. 0. AREA
+AREA.view
+
+
+; debugger reset
+
+PRINT "resetting..."
+RESet
+
+
+; initialize debugger
+
+PRINT "initializing..."
+SYStem.CPU TC397XE
+CORE.ASSIGN 1. 2. 3. 4.
+SYStem.Up
+
+SETUP.IMASKASM ON
+
+
+; declare flash
+
+PRINT "declaring flash..."
+DO ~~/demo/tricore/flash/tc39x.cmm CPU=TC397XE PREPAREONLY
+
+
+; check if flashing is necessary
+
+PRINT "checking for flashing..."
+Data.LOAD.Elf "&elffile" /DIFF
+IF FOUND()
+(
+    LOCAL &progflash
+    DIALOG.YESNO "Program PXROS demo into flash memory?"
+    ENTRY &progflash
+    IF (&progflash)
+    (
+        PRINT "flashing sample application..."
+        FLASH.ReProgram ALL
+        Data.LOAD.Elf "&elffile"
+        FLASH.ReProgram OFF
+    )
+)
+
+
+; load symbols and check if flash contains application
+
+PRINT "loading symbols..."
+Data.LOAD.Elf "&elffile" /DIFF
+IF FOUND()
+(
+    LOCAL &diffaddress
+    &diffaddress=track.address()
+    DIALOG.MESSAGE "File &elffile has not been fully flashed, difference found at address &diffaddress (check flash declaration)"
+)
+
+
+; initialze PXROS
+
+WinPOS 0. 0. 70. 19. 13. 1. List
+List.auto
+
+Register.Set PC _start
+
+Go InitTask_Func
+PRINT "initializing PXROS..."
+WAIT !run()
+
+
+; initialize RTOS support
+
+PRINT "initializing PXROS support..."
+TASK.CONFIG ~~/demo/tricore/kernel/pxros/v7/pxros.t32       ; load PXROS awareness
+MENU.ReProgram ~~/demo/tricore/kernel/pxros/v7/pxros.men    ; load PXROS menu
+HELP.FILTER.Add rtospxros   ; add PXROS awareness manual to filtered help
+
+WinPOS 75. 0. 62. 12. 0. 1. Tasks
+TASK.ListTask
+
+WinPOS 75. 17. 62. 15. 0. 1. Objects
+TASK.ListObj.all
+
+
+; That's all folks
+
+PRINT "load complete."
+
+
+; start the application
+
+Go Task3_Entry
+
+ENDDO

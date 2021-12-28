@@ -1,0 +1,158 @@
+; --------------------------------------------------------------------------------
+; @Title: Initialize CSA configuration
+;
+; @Description:
+; Brief:
+; Setup the CSA areas in RAM and configure the core registers accordingly.
+;
+; Detailed:
+; The TriCore architecture does not save context information on the stack,
+; but uses a linked list of Context Save Areas (CSAs) in RAM.
+; This script initializes the RAM used for the CSAs, connects them to a
+; linked list and initializes the core registers so an application can use
+; them. The linked lists are created bottom-up, so the first CSA is at the
+; lowest address. The linked lists are next to each other in RAM.
+; The concept is identical for all existing TriCore devices, so this script
+; is generic.
+;
+; Please see the TriCore Architecture Specification for more information on
+; the basics of Context Save Areas.
+;
+; Parameters:
+;   addrCSAStart  Begin of the CSA areas in RAM.
+;   nCSAAreas     Number of CSAs in RAM.
+;   strSymbPrefix (optional) if provided, a symbol is generated for each CSA.
+; Return
+;   Whether setup failed (FALSE()) or succeeded (TRUE()).
+;
+; Preconditions:
+; - The target is up and stopped.
+;
+; @Chip: TC*
+; @Author: MAX,WRD,MOB,MEI
+; @Keywords: CSA, Contet Save Area
+; @Copyright: Lauterbach
+; --------------------------------------------------------------------------------
+; $Id: csa.cmm 15923 2020-04-09 06:46:06Z meick $
+
+; --------------------------------------------------------------------------------
+; parameters
+
+PRIVATE &nCSASize &addrCurrCSA &rFCX &rLCX &nNo
+PARAMETERS &addrCSAStart &nCSAAreas &strSymbPrefix
+
+; fixed parameters - just to be verbose
+&nCSASize=0x40    ; size of one CSA in bytes
+
+IF ("&addrCSAStart"=="")
+(
+  PRINT %ERROR "no parameter for CSA start address specified"
+  ENDDO FALSE()
+)
+IF ("&nCSAAreas"=="")
+(
+  PRINT %ERROR "no parameter for CSA size specified"
+  ENDDO FALSE()
+)
+IF (&nCSAAreas<=1.)
+(
+  PRINT %ERROR "CSA size has to be greater or equal 2"
+  ENDDO FALSE()
+)
+
+IF !STRing.FIND("&addrCSAStart",":")
+  &addrCSAStart="D:&addrCSAStart"
+&addrCSAStart=ADDRESS.OFFSET(&addrCSAStart)
+Eval &addrCSAStart
+IF (EVAL.TYPE()!=0x04)
+(
+; CSA start address is neither a hex value (0x0004)
+; nor an address (0x0100)
+  PRINT %ERROR "illegal parameter for CSA start address"
+  ENDDO FALSE()
+)
+IF (&addrCSAStart&(&nCSASize-1))!=0x00
+(
+; CSA start address has to be aligned to 64 Byte
+  PRINT %ERROR "illegal alignment for CSA start address"
+  ENDDO FALSE()
+)
+
+Eval &nCSAAreas
+IF ((EVAL.TYPE()!=0x0004)&&(EVAL.TYPE()!=0x0008))
+(
+; CSA start address is neither a hex value (0x0004)
+; nor an integer (0x0008)
+  PRINT %ERROR "illegal parameter for CSA size (number of CSA areas)"
+  ENDDO FALSE()
+)
+
+
+; --------------------------------------------------------------------------------
+; setup
+
+; setup CSA and linked CSA lists
+; the CSA area in memory is initialzied to zero, and the correct link word for 
+; each CSA is written: the link word of each CSA points to the consecutive CSA
+Data.Set (&addrCSAStart)++((&nCSAAreas<<6.)-1.) %Long 0x00000000
+
+; create link word for each CSA to connect with the next CSA
+; the last CSA links to NULL
+&addrCurrCSA=&addrCSAStart
+&nNo=0.
+RePeaT &nCSAAreas
+(
+  PRIVATE &linkWord
+  GOSUB GenerateCSALinkWord "&addrCurrCSA+&nCSASize"
+  RETURNVALUES &linkWord
+  Data.Set &addrCurrCSA %Long &linkWord
+
+  IF "&strSymbPrefix"!=""
+  (
+    PRIVATE &symb
+    &symb="&strSymbPrefix"+FORMAT.DECimal(0.,&nNo)
+    sYmbol.NEW &symb &addrCurrCSA
+  )
+
+  &addrCurrCSA=&addrCurrCSA+&nCSASize
+  &nNo=&nNo+1.
+)
+Data.Set &addrCurrCSA-&nCSASize %Long 0x00000000 ; last CSA
+
+; configure CSA link registers in core
+; PCXI: just reset, normally handled by hardware
+Register.Set PCXI 0x00000000
+; FCX: link to first available CSA
+GOSUB GenerateCSALinkWord "&addrCSAStart"
+RETURNVALUES &rFCX
+Register.Set FCX &rFCX
+; LCX: link to last available CSA (end of list)
+GOSUB GenerateCSALinkWord "&addrCSAStart+(&nCSAAreas<<6.)-&nCSASize"
+RETURNVALUES &rLCX
+Register.Set LCX &rLCX
+
+ENDDO TRUE()
+
+
+; --------------------------------------------------------------------------------
+; helper functions
+
+; --------------------------------------------------------------------------------
+; generate CSA link word
+; parameter  &gmCSAAddress  Link address of CSA set
+; return CSA link word
+
+GenerateCSALinkWord:
+(
+  PARAMETERS &addrCSAAddress
+
+  PRIVATE &CSALinkWord
+  &CSALinkWord=(((&addrCSAAddress)&((0xf0000000)))>>12.)|(((&addrCSAAddress)&((0x0003ffc0)))>>6.)
+
+  RETURN "&CSALinkWord"
+)
+
+; --------------------------------------------------------------------------------
+; this should never be reached
+STOP
+ENDDO

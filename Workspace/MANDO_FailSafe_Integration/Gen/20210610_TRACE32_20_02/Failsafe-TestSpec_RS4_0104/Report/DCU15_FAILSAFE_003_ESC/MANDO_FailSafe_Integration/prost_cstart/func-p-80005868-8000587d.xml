@@ -1,0 +1,516 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="t32transform.xsl"?>
+<TRACE32 file="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Gen\20210610_TRACE32_20_02\Failsafe-TestSpec_RS4_0104\Report\DCU15_FAILSAFE_003_ESC\MANDO_FailSafe_Integration\prost_cstart\func-p-80005868-8000587d.xml">
+	<coverage>
+		<COVerage.EXPORT.ListLine ts="1623300911" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE" metric="object">
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\Rte_SWC_Diag</tree>
+				<cov>partial</cov>
+				<exec metric="object">50.847%</exec>
+				<branches>-</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>0</never>
+				<bytes>590</bytes>
+				<bytesok>300</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_HWFailure</tree>
+				<cov>partial</cov>
+				<exec metric="object">16.831%</exec>
+				<branches>10.000%</branches>
+				<ok>0</ok>
+				<taken>1</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>202</bytes>
+				<bytesok>34</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\SWC_Failsafe</tree>
+				<cov>partial</cov>
+				<exec metric="object">70.413%</exec>
+				<branches>-</branches>
+				<ok>4</ok>
+				<taken>10</taken>
+				<nottaken>22</nottaken>
+				<bytes>1548</bytes>
+				<bytesok>1090</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80002C38</addrFrom>
+				<addrTo>P:80002DC9</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\FS_BatteryVoltage</tree>
+				<cov>partial</cov>
+				<exec metric="object">50.248%</exec>
+				<branches>37.500%</branches>
+				<ok>1</ok>
+				<taken>10</taken>
+				<nottaken>6</nottaken>
+				<never>7</never>
+				<bytes>402</bytes>
+				<bytesok>202</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_CANBusOff</tree>
+				<cov>partial</cov>
+				<exec metric="object">54.263%</exec>
+				<branches>1.671%</branches>
+				<ok>1</ok>
+				<taken>4</taken>
+				<nottaken>5</nottaken>
+				<never>319</never>
+				<bytes>258</bytes>
+				<bytesok>140</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_CANTimeout</tree>
+				<cov>partial</cov>
+				<exec metric="object">74.013%</exec>
+				<branches>26.443%</branches>
+				<ok>53</ok>
+				<taken>40</taken>
+				<nottaken>28</nottaken>
+				<never>208</never>
+				<bytes>2432</bytes>
+				<bytesok>1800</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_InvalidSignal</tree>
+				<cov>partial</cov>
+				<exec metric="object">62.870%</exec>
+				<branches>51.823%</branches>
+				<ok>77</ok>
+				<taken>111</taken>
+				<nottaken>76</nottaken>
+				<never>65</never>
+				<bytes>5866</bytes>
+				<bytesok>3688</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_SWFailure</tree>
+				<cov>partial</cov>
+				<exec metric="object">48.979%</exec>
+				<branches>1.975%</branches>
+				<ok>2</ok>
+				<taken>4</taken>
+				<nottaken>5</nottaken>
+				<never>318</never>
+				<bytes>392</bytes>
+				<bytesok>192</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>5</never>
+				<bytes>806</bytes>
+				<bytesok>0</bytesok>
+				<function>
+					<addrFrom>P:80005868</addrFrom>
+					<addrTo>P:8000587D</addrTo>
+					<tree uid="p-80005868-8000587d">\\MANDO_FailSafe_Integration\prost_cstart\endinit_clear</tree>
+					<cov>never</cov>
+					<exec metric="object">0.000%</exec>
+					<branches>-</branches>
+					<ok>0</ok>
+					<taken>0</taken>
+					<nottaken>0</nottaken>
+					<never>0</never>
+					<bytes>22</bytes>
+					<bytesok>0</bytesok>
+					<line>
+						<addrFrom>P:8000587C</addrFrom>
+						<addrTo>P:8000587D</addrTo>
+						<tree>prost_cstart.c \1--91</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\prost_cstart.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80005868</addrFrom>
+						<addrTo>P:80005873</addrTo>
+						<tree>prost_cstart.c \1262--1316</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\prost_cstart.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80005874</addrFrom>
+						<addrTo>P:80005877</addrTo>
+						<tree>prost_cstart.c \1338--1338</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\prost_cstart.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80005878</addrFrom>
+						<addrTo>P:80005879</addrTo>
+						<tree>prost_cstart.c \1339--1339</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\prost_cstart.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000587A</addrFrom>
+						<addrTo>P:8000587B</addrTo>
+						<tree>prost_cstart.c \1340--1340</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\prost_cstart.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<total>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>22</bytes>
+						<bytesok>0</bytesok>
+					</total>
+				</function>
+				<total>
+					<cov>never</cov>
+					<exec metric="object">0.000%</exec>
+					<branches>-</branches>
+					<ok>0</ok>
+					<taken>0</taken>
+					<nottaken>0</nottaken>
+					<never>0</never>
+					<bytes>22</bytes>
+					<bytesok>0</bytesok>
+				</total>
+			</module>
+			<module>
+				<addrFrom>P:80005B2A</addrFrom>
+				<addrTo>P:80005CBB</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc1</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>402</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80005CBC</addrFrom>
+				<addrTo>P:80005E4D</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc2</tree>
+				<cov>partial</cov>
+				<exec metric="object">79.104%</exec>
+				<branches>75.000%</branches>
+				<ok>2</ok>
+				<taken>1</taken>
+				<nottaken>1</nottaken>
+				<never>0</never>
+				<bytes>402</bytes>
+				<bytesok>318</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc3</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc4</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_main</tree>
+				<cov>partial</cov>
+				<exec metric="object">24.691%</exec>
+				<branches>25.000%</branches>
+				<ok>1</ok>
+				<taken>1</taken>
+				<nottaken>1</nottaken>
+				<never>5</never>
+				<bytes>324</bytes>
+				<bytesok>80</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80006180</addrFrom>
+				<addrTo>P:80006315</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc5</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80006456</addrFrom>
+				<addrTo>P:80006485</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_stubs</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>2</never>
+				<bytes>48</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<total>
+				<cov>partial</cov>
+				<exec metric="object">52.679%</exec>
+				<branches>21.949%</branches>
+				<ok>141</ok>
+				<taken>182</taken>
+				<nottaken>144</nottaken>
+				<never>918</never>
+				<bytes>14890</bytes>
+				<bytesok>7844</bytesok>
+			</total>
+		</COVerage.EXPORT.ListLine>
+	</coverage>
+	<marker>
+		<BookMark.EXPORT ts="1623300911" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE">
+		</BookMark.EXPORT>
+	</marker>
+	<listing>
+		<List.EXPORT ts="1623300911" t32ver="R.2020.09.000128638" t32pv="TRICORE" order="source">
+			<mixed module="\\MANDO_FailSafe_Integration\prost_cstart" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\prost_cstart.c">
+				<hll><line>1</line><src>/**************************************************************************</src></hll>
+				<hll><line>2</line><src>**                                                                        *</src></hll>
+				<hll><line>3</line><src>**  FILE        :  cstart.c                                               *</src></hll>
+				<hll><line>4</line><src>**                                                                        *</src></hll>
+				<hll><line>5</line><src>**  DESCRIPTION :                                                         *</src></hll>
+				<hll><line>6</line><src>**      The system startup code initializes the processor&apos;s registers     *</src></hll>
+				<hll><line>7</line><src>**      and the application C variables.                                  *</src></hll>
+				<hll><line>8</line><src>**                                                                        *</src></hll>
+				<hll><line>9</line><src>**  Copyright 1996-2018 TASKING BV                                        *</src></hll>
+				<hll><line>10</line><src>**                                                                        *</src></hll>
+				<hll><line>11</line><src>**************************************************************************/</src></hll>
+				<hll><line>12</line><src></src></hll>
+				<hll><line>13</line><src>#include &quot;prost_cstart.h&quot;                             /* include configuration */</src></hll>
+				<hll><line>14</line><src></src></hll>
+				<hll><line>15</line><src>#include &lt;stdlib.h&gt;</src></hll>
+				<hll><line>16</line><src>#include &lt;stdbool.h&gt;</src></hll>
+				<hll><line>17</line><src></src></hll>
+				<hll><line>18</line><src>#ifdef __CPU__</src></hll>
+				<hll><line>19</line><src>#include __SFRFILE__(__CPU__)</src></hll>
+				<hll><line>20</line><src>#endif</src></hll>
+				<hll><line>21</line><src></src></hll>
+				<hll><line>22</line><src>#pragma weak   exit</src></hll>
+				<hll><line>23</line><src>#pragma extern _Exit</src></hll>
+				<hll><line>24</line><src>#pragma profiling off                           /* prevent profiling information on cstart */</src></hll>
+				<hll><line>25</line><src>#pragma tradeoff 4                              /* preset tradeoff level (for size) */</src></hll>
+				<hll><line>26</line><src>#pragma runtime BCM                             /* disable runtime error checking for cstart */</src></hll>
+				<hll><line>27</line><src>#pragma nomisrac                                /* disable MISRA-C checking */</src></hll>
+				<hll><line>28</line><src>#pragma immediate_in_code                       /* no external ROM access before bus configuration */</src></hll>
+				<hll><line>29</line><src></src></hll>
+				<hll><line>30</line><src>#if __USE_ARGC_ARGV</src></hll>
+				<hll><line>31</line><src>#pragma noclear                                 /* bss clearing not before cinit */</src></hll>
+				<hll><line>32</line><src>static char argcv[__ARGCV_BUFSIZE] __align(4);</src></hll>
+				<hll><line>33</line><src>#pragma clear</src></hll>
+				<hll><line>34</line><src>extern int _argcv( const char *, size_t );</src></hll>
+				<hll><line>35</line><src>#endif</src></hll>
+				<hll><line>36</line><src></src></hll>
+				<hll><line>37</line><src>/* linker definitions */</src></hll>
+				<hll><line>38</line><src>extern __far void _lc_ue_ustack[];      /* user stack end */</src></hll>
+				<hll><line>39</line><src>extern __far void _lc_ue_istack[];      /* interrupt stack end */</src></hll>
+				<hll><line>40</line><src>extern __far void _lc_u_int_tab[];      /* interrupt table */</src></hll>
+				<hll><line>41</line><src>extern __far void _lc_u_trap_tab[];     /* trap table */</src></hll>
+				<hll><line>42</line><src>extern __far void _SMALL_DATA_[];       /* centre of A0 addressable area */</src></hll>
+				<hll><line>43</line><src>extern __far void _LITERAL_DATA_[];     /* centre of A1 addressable area */</src></hll>
+				<hll><line>44</line><src>extern __far void _A8_DATA_[];          /* centre of A8 addressable area */</src></hll>
+				<hll><line>45</line><src>extern __far void _A9_DATA_[];          /* centre of A9 addressable area */</src></hll>
+				<hll><line>46</line><src></src></hll>
+				<hll><line>47</line><src>/* external functions */</src></hll>
+				<hll><line>48</line><src>#if __C_INIT</src></hll>
+				<hll><line>49</line><src>extern void _c_init(void);              /* C initialization function */</src></hll>
+				<hll><line>50</line><src>#endif</src></hll>
+				<hll><line>51</line><src>#ifdef __CALL_INIT</src></hll>
+				<hll><line>52</line><src>extern void _call_init(void);           /* call a user function before main() */</src></hll>
+				<hll><line>53</line><src>#endif</src></hll>
+				<hll><line>54</line><src>#ifdef _CALL_ENDINIT</src></hll>
+				<hll><line>55</line><src>extern void _endinit(void);             /* call a user function with protection switched off */</src></hll>
+				<hll><line>56</line><src>#endif</src></hll>
+				<hll><line>57</line><src></src></hll>
+				<hll><line>58</line><src>/* local functions */</src></hll>
+				<hll><line>59</line><src>static void __noinline__ __noreturn__ __jump__ __init_sp( void );</src></hll>
+				<hll><line>60</line><src>static void __noinline__ __noreturn__ __jump__ _start( void );</src></hll>
+				<hll><line>61</line><src></src></hll>
+				<hll><line>62</line><src>#if ( defined _REGTC26X_H || defined _REGTC26XB_H || defined _REGTC38X_H || defined _REGTC39X_H || defined _REGTC39XB_H )</src></hll>
+				<hll><line>63</line><src>#if __XC800_INIT</src></hll>
+				<hll><line>64</line><src>static void _xc800_init ( void );</src></hll>
+				<hll><line>65</line><src>#endif</src></hll>
+				<hll><line>66</line><src>#endif</src></hll>
+				<hll><line>67</line><src></src></hll>
+				<hll><line>68</line><src>/* library references */</src></hll>
+				<hll><line>69</line><src>#pragma extern main_core0</src></hll>
+				<hll><line>70</line><src>extern int main_core0( int argc, char *argv[] );</src></hll>
+				<hll><line>71</line><src></src></hll>
+				<hll><line>72</line><src>/* endinit types */</src></hll>
+				<hll><line>73</line><src>typedef enum</src></hll>
+				<hll><line>74</line><src>{</src></hll>
+				<hll><line>75</line><src>        _ENDINIT_DISABLE,</src></hll>
+				<hll><line>76</line><src>        _ENDINIT_ENABLE</src></hll>
+				<hll><line>77</line><src>}       _endinit_t;</src></hll>
+				<hll><line>78</line><src></src></hll>
+				<hll><line>79</line><src></src></hll>
+				<hll><line>80</line><src>/*</src></hll>
+				<hll><line>81</line><src> *      inlining is required for endinit_set and safety_endinit_set,</src></hll>
+				<hll><line>82</line><src> *      because the CSA list is not ready to support function calls.</src></hll>
+				<hll><line>83</line><src> */</src></hll>
+				<hll><line>84</line><src>#ifdef inline</src></hll>
+				<hll><line>85</line><src>#undef inline</src></hll>
+				<hll><line>86</line><src>#endif</src></hll>
+				<hll><line>87</line><src></src></hll>
+				<hll><line>88</line><src>static void inline endinit_set(_endinit_t endinit_value);</src></hll>
+				<hll><line>89</line><src></src></hll>
+				<hll><line>90</line><src>/* external interface to endinit_set */</src></hll>
+				<hll><cov>never</cov><line>91</line><src>extern void _endinit_clear(void) { endinit_set(_ENDINIT_DISABLE); }</src></hll>
+				<asm><cov>never</cov><addr>P:8000587C</addr><code>9000</code><mnemonic>ret16     </mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\prost_cstart" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\prost_cstart.c">
+				<hll><line>1262</line><src>#endif</src></hll>
+				<hll><line>1263</line><src></src></hll>
+				<hll><line>1264</line><src>        /*</src></hll>
+				<hll><line>1265</line><src>         * Default trap vectors are resolved from the C-library.</src></hll>
+				<hll><line>1266</line><src>         */</src></hll>
+				<hll><line>1267</line><src>#if __BTV_INIT</src></hll>
+				<hll><line>1268</line><src>#  if __RESOLVE_TRAP_0</src></hll>
+				<hll><line>1269</line><src>#    pragma extern  _trapmmu</src></hll>
+				<hll><line>1270</line><src>#  endif</src></hll>
+				<hll><line>1271</line><src>#  if __RESOLVE_TRAP_1</src></hll>
+				<hll><line>1272</line><src>#    pragma extern  _trapprotection</src></hll>
+				<hll><line>1273</line><src>#  endif</src></hll>
+				<hll><line>1274</line><src>#  if __RESOLVE_TRAP_2</src></hll>
+				<hll><line>1275</line><src>#    pragma extern  _trapinstruction</src></hll>
+				<hll><line>1276</line><src>#  endif</src></hll>
+				<hll><line>1277</line><src>#  if __RESOLVE_TRAP_3</src></hll>
+				<hll><line>1278</line><src>#    pragma extern  _trapcontext</src></hll>
+				<hll><line>1279</line><src>#  endif</src></hll>
+				<hll><line>1280</line><src>#  if __RESOLVE_TRAP_4</src></hll>
+				<hll><line>1281</line><src>#    pragma extern  _trapbus</src></hll>
+				<hll><line>1282</line><src>#  endif</src></hll>
+				<hll><line>1283</line><src>#  if __RESOLVE_TRAP_5</src></hll>
+				<hll><line>1284</line><src>#    pragma extern  _trapassertion</src></hll>
+				<hll><line>1285</line><src>#  endif</src></hll>
+				<hll><line>1286</line><src>#  if __RESOLVE_TRAP_6</src></hll>
+				<hll><line>1287</line><src>#    pragma extern  _trapsystem</src></hll>
+				<hll><line>1288</line><src>#  endif</src></hll>
+				<hll><line>1289</line><src>#  if __RESOLVE_TRAP_7</src></hll>
+				<hll><line>1290</line><src>#    pragma extern  _trapnmi</src></hll>
+				<hll><line>1291</line><src>#  endif</src></hll>
+				<hll><line>1292</line><src>#endif</src></hll>
+				<hll><line>1293</line><src>        </src></hll>
+				<hll><line>1294</line><src>}</src></hll>
+				<hll><line>1295</line><src></src></hll>
+				<hll><line>1296</line><src>/**************************************************************************</src></hll>
+				<hll><line>1297</line><src> *</src></hll>
+				<hll><line>1298</line><src> * FUNCTION:     endinit_set</src></hll>
+				<hll><line>1299</line><src> *</src></hll>
+				<hll><line>1300</line><src> * DESCRIPTION:  Sets or Clears the ENDINIT bit in the WDT_CON0 register</src></hll>
+				<hll><line>1301</line><src> *               in order to enabled or disable the write-protection for</src></hll>
+				<hll><line>1302</line><src> *               registers protected via the EndInit feature</src></hll>
+				<hll><line>1303</line><src> *               (ie. BTV, BIV, ISP, PCON0, DCON0).</src></hll>
+				<hll><line>1304</line><src> *</src></hll>
+				<hll><line>1305</line><src> *************************************************************************/</src></hll>
+				<hll><line>1306</line><src>static void inline endinit_set( _endinit_t endinit_value )</src></hll>
+				<hll><line>1307</line><src>{</src></hll>
+				<hll><line>1308</line><src>        unsigned int wdt_con0;</src></hll>
+				<hll><line>1309</line><src></src></hll>
+				<hll><line>1310</line><src>#if !( defined _REGUSERDEF16X_H || defined _REGUSERDEF162_H || defined _REGTC21X_H || defined _REGTC22X_H || defined _REGTC23X_ADAS_H || defined _REGTC23X_H || defined _REGTC27X_H || defined _REGTC27XB_H || defined _REGTC27XC_H || defined _REGTC27XD_H || defined _REGTC26X_H || defined _REGTC26XB_H || defined _REGTC29X_H || defined _REGTC29XB_H || defined _REGTC38X_H || defined _REGTC39X_H || defined _REGTC39XB_H )</src></hll>
+				<hll><line>1311</line><src>        unsigned int wdt_con1;</src></hll>
+				<hll><line>1312</line><src>#endif</src></hll>
+				<hll><line>1313</line><src>        /*</src></hll>
+				<hll><line>1314</line><src>         * 1st step: Password access (create password and send to WDT_CON0)</src></hll>
+				<hll><line>1315</line><src>         */        </src></hll>
+				<hll><cov>never</cov><line>1316</line><src>        wdt_con0 = WDT_CON0.U;</src></hll>
+				<asm><cov>never</cov><addr>P:80005868</addr><code>FF003091</code><label>_endinit_clear:                                                                                                                                                                                                                                                 </label><mnemonic>movh.a    a15,#0xF003</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000586C</addr><code>960CFFD9</code><mnemonic>lea       a15,[a15]0x624C</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80005870</addr><code>FFCCFF61</code><mnemonic>fcall     0x80005808</mnemonic><comment>.cocofun_1</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\prost_cstart" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\prost_cstart.c">
+				<hll><cov>never</cov><line>1338</line><src>        __isync();</src></hll>
+				<asm><cov>never</cov><addr>P:80005874</addr><code>04C0000D</code><mnemonic>isync     </mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\prost_cstart" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\prost_cstart.c">
+				<hll><cov>never</cov><line>1339</line><src>        WDT_CON0.U = wdt_con0;          </src></hll>
+				<asm><cov>never</cov><addr>P:80005878</addr><code>FF74</code><mnemonic>st16.w    [a15],d15</mnemonic><comment>[a15],wdt_con0</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\prost_cstart" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\prost_cstart.c">
+				<hll><cov>never</cov><line>1340</line><src>        WDT_CON0.U;                     /* read is required */</src></hll>
+				<asm><cov>never</cov><addr>P:8000587A</addr><code>FF54</code><mnemonic>ld16.w    d15,[a15]</mnemonic><comment>wdt_con0,[a15]</comment></asm>
+			</mixed>
+		</List.EXPORT>
+	</listing>
+</TRACE32>

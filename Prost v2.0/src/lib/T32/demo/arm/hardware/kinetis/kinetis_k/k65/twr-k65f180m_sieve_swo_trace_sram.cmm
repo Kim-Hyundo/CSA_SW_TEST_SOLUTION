@@ -1,0 +1,117 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for MK65FN2M0VMI18 on TWR-K65F180M with SWV (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The SerialWireViewer is set up to trace some data values using the DWT.
+;   Prerequisites:
+;    * Connect Combiprobe/uTrace to J18
+;    * Remove jumper J32 to disable onboard debugger
+;    * Solder a bridge on a R69 pads to connect SWO pin to the debug header.
+;    * Optionally solder bridges on R68 (TDI) and 69 (TDO)
+;      to get JTAG support on J18.
+; @Keywords: ARM, Cortex-M4, ITM, SWV
+; @Author: AME
+; @Board: TWR-K65F180M
+; @Chip: MK65FN2M0VMI18
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: twr-k65f180m_sieve_swo_trace_sram.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; Prerequisite: check if a Combiprobe/uTrace is connected
+IF !CAnalyzer()
+(
+  DIALOG.OK "Support for SerialWireViewer requires a Combiprobe or uTrace."
+  ENDDO
+)
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU MK65FN2M0VMI18
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF hardware.COMBIPROBE()||hardware.UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; initialize SerialWireViewer (clock is stable now)
+Trace.METHOD CAnalyzer
+Trace.AutoInit ON
+TPIU.PortSize SWV
+ITM.DataTrace ON
+ITM.ON
+; use auto-calibration script to find most suitable TPIU.SWVPrescaler <divider>
+DO ~~/demo/arm/etc/serial_wire_viewer/swv_autocalibration.cmm
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+ITMTrace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO
+
+DisableWatchdog:
+(
+  ; disable the Watchdog
+  LOCAL &tmp1 &tmp2
+  &tmp1=Data.Long(ST:0x20000000)
+  &tmp2=Data.Long(ST:0x20000004)
+  Register.SWAP
+  
+  ; The watchdog has a restrictive timing. It has to be configured and unlocked within a peripod
+  ; of 20+256 cycles. Therefor the unlock sequence need to be done by a small target program.
+  Data.Assemble ST:0x20000000  strh r1,[r0]  ;SD:0x4005200E = 0xC520   (Key 1)
+  Data.Assemble ,              strh r2,[r0]  ;SD:0x4005200E = 0xD928   (Key 2)
+  Data.Assemble ,              strh r4,[r3]  ;SD:0x40052000 = 0x0000   (Config register)
+  Data.Assemble ,              bkpt #0
+  Register.Set PC 0x20000000
+  Register.Set R0 0x4005200E
+  Register.Set R1 0xC520
+  Register.Set R2 0xD928
+  Register.Set R3 0x40052000
+  Register.Set R4 0x0
+  Go.direct
+  WAIT !STATE.RUN()
+  
+  Register.SWAP
+  Data.Set ST:0x20000000 %Long &tmp1
+  Data.Set ST:0x20000004 %Long &tmp2
+
+  RETURN
+)

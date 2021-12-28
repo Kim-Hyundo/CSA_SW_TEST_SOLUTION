@@ -1,0 +1,83 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for STM32G071RB on NUCLEO-G071RB (FLASH)
+; @Description:
+;   Programs the sieve demo application into the processor internal flash and
+;   sets up a demo debug scenario.
+;   This script can be used as a template for flashing an application.
+;   Prerequisites:
+;     * Remove the jumpers on CN4
+;     * The board doesn't have a standard debug header, but the debug signals
+;       are accessible by:
+;       GND    : CN1
+;       VREF   : CN8 pin 4
+;       nRESET : CN4 pin 4
+;       SWDCLK : CN4 pin 2
+;       SWDIO  : CN5 pin 5
+; @Keywords: ARM, Cortex-M0+, Flash
+; @Author: STK
+; @Board: NUCLEO-G071RB
+; @Chip: STM32G071RB
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: nucleo-g071rb_sieve_flash.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU STM32G071RB
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock 10MHz
+Trace.DISable
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; Flash programming
+
+; prepare flash programming (declarations)
+DO ~~/demo/arm/flash/stm32g0xx.cmm PREPAREONLY
+
+; ReProgram Flash
+FLASH.ReProgram ALL
+Data.LOAD.Elf "~~~~/sieve_flash_thumb_v6m.elf"
+FLASH.ReProgram OFF
+
+; Additional settings need to be done to make sure, that the
+; main flash is taken as boot flash.
+DO ~~/demo/arm/flash/stm32g0xx.cmm FINISH
+
+; --------------------------------------------------------------------------------
+; Reset the target again
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

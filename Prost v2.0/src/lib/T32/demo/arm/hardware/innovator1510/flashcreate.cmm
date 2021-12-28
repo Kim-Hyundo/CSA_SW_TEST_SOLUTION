@@ -1,0 +1,117 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash programming script for Innovator 1510 development kit.
+; @Description: 
+;   
+;   Boot Flash AM29DL323DB location depends of DIP switch setting:
+;   
+;          SW1     SW3     address
+;          OFF     OFF     0x00400000++0x3fffff
+;          ON      OFF     0x00000000++0x3fffff
+;          OFF     ON      0x0c400000++0x3fffff
+;          ON      ON      0x0c000000++0x3fffff
+;   
+;   User Flash (2 x I28F128J3A) location depends of DIP switch setting:
+;   
+;          SW3     address
+;          OFF     0xc0000000++0x1ffffff
+;          ON      0x00000000++0x1ffffff
+;   
+;   This script is detecting flash configuration automatically.
+;   
+;   Using target controlled of emulator based flash programming can be
+;   configured by global variable &flashtarget.
+;   
+;   
+; @Keywords: Flash, NOR, OMAP
+; @Author: WRD
+; @Board: Innovator 1510
+; @Chip: OMAP1510
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: flashcreate.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+;   wrd - 22.05.2003
+
+
+; Flash configuration for further use of calling script
+GLOBAL &flashtarget
+GLOBAL &bootflash_type
+GLOBAL &bootflash_start
+GLOBAL &userflash_type
+GLOBAL &userflash_start
+GLOBAL &ram_start
+
+; Select target or tool based flash programming
+; &flashtarget=0  ; emulator based flash programming
+&flashtarget=1  ; taget controlled flash programming
+
+; flash types
+&bootflash_type="AM29LV100"
+&userflash_type="I28F200J3"
+
+; --------------------------------------------------------------------------------
+; Detect flash configuration
+;
+&EMIFS_CONFIG_REG=Data.Long(sd:0xfffecc0c)
+;
+; check swapping of CS0 and CS3
+IF (&EMIFS_CONFIG_REG&0x02)==0x02
+(
+  &bootflash_start=0x00000000
+  &ram_start=0x00400000
+  &userflash_start=0x0c000000
+)
+ELSE
+(
+  &bootflash_start=0x0c000000
+  &ram_start=0x0c400000
+  &userflash_start=0x00000000
+)
+;
+; check boot flash and RAM swapping
+&tmpval=Data.Long(sd:&bootflash_start)
+Data.Set &bootflash_start %Long &tmpval+1
+IF Data.Long(sd:&bootflash_start)==(&tmpval+1)
+(
+  &bootflash_start=&bootflash_start+0x400000
+  &ram_start=&ram_start-0x400000
+)
+
+; --------------------------------------------------------------------------------
+; Flash declaration
+;
+; Boot Flash: AM29DL323DB
+; User Flash: 2 x I28F128J3A
+;
+FLASH.RESet
+;
+IF &flashtarget==0
+(
+  ; tool based flash programming
+  ;
+  ; Boot Flash
+  FLASH.Create 1. (&bootflash_start+0x00000)++0x00ffff 0x02000 &bootflash_type Word
+  FLASH.Create 1. (&bootflash_start+0x10000)++0x3effff 0x10000 &bootflash_type Word
+  ; User Flash
+  FLASH.Create 2. (&userflash_start+0x0000000)++0xffffff 0x20000 &userflash_type Word
+  FLASH.Create 3. (&userflash_start+0x1000000)++0xffffff 0x20000 &userflash_type Word
+)
+ELSE
+(
+  ; target controlled flash programming
+  ; 
+  ; target algorithm is not defined here because boot flash and user flashes 
+  ; are of different flash type, so that the binary file with the target 
+  ; algorithm has to be declared before it is used.
+  ;
+  ; Boot Flash
+  FLASH.Create 1. (&bootflash_start+0x00000)++0x00ffff 0x02000 TARGET Word
+  FLASH.Create 1. (&bootflash_start+0x10000)++0x3effff 0x10000 TARGET Word
+  ; User Flash
+  FLASH.Create 2. (&userflash_start+0x0000000)++0xffffff 0x20000 TARGET Word
+  FLASH.Create 3. (&userflash_start+0x1000000)++0xffffff 0x20000 TARGET Word
+)
+
+ENDDO
+

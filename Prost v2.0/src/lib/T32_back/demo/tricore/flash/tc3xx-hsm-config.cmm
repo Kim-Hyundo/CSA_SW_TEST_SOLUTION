@@ -1,0 +1,1378 @@
+; --------------------------------------------------------------------------------
+; @Title: Infineon TC3xx Flash Dialog to program HSM configuration.
+;
+; @Description:
+;
+; The script enables to program all HSM related settings with in the UCBs. All
+; settings only take effect after a reset of the device. The programming of HSM
+; code is not done by this script, but by tc38x.cmm or tc39x.cmm.
+;
+; HSM code need to be flashed BEFORE changing the HSM confguration using this
+; script. Otherwise checks in the scripts tc38x.cmm or tc39x.cmm will prevent
+; changing the HSM configuration.
+;
+; If you have a complete image of TriCore, HSM their UCB data, the TriCore flash
+; scripts can be called directly tc38x.cmm or tc39x.cmm.
+;
+; The script must be executed on a TriCore debugger!
+;
+; Please take the script as it is. Modifications can cause a lock of the device!
+;
+; Script arguments:
+;
+;   DO ~~/demo/tricore/flash/tc3xx-hsm-config.cmm
+;
+;       Opens the TC3xx HSM configuration programming dialog.
+;
+;       Inside the dialog you can select and program the settings individually
+;       for UCBHSM_COTP0 and UCBHSM_COTP1.
+;       The dialog offers a button "Show", that generates a script snippet with
+;       all made settings, that you can embed into your own scripts.
+;
+;   DO ~~/demo/tricore/flash/tc3xx-hsm-config.cmm PROGRAM_REGISTER
+;                                                 UCBHSM_COTP0|UCBHSM_COTP1
+;                                                 [PROCONHSM=<value>]
+;                                                 [PROCONHSMCBS=<value>]
+;                                                 [PROCONHSMCFG=<value>]
+;                                                 [PROCONHSMCX=<value>]
+;                                                 [PROCONHSMCOTP=<value>]
+;                                                 [FORCE]
+;
+;       Program the HSM UCBs with specific register values:
+;             UCBHSM_COTP0  Select UCBHSM_COTP0 UCB for the registers
+;                           PROCONHSMCBS
+;                           PROCONHSMCFG
+;                           PROCONHSMCX
+;                           PROCONHSMCOTP
+;             UCBHSM_COTP1  Select UCBHSM_COTP1 UCB for the registers
+;                           PROCONHSMCBS
+;                           PROCONHSMCFG
+;                           PROCONHSMCX
+;                           PROCONHSMCOTP
+;             PROCONHSM     Value for PROCONHSM, that specifies the HSM debug
+;                           configuration. This register can be set by script
+;                           without specifying UCBHSM_COTP0 or UCBHSM_COTP1.
+;             PROCONHSMCBS  Set the boot address configuration for the HSM.
+;             PROCONHSMCFG  Set the HSM configuration.
+;             PROCONHSMCX   Set the flags for exclusive access of HSM
+;                           flash sectors.
+;             PROCONHSMCOTP Set the flags for OTP access of HSM flash sectors.
+;             FORCE         Force programming without asking for confirmation.
+;
+;   DO ~~/demo/tricore/flash/tc3xx-hsm-config.cmm PROGRAM_SETTINGS
+;                                            UCBHSM_COTP0|UCBHSM_COTP1
+;                                            [HSMBOOT=ENABLE|DISABLE]
+;                                            [BOOTINDEX=<value> BOOTADDR=<value>]
+;                                            [FORCE]
+;             UCBHSM_COTP0  Select UCBHSM_COTP0 UCB for the registers
+;                           PROCONHSMCBS
+;                           PROCONHSMCFG
+;                           PROCONHSMCX
+;                           PROCONHSMCOTP
+;             UCBHSM_COTP1  Select UCBHSM_COTP1 UCB for the registers
+;                           PROCONHSMCBS
+;                           PROCONHSMCFG
+;                           PROCONHSMCX
+;                           PROCONHSMCOTP
+;             HSMBOOT       Enable or disable HSM booting.
+;             BOOTINDEX     Select the index (0..3) of the PROCONHSMCBS to be
+;                           programmed.
+;             BOOTADDR      Set the boot sector address for the HSM.
+;             FORCE         Force programming without asking for confirmation.
+;
+;             BOOTINDEX and BOOTADDR must be set together!
+;
+; CAUTION: It is very important, that the HSM contains valid code in its
+;          flash area, and that the boot configuration register (PROCONHSMCBS)
+;          is correctly initialized before enabling the HSM! The HSM must be able
+;          to boot after reset! Otherwise the device gets LOCKED forever!
+;          There is no way for the debugger to recover the device from this state!
+;
+; @Author: STK
+; @Copyright: (C) 1989-2018 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 7686 $
+; $Id: tc3xx-hsm-config.cmm 7686 2019-11-29 11:04:56Z mobermaier $
+
+  LOCAL &parameters
+  ENTRY %LINE &parameters
+
+  ; LOCAL macros used as script global macros
+  LOCAL &DMU_SP_PROCONHSM
+  &DMU_SP_PROCONHSM=C:0xAF402600
+
+  LOCAL &DMU_SP_PROCONHSMCFG
+  &DMU_SP_PROCONHSMCFG=C:0xAF402818
+
+  LOCAL &DMU_SP_PROCONHSMCBS
+  &DMU_SP_PROCONHSMCBS=C:0xAF402804
+
+  LOCAL &DMU_SP_PROCONHSMCX0
+  &DMU_SP_PROCONHSMCX0=C:0xAF402808
+
+  LOCAL &DMU_SP_PROCONHSMCX1
+  &DMU_SP_PROCONHSMCX1=C:0xAF40280C
+
+  LOCAL &DMU_SP_PROCONHSMCOTP0
+  &DMU_SP_PROCONHSMCOTP0=C:0xAF402810
+
+  LOCAL &DMU_SP_PROCONHSMCOTP1
+  &DMU_SP_PROCONHSMCOTP1=C:0xAF402814
+
+  LOCAL &script
+  &script=OS.PPF()
+
+  ; Check debugger instance
+  IF CPUFAMILY()!="TRICORE"
+  (
+    PRINT %ERROR "This script need to be run from a TriCore debugger!"
+    ENDDO
+  )
+
+  ; Check selected CPU
+  IF (!CPUIS("TC3*"))
+  (
+    PRINT %ERROR "Selected device is not a TC3xx device!"
+    ENDDO
+  )
+
+  IF (!CPUIS("TC3???E*")&&!CPUIS("TC3???P*")&&!CPUIS("TC3???A*"))
+  (
+    PRINT %ERROR "Selected TC3xx device doesn't have an HSM!"
+    ENDDO
+  )
+
+  ; Script only woks, if CPU is Up and Stopped
+  IF !SYStem.Up()||RUN()
+  (
+    PRINT %ERROR "System must be in Up state and being stopped!"
+    ENDDO
+  )
+
+  ; Prepare flash setup
+  LOCAL &flashscript
+  &flashscript="~~/demo/tricore/flash/tc3"+STring.MID(CPU(),3.,1.)+"x.cmm"
+  DO &flashscript PREPAREONLY
+
+  ; No parameters? Open dialog!
+  IF "&parameters"==""
+  (
+    GOSUB openDialog
+    ENDDO
+  )
+
+  ; Parsing parameters
+  PRIVATE &param_program_register &param_program_settings &param_programgui &show_programming &param_refresh &param_checkbootsel
+
+  ; Internal parameter usage to handle the dialog (requires an open dialog)
+  &param_refresh=(STRing.SCAN(STRing.UPpeR("&parameters"),"_REFRESH",0)!=-1)
+  &param_checkbootsel=(STRing.SCAN(STRing.UPpeR("&parameters"),"_CHECKBOOTSEL",0)!=-1)
+  &param_programgui=(STRing.SCAN(STRing.UPpeR("&parameters"),"_PROGRAM",0)!=-1)
+  &show_programming=(STRing.SCAN(STRing.UPpeR("&parameters"),"_SHOWPROGRAMMING",0)!=-1)
+
+  ; Parameters intended to be used by customers to embed the script into other scripts
+  &param_program_register=(STRing.SCAN(STRing.UPpeR("&parameters"),"PROGRAM_REGISTER",0)!=-1)
+  &param_program_settings=(STRing.SCAN(STRing.UPpeR("&parameters"),"PROGRAM_SETTINGS",0)!=-1)
+
+  IF &param_refresh
+  (
+    GOSUB refreshDialog
+    ENDDO
+  )
+
+  IF &show_programming
+  (
+    GOSUB showProgramming
+    ENDDO
+  )
+
+  IF &param_checkbootsel
+  (
+    GOSUB checkBootSel
+    ENDDO
+  )
+
+  IF &param_program_register
+  (
+    GOSUB programUCBFromCommandLine &parameters
+    ENDDO
+  )
+
+  IF &param_program_settings
+  (
+    GOSUB programSettingsFromCommandLine &parameters
+    ENDDO
+  )
+
+  IF &param_programgui
+  (
+    GOSUB programFromGUI
+    ENDDO
+  )
+
+  ENDDO
+
+
+; --------------------------------------------------------------------------------
+; Open dialog for changing the HSM settings. The dialog is opended, if no
+; script parameters were set.
+;
+openDialog:
+(
+  ; If any other HSM configuration dialog is opened, then close it!
+  IF WINDOW.NAME("TCHSMCONFIGDIALOG")
+    DIALOG.END
+
+  ; Creating the main dialog. (& afer DIALOG command must be in first column!
+  WinPOS 50. 5. 70. 32.
+  DIALOG.view
+  (&+
+                        NAME "TCHSMCONFIGDIALOG"
+
+                        HEADER CPU()+" HSM settings"
+
+; HSM debug configuration
+                        POS 1. 0. 68. 5.
+                        BOX "HSM Debug Configuration"
+
+                        POS 2. 1. 25. 1.
+TCHSMDBGDIS:            CHECKBOX "HSM Debug Disable" ""
+
+                        POS 2. 2. 25. 1.
+TCDBGIFLCK:             CHECKBOX "Debug Interface Locked" ""
+
+                        POS 2. 3. 25. 1.
+TCTSTIFLCK:             CHECKBOX "Test Interface Locked" ""
+
+                        POS 39. 1. 25. 1.
+TCHSMTSTDIS:            CHECKBOX "HSM Test Disable" ""
+
+                        POS 39. 2. 25. 1.
+TCHSMTRDIS:             CHECKBOX "HSM Trace Disable" ""
+
+                        POS 39. 3. 15. 1.
+                        TEXT "HSM Type of Trace:"
+
+                        POS 53. 3. 14. 1.
+TCHSMTRTYPE:            COMBOBOX "Address+Data,Address only" ""
+
+
+; HSM configuration
+                        POS 1. 5. 68. 6.
+                        BOX "Configuration"
+
+                        POS 2. 6. 25. 1.
+TCHSMBOOTEN:            CHECKBOX "HSM Boot Enable" ""
+
+                        POS 2. 7. 25. 1.
+TCHSMSSWWAIT:           CHECKBOX "SSW Wait" ""
+
+                        POS 2. 8. 25. 1.
+TCHSMDX:                CHECKBOX "HSM Data Sectors Exclusive" ""
+
+                        POS 2. 9. 12. 1.
+                        TEXT "HSM RAM Clear:"
+                        POS 13. 9. 22. 1.
+TCHSMRAMKEEP:           COMBOBOX "All POR and System Reset,All POR only,Cold POR only" ""
+
+                        POS 39. 6. 25. 1.
+TCHSMENPINS:            CHECKBOX "HSM can force pins" ""
+
+                        POS 39. 7. 25. 1.
+TCHSMTRIGRESET:         CHECKBOX "Enable HSM Triggering Resets" ""
+
+                        POS 39. 8. 25. 1.
+TCHSMDESTDBG:           CHECKBOX "Destructive Debug Entry" ""
+
+                        POS 39. 9. 25. 1.
+TCHSMBLKFLANA:          CHECKBOX "Block Flash Analysis on all ranges" ""
+
+
+; Boot selector settings
+                        POS 1. 11. 68. 7.
+                        BOX "Boot address selection"
+
+                        POS 11. 12. 7. 1.
+                        TEXT "Index:"
+
+                        POS 20. 12. 8. 1.
+                        TEXT "Address:"
+
+                        POS 2. 13. 9. 1.
+                        TEXT "BOOTSEL0:"
+                        POS 11. 13. 7. 1.
+TCHSMBOOTSEL0:          LEDIT "0x0"
+                        (
+                          DO "&script" _CHECKBOOTSEL
+                        )
+                        POS 20. 13. 13. 1.
+TCHSMBOOTSEL0ADDR:      DYNLTEXT "0x80000000"
+
+                        POS 2. 15. 9. 1.
+                        TEXT "BOOTSEL1:"
+                        POS 11. 15. 7. 1.
+TCHSMBOOTSEL1:          LEDIT "0x0"
+                        (
+                          DO "&script" _CHECKBOOTSEL
+                        )
+                        POS 20. 15. 13. 1.
+TCHSMBOOTSEL1ADDR:      DYNLTEXT "0x80000000"
+
+                        POS 46. 12. 7. 1.
+                        TEXT "Index:"
+
+                        POS 55. 12. 8. 1.
+                        TEXT "Address:"
+
+                        POS 37. 13. 9. 1.
+                        TEXT "BOOTSEL2:"
+                        POS 46. 13. 7. 1.
+TCHSMBOOTSEL2:          LEDIT "0x0"
+                        (
+                          DO "&script" _CHECKBOOTSEL
+                        )
+                        POS 55. 13. 13. 1.
+TCHSMBOOTSEL2ADDR:      DYNLTEXT "0x80000000"
+
+                        POS 37. 15. 9. 1.
+                        TEXT "BOOTSEL3:"
+                        POS 46. 15. 7. 1.
+TCHSMBOOTSEL3:          LEDIT "0x0"
+                        (
+                          DO "&script" _CHECKBOOTSEL
+                        )
+                        POS 55. 15. 13. 1.
+TCHSMBOOTSEL3ADDR:      DYNLTEXT "0x80000000"
+
+
+; Exclusive sector protection
+                        POS 1. 18. 68. 6.
+                        BOX "HSM Code Sector Exclusive Protection"
+
+                        POS 2. 19. 4. 1.
+TCHSM39X:               CHECKBOX "39" ""
+                        POS 8. 19. 4. 1.
+TCHSM38X:               CHECKBOX "38" ""
+                        POS 14. 19. 4. 1.
+TCHSM37X:               CHECKBOX "37" ""
+                        POS 20. 19. 4. 1.
+TCHSM36X:               CHECKBOX "36" ""
+                        POS 26. 19. 4. 1.
+TCHSM35X:               CHECKBOX "35" ""
+                        POS 32. 19. 4. 1.
+TCHSM34X:               CHECKBOX "34" ""
+                        POS 38. 19. 4. 1.
+TCHSM33X:               CHECKBOX "33" ""
+                        POS 44. 19. 4. 1.
+TCHSM32X:               CHECKBOX "32" ""
+                        POS 50. 19. 4. 1.
+TCHSM31X:               CHECKBOX "31" ""
+                        POS 56. 19. 4. 1.
+TCHSM30X:               CHECKBOX "30" ""
+
+                        POS 2. 20. 4. 1.
+TCHSM29X:               CHECKBOX "29" ""
+                        POS 8. 20. 4. 1.
+TCHSM28X:               CHECKBOX "28" ""
+                        POS 14. 20. 4. 1.
+TCHSM27X:               CHECKBOX "27" ""
+                        POS 20. 20. 4. 1.
+TCHSM26X:               CHECKBOX "26" ""
+                        POS 26. 20. 4. 1.
+TCHSM25X:               CHECKBOX "25" ""
+                        POS 32. 20. 4. 1.
+TCHSM24X:               CHECKBOX "24" ""
+                        POS 38. 20. 4. 1.
+TCHSM23X:               CHECKBOX "23" ""
+                        POS 44. 20. 4. 1.
+TCHSM22X:               CHECKBOX "22" ""
+                        POS 50. 20. 4. 1.
+TCHSM21X:               CHECKBOX "21" ""
+                        POS 56. 20. 4. 1.
+TCHSM20X:               CHECKBOX "20" ""
+
+                        POS 2. 21. 4. 1.
+TCHSM19X:               CHECKBOX "19" ""
+                        POS 8. 21. 4. 1.
+TCHSM18X:               CHECKBOX "18" ""
+                        POS 14. 21. 4. 1.
+TCHSM17X:               CHECKBOX "17" ""
+                        POS 20. 21. 4. 1.
+TCHSM16X:               CHECKBOX "16" ""
+                        POS 26. 21. 4. 1.
+TCHSM15X:               CHECKBOX "15" ""
+                        POS 32. 21. 4. 1.
+TCHSM14X:               CHECKBOX "14" ""
+                        POS 38. 21. 4. 1.
+TCHSM13X:               CHECKBOX "13" ""
+                        POS 44. 21. 4. 1.
+TCHSM12X:               CHECKBOX "12" ""
+                        POS 50. 21. 4. 1.
+TCHSM11X:               CHECKBOX "11" ""
+                        POS 56. 21. 4. 1.
+TCHSM10X:               CHECKBOX "10" ""
+
+                        POS 2. 22. 4. 1.
+TCHSM09X:               CHECKBOX " 9" ""
+                        POS 8. 22. 4. 1.
+TCHSM08X:               CHECKBOX " 8" ""
+                        POS 14. 22. 4. 1.
+TCHSM07X:               CHECKBOX " 7" ""
+                        POS 20. 22. 4. 1.
+TCHSM06X:               CHECKBOX " 6" ""
+                        POS 26. 22. 4. 1.
+TCHSM05X:               CHECKBOX " 5" ""
+                        POS 32. 22. 4. 1.
+TCHSM04X:               CHECKBOX " 4" ""
+                        POS 38. 22. 4. 1.
+TCHSM03X:               CHECKBOX " 3" ""
+                        POS 44. 22. 4. 1.
+TCHSM02X:               CHECKBOX " 2" ""
+                        POS 50. 22. 4. 1.
+TCHSM01X:               CHECKBOX " 1" ""
+                        POS 56. 22. 4. 1.
+TCHSM00X:               CHECKBOX " 0" ""
+
+                        POS 63. 19. 5. 1.
+TCHSMXALL:              BUTTON "All"
+                        (
+                          PRIVATE &label &index
+
+                          &index=0.
+                          WHILE &index<40.
+                          (
+                            &label="TCHSM"+FORMAT.DECIMALUZ(2.,&index)+"X"
+                            DIALOG.SET &label TRUE()
+                            &index=&index+1
+                          )
+
+                        )
+
+                        POS 63. 21. 5. 1.
+TCHSMXNONE:             BUTTON "None"
+                        (
+                          PRIVATE &label &index
+
+                          &index=0.
+                          WHILE &index<40.
+                          (
+                            &label="TCHSM"+FORMAT.DECIMALUZ(2.,&index)+"X"
+                            DIALOG.SET &label FALSE()
+                            &index=&index+1
+                          )
+
+                        )
+
+
+; OTP protection
+                        POS 1. 24. 68. 6.
+                        BOX "HSM Code OTP Protection"
+
+                        POS 2. 25. 4. 1.
+TCHSM39OTP:             CHECKBOX "39" ""
+                        POS 8. 25. 4. 1.
+TCHSM38OTP:             CHECKBOX "38" ""
+                        POS 14. 25. 4. 1.
+TCHSM37OTP:             CHECKBOX "37" ""
+                        POS 20. 25. 4. 1.
+TCHSM36OTP:             CHECKBOX "36" ""
+                        POS 26. 25. 4. 1.
+TCHSM35OTP:             CHECKBOX "35" ""
+                        POS 32. 25. 4. 1.
+TCHSM34OTP:             CHECKBOX "34" ""
+                        POS 38. 25. 4. 1.
+TCHSM33OTP:             CHECKBOX "33" ""
+                        POS 44. 25. 4. 1.
+TCHSM32OTP:             CHECKBOX "32" ""
+                        POS 50. 25. 4. 1.
+TCHSM31OTP:             CHECKBOX "31" ""
+                        POS 56. 25. 4. 1.
+TCHSM30OTP:             CHECKBOX "30" ""
+
+                        POS 2. 26. 4. 1.
+TCHSM29OTP:             CHECKBOX "29" ""
+                        POS 8. 26. 4. 1.
+TCHSM28OTP:             CHECKBOX "28" ""
+                        POS 14. 26. 4. 1.
+TCHSM27OTP:             CHECKBOX "27" ""
+                        POS 20. 26. 4. 1.
+TCHSM26OTP:             CHECKBOX "26" ""
+                        POS 26. 26. 4. 1.
+TCHSM25OTP:             CHECKBOX "25" ""
+                        POS 32. 26. 4. 1.
+TCHSM24OTP:             CHECKBOX "24" ""
+                        POS 38. 26. 4. 1.
+TCHSM23OTP:             CHECKBOX "23" ""
+                        POS 44. 26. 4. 1.
+TCHSM22OTP:             CHECKBOX "22" ""
+                        POS 50. 26. 4. 1.
+TCHSM21OTP:             CHECKBOX "21" ""
+                        POS 56. 26. 4. 1.
+TCHSM20OTP:             CHECKBOX "20" ""
+
+                        POS 2. 27. 4. 1.
+TCHSM19OTP:             CHECKBOX "19" ""
+                        POS 8. 27. 4. 1.
+TCHSM18OTP:             CHECKBOX "18" ""
+                        POS 14. 27. 4. 1.
+TCHSM17OTP:             CHECKBOX "17" ""
+                        POS 20. 27. 4. 1.
+TCHSM16OTP:             CHECKBOX "16" ""
+                        POS 26. 27. 4. 1.
+TCHSM15OTP:             CHECKBOX "15" ""
+                        POS 32. 27. 4. 1.
+TCHSM14OTP:             CHECKBOX "14" ""
+                        POS 38. 27. 4. 1.
+TCHSM13OTP:             CHECKBOX "13" ""
+                        POS 44. 27. 4. 1.
+TCHSM12OTP:             CHECKBOX "12" ""
+                        POS 50. 27. 4. 1.
+TCHSM11OTP:             CHECKBOX "11" ""
+                        POS 56. 27. 4. 1.
+TCHSM10OTP:             CHECKBOX "10" ""
+
+                        POS 2. 28. 4. 1.
+TCHSM09OTP:             CHECKBOX " 9" ""
+                        POS 8. 28. 4. 1.
+TCHSM08OTP:             CHECKBOX " 8" ""
+                        POS 14. 28. 4. 1.
+TCHSM07OTP:             CHECKBOX " 7" ""
+                        POS 20. 28. 4. 1.
+TCHSM06OTP:             CHECKBOX " 6" ""
+                        POS 26. 28. 4. 1.
+TCHSM05OTP:             CHECKBOX " 5" ""
+                        POS 32. 28. 4. 1.
+TCHSM04OTP:             CHECKBOX " 4" ""
+                        POS 38. 28. 4. 1.
+TCHSM03OTP:             CHECKBOX " 3" ""
+                        POS 44. 28. 4. 1.
+TCHSM02OTP:             CHECKBOX " 2" ""
+                        POS 50. 28. 4. 1.
+TCHSM01OTP:             CHECKBOX " 1" ""
+                        POS 56. 28. 4. 1.
+TCHSM00OTP:             CHECKBOX " 0" ""
+
+                        POS 63. 25. 5. 1.
+TCHSMOTPALL:            BUTTON "All"
+                        (
+                          PRIVATE &label &index
+
+                          &index=0.
+                          WHILE &index<40.
+                          (
+                            &label="TCHSM"+FORMAT.DECIMALUZ(2.,&index)+"OTP"
+                            DIALOG.SET &label TRUE()
+                            &index=&index+1
+                          )
+
+                        )
+
+                        POS 63. 27. 5. 1.
+TCHSMOTPNONE:           BUTTON "None"
+                        (
+                          PRIVATE &label &index
+
+                          &index=0.
+                          WHILE &index<40.
+                          (
+                            &label="TCHSM"+FORMAT.DECIMALUZ(2.,&index)+"OTP"
+                            DIALOG.SET &label FALSE()
+                            &index=&index+1
+                          )
+
+                        )
+
+
+                        POS 1. 30. 13. 1.5
+                        TEXT "Select HSMCOTP:"
+
+                        POS 14. 30.25 12. 1.
+TCHSMUCBSEL:            COMBOBOX "HSM_COTP0,HSM_COTP1"
+                        (
+                          DO "&script" _REFRESH
+                        )
+
+                        POS 30. 30. 10. 1.5
+TCHSMPROGRAM:           BUTTON "Program"
+                        (
+                          DO "&script" _PROGRAM
+                        )
+
+                        POS 44. 30. 10. 1.5
+TCHSMREFRESH:           BUTTON "Refresh"
+                        (
+                          PRIVATE &result
+
+                          DIALOG.YESNO "Do you really want to refresh the dialog with target setting?" "" "All changes get lost!"
+                          ENTRY &result
+
+                          IF &result
+                            DO "&script" _REFRESH
+                        )
+
+                        POS 59. 30. 10. 1.5
+TCHSMSHPOWPROG:         BUTTON "Show"
+                        (
+                          DO "&script" _SHOWPROGRAMMING
+                        )
+
+                        CLOSE "DIALOG.END"
+  )
+
+  GOSUB refreshDialog
+
+  RETURN
+)
+
+
+
+; --------------------------------------------------------------------------------
+; This functions creates a temporary file with the current dialog settings.
+; Its format fits CMM scripts, so that its content can be embed into own scripts.
+;
+showProgramming:
+(
+  PRIVATE &hsmboot &hsmconfig &hsmdbgconfig &xprot &cotp &ucbhsmcotpsel &tmpfilename &output
+
+  ; readout configuration from dialog
+  GOSUB getUCBConfigFromDialog
+  RETURNVALUES &hsmboot &hsmconfig &hsmdbgconfig &xprot &cotp &ucbhsmcotpsel
+
+  ; Open a temporary file and store programming command
+  &tmpfilename=OS.PresentTemporaryDirectory()
+  &tmpfilename="&tmpfilename/"+"tc3xx_hsm_ucb_programming.cmm"
+
+  OPEN #1 "&tmpfilename" /CREATE
+
+  &output="// Generated by tc3xx-hsm-config.cmm, "+DATE.DATE()+", "+DATE.TIME()
+  WRITE #1 "&output"
+  WRITE #1 ""
+
+  WRITE #1 "DO ~~/demo/tricore/flash/tc3xx-hsm-config.cmm PROGRAM_REGISTER PROCONHSM=0x"+FORMAT.HEX(8.,&hsmdbgconfig)+" ; FORCE"
+
+  &output="DO ~~/demo/tricore/flash/tc3xx-hsm-config.cmm PROGRAM_REGISTER"
+  IF "&ucbhsmcotpsel"=="HSM_COTP0"
+    &output="&output"+" UCBHSM_COTP0"
+  ELSE
+    &output="&output"+" UCBHSM_COTP1"
+
+  &output="&output"+" PROCONHSMCFG=0x"+FORMAT.HEX(8.,&hsmconfig)
+  &output="&output"+" PROCONHSMCBS=0x"+FORMAT.HEX(8.,&hsmboot)
+  &output="&output"+" ; FORCE"
+
+  WRITE #1 "&output"
+
+  &output="DO ~~/demo/tricore/flash/tc3xx-hsm-config.cmm PROGRAM_REGISTER"
+  IF "&ucbhsmcotpsel"=="HSM_COTP0"
+    &output="&output"+" UCBHSM_COTP0"
+  ELSE
+    &output="&output"+" UCBHSM_COTP1"
+
+  &output="&output"+" PROCONHSMCX=0x"+FORMAT.HEX(16.,&xprot)+" ; FORCE"
+
+  WRITE #1 "&output"
+
+   &output="DO ~~/demo/tricore/flash/tc3xx-hsm-config.cmm PROGRAM_REGISTER"
+  IF "&ucbhsmcotpsel"=="HSM_COTP0"
+    &output="&output"+" UCBHSM_COTP0"
+  ELSE
+    &output="&output"+" UCBHSM_COTP1"
+
+  &output="&output"+" PROCONHSMCOTP=0x"+FORMAT.HEX(16.,&cotp)+" ; FORCE"
+
+  WRITE #1 "&output"
+
+  WRITE #1 ""
+  WRITE #1 "ENDDO"
+
+  CLOSE #1
+
+  ; Show file content
+  PEDIT "&tmpfilename"
+
+  RETURN
+)
+
+
+
+; --------------------------------------------------------------------------------
+; Updates an open dialog with current settings read from target.
+;
+refreshDialog:
+(
+  IF !WINDOW.NAME("TCHSMCONFIGDIALOG")
+    ENDDO
+
+  PRIVATE &hsmboot &hsmconfig &hsmdbgconfig &bootsel &address &index &editlabel &textlabel &checkboxlabel &xprot &cotp &offset
+
+  ; Select the correct UCB_HSMCOTP offset, depending on if HSMCOTP0 or HSMCOTP1 is used.
+  ; The distance between the two is 0x200
+  &offset=0x0
+  IF DIALOG.STRing("TCHSMUCBSEL")=="HSM_COTP1"
+    &offset=0x200
+
+  ; Read out boot selector settings
+  &hsmboot=Data.Long(&DMU_SP_PROCONHSMCBS+&offset)
+
+  &index=0.
+  WHILE &index<4.
+  (
+    &editlabel="TCHSMBOOTSEL"+FORMAT.Decimal(1.,&index)
+    &textlabel="TCHSMBOOTSEL"+FORMAT.Decimal(1.,&index)+"ADDR"
+
+    &bootsel=(&hsmboot>>(&index*8.))&0x3F
+    &address=0x80000000+(&bootsel<<14.)
+
+    DIALOG.Set &editlabel "0x"+FORMAT.HEX(0.,&bootsel)
+    DIALOG.Set &textlabel "0x"+FORMAT.HEX(8.,&address)
+
+    &index=&index+1
+  )
+
+  ; Read out configuration
+  &hsmconfig=Data.Long(&DMU_SP_PROCONHSMCFG+&offset)
+  DIALOG.Set TCHSMBOOTEN    (&hsmconfig&0x00000001)==0x00000001
+  DIALOG.Set TCHSMSSWWAIT   (&hsmconfig&0x00000002)==0x00000002
+  DIALOG.Set TCHSMDX        (&hsmconfig&0x00000004)==0x00000004
+  DIALOG.Set TCHSMENPINS    (&hsmconfig&0x00000180)==0x00000180
+  DIALOG.Set TCHSMTRIGRESET (&hsmconfig&0x00000600)==0x00000600
+  DIALOG.Set TCHSMDESTDBG   (&hsmconfig&0x00001800)==0x00001800
+  DIALOG.Set TCHSMBLKFLANA  (&hsmconfig&0x00002000)!=0x00002000
+
+  IF (&hsmconfig&0x00000030)==0x00000000
+    DIALOG.Set TCHSMRAMKEEP "All POR and System Reset"
+  ELSE IF (&hsmconfig&0x00000030)==0x00000030
+    DIALOG.Set TCHSMRAMKEEP "Cold POR only"
+  ELSE
+    DIALOG.Set TCHSMRAMKEEP "All POR only"
+
+  ; Read out debug configuration (this register only exists once)
+  &hsmdbgconfig=Data.Long(&DMU_SP_PROCONHSM)
+
+  DIALOG.Set TCHSMDBGDIS    (&hsmdbgconfig&0x00000001)==0x00000001
+  DIALOG.Set TCDBGIFLCK     (&hsmdbgconfig&0x00000002)==0x00000002
+  DIALOG.Set TCTSTIFLCK     (&hsmdbgconfig&0x00000004)==0x00000004
+  DIALOG.Set TCHSMTSTDIS    (&hsmdbgconfig&0x00000008)==0x00000008
+  DIALOG.Set TCHSMTRDIS     (&hsmdbgconfig&0x00000030)!=0x00000000
+
+  IF (&hsmdbgconfig&0x00000040)==0x00000040
+    DIALOG.Set TCHSMTRTYPE "Address only"
+  ELSE
+    DIALOG.Set TCHSMTRTYPE "Address+Data"
+
+  ; Read out sector exclusive protection
+  &xprot=(Data.Long(&DMU_SP_PROCONHSMCX1+&offset)<<32.)|Data.Long(&DMU_SP_PROCONHSMCX0+&offset)
+
+  &index=0.
+  WHILE &index<40.
+  (
+    &checkboxlabel="TCHSM"+FORMAT.DECIMALUZ(2.,&index)+"X"
+    IF ((&xprot>>&index)&0x1)==0x1
+      DIALOG.Set &checkboxlabel TRUE()
+    ELSE
+      DIALOG.Set &checkboxlabel FALSE()
+    &index=&index+1
+  )
+
+  ; Read out code OTP protection
+  &cotp=(Data.Long(&DMU_SP_PROCONHSMCOTP1+&offset)<<32.)|Data.Long(&DMU_SP_PROCONHSMCOTP0+&offset)
+
+  &index=0.
+  WHILE &index<40.
+  (
+    &checkboxlabel="TCHSM"+FORMAT.DECIMALUZ(2.,&index)+"OTP"
+    IF ((&cotp>>&index)&0x1)==0x1
+      DIALOG.Set &checkboxlabel TRUE()
+    ELSE
+      DIALOG.Set &checkboxlabel FALSE()
+    &index=&index+1
+  )
+
+  RETURN
+)
+
+
+; --------------------------------------------------------------------------------
+; Brings all settings from an open dialog into UCB register format.
+;
+getUCBConfigFromDialog:
+(
+  IF !WINDOW.NAME("TCHSMCONFIGDIALOG")
+    ENDDO
+
+  PRIVATE &hsmboot &hsmconfig &hsmdbgconfig &bootsel &index &editlabel &textlabel &checkboxlabel &xprot &cotp &ucbhsmcotpsel
+
+  ; Select the correct UCB_HSMCOTP offset, depending on if HSMCOTP0 or HSMCOTP1 is used.
+  ; The distance between the two is 0x200
+  &ucbhsmcotpsel=DIALOG.STRing("TCHSMUCBSEL")
+
+  ; Get PROCONHSMCBS (boot selection) value
+  &hsmboot=0x0
+
+  &index=0.
+  WHILE &index<4.
+  (
+    &editlabel="TCHSMBOOTSEL"+FORMAT.Decimal(1.,&index)
+    &textlabel="TCHSMBOOTSEL"+FORMAT.Decimal(1.,&index)+"ADDR"
+
+    ON ERROR GOSUB
+    (
+      ON ERROR inherit
+
+      PRINT %ERROR "Illegal entry for boot selection!"
+
+      DIALOG.Set &editlabel "0x0"
+      DIALOG.Set &textlabel "0x"+FORMAT.HEX(8.,0x80000000)
+
+      ENDDO
+    )
+
+    &bootsel=DIALOG.STRing("&editlabel")
+    EVAL &bootsel
+
+    ON ERROR inherit
+
+    IF (EVAL.TYPE()!=0x0004)&&(EVAL.TYPE()!=0x0008)
+    (
+      &bootsel=0x0
+      PRINT %ERROR "Illegal entry for boot selection!"
+      ENDDO
+    )
+
+    IF (&bootsel<0)||(&bootsel>0x27)
+    (
+      &bootsel=0x0
+      PRINT %ERROR "Boot index out of range!"
+      ENDDO
+    )
+
+    ; The check, if there is atleast one valid boot configuration is done by the TriCore flash script
+    &hsmboot=&hsmboot|((&bootsel&0x3F)<<(&index*8.))
+
+    &index=&index+1
+  )
+
+  ; Get configuration value (PROCONHSMCFG)
+  &hsmconfig=0x0
+
+  IF DIALOG.BOOLEAN("TCHSMBOOTEN")
+    &hsmconfig=&hsmconfig|0x00000001
+
+  IF DIALOG.BOOLEAN("TCHSMSSWWAIT")
+    &hsmconfig=&hsmconfig|0x00000002
+
+  IF DIALOG.BOOLEAN("TCHSMDX")
+    &hsmconfig=&hsmconfig|0x00000004
+
+  IF DIALOG.BOOLEAN("TCHSMENPINS")
+    &hsmconfig=&hsmconfig|0x00000180
+
+  IF DIALOG.BOOLEAN("TCHSMTRIGRESET")
+    &hsmconfig=&hsmconfig|0x00000600
+
+  IF DIALOG.BOOLEAN("TCHSMDESTDBG")
+    &hsmconfig=&hsmconfig|0x00001800
+
+  IF !DIALOG.BOOLEAN("TCHSMBLKFLANA")
+    &hsmconfig=&hsmconfig|0x00002000
+
+  IF DIALOG.STRing("TCHSMRAMKEEP")=="Cold POR only"
+    &hsmconfig=&hsmconfig|0x00000030
+  ELSE IF DIALOG.STRing("TCHSMRAMKEEP")=="All POR only"
+    &hsmconfig=&hsmconfig|0x00000010
+
+
+  ; Get debug configuration value (DMU_SP_PROCONHSM)
+  &hsmdbgconfig=0x0
+
+  IF DIALOG.BOOLEAN("TCHSMDBGDIS")
+    &hsmdbgconfig=&hsmdbgconfig|0x00000001
+
+  IF DIALOG.BOOLEAN("TCDBGIFLCK")
+    &hsmdbgconfig=&hsmdbgconfig|0x00000002
+
+  IF DIALOG.BOOLEAN("TCTSTIFLCK")
+    &hsmdbgconfig=&hsmdbgconfig|0x00000004
+
+  IF DIALOG.BOOLEAN("TCHSMTSTDIS")
+    &hsmdbgconfig=&hsmdbgconfig|0x00000008
+
+  IF DIALOG.BOOLEAN("TCHSMTRDIS")
+    &hsmdbgconfig=&hsmdbgconfig|0x00000030
+
+  IF DIALOG.STRing("TCHSMTRTYPE")=="Address only"
+    &hsmdbgconfig=&hsmdbgconfig|0x00000040
+
+
+  ; Get value exclusive protection (PROCONHSMCX0/1)
+  &xprot=0x0
+
+  &index=0.
+  WHILE &index<40.
+  (
+    &checkboxlabel="TCHSM"+FORMAT.DECIMALUZ(2.,&index)+"X"
+
+    IF DIALOG.BOOLEAN("&checkboxlabel")
+      &xprot=&xprot|(0x1<<&index)
+
+    &index=&index+1
+  )
+
+  ; Get value for OTP protection PROCONHSMCOTP0/1)
+  &cotp=0x0
+
+  &index=0.
+  WHILE &index<40.
+  (
+    &checkboxlabel="TCHSM"+FORMAT.DECIMALUZ(2.,&index)+"OTP"
+
+   IF DIALOG.BOOLEAN("&checkboxlabel")
+      &cotp=&cotp|(0x1<<&index)
+
+   &index=&index+1
+  )
+
+  RETURN "&hsmboot" "&hsmconfig" "&hsmdbgconfig" "&xprot" "&cotp" "&ucbhsmcotpsel"
+)
+
+
+; --------------------------------------------------------------------------------
+; Programming UCB settings with parameters from command line using the command
+; PROGRAM_REGISTER. This function can be used, if a HSM UCB register value is
+; known.
+;
+programUCBFromCommandLine:
+(
+  PRIVATE &parameters &hsmboot &hsmconfig &hsmdbgconfig &xprot &cotp &ucbhsmcotpsel0 &ucbhsmcotpsel1 &force &confirm
+
+  ENTRY %LINE &parameters
+
+  ; Check parameters
+  &hsmdbgconfig=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"PROCONHSM=","")
+
+  &hsmboot=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"PROCONHSMCBS=","")
+  &hsmconfig=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"PROCONHSMCFG=","")
+  &xprot=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"PROCONHSMCX=","")
+  &cotp=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"PROCONHSMCOTP=","")
+
+  &ucbhsmcotpsel0=(STRing.SCAN(STRing.UPpeR("&parameters"),"UCBHSM_COTP0",0)!=-1)
+  &ucbhsmcotpsel1=(STRing.SCAN(STRing.UPpeR("&parameters"),"UCBHSM_COTP1",0)!=-1)
+
+  &force=(STRing.SCAN(STRing.UPpeR("&parameters"),"FORCE",0)!=-1)
+
+  ; If any of the parameters PROCONHSMCBS, PROCONHSMCFG, PROCONHSMCX, PROCONHSMCOTP is set then UCBHSM_COTP0 or UCBHSM_COTP1 must be set
+  IF ("&hsmboot"!=""||"&hsmconfig"!=""||"&xprot"!=""||"&cotp"!="")&&!(&ucbhsmcotpsel0||&ucbhsmcotpsel1)
+  (
+    PRINT %ERROR "UCBHSM_COTP0 or UCBHSM_COTP1 must be set, if UCBHSM_COTP settings should be programmed!"
+    ENDDO
+  )
+
+  IF !&force
+  (
+    DIALOG.YESNO "Do you really want to program the HSM UCBs?" "" "DANGER: Invalid settings might lock the chip permanently!" "" "Please read the TriCore User Manual carefully before changing UCBs. Please double check the values before programming."
+    ENTRY &confirm
+
+    IF !&confirm
+      RETURN
+  )
+
+  ; Program UCBs. Final check to avoid damage of the device is done inside the TC3xx flash script.
+  FLASH.CHANGEtype 0xAF402600--0xAF4039FF TARGET
+  FLASH.AUTO 0xAF402600--0xAF4039FF
+  (
+    IF "&hsmdbgconfig"!=""
+    (
+      Data.Set 0xAF402600 %Long &hsmdbgconfig
+      Data.Set 0xAF403600 %Long &hsmdbgconfig
+      Data.Set 0xAF4027F0 %Long 0x43211234
+      Data.Set 0xAF4037F0 %Long 0x43211234
+    )
+
+    IF &ucbhsmcotpsel0
+    (
+      IF "&hsmboot"!=""
+      (
+        Data.Set 0xAF402804 %Long &hsmboot
+        Data.Set 0xAF403804 %Long &hsmboot
+      )
+
+      IF "&xprot"!=""
+      (
+        Data.Set 0xAF402808 %Long &xprot&0xFFFFFFFF
+        Data.Set 0xAF403808 %Long &xprot&0xFFFFFFFF
+
+        Data.Set 0xAF40280C %Long (&xprot>>32.)&0xFFFFFFFF
+        Data.Set 0xAF40380C %Long (&xprot>>32.)&0xFFFFFFFF
+      )
+
+      IF "&cotp"!=""
+      (
+        Data.Set 0xAF402810 %Long &cotp&0xFFFFFFFF
+        Data.Set 0xAF403810 %Long &cotp&0xFFFFFFFF
+
+        Data.Set 0xAF402814 %Long (&cotp>>32.)&0xFFFFFFFF
+        Data.Set 0xAF403814 %Long (&cotp>>32.)&0xFFFFFFFF
+      )
+
+      IF "&hsmconfig"!=""
+      (
+        Data.Set 0xAF402818 %Long &hsmconfig
+        Data.Set 0xAF403818 %Long &hsmconfig
+      )
+
+      IF ("&hsmboot"!=""||"&hsmconfig"!=""||"&xprot"!=""||"&cotp"!="")
+      (
+        Data.Set 0xAF4029F0 %Long 0x43211234
+        Data.Set 0xAF4039F0 %Long 0x43211234
+      )
+    )
+
+    IF &ucbhsmcotpsel1
+    (
+      IF "&hsmboot"!=""
+      (
+        Data.Set 0xAF402804+0x200 %Long &hsmboot
+        Data.Set 0xAF403804+0x200 %Long &hsmboot
+      )
+
+      IF "&xprot"!=""
+      (
+        Data.Set 0xAF402808+0x200 %Long &xprot&0xFFFFFFFF
+        Data.Set 0xAF403808+0x200 %Long &xprot&0xFFFFFFFF
+
+        Data.Set 0xAF40280C+0x200 %Long (&xprot>>32.)&0xFFFFFFFF
+        Data.Set 0xAF40380C+0x200 %Long (&xprot>>32.)&0xFFFFFFFF
+      )
+
+      IF "&cotp"!=""
+      (
+        Data.Set 0xAF402810+0x200 %Long &cotp&0xFFFFFFFF
+        Data.Set 0xAF403810+0x200 %Long &cotp&0xFFFFFFFF
+
+        Data.Set 0xAF402814+0x200 %Long (&cotp>>32.)&0xFFFFFFFF
+        Data.Set 0xAF403814+0x200 %Long (&cotp>>32.)&0xFFFFFFFF
+      )
+
+      IF "&hsmconfig"!=""
+      (
+        Data.Set 0xAF402818+0x200 %Long &hsmconfig
+        Data.Set 0xAF403818+0x200 %Long &hsmconfig
+      )
+
+      IF ("&hsmboot"!=""||"&hsmconfig"!=""||"&xprot"!=""||"&cotp"!="")
+      (
+        Data.Set 0xAF4029F0+0x200 %Long 0x43211234
+        Data.Set 0xAF4039F0+0x200t %Long 0x43211234
+      )
+    )
+  )
+  FLASH.AUTO.off
+  FLASH.CHANGEtype 0xAF402600--0xAF4039FF NOP
+
+  GOSUB refreshDialog
+
+  RETURN
+)
+
+
+
+; --------------------------------------------------------------------------------
+; Programming UCB settings with parameters from command line using the command
+; PROGRAM_SETTINGS. This function can be used, if individual bits of the HSM
+; configuration need to be set (like enable or disable the HSM).
+;
+programSettingsFromCommandLine:
+(
+  PRIVATE &parameters &hsmboot &bootsel &hsmconfig &ucbhsmcotpsel0 &ucbhsmcotpsel1 &param_hsmen &bootaddr &param_bootindex
+  PRIVATE &error &confirm &force
+
+  ENTRY %LINE &parameters
+
+  ; Check parameters
+  &param_hsmen=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"HSMBOOT=","")       ; ENABLE|DISABLE
+  &param_bootindex=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"BOOTINDEX=","") ; 0..3
+  &param_bootaddr=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"BOOTADDR=","")   ; Address
+
+  &ucbhsmcotpsel0=(STRing.SCAN(STRing.UPpeR("&parameters"),"UCBHSM_COTP0",0)!=-1)
+  &ucbhsmcotpsel1=(STRing.SCAN(STRing.UPpeR("&parameters"),"UCBHSM_COTP1",0)!=-1)
+
+  &force=(STRing.SCAN(STRing.UPpeR("&parameters"),"FORCE",0)!=-1)
+
+  &error=FALSE()
+
+  ; If any of the parameters PROCONHSMCBS, PROCONHSMCFG, PROCONHSMCX, PROCONHSMCOTP is set then UCBHSM_COTP0 or UCBHSM_COTP1 must be set
+  IF !(&ucbhsmcotpsel0||&ucbhsmcotpsel1)
+  (
+    PRINT %ERROR "UCBHSM_COTP0 or UCBHSM_COTP1 must be set, if UCBHSM_COTP settings should be programmed!"
+    &error=TRUE()
+  )
+
+  IF ("&param_hsmen"!="")
+  (
+    IF ("&param_hsmen"!="ENABLE")&&("&param_hsmen"!="DISABLE")
+    (
+      PRINT %ERROR "HSMBOOT parameter set to &param_hsmen, but only ENABLE or DISABLE are allowed!"
+      &error=TRUE()
+    )
+  )
+
+  IF ("&param_bootindex"!="")
+  (
+    IF (&param_bootindex<0.)||(&param_bootindex>3.)
+    (
+      PRINT %ERROR "BOOTINDEX must be a value between 0 and 3!"
+      &error=TRUE()
+    )
+  )
+
+  IF ("&param_bootaddr"!="")
+  (
+    IF (&param_bootaddr<0x80000000)||(&param_bootaddr>0x8009C000)||((&param_bootaddr&0xFFF)!=0x000)
+    (
+      PRINT %ERROR "BOOTADDR must be a value between 0x80000000 and 0x8009C000! Least significant 14 bits must be zero!"
+      &error=TRUE()
+    )
+  )
+
+  IF (("&param_bootindex"=="")&&("&param_bootaddr"!=""))||(("&param_bootindex"!="")&&("&param_bootaddr"==""))
+  (
+    PRINT %ERROR "BOOTADDR and BOOTINDEX need to be set together!"
+    &error=TRUE()
+  )
+
+  IF &error
+    ENDDO
+
+  IF !&force
+  (
+    DIALOG.YESNO "Do you really want to program the HSM UCBs?" "" "DANGER: Invalid settings might lock the chip permanently!" "" "Please read the TriCore User Manual carefully before changing UCBs. Please double check the values before programming."
+    ENTRY &confirm
+
+    IF !&confirm
+      RETURN
+  )
+
+  ; Program UCBs. Final check to avoid damage of the device is done inside the TC3xx flash script.
+  FLASH.CHANGEtype 0xAF402600--0xAF4039FF TARGET
+  FLASH.AUTO 0xAF402600--0xAF4039FF
+  (
+    IF &ucbhsmcotpsel0
+    (
+      IF "&param_hsmen"!=""
+      (
+        &hsmconfig=Data.Long(&DMU_SP_PROCONHSMCFG)
+
+        IF "&param_hsmen"=="ENABLE"
+          &hsmconfig=&hsmconfig|0x00000001
+        ELSE
+          &hsmconfig=&hsmconfig&0xFFFFFFFE
+
+        Data.Set 0xAF402818 %Long &hsmconfig
+        Data.Set 0xAF403818 %Long &hsmconfig
+      )
+
+      IF ("&param_bootindex"!="")&&("&param_bootaddr"!="")
+      (
+        &hsmboot=Data.Long(&DMU_SP_PROCONHSMCBS)
+
+        &bootsel=(&param_bootaddr>>14.)&0x3F
+        &hsmboot=&hsmboot|((&bootsel&0x3F)<<(&param_bootindex*8.))
+
+        Data.Set 0xAF402804 %Long &hsmboot
+        Data.Set 0xAF403804 %Long &hsmboot
+      )
+
+      IF ("&param_hsmen"!="")||(("&param_bootindex"!="")&&("&param_bootindex"!=""))
+      (
+        Data.Set 0xAF4029F0 %Long 0x43211234
+        Data.Set 0xAF4039F0 %Long 0x43211234
+      )
+    )
+
+    IF &ucbhsmcotpsel1
+    (
+      IF "&param_hsmen"!=""
+      (
+        &hsmconfig=Data.Long(&DMU_SP_PROCONHSMCFG+0x200)
+
+        IF "&param_hsmen"=="ENABLE"
+          &hsmconfig=&hsmconfig|0x00000001
+        ELSE
+          &hsmconfig=&hsmconfig&0xFFFFFFFE
+
+        Data.Set 0xAF402818+0x200 %Long &hsmconfig
+        Data.Set 0xAF403818+0x200 %Long &hsmconfig
+      )
+
+      IF ("&param_bootindex"!="")&&("&param_bootindex"!="")
+      (
+        &hsmboot=Data.Long(&DMU_SP_PROCONHSMCBS)
+
+        &bootsel=(&param_bootaddr>>14.)&0x3F
+        &hsmboot=&hsmboot|((&bootsel&0x3F)<<(&param_bootindex*8.))
+
+        Data.Set 0xAF402804+0x200 %Long &hsmboot
+        Data.Set 0xAF403804+0x200 %Long &hsmboot
+      )
+
+      IF ("&param_hsmen"!="")||(("&param_bootsel"!="")&&("&param_bootaddr"!=""))
+      (
+        Data.Set 0xAF4029F0+0x200 %Long 0x43211234
+        Data.Set 0xAF4039F0+0x200 %Long 0x43211234
+      )
+    )
+  )
+  FLASH.AUTO off
+  FLASH.CHANGEtype 0xAF402600--0xAF4039FF NOP
+
+  GOSUB refreshDialog
+
+  RETURN
+)
+
+
+; --------------------------------------------------------------------------------
+; Programming UCB settings with all settings made in the dialog.
+;
+programFromGUI:
+(
+  PRIVATE &hsmboot &hsmconfig &hsmdbgconfig &xprot &cotp &ucbhsmcotpsel &confirm
+
+  DIALOG.YESNO "Do you really want to program the HSM UCBs?" "" "DANGER: Invalid settings might lock the chip permanently!" "" "Please read the TriCore User Manual carefully before changing UCBs. Please double check the values before programming."
+  ENTRY &confirm
+
+  IF !&confirm
+    RETURN
+
+  ; readout configuration from dialog
+  GOSUB getUCBConfigFromDialog
+  RETURNVALUES &hsmboot &hsmconfig &hsmdbgconfig &xprot &cotp &ucbhsmcotpsel
+
+  GOSUB programUCB "&hsmboot" "&hsmconfig" "&hsmdbgconfig" "&xprot" "&cotp" "&ucbhsmcotpsel"
+
+  GOSUB refreshDialog
+
+  RETURN
+)
+
+
+; --------------------------------------------------------------------------------
+; Programming all HSM related UCBs.
+;
+programUCB:
+(
+  PRIVATE &hsmboot &hsmconfig &hsmdbgconfig &xprot &cotp &ucbhsmcotpsel &offset
+  PARAMETERS &hsmboot &hsmconfig &hsmdbgconfig &xprot &cotp &ucbhsmcotpsel
+
+  &offset=0x0
+  IF "&ucbhsmcotpsel"=="HSM_COTP1"
+    &offset=0x200
+
+  ; Check confirmation state
+  &value=Data.Long(D:0xAF4027F0)
+  IF (&value!=0x00000000)&&(&value!=0x43211234)
+  (
+    PRINT %ERROR "Wrong confirmation state for UCB_HSM!"
+    ENDDO
+  )
+
+  &value=Data.Long(D:0xAF4029F0+&offset)
+  IF (&value!=0x00000000)&&(&value!=0x43211234)
+  (
+    IF &offset!=0
+      PRINT %ERROR "Wrong confirmation state for UCB_HSMCOTP1!"
+    ELSE
+      PRINT %ERROR "Wrong confirmation state for UCB_HSMCOTP0!"
+    ENDDO
+  )
+
+  ; Program UCBs. Final check to avoid damage of the device is done inside the TC3xx flash script.
+  FLASH.CHANGEtype 0xAF402600--0xAF4039FF TARGET
+  FLASH.AUTO 0xAF402600--0xAF4039FF
+  (
+    Data.Set 0xAF402600 %Long &hsmdbgconfig
+    Data.Set 0xAF403600 %Long &hsmdbgconfig
+    Data.Set 0xAF4027F0 %Long 0x43211234
+    Data.Set 0xAF4037F0 %Long 0x43211234
+
+    Data.Set 0xAF402804+&offset %Long &hsmboot
+    Data.Set 0xAF403804+&offset %Long &hsmboot
+    Data.Set 0xAF402808+&offset %Long &xprot&0xFFFFFFFF
+    Data.Set 0xAF403808+&offset %Long &xprot&0xFFFFFFFF
+    Data.Set 0xAF40280C+&offset %Long (&xprot>>32.)&0xFFFFFFFF
+    Data.Set 0xAF40380C+&offset %Long (&xprot>>32.)&0xFFFFFFFF
+    Data.Set 0xAF402810+&offset %Long &cotp&0xFFFFFFFF
+    Data.Set 0xAF403810+&offset %Long &cotp&0xFFFFFFFF
+    Data.Set 0xAF402814+&offset %Long (&cotp>>32.)&0xFFFFFFFF
+    Data.Set 0xAF403814+&offset %Long (&cotp>>32.)&0xFFFFFFFF
+    Data.Set 0xAF402818+&offset %Long &hsmconfig
+    Data.Set 0xAF403818+&offset %Long &hsmconfig
+    Data.Set 0xAF4029F0+&offset %Long 0x43211234
+    Data.Set 0xAF4039F0+&offset %Long 0x43211234
+  )
+  FLASH.AUTO.off
+  FLASH.CHANGEtype 0xAF402600--0xAF4039FF NOP
+
+  RETURN
+)
+
+
+
+; --------------------------------------------------------------------------------
+; Helper function to check the content of the boot select edit field in the
+; dialog, if it matches a hex value in a defined range.
+;
+checkBootSel:
+(
+  PRIVATE &bootsel &address &index &editlabel &textlabel
+
+  IF !WINDOW.NAME("TCHSMCONFIGDIALOG")
+    ENDDO
+
+  &index=0.
+  WHILE &index<4.
+  (
+    &editlabel="TCHSMBOOTSEL"+FORMAT.Decimal(1.,&index)
+    &textlabel="TCHSMBOOTSEL"+FORMAT.Decimal(1.,&index)+"ADDR"
+
+    ON ERROR GOSUB
+    (
+      ON ERROR inherit
+
+      PRINT %ERROR "Illegal entry!"
+
+      DIALOG.Set &editlabel "0x0"
+      DIALOG.Set &textlabel "0x"+FORMAT.HEX(8.,0x80000000)
+
+      ENDDO
+    )
+
+    &bootsel=DIALOG.STRing("&editlabel")
+    EVAL &bootsel
+
+    ON ERROR inherit
+
+    IF (EVAL.TYPE()!=0x0004)&&(EVAL.TYPE()!=0x0008)
+    (
+      &bootsel=0x0
+      PRINT %ERROR "Illegal entry!"
+      ENDDO
+    )
+
+    IF (&bootsel<0)||(&bootsel>0x27)
+    (
+      &bootsel=0x0
+      PRINT %ERROR "Boot index out of range!"
+      ENDDO
+    )
+
+    &address=0x80000000+(&bootsel<<14.)
+
+    DIALOG.Set &textlabel "0x"+FORMAT.HEX(8.,&address)
+    DIALOG.Set &editlabel "0x"+FORMAT.HEX(0.,&bootsel)
+
+    &index=&index+1
+  )
+
+  RETURN
+)

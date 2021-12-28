@@ -1,0 +1,219 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC377TE on TriBoard-TC3x7 (AMP, mini loop)
+; @Description:
+;   Assembles a simple endless loop into RAM and sets up a demo debug scenario
+;   for AMP debugging.
+; @Keywords: AURIX2G, Infineon, multi-core, TriCore
+; @Author: MOB
+; @Board: TriBoard-TC3x7
+; @Chip: TC377TE
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo_amp_loop.cmm 15539 2020-01-17 12:22:53Z meick $
+
+
+; script-local macros:
+LOCAL &numberOfCores
+&numberOfCores=3.
+
+; enable Intercom for communication with PowerView instances of other cores
+; call this instance "TC0"
+InterCom.ENable "TC0"
+
+GOSUB StartOtherGuis
+
+GOSUB Initialize
+
+GOSUB AssembleLoops
+
+GOSUB OpenWindows
+
+GOSUB SetupSynch
+
+GOSUB OptionalSettings
+
+; demo script ends here
+ENDDO
+
+; --------------------------------------------------------------------------------
+; subroutines:
+
+StartOtherGuis:
+(
+  PRIVATE &core
+  &core=1.
+  WHILE (&core<&numberOfCores)
+  (
+    PRIVATE &name
+    &name="TC"+FORMAT.DECimal(0.,&core)
+    TargetSystem.NewInstance "&name" /ARCH TRICORE
+
+    &core=&core+1.
+  )
+
+  RETURN
+)
+
+; initialize and start the debugger
+Initialize:
+(
+  PRIVATE &core
+
+  IC ALL RESet
+  IC ALL SYStem.CPU TC377TE
+  ; The TriBoard-TC3x7 comes with a TLF35584 power supply
+  ; This power supply has integrated watchdog functionality which will cut all
+  ; power if not served correctly. By default this demo will disable this
+  ; watchdog functionality. This includes configuring the QSPI controller as
+  ; well as writing data to the QSPI.
+
+  IF !STATE.POWER()
+  (
+    DO ~~~~/disable_tlf35584.cmm
+  )
+  IC ALL SYStem.Down
+
+  ; mount all cores into the same chip:
+  &core=0.
+  WHILE (&core<&numberOfCores)
+  (
+    PRIVATE &name
+    &name="TC"+FORMAT.DECimal(0.,&core)
+    IC &name SYStem.CONFIG.CORE &core+1. 1.
+    &core=&core+1.
+  )
+  IC ALL SYStem.Up
+
+  RETURN
+)
+
+; Assemble an endless loop for each core into internal memory
+AssembleLoops:
+(
+  PRIVATE &core
+
+  &core=0.
+  WHILE (&core<&numberOfCores)
+  (
+    GOSUB AssembleLoopCore "&core"
+    GOSUB ResetBootHalt "&core"
+    &core=&core+1.
+  )
+
+  RETURN
+)
+
+; arrange GUIs and open some windows
+OpenWindows:
+(
+  IC TC0 FramePOS 0% 0% 33% 40% Auto
+  IC TC1 FramePOS 33% 0% 33% 40% Auto
+  IC TC2 FramePOS 67% 0% 33% 40% Auto
+  IC ALL WinCLEAR
+  IC ALL WinPOS 0% 0% 100% 50%
+  IC ALL List.auto
+  IC ALL WinPOS 0% 50% 100% 50%
+  IC ALL SYnch.state
+
+  IC TC0 TargetSystem.state DEFault Title SYnch.All InterComPort /Global
+
+  RETURN
+)
+
+; set up synchronization between GUIs:
+SetupSynch:
+(
+  IC ALL SYnch.Connect OTHERS
+
+  ; required when setting breakpoints on slave GUIs:
+  IC TC0 SYnch.MasterGo ON
+  IC ALL SYnch.SlaveGo ON
+  ; optional:
+  IC ALL SYnch.MasterBreak ON
+  IC ALL SYnch.SlaveBreak ON
+
+  RETURN
+)
+
+OptionalSettings:
+(
+  IC ALL SYStem.Option DUALPORT ON
+  IC ALL SETUP.Var %SpotLight.on
+  IC ALL MAP.BOnchip 0x0--0xffffffff // force onchip-breakpoints
+
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; helper subroutines:
+
+AssembleLoopCore:
+(
+  PARAMETERS &core
+  PRIVATE &dataRegister &addrPSPR
+  PRIVATE &name
+  &name="TC"+FORMAT.DECimal(0.,&core)
+
+  IF &core>0.
+  (
+    IC &name Break
+  )
+
+  &dataRegister="D"+FORMAT.Decimal(0.,&core)
+  GOSUB GetPsprAddr "&core"
+  RETURNVALUES &addrPSPR
+  IC &name Data.Assemble &addrPSPR nop nop nop addi &dataRegister,&dataRegister,0x1 nop j &addrPSPR
+  IC &name Register.Set PC &addrPSPR
+
+  RETURN
+)
+
+ResetBootHalt:
+(
+  PARAMETERS &core
+  PRIVATE &addrCSFRbase &addrSyscon &valueSyscon &bitshiftSysconBhalt
+  PRIVATE &name
+  &name="TC"+FORMAT.DECimal(0.,&core)
+
+  &bitshiftSysconBhalt=24. // SYSCON.BHALT
+  GOSUB GetCsfrBaseAddr "&core"
+  RETURNVALUES &addrCSFRbase
+  &addrSyscon=ED:&addrCSFRbase+0xFE14
+  &valueSyscon=Data.Long(&addrSyscon)
+  &valueSyscon=(&valueSyscon)&(~(0x1<<&bitshiftSysconBhalt)) // reset SYSCON.BHALT
+  IC &name PER.Set.simple &addrSyscon %Long &valueSyscon
+
+  RETURN
+)
+
+; Get the global base address of the Program Scratch-Pad SRAM of a core
+GetPsprAddr:
+(
+  PARAMETERS &core
+  PRIVATE &addrPSPR
+
+  &core="0x"+FORMAT.HEX(0.,&core)
+  &addrPSPR=0x70100000-(&core*0x10000000)
+  IF (&core>=5.)
+  (
+    &addrPSPR=&addrPSPR-0x10000000
+  )
+
+  RETURN "&addrPSPR"
+)
+
+; Get the base address of the Core Special Function Registers of a core
+GetCsfrBaseAddr:
+(
+  PARAMETERS &core
+  PRIVATE &addrCSFRbase
+
+  &core="0x"+FORMAT.HEX(0.,&core)
+  &addrCSFRbase=0xF8810000+(&core*0x20000)
+  IF (&core>=5.)
+  (
+    &addrCSFRbase=&addrCSFRbase+0x20000
+  )
+
+  RETURN "&addrCSFRbase"
+)

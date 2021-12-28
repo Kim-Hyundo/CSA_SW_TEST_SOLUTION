@@ -1,0 +1,133 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash declaration for TI CC3200 internal flash
+; @Description:
+;   Script arguments:
+;     DO cc3200 [PREPAREONLY] [CPU=<cpu>] [DUALPORT=<0|1>]
+;       PREPAREONLY    only declares flash but does not execute flash programming
+;       CPU=<cpu>      selects CPU derivative <cpu>
+;       DUALPORT=<0|1> use dual port memory access, default 1
+;   Example:
+;     DO ~~/demo/arm/flash/cc3200 PREPAREONLY
+;   Note:
+;     This file must NOT be modified.
+;     This file is intended to stay within TRACE32 installation.
+;     Usage examples are available in the ~~/demo/arm/hardware/... subdirectories.
+;
+;   List of CC3200 derivatives and their configuration:
+;      CPU-Type       Flash    RamSize
+;                     [byte]   [byte]
+; --------------------------------------------------------------------------------
+;    CC3220SF12ARGKR   1M      256KB
+;    CC3220SF12ARGKT   1M      256KB
+;
+;    CC3200R1M1RGCR    0K      256KB
+;    CC3200R1M2RGC     0K      256KB
+;    CC3200R1M2RGCR    0K      256KB
+;    CC3220RM2ARGKR    0K      256KB
+;    CC3220RM2ARGKT    0K      256KB
+;    CC3220SM2ARGKR    0K      256KB
+;    CC3220SM2ARGKT    0K      256KB
+;
+; @Chip: CC3220SF
+; @Author: PHI
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 8212 $
+; $Id: cc3200.cmm 8212 2020-04-21 08:22:39Z sphilipp $
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+PRIVATE &param_prepareonly &param_cpu &param_dualport
+&parameters=STRing.UPpeR("&parameters")
+&param_prepareonly=(STRing.SCAN("&parameters","PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract("&parameters","CPU=","")
+&param_dualport=STRing.SCANAndExtract("&parameters","DUALPORT=","0")
+
+; --------------------------------------------------------------------------------
+; Initialize and start the debugger
+IF !SYStem.Up()
+(
+  SYStem.RESet
+  
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  IF !CPUIS(CC3220SF*)
+    SYStem.CPU CC3220SF*
+
+  SYStem.MemAccess DAP
+
+  IF CABLE.TWOWIRE()
+    SYStem.CONFIG DEBUGPORTTYPE SWD
+  ELSE
+    SYStem.CONFIG DEBUGPORTTYPE JTAG
+  
+  SYStem.Up
+)
+
+; --------------------------------------------------------------------------------
+; Flash declaration
+FLASH.RESet
+GOSUB FlashDeclaration "&param_dualport"
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; --------------------------------------------------------------------------------
+; Flash programming example
+DIALOG.YESNO "Program flash memory?"
+PRIVATE &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram ALL /Erase
+  Data.LOAD.auto *
+  FLASH.ReProgram OFF
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+)
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+; SUBROUTINES
+
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU
+;
+;   Please do NOT modify the TRACE32 flash declaration.
+;
+;   Modifications can result in unpredictable behavior.
+;   Please contact support@lauterbach.com for any changes.
+FlashDeclaration: ;(param_dualport)
+(
+  PARAMETERS &param_dualport
+  PRIVATE &FlashDriver
+  
+  IF CPUIS(CC3220SF*)
+  (
+    &FlashDriver="cc3200.bin"
+  )
+  ELSE IF !CPUIS(CC32*)
+  (
+    PRINT "CPU not suppoerted by this script"
+    ENDDO
+  )
+  ELSE
+  (
+    PRINT SYStem.CPU()+ "has no internal flash"
+    ENDDO
+  )
+
+  FLASH.Create 1. 0x01000000++(0x100000-0x1) 0x800 TARGET LONG
+
+  IF (("&param_dualport"!="1")||SYStem.ACCESS.DENIED())
+    FLASH.TARGET 0x20000000 0x20001000 0x1000 ~~/demo/arm/flash/long/&FlashDriver
+  ELSE
+    FLASH.TARGET 0x20000000 E:0x20001000 0x1000 ~~/demo/arm/flash/long/&FlashDriver /DualPort
+
+  RETURN
+)

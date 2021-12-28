@@ -1,0 +1,172 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux Demo for TRACE32 OS Awareness on the BeagleBoard
+; @Description:
+;   This batchfile demonstrates the use of the OS Awareness for Linux
+;   The example is generated for the BeagleBoard using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   Linux is downloaded to the board via ICD.
+; @Keywords: awareness, Beagle, RTOS
+; @Author: DIE
+; @Board: BeagleBoard
+; @Chip: OMAP3530
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: beagleboard_linux.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+; Starting Linux example with TRACE32:
+; - Connect STRAIGHT modem cable to RS232
+;   - 115200 baud, 8/N/1, no(!) handshake
+; - Start TRACE32
+; - Switch on the board
+; - TRACE32: "do linux"
+; - Terminal: start "hello"
+
+ SCREEN.ALways      ; permanent update for internal terminal window
+ ; screen.on        ; if you use external terminal
+
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 21. 70. 9. 0. 0. W000
+ AREA.view
+
+ PRINT "resetting..."
+
+ RESet
+
+
+; Initializing Debugger
+
+ PRINT "initializing..."
+ SYStem.CPU OMAP3530
+ SYStem.JtagClock RTCK
+ SYStem.Option ResBreak OFF     ; hardware dependent (see manual)
+ SYStem.Option WaitReset ON     ; hardware dependent (see manual)
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set UNDEF OFF         ; my be used by Linux for FPU detection
+ SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+
+ SYStem.Up
+
+ SETUP.IMASKASM ON             ; lock interrupts while single stepping
+
+
+; Open a Code Window -- we like to see something
+
+ WinPOS 0. 0. 75. 20.
+ List.auto
+ SCREEN.display
+
+
+; Open serial terminal window on COM1
+
+ DO ~~/demo/etc/terminal/serial/term.cmm COM1 115200.
+
+; Target Setup
+
+ ; start u-boot to initialize the board
+ Go
+ PRINT "target setup..."
+ WAIT 5.s
+ Break
+
+
+; Load the Linux kernel image
+
+ ; Use the next lines only to load the Linux image into
+ ; RAM using the debugger.
+
+ PRINT "loading Linux kernel image..."
+ Data.LOAD.Binary uImage 0x80300000
+
+
+; Loading initial ram disk (initrd)
+
+ ; Use the next lines only, if you want to use an initrd,
+ ; and if you want to download this with the debugger.
+
+ ; The load address is either hardcoded in arch/arm/<board>/arch.c,
+ ; or must be passed by a boot parameter, or as command line option
+
+ PRINT "loading initial ram disk..."
+ Data.LOAD.Binary ramdisk.image.gz 0x81600000 /NoClear /NosYmbol
+
+
+; Load the Linux kernel symbols into the debugger
+
+ PRINT "loading Linux kernel symbols..."
+ Data.LOAD.Elf vmlinux /NoCODE /StripPART "linux-2.6.29"
+ sYmbol.SourcePATH.Set X:\Linux\TRACE32\arm\BeagleBoard\TimeSys\kernel-source\linux-2.6.29
+
+
+; Start Linux via U-Boot
+
+ Go
+ PRINT "starting Linux..."
+ ; stop autoboot of U-Boot
+ TERM.Out 0x0a
+ WAIT 0.5s
+ ; set boot arguments
+ TERM.Out "setenv bootargs console=ttyS2,115200 root=/dev/ram rw initrd=0x81600000,10M rootwait" 0xa
+ WAIT 0.5s
+ ; boot Linux from memory: bootm <kernel>
+ TERM.Out "bootm 0x80300000" 0x0a
+
+
+; Declare the MMU format to the debugger
+ ; - table format is "LINUX"
+ ; - table base address is at label "swapper_pg_dir"
+ ; - kernel address translation
+ ; Map the virtual kernel symbols to physical addresses to give
+ ; the debugger access to it before CPU MMU is initialized
+
+ PRINT "initializing debugger MMU..."
+ MMU.FORMAT LINUX swapper_pg_dir 0xc0000000--0xcfffffff 0x80000000
+ TRANSlation.COMMON 0xbf000000--0xffffffff              ; common area for kernel and processes
+ TRANSlation.TableWalk ON   ; debugger uses a table walk to decode virtual addresses
+ TRANSlation.ON             ; switch on debugger(!) address translation
+
+
+; Initialize Linux Support
+
+ ; Note that the Linux awareness needs the kernel symbols to work
+
+ PRINT "initializing Linux support..."
+ ; Choose the correct Linux major version below
+ TASK.CONFIG ~~/demo/arm/kernel/linux/linux-2.x/linux.t32     ; loads Linux awareness for linux-2.x
+ MENU.ReProgram ~~/demo/arm/kernel/linux/linux-2.x/linux.men  ; loads Linux menu  for linux-2.x
+ ;TASK.CONFIG ~~/demo/arm/kernel/linux/linux-3.x/linux3.t32     ; loads Linux awareness for linux-3.x
+ ;MENU.ReProgram ~~/demo/arm/kernel/linux/linux-3.x/linux.men  ; loads Linux menu  for linux-3.x
+
+ ; Group kernel area to be displayed with red bar
+ GROUP.Create "kernel" 0xc0000000--0xffffffff /RED
+
+
+; Ok, we're done, let's continue
+
+ PRINT "still starting Linux... (please wait)"
+ WAIT 12.s
+
+; Login as root
+ TERM.Out "root" 0x0d
+ WAIT 2.s
+
+ PRINT "done."     ; done with loading and starting NetBSD
+
+; --------------------------------------------------------------------------------
+;      Application Debugging
+;      e.g. "hello"
+; --------------------------------------------------------------------------------
+
+   LOCAL &extdir
+   &extdir=TASK.GETDIR()
+   DO &extdir/app_debug hello
+
+ ENDDO
+

@@ -1,0 +1,217 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+;$Id: options.cmm 4125 2019-03-22 17:16:46Z kjmal $
+
+LOCAL &path
+LOCAL &NAMEMODE_COMM &NAMEMODE_TASKNAME &NAMEMODE_ARG0 &NAMEMODE_ARG0COMM
+LOCAL &MLF_PROCESS &MLF_KMODULE &MLF_LIBRARY &MLF_CURRLIB &MLF_VM
+&NAMEMODE_COMM=0
+&NAMEMODE_TASKNAME=1
+&NAMEMODE_ARG0=2
+&NAMEMODE_ARG0COMM=3
+&MLF_PROCESS=0x01
+&MLF_LIBRARY=0x02
+&MLF_KMODULE=0x04
+&MLF_CURRLIB=0x08
+&MLF_VM=0x20
+
+LOCAL &TRUE
+LOCAL &FALSE
+&TRUE=(1==1)
+&FALSE=(1==0)
+
+DIALOG.view
+(
+	HEADER "Options..."
+	
+	POS  0. 0. 20. 10.
+	BOX "TASK.Option"	
+
+	POS  1. 1. 17. 3.
+	BOX "THREADING"	
+	POS 2. 2. 15. 1.
+TG:	CHECKBOX "TGroup"		"GOSUB set_tgroup"	
+
+	POS  1. 4. 17. 3.
+	BOX "NAMEMODE"	
+	POS 2. 5. 15. 1.
+NAMEMD: PULLDOWN "COMM,TASKNAME,ARG0,ARG0COMM" "gosub set_namemode"	
+
+	POS  1. 7. 17. 1.
+THRCTX: CHECKBOX "THRCTX"		"GOSUB set_option THRCTX"	
+
+	POS  1. 8. 17. 1.
+SIDCACHE: CHECKBOX "SIDCACHE"		"GOSUB set_option SIDCACHE"	
+
+;	POS  1. 9. 17. 1.
+;NOPHYS: CHECKBOX "NOPHYS"		"GOSUB set_option NOPHYS"	
+
+; --------------------------------------------------------------------------------
+
+	POS  21. 0. 20. 10.
+	BOX "TASK.sYmbol.Option"
+	
+	POS  22. 1. 17. 7.
+	BOX "AutoLoad"	
+	POS 23. 2. 15. 1.
+PROCESS: CHECKBOX "PROCESS"		"GOSUB set_autoload PROCESS"		
+	POS 23. 3. 15. 1.
+MODULE: CHECKBOX "MODULE"		"GOSUB set_autoload MODULE"
+	POS 23. 4. 15. 1.
+LIBRARY: CHECKBOX "LIBRARY"		"GOSUB set_autoload_lib LIBRARY"	
+	POS 23. 5. 15. 1.
+CURRLIB: CHECKBOX "CURRLIB"		"GOSUB set_autoload_lib CURRLIB"	
+	POS 23. 6. 15. 1.
+VM: 	CHECKBOX "VM"			"GOSUB set_autoload VM"
+
+;	POS  23. 8. 17. 1.
+;MMUSCAN: CHECKBOX "MMUSCAN"		"GOSUB set_symbol_option MMUSCAN"
+
+; --------------------------------------------------------------------------------
+
+	POS  0. 10. 41. 3.
+	BOX "TASK.sYmbol.Option"
+	
+	POS  1.  11. 10. 1.
+	TEXT "ROOTPATH:"	
+	
+	POS 11. 11. 25. 1.
+RPATH:	EDIT "" "GOSUB set_rootpath"	
+
+	POS 37. 11. 3. 1.
+	BUTTON "..." "GOSUB browse_rootpath"	
+
+; --------------------------------------------------------------------------------
+
+	CLOSE "JUMPTO winclose"
+
+)
+
+DIALOG.Set TG task.o(threading)==1
+DIALOG.Set THRCTX task.o(thrctx)==1
+DIALOG.Set SIDCACHE task.o(sidcache)==1
+;DIALOG.Set NOPHYS task.o(nophys)==1
+
+&namemode=task.o(namemode)
+
+IF &namemode==&NAMEMODE_COMM
+	DIALOG.Set NAMEMD "COMM"
+ELSE IF &namemode==&NAMEMODE_TASKNAME
+	DIALOG.Set NAMEMD "TASKNAME"
+ELSE IF &namemode==&NAMEMODE_ARG0
+	DIALOG.Set NAMEMD "ARG0"
+ELSE IF &namemode==&NAMEMODE_ARG0COMM
+	DIALOG.Set NAMEMD "ARG0COMM"
+	
+DIALOG.Set PROCESS (task.y.o(autoload)&(&MLF_PROCESS))==&MLF_PROCESS	
+DIALOG.Set MODULE (task.y.o(autoload)&(&MLF_KMODULE))==&MLF_KMODULE
+DIALOG.Set LIBRARY (task.y.o(autoload)&(&MLF_LIBRARY))==&MLF_LIBRARY
+DIALOG.Set CURRLIB (task.y.o(autoload)&(&MLF_CURRLIB))==&MLF_CURRLIB
+DIALOG.Set VM (task.y.o(autoload)&(&MLF_VM))==&MLF_VM
+	
+;DIALOG.Set MMUSCAN task.y.o(mmuscan)!=0
+
+&path=task.y.o.s(rootpath)
+DIALOG.Set RPATH "&path"
+
+STOP
+
+
+set_rootpath:
+	LOCAL &str
+	&str=DIALOG.STRing(RPATH)
+	TASK.sYmbol.Option ROOTPATH "&str"
+	RETURN
+	
+browse_rootpath:
+	LOCAL &str
+	DIALOG.DIR "*"
+	ENTRY &str
+	IF "&str"==""
+	  RETURN
+	&str="&str"
+	TASK.sYmbol.Option ROOTPATH "&str"
+	DIALOG.Set RPATH "&str"
+	RETURN
+
+winclose:
+	DIALOG.END
+	ENDDO
+
+set_tgroup:
+	IF DIALOG.BOOLEAN(TG)
+		TASK.Option THREADING TGROUP ON
+	ELSE
+		TASK.Option THREADING TGroup OFF
+	RETURN
+
+set_namemode:
+	LOCAL &str
+	&str=DIALOG.STRing(NAMEMD)
+	TASK.Option NAMEMODE &str
+	RETURN
+	
+set_option:
+	LOCAL &option
+	ENTRY &option
+	IF DIALOG.BOOLEAN(&option)
+		TASK.O &option ON
+	ELSE
+		TASK.O &option OFF
+	RETURN
+	
+set_symbol_option:
+	LOCAL &option
+	ENTRY &option
+	IF DIALOG.BOOLEAN(&option)
+		TASK.sYmbol.Option &option ON
+	ELSE
+		TASK.sYmbol.Option &option OFF
+	RETURN	
+
+
+set_autoload:
+	LOCAL &option
+	ENTRY &option
+	IF DIALOG.BOOLEAN(&option)
+		TASK.sYmbol.Option AL &option
+	ELSE
+		TASK.sYmbol.Option AL NO&option
+	RETURN
+
+set_autoload_lib:
+	LOCAL &option
+	ENTRY &option
+	
+	IF "&option"=="CURRLIB"
+	(
+		IF DIALOG.BOOLEAN(&option)
+		(
+			TASK.sYmbol.Option AL &option
+			DIALOG.Set LIBRARY &FALSE
+		)
+		ELSE
+		(
+			TASK.sYmbol.Option AL NOLIBRARY
+			DIALOG.Set LIBRARY &FALSE
+		)
+	)
+	
+	IF "&option"=="LIBRARY"
+	(
+		IF DIALOG.BOOLEAN(&option)
+		(
+			TASK.sYmbol.Option AL &option
+			DIALOG.Set CURRLIB &FALSE
+		)
+		ELSE
+		(
+			TASK.sYmbol.Option AL NOLIBRARY
+			DIALOG.Set CURRLIB &FALSE
+		)
+	)
+	RETURN
+	
+; --------------------------------------------------------------------------------

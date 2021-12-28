@@ -1,0 +1,205 @@
+; --------------------------------------------------------------------------------
+; @Title: SMP Start-Up Script on SRAM for TCI6638K2K on XTCIEVMK2X board from TI
+; @Description: 
+;   This demo demonstrates the debugging of the four Cortex-A15 cores together with
+;   the two C66x DSPs of the KeyStone II Soc using a simple sieve demo loaded
+;   on the SRAM. 
+;   The script connects to the first core, enables the other cores and then 
+;   connects to all of them.
+;   Debug and on-chip and off-chip trace successfully tested with four Cortex-A15
+;   cores. The Debug Cable is connected via converter to MIPI trace preprocessor
+;   which goes to J3 on the board.
+;   The two DSPs are configured to use onchip trace. They also support off chip
+;   trace, but not at the same time as the Cortex-A15 cores.
+;
+; @Keywords: Cortex-A15, KeyStone*, off-chip, sieve, SMP, AMP, TI, trace, AET, onchip
+; @Author: STK
+; @Board: XTCIEVMK2X
+; @Chip: TCI6638K2K, 66AK2H12
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: xtcievmk2x_2_amp_ptm_offchip_trace_sram.cmm 15362 2019-12-03 14:50:48Z mschleinkofer $
+
+PRIVATE &currPath &rclPort &remoteCmd &remoteCmd2
+&currPath=OS.PPD()
+&rclPort=FORMAT.DecimalU(1.,RCL.PORT(0))+"."
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF SYStem.INSTANCE()<1.
+(
+  PRINT %ERROR "TRACE32 is not running in AMP mode! Use .bat/.sh file in this directory."
+  ENDDO
+)
+
+IF CPUFAMILY()!="ARM"
+(
+  PRINT %ERROR "TRACE32 instance is not an ARM debugger. Use .bat/.sh file in this directory."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; enable INTERCOM if not already specified and prepare related variables
+IF (INTERCOM.PORT()==0)
+(
+  InterCom.ENable MASTER
+)
+&remoteCmd="InterCom.execute C6000S1"
+&remoteCmd2="InterCom.execute C6000S2"
+; --------------------------------------------------------------------------------
+; close any existing REMOTE GUI
+INTERCOM.execute OTHERS QUIT
+
+; --------------------------------------------------------------------------------
+; open SLAVE GUI with or without enabled remote API
+IF (RCL.PORT(0)!=0)
+(
+  TargetSystem.NewInstance C6000S1 /ARCHitecture C6000 /ChipIndex 2. /APIPORT &rclPort+1. /ONCE
+  TargetSystem.NewInstance C6000S2 /ARCHitecture C6000 /ChipIndex 3. /APIPORT &rclPort+2. /ONCE
+)
+ELSE
+(
+  TargetSystem.NewInstance C6000S1 /ARCHitecture C6000 /ChipIndex 2. /ONCE
+  TargetSystem.NewInstance C6000S2 /ARCHitecture C6000 /ChipIndex 3. /ONCE
+)
+
+TITLE "TRACE32 for ARM - TCI6638K2K - MASTER"
+&remoteCmd TITLE "TRACE32 for TMS320C6000 - TCI6638K2K - SLAVE1"
+&remoteCmd2 TITLE "TRACE32 for TMS320C6000 - TCI6638K2K - SLAVE2"
+
+; --------------------------------------------------------------------------------
+; common SYStem settings
+RESet
+SYStem.RESet
+&remoteCmd SYStem.RESet
+&remoteCmd2 SYStem.RESet
+
+SYStem.CPU TCI6638K2K
+SYStem.CONFIG CORE 1. 1.
+SYStem.CONFIG SLAVE OFF
+CORE.ASSIGN 1.
+
+&remoteCmd SYStem.CPU TCI6638K2K
+&remoteCmd SYStem.CONFIG CORE 2. 1.
+&remoteCmd CORE.ASSIGN 1
+
+&remoteCmd2 SYStem.CPU TCI6638K2K
+&remoteCmd2 SYStem.CONFIG CORE 3. 1.
+&remoteCmd2 CORE.ASSIGN 2
+
+; disable Trace for connection phase
+; ETM.OFF
+; STM.OFF
+; Trace.DISable
+
+SYStem.Mode Attach
+
+; --------------------------------------------------------------------------------
+; kick secondary cores
+
+Data.Set EAHB:0x01e80414 %Long 0 ; CPU1_PDCTL
+Data.Set EAHB:0x01e8040c %Long 1 ; CPU1_PTCMD
+Data.Set EAHB:0x01e80420 %Long 0 ; CPU2_PDCTL
+Data.Set EAHB:0x01e80418 %Long 1 ; CPU2_PTCMD
+Data.Set EAHB:0x01e8042c %Long 0 ; CPU3_PDCTL
+Data.Set EAHB:0x01e80424 %Long 1 ; CPU3_PTCMD
+
+; --------------------------------------------------------------------------------
+; attach to all cores on all sessions
+SYStem.Down
+CORE.ASSIGN 1. 2. 3. 4.
+SYStem.Mode.Attach
+
+IF STATE.RUN()
+(
+  Break.direct
+  WAIT !STATE.RUN()
+)
+
+&remoteCmd SYStem.Up
+&remoteCmd2 SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program on all sessions (use internal RAM only)
+CORE.select 0.
+Data.LOAD.Elf ~~~~/master/sieve_ram_arm_v7.elf
+
+Register.Set PC _start_secondary /CORE 1.
+Register.Set PC _start_secondary /CORE 2.
+Register.Set PC _start_secondary /CORE 3.
+
+&remoteCmd ChDir &currPath
+&remoteCmd Data.LOAD.Elf ./slave1/tci6636k2h_c6000_sieve.1.out
+&remoteCmd2 ChDir &currPath
+&remoteCmd2 Data.LOAD.Elf ./slave2/tci6636k2h_c6000_sieve.2.out
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace if Analyzer is plugged (ETM)
+IF Analyzer()
+(
+  ; set PinMux and enable Clocks
+  Data.Set 0x01e80014 %Long 0 ; STM_DISABLE
+
+  Trace.Method Analyzer
+  &remoteCmd Trace.Method Onchip
+  &remoteCmd2 Trace.Method Onchip
+
+  TPIU.PortSize 16
+  TPIU.PortMode Continuous
+  ETM.TraceID 1.
+  ETM.Trace ON
+  ETM.ON
+
+  ; use Autofocus based calibration
+  Analyzer.AutoFocus
+  
+  &remoteCmd AET.PortSize 10
+  &remoteCmd2 AET.PortSize 10
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main\1
+WAIT !STATE.RUN()
+
+&remoteCmd Go.direct main\1
+&remoteCmd WAIT !STATE.RUN()
+
+&remoteCmd2 Go.direct main\1
+&remoteCmd2 WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinPOS 0% 0% 50% 50%
+List.auto
+WinPOS 50% 0% 50% 50%
+Register.view /SpotLight
+WinPOS 0% 50% 50% 50%
+Frame.view /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Trace.List
+
+&remoteCmd WinCLEAR
+&remoteCmd WinPOS 0% 0% 50% 50%
+&remoteCmd List.auto
+&remoteCmd WinPOS 50% 0% 50% 50%
+&remoteCmd Register.view /SpotLight
+&remoteCmd WinPOS 0% 50% 50% 50%
+&remoteCmd Frame.view /Locals /Caller
+&remoteCmd WinPOS 50% 50% 50% 50%
+&remoteCmd Trace.List
+
+&remoteCmd2 WinCLEAR
+&remoteCmd2 WinPOS 0% 0% 50% 50%
+&remoteCmd2 List.auto
+&remoteCmd2 WinPOS 50% 0% 50% 50%
+&remoteCmd2 Register.view /SpotLight
+&remoteCmd2 WinPOS 0% 50% 50% 50%
+&remoteCmd2 Frame.view /Locals /Caller
+&remoteCmd2 WinPOS 50% 50% 50% 50%
+&remoteCmd2 Trace.List
+
+
+ENDDO

@@ -1,0 +1,312 @@
+; --------------------------------------------------------------------------------
+; @Title: Generic script for Freescale MKV10 internal flash
+;
+; @Description:
+; Example for flash declaration of Freescale MKV10 internal flash.
+;
+; Script arguments:
+;
+;   DO mkv10 [PREPAREONLY] [CPU=<cpu>] [MASSERASE]
+;
+;     PREPAREONLY only declares flash but does not execute flash programming
+;
+;     CPU=<cpu> selects CPU derivative <cpu>
+;
+;     MASSERASE forces mass erase of device before establishing debug connection
+;
+; Example:
+;
+;   DO ~~/demo/arm/flash/mkv10 CPU=MKV11Z128VLH7 PREPAREONLY
+;
+; List of MKV10 derivatives and their configuration:
+;
+;   CPU-Type       ProgFlash      RamSize
+;                    [Byte]       [Byte]
+; --------------------------------------------------------------------------------
+;   MKV10Z16VLC7      16KB         8KB
+;   MKV10Z16VFM7      16KB         8KB
+;   MKV10Z16VLF7      16KB         8KB
+;   MKV10Z32VLC7      32KB         8KB
+;   MKV10Z32VFM7      32KB         8KB
+;   MKV10Z32VLF7      32KB         8KB
+; --------------------------------------------------------------------------------
+;   MKV10Z64VLH7P     56KB        16KB
+;   MKV10Z64VLF7P     56KB        16KB
+;   MKV10Z64VLC7P     56KB        16KB
+;   MKV10Z64VFM7P     56KB        16KB
+;   MKV10Z64VLH7      64KB        16KB
+;   MKV10Z64VLF7      64KB        16KB
+;   MKV10Z64VLC7      64KB        16KB
+;   MKV10Z64VFM7     128KB        16KB
+;   MKV10Z128VLH7    128KB        16KB
+;   MKV10Z128VLF7    128KB        16KB
+;   MKV10Z128VLC7    128KB        16KB
+;   MKV10Z128VFM7    128KB        16KB
+; --------------------------------------------------------------------------------
+;   MKV11Z128VLH7    128KB        16KB
+;   MKV11Z128VLF7    128KB        16KB
+;   MKV11Z128VLC7    128KB        16KB
+;   MKV11Z128VFM7    128KB        16KB
+;   MKV11Z64VLH7      64KB        16KB
+;   MKV11Z64VLF7      64KB        16KB
+;   MKV11Z64VLC7      64KB        16KB
+;   MKV11Z64VFM7      64KB        16KB
+;   MKV11Z128VLH7P   120KB        16KB
+;   MKV11Z128VLF7P   120KB        16KB
+;   MKV11Z128VLC7P   120KB        16KB
+;   MKV11Z128VFM7P   120KB        16KB
+
+;
+; Flash at                         0x00000000 to 0x0001FFFF
+; SRAM_L: Lower SRAM All masters   0x1FFFF800 to 0x1FFFFFFF  for MKV10Z16*,MKV10Z32*
+; SRAM_U: Upper SRAM               0x20000000 to 0x200017FF
+; SRAM_L: Lower SRAM All masters   0x1FFFF000 to 0x1FFFFFFF  for MKV10Z64*,MKV10Z128*,MKV11*
+; SRAM_U: Upper SRAM               0x20000000 to 0x20002FFF
+; ROM table                        0xF0002000 to 0xF0002FFF
+;
+; IFR (Information Flash Registers) Program Once:
+;
+;   Address range     Size(Bytes)      Field Description
+; --------------------------------------------------------------------------------
+;   0x00 to 0x9F         160            Reserved
+;   0xA0 to 0xFF          96            Program Once Fields
+; Flash Configuration Field:
+;
+;   Byte address    Width   Description
+; --------------------------------------------------------------------------------
+;   0x0400--0x0407    8    Backdoor Comparison Key.
+;   0x0408--0x040B    4    Program flash protection bytes (FPROT0-3).
+;   0x040F            1    Program flash only devices: Reserved
+;                          FlexNVM devices: Data flash protection byte
+;                          (FDPROT).
+;   0x040E            1    Program flash only devices: Reserved
+;                          FlexNVM devices: EEPROM protection byte
+;                          (FEPROT).
+;   0x040D            1    Flash nonvolatile option byte (FOPT).
+;   0x040C            1    Flash security byte (FSEC).
+;
+; @Chip: MKV1*
+; @Author: FLC
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 7605 $
+; $Id: mkv10.cmm 7605 2019-11-05 16:45:28Z bschroefel $
+;
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+PRIVATE &param_cpu &param_prepareonly &param_masserase &DualPort &DualPortOpt
+
+&param_cpu=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CPU=","")
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+&param_masserase=(STRing.SCAN(STRing.UPpeR("&parameters"),"MASSERASE",0)!=-1)
+&DualPort=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"DUALPORT=","1")
+&DualPortOpt="/DualPort"
+if "&DualPort"=="0"
+  &DualPortOpt=""
+
+; ------------------------------------------------------------------------------
+; Setup CPU
+
+IF (SYStem.MODE()<5)||&param_masserase
+(
+  SYStem.RESet
+
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  IF !CPUIS(MKV1*)
+    SYStem.CPU MKV1*
+
+  SYStem.CONFIG.DEBUGPORTTYPE SWD
+
+  IF &param_masserase
+    GOSUB MassErase
+
+  ON.ERROR GOSUB Unsecure
+  SYStem.Up
+  ON.ERROR
+)
+
+; Unsecure device
+IF (Data.Long(EDBG:0x40000100)&0x04)==0x04
+    GOSUB Unsecure
+
+; Disable watchdog
+ON.ERROR GOSUB Unsecure
+GOSUB DisableWatchdog
+ON.ERROR
+
+; ------------------------------------------------------------------------------
+;Flash declaration
+
+FLASH.RESet
+GOSUB FlashDeclaration &DualPortOpt
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+;------------------------------------------------------------------------------
+; Flash programming example
+
+DIALOG.YESNO "Program flash memory?"
+PRIVATE &progflash
+ENTRY &progflash
+IF &progflash 
+(
+  FLASH.ReProgram.ALL /Erase
+  Data.LOAD.auto *
+  FLASH.ReProgram.off
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+
+  ; Disable watchdog
+  GOSUB DisableWatchdog
+)
+
+ENDDO
+
+
+; --------------------------------------------------------------------------------
+; Disable watchdog
+
+DisableWatchdog:
+  PRIVATE &tmp1 &tmp2
+  &tmp1=Data.Long(ST:0x20000000)
+  &tmp2=Data.Long(ST:0x20000004)
+
+  ; The watchdog has a restrictive timing. It has to be configured and unlocked within a peripod
+  ; of 20+256 cycles. Therefor the unlock sequence need to be done by a small target program.
+  Data.Assemble ST:0x20000000  strh r1,[r0]  ;SD:0x4005200E = 0xC520   (Key 1)
+  Data.Assemble ,              strh r2,[r0]  ;SD:0x4005200E = 0xD928   (Key 2)
+  Data.Assemble ,              strh r4,[r3]  ;SD:0x40052000 = 0x0000   (Config register)
+  Data.Assemble ,              bkpt #0
+  Register.Set PC 0x20000000
+  Register.Set SP 0x20001000
+  Register.Set R0 0x4005200E
+  Register.Set R1 0xC520
+  Register.Set R2 0xD928
+  Register.Set R3 0x40052000
+  Register.Set R4 0x0
+  Go.direct
+  WAIT !STATE.RUN()
+
+  Data.Set ST:0x20000000 %Long &tmp1
+  Data.Set ST:0x20000004 %Long &tmp2
+
+  RETURN
+
+
+; --------------------------------------------------------------------------------
+; Try to unsecure a secured device
+
+Unsecure: 
+(
+  IF (Data.Long(EDBG:0x40000104)&0x08)==0x08
+  (
+    Data.Set EDBG:0x40000104 %Long (Data.Long(EDBG:0x40000104)&0xFFFFFFF7)
+  )
+  ; Print security state information
+  SYStem.Mode.Prepare
+  PRINT "MDM-AP Status Register is 0x" Data.Long(EDBG:0x40000100)
+
+  DIALOG.YESNO "Execute mass erase to unsecure chip?"
+  PRIVATE &masserase
+  ENTRY &masserase
+  IF &masserase
+  (
+    ON.ERROR DEFault
+
+    ; Unsecure device
+    SYStem.Down
+    FLASH.UNSECUREerase
+    SYStem.Mode.Prepare
+  )
+  SYStem.Up
+
+  ; Disable watchdog
+  GOSUB DisableWatchdog
+
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Try to mass erase the device
+
+MassErase:
+(
+  ; Mass erase device by unsecure command
+  SYStem.Down
+  FLASH.UNSECUREerase
+  SYStem.Mode.Prepare
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU 
+
+FlashDeclaration:
+(
+  PRIVATE &PFlashSize &PSectorSize &FlashDriver &RamStart
+  PRIVATE &DualPortOpt
+  ENTRY &DualPortOpt
+
+  ; Setup configuration values
+  IF CPUIS("MKV10Z16V*")
+  (
+    &RamStart=0x1FFFF800
+    &PFlashSize=0x4000
+    &PSectorSize=0x400
+    &FlashDriver="ftfa.bin"
+  )
+  ELSE IF CPUIS("MKV10Z32V*")
+  (
+    &RamStart=0x1FFFF800
+    &PFlashSize=0x8000
+    &PSectorSize=0x400
+    &FlashDriver="ftfa.bin"
+  )
+  ELSE IF CPUIS("MKV10Z64V??7P")
+  (
+    &PFlashSize=0xE000
+    &RamStart=0x1FFFF000
+    &PSectorSize=0x800
+    &FlashDriver="ftfa1n.bin"
+  )
+  ELSE IF (CPUIS("MKV10Z64V??7")||(CPUIS("MKV11Z64V??7")))
+  (
+    &PFlashSize=0x10000
+    &RamStart=0x1FFFF000
+    &PSectorSize=0x800
+    &FlashDriver="ftfa1n.bin"
+  )
+  ELSE IF CPUIS("MKV11Z128V??7P")
+  (
+    &PFlashSize=0x1E000
+    &RamStart=0x1FFFF000
+    &PSectorSize=0x800
+    &FlashDriver="ftfa1n.bin"
+  )
+  ELSE IF (CPUIS("MKV10Z128*")||(CPUIS("MKV11Z128*")))
+  (
+    &PFlashSize=0x20000
+    &RamStart=0x1FFFF000
+    &PSectorSize=0x800
+    &FlashDriver="ftfa1n.bin"
+  )
+  ELSE
+  (
+     PRINT %ERROR "FLASH size of CPU type is not supported by the script"
+     ENDDO
+  )
+
+  ; Program Flash
+  FLASH.Create 1. 0x00000000--(&PFlashSize-1.) &PSectorSize TARGET Long /KEEP 0x3FC--0x3FF /CENSORSHIP 0x400++0xf
+
+  FLASH.TARGET &RamStart &RamStart+0x500 &PSectorSize ~~/demo/arm/flash/long/&FlashDriver &DualPortOpt
+
+  RETURN
+)

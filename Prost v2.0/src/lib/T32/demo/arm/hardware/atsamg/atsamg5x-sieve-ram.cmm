@@ -1,0 +1,34 @@
+; --------------------------------------------------------------------------------
+; @Title: Sieve demo for ATSAMG5x series. Uses SRAM only.
+; @Description:
+;   A simple demo code is loaded into SRAM of the chip.
+;   Prerequisites:
+;     * SWD Debug lines are connected
+; @Keywords: Atmel, ATSAM*
+; @Author: AME
+; @Board: -
+; @Chip: ATSAMG5?
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: atsamg5x-sieve-ram.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+RESet
+SYStem.RESet
+SYStem.CPU ATSAMG51
+SYStem.CONFIG DEBUGPORTTYPE SWD
+SYStem.Option.DUALPORT ON
+SYStem.Option.ResBreak OFF
+SYStem.Up
+
+; load a simple example code into SRAM
+DO ~~/demo/arm/compiler/gnu-pic/demo_sieve 0x20000000
+Go.direct main
+WAIT !STATE.RUN()
+
+; open some Windows
+Mode.Hll
+List.auto
+
+ENDDO
+

@@ -1,0 +1,91 @@
+; --------------------------------------------------------------------------------
+; @Title: Core File Autoload Script
+; @Description: 
+; Autoloader script for loading shared objects by the Data.LOAD.CORE command
+; @Author: KJM
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: core_autoload.cmm 4125 2019-03-22 17:16:46Z kjmal $ 
+
+// define local macros
+ LOCAL &filename &progname &symfilename &filepath &code &data &space
+
+// get filename and relocation information
+ // these parameters are passed from TRACE32 when calling this skript
+
+ ENTRY &filename &type &code &data &space
+ 
+ // &filename:      name of process/file
+ // &type:          type of file: 1=process, 2=library
+ // &code:          text segment address
+ // &data:          data segment address
+
+ IF &type==1&&(&HaveExec==TRUE())
+   ENDDO
+
+ &filename=&filename
+ &symfilename="&filename"
+ &progname=OS.FILE.NAME("&filename")
+
+// delete symbols if they already exist
+ IF sYmbol.EXIST("\\&progname")
+   sYmbol.Delete \\&progname
+ GROUP.Delete "&progname"
+
+// search file in source search path and open dialog when not there
+ &filepath=sYmbol.SEARCHFILE("&symfilename")
+ IF !OS.FILE("&filepath")
+ (
+   LOCAL &file
+   &file=OS.FILE.NAME("&symfilename")
+   WinPOS ,,,,,, filebox normal "Searching symbols for &file"
+   DIALOG.File "*\&file"
+   ENTRY %LINE &filepath
+   IF "&filepath"==""
+     ENDDO
+   &spath=OS.FILE.PATH("&filepath")
+   sYmbol.SourcePATH.Set "&spath"
+ )
+
+// load symbol file (options for sourcepath, e.g. /STRIPPART may need to be added when required)
+
+ IF (&type==1)  // processes
+ (
+   Data.LOAD.Elf "&filepath" /NoCODE /NoClear /LOCATEAT &code
+   //IF Data.LONG(D:Register(PC))==0
+   //    Data.LOAD.Elf "&filepath" 0 sYmbol.SECRANGE(.text) /NoClear /ia64 /NOREGISTER /NOSYMBOL /LOCATEAT &code
+   GROUP.Create "&progname" sYmbol.SECRANGE(\\&progname\.text) /GREEN
+ )
+ 
+ IF ((&type&0xffff)==2) // libraries
+ (
+   LOCAL &basename &tmp &len
+   &basename=OS.FILE.NAME(&filepath)
+   RePeAT
+   (
+      &basename=STRing.CUT("&basename",-STRing.LENgth(OS.FILE.EXTENSION(&basename)))
+   )
+   WHILE OS.FILE.EXTENSION(&basename)!=""
+   
+   &tmp=STRING.SCAN("&basename", "-",0)
+   &len=STRING.LEN("&basename")
+   IF &tmp!=-1
+     &basename=STRING.CUT("&basename",&tmp-&len)
+   
+   Data.LOAD.Elf &filepath &code /NoCODE /NoClear /NAME "&basename"
+   
+   IF Data.LONG(D:Register(PC))==0
+   (
+     LOCAL &text_range &text_start &text_end
+     &text_start=ADDRESS.OFFSET(sYmbol.SECADDRESS(\\&basename\.text))
+     &text_end=ADDRESS.OFFSET(sYmbol.SECEND(\\&basename\.text))
+     IF (Register(PC)>=&text_start)&&(Register(PC)<=&text_end)
+     (
+       &text_range=sYmbol.SECRANGE(\\&basename\.text)
+       Data.LOAD.Elf "&filepath" &code &text_range /NoClear /ia64 /NOREGISTER /NOSYMBOL /NAME "&basename"
+     )
+   )
+ )
+ 
+ ENDDO
+

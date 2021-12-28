@@ -1,0 +1,27 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo for the SPEAR1340
+; @Description: 
+;   Establish the JTAG connection on the SPEAR1340 board (SYStem.Up).
+;   No code is loaded in this script.
+; @Keywords: SPEAR
+; @Author: KJM
+; @Board: SPEAR1340
+; @Chip: SPEAR1340
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: spear1340_sysup.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+  SYStem.RESet
+  SYStem.CPU SPEAR1340
+  SYStem.Up 
+  
+; open some windows
+  WinCLEAR
+  WinPOS 0% 0% 100% 50%
+  List
+  WinPOS 0% 50% 50% 50%
+  Register
+  WinPOS 50% 50% 50% 50%
+  PER
+  ENDDO

@@ -1,0 +1,57 @@
+; --------------------------------------------------------------------------------
+; @Title: uC/OS-III Demo for TRACE32 OS Awareness
+; @Description: This batchfile demonstrates the OS Awareness for uC/OS-III.
+; @Keywords: awareness, RTOS, ucos-iii
+; @Author: DIE
+; @Chip: Cortex-M3
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: ucos3.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+ SCREEN.ON                    ; all messages are displayed
+ AREA.RESet
+ WinPAGE.RESet
+ WinCLEAR
+ WinPOS 0. 26. 63. 7. 0. 0. W006
+ AREA.view
+
+; Debugger reset
+
+ PRINT "resetting..."
+ RESet
+
+; Initializing Debugger
+
+ PRINT "initializing..."
+ SYStem.CPU CortexM3
+ SYStem.Up
+
+; Load sample application
+
+ PRINT "loading sample application..."
+ Data.LOAD.Elf uCOS-III-Ex3.out
+ sYmbol.CLEANUP     ; necessary to remove empty type declarations
+
+; Initialize RTOS support
+
+ PRINT "initializing uC/OS-III support..."
+ TASK.CONFIG ~~/demo/arm/kernel/ucos-iii/ucos3.t32      ; load uC/OS-II Awareness
+ MENU.ReProgram ~~/demo/arm/kernel/ucos-iii/ucos3.men   ; load uC/OS-II Menu
+ HELP.FILTER.Add rtosucos3  ; add uC/OS-III awareness manual to help filter
+
+; Open some windows
+
+ WinPOS 0. 0. 73. 22. 11. 1. W001
+ List.auto
+
+ WinPOS 63. 15. 60. 11. 0. 1. W003
+ TASK.TASK
+
+; Start application
+
+ Go main
+
+ PRINT "done."
+
+

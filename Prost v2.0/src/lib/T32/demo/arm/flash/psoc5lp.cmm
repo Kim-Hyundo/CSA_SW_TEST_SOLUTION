@@ -1,0 +1,209 @@
+; --------------------------------------------------------------------------------
+; @Title: Example for flash declaration of Cypress PSOC5LP internal flash
+; @Description:
+;   Script arguments:
+;
+;    DO psoc5lp [PREPAREONLY] [CPU=<cpu>]
+;
+;      PREPAREONLY only declares flash but does not execute flash programming
+;
+;      CPU=<cpu> selects CPU derivative <cpu>
+;
+;   Example:
+;
+;   DO ~~/demo/arm/flash/psoc5lp CPU=CY8C5667AXI-LP040 PREPAREONLY
+;
+;   List of PSOC5LP derivatives and their configuration:
+;
+;     CPU-Type         Flash size   Page size  ECC size  EEPROM size  SRAM size
+;                        [Byte]      [Byte]     [Byte]    [Byte]       [Byte]
+; --------------------------------------------------------------------------------
+;     CY8C5667AXI-LP040  0x20000     0x4000     0x4000     0x800        0x8000
+;     CY8C5868AXI-LP035  0x40000     0x4000     0x8000     0x800        0x8000
+;
+; @Author: AME
+; @Chip: CY8C5*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: psoc5lp.cmm 7602 2019-11-05 15:02:25Z bschroefel $
+
+LOCAL &parameters &ECCEn
+ENTRY %LINE &parameters
+
+LOCAL &param_prepareonly &param_cpu
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CPU=","")
+
+&ECCEn=FALSE()
+
+; ------------------------------------------------------------------------------
+; Setup CPU
+
+IF !SYStem.Up()
+(
+  SYStem.RESet
+
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  IF !CPUIS(CY8C5*)
+    SYStem.CPU CY8C5*
+
+  IF CABLE.TWOWIRE()
+    SYStem.CONFIG DEBUGPORTTYPE SWD
+  ELSE
+    SYStem.CONFIG DEBUGPORTTYPE JTAG
+
+  SYStem.Option.ResBreak OFF
+  SYStem.Up
+)
+
+; ------------------------------------------------------------------------------
+; Clock initialization
+; set IMO 3MHz
+; Data.Set AD:0x40004200 0x3
+; enable clocks
+Data.Set AD:0x400043A0 %Byte 0xFF
+Data.Set AD:0x400043A2 %Byte 0xFF
+
+; Enable EEPROM
+Data.Set AD:0x400043AC %Byte 0yXXX1xxxx
+
+; ------------------------------------------------------------------------------
+; Watchdog initialization
+; trigger watchdog if enabled
+IF (Data.Byte(AD:0x40004383)&0x10)!=0x0
+  Data.Set AD:0x40004384 %Byte 0x1
+
+; ------------------------------------------------------------------------------
+; Flash declaration
+
+FLASH.RESet
+GOSUB getECCState
+GOSUB FlashDeclaration
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; -------------------------------------------------------------------------------
+; Flash programming example
+
+DIALOG.YESNO "Program flash memory?"
+LOCAL &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram.ALL
+  Data.LOAD.auto *
+  FLASH.ReProgram.off
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+)
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU
+
+FlashDeclaration:
+(
+  PRIVATE &FlashSize &FlashDriver &ECCSize &EEPROMSize
+  
+  IF CPUIS(CY8C5??5*)
+  (
+    &FlashSize=0x8000
+  )
+  ELSE IF CPUIS(CY8C5??6*)
+  (
+    &FlashSize=0x10000
+  )
+  ELSE IF CPUIS(CY8C5??7*)
+  (
+    &FlashSize=0x20000
+  )
+  ELSE IF CPUIS(CY8C5??8*)
+  (
+    &FlashSize=0x40000
+  )
+  
+  &ECCSize=&FlashSize/8.
+  &EEPROMSize=0x800
+  
+  IF &ECCEn
+  (
+    ; Only the program flash is programmable.
+    &FlashDriver="psoc5lp.bin"
+    
+    ; Program flash declaration
+    FLASH.Create 1. 0x00000000++(&FlashSize-1.) 0x4000 TARGET Byte
+  )
+  ELSE
+  (
+    ; ECC memory can be used for user configuration data
+    &FlashDriver="psoc5lp_noecc.bin"
+    
+    ; Program flash
+    FLASH.Create      1. 0x00000000++(&FlashSize-1.)  0x4000  TARGET Byte /EraseALIAS 0x48000000++(&ECCSize-1.)
+    
+    ; ECC area (32byte ECC per 256byte flash)
+    FLASH.Create      1. 0x48000000++(&ECCSize-1.)    0x800   TARGET Byte /EraseALIAS 0x00000000++(&FlashSize-1.)
+  )
+  
+  ; EEPROM
+  FLASH.Create 1. 0x40008000++(&EEPROMSize-1.) 0x400   TARGET Byte /INFO "EEPROM"
+  
+  FLASH.TARGET 0x1ffff000 0x20000000 0xc00 ~~/demo/arm/flash/long/&FlashDriver /STACKSIZE 0x200
+  
+  RETURN
+)
+
+
+
+getECCState:
+(
+  PRIVATE &CYREG_SPC_SR &CYREG_SPC_CPU_DATA &CY_SPC_STATUS_REG &value
+  &CYREG_SPC_SR=0x40004722
+  &CYREG_SPC_CPU_DATA=0x40004720
+  &CY_SPC_STATUS_REG="Data.Byte(A:&CYREG_SPC_SR)"
+  PRIVATE &CY_SPC_STATUS_IDLE_MASK &CY_SPC_STATUS_DATA_READY_MASK &CY_SPC_KEY_ONE &CY_SPC_KEY_TWO
+  &CY_SPC_STATUS_IDLE_MASK=0x2
+  &CY_SPC_STATUS_DATA_READY_MASK=0x1
+  &CY_SPC_KEY_ONE=0xb6
+  &CY_SPC_KEY_TWO=0xd3
+  PRIVATE &CY_SPC_CMD_LD_BYTE &CY_SPC_CMD_WR_USER_NVL
+  &CY_SPC_CMD_RD_USER_NVL=0x3
+
+  PRIVATE &CY_SPC_IDLE &CY_SPC_BUSY &CY_SPC_DATA_READY
+  &CY_SPC_IDLE="((&CY_SPC_STATUS_REG)&(&CY_SPC_STATUS_IDLE_MASK))!=0x0"
+  &CY_SPC_BUSY="((&CY_SPC_STATUS_REG)&(&CY_SPC_STATUS_IDLE_MASK))==0x0"
+  &CY_SPC_DATA_READY="((&CY_SPC_STATUS_REG)&(&CY_SPC_STATUS_DATA_READY_MASK))!=0x0"
+
+  PRIVATE &i &bOk
+
+  MAP.DENYACCESS 0x90000000++0x3
+  &i=0.
+  &bOk=(&CY_SPC_IDLE)
+  IF (&CY_SPC_IDLE)&&(&bOk)
+  (
+    Data.Set &CYREG_SPC_CPU_DATA %Byte &CY_SPC_KEY_ONE
+    Data.Set &CYREG_SPC_CPU_DATA %Byte (&CY_SPC_KEY_TWO+&CY_SPC_CMD_RD_USER_NVL)&0xff
+    Data.Set &CYREG_SPC_CPU_DATA %Byte &CY_SPC_CMD_RD_USER_NVL
+    Data.Set &CYREG_SPC_CPU_DATA %Byte 0x80
+    Data.Set &CYREG_SPC_CPU_DATA %Byte 0x03
+    WAIT (&CY_SPC_DATA_READY) 0.1s
+    &bOk=(&CY_SPC_DATA_READY)
+    IF (&bOk)
+    (
+      &value=Data.Byte(AD:&CYREG_SPC_CPU_DATA)
+      &ECCEn=(&value&0x08)==0x08
+    )
+    ELSE
+    (
+      PRINT %WARNING "Cannot get ECC state from target!"
+    )
+  )
+  
+  RETURN 
+)

@@ -1,0 +1,106 @@
+; -------------------------------------------------------------------------------
+; @Title: Trace result(.ad) file load & save(.txt) CMM
+; Script arguments:
+;
+;   DO ad_load.cmm &tesecase_number
+;
+; --------------------------------------------------------------------------------
+LOCAL &adFilePath &testcase_number &reultFilePath &covFile &covCBAFile &timingFile
+ENTRY &parameter &Core
+LOCAL &Delimeter &Core_name
+
+&Core_name=&Core
+
+if "&Core_name"=="0"
+    &Core_name="CORE 0"
+
+else if "&Core_name"=="1"
+    &Core_name="CORE 1"
+else if "&Core_name"=="2"
+    &Core_name="CORE 2"
+else if "&Core_name"=="3"
+    &Core_name="CORE 3"
+else if "&Core_name"=="4"
+    &Core_name="CORE 4"
+else if "&Core_name"=="5"
+    &Core_name="CORE 5"
+
+
+&Delimeter="||"
+
+&parameter=STRing.CUT("&parameter",1)
+&parameter=STRing.CUT("&parameter",-1)
+
+&parameter_cnt=STRing.COUNT("&parameter","&Delimeter")
+
+if &parameter_cnt==0.
+   &parameter_cnt=1.
+
+&testcase_number=string.split("&parameter","&Delimeter",0)
+&testcase_number=string.trim("&testcase_number")
+
+&debug_path=string.split("&parameter","&Delimeter",1)
+&debug_path=string.trim("&debug_path")
+
+&Scenario=string.split("&parameter","&Delimeter",2)
+&Scenario=string.trim("&Scenario")
+
+&loop_index=string.split("&parameter","&Delimeter",3)
+&loop_index=string.trim("&loop_index")
+
+
+;&testcase_number=format.decimal(1.,&testcase_number)
+;&tesecase_number=Convert.HextoInt(&testcase_number)
+&adFilePath="&debug_path\ad\&Scenario"
+&coveragePath="&debug_path\txt\coverage\&Scenario"
+&timingPath="&debug_path\txt\timing\&Scenario"
+&tracePath="&debug_path\txt\trace\&Scenario"
+
+IF RUN()
+(
+  BREAK
+)
+
+
+//------------Single testcase result save------------//
+
+&adFile="&adFilePath"+"\Trace_"+"&loop_index"+".ad"
+
+IF !OS.FILE("&adFile")
+(
+  print "'&adFile'"+" Not Found. Please check about the trace result file."
+)
+
+Trace.Init
+Trace.LOAD "&adFile"
+
+PRINT "&adFile"
+
+
+COVerage.Init
+COVerage.ADD
+COVerage.Option.SourceMetric.Statement
+
+//------------Coverage.ListFunc save------------//
+&covFile="&coveragePath"+"\cov"+"\cov"+"&loop_index"+".txt"
+PRinTer.FILE "&covFile"
+WinTABS 100. 20. 20. 20.
+WinPrint.COVerage.ListFunc
+
+//------------Coverage.EXPORT.CBA save------------//
+&covCBAFile="&coveragePath"+"\cba"+"\covCBA"+"&loop_index"+".txt"
+COVerage.EXPORT.CBA "&covCBAFile"
+
+//------------Trace.STATistic.Func save------------//
+&timingFile="&timingPath"+"\timing"+"&loop_index"+".txt"
+PRinTer.FILE "&timingFile"
+WinTABS 100. 20. 20. 20.
+//WinPrint.Trace.STATistic.Func /Filter CORE 0
+WinPrint.Trace.STATistic.Func Name total MIN MAX AVeRage Count /Filter &Core_name
+
+//------------Trace.STATistic.Func save------------//
+&traceFile="&tracePath"+"\trace"+"&loop_index"+".txt"
+PRinTer.FILE "&traceFile"
+wintabs 152.
+winprint.trace.list
+ENDDO

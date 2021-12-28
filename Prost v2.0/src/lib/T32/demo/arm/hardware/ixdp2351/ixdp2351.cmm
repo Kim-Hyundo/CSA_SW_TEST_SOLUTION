@@ -1,0 +1,161 @@
+; --------------------------------------------------------------------------------
+; @Title: IXDP2351 Evaluation Board setup with XScale IXP2350 (Westport) processor.
+; @Description:
+;
+;   XSI SDRAM at A:0:0x00000000--0x0fffffff (256 MByte)
+;   CPP SDRAM at A:1:0x00000000--0x1fffffff (512 MByte)
+;   Flash at     A:0:0x90000000--0x93ffffff
+;
+;   After Reset:
+;   -   the expansion bus is mirrored at A:0:0x00000000--0x0fffffff and
+;       is shadowing SDRAM area.
+;   -   CS0 of expansion bus is enabled, so that first 16 MByte of flash
+;       memory is visible at A:0:0x00000000--0x00ffffff (boot mode)
+;
+;   The script is initialiszing SDRAM memory and CS0..CS3 for all 64 MByte
+;   flash memory and then switching to normal mode to have SDRAM visible
+;   beginning at A:0:0x00000000.
+;
+;   The board is operating in big endian mode.
+;
+;   NOTES:
+;     The JTAG clock frequency is limited to 8 MHz on this board.
+;
+;     IXP2350 JTAG lines can be accessed at connector J9. For debugging of
+;     IXP2350 the configuration JTAG DIP Switch S1 at the corner of the
+;     bottom side of the base card module has to be setup to:
+;
+;               SW1  SW2  SW3  SW4  SW5  SW6  SW7  SW8
+;         S1    OFF  ON   ON   OFF  ON   ON   ON   ON
+;
+;
+; @Keywords: XSCALE
+; @Author: WRD
+; @Board: IXDP2351
+; @Chip: IXP2350
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: ixdp2351.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+;   wrd - 10.02.2005
+
+
+; --------------------------------------------------------------------------------
+; Select target controlled flash programming or TRACE32 tool based
+; flash method; &flashtarget="yes" | "no"
+&flashtarget="yes"
+
+; --------------------------------------------------------------------------------
+; CPU setup
+;
+SYStem.RESet
+SYStem.CPU IXP2350
+SYStem.JtagClock 8MHz
+SYStem.Up
+
+; Switch to big endian mode
+SYStem.Option BigEndian ON
+Data.Set C15:0x01 Data.Long(C15:0x01)|0x80
+
+; --------------------------------------------------------------------------------
+; Deassert reset from peripherals and enable peripherals
+;
+Data.Set ASD:0xC4000028 %Long 0x000003FF
+Data.Set ASD:1:0xC0004A10 %Long 0x000901c0
+Data.Set ASD:1:0xc0004a0c %Long 0x00000001
+
+; --------------------------------------------------------------------------------
+; Initialize XSI SDRAM if present.
+;
+; XSI-DDR populated, strap input XSI_DDR_NOT_PRESENT is strapped to logic_0.
+;
+IF (Data.Long(ASD:0x0:0xC4000020)&0x10)==0x0
+(
+  ; Initialize SDRAM registers
+  DO ~~~~/xsi-sdraminit
+
+  ; Switch to normal mode.
+  ;   SDRAM beginning at   0x00000000
+  ;   AHB Expansion Bus at 0x90000000
+  Data.Set ASD:0xC4000020 %Long Data.Long(ASD:0xC4000020)&0x7fffffff
+
+  ; Switch on ECC
+  DO ~~~~/xsi-sdramecc
+)
+
+; --------------------------------------------------------------------------------
+; Initialize AHB Expansion Bus to access 64 MByte flash memory on
+; CS0..CS3 covering 16 MByte each.
+;
+Data.Set ASD:0xC4000000 %Long 0xbfff3fc3
+Data.Set ASD:0xC4000004 %Long 0xbfff3fc3
+Data.Set ASD:0xC4000008 %Long 0xbfff3fc3
+Data.Set ASD:0xC400000c %Long 0xbfff3fc3
+
+; --------------------------------------------------------------------------------
+; Initialize CPP SDRAM.
+;
+DO ~~~~/cpp-sdraminit
+
+; --------------------------------------------------------------------------------
+; Initialize QDR SRAM.
+;
+DO ~~~~/qdr-sraminit
+
+; --------------------------------------------------------------------------------
+; Switch to normal mode for the case not already done.
+;   SDRAM beginning at   0x00000000
+;   AHB Expansion Bus at 0x90000000
+;
+Data.Set ASD:0xC4000020 %Long Data.Long(ASD:0xC4000020)&0x7fffffff
+
+; --------------------------------------------------------------------------------
+; Flash declaration
+; 2 Intel 28F256J3 in byte mode
+;
+IF "&flashtarget"=="yes"
+(
+  ; Flash declaration for TRACE32 target based flash programming
+  FLASH.Create 1. 0x90000000--0x91FFFFFF 0x20000 TARGET Byte
+  FLASH.Create 2. 0x92000000--0x93FFFFFF 0x20000 TARGET Byte
+
+  FLASH.TARGET 0x1000 0x2000 0x1000 ~~/demo/arm/flash/byte_be/i28f001j3.bin
+)
+ELSE
+(
+  ; Flash declaration for TRACE32 tool based flash programming
+  FLASH.Create 1. 0x90000000--0x91FFFFFF 0x20000 I28F001J3 Byte
+  FLASH.Create 2. 0x92000000--0x93FFFFFF 0x20000 I28F001J3 Byte
+)
+
+; --------------------------------------------------------------------------------
+; Load demo application to SDRAM
+
+DIALOG.YESNO "Download demo application?"
+ENTRY &demoload
+
+IF &demoload
+(
+  Data.LOAD.Elf ~~~~/armbe.axf
+
+  ; initialize CPSR and stack pointer
+  Register.Set CPSR 0x13  ; for arm mode
+  Register.Set R13 0x1000
+
+  ; set program counter at program start
+  Register.Set PC main
+
+  ; open some windows
+  WinCLEAR
+  WinPOS 0% 0% 66% 50%
+  List.auto
+  WinPOS 66% 0%
+  Register.view /SpotLight
+  WinPOS 0% 50% 50% 50%
+  Frame /Locals /Caller
+  WinPOS 50% 50% 50% 50%
+  Var.Watch flags ast
+)
+
+ENDDO

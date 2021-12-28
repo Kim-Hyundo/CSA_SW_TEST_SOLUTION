@@ -1,0 +1,527 @@
+B::
+
+y.new.macro NO_FAULT 0
+y.new.macro HDA_FAULT 1
+y.new.macro HDA_LFA_FAULT 2
+
+y.new.macro VOL_IGN 0
+y.new.macro VOL_IGN_FLAG 1
+y.new.macro VOL_BAT 2
+y.new.macro VOL_BUCK5P0 3
+y.new.macro VOL_PMIC5P0 4
+y.new.macro VOL_PMIC3P3 5
+y.new.macro VOL_PMIC1P25 6
+y.new.macro VOL_BUCKPG5P0 7
+y.new.macro VOL_GRP_NUM 8
+
+
+y.new.macro CHASSIS_0 0
+y.new.macro CHASSIS_1 1
+y.new.macro L_FR_CMR_0 2
+y.new.macro L_FR_RDR_0 3
+y.new.macro L_FR_C_RDR_0 4
+y.new.macro L_FR_C_RDR_1 5
+y.new.macro L_FR_CMR_1 6
+y.new.macro L_FR_CMR_2 7
+y.new.macro L_FR_RDR_1 8
+y.new.macro MSG_GRP_NUM 9
+
+
+y.new.macro ABS_ESC_01_10ms_POS 0
+y.new.macro BCM_02_200ms_POS 1
+y.new.macro BCM_10_200ms_POS 2
+y.new.macro CLU_01_20ms_POS 3
+y.new.macro CLU_02_100ms_POS 4
+y.new.macro EMS_01_10ms_POS 5
+y.new.macro EMS_02_10ms_POS 6
+y.new.macro EMS_03_10ms_POS 7
+y.new.macro EMS_05_100ms_POS 8
+y.new.macro EMS_08_100ms_POS 9
+y.new.macro TCU_01_10ms_POS 10
+y.new.macro ESC_01_10ms_POS 11
+y.new.macro ESC_03_20ms_POS 12
+y.new.macro HU_CLU_PE_05_POS 13
+y.new.macro HU_GW_PE_01_POS 14
+y.new.macro HU_MON_PE_01_POS 15
+y.new.macro HU_NAVI_V2_POS_PE_POS 16
+y.new.macro ICSC_02_100ms_POS 17
+y.new.macro ICU_02_200ms_POS 18
+y.new.macro ICU_04_200ms_POS 19
+y.new.macro ICU_06_200ms_POS 20
+y.new.macro ICU_07_200ms_POS 21
+y.new.macro MDPS_01_10ms_POS 22
+y.new.macro MFSW_01_200ms_POS 23
+y.new.macro SAS_01_10ms_POS 24
+y.new.macro SBCM_AST_02_200ms_POS 25
+y.new.macro SBCM_DRV_01_200ms_POS 26
+y.new.macro SWRC_03_20ms_POS 27
+
+y.new.macro WHL_01_10ms_POS 28
+y.new.macro YRS_01_10ms_POS 29
+y.new.macro CHASSIS_0_NUM 30
+
+y.new.macro A_ADAS_CMD_30_10ms_POS 0
+y.new.macro A_FR_CMR_Genrl_01_30ms_POS 1
+y.new.macro A_FR_CMR_Ln_01_50ms_POS 2
+y.new.macro A_FR_CMR_Ln_02_50ms_POS 3
+y.new.macro A_FR_CMR_Ln_03_50ms_POS 4
+y.new.macro A_FR_CMR_Obj_01_30ms_POS 5
+y.new.macro A_FR_CMR_Obj_02_30ms_POS 6
+y.new.macro A_FR_CMR_Obj_03_30ms_POS 7
+y.new.macro A_FR_CMR_Obj_04_30ms_POS 8
+y.new.macro A_FR_CMR_Obj_05_30ms_POS 9
+y.new.macro A_FR_CMR_Obj_06_30ms_POS 10
+y.new.macro A_FR_CMR_Obj_07_30ms_POS 11
+y.new.macro A_FR_CMR_Obj_08_30ms_POS 12
+y.new.macro A_FR_CMR_Obj_09_30ms_POS 13
+y.new.macro A_FR_CMR_Obj_10_30ms_POS 14
+y.new.macro A_FR_CMR_Obj_11_30ms_POS 15
+y.new.macro A_FR_CMR_Obj_12_30ms_POS 16
+y.new.macro A_FR_CMR_Obj_13_30ms_POS 17
+y.new.macro A_FR_CMR_Obj_14_30ms_POS 18
+y.new.macro A_FR_CMR_Obj_15_30ms_POS 19
+y.new.macro A_FR_CMR_Obj_16_30ms_POS 20
+y.new.macro A_FR_CMR_Obj_17_30ms_POS 21
+y.new.macro A_FR_CMR_Obj_18_30ms_POS 22
+y.new.macro A_FR_CMR_Obj_19_30ms_POS 23
+y.new.macro A_FR_CMR_Obj_20_30ms_POS 24
+y.new.macro A_FR_CMR_FS_01_30ms_POS 25
+y.new.macro A_FR_CMR_FS_02_30ms_POS 26
+y.new.macro A_FR_CMR_FS_03_30ms_POS 27
+y.new.macro A_FR_CMR_FS_04_30ms_POS 28
+y.new.macro A_FR_CMR_FS_05_30ms_POS 29
+y.new.macro A_FR_CMR_FS_06_30ms_POS 30
+y.new.macro A_FR_CMR_FS_07_30ms_POS 31
+y.new.macro L_FR_CMR_0_NUM 32
+
+
+y.new.macro A_FR_CMR_FS_08_30ms_POS 0
+y.new.macro A_FR_CMR_FS_09_30ms_POS 1
+y.new.macro A_FR_CMR_FS_10_30ms_POS 2
+y.new.macro A_FR_CMR_FS_11_30ms_POS 3
+y.new.macro A_FR_CMR_FS_12_30ms_POS 4
+y.new.macro A_FR_CMR_FS_13_30ms_POS 5
+y.new.macro A_FR_CMR_FS_14_30ms_POS 6
+y.new.macro A_FR_CMR_FS_15_30ms_POS 7
+y.new.macro A_FR_CMR_FS_16_30ms_POS 8
+y.new.macro A_FR_CMR_FS_17_30ms_POS 9
+y.new.macro A_FR_CMR_FS_18_30ms_POS 10
+y.new.macro A_FR_CMR_FS_19_30ms_POS 11
+y.new.macro A_FR_CMR_FS_20_30ms_POS 12
+y.new.macro A_FR_CMR_FS_21_30ms_POS 13
+y.new.macro A_FR_CMR_FS_22_30ms_POS 14
+y.new.macro A_FR_CMR_FS_23_30ms_POS 15
+y.new.macro A_FR_CMR_FS_24_30ms_POS 16
+y.new.macro A_FR_CMR_LnMrk_01_50ms_POS 17
+y.new.macro A_FR_CMR_LnMrk_02_50ms_POS 18
+y.new.macro A_FR_CMR_LnMrk_03_50ms_POS 19
+y.new.macro A_FR_CMR_LnMrk_04_50ms_POS 20
+y.new.macro A_FR_CMR_LnMrk_05_50ms_POS 21
+y.new.macro A_FR_CMR_LnMrk_06_50ms_POS 22
+y.new.macro A_FR_CMR_LnMrk_07_50ms_POS 23
+y.new.macro A_FR_CMR_LnMrk_08_50ms_POS 24
+y.new.macro A_FR_CMR_LnMrk_09_50ms_POS 25
+y.new.macro A_FR_CMR_LnMrk_10_50ms_POS 26
+y.new.macro A_FR_CMR_PP_Genrl_01_50ms_POS 27
+y.new.macro A_FR_CMR_PP_IntrPts_01_50ms_POS 28
+y.new.macro A_FR_CMR_PP_IntrPts_02_50ms_POS 29
+y.new.macro A_FR_CMR_PP_IntrPts_03_50ms_POS 30
+y.new.macro A_FR_CMR_PP_IntrPts_04_50ms_POS 31
+y.new.macro L_FR_CMR_1_NUM 32
+
+
+y.new.macro A_FR_CMR_PP_IntrPts_05_50ms_POS 0
+y.new.macro A_FR_CMR_PP_IntrPts_06_50ms_POS 1
+y.new.macro A_FR_CMR_PP_Ln_01_50ms_POS 2
+y.new.macro A_FR_CMR_PP_Ln_02_50ms_POS 3
+y.new.macro A_FR_CMR_StpLn_01_50ms_POS 4
+y.new.macro A_FR_CMR_StpLn_02_50ms_POS 5
+y.new.macro A_FR_CMR_StpLn_03_50ms_POS 6
+y.new.macro A_FR_CMR_StpLn_04_50ms_POS 7
+y.new.macro A_FR_CMR_StpLn_05_50ms_POS 8
+y.new.macro L_FR_CMR_2_NUM 9
+
+
+y.new.macro A_FR_RDR_Genrl_01_50ms_POS 0
+y.new.macro A_FR_RDR_Genrl_02_50ms_POS 1
+y.new.macro A_FR_RDR_ODM_01_50ms_POS 2
+y.new.macro A_FR_RDR_Obj_01_50ms_POS 3
+y.new.macro A_FR_RDR_Obj_02_50ms_POS 4
+y.new.macro A_FR_RDR_Obj_03_50ms_POS 5
+y.new.macro A_FR_RDR_Obj_04_50ms_POS 6
+y.new.macro A_FR_RDR_Obj_05_50ms_POS 7
+y.new.macro A_FR_RDR_Obj_06_50ms_POS 8
+y.new.macro A_FR_RDR_Obj_07_50ms_POS 9
+y.new.macro A_FR_RDR_Obj_08_50ms_POS 10
+y.new.macro A_FR_RDR_Obj_09_50ms_POS 11
+y.new.macro A_FR_RDR_Obj_10_50ms_POS 12
+y.new.macro A_FR_RDR_Obj_11_50ms_POS 13
+y.new.macro A_FR_RDR_Obj_12_50ms_POS 14
+y.new.macro A_FR_RDR_Obj_13_50ms_POS 15
+y.new.macro A_FR_RDR_Obj_14_50ms_POS 16
+y.new.macro A_FR_RDR_Obj_15_50ms_POS 17
+y.new.macro A_FR_RDR_Obj_16_50ms_POS 18
+y.new.macro A_FR_RDR_Obj_17_50ms_POS 19
+y.new.macro A_FR_RDR_Obj_18_50ms_POS 20
+y.new.macro A_FR_RDR_Obj_19_50ms_POS 21
+y.new.macro A_FR_RDR_Obj_20_50ms_POS 22
+y.new.macro A_FR_RDR_Obj_21_50ms_POS 23
+y.new.macro A_FR_RDR_Obj_22_50ms_POS 24
+y.new.macro A_FR_RDR_Obj_23_50ms_POS 25
+y.new.macro A_FR_RDR_Obj_24_50ms_POS 26
+y.new.macro A_FR_RDR_Obj_25_50ms_POS 27
+y.new.macro A_FR_RDR_Obj_26_50ms_POS 28
+y.new.macro A_FR_RDR_Obj_27_50ms_POS 29
+y.new.macro A_FR_RDR_Obj_28_50ms_POS 30
+y.new.macro A_FR_RDR_Obj_29_50ms_POS 31
+y.new.macro L_FR_RDR_0_NUM 32
+
+
+y.new.macro A_FR_RDR_Obj_30_50ms_POS 0
+y.new.macro A_FR_RDR_Obj_31_50ms_POS 1
+y.new.macro A_FR_RDR_Obj_32_50ms_POS 2
+y.new.macro A_FR_RDR_FS_01_50ms_POS 3
+y.new.macro A_FR_RDR_FS_02_50ms_POS 4
+y.new.macro A_FR_RDR_FS_03_50ms_POS 5
+y.new.macro A_FR_RDR_FS_04_50ms_POS 6
+y.new.macro A_FR_RDR_FS_05_50ms_POS 7
+y.new.macro L_FR_RDR_1_NUM 8
+
+
+y.new.macro A_FR_C_RDR_Genrl_01_50ms_POS 0
+y.new.macro A_FR_C_RDR_ODM_01_50ms_POS 1
+y.new.macro A_FR_C_RDR_Obj_01_50ms_POS 2
+y.new.macro A_FR_C_RDR_Obj_02_50ms_POS 3
+y.new.macro A_FR_C_RDR_Obj_03_50ms_POS 4
+y.new.macro A_FR_C_RDR_Obj_04_50ms_POS 5
+y.new.macro A_FR_C_RDR_Obj_05_50ms_POS 6
+y.new.macro A_FR_C_RDR_Obj_06_50ms_POS 7
+y.new.macro A_FR_C_RDR_Obj_07_50ms_POS 8
+y.new.macro A_FR_C_RDR_Obj_08_50ms_POS 9
+y.new.macro A_FR_C_RDR_Obj_09_50ms_POS 10
+y.new.macro A_FR_C_RDR_Obj_10_50ms_POS 11
+y.new.macro A_FR_C_RDR_Obj_11_50ms_POS 12
+y.new.macro A_FR_C_RDR_Obj_12_50ms_POS 13
+y.new.macro A_FR_C_RDR_Obj_13_50ms_POS 14
+y.new.macro A_FR_C_RDR_Obj_14_50ms_POS 15
+y.new.macro A_FR_C_RDR_Obj_15_50ms_POS 16
+y.new.macro A_FR_C_RDR_Obj_16_50ms_POS 17
+y.new.macro A_FR_C_RDR_Obj_17_50ms_POS 18
+y.new.macro A_FR_C_RDR_Obj_18_50ms_POS 19
+y.new.macro A_FR_C_RDR_Obj_19_50ms_POS 20
+y.new.macro A_FR_C_RDR_Obj_20_50ms_POS 21
+y.new.macro A_FR_C_RDR_Obj_21_50ms_POS 22
+y.new.macro A_FR_C_RDR_Obj_22_50ms_POS 23
+y.new.macro A_FR_C_RDR_Obj_23_50ms_POS 24
+y.new.macro A_FR_C_RDR_Obj_24_50ms_POS 25
+y.new.macro A_FR_C_RDR_Obj_25_50ms_POS 26
+y.new.macro A_FR_C_RDR_Obj_26_50ms_POS 27
+y.new.macro A_FR_C_RDR_Obj_27_50ms_POS 28
+y.new.macro A_FR_C_RDR_Obj_28_50ms_POS 29
+y.new.macro A_FR_C_RDR_Obj_29_50ms_POS 30
+y.new.macro A_FR_C_RDR_Obj_30_50ms_POS 31
+y.new.macro L_FR_C_RDR_0_NUM 32
+
+y.new.macro A_FR_C_RDR_LH_FS_01_50ms_POS 0
+y.new.macro A_FR_C_RDR_LH_FS_02_50ms_POS 1
+y.new.macro A_FR_C_RDR_LH_FS_03_50ms_POS 2
+y.new.macro A_FR_C_RDR_LH_FS_04_50ms_POS 3
+y.new.macro A_FR_C_RDR_LH_FS_05_50ms_POS 4
+y.new.macro A_FR_C_RDR_LH_FS_06_50ms_POS 5
+y.new.macro A_FR_C_RDR_LH_FS_07_50ms_POS 6
+y.new.macro A_FR_C_RDR_LH_FS_08_50ms_POS 7
+y.new.macro A_FR_C_RDR_RH_FS_01_50ms_POS 8
+y.new.macro A_FR_C_RDR_RH_FS_02_50ms_POS 9
+y.new.macro A_FR_C_RDR_RH_FS_03_50ms_POS 10
+y.new.macro A_FR_C_RDR_RH_FS_04_50ms_POS 11
+y.new.macro A_FR_C_RDR_RH_FS_05_50ms_POS 12
+y.new.macro A_FR_C_RDR_RH_FS_06_50ms_POS 13
+y.new.macro A_FR_C_RDR_RH_FS_07_50ms_POS 14
+y.new.macro A_FR_C_RDR_RH_FS_08_50ms_POS 15
+y.new.macro L_FR_C_RDR_1_NUM 16
+
+y.new.macro RECOVER_GROUP_0 0
+y.new.macro RECOVER_GROUP_1 1
+y.new.macro RECOVER_GROUP_2 2
+y.new.macro RECOVER_GROUP_3 3
+y.new.macro RECOVER_GROUP_4 4
+y.new.macro RECOVER_GROUP_5 5
+y.new.macro RECOVER_GROUP_6 6
+y.new.macro RECOVER_GROUP_7 7
+y.new.macro RECOVER_GROUP_NUM 8
+
+
+y.new.macro VOL_HIGH 0
+y.new.macro VOL_LOW 1
+y.new.macro ECAN_BUSOFF 2
+y.new.macro ACAN_BUSOFF 3
+y.new.macro GROUP_0_NUM 4
+
+
+y.new.macro VCU_HCU_TIMEOUT 0
+y.new.macro BCM_TIMEOUT 1
+y.new.macro CLU_TIMEOUT 2
+y.new.macro EMS_TIMEOUT 3
+y.new.macro ESC_TIMEOUT 4
+y.new.macro FR_CMR_TIMEOUT 5
+y.new.macro FR_RDR_TIMEOUT 6
+
+
+y.new.macro CGW1_TIMEOUT 0
+y.new.macro CGW2_TIMEOUT 1
+y.new.macro CGW8_TIMEOUT 2
+y.new.macro CGW_PC4_TIMEOUT 3
+y.new.macro CGW_PC5_TIMEOUT 4
+y.new.macro CLU11_TIMEOUT 5
+y.new.macro CLU13_TIMEOUT 6
+y.new.macro EMS12_TIMEOUT 7
+
+
+y.new.macro GROUP_1_NUM 0
+
+
+y.new.macro HU_CLU_PE_TIMEOUT 0
+y.new.macro HU_GW_PE_TIMEOUT 1
+y.new.macro HU_MON_PE_TIMEOUT 2
+y.new.macro HU_NAVI_V2_POS_PE_TIMEOUT 3
+y.new.macro ICSC_TIMEOUT 4
+y.new.macro ICU_TIMEOUT 5
+y.new.macro MDPS_TIMEOUT 6
+y.new.macro MFSW_TIMEOUT 7
+
+
+y.new.macro EMS16_TIMEOUT 0
+y.new.macro ESP12_TIMEOUT 1
+y.new.macro HU_CLU_PE_05_TIMEOUT 2
+y.new.macro HU_GW_PE_01_TIMEOUT 3
+y.new.macro HU_MON_PE_01_TIMEOUT 4
+y.new.macro MDPS11_TIMEOUT 5
+y.new.macro MDPS12_TIMEOUT 6
+y.new.macro NAVI_V2_POS_E_POS_TIMEOUT 7
+
+
+y.new.macro GROUP_2_NUM 0
+
+
+y.new.macro RR_C_RDR_TIMEOUT 0
+y.new.macro SAS_TIMEOUT 1
+y.new.macro SWRC_TIMEOUT 2
+y.new.macro TCU_TIMEOUT 3
+y.new.macro WHL_TIMEOUT 4
+y.new.macro YRS_TIMEOUT 5
+y.new.macro SBCM_TIMEOUT 7
+
+
+y.new.macro P_STS_TIMEOUT 0
+y.new.macro RR_C_RDR_02_TIMEOUT 1
+y.new.macro SAS11_TIMEOUT 2
+y.new.macro TCS11_TIMEOUT 3
+y.new.macro TCS13_TIMEOUT 4
+y.new.macro VSM11_TIMEOUT 5
+y.new.macro WHL_SPD11_TIMEOUT 6
+
+
+y.new.macro GROUP_3_NUM 0
+
+
+y.new.macro L_FR_CMR_TIMEOUT 0
+y.new.macro L_FR_RDR_TIMEOUT 1
+y.new.macro L_FR_C_RDR_TIMEOUT 2
+y.new.macro GROUP_4_NUM 3
+
+
+y.new.macro CLU_INVALID_SIGNAL 0
+y.new.macro ESC_INVALID_SIGNAL 1
+y.new.macro MDPS_INVALID_SIGNAL 2
+y.new.macro SAS_INVALID_SIGNAL 3
+y.new.macro EMS_INVALID_SIGNAL 4
+y.new.macro TCU_INVALID_SIGNAL 5
+y.new.macro YRS_INVALID_SIGNAL 6
+y.new.macro SWRC_INVALID_SIGNAL 7
+
+
+y.new.macro CGW_INVALID_SIGNAL 0
+y.new.macro CLU_INVALID_SIGNAL 1
+y.new.macro ESC_INVALID_SIGNAL 2
+y.new.macro MDPS_INVALID_SIGNAL 3
+y.new.macro SAS_INVALID_SIGNAL 4
+y.new.macro EMS_INVALID_SIGNAL 5
+y.new.macro TCU_INVALID_SIGNAL 6
+y.new.macro NAVI_INVALID_SIGNAL 7
+
+
+y.new.macro GROUP_5_NUM 0
+
+
+y.new.macro VCU_HCU_INVALID_SIGNAL 0
+y.new.macro ICSC_INVALID_SIGNAL 1
+y.new.macro ICU_INVALID_SIGNAL 2
+y.new.macro NAVI_INVALID_SIGNAL 3
+y.new.macro FR_CMR_INVALID_SIGNAL 4
+y.new.macro FR_RDR_INVALID_SIGNAL 5
+y.new.macro FR_C_RDR_INVALID_SIGNAL 6
+
+
+y.new.macro FR_CMR_INVALID_SIGNAL 0
+y.new.macro FR_RDR_INVALID_SIGNAL 1
+y.new.macro FR_C_RDR_INVALID_SIGNAL 2
+y.new.macro RESERVED2 3
+y.new.macro RESERVED3 4
+y.new.macro RESERVED4 5
+y.new.macro RESERVED5 6
+y.new.macro RESERVED6 7
+
+
+y.new.macro GROUP_6_NUM 0
+
+
+y.new.macro GROUP_7_NUM 0
+
+
+y.new.macro EMS_C161386_0 0
+y.new.macro EMS_C161386_1 1
+y.new.macro EMS_C161386_2 2
+y.new.macro EMS_ITEM_NUM 3
+
+
+y.new.macro TCU_C164686_0 0
+y.new.macro TCU_ITEM_NUM 1
+
+
+
+y.new.macro VCU_C161C86_0 0
+y.new.macro VCU_C161C86_1 1
+y.new.macro VCU_ITEM_NUM 2
+
+
+y.new.macro EMS_C161386_0 0
+y.new.macro EMS_ITEM_NUM 1
+
+
+y.new.macro HCU_C161C86_0 0
+y.new.macro HCU_C161C86_1 1
+y.new.macro HCU_ITEM_NUM 2
+
+
+y.new.macro HTCU_C164686_0 0
+y.new.macro HTCU_ITEM_NUM 1
+
+
+y.new.macro CLU_C165686_0 0
+y.new.macro CLU_C165686_1 1
+y.new.macro CLU_ITEM_NUM 2
+
+
+y.new.macro ESC_C164286_0 0
+y.new.macro ESC_C164286_1 1
+y.new.macro ESC_C164286_2 2
+y.new.macro ESC_NA_0 3
+y.new.macro ESC_C16B881_0 4
+y.new.macro ESC_C136081_0 5
+y.new.macro ESC_NA_1 6
+y.new.macro ESC_C163881_0 7
+y.new.macro ESC_C164282_0 8
+y.new.macro ESC_C164281_0 9
+y.new.macro ESC_ITEM_NUM 10
+
+
+y.new.macro MDPS_C168886_0 0
+y.new.macro MDPS_C168886_1 1
+y.new.macro MDPS_C223986_0 2
+y.new.macro MDPS_C223986_1 3
+y.new.macro MDPS_ITEM_NUM 4
+
+
+y.new.macro SAS_C181486_0 0
+y.new.macro SAS_ITEM_NUM 1
+
+
+y.new.macro ICSC_C187002_0 0
+y.new.macro ICSC_ITEM_NUM 1
+
+
+y.new.macro ICU_C183E86_0 0
+y.new.macro ICU_ITEM_NUM 1
+
+
+y.new.macro YRS_C184286_0 0
+y.new.macro YRS_ITEM_NUM 1
+
+
+y.new.macro SWRC_C183D82_0 0
+y.new.macro SWRC_ITEM_NUM 1
+
+
+y.new.macro BCM_C181281_0 0
+y.new.macro BCM_C181281_1 1
+y.new.macro BCM_C181281_2 2
+y.new.macro BCM_ITEM_NUM 3
+
+
+y.new.macro SBCM_C185481_0 0
+y.new.macro SBCM_C185381_0 1
+y.new.macro SBCM_ITEM_NUM 2
+
+
+y.new.macro EMS_C161386_0 0
+y.new.macro EMS_C161386_1 1
+y.new.macro EMS_ITEM_NUM 2
+
+
+y.new.macro TCU_C164686_0 0
+y.new.macro TCU_ITEM_NUM 1
+
+
+y.new.macro CGW_C181786_0 0
+y.new.macro CGW_ITEM_NUM 1
+
+
+y.new.macro CLU_C165686_0 0
+y.new.macro CLU_C165686_1 1
+y.new.macro CLU_ITEM_NUM 2
+
+
+y.new.macro ESC_C164286_0 0
+y.new.macro ESC_C164286_1 1
+y.new.macro ESC_NA_0 2
+y.new.macro ESC_C16B881_0 3
+y.new.macro ESC_C136081_0 4
+y.new.macro ESC_NA_1 5
+y.new.macro ESC_C163881_0 6
+y.new.macro ESC_ITEM_NUM 7
+
+
+y.new.macro MDPS_C168886_0 0
+y.new.macro MDPS_C168886_1 1
+y.new.macro MDPS_C223986_0 2
+y.new.macro MDPS_ITEM_NUM 3
+
+
+y.new.macro SAS_C181486_0 0
+y.new.macro SAS_ITEM_NUM 1
+
+
+y.new.macro NAVI_C174686_0 0
+y.new.macro NAVI_C183186_0 1
+y.new.macro NAVI_C183186_1 2
+y.new.macro NAVI_ITEM_NUM 3
+
+
+y.new.macro FR_CMR_28B086_0 0
+y.new.macro FR_CMR_28B086_1 1
+y.new.macro FR_CMR_NA_0 2
+y.new.macro FR_CMR_ITEM_NUM 3
+
+
+y.new.macro FR_RDR_C28B186_0 0
+y.new.macro FR_RDR_NA_0 1
+y.new.macro FR_RDR_ITEM_NUM 2
+
+
+y.new.macro FR_C_RDR_C188186_0 0
+y.new.macro FR_C_RDR_C188186_1 1
+y.new.macro FR_C_RDR_NA_0 2
+y.new.macro FR_C_RDR_NA_1 3
+y.new.macro FR_C_RDR_ITEM_NUM 4
+
+ENDDO

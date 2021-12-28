@@ -1,0 +1,165 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script to configure external memory of TC3x9* on TriBoard-TC3x9
+; @Description:
+;   The script can be used either as template for own projects or alternatively
+;   be called by them.
+;
+;   Supported devices:
+;     - All TriBoard-TC3x9 using TC3x9* devices, e.g. TC399XE ot TC389QP.
+;     - /CS0: ST M58BW32FB4T3 4 MB FLASH
+;     - /CS1: ISSI IS61WV25616BL-10TLI 1 MB SRAM
+;     - /CS2: unused
+;
+; @Keywords: external, extmem, memory
+; @Author: MAX
+; @Board: TriBoard-TC3x9
+; @Chip: TC39*
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: configure_extmem.cmm 15461 2019-12-22 17:29:28Z hdammak $
+
+
+;   Script arguments:
+;     DO configure_extmem.cmm FLASHSTART=<address> FLASHSIZE=<bytes> [FLASHALTREGION=<segment>]
+;                             RAMSTART=<address>   RAMSIZE=<bytes>   [RAMALTREGION=<segment>]
+;                             [CPU=<cpu>]
+;
+;       FLASHSTART=<address>     Start address <address> of external flash
+;       FLASHSIZE=<bytes>        External flash size in <bytes>
+;       FLASHALTREGION=<segment> Segment <segment> where to mirror external flash
+;                                (alternative region)
+;       RAMSTART=<address>       Start address <address> of external RAM
+;       RAMSIZE=<bytes>          External RAM size in <bytes>
+;       RAMALTREGION=<segment>   Segment <segment> where to mirror external RAM
+;                                (alternative region)
+;       CPU=<cpu>                Selects CPU derivative <cpu>
+;    Note: Normally it is not necessary to used non-default memory sizes.
+;
+;   Example:
+;     DO ~~/demo/tricore/hardware/triboard-tc3x9/configure_extmem.cmm FLASHSTART=0xA4000000 FLASHSIZE=0x200000 RAMSTART=0xA3000000 RAMSIZE=0x100000
+
+; --------------------------------------------------------------------------------
+; get parameters and check preconditions
+LOCAL &parameters
+ENTRY %LINE &parameters
+
+LOCAL &param_flashStart &param_flashSize &param_flashAltRegion
+LOCAL &param_ramStart &param_ramSize &param_ramAltRegion
+LOCAL &param_cpu
+&param_flashStart=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"FLASHSTART=","")
+&param_flashSize=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"FLASHSIZE=","")
+&param_flashAltRegion=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"FLASHALTREGION=","")
+&param_ramStart=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"RAMSTART=","")
+&param_ramSize=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"RAMSIZE=","")
+&param_ramAltRegion=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"RAMALTREGION=","")
+&param_cpu=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CPU=","")
+
+IF "&param_flashStart"==""
+    ENDDO FLASHSTART_MISSING
+IF "&param_flashSize"==""
+    ENDDO FLASHSIZE_MISSING
+IF "&param_ramStart"==""
+    ENDDO RAMSTART_MISSING
+IF "&param_ramSize"==""
+    ENDDO RAMSIZE_MISSING
+
+IF SYStem.MODE()<5.
+(
+  SYStem.RESet
+
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  IF !CPUIS(TC3?9*)
+    SYStem.CPU TC3?9*
+)
+IF !CPUIS(TC3?9*)
+  ENDDO CPU_UNSUPPORTED
+IF !SYStem.Up()
+  SYStem.Mode Up
+
+; --------------------------------------------------------------------------------
+; initialize External Bus Unit
+LOCAL &ADDRSEL
+
+; EBU configuration, identically to EXTBURST
+PER.Set D:0xF8400000 %Long 0x00550000    ; EBU_CLC     - EBU runs with f(SRI)/2, max. 150 MHz, sync to CPU
+PER.Set D:0xF8400004 %Long 0x01FF00D0    ; EBU_MODCON  - max. lock timeout, Arbitration: Sole Master and inputs asynchron
+PER.Set D:0xF840000C %Long 0x30000000    ; EBU_USERCON - A(15:0), /ADV, /BC(3:0), A(19:16) used by EBU
+
+; no SDRAM available, use reset values
+PER.Set D:0xF8400068 %Long 0x10000000    ; EBU_SDRMCON
+PER.Set D:0xF840006C %Long 0x00000020    ; EBU_SDRMOD
+PER.Set D:0xF8400070 %Long 0x00000000    ; EBU_SDRMREF
+
+; /CS0: ST M58BW32FB4T3 - 4 MB FLASH
+; - map to 0x84000000++0x3FFFFF and 0xA4000000++0x3FFFFF
+; - configuration: portwidth 32 bit, wait normal, no feedback, demultiplexed burst type
+; - cycles: 1 address, 0 address hold, 0 cmd delay, 9/12 wait, 0 recovery, each clock one data, clk 1:1
+GOSUB GetADDRSEL &param_flashStart &param_flashSize &param_flashAltRegion
+ENTRY &ADDRSEL
+PER.Set D:0xF8400018 %Long &ADDRSEL      ; EBU_ADDRSEL0 - map 0xA4000000 and mirror in segment 8
+PER.Set D:0xF8400028 %Long 0x50D30040    ; EBU_BUSRCON0 - configuration: see above, clk disable if no access
+PER.Set D:0xF8400030 %Long 0x50D30000    ; EBU_BUSWCON0 - configuration: see above
+PER.Set D:0xF840002C %Long 0x00000480    ; EBU_BUSRAP0  - cycles: see above
+PER.Set D:0xF8400034 %Long 0x00000600    ; EBU_BUSWAP0  - cycles: see above
+
+; /CS1: ISSI IS61WV25616BL-10TLI - 1 MB SRAM
+; - map to 0x83000000++0x1FFFFF and 0xA3000000++0x1FFFFF
+; - configuration: portwidth 32 bit, wait normal, no feedback, demultiplexed asynchronous type
+; - cycles: [1|4] address, 0 address hold, 0 cmd delay, [3|10] wait, 0 recovery, each clock one data, clk 1:1
+GOSUB GetADDRSEL &param_ramStart &param_ramSize &param_ramAltRegion
+ENTRY &ADDRSEL
+PER.Set D:0xF840001C %Long &ADDRSEL      ; EBU_ADDRSEL1 - map 0xA3000000 and mirror in segment 8
+PER.Set D:0xF8400038 %Long 0x40D30040    ; EBU_BUSRCON1 - configuration: see above, clk disable if no access
+PER.Set D:0xF8400040 %Long 0x40D30000    ; EBU_BUSWCON1 - configuration: see above
+PER.Set D:0xF840003C %Long 0x40000180    ; EBU_BUSRAP1  - cycles: see above, 4 address, 3 wait
+PER.Set D:0xF8400044 %Long 0x00000500    ; EBU_BUSWAP1  - cycles: see above, 1 address, 10 wait
+
+; /CS2: unused, use reset values
+PER.Set D:0xF8400020 %Long 0x00000000    ; EBU_ADDRSEL2
+PER.Set D:0xF8400048 %Long 0x00D30040    ; EBU_BUSRCON2
+PER.Set D:0xF8400050 %Long 0x00D30000    ; EBU_BUSWCON2
+PER.Set D:0xF840004C %Long 0xFFFFFFFF    ; EBU_BUSRAP2
+PER.Set D:0xF8400054 %Long 0xFFFFFFFF    ; EBU_BUSWAP2
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+; get content of ADDRSELx register
+; - combined chip select control: not asserted
+; - memory region write protect:  disabled
+
+GetADDRSEL:
+(
+  LOCAL &addr &size &altreg &ADDRSEL
+  ENTRY &addr &size &altreg
+
+  ; memory region base address
+  &ADDRSEL=(&addr)&(~0x00000fff)
+
+  ; memory region address mask
+  LOCAL &bit &count
+  &bit=0.
+  &count=0x0
+  &size=&size-0x1
+  WHILE &bit<=26.
+  (
+    IF ((&size)&(0x1))==0x1
+      &count=&count+0x1
+    &size=&size>>1.
+    &bit=&bit+1.
+  )
+  &ADDRSEL=(&ADDRSEL)|(((0x1B-(&count))&(0xf))<<4.)
+
+  ; alternate memory region
+  IF "&altreg"!=""
+  (
+    &ADDRSEL=(&ADDRSEL)|(((&altreg)&(0xf))<<8.) ; memory region alternate segment
+    &ADDRSEL=(&ADDRSEL)|(0x2)                   ; alternate segment comparision enable
+  )
+
+  ; memory region enable
+  &ADDRSEL=(&ADDRSEL)|(0x1)
+
+  RETURN &ADDRSEL
+)

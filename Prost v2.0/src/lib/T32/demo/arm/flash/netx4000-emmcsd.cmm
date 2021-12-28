@@ -1,0 +1,193 @@
+; --------------------------------------------------------------------------------
+; @Title: eMMC/SDHC FLASH Program script
+; @Description:
+;   SDHC Card
+;   Board : NXHX4000-JTAG+ REV3 evaluation board
+;   The eMMC/SDHC is connected to the SDIO Controller
+;   Connection info
+;   SDIO_CLK - SD_CLK
+;   SDIO_CMD - SD_CMD
+;   SDIO_DAT0 - SD_DAT0
+;
+;   Prerequisites:
+;
+;   SRAM0/SRAM1: 0x5080000
+;   SDIO controller Base: 0xF803A000
+;
+; @Chip:
+; @Author: jjeong
+; @Board: NXHX4000-JTAG+ REV3
+; @Chip:  netX4000RLXD
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: netx4000-emmcsd.cmm 6620 2019-02-12 15:32:14Z jjeong $
+
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+&MMC_BASE=0xF803A000
+
+//RESet
+  WINCLEAR
+  SYStem.CPU NETX4000RLXD-COM
+  SYStem.Option ResBreak off
+  SYStem.Option WaitReset 30.ms
+  SYStem.Up
+
+//Macro Clock Manager Enable Register , SDIO clock manager enable bit
+  Data.Set SD:0xF8000040 %LE %Long 0x4
+
+  GOSUB INIT_SDHI1
+
+  GOSUB READ_ID_TEST
+
+  Break.RESet
+
+  FLASHFILE.RESet
+
+//FLASHFILE.CONFIG <MMC Base Address>
+  FLASHFILE.CONFIG &MMC_BASE
+
+//FLASHFILE.TARGET <code range>         <data range>          <Algorithm file>
+  FLASHFILE.TARGET 0x5080000++0x1FFF    0x5082000++0x21FF     ~~/demo/arm/flash/byte/emmcsd_s7g2.bin  /keep
+
+  GOSUB CLK_DOWN_400KHz
+  FLASHFILE.GETID
+
+  GOSUB CLK_UP_20MHz  ;increase the mmc clk
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+ENDDO
+
+ FLASHFILE.DUMP 0x0              ; Read eMMC/SDHC
+ ;FLASHFILE.ERASE 0x0--0xFFFFF    ; Erase eMMC/SDHC
+ ;FLASHFILE.LOAD * 0x0            ; Write eMMC/SDHC
+
+ENDDO
+
+CLK_DOWN_400KHz:
+(
+  Data.Set A:&MMC_BASE+0x0048 %Long 0x0
+  Data.Set A:&MMC_BASE+0x0048 %Long 0x180
+  RETURN
+)
+
+CLK_UP_20MHz:
+(
+  Data.Set A:&MMC_BASE+0x0048 %Long 0x0
+  Data.Set A:&MMC_BASE+0x0048 %Long 0x102  ; 20Mhz
+  RETURN
+)
+
+INIT_SDHI1:
+(
+  Data.Set A:&MMC_BASE+0x1C0 %LE %Long 0x0 ; reset
+  WAIT 1.s
+  Data.Set A:&MMC_BASE+0x1C0 %LE %Long 0x7
+
+  Data.Set A:&MMC_BASE+0x038 %Long 0  ; SD_INFO1 clear
+  Data.Set A:&MMC_BASE+0x03C %Long 0  ; SD_INFO2 clear
+  Data.Set A:&MMC_BASE+0x1CC %Long 0x0
+  Data.Set A:&MMC_BASE+0x050 %Long 0xE1FF
+  Data.Set A:&MMC_BASE+0x048 %Long 0x0
+  Data.Set A:&MMC_BASE+0x048 %Long 0x180    ;400Khz..
+  Data.Set A:&MMC_BASE+0x040 %Long 0x1031D  ;SD_INFO1_MASK
+  Data.Set A:&MMC_BASE+0x044 %Long 0x8B7F   ;SD_INFO2_MASK
+
+  RETURN
+)
+
+READ_ID_TEST:
+(
+//CMD0
+  RePeaT 2.
+  (
+//MMC_CH0_SD_INFO1
+    PER.Set.simple A:&MMC_BASE+0x003C  %Long 0xFFFE   ;clear resp end BIT0
+    PER.Set.simple A:&MMC_BASE+0x0008 %Long 0x0   ;arg
+    PER.Set.simple A:&MMC_BASE+0x0000 %Long 0x0   ;cmd
+    WAIT 100.ms
+    PER.Set.simple A:&MMC_BASE+0x0038 %Long 0x0   ;SDIO_INFO1 , clear
+    PER.Set.simple A:&MMC_BASE+0x003C %Long 0x0   ;SDIO_INFO2 , clear
+  )
+
+  RePeaT 5.
+  (
+//CMD8, is madatory to intialize High Capacity SD Memory Card
+    PER.Set.simple A:&MMC_BASE+0x003C  %Long 0xFFFE   ;clear resp end BIT0
+    PER.Set.simple A:&MMC_BASE+0x0008 %Long 0x1AA   ;arg
+    PER.Set.simple A:&MMC_BASE+0x0000 %L 0x08  ; resp1(48bits), cmd8
+    wait 100.ms
+    &resp=Data.Long(A:&MMC_BASE+0x0018)
+    IF (&resp&0xFF)==0xAA
+    (
+	GOTO jump_cmd55
+    )
+  )
+
+  PRINT "CMD8 fail"
+  ENDDO
+
+jump_cmd55:
+  RePeaT 10.
+  (
+//CMD55
+    PER.Set.simple A:&MMC_BASE+0x003C  %Long 0xFFFE   ;clear resp end BIT0
+    PER.Set.simple A:&MMC_BASE+0x0008 %Long 0x0   ;arg
+    PER.Set.simple A:&MMC_BASE+0x0000 %Long 55.  ; resp1(48bits), cmd8
+    WAIT 100.ms
+
+//ACMD41
+    PER.Set.simple A:&MMC_BASE+0x003C  %Long 0xFFFE   ;clear resp end BIT0
+    PER.Set.simple A:&MMC_BASE+0x0008 %Long 0x40FF8000   ;arg
+    PER.Set.simple A:&MMC_BASE+0x0000 %Long (1<<6)|41. ; resp3(48bits), cmd 41.
+
+    WAIT 100.ms
+    &resp=Data.Long(A:&MMC_BASE+0x0018)
+    IF (&resp&0x80000000)==0x80000000
+    (
+      GOTO jump_cmd2
+    )
+  )
+
+  PRINT "CMD1 fail"
+  END
+
+
+jump_cmd2:
+//CMD2
+  PER.Set.simple A:&MMC_BASE+0x003C %Long 0xFFFE   ;clear resp end BIT0
+  PER.Set.simple A:&MMC_BASE+0x0008 %Long 0x0      ;arg
+  PER.Set.simple A:&MMC_BASE+0x0000 %Long 0x2      ;cmd
+  WAIT 10.ms
+
+//CMD3
+  PER.Set.simple A:&MMC_BASE+0x003C %Long 0xFFFE   ;clear resp end BIT0
+  PER.Set.simple A:&MMC_BASE+0x0008 %Long 0x10000  ;arg
+  PER.Set.simple A:&MMC_BASE+0x0000 %Long 0x3      ;cmd
+  WAIT 10.ms
+
+&cardaddress=Data.Long(A:&MMC_BASE+0x0018)
+&cardaddress=&cardaddress&0xFFFF0000
+
+//CMD10
+  PER.Set.simple A:&MMC_BASE+0x003C %Long 0xFFFE     ;clear resp end BIT0
+  PER.Set.simple A:&MMC_BASE+0x0008 %Long &cardaddress    ;arg
+  PER.Set.simple A:&MMC_BASE+0x0000 %Long 0x0000000A ;cmd
+  WAIT 10.ms
+
+//Response2
+  PRINT "CID register"
+  PRINT "[127:104] 0x" Data.Long(A:&MMC_BASE+0x0030)
+  PRINT "[103:72]  0x" Data.Long(A:&MMC_BASE+0x0028)
+  PRINT "[71:40]   0x" Data.Long(A:&MMC_BASE+0x0020)
+  PRINT "[39:8]    0x" Data.Long(A:&MMC_BASE+0x0018)
+
+  Data.Set A:&MMC_BASE+0x038 %Long 0  ; SD_INFO1 clear
+  Data.Set A:&MMC_BASE+0x03C %Long 0  ; SD_INFO2 clear
+
+RETURN
+)
+

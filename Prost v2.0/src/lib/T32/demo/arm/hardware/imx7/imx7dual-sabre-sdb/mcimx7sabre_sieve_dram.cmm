@@ -1,0 +1,80 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo script for IMX7DUAL-CA7 on MCIMX7SABRE (DRAM)
+; @Description:
+;   Setups the DRAM using the DCD interpreter mechanism (script based).
+;   Loads the sieve demo application into RAM and sets up a demo debug scenario.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to J12
+;    * remove Pin 7 from J12 (key pin)
+;    * set BOOTMODE SW3[1..2]=0y10 - Internal Boot
+;    * set SW2[1..8]=0y00100000 - SD-Card
+;    * remove SD-Card
+; @Keywords: ARM, Cortex-A7
+; @Author: AME
+; @Board: MCIMX7SABRE, iMX7D SABRE
+; @Chip: IMX7SOLO IMX7DUAL
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mcimx7sabre_sieve_dram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF VERSION.BUILD.BASE()<75701.
+(
+  PRINT %ERROR "Please use more recent Software! Contact support@lauterbach.com."
+  ENDDO
+)
+
+; unzip the cfg file
+PRIVATE &ppd &cfgFile
+&ppd=OS.PPD()
+&cfgFile="&ppd/imximage.cfg"
+IF !OS.FILE("&cfgFile")
+(
+  UNZIP "&cfgFile.gz" "&cfgFile"
+)
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU IMX7DUAL-CA7
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 30.0ms
+SYStem.JtagClock CTCK 10MHz
+CORE.ASSIGN 1.    ; select only master core 1 - 1. first core, 2. second core, 1. 2. first + second core (SMP) ...
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; setup DRAM
+DO ~~~~/../scripts/dcd_interpreter "&cfgFile"
+; DO ~~/demo/arm/hardware/imx7/scripts/dcd_interpreter "&cfgFile"
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_arm_v7.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

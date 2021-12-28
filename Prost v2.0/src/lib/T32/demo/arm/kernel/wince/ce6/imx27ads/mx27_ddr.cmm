@@ -1,0 +1,87 @@
+; --------------------------------------------------------------------------------
+; @Title: Initialization Script for i.MX27 ADS
+; @Description: -
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mx27_ddr.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+; Initialize AIPI1/2
+Data.Set SD:0x10000000 %LE %Long 0x20040304  ; AIPI1 PSR0
+Data.Set SD:0x10000004 %LE %Long 0xDFFBFCFB  ; AIPI1 PSR1
+Data.Set SD:0x10020000 %LE %Long 0x00000000  ; AIPI2 PSR0
+Data.Set SD:0x10020004 %LE %Long 0xFFFFFFFF  ; AIPI2 PSR1
+
+; Disable LCDC
+Data.Set SD:0x10027020 %LE %Long 0x040105C0
+Data.Set SD:0x10027024 %LE %Long 0xFE4B6848
+
+;.......ADD in.......
+;Data.set SD:0x10027028 %le %long 0x00000300
+;Data.set SD:0x10027018 %le %long 0x01c8f403
+;data.set ASD:0x1000A098 %le %long 0xffffffff
+;Data.set SD:0x10027000 %le %long 0x33F02507
+
+; Configure WEIM WCR REGISTER
+Data.Set SD:0xd8002060 %LE %Long 0x00000000
+
+; Configure CPLD on CS4 
+Data.Set SD:0xd8002040 %LE %Long 0x0000DCF6
+Data.Set SD:0xd8002044 %LE %Long 0x444A4541
+Data.Set SD:0xd8002048 %LE %Long 0x44443302
+
+; Configure PSRAM on CS5 
+Data.Set SD:0xd8002050 %LE %Long 0x0000dcf6
+Data.Set SD:0xd8002054 %LE %Long 0x444a4541
+Data.Set SD:0xd8002058 %LE %Long 0x44443302
+
+; Configure 16 bit NorFlash on CS0
+Data.Set SD:0xd8002000 %LE %Long 0x0000CC03
+Data.Set SD:0xd8002004 %LE %Long 0xa0330D01
+Data.Set SD:0xd8002008 %LE %Long 0x00220800
+
+; MDDR RAM initialization
+
+; ESDMISC:
+;  Enable Mobile DDR SDRAM Operation
+Data.Set SD:0xD8001010 %LE %Long 0x00000004
+
+; ESDCFG0: timing config
+Data.Set SD:0xD8001004 %LE %Long 0x006AC73A
+
+; ESDCTL0: Precharge Mode
+Data.Set SD:0xD8001000 %LE %Long 0x92100000
+
+; issue Precharge All command
+Data.Set SD:0xA0000400 %LE %Long 0x00000000
+
+; ESDCTL0: AutoRefresh Mode
+Data.Set SD:0xD8001000 %LE %Long 0xA2100000
+
+; issue Autorefresh command
+Data.Set SD:0xA0000000 %LE %Long 0x00000000
+Data.Set SD:0xA0000000 %LE %Long 0x00000000
+
+; ESDCTL0: Load Mode register Mode
+Data.Set SD:0xD8001000 %LE %Long 0xB2100000
+
+; issue Load Mode Register command
+Data.Set SD:0xA0000033 %LE %Byte 0x00
+Data.Set SD:0xA1000000 %LE %Byte 0x00
+
+; ESDCTL0: Normal Mode
+Data.Set SD:0xD8001000 %LE %Long 0x82226080
+
+; issue normal access
+Data.Set SD:0xA0000000 %LE %Long 0x00000000
+
+; ESDMISC:
+;  LPDDR delay line is reset
+;  Enable Mobile DDR SDRAM Operation
+Data.Set SD:0xD8001010 %LE %Long 0x0000000C
+
+; end of MDDR RAM initialization
+
+ENDDO
+

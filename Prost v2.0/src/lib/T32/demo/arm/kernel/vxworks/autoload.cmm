@@ -1,0 +1,83 @@
+; --------------------------------------------------------------------------------
+; @Title: VxWorks symbol autoloader script
+; @Description: Autoload script, called by TRACE32 if symbols are to be loaded
+; @Keywords: vxworks
+; @Author: DIE
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: autoload.cmm 5482 2020-07-09 06:52:43Z rdienstbeck $
+
+
+// define local macros
+ LOCAL &module &type &code &data &space &filename &basename &filepath &slash
+
+// get name and relocation information
+ // these parameters are passed from TRACE32 when calling this skript
+
+ ENTRY &module &type &code &data &space
+
+ //print "autoload: " &module " " &type " " &code " " &data
+
+ // &module:        name of module
+ // &type:          type of file: 1 = kernel, 2 = DKM, 3 = RTP, 4 = SHL
+ // &code:          code address
+ // &data:          data address
+ // &space:         space id
+
+// get filename of module
+&filename=&module
+RePeaT
+(
+  &slash=string.scan("&filename","/",0)
+  if &slash!=-1
+    &filename=string.cut("&filename",&slash+1)
+)
+WHILE &slash!=-1
+&basename=STRing.CUT("&filename",-STRing.LENgth(OS.FILE.EXTENSION("&filename")))
+
+// delete symbols if they already exist
+ IF sYmbol.EXIST("\\&basename")
+   sYmbol.Delete \\&basename
+
+// search file in source search path and open dialog when not there
+ &filepath=sYmbol.SEARCHFILE(&module)
+ IF !OS.FILE("&filepath")
+   &filepath=sYmbol.SEARCHFILE("&filename")
+ IF !OS.FILE("&filepath")               // not found
+ (
+   LOCAL &file &spath
+   &file=OS.FILE.NAME("&filename")
+   WinPOS ,,,,,, filebox normal "Searching symbols for &filename"
+   DIALOG.File "*\&file*"
+   ENTRY %LINE &filepath
+   IF "&filepath"==""
+     ENDDO
+   &spath=OS.FILE.PATH("&filepath")
+   sYmbol.SourcePATH.Set &spath
+ )
+
+// load symbol file (options for sourcepath, e.g. /STRIPPART may need to be added when required)
+
+ IF (&type==2)  // DKM
+ (
+   Data.LOAD.Elf "&filepath" /NoCODE /NoClear /reloctype 2 /name &basename
+   ; DKMs may contain "COMMON" sections that are not handled like ordinary sections.
+   ; We need to relocate the symbols therein in an extra step:
+   TASK.RELOC 0 "&basename" "common"
+ )
+
+ IF (&type==3)  // RTP
+ (
+    if "&space"==""
+        &space=0
+    Data.LOAD.Elf "&filepath" &space:0 /NoCODE /NoClear /locateat &code /name &basename
+ )
+
+ IF ((&type&0xffff)==4)  // SHL
+ (
+    if "&space"==""
+        &space=0
+    Data.LOAD.Elf "&filepath" &space:&code /NoCODE /NoClear /name &basename
+ )
+
+ ENDDO

@@ -1,0 +1,78 @@
+; --------------------------------------------------------------------------------
+; @Title: Extract the Kernel Section Offsets from the Project's .plg File for WinCE 5.0
+; @Description: Usage: do nk <project> <path to nk.exe>
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: nk.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+ LOCAL &name &section &address &filler
+ LOCAL &text &pdata &kdata &data
+ LOCAL &linenr
+ 
+ ENTRY &project &relpath
+ 
+ IF "&relpath"==""
+   &relpath="."
+
+ &linenr=0
+
+ OPEN #1 &project.plg /Read
+ 
+ RePeaT
+ (
+    READ #1 &name &section &offset &a1 &a2 &a3 &filler %LINE &a5
+    
+    &linenr=&linenr+1
+    
+    IF &linenr>10000.
+        GOTO endloop
+    
+    IF "&name"=="</html>"
+        GOTO endloop
+    
+    IF "&name"=="nk.exe"
+    (
+        IF "&section"==".text"
+            &text=&offset
+        IF "&section"==".pdata"
+            &pdata=&offset
+        IF "&section"==".KDATA"
+        (
+            GOSUB filler
+            ENTRY &kdata
+        )
+        IF "&section"==".data"
+        (
+            GOSUB filler
+            ENTRY &data
+        )
+    )
+ )
+ 
+endloop:
+ CLOSE #1
+ 
+ ; write load command to loadnk.cmm
+ PRINT "Data.LOAD.EXE nk.exe /nocode /reloc .text at &text /reloc .pdata at &pdata /reloc .KDATA at &kdata /reloc .data at &data"
+ OPEN  #2 loadnk.cmm /Create
+ WRITE #2 " Data.LOAD.EXE &relpath\nk.exe /strippart ""c:\macallan\"" /nocode \"
+ WRITE #2 "   /reloc .text at &text /reloc .pdata at &pdata \"
+ WRITE #2 "   /reloc .KDATA at &kdata /reloc .data at &data"
+ 
+ CLOSE #2
+
+ ENDDO
+ 
+ 
+filler:
+  LOCAL &addr
+  IF STRing.MID("&filler",0,6)=="FILLER"
+    &filler=STRing.CUT("&filler",6)
+  IF STRing.MID("&filler",0,2)=="->"
+    &filler=STRing.CUT("&filler",2)
+  &filler=STRing.MID("&filler",0,8)
+  &addr="0x"+"&filler"
+  RETURN &addr
+ 

@@ -1,0 +1,92 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash declaration of Hilscher Semiconductor netX90MPW internal flash.
+; @Description:
+; Board info: NXHX90-JTAG REV2 evaluation board
+; Flash info: Internal Flash
+; Script arguments: [PREPAREONLY] Only declares flash but does not execute flash 
+;                                 programming
+;
+; @Keywords:
+; @Author: mmauser
+; @Board: NXHX90-JTAG REV2
+; @Chip: netX90MPW
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: netx90.cmm 7602 2019-11-05 15:02:25Z bschroefel $
+
+PRIVATE &parameters &param_prepareonly
+ENTRY %LINE &parameters
+
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+
+PRIVATE &DualPort &DualPortOpt
+&DualPort=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"DUALPORT=","0")
+if "&DualPort"!="0"
+  &DualPortOpt="/DualPort"
+
+PRIVATE &ram_start &flashDriverSize &bufferSize
+PRIVATE &flash0_start &flash1_start &flash2_start &flashsize &pagesize
+
+; ------------------------------------------------------------------------------
+; Setup CPU
+IF !SYStem.Up()
+(
+  SYStem.CPU NETX90MPW-COM
+  SYStem.Option ResBreak OFF
+  SYStem.Up
+  
+  // Make sure the ROM code initilizes the PLLs (may be necessary, if ROM debugging is active)
+  // GO 0.3s
+  // Break
+)
+
+;Data.Set 0xFF0016A8 %Long 0x00049F03
+
+; ------------------------------------------------------------------------------
+; Flash declaration
+
+FlashDeclaration:
+(
+  &ram_start=0x00020000
+  &flashDriverSize=0x1100 
+  &bufferSize=0x1000
+
+  &flash0_start=0x00100000
+  &flash1_start=0x00180000
+  &flash2_start=0x00200000
+
+  &flashsize=0x80000 // 512k flash size is the same for all onchip flashes.
+  &sectorsize=0x1000 // 4k sector size is the same for all onchip flashes.
+
+  FLASH.RESet
+
+  FLASH.Create 1. &flash0_start++(&flashsize-1) &sectorsize TARGET Long
+  FLASH.Create 2. &flash1_start++(&flashsize-1) &sectorsize TARGET Long
+  FLASH.Create 3. &flash2_start++(&flashsize-1) &sectorsize TARGET Long
+
+  FLASH.TARGET &ram_start (&ram_start+&flashDriverSize) &bufferSize  ~~/demo/arm/flash/long/netx90v0.bin &DualPortOpt
+
+  ; Flash script ends here if called with parameter PREPAREONLY
+  IF &param_prepareonly
+    ENDDO PREPAREDONE
+)
+
+; ------------------------------------------------------------------------------
+; Flash programming
+
+DIALOG.YESNO "Program flash memory?"
+PRIVATE &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.Erase.ALL
+  FLASH.ReProgram.ALL
+  Data.LOAD.auto * /Long
+  FLASH.ReProgram.off
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+)
+
+ENDDO

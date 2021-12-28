@@ -1,0 +1,53 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux-Attach script template for ARMv7/Cortex-A
+; @Description:
+;   Generic script template for Kernel/Module/Process debugging setup in TRACE32.
+;   Prerequisites:
+;   * please replace all <tbd> placeholders with your parameters
+;   * linux is already booted
+; @Keywords: Linux, Process, Module, Kernel
+; @Props: Template
+; @Author: AME
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: linux-attach.cmm 15158 2019-10-24 09:05:23Z amerkle $
+
+
+RESet
+SYStem.RESet
+SYStem.CPU <tbd>
+; Assign all cores used by Linux to the debug session
+CORE.ASSIGN <tbd.x> [<tbd.y> [<tbd.z> [...]]]
+SYStem.Option MMUSPACES ON
+SYStem.Option IMASKASM ON
+SYStem.Option DACR ON          ; give Debugger global write permissions
+TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+TrOnchip.Set UNDEF OFF         ; my be used by Linux for FPU detection
+SYStem.Mode Attach
+
+; load kernel debug symbols
+Data.LOAD.Elf <tbd.path to>/vmlinux /NoCODE
+
+; setup debugger address translation
+; this section massively depends on the kernel version and customer design decisions
+; you may use detect_translation.cmm to discover the settings applicable for your setup
+MMU.FORMAT <tbd.format> swapper_pg_dir <tbd.virtual range of swapper_pg_dir> <tbd.physical start of swapper_pg_dir>
+TRANSlation.COMMON <tbd.virtual address range of the kernel>
+TRANSlation.TableWalk ON
+TRANSlation.ON
+
+; load linux kernel awareness
+TASK.CONFIG ~~/demo/arm/kernel/linux/awareness/linux.t32
+MENU.ReProgram ~~/demo/arm/kernel/linux/awareness/linux.men
+
+IF STATE.RUN()
+  Break
+
+; configure Autoloader to your needs
+sYmbol.AutoLOAD.CHECK <tbd> ; [OFF, ON , ONGO]
+TASK.sYmbol.Option AutoLOAD <tbd.No>Process
+TASK.sYmbol.Option AutoLOAD <tbd.No>Module
+TASK.sYmbol.Option AutoLOAD <tbd.No>NoLibrary
+
+ENDDO

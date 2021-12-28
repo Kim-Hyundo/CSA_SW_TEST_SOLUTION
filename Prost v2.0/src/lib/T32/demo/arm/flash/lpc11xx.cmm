@@ -1,0 +1,548 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash declaration for NXP LPC11xx internal flash
+; @Description:
+;   Script arguments:
+;     DO temp [PREPAREONLY] [CPU=<cpu>] [DUALPORT=<0|1>]
+;       PREPAREONLY    only declares flash but does not execute flash programming
+;       CPU=<cpu>      selects CPU derivative <cpu>
+;       DUALPORT=<0|1> use dual port memory access, default 1
+;   Example:
+;       DO ~~/demo/arm/flash/lpc11xx CPU=LPC1110 DUALPORT=1 PREPAREONLY
+;   Note:
+;     The boot sector can't be erased or programmed (for LPC111x/LPCCxx).
+;     This file must NOT be modified.
+;     This file is intended to stay within TRACE32 installation.
+;     Usage examples are available in the ~~/demo/arm/hardware/... subdirectories.
+;
+; List of LPC11xx derivatives and their configuration:
+;
+;   CPU-Type       FlashSize  EEPromSize  SRAM(0)
+;                     [kB]       [kB]       [kB]
+; --------------------------------------------------------------------------------
+; LPC11xx series:
+;   LPC1102            32.        -          8.          LPC1102UK
+;   LPC1104            32.        -          8.          LPC1104UK
+;   LPC1110             4.        -          1.
+;   LPC1111/002         8.        -          2.
+;   LPC1111/101         8.        -          2.
+;   LPC1111/102         8.        -          2.
+;   LPC1111/103         8.        -          2.
+;   LPC1111/201         8.        -          4.
+;   LPC1111/202         8.        -          4.
+;   LPC1111/203         8.        -          4.
+;   LPC1112/101        16.        -          2.
+;   LPC1112/102        16.        -          2.
+;   LPC1112/103        16.        -          2.
+;   LPC1112/201        16.        -          4.
+;   LPC1112/202        16.        -          4.
+;   LPC1112/203        16.        -          4.
+;   LPC1113/201        24.        -          4.
+;   LPC1113/202        24.        -          4.
+;   LPC1113/203        24.        -          4.
+;   LPC1113/301        24.        -          8.
+;   LPC1113/302        24.        -          8.
+;   LPC1113/303        24.        -          8.
+;   LPC1114/102        32.        -          4.
+;   LPC1114/201        32.        -          4.
+;   LPC1114/202        32.        -          4.
+;   LPC1114/203        32.        -          4.
+;   LPC1114/301        32.        -          8.
+;   LPC1114/302        32.        -          8.
+;   LPC1114/303        32.        -          8.
+;   LPC1114/323        48.        -          8.
+;   LPC1114/333        56.        -          8.
+;   LPC1115/303        64.        -          8.
+;   LPC1124JBD48       32.        -          8.
+;   LPC1125JBD48       64.        -          8.
+; --------------------------------------------------------------------------------
+; LPC11xxLV series:
+;   LPC1101LV          32.        -          2.
+;   LPC1102LV          32.        -          8.
+;   LPC1112LV/003      16.        -          2.
+;   LPC1112LV/103      16.        -          4.
+;   LPC1114LV/103      32.        -          4.
+;   LPC1114LV/303      32.        -          8.
+; --------------------------------------------------------------------------------
+; LPC11Axx series:
+;   LPC11A02           16.        2.         4.
+;   LPC11A04           32.        4.         8.
+;   LPC11A11/001        8.        0.5        2.
+;   LPC11A12/101       16.        1.         4.
+;   LPC11A13/201       24.        2.         6.
+;   LPC11A14/301       32.        4.         8.
+; --------------------------------------------------------------------------------
+; LPC11Cxx series:
+;   LPC11C12/301       16.        -          8.
+;   LPC11C14/301       32.        -          8.
+;   LPC11C22/301       16.        -          8.
+;   LPC11C24/301       32.        -          8.
+; --------------------------------------------------------------------------------
+; LPC11Dxx series:
+;   LPC11D14/302       32.        -          8.
+; --------------------------------------------------------------------------------
+; LPC11Exx series:
+;   LPC11E11/101        8.        0.5        4.
+;   LPC11E12/201       16.        1.         6.
+;   LPC11E13/301       24.        2.         8.
+;   LPC11E14/401       32.        4.         8.
+;   LPC11E35/501       64.        4.        12. (8KB SRAM0)
+;   LPC11E36/501       96.        4.        12. (8KB SRAM0)
+;   LPC11E37/401      128.        4.        12. (8KB SRAM0)
+;   LPC11E37/501      128.        4.        12. (8KB SRAM0)
+;   LPC11E37H/401     128.        4.        10. (8KB SRAM0)
+;   LPC11E66           64.        4.        12.   ..JBD48
+;   LPC11E67          128.        4.        20.   ..JBD48,..JBD64,..JBD100
+;   LPC11E68          256.        4.        36.   ..JBD48,..JBD64,..JBD100
+; --------------------------------------------------------------------------------
+; LPC11Uxx series:
+;   LPC11U12/201       16.        -          4.
+;   LPC11U13/201       24.        -          4.
+;   LPC11U14/201       32.        -          4.
+;   LPC11U22/301       16.        1.         6.
+;   LPC11U23/301       24.        1.         6.
+;   LPC11U24/301       32.        2.         6.
+;   LPC11U24/401       32.        4.         8.
+;   LPC11U34/311       40.        4.         8.
+;   LPC11U34/421       48.        4.        10.
+;   LPC11U35/401       64.        4.        10.
+;   LPC11U35/501       64.        4.        12.
+;   LPC11U36/401       96.        4.        10.
+;   LPC11U37/401      128.        4.        10.
+;   LPC11U37/501      128.        4.        12.
+;   LPC11U66           64.        4.        12.   ..JBD48
+;   LPC11U67          128.        4.        20.   ..JBD48,..JBD64,..JBD100
+;   LPC11U68          256.        4.        36.   ..JBD48,..JBD64,..JBD100
+;
+; Code Read Protection (CRP):
+;   CRP is invoked by programming a specific pattern in flash location
+;   at 0x000002FC.
+;
+;  Name     Pattern      Description
+; --------------------------------------------------------------------------------
+;  NO_ISP   0x4E697370   Prevents sampling of pin PIO0_1 for entering ISP mode.
+;                        PIO0_1 is available for other uses.
+;  CRP1     0x12345678   Access to chip via the JTAG pins is disabled. This
+;                        mode allows partial flash update using the following
+;                        ISP commands and restrictions
+;                        - Write to RAM command cannot access RAM below
+;                          0x10000300.
+;                        - Copy RAM to flash command can not write to Sector 0.
+;                        - Erase command can erase Sector 0 only when all
+;                          sectors are selected for erase.
+;                        - Compare command is disabled.
+;                        - Read Memory command is disabled.
+;                        This mode is useful when CRP is required and flash
+;                        field updates are needed but all sectors can not be
+;                        erased.
+;  CRP2     0x87654321   Access to chip via the JTAG pins is disabled. The
+;                        following ISP commands are disabled:
+;                        - Read Memory
+;                        - Write to RAM
+;                        - Go
+;                        - Copy RAM to flash
+;                        - Compare
+;                        When CRP2 is enabled the ISP erase command only allows
+;                        erasure of all user sectors.
+;  CRP3     0x43218765   Access to chip via the JTAG pins is disabled. ISP
+;                        entry by pulling PIO0_1 LOW is disabled if a valid
+;                        user code is present in flash sector 0.
+;                        This mode effectively disables ISP override using
+;                        PIO0_1 pin.
+;                        It is up to the user’s application to provide a flash
+;                        update mechanism using IAP calls or call reinvoke ISP
+;                        command to enable flash update via UART.
+;                        Caution: If CRP3 is selected, no future factory
+;                        testing can be performed on the device.
+;
+; RAM used by IAP command handler:
+;   Flash programming commands use the top 32 bytes of on-chip RAM. The
+;   maximum stack usage in the user allocated stack space is 128 bytes and it
+;   grows downwards.
+;
+; Hints:
+;   Flash clock has to match System Clock Frequency (CCLK).
+;   FLASH.CLocK.AUTO can be used for automatic flash clock measurement.
+;   Boot flash cannot be programmed or erased with builtin flash
+;   algorithm.
+;   Data has to be loaded to flash alignment to page boundaries.
+;   Vector table checksum generation is done by script, so that it
+;   can be used or switched off, as needed.
+; @Author: WRD
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; @Chip: LPC11*
+; --------------------------------------------------------------------------------
+; $Rev: 7605 $
+; $Id: lpc11xx.cmm 7605 2019-11-05 16:45:28Z bschroefel $
+  LOCAL &parameters
+  ENTRY %LINE &parameters
+
+  LOCAL &param_prepareonly &param_cpu &param_dualport
+  &param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+
+  IF VERSION.BUILD()>=29755.
+    &param_cpu=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CPU=","")
+  ELSE
+    PRINT "Argument CPU= ignored because Trace32 software is too old"
+
+  &param_dualport=0
+  IF VERSION.BUILD.BASE()>=43441.
+    &param_dualport=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"DUALPORT=","1")
+
+  ; ------------------------------------------------------------------------------
+  ; Start debugging
+
+  IF SYStem.MODE()<5
+  (
+    SYStem.RESet
+
+    IF "&param_cpu"!=""
+      SYStem.CPU &param_cpu
+    IF !CPUIS(LPC11*)
+    (
+      IF VERSION.BUILD()>=37389.
+        SYStem.CPU LPC11*
+      ELSE
+        SYStem.CPU LPC1114
+    )
+
+    SYStem.Option.EnReset OFF
+    IF CABLE.TWOWIRE()
+    (
+      SYStem.CONFIG.DEBUGPORTTYPE SWD
+    )
+
+    SYStem.Up
+  )
+
+  ; Switch memory mapping to user flash mode, so that on-chip flash is
+  ; mapped to address 0x0--0x1ff. System Memory Remap register
+  ; SYSMEMREMAP:0..1 = 10b
+  Data.Set 0x40048000 %Long 0x02
+
+
+  ; ------------------------------------------------------------------------------
+  ; Flash declaration
+
+  FLASH.RESet
+  GOSUB FlashDeclaration "&param_dualport"
+
+  ; Flash script ends here if called with parameter PREPAREONLY
+  IF &param_prepareonly
+    ENDDO PREPAREDONE
+
+  ; ------------------------------------------------------------------------------
+  ; Flash programming example
+
+  DIALOG.YESNO "Program flash memory?"
+  LOCAL &progflash
+  ENTRY &progflash
+
+  IF &progflash
+  (
+    ; Example for download
+    FLASH.ReProgram.ALL /Erase
+    ; 1. Download file
+    Data.LOAD.auto *
+    ; 2. Checksum generation
+    Data.SUM 0x0--0x1B /Long         ;Calculate checksum of all (other) vectors
+    Data.Set 0x1C %Long -Data.SUM()  ;Write the 2's complement in reserved vector's spot
+    ; 3. Flash programming
+    FLASH.ReProgram.off
+
+    ; Reset device and execute boot code until application start
+    LOCAL &startAddress
+    &startAddress=Data.Long(SD:0x04)&0xFFFFFFFE
+    SYStem.Up
+    Go.direct &startAddress
+    WAIT 100.ms
+    IF STATE.RUN()
+    (
+      Break.direct
+      Data.List
+      PRINT %ERROR "Boot code didn't branch to application start"
+      ENDDO
+    )
+  )
+
+  ENDDO
+
+
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU
+
+FlashDeclaration:
+  PARAMETERS &param_dualport
+
+  PRIVATE &FlashSize &FlashDriver &RAMSize
+
+  &FlashDriver="lpc1100.bin"
+  IF ((SYStem.CPU()=="LPC11U37/501"))
+  (
+    &FlashSize=0x20000
+    &RAMSize=0x3000
+    ; EEPROM size 4 kB
+  )
+  ELSE IF ((SYStem.CPU()=="LPC11U37/401"))
+  (
+    &FlashSize=0x20000
+    &RAMSize=0x2800
+    ; EEPROM size 4 kB
+  )
+  ELSE IF (CPUIS("LPC11E37*"))
+  (
+    &FlashSize=0x20000
+    &RAMSize=0x2000
+    ; EEPROM size 4 kB
+  )
+  ELSE IF (CPUIS("LPC11E66*")||CPUIS("LPC11U66*"))
+  (
+    &FlashSize=0x10000
+    &RAMSize=0x3000
+    ; EEPROM size 4 kB
+  )
+  ELSE IF (CPUIS("LPC11E67*")||CPUIS("LPC11U67*"))
+  (
+    &FlashSize=0x20000
+    &RAMSize=0x5000
+    ; EEPROM size 4 kB
+  )
+  ELSE IF (CPUIS("LPC11E68*")||CPUIS("LPC11U68*"))
+  (
+    &FlashSize=0x40000
+    &RAMSize=0x9000
+    ; EEPROM size 4 kB
+  )
+  ELSE IF ((SYStem.CPU()=="LPC11U36/401"))
+  (
+    &FlashSize=0x18000
+    &RAMSize=0x2800
+    ; EEPROM size 4 kB
+  )
+  ELSE IF ((SYStem.CPU()=="LPC11E36"))
+  (
+    &FlashSize=0x18000
+    &RAMSize=0x2000
+    ; EEPROM size 4 kB
+  )
+  ELSE IF ((SYStem.CPU()=="LPC11U35/501"))
+  (
+    &FlashSize=0x10000
+    &RAMSize=0x3000
+    ; EEPROM size 4 kB
+  )
+  ELSE IF ((SYStem.CPU()=="LPC11U35/401"))
+  (
+    &FlashSize=0x10000
+    &RAMSize=0x2800
+    ; EEPROM size 4 kB
+  )
+  ELSE IF ((SYStem.CPU()=="LPC1115")||(SYStem.CPU()=="LPC1115/303")||CPUIS("LPC1125*")||CPUIS("LPC11E35*"))
+  (
+    &FlashSize=0x10000
+    &RAMSize=0x2000
+  )
+  ELSE IF ((SYStem.CPU()=="LPC1114/333"))
+  (
+    &FlashSize=0xE000
+    &RAMSize=0x2000
+  )
+  ELSE IF ((SYStem.CPU()=="LPC11U34/421"))
+  (
+    &FlashSize=0xC000
+    &RAMSize=0x2800
+    ; EEPROM size 4 kB
+  )
+  ELSE IF ((SYStem.CPU()=="LPC1114/323"))
+  (
+    &FlashSize=0xC000
+    &RAMSize=0x2000
+  )
+  ELSE IF ((SYStem.CPU()=="LPC11U34/311"))
+  (
+    &FlashSize=0xA000
+    &RAMSize=0x2000
+    ; EEPROM size 4 kB
+  )
+  ELSE IF ((SYStem.CPU()=="LPC11E14"))
+  (
+    &FlashSize=0x8000
+    &RAMSize=0x2800
+    ; EEPROM size 4 kB
+  )
+  ELSE IF ((SYStem.CPU()=="LPC1102")||(SYStem.CPU()=="LPC1104")||CPUIS("LPC1124*")||(SYStem.CPU()=="LPC11C14")||(SYStem.CPU()=="LPC11C24")||(SYStem.CPU()=="LPC11D14")||(SYStem.CPU()=="LPC1114/301")||(SYStem.CPU()=="LPC1114/302")||(SYStem.CPU()=="LPC1114/303")||(SYStem.CPU()=="LPC1102LV"))
+  (
+    &FlashSize=0x8000
+    &RAMSize=0x2000
+  )
+  ELSE IF ((SYStem.CPU()=="LPC11U24/401")||(SYStem.CPU()=="LPC11A04")||(SYStem.CPU()=="LPC11A14"))
+  (
+    &FlashSize=0x8000
+    &RAMSize=0x2000
+    ; EEPROM size 4 kB
+  )
+  ELSE IF ((SYStem.CPU()=="LPC11U24/301")||(SYStem.CPU()=="LPC11U24"))
+  (
+    &FlashSize=0x8000
+    &RAMSize=0x1800
+    ; EEPROM size 2 kB
+  )
+  ELSE IF ((SYStem.CPU()=="LPC1114/102")||(SYStem.CPU()=="LPC1114/201")||(SYStem.CPU()=="LPC1114/202")||(SYStem.CPU()=="LPC1114/203")||(SYStem.CPU()=="LPC1114")||(SYStem.CPU()=="LPC11U14/201")||(SYStem.CPU()=="LPC11U14")||(SYStem.CPU()=="LPC1114LV"))
+  (
+    &FlashSize=0x8000
+    &RAMSize=0x1000
+  )
+  ELSE IF (SYStem.CPU()=="LPC1101LV")
+  (
+    &FlashSize=0x8000
+    &RAMSize=0x800
+  )
+  ELSE IF ((SYStem.CPU()=="LPC1113/301")||(SYStem.CPU()=="LPC1113/302")||(SYStem.CPU()=="LPC1113/303"))
+  (
+    &FlashSize=0x6000
+    &RAMSize=0x2000
+  )
+  ELSE IF ((SYStem.CPU()=="LPC11E13"))
+  (
+    &FlashSize=0x6000
+    &RAMSize=0x2000
+    ; EEPROM size 2 kB
+  )
+  ELSE IF ((SYStem.CPU()=="LPC11A13"))
+  (
+    &FlashSize=0x6000
+    &RAMSize=0x1800
+    ; EEPROM size 2 kB
+  )
+  ELSE IF ((SYStem.CPU()=="LPC11U23/301")||(SYStem.CPU()=="LPC11U23"))
+  (
+    &FlashSize=0x6000
+    &RAMSize=0x1800
+    ; EEPROM size 1 kB
+  )
+  ELSE IF ((SYStem.CPU()=="LPC1113/201")||(SYStem.CPU()=="LPC1113/202")||(SYStem.CPU()=="LPC1113/203")||(SYStem.CPU()=="LPC1113")||(SYStem.CPU()=="LPC11U13/201")||(SYStem.CPU()=="LPC11U13"))
+  (
+    &FlashSize=0x6000
+    &RAMSize=0x1000
+  )
+  ELSE IF ((SYStem.CPU()=="LPC11C12")||(SYStem.CPU()=="LPC11C22"))
+  (
+    &FlashSize=0x4000
+    &RAMSize=0x2000
+  )
+  ELSE IF (SYStem.CPU()=="LPC11E12")
+  (
+    &FlashSize=0x4000
+    &RAMSize=0x1800
+    ; EEPROM size 1 kB
+  )
+  ELSE IF ((SYStem.CPU()=="LPC11U12/201")||(SYStem.CPU()=="LPC11U12")||(SYStem.CPU()=="LPC1112/201")||(SYStem.CPU()=="LPC1112/202")||(SYStem.CPU()=="LPC1112/203"))
+  (
+    &FlashSize=0x4000
+    &RAMSize=0x1000
+  )
+  ELSE IF (SYStem.CPU()=="LPC11U22*")
+  (
+    &FlashSize=0x4000
+    &RAMSize=0x1800
+  )
+  ELSE IF (SYStem.CPU()=="LPC11A02")
+  (
+    &FlashSize=0x4000
+    &RAMSize=0x1000
+    ; EEPROM size 2 kB
+  )
+  ELSE IF (SYStem.CPU()=="LPC11A12")
+  (
+    &FlashSize=0x4000
+    &RAMSize=0x1000
+    ; EEPROM size 1 kB
+  )
+  ELSE IF ((SYStem.CPU()=="LPC1112/101")||(SYStem.CPU()=="LPC1112/102")||(SYStem.CPU()=="LPC1112/103")||(SYStem.CPU()=="LPC1112")||(SYStem.CPU()=="LPC1112LV"))
+  (
+    &FlashSize=0x4000
+    &RAMSize=0x0800
+  )
+  ELSE IF ((SYStem.CPU()=="LPC1111/201")||(SYStem.CPU()=="LPC1111/202")||(SYStem.CPU()=="LPC1111/203"))
+  (
+    &FlashSize=0x2000
+    &RAMSize=0x1000
+  )
+  ELSE IF ((SYStem.CPU()=="LPC11E11"))
+  (
+    &FlashSize=0x2000
+    &RAMSize=0x1000
+    ; EEPROM size 512 B
+  )
+  ELSE IF ((SYStem.CPU()=="LPC1111/002")||(SYStem.CPU()=="LPC1111/101")||(SYStem.CPU()=="LPC1111/102")||(SYStem.CPU()=="LPC1111/103")||(SYStem.CPU()=="LPC1111"))
+  (
+    &FlashSize=0x2000
+    &RAMSize=0x0800
+  )
+  ELSE IF ((SYStem.CPU()=="LPC11A11"))
+  (
+    &FlashSize=0x2000
+    &RAMSize=0x0800
+    ; EEPROM size 512 B
+  )
+  ELSE IF ((SYStem.CPU()=="LPC1110"))
+  (
+    &FlashSize=0x1000
+    &RAMSize=0x0400
+  )
+  ELSE
+  (
+    PRINT %ERROR "FLASH size of CPU type is unknown"
+    ENDDO
+  )
+
+  IF (((CPUIS("LPC11?67*")||CPUIS("LPC11?68*")))&&(&FlashSize>=0x18000))
+  (
+    FLASH.Create 1. 0x0--0x00017FFF 0x1000 TARGET Long
+    FLASH.Create 1. 0x00018000--(&FlashSize-1) 0x8000 TARGET Long
+    &FlashDriver="lpc11x6.bin"
+  )
+  ELSE
+    FLASH.Create 1. 0x0--(&FlashSize-1) 0x1000 TARGET Long
+
+  IF (("&param_dualport"=="0")||SYStem.ACCESS.DENIED())
+  (
+    IF &RAMSize>=0x1800
+      FLASH.TARGET 0x10001200 0x10000000 0x1000 ~~/demo/arm/flash/long/&FlashDriver
+    ELSE IF &RAMSize>=0x1000
+      FLASH.TARGET 0x10000A00 0x10000000 0x800 ~~/demo/arm/flash/long/&FlashDriver
+    ELSE IF &RAMSize>=0x0800
+      FLASH.TARGET 0x10000500 0x10000000 0x300 ~~/demo/arm/flash/long/&FlashDriver
+    ELSE IF &RAMSize>=0x0400
+      FLASH.TARGET 0x10000180 0x10000000 0x100 ~~/demo/arm/flash/long/&FlashDriver /STACKSIZE 0x40
+    ELSE
+    (
+      PRINT %ERROR "RAM size is not supported by the script"
+      ENDDO
+    )
+  )
+  ELSE
+  (
+    IF &RAMSize>=0x1800
+      FLASH.TARGET 0x10001200 E:0x10000000 0x1000 ~~/demo/arm/flash/long/&FlashDriver /DualPort
+    ELSE IF &RAMSize>=0x1000
+      FLASH.TARGET 0x10000A00 E:0x10000000 0x800 ~~/demo/arm/flash/long/&FlashDriver /DualPort
+    ELSE IF &RAMSize>=0x0800
+      FLASH.TARGET 0x10000500 E:0x10000000 0x300 ~~/demo/arm/flash/long/&FlashDriver /DualPort
+    ELSE IF &RAMSize>=0x0400
+      FLASH.TARGET 0x10000180 E:0x10000000 0x100 ~~/demo/arm/flash/long/&FlashDriver /STACKSIZE 0x40
+    ELSE
+    (
+      PRINT %ERROR "RAM size is not supported by the script"
+      ENDDO
+    )
+  )
+
+  FLASH.CLocK.AUTO
+
+  IF (&FlashSize>0x10000)&&(FLASH.TARGET.BUILD(~~/demo/arm/flash/long/&FlashDriver)<1934.)
+  (
+    PRINT %ERROR "Please request flash algorithm update to support more than 64 kByte flash"
+    ENDDO
+  )
+
+  RETURN

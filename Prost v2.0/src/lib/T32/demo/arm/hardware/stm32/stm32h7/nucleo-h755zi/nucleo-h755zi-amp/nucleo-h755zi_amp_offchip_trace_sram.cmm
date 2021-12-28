@@ -1,0 +1,178 @@
+; --------------------------------------------------------------------------------
+; @Title: AMP-Demo script for STM32H755ZI with Offchip-Trace (AMP, RAM)
+; @Description:
+;   Setup a AMP debug session using a single script approach.
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Offchip-Trace. Pinmuxing and Clock
+;   setup is handled in the script.
+;   Use this script to test the Offchip-Trace.
+;   Prerequisites:
+;    * Use this script, if M7 and M4 core are booting (BCM4/BCM7 = 1)
+;    * The debug signals are avaialbe on CN5.
+;    * This demo uses the trace pins PE2 to PE6, that are avaialbe on CN11.
+; @Keywords: ARM, ETM
+; @Author: STK
+; @Board: NUCLEO-H755ZI
+; @Chip: STM32H755ZI
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: nucleo-h755zi_amp_offchip_trace_sram.cmm 15860 2020-03-20 17:02:22Z skrausse $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF SYStem.INSTANCE()!=1.
+(
+  PRINT %ERROR "This script must be called from MASTER GUI!"
+  ENDDO
+)
+
+; store current script path in &ppd
+PRIVATE &ppd
+&ppd=OS.PPD()
+
+; --------------------------------------------------------------------------------
+; [optional] close any existing REMOTE GUIs
+; IC OTHERS QUIT
+
+; --------------------------------------------------------------------------------
+; open all SLAVE GUIs
+IF !INTERCOM.PING(M4)
+  TargetSystem.NewInstance M4 /ARCHitecture ARM
+
+; --------------------------------------------------------------------------------
+; set titles for SLAVE GUIs
+TITLE "TRACE32 for ARM - STM32H755ZI-CM7 - MASTER"
+InterCom M4 TITLE "TRACE32 for ARM - STM32H755ZI-CM4 - SLAVE1"
+
+; --------------------------------------------------------------------------------
+; common SYStem settings
+InterCom ALL RESet
+SYStem.CPU STM32H755ZI-CM7
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.CONFIG CORE 1. 1.
+SYStem.CONFIG SLAVE OFF
+
+
+InterCom M4 SYStem.CPU STM32H755ZI-CM4
+InterCom M4 SYStem.CONFIG CORE 2. 1.
+InterCom M4 SYStem.CONFIG SLAVE ON
+
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; attach to all cores on all sessions
+InterCom M4 SYStem.Mode.Up
+
+; --------------------------------------------------------------------------------
+; load demo program on all sessions (use internal RAM only)
+Data.LOAD.Elf &(ppd)/master/sieve_ram_thumb_ii_v7m.elf
+InterCom M4 Data.LOAD.Elf &(ppd)/slave1/sieve_ram_thumb_ii_v7m.elf
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace (ETM, ITM)
+IF COMBIPROBE()||UTRACE()||Analyzer()
+(
+  ; set PinMux and enable Clocks
+  ; set HSIDIV = /4 => 16 MHz => TRACECLK is 8 MHz
+  Data.Set AD:0x58024400 %Long Data.Long(AD:0x58024400)|0x10
+
+  ; set output speed to 0x0 to reduce EMI, should be set to 0x3 at full speed
+  GOSUB configure_trace_pins "0x0"
+
+  TPIU.PortSize 4
+  TPIU.PortMode Continuous
+  
+  ETM.TraceID 2.
+  ITM.TraceID 16.
+  ETM.Trace ON
+  ETM.ON
+  
+  InterCom M4 ETM.TraceID 4.
+  InterCom M4 ITM.TraceID 17.
+  InterCom M4 ETM.Trace ON
+  InterCom M4 ETM.ON
+)
+IF Analyzer()
+(
+  InterCom ALL Trace.METHOD Analyzer
+  InterCom ALL Trace.AutoInit ON
+  Trace.AutoFocus
+)
+ELSE IF COMBIPROBE()||UTRACE()
+(
+  InterCom ALL Trace.METHOD CAnalyzer
+  InterCom ALL Trace.AutoInit ON
+  CAnalyzer.AutoFocus
+)
+
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main\1
+WAIT !STATE.RUN()
+InterCom M4 Go.direct main\1
+InterCom M4 WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+InterCom ALL WinCLEAR
+InterCom ALL Mode.Hll
+InterCom ALL WinPOS 0. 0. 116. 26.
+InterCom ALL List.auto
+InterCom ALL WinPOS 0. 32.
+InterCom ALL Trace.List
+
+; Synchronize all TRACE32 instances
+InterCom ALL SYnch.ON
+InterCom ALL SYnch.CONNECT OTHERS
+InterCom ALL SYnch.MasterBreak ON
+InterCom ALL SYnch.SlaveBreak  ON
+InterCom ALL SYnch.MasterGo    ON
+InterCom ALL SYnch.SlaveGo     ON
+
+ENDDO
+
+
+
+configure_trace_pins: ;(OSPEED)
+(
+  ; valid range of 'os' is 0x0 to 0x3, with 0x3 being the fastest option
+  PRIVATE &os
+  PARAMETERS &os
+
+  ; GPIOE ENable
+  Data.Set AD:0x580244E0 %Long Data.Long(AD:0x580244E0)|0x10
+
+  ; PE[2..6] set to Alternate Function 0
+  ; MODER, OSPEED, AFR
+  ; PE2 AF0 - TraceClk
+  Data.Set AD:0x58021000 %Long (Data.Long(AD:0x58021000)&~(0x3<<(2.*2.)))|(0x2<<(2.*2.))
+  Data.Set AD:0x58021008 %Long (Data.Long(AD:0x58021008)&~(0x3<<(2.*2.)))|(&os<<(2.*2.))
+  Data.Set AD:0x58021020 %Long (Data.Long(AD:0x58021020)&~(0xf<<(2.*4.)))|(0x0<<(2.*4.))
+  ; PE3 AF0 - TraceData0
+  Data.Set AD:0x58021000 %Long (Data.Long(AD:0x58021000)&~(0x3<<(3.*2.)))|(0x2<<(3.*2.))
+  Data.Set AD:0x58021008 %Long (Data.Long(AD:0x58021008)&~(0x3<<(3.*2.)))|(&os<<(3.*2.))
+  Data.Set AD:0x58021020 %Long (Data.Long(AD:0x58021020)&~(0xf<<(3.*4.)))|(0x0<<(3.*4.))
+  ; PE4 AF0 - TraceData1
+  Data.Set AD:0x58021000 %Long (Data.Long(AD:0x58021000)&~(0x3<<(4.*2.)))|(0x2<<(4.*2.))
+  Data.Set AD:0x58021008 %Long (Data.Long(AD:0x58021008)&~(0x3<<(4.*2.)))|(&os<<(4.*2.))
+  Data.Set AD:0x58021020 %Long (Data.Long(AD:0x58021020)&~(0xf<<(4.*4.)))|(0x0<<(4.*4.))
+  ; PE5 AF0 - TraceData2
+  Data.Set AD:0x58021000 %Long (Data.Long(AD:0x58021000)&~(0x3<<(5.*2.)))|(0x2<<(5.*2.))
+  Data.Set AD:0x58021008 %Long (Data.Long(AD:0x58021008)&~(0x3<<(5.*2.)))|(&os<<(5.*2.))
+  Data.Set AD:0x58021020 %Long (Data.Long(AD:0x58021020)&~(0xf<<(5.*4.)))|(0x0<<(5.*4.))
+  ; PE6 AF0 - TraceData3
+  Data.Set AD:0x58021000 %Long (Data.Long(AD:0x58021000)&~(0x3<<(6.*2.)))|(0x2<<(6.*2.))
+  Data.Set AD:0x58021008 %Long (Data.Long(AD:0x58021008)&~(0x3<<(6.*2.)))|(&os<<(6.*2.))
+  Data.Set AD:0x58021020 %Long (Data.Long(AD:0x58021020)&~(0xf<<(6.*4.)))|(0x0<<(6.*4.))
+
+  RETURN
+)

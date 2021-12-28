@@ -1,0 +1,55 @@
+; --------------------------------------------------------------------------------
+; @Title: Sieve Demo Script for the HICO.ARM9 AT91RM9200
+; @Description:
+;   Loads the sieve demo into SRAM and sets up a
+;   demo debug scenario.
+; @Author: RIC
+; @Board: HiCO.ARM9
+; @Chip: AT91RM9200
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: at91rm9200_simple_sram_demo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+ SCREEN.ON
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 26. 75. 9. 0. 0. W000
+ AREA.view
+
+ SYStem.CPU AT91RM9200          ; AT91RM9200 core
+ SYStem.Option ResBreak OFF     ; hardware dependent (see manual)
+ SYStem.Option WaitReset ON     ; hardware dependent (see manual)
+ SYStem.Option BigEndian OFF    ; this demo is in little endian
+ SYStem.JtagClock 10.MHz
+
+ MAP.BOnchip 0x0--0x7fffff	; 8MB Flash from 0 (as long as Boot Mode Select in 'External' position)
+
+ SYStem.Up
+
+
+ Data.LOAD.Elf ~~~~/sieve.out
+
+ Register.Set PC main
+ Register.Set R13 0x280000	;set Stack
+
+
+ ; open some windows
+ WinCLEAR
+ WinPOS 0% 0% 100% 50%
+ List.auto
+ WinPOS 0% 50% 50% 50%
+ Frame /Locals /Caller
+ WinPOS 50% 50% 50% 50%
+ Var.Watch
+ Var.AddWatch ast; flags;
+
+
+ ENDDO
+
+
+
+

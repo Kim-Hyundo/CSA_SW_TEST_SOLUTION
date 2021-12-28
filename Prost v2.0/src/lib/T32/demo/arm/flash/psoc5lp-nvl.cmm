@@ -1,0 +1,113 @@
+; --------------------------------------------------------------------------------
+; @Title: NVL Programming script for PSOC5LP Series
+; @Description:
+;   Script arguments:
+;
+;    DO psoc5lp-nvl NVL=<value>
+;
+;      NVL=<value> writes the <value> into the nvl
+;
+;
+; @Author: AME
+; @Chip: CY8C5*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: psoc5lp-nvl.cmm 7602 2019-11-05 15:02:25Z bschroefel $
+
+PRIVATE &params
+ENTRY %LINE &params
+
+PRIVATE &nNvlValue
+&nNvlValue=STRing.SCANANDEXTRACT("&params","NVL=0x","-")
+
+; enable SPC clocks
+Data.Set AD:0x400043A0 %Byte 0xFF
+Data.Set AD:0x400043A2 %Byte 0xFF
+
+IF "&nNvlValue"!="-"
+(
+  &nNvlValue=0x&nNvlValue
+  GOSUB WriteUserNVL "&nNvlValue"
+)
+
+ENDDO
+
+WriteUserNVL: ;(nNvlValue)
+(
+  PARAMETERS &nNvlValue
+  PRIVATE &CYREG_SPC_SR &CYREG_SPC_CPU_DATA &CY_SPC_STATUS_REG
+  &CYREG_SPC_SR=0x40004722
+  &CYREG_SPC_CPU_DATA=0x40004720
+  &CY_SPC_STATUS_REG="Data.Byte(A:&CYREG_SPC_SR)"
+  PRIVATE &CY_SPC_STATUS_IDLE_MASK &CY_SPC_STATUS_DATA_READY_MASK &CY_SPC_KEY_ONE &CY_SPC_KEY_TWO
+  &CY_SPC_STATUS_IDLE_MASK=0x2
+  &CY_SPC_STATUS_DATA_READY_MASK=0x1
+  &CY_SPC_KEY_ONE=0xb6
+  &CY_SPC_KEY_TWO=0xd3
+  PRIVATE &CY_SPC_CMD_LD_BYTE &CY_SPC_CMD_WR_USER_NVL
+  &CY_SPC_CMD_LD_BYTE=0x0
+  &CY_SPC_CMD_WR_USER_NVL=0x6
+
+  PRIVATE &CY_SPC_IDLE &CY_SPC_BUSY &CY_SPC_DATA_READY
+  &CY_SPC_IDLE="((&CY_SPC_STATUS_REG)&(&CY_SPC_STATUS_IDLE_MASK))!=0x0"
+  &CY_SPC_BUSY="((&CY_SPC_STATUS_REG)&(&CY_SPC_STATUS_IDLE_MASK))==0x0"
+  &CY_SPC_DATA_READY="((&CY_SPC_STATUS_REG)&(&CY_SPC_STATUS_DATA_READY_MASK))!=0x0"
+
+  PRIVATE &i &bOk
+
+  MAP.DENYACCESS 0x90000000++0x3
+  &i=0.
+  &bOk=(&CY_SPC_IDLE)
+  RePeaT 4.
+  (
+    IF (&CY_SPC_IDLE)&&(&bOk)
+    (
+      Data.Set &CYREG_SPC_CPU_DATA %Byte &CY_SPC_KEY_ONE
+      Data.Set &CYREG_SPC_CPU_DATA %Byte (&CY_SPC_KEY_TWO+&CY_SPC_CMD_LD_BYTE)&0xff
+      Data.Set &CYREG_SPC_CPU_DATA %Byte &CY_SPC_CMD_LD_BYTE
+      IF (&CY_SPC_BUSY)
+      (
+        Data.Set &CYREG_SPC_CPU_DATA %Byte 0x80
+        Data.Set &CYREG_SPC_CPU_DATA %Byte &i
+        Data.Set &CYREG_SPC_CPU_DATA %Byte (&nNvlValue>>(&i*8.))&0xff
+        WAIT (&CY_SPC_IDLE) 0.1s
+        &bOk=(&CY_SPC_IDLE)
+      )
+      ELSE
+      (
+        &bOk=FALSE()
+      )
+    )
+    &i=&i+1.
+  )
+  if (&bOk)
+  (
+    IF (&CY_SPC_IDLE)
+    (
+      Data.Set &CYREG_SPC_CPU_DATA %Byte &CY_SPC_KEY_ONE
+      Data.Set &CYREG_SPC_CPU_DATA %Byte (&CY_SPC_KEY_TWO+&CY_SPC_CMD_WR_USER_NVL)&0xff
+      Data.Set &CYREG_SPC_CPU_DATA %Byte &CY_SPC_CMD_WR_USER_NVL
+      IF (&CY_SPC_BUSY)
+      (
+        Data.Set &CYREG_SPC_CPU_DATA %Byte 0x80
+        WAIT (&CY_SPC_IDLE) 0.1s
+        &bOk=(&CY_SPC_IDLE)
+      )
+      ELSE
+      (
+        &bOk=FALSE()
+      )
+    )
+  )
+  IF (&bOk)
+  (
+    PRINT "NVL successfully updated"
+  )
+  ELSE
+  (
+    PRINT %ERROR "NVL programming error"
+    STOP
+  )
+  MAP.NODENYACCESS 0x90000000++0x3
+  RETURN
+)

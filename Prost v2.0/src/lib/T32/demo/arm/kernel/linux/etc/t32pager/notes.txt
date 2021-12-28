@@ -1,0 +1,50 @@
+
+copy t32pager.c to mm
+copy t32pager.h to include/linux
+
+*-----------------------------------------------------------------------------------------------------------*
+
+mm/Makefile:
+add t32pager.o to  obj-y
+
+*-----------------------------------------------------------------------------------------------------------*
+
+arch/arm/mm/fault.c
+1- add #include <linux/t32pager.h>
+2- in do_page_fault(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
+...
+	/*
+	* Handle the "normal" case first - VM_FAULT_MAJOR / VM_FAULT_MINOR
+	*/
+	if (likely(!(fault & (VM_FAULT_ERROR | VM_FAULT_BADMAP | VM_FAULT_BADACCESS)))) 
+++	{
+++		if (T32_PagerTable[0].action)
+++			T32_Pager(addr & ~0xfff, (*(tsk)).pid);
+		return 0;
+++	}
+...
+
+*-----------------------------------------------------------------------------------------------------------*
+
+kernel/exit.c
+1- add #include <linux/t32pager.h>
+2- in exit_mm(struct task_struct * tsk)
+	...
+	up_read(&mm->mmap_sem);
+	enter_lazy_tlb(mm, current);
+	/* We don't want this task to be frozen prematurely */
+	clear_freeze_flag(tsk);
+	task_unlock(tsk);
+++	if (T32_PagerTable[0].action && (*(tsk)).pid)
+++		T32_PageRestore((*((*(mm)).mmap)).vm_start, (*((*(mm)).mmap)).vm_end,  (*(tsk)).pid);
+	mmput(mm);
+	
+*-----------------------------------------------------------------------------------------------------------*
+	
+Execute in TRACE32 the commad
+
+TRANSlation.PAGER ON T32_PagerPointer
+
+
+
+

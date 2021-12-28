@@ -1,0 +1,75 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC1728ED on TriBoard-TC1728
+; @Description:
+;   Initializes the TriCore and loads the Sieve-Demo into memory.
+; @Keywords: Infineon, internal, intmem, memory, sieve, TriCore
+; @Author: MOB
+; @Board: TriBoard-TC1728
+; @Chip: TC1728ED
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc1728ed_demo.cmm 16676 2020-10-20 08:21:08Z sltaief $
+
+
+; --------------------------------------------------------------------------------
+; Memory mappings:
+; processor internal program memory mapped to 0xD4000000--0xD4005FFF   24 KB
+; processor internal data memory    mapped to 0xD0000000--0xD001DFFF  120 KB
+; processor internal program flash  mapped to 0xA0000000--0xA017FFFF  1.5 MB
+; processor internal data flash     mapped to 0xAFE00000--0xAFE07FFF   32 KB
+;                                   mapped to 0xAFE10000--0xAFE17FFF   32 KB
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+
+RESet
+SYStem.CPU TC1728ED
+
+IF DAP.Available()
+(
+  ; Bi-Directional Debug Cable detected
+  SYStem.CONFIG.DEBUGPORTTYPE DAP2    ; instead of JTAG
+)
+ELSE
+(
+  ; Uni-Directional Debug Cable
+  SYStem.CONFIG.DEBUGPORTTYPE JTAG
+)
+
+;In this demo, the cores runs with a very slow clock. So, the best case is to set f(MCDS)=f(CPU)
+;When the application runs with a higher frequency (e.g >150MHZ), the best case is to set f(MCDS)=f(CPU)/2
+Data.STARTUP.SELect 1
+Data.STARTUP.SEQuence SET 0xF0000534 %Long 0yXXXXxxxxXXXXxxxxXXXXxxxxXXXX0000  ;set MCDSDIV=f(PLL) 
+Data.STARTUP.ON
+
+;Enable clock frequency computation
+CLOCK.ON
+
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program
+Data.LOAD.Elf "~~~~/easykit-tc1767_sieve_intmem.elf"
+Go.direct main
+
+; --------------------------------------------------------------------------------
+; select trace method
+IF !Analyzer()
+  Trace.METHOD Onchip
+
+; --------------------------------------------------------------------------------
+; set up MCDS trace
+Trace.OFF
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame.view /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch
+Var.AddWatch ast flags
+
+ENDDO

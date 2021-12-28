@@ -1,0 +1,19 @@
+# MakeFile to compile via a Visual Studio 2010 environment
+# Open a "Visual Studio Command Prompt"
+# and compile with
+#
+#    nmake -f make_win32
+#
+
+COPTS = -c -W3 -D_X86_=1 -DWIN32 -DMS_WINDOWS -Z7 -O2 -Gs
+
+all: viewprintf32.dll
+
+viewprintf32.dll: viewprintf.obj pipeproto.obj pipeproto.h
+	link -dll -out:viewprintf32.dll viewprintf.obj pipeproto.obj -def:viewprintf32.def
+	del /F *.obj *.exp *.ilk *.lib *.pdb
+
+.c.obj: ; cl $(COPTS) $*.c
+
+clean:
+	del /F *.obj *.exp *.ilk *.dll *.pdb

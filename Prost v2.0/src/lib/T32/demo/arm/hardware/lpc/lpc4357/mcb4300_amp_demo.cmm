@@ -1,0 +1,239 @@
+; --------------------------------------------------------------------------------
+; @Title: AMP start script for the Keil MCB4300 board (LCP4357)
+; @Description:
+;   This is a small demo how to setup an AMP debug session on MCB4300 board
+;   If two instances of TRACE32 are opened and their intercom ports are
+;   configured, then the script will initilize both cores.
+; @Keywords: AMP, Cortex-M4, Cortex-M0, ETM, NXP, off-chip, trace
+; @Author: STK
+; @Board: MCB4300
+; @Chip: LPC4357*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mcb4300_amp_demo.cmm 15227 2019-11-06 11:57:41Z bschroefel $
+
+  LOCAL &PATH
+  LOCAL &M0_PRESENT
+  LOCAL &ExecuteM0
+  LOCAL &Port
+  LOCAL &RemotePort
+
+  &PATH=OS.PPD()
+
+  &M0_PRESENT="FALSE"
+  &ExecuteM0="GOSUB ExecuteM0"
+  &Port=INTERCOM.PORT()
+
+; Basic settings
+
+  RESet
+  SYStem.CPU LPC4357FET256
+  SYStem.CONFIG.DEBUGPORTTYPE JTAG
+  SYStem.CONFIG.CONNECTOR MIPI20T
+  SYStem.Option ResBreak OFF
+  SYStem.Up
+
+; Load demo code
+  Data.LOAD.Elf ~~~~/demo.axf
+  Register.Set PC main
+  Register.Set R13 20005000
+
+; Check remote instance of TRACE32
+  GOSUB SetupRemote
+
+; Configure trace
+  GOSUB SetupTrace
+
+;open some window
+  WinCLEAR
+
+  WinPOS 0% 0% 50% 50%
+  List.auto
+
+  WinPOS 50% 0% 50% 50%
+  Register.view /SpotLight
+
+  WinPOS 0% 50% 50% 50%
+  Frame /Locals /Caller
+
+  WinPOS 50% 50% 50% 50%
+  Trace.List
+
+  ENDDO
+
+
+ExecuteM0:
+  ENTRY %LINE &param
+
+  IF "&M0_PRESENT"=="TRUE"
+  (
+    INTERCOM.executeNoWait &RemotePort &param
+    INTERCOM.WAIT &RemotePort
+  )
+
+  RETURN
+
+
+WaitM0Stopped:
+  LOCAL &time
+  LOCAL &run
+
+  &time=CLOCK.SECONDS()
+  &run=1
+
+  IF "&M0_PRESENT"=="TRUE"
+  (
+    ; Wait for break or timeout after 3s
+    WHILE (&run==1)&&(CLOCK.SECONDS()<(&time+3.))
+    (
+      INTERCOM.Evaluate &RemotePort STATE.RUN()
+      &run=EVAL()
+    )
+  )
+
+  RETURN &run
+
+
+SetupRemote:
+  LOCAL &run
+
+  IF &Port==0
+    RETURN
+
+  &RemotePort=&Port+1
+
+  IF INTERCOM.PING("&RemotePort")
+    &M0_PRESENT="TRUE"
+
+  ; Connect to M0
+  IF "&M0_PRESENT"=="TRUE"
+  (
+    &ExecuteM0 CD "&PATH"
+
+    ; Apply power and clock to M0
+    Data.Set SD:0x40051478 %Long 0x00000007
+
+    &ExecuteM0 RESET
+    &ExecuteM0 SYStem.CPU LPC4357FET256-M0
+    &ExecuteM0 SYStem.CONFIG.DEBUGPORTTYPE JTAG
+    &ExecuteM0 SYStem.CONFIG.CONNECTOR MIPI20T
+    &ExecuteM0 TrOnchip.Set CORERESET ON
+    &ExecuteM0 SYStem.Mode Attach
+
+    ; After attach the core is still hold in reset, but the M0 debugger
+    ; is able to access the debug registers. Because the vector catch on
+    ; reset is set, the M0 core will stop immmediatelly after releasing
+    ; reset.
+
+    ; Release Reset
+    Data.Set SD:0x40053104 %Long 0x00000000
+
+    ; Wait until the M0 has stopped
+    GOSUB WaitM0Stopped
+    ENTRY &run
+
+    IF (&run==1)
+    (
+      PRINT %ERROR "M0 is not halting"
+      RETURN
+    )
+
+    &ExecuteM0 Register.RESet
+
+    ; Load symbols
+    &ExecuteM0 Data.LOAD.Elf demo.axf /NoCODE
+    &ExecuteM0 Register.Set PC background
+    &ExecuteM0 Register.Set R13 20006000
+
+
+    ; Set synch control
+    SYnch.ON
+    SYnch.Connect &RemotePort
+    SYnch.MasterGo    ON
+    SYnch.SlaveGo     ON
+    SYnch.MasterBreak ON
+    SYnch.SlaveBreak  ON
+
+    &ExecuteM0 SYnch.ON
+    &ExecuteM0 SYnch.Connect &Port
+    &ExecuteM0 SYnch.MasterGo    ON
+    &ExecuteM0 SYnch.SlaveGo     ON
+    &ExecuteM0 SYnch.MasterBreak ON
+    &ExecuteM0 SYnch.SlaveBreak  ON
+
+
+    ; open some windows
+    &ExecuteM0 WinCLEAR
+
+    &ExecuteM0 WinPOS 0% 0% 50% 50%
+    &ExecuteM0 List.auto
+
+    &ExecuteM0 WinPOS 50% 0% 50% 50%
+    &ExecuteM0 Register.view /SpotLight
+
+    &ExecuteM0 WinPOS 0% 50% 50% 50%
+    &ExecuteM0 Frame /Locals /Caller
+
+    &ExecuteM0 WinPOS 50% 50% 50% 50%
+    &ExecuteM0 Var.Watch
+    &ExecuteM0 Var.AddWatch count1; count2;
+  )
+
+  RETURN
+
+
+
+  ; --------------------------------------------------------------------------------
+  ;    Setup trace
+  ; --------------------------------------------------------------------------------
+SetupTrace:
+  IF hardware.COMBIPROBE()||hardware.UTRACE()
+  (
+    ; Enable trace pins
+    GOSUB enable_tpiu
+
+    ETM.ON
+    ITM.ON
+    ETM.PortMode Continuous
+    ETM.PortSize 4.
+    Trace.METHOD CAnalyzer   ; Using CombiProbe
+    Trace.THreshold 2.0
+    CAnalyzer.CLOCKDelay MEDium
+    Trace.OFF                ; Enable the trace and turn it off
+
+  )
+  ELSE IF hardware.POWERTRACE()
+  (
+    ; Enable trace pins
+    GOSUB enable_tpiu
+
+    ETM.PortMode Continuous
+    ETM.PortSize 4.
+    Trace.METHOD Analyzer   		; Using POWERTRACE
+    Analyzer.Autofocus
+    Trace.OFF
+  )
+  ELSE
+  (
+    ; Enable ETB SRAM at 0x2000C000
+    Data.Set SD:0x40043128 %Long 0x00000000
+
+    ; Select ETB trace
+    ETM.ON
+
+    Trace.METHOD Onchip
+    Trace.OFF
+  )
+  RETURN
+
+  ; --------------------------------------------------------------------------------
+  ;    Enable Trace Pins
+  ; --------------------------------------------------------------------------------
+enable_tpiu:
+    ; Enable Trace Pins
+    Data.Set D:0x40086790 %Long 0x00000022 ; SFSPF_4 ==> TRACECLK
+    Data.Set D:0x40086794 %Long 0x00000023 ; SFSPF_5 ==> TRACEDATA[0]
+    Data.Set D:0x40086798 %Long 0x00000023 ; SFSPF_6 ==> TRACEDATA[1]
+    Data.Set D:0x4008679C %Long 0x00000023 ; SFSPF_7 ==> TRACEDATA[2]
+    Data.Set D:0x400867A0 %Long 0x00000023 ; SFSPF_8 ==> TRACEDATA[3]
+  RETURN

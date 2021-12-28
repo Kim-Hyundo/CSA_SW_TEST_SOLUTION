@@ -1,0 +1,63 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux Attach Script for DM6446
+; @Description: 
+;   Attaches to a running and fully booted Linux system.
+;   Assume 256MB Ram and UART is connected to COM3
+; @Keywords: awareness
+; @Author: AME
+; @Chip: TMS320DM6446
+; @Board: DM6446
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: dm6446_linux_attach.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+; System Configuration, DM6446 with RTCK JtagClock
+RESet
+TASK.RESet
+TERM.RESet
+TRANSlation.RESet
+
+PRINT "System configuration ..."
+SYStem.CPU DM6446
+SYStem.Option MMUSPACES ON
+
+; Prepare Linux specific settings. 
+; Don't stop DABORT/PABORT (MMU FAIL)
+; Don't stop on UNDEF Instr (FPU Emulation)
+TrOnchip.Set DABORT OFF
+TrOnchip.Set PABORT OFF
+TrOnchip.Set UNDEF OFF
+
+; attach to the running system
+SYStem.Mode.Attach 
+
+; load symbols
+PRINT "Load vmlinux symbols ..."
+Data.LOAD.Elf "~~~~/vmlinux" /NoCODE /NoRegister /LowerPATH
+sYmbol.SourcePATH.Translate "/home/.../linux-2..." "C:\path\on\remote\pc"
+
+PRINT "Setup Debugger Address Translation ..."
+; setup debugger address translation
+; PageTableFormat: LINUXSWAP
+; Virtual Kernel Range: 0xc0000000++0x0FFFFFFF
+; Physical Kernel Start: 0x80000000
+; Section 0xbf000000--0xbfffffff + 0xc0000000--0xffffffff
+; are used by the kernel itself
+MMU.FORMAT LINUXSWAP swapper_pg_dir 0xC0000000++0x0FFFFFFF 0x80000000
+TRANSlation.COMMON 0xBF000000--0xFFFFFFFF
+TRANSlation.TableWalk ON
+TRANSlation.ON
+
+; load awareness for Linux 2.x
+PRINT "Load Linux Awareness 2.x ..."
+TASK.CONFIG ~~/demo/arm/kernel/linux/linux-2.x/linux.t32
+MENU.ReProgram ~~/demo/arm/kernel/linux/linux-2.x/linux.men
+
+Break.direct
+
+; open the terminal
+DO ~~/demo/etc/termianl/term COM3 115200.
+
+PRINT "linux-attach -> finished."
+

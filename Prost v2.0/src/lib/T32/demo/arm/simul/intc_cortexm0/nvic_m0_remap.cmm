@@ -1,0 +1,467 @@
+; ------------------------------------------------------------------------------
+; @Title: CortexM0 NVIC Model Initialization Script
+; @Description: 
+;   This is example script file for TRACE32 32-bit version.
+;   Ports p.0 to p.111 are reserved for internal interrupts and errors.
+;   This script uses all 32 external interrupts from p.112 to p.142.
+; @Keywords: API, Model, Simulator
+; @Author: GTS
+; @Board: TRACE32 Simulator
+; @Chip: Cortex-M0
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; ------------------------------------------------------------------------------
+; $Id: nvic_m0_remap.cmm 15209 2019-11-04 10:07:55Z bschroefel $
+
+;wake-up input
+name.set port.0   rxev
+;internal interrupts
+name.set port.1   reset
+name.set port.2   nmi
+name.set port.3   hardf
+name.set port.4   memman
+name.set port.5   busf
+name.set port.6   usagef
+name.set port.11  svcall
+name.set port.14  pendsv
+name.set port.15  systick
+;debug faults
+name.set port.80  halted
+name.set port.81  bkpt
+name.set port.82  dwtrap
+name.set port.83  vcatch
+name.set port.84  external
+;external interrupts
+name.set port.112 irq0
+name.set port.113 irq1
+name.set port.114 irq2
+name.set port.115 irq3
+name.set port.116 irq4
+name.set port.117 irq5
+name.set port.118 irq6
+name.set port.119 irq7
+name.set port.120 irq8
+name.set port.121 irq9
+name.set port.122 irq10
+name.set port.123 irq11
+name.set port.124 irq12
+name.set port.125 irq13
+name.set port.126 irq14
+name.set port.127 irq15
+name.set port.128 irq16
+name.set port.129 irq17
+name.set port.130 irq18
+name.set port.131 irq19
+name.set port.132 irq20
+name.set port.133 irq21
+name.set port.134 irq22
+name.set port.135 irq23
+name.set port.136 irq24
+name.set port.137 irq25
+name.set port.138 irq26
+name.set port.139 irq27
+name.set port.140 irq28
+name.set port.141 irq29
+name.set port.142 irq30
+name.set port.143 irq31
+
+;load nvic model into TRACE32 32-bit version.
+sim.unload nvic_M0.dll
+;we use all 32-external interrupts in ports p.112 -- p.142
+;load nvic with remap
+;						// CMD    			// MEM_MODE_REG 	//CMD  			//STARTUP ADDRESS	//MASK		//00 		//01		//10		//11
+;sim.load nvic_M0.dll 	"memmode_remap" 	0x40010000 			"start_add" 	0x08000000 			0x00000003 	0x08000000 	0x00000000 	0x08000000 	0x20000000
+; 0x4001 0000 - STM32F072VB SYSCFG_CFGR1 register address (device depended value)
+; 0x0000 0003 - use bits for memory remap
+sim.load nvic_M0.dll "memmode_remap" 0x40010000 "start_add" 0x08000000 0x00000003 0x08000000 0x00000000 0x08000000 0x20000000
+
+;enable all 32-external interrupts
+d.set SD:0xE000E100 %LONG 0xFFFFFFFF
+
+local &port
+
+&port="p.reset"
+
+dialog
+(
+	header "CortexM0 Nested Vectored Interrupt Controller"
+
+	pos 0. 0. 32. 8.
+	box "Interrupt"
+
+	pos 1. 1. 30. 1.
+	text "Interrupt Source:"
+
+	pos 1. 2. 30. 1.
+	SIGNAL_COMBO: pulldown "RXEV,Reset,NMI,Hard Fault,SVCall,PendSv,SysTick,
+
+IRQ-0,IRQ-1,IRQ-2,IRQ-3,IRQ-4,IRQ-5,IRQ-6,IRQ-7,IRQ-8,IRQ-9,IRQ-10,IRQ-11,IRQ-12,IRQ-13,IRQ-14,IRQ-15,IRQ-16,IRQ-17,IRQ-18,IRQ-19,
+IRQ-20,IRQ-21,IRQ-22,IRQ-23,IRQ-24,IRQ-25,IRQ-26,IRQ-27,IRQ-28,IRQ-29,IRQ-30,IRQ-31"  "gosub ON_INT_CHANGE"
+
+	pos 1. 4. 30. 1.
+	HINT: edit "" ""
+
+	pos 1. 6. 8. 1.
+	ASSERT: button "Assert"
+	(
+		port.set &port high
+		dialog.enable DEASSERT
+		dialog.disable ASSERT
+	)
+
+	pos 11. 6. 8. 1.
+	DEASSERT: button "Deassert"
+	(
+		port.set &port low
+		dialog.disable DEASSERT
+		dialog.enable ASSERT
+	)
+
+	CLOSE "goto ON_CLOSE_DIALOG"
+)
+	dialog.disable HINT
+	gosub ON_INT_CHANGE
+	stop
+
+ON_CLOSE_DIALOG:
+	dialog.end
+	enddo
+
+ON_INT_CHANGE:
+	if (dialog.string(SIGNAL_COMBO)=="RXEV")
+	(
+		dialog.set HINT "RXEV wakeup event"
+		&port="p.rxev"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="Reset")
+	(
+		dialog.set HINT "Reset"
+		&port="p.reset"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="NMI")
+	(
+		dialog.set HINT "Non-maskable Interrupt (NMI)"
+		&port="p.nmi"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="Hard Fault")
+	(
+		dialog.set HINT "Hard Fault"
+		&port="p.hardf"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="Memory Management")
+	(
+		dialog.set HINT "Memory Management"
+		&port="p.memman"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="SVCall")
+	(
+		dialog.set HINT "SVCall"
+		&port="p.svcall"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="PendSv")
+	(
+		dialog.set HINT "PendSV"
+		&port="p.pendsv"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="SysTick")
+	(
+		dialog.set HINT "SysTick"
+		&port="p.systick"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="MEMMANFAL[IACCVIOL]")
+	(
+		dialog.set HINT "Memory Manage Fault Register, IACCVIOL"
+		&port="p.iaccviol"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="MEMMANFAL[DACCVIOL]")
+	(
+		dialog.set HINT "Memory Manage Fault Register, DACCVIOL"
+		&port="p.daccviol"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="MEMMANFAL[MUSNTKERR]")
+	(
+		dialog.set HINT "Memory Manage Fault Register, MUNSTKERR"
+		&port="p.munstkerr"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="MEMMANFAL[MSTKERR]")
+	(
+		dialog.set HINT "Memory Manage Fault Register, MSTKERR"
+		&port="p.mstkerr"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="MEMMANFAL[MMARVALID]")
+	(
+		dialog.set HINT "Memory Manage Fault Register, MMARVALID"
+		&port="p.mmarvalid"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="BUSFAULT[IBUSERR]")
+	(
+		dialog.set HINT "Bus Fault Register, IBUSERR"
+		&port="p.ibuserr"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="BUSFAULT[PRECISERR]")
+	(
+		dialog.set HINT "Bus Fault Register, PRECISERR"
+		&port="p.preciserr"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="BUSFAULT[IMPRECISERR]")
+	(
+		dialog.set HINT "Bus Fault Register, IMPRECISERR"
+		&port="p.impreciser"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="BUSFAULT[UNSTKERR]")
+	(
+		dialog.set HINT "Bus Fault Register, UNSTKERR"
+		&port="p.unstkerr"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="BUSFAULT[STKERR]")
+	(
+		dialog.set HINT "Bus Fault Register, STKERR"
+		&port="p.stkerr"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="BUSFAULT[BFARVALID]")
+	(
+		dialog.set HINT "Bus Fault Register, BFARVALID"
+		&port="p.bfarvalid"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="USAFAULT[UNDEFINSTR]")
+	(
+		dialog.set HINT "Usage Fault Register, UNDEFINSTR"
+		&port="p.undefinstr"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="USAFAULT[INVSTATE]")
+	(
+		dialog.set HINT "Usage Fault Register, INVSTATE"
+		&port="p.invstate"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="USAFAULT[INVPC]")
+	(
+		dialog.set HINT "Usage Fault Register, INVPC"
+		&port="p.invpc"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="USAFAULT[NOCP]")
+	(
+		dialog.set HINT "Usage Fault Register, NOCP"
+		&port="p.nocp"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="USAFAULT[UNALIGNED]")
+	(
+		dialog.set HINT "Usage Fault Register, UNALIGNED"
+		&port="p.unaligned"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="USAFAULT[DIVBYZERO]")
+	(
+		dialog.set HINT "Usage Fault Register, DIVBYZERO"
+		&port="p.divbyzero"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="HARDFAULT[VECTTBL]")
+	(
+		dialog.set HINT "Hard Fault Register, VECTTBL"
+		&port="p.vecttbl"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="HARDFAULT[FORCED]")
+	(
+		dialog.set HINT "Hard Fault Register, FORCED"
+		&port="p.forced"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="HARDFAULT[DEBUGEVT]")
+	(
+		dialog.set HINT "Hard Fault Register, DEBUGEVT"
+		&port="p.debugevt"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="DEBUGFAULT[HALTED]")
+	(
+		dialog.set HINT "Debug Fault Register, HALTED"
+		&port="p.halted"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="DEBUGFAULT[BKPT]")
+	(
+		dialog.set HINT "Debug Fault Register, BKPT"
+		&port="p.bkpt"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="DEBUGFAULT[DWTRAP]")
+	(
+		dialog.set HINT "Debug Fault Register, DWTRAP"
+		&port="p.dwtrap"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="DEBUGFAULT[VCATCH]")
+	(
+		dialog.set HINT "Debug Fault Register, VCATCH"
+		&port="p.vcatch"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="DEBUGFAULT[EXTERNAL]")
+	(
+		dialog.set HINT "Debug Fault Register, EXTERNAL"
+		&port="p.external"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-0")
+	(
+		dialog.set HINT "Interrupt 0 (IRQ-0)"
+		&port="p.irq0"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-1")
+	(
+		dialog.set HINT "Interrupt 1 (IRQ-1)"
+		&port="p.irq1"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-2")
+	(
+		dialog.set HINT "Interrupt 2 (IRQ-2)"
+		&port="p.irq2"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-3")
+	(
+		dialog.set HINT "Interrupt 3 (IRQ-3)"
+		&port="p.irq3"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-4")
+	(
+		dialog.set HINT "Interrupt 4 (IRQ-4)"
+		&port="p.irq4"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-5")
+	(
+		dialog.set HINT "Interrupt 5 (IRQ-5)"
+		&port="p.irq5"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-6")
+	(
+		dialog.set HINT "Interrupt 6 (IRQ-6)"
+		&port="p.irq6"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-7")
+	(
+		dialog.set HINT "Interrupt 7 (IRQ-7)"
+		&port="p.irq7"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-8")
+	(
+		dialog.set HINT "Interrupt 8 (IRQ-8)"
+		&port="p.irq8"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-9")
+	(
+		dialog.set HINT "Interrupt 9 (IRQ-9)"
+		&port="p.irq9"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-10")
+	(
+		dialog.set HINT "Interrupt 10 (IRQ-10)"
+		&port="p.irq10"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-11")
+	(
+		dialog.set HINT "Interrupt 11 (IRQ-11)"
+		&port="p.irq11"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-12")
+	(
+		dialog.set HINT "Interrupt 12 (IRQ-12)"
+		&port="p.irq12"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-13")
+	(
+		dialog.set HINT "Interrupt 13 (IRQ-13)"
+		&port="p.irq13"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-14")
+	(
+		dialog.set HINT "Interrupt 14 (IRQ-14)"
+		&port="p.irq14"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-15")
+	(
+		dialog.set HINT "Interrupt 15 (IRQ-15)"
+		&port="p.irq15"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-16")
+	(
+		dialog.set HINT "Interrupt 16 (IRQ-16)"
+		&port="p.irq16"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-17")
+	(
+		dialog.set HINT "Interrupt 17 (IRQ-17)"
+		&port="p.irq17"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-18")
+	(
+		dialog.set HINT "Interrupt 18 (IRQ-18)"
+		&port="p.irq18"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-19")
+	(
+		dialog.set HINT "Interrupt 19 (IRQ-19)"
+		&port="p.irq19"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-20")
+	(
+		dialog.set HINT "Interrupt 20 (IRQ-20)"
+		&port="p.irq20"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-21")
+	(
+		dialog.set HINT "Interrupt 21 (IRQ-21)"
+		&port="p.irq21"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-22")
+	(
+		dialog.set HINT "Interrupt 22 (IRQ-22)"
+		&port="p.irq22"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-23")
+	(
+		dialog.set HINT "Interrupt 23 (IRQ-23)"
+		&port="p.irq23"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-24")
+	(
+		dialog.set HINT "Interrupt 24 (IRQ-24)"
+		&port="p.irq24"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-25")
+	(
+		dialog.set HINT "Interrupt 25 (IRQ-25)"
+		&port="p.irq25"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-26")
+	(
+		dialog.set HINT "Interrupt 26 (IRQ-26)"
+		&port="p.irq26"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-27")
+	(
+		dialog.set HINT "Interrupt 27 (IRQ-27)"
+		&port="p.irq27"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-28")
+	(
+		dialog.set HINT "Interrupt 28 (IRQ-28)"
+		&port="p.irq28"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-29")
+	(
+		dialog.set HINT "Interrupt 29 (IRQ-29)"
+		&port="p.irq29"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-30")
+	(
+		dialog.set HINT "Interrupt 30 (IRQ-30)"
+		&port="p.irq30"
+	)
+	if (dialog.string(SIGNAL_COMBO)=="IRQ-31")
+	(
+		dialog.set HINT "Interrupt 31 (IRQ-31)"
+		&port="p.irq31"
+	)
+	if (p.get(&port)==0)
+	(
+		dialog.enable ASSERT
+		dialog.disable DEASSERT
+	)
+	else
+	(
+		dialog.disable ASSERT
+		dialog.enable DEASSERT
+	)
+return
+
+enddo

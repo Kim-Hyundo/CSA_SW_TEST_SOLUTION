@@ -1,0 +1,117 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TMPM330FDWFG on MCBTMPM330 with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The Offchip Trace using a Combiprobe/uTrace or PowerTrace is set up.
+;   Use this script for testing the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Combiprobe/uTrace to P4
+;      or
+;      Connect AutoFocus Preprocessor to P4
+;      and connect DebugCable to Preprocessor
+; @Keywords: ARM, Cortex-M3, ETM, ITM
+; @Author: STK
+; @Board: MCBTMPM330
+; @Chip: TMPM330FDWFG
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mcbtmpm330_sieve_offchip_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU TMPM330FDWFG
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 10ms
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace (ETM, ITM)
+IF COMBIPROBE()||UTRACE()||Analyzer()
+(
+  ; set PinMux and enable Clocks
+  Data.Set 0x40000004 %Long 0yXXXXxxxxXXXXxxxxXXXXxxxxX11111xx   ; port control register
+  Data.Set 0x40000008 %Long 0yXXXXxxxxXXXXxxxxXXXXxxxxX11111xx   ; port function register
+  
+  TPIU.PortSize 4
+  TPIU.PortMode Continuous
+  ITM.DataTrace CorrelatedData
+  ITM.ON
+  ETM.Trace ON
+  ETM.ON
+)
+IF COMBIPROBE()||UTRACE()
+(
+  Trace.METHOD CAnalyzer
+  Trace.AutoInit ON
+  IF VERSION.BUILD.BASE()>=74752.
+  (
+    CAnalyzer.AutoFocus
+  )
+  ELSE
+  (
+    ; for uTrace & Combiprobe use manual calibration
+    ; CAnalyzer.ClockDELAY Large
+  )
+)
+IF Analyzer()
+(
+  Trace.METHOD Analyzer
+  Trace.AutoInit ON
+  Trace.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO
+
+DisableWatchdog:
+(
+  ; disable the Watchdog
+  Data.Set SD:0x40040000 %Long 0x00000001   ; Disabling timer
+  Data.Set SD:0x40040004 %Long 0x000000B1   ; Write key
+  RETURN
+)

@@ -1,0 +1,89 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for LPC54018JET180 on LPCXpresso540xx with SWV (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The SerialWireViewer is set up to trace some data values using the DWT.
+;   Prerequisites:
+;    * Connect Combiprobe/uTrace to P1 (SWD)
+;    * DO NOT USE J8 to avoid conflicts between TARCE32 and the onboard debugger
+;    * Remove jumper JP1 (default)
+; @Keywords: ARM, Cortex-M4, ITM, SWV
+; @Author: STK
+; @Board: LPCXpresso540xx
+; @Chip: LPC54018JET180
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: lpcxpresso540xx_sieve_swo_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+; Prerequisite: check if a Combiprobe/uTrace is connected
+IF !CAnalyzer()
+(
+  DIALOG.OK "Support for SerialWireViewer requires a Combiprobe or uTrace."
+  ENDDO
+)
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU LPC54018JET180
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; initialize SerialWireViewer (clock is stable now)
+
+Data.Set SD:0x40000304 %Long 0x00000001    ; Enable SWO clock
+Data.Set SD:0x40000220 %Long 0x00002000    ; Enable IOCON register block
+Data.Set SD:0x40001028 %Long 0x00000766    ; Configure PPIO0_10
+
+Trace.METHOD CAnalyzer
+Trace.AutoInit ON
+TPIU.PortSize SWV
+ITM.DataTrace ON
+ITM.ON
+; use auto-calibration script to find most suitable TPIU.SWVPrescaler <divider>
+DO ~~/demo/arm/etc/serial_wire_viewer/swv_autocalibration.cmm
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+ITMTrace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO

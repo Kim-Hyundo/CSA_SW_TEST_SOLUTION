@@ -1,0 +1,58 @@
+; --------------------------------------------------------------------------------
+; @Title: SMX Demo for TRACE32 OS Awareness
+; @Description: 
+;   
+;   This batchfile loads all necessary files to demonstrate
+;   the RTOS-Debugger for SMX.
+;   
+; @Keywords: RTOS, smx, v3x
+; @Author: DIE
+; @Chip: ARM922T
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: smx.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+;   Created by Rudolf Dienstbeck / Lauterbach GmbH at 01.07.2002
+
+ SCREEN.ON                    ; all messages are displayed
+ AREA.RESet
+ WinPAGE.RESet
+ WinCLEAR
+ AREA.view
+
+; currently this demo runs only on the Simulator
+
+ IF (!INTERFACE.SIM())
+ (
+   PRINT "Demo runs only on Simulator!"
+   ENDDO
+ )
+
+ B::                          ; select Simulator
+
+; Debugger reset
+ PRINT "resetting..."         ; send to message line
+ SYStem.Down                  ; reset Instrument
+   
+; Debugger initializations
+ PRINT "initializing..."      ; send to message line
+ SYStem.CPU ARM922T
+ SYStem.Mode Up
+ 
+; load Demo application
+ PRINT "loading application..."
+ Data.LOAD.auto Proto_lh7a400.axf
+ Data.Assemble __user_initial_stackheap+0x18 nop  // patch bios call
+ 
+; initialize mutitasking support
+ PRINT "initializing RTOS support..."
+ TASK.CONFIG ../360/smx         ; Init OS Awareness
+ MENU.ReProgram ../360/smx      ; Init SMX Spezific Menu Part's
+
+ PRINT "load complete."  ; send to Message Line
+ DO win	                 ; load default Windows
+
+; go until Application initialization
+ Go appl_init
+ 
+ ENDDO

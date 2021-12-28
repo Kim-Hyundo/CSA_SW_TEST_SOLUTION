@@ -1,0 +1,57 @@
+; --------------------------------------------------------------------------------
+; @Title: MPU and Cache Simulation Example for the ARM946E Using the TRACE32 Simulator
+; @Description: 
+;   This example should be executed on the TRACE32 Instruction Set Simulator and 
+;   demonstrates the simulation of the caches and the Memory Protection Unit fo the
+;   ARM946.
+; @Author: KJM
+; @Board: TRACE32 Simulator
+; @Chip: ARM946E*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: arm946_cache_mpu_demo.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+ IF !INTERFACE.SIM()
+ (
+   DIALOG.OK "This demo can only be executed on the TRACE32 ARM Instruction Set Simulator."
+   ENDDO
+ )
+
+ WinCLEAR
+ 
+ RESet
+ SIM.CACHE.ON
+
+ SYStem.CPU ARM946E
+ 
+
+ SYStem.Up
+ 
+ Data.Load.ELF armle.axf /spath /lpath
+
+ WinPOS 0% 0% 100% 50%
+ SIM.CACHE.View 
+ WinPOS 0% 50% 50% 50%
+ CACHE.DUMP IC
+ WinPOS 50% 50% 50% 50%
+ CACHE.DUMP DC
+
+ ; enable the data and instruction cache
+ Data.Set C15:0x00000001 %LONG 0x1005 
+ 
+ Register.Set PC main
+ Register.Set R13 0x00001000
+ 
+
+ Data.Set C15:0x00000006 %LONG 0x3f  ; Protection region/size 0 (REG0)
+ Data.Set C15:0x00000002 %LONG 1     ; Data-Cacheable Register (DCACHE)
+ Data.Set C15:0x00000102 %LONG 1     ; Instruction-Cacheable Register (ICACHE)
+ Data.Set C15:0x00000005 %LONG 3     ; Data Space Protection Register - Standard (DACCESS)
+ Data.Set C15:0x00000205 %LONG 3     ; Data Space Protection Register - Extended (DACCESE)
+ Data.Set C15:0x00000105 %LONG 3     ; Instruction Space Protection Register - Standard (IACCESS)
+ Data.Set C15:0x00000305 %LONG 3     ; Instruction Space Protection Register - Extended (IACCESE)
+
+ Go
+
+ ENDDO
+

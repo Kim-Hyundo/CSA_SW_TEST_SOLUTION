@@ -1,0 +1,186 @@
+; --------------------------------------------------------------------------------
+; @Title: TriCore TC2xx STM model demo (SMP)
+; @Description:
+;   Simulation engine for the Tricore STM timers. The model support up to
+;   3 cores and 3 STM timers
+; @Keywords: STM, interrupt,Infineon, simulator, smp, TriCore
+; @Author: HDA
+; @Chip: TC3*
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo_stm_tc3xx.cmm 16354 2020-07-28 14:21:29Z hdammak $
+
+
+LOCAL &STM0_BASE &IR_SRC_STM0SR0
+LOCAL &OS_Name
+
+&STM0_BASE=D:0xF0001000
+&IR_SRC_STM0SR0=D:0xF0038300
+SYStem.Down
+
+; unload all modules
+SIM.UNLOAD 
+
+SYStem.CPU TC377TX
+CORE.NUMBER 3.
+
+; load the simulation model
+&OS_Name=OS.NAME()
+IF "&OS_Name"=="Windows"
+(
+  IF SOFTWARE.64BIT()
+  (
+    SIM.LOAD ~~~~/stm_aurix_64bit.dll &STM0_BASE &IR_SRC_STM0SR0
+  )
+  ELSE
+  (
+    SIM.LOAD ~~~~/stm_aurix_32bit.dll &STM0_BASE &IR_SRC_STM0SR0
+  )
+)
+ELSE
+(
+  PRINT "This demo is not supported for &OS_Name.
+  ENDDO
+)
+
+SYStem.Up
+
+; assemble main loop and interrupt vectors
+GOSUB setup_core 0x0
+GOSUB setup_core 0x1
+GOSUB setup_core 0x2
+
+GOSUB create_symbols
+
+; configure the STM timers
+;               core   stm
+GOSUB setup_stm 0x0    0x0
+GOSUB setup_stm 0x1    0x1
+GOSUB setup_stm 0x2    0x2
+
+; display some windows
+WinCLEAR
+WinPOS 0% 0% 33% 33%
+PER , "STM (System Timer),STM0" /DualPort /SpotLight
+WinPOS 33% 0% 33% 33%
+PER , "STM (System Timer),STM1" /DualPort /SpotLight
+WinPOS 66% 0% 33% 33%
+PER , "STM (System Timer),STM2" /DualPort /SpotLight
+WinPOS 0% 33% 33% 33%
+List.auto /CORE 0.
+
+WinPOS 33% 33% 33% 33%
+List.auto /CORE 1.
+
+WinPOS 66% 33% 33% 33%
+List.auto /CORE 2.
+
+WinPOS 0% 66% 100% 33%
+Trace.Chart.sYmbol
+
+; Configure TriCore Cores frequency
+VCO.Frequency 300.MHz
+Break.set stm2_int /COUNT 10.
+Trace.Init
+Go.direct
+
+ENDDO
+
+; ------ SUBROUTINES ------
+setup_core:
+  PRIVATE &core &stm &core_id &pspr_base 
+  ENTRY &core
+
+  &core_id=&core
+  IF (&core==0x5)
+  (
+    &core_id=0x6
+  )
+
+  &pspr_base=0x70100000-(0x10000000*&core_id)
+
+  &stm=&core
+
+  CORE.select &core 
+
+  ; assemble the interrupt vector
+  Data.Assemble &pspr_base+0x120 enable
+  Data.Assemble &pspr_base+0x124 add d1, d1, 1		;for testing purpose
+  Data.Assemble &pspr_base+0x130 rfe			;return from exception
+
+  ; assemble the main loop
+  Data.Assemble	&pspr_base nop16
+  Data.Assemble	&pspr_base+0x1E JA &pspr_base	;abs jump
+
+  ; setup the core registers
+  Register.Set	PC	&pspr_base
+  Register.Set	BIV	&pspr_base+0x100 ; Interrupt Vector Table Pointer
+  Register.Set	FCX	0x000D0048	 ; Free Context List Pointer
+  Register.Set	LCX	0x000D000D	 ; Context List Limit Pointer
+  Register.Set	ICR	0x00008000	 ; global int enable
+
+  IF (&core!=0)
+    GOSUB release_secoandary_core &core
+
+RETURN
+
+release_secoandary_core:
+  PRIVATE &core &core_id
+  ENTRY &core
+
+  &core_id=&core
+  IF (&core==0x5)
+  (
+    &core_id=0x6
+  )
+
+  IF (&core!=0); release secondary cores from Halt
+  (
+    IF (CPUCOREVERSION()=="TriCore v1.6.1")
+    (
+      &DBGSR=0xF881FD00+(&core_id<<17.)
+      Data.Set D:&DBGSR %Long 0yXXXXxxxxXXXXxxxxXXXXxxxxXXXXx10x
+    )
+    ELSE IF (CPUCOREVERSION()=="TriCore v1.6.2")
+    (
+      &SYSCON=0xF881FE14+(&core_id<<17.)
+      Data.Set D:&SYSCON %Long 0yXXXXxxx0XXXXxxxxXXXXxxxxXXXXxxxx
+    )
+  )
+
+  RETURN
+
+setup_stm:
+  PRIVATE &stm &SRC_STMxSR0 &SRC_STMxSR0_val &STMx_ICR &STMx_CMP0 &STMx_CMP0_val &STMx_CMCON &STMx_CMCON_val
+  ENTRY &core &stm 
+
+  &SRC_STMxSR0=&IR_SRC_STM0SR0+(0x8*&stm)
+  &STMx_ICR=&STM0_BASE+0x3C+(0x100*&stm)
+  &STMx_CMP0=&STM0_BASE+0x30+(0x100*&stm)
+  &STMx_CMCON=&STM0_BASE+0x38+(0x100*&stm)
+
+  ; STMx SR0 interrupt enable
+  &SRC_STMxSR0_val=0x00000401|(&core<<11.)
+  Data.Set &SRC_STMxSR0 %Long &SRC_STMxSR0_val
+  Data.Set &STMx_ICR %Long 0x00000001
+
+  ; setup STMx compare registers
+  &STMx_CMP0_val=(0x100<<(&stm))-1
+  Data.Set &STMx_CMP0 %Long &STMx_CMP0_val
+  &STMx_CMCON_val=0x7+(&stm)
+  Data.Set &STMx_CMCON %Long &STMx_CMCON_val
+
+  RETURN
+
+create_symbols:
+
+  sYmbol.RESet
+  sYmbol.CREATE.Function stm0_int 0x70100120++0x13
+  sYmbol.CREATE.Function stm1_int 0x60100120++0x13
+  sYmbol.CREATE.Function stm2_int 0x50100120++0x13
+  sYmbol.CREATE.Function tc0_main_loop 0x70100000++0x1f
+  sYmbol.CREATE.Function tc1_main_loop 0x60100000++0x1f
+  sYmbol.CREATE.Function tc2_main_loop 0x50100000++0x1f
+  sYmbol.CREATE.Done
+
+  RETURN

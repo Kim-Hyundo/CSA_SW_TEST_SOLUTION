@@ -1,0 +1,88 @@
+; --------------------------------------------------------------------------------
+; @Title: netX specific menu file
+; @Description: 
+;   This menu can be loaded with MENU.ReProgram netx.men
+; @Board: NetX
+; @Chip: ARM966E-S, NETX100, NETX500
+; @Author: Hilscher
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: netx.men 7027 2014-04-28 16:59:29Z kjmal $
+
+
+; netX specific menu
+
+add
+menu
+(
+  popup "&netX"
+  (
+    popup "netX&500"
+    (
+      default
+      menuitem "&Reset Registers"   "DO netx500/reset_registers.cmm"
+      separator
+      menuitem "&Attach"   "DO netx500/netx_attach.cmm"
+      popup "&Connect..."
+      (
+        menuitem "NETX &FPGA Board"   "DO netx500/NETX_FPGA_Init.cmm"
+        menuitem "NXHMI-&BB"          "DO netx500/NXBBHMI_Init.cmm"
+        menuitem "NXHMI-&RE"          "DO netx500/NXHMI_Init.cmm"
+        menuitem "NX&DB500-SYS"       "DO netx500/NXDB500SYS_Init.cmm"
+        menuitem "NX&EB500-HMI"       "DO netx500/NXEB500HMI_Init.cmm"
+        menuitem "NX&SB100"           "DO netx500/NXSB100_Init.cmm"
+        menuitem "NX&HX-500"          "DO netx500/NXHX500_Init.cmm"
+        menuitem "NET&PAC (64MB)"     "DO netx500/NETPAC_64_Init.cmm"
+        menuitem "Honeywell (Tower)"  "DO netx500/Honeywell_Init.cmm"
+      )
+      menuitem "D&isconnect" "SYStem.DOWN"
+      separator
+      popup "&ETM"
+      (
+        menuitem "&Activate ETM"    "DO netx500/ETM_Init.cmm"
+        menuitem "&Deactivate ETM"  "DO netx500/ETM_Deinit.cmm"
+      )
+    )
+    
+    popup "netX5&0"
+    (
+      default
+      menuitem "&Reset Registers"   "DO netx50/reset_registers.cmm"
+      separator
+      menuitem "&Attach"   "DO netx50/netx_attach.cmm"
+      popup "&Connect..."
+      (
+        menuitem "NX50&TEST Board"   "DO netx50/NX50TEST_Init.cmm"
+        menuitem "NX&HX50 Board"     "DO netx50/NXHX50_Init.cmm"
+        menuitem "&COMX-CCLS"        "DO netx50/comx_ca_ccs_Init.cmm"
+      )
+      menuitem "D&isconnect" "SYStem.DOWN"
+      separator
+      popup "&ETM"
+      (
+        menuitem "&Activate ETM"    "DO netx50/ETM_Init.cmm"
+        menuitem "&Deactivate ETM"  "DO netx50/ETM_Deinit.cmm"
+      )
+    )
+
+
+    popup "netX&10"
+    (
+      default
+      menuitem "&Reset Registers"   "DO netx10/reset_registers.cmm"
+      separator
+      menuitem "&Attach"   "DO netx10/netx_attach.cmm"
+      popup "&Connect..."
+      (
+        menuitem "NX&HX10 Board"     "DO netx10/NXHX10_Init.cmm"
+      )
+      menuitem "D&isconnect" "SYStem.DOWN"
+      separator
+      popup "&ETM"
+      (
+        menuitem "&Activate ETM"    "DO netx10/ETM_Init.cmm"
+        menuitem "&Deactivate ETM"  "DO netx10/ETM_Deinit.cmm"
+      )
+    )
+  )
+)

@@ -1,0 +1,124 @@
+; --------------------------------------------------------------------------------
+; @Title: Script for windows standard 32 bit to generate ram dump
+; @Description:
+;   This script is generating ram dump (kernel space and user space)  
+;   for windows standard 32 bit
+;   Prerequisites : windows awareness is loaded successfully
+; @Keywords: awareness, ramdump, RTOS, winstd
+; @Author: HDA
+; @Copyright: (C) 1989-2017 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: ramdump_32.cmm 2908 2018-01-29 08:32:04Z hdammak $
+
+
+  LOCAL &index
+  LOCAL &MmPhysicalMemoryBlock
+  LOCAL &descriptor
+  LOCAL &runs
+  LOCAL &ntbase
+  LOCAL &mem_model
+
+  WinCLEAR
+  &day=CLOCK.DAY()
+  &month=CLOCK.MONTH()
+  &year=CLOCK.YEAR()
+  &time=CLOCK.TIME()
+  &time=STRing.Replace("&time",":","",0.)
+  &dump_rep=OS.PWD()+"/ram_dump_&day&month&year&time"
+  MKDIR &dump_rep
+
+  AREA.Create A000
+  AREA.view A000  
+  AREA.OPEN A000 &dump_rep/"ram_dump_&day&month&year&time.log"
+  AREA.CLEAR A000
+
+  ON ERROR GOTO endWithError
+  
+  STOre &dump_rep/reg.cmm Register
+
+  &cpu=SYStem.CPU()
+  OPEN #1 &dump_rep/load.cmm  /Create /Write
+  WRITE #1 "SYStem.CPU &cpu"
+  WRITE #1 "SYStem.Mode Up"
+  WRITE #1 "DO ~~~~/reg.cmm"
+
+  ; dump MMU registers
+  WRITE #1 ";MMU registers"
+  &SCTLR=Data.Long(C15:0x1)
+  WRITE #1 "PER.Set.simple C15:0x1 %Long 0x&SCTLR"
+  &TTBR0=Data.Long(C15:0x2)
+  WRITE #1 "PER.Set.simple C15:0x2 %Long 0x&TTBR0"
+  &TTBR1=Data.Long(C15:0x102)
+  WRITE #1 "PER.Set.simple C15:0x102 %Long 0x&TTBR1"
+  &TTBCR=Data.Long(C15:0x202)
+  WRITE #1 "PER.Set.simple C15:0x202 %Long 0x&TTBCR"
+  &DACR=Data.Long(C15:0x3)
+  WRITE #1 "PER.Set.simple C15:0x3 %Long 0x&DACR"
+  &DFSR=Data.Long(C15:0x5)
+  WRITE #1 "PER.Set.simple C15:0x5 %Long 0x&DFSR"
+  &DFAR=Data.Long(C15:0x6)
+  WRITE #1 "PER.Set.simple C15:0x6 %Long 0x&DFAR"
+  &IFSR=Data.Long(C15:0x105)
+  WRITE #1 "PER.Set.simple C15:0x105 %Long 0x&IFSR"
+  &IFAR=Data.Long(C15:0x206)
+  WRITE #1 "PER.Set.simple C15:0x206 %Long 0x&IFAR"
+  &PRRR=Data.Long(C15:0x2A)
+  WRITE #1 "PER.Set.simple C15:0x2A %Long 0x&PRRR"
+  &NMRR=Data.Long(C15:0x12A)
+  WRITE #1 "PER.Set.simple C15:0x12A %Long 0x&NMRR"
+  &CBAR=Data.Long(C15:0x400F)
+  WRITE #1 "PER.Set.simple C15:0x400F %Long 0x&CBAR"
+  &CONTEXTIDR=Data.Long(C15:0x10D)
+  WRITE #1 "PER.Set.simple C15:0x10D %Long 0x&CONTEXTIDR"
+
+  WRITE #1 "SYStem.Option MMUSPACES ON"
+  &MmPhysicalMemoryBlock=TASK.PHYMEMBLOCK()
+  IF &MmPhysicalMemoryBlock==0xFFFFFFFF
+  (
+     PRINT %ERROR "could not locate physical memory block descriptor"
+     ENDDO
+  )
+
+  &descriptor=Data.Long(D:&MmPhysicalMemoryBlock)
+  &descriptor_dump=&descriptor-0x10
+  PRINT "descriptor dump from &descriptor_dump"
+  Data.SAVE.Binary "&dump_rep/descriptor.bin" D:&descriptor_dump++0x100
+
+  &runs=Data.Long(D:&descriptor)
+  &i=0.
+  
+  WHILE &i<&runs
+  (
+    &basePage=Data.Long(D:&descriptor+8+2*&i*4)
+    &pagecount=Data.Long(D:&descriptor+8+(2*&i+1)*4)
+    &startaddress=&basePage*0x1000
+    &size=&pagecount*0x1000
+
+    &file="run"+"&i"+"bin"
+    Data.SAVE.Binary "&dump_rep/&file" A:&startaddress++&size 
+    WRITE #1 "Data.LOAD.Binary ~~~~/&file A:&startaddress"
+    &i=&i+1.
+  )
+
+
+  WRITE #1 "TASK.CONFIG ~~/demo/arm/kernel/windows/win32.t32"
+
+        
+  &ntbase=TASK.NTBASE()
+  WRITE #1 "TASK.NTBASE &ntbase"
+  WRITE #1 ";TASK.sYmbol.Option SymCache ""C:\Symbols"""
+  WRITE #1 "TASK.sYmbol.LOADNT"
+  GOTO endWithSuccess
+
+endWithError:
+  ON ERROR
+  CLOSE #1
+  PRINT %ERROR "&dump_rep failure!"
+  AREA.CLOSE A000
+  ENDDO
+
+endWithSuccess:
+  CLOSE #1
+  PRINT "&dump_rep completed successfully!"
+  AREA.CLOSE A000
+  ENDDO

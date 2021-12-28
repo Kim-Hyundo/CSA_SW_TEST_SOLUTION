@@ -1,0 +1,32 @@
+; --------------------------------------------------------------------------------
+; @Title: ETM Configuration File for AT91RM9200
+; @Description: 
+;   This script configures the Embedded Trace Macrocell (ETM) of the
+;   Cogent CSB337 Board. This script is called by csb337_linux.cmm.
+; @Keywords: Cogent, RTOS
+; @Author: DIE
+; @Board: CSB337
+; @Chip: AT91RM9200
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: csb337_etm_setup.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+; ETM Configuration file for AT91RM9200
+
+; TRACE32 and the controller must be up
+
+; configure chip to output ETM lines
+
+&PIOD=0xfffffa00    ; base address of PIO D controller
+&PIO_PDR=0x0004     ; offset of PIO Disable Register
+&PIO_BSR=0x0074     ; offset of PIO Periph B Select Register
+
+ Data.Set &PIOD+&PIO_PDR %LE %Long 0x0fffff80   ; select peripheral for ETM lines
+ Data.Set &PIOD+&PIO_BSR %LE %Long 0x0fffff80   ; select periph B for ETM lines
+
+; configure TRACE32 for ETM
+ 
+ ETM.HalfRate ON
+ ETM.PortSize 16
+ ETM.PortMode Normal

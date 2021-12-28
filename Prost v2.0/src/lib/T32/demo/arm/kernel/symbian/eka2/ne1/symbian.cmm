@@ -1,0 +1,192 @@
+; --------------------------------------------------------------------------------
+; @Title: Symbian OS Demo for TRACE32 OS Awareness on NEC NE1-TB
+; @Description:
+;
+;   This batchfile demonstrates the use of the OS Awareness for
+;   Symbian OS (non-SMP)
+;
+;   The example is generated for the NEC NE1-TB board using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   Symbian OS is downloaded to the board via ICD.
+;
+; @Keywords: awareness
+; @Author: DIE
+; @Board: NEC-NE1-TB
+; @Chip: ARM11MPCORE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: symbian.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+;   Created by Rudi Dienstbeck / Lauterbach GmbH at 01.12.2008
+
+; Starting Symbian OS example with TRACE32 and Terminal:
+; - Start TRACE32
+; - Open Terminal, connect to serial port using the Honda adapter
+; - 115200 baud, 8/N/1, no(!) handshake
+; - Switch on the board
+; - TRACE32: "do symbian"
+; - Terminal: F1 (NumLock for TeraTerm) -> Tools -> Extras -> Agenda
+
+
+ SCREEN.ON
+
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 24. 75. 8. 0. 0. W000
+ AREA.view
+
+ PRINT "resetting..."
+
+ RESet
+
+
+; setup of ICD
+
+ PRINT "initializing..."
+ SYStem.CPU ARM11MPCORE
+; deprecated   SYStem.MultiCore IRPRE  15.
+; deprecated   SYStem.MultiCore DRPRE   3.
+; deprecated   SYStem.MultiCore IRPOST  0.
+; deprecated   SYStem.MultiCore DRPOST  0.
+ SYStem.CONFIG.IRPRE  15.
+ SYStem.CONFIG.DRPRE   3.
+ SYStem.CONFIG.IRPOST  0.
+ SYStem.CONFIG.DRPOST  0.
+ SYStem.JtagClock RTCK          ; board specific, see documentation
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ TrOnchip.Set DABORT OFF        ; used by Symbian OS for page miss!
+ TrOnchip.Set PABORT OFF        ; used by Symbian OS for page miss!
+ TrOnchip.Set UNDEF OFF         ; used for floating point math
+ TrOnchip.Set SWI OFF           ; let SWI be handled by Symbian OS
+ SYStem.Option MMUSPACES OFF    ; NO space ids used (yet)
+ ;SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+
+ SYStem.Up
+
+ Register.RESet
+
+ SETUP.IMASKASM ON          ; lock interrupts while single stepping
+
+
+; Target Setup: initialize DRAM controller and peripherals
+
+ ; Either let the boot monitor setup the board
+    ;go
+    PRINT "target setup..."
+    ;wait 1.s
+    ;break
+ ; or use the debugger to initialize it
+    DO naviengine_init
+
+
+; Load the Symbian OS image
+
+ PRINT "loading Symbian OS image..."
+
+ ;&symbianpath="T:\"
+ &symbianpath="C:\DevTools\Symbian\M04693b.01_Symbian_OS_v9.6"
+ &epoc32path="&symbianpath\bin\TechView\epoc32"
+ &romname="ne.techview.devkit"
+
+ ; load binary, skip serial rom header (if built with rom header)!
+ Data.LOAD.Binary &epoc32path\rom\&romname.img 0x80000000 /SKIP 0x100
+
+ ; load symbol labels of image
+ Data.LOAD.SYMBIAN &epoc32path\rom\&romname.symbol
+
+ ; set PC on start address of image
+ Register.RESet
+ Register.Set PC 0x80000000
+
+
+; Open a Code Window -- we like to see something
+
+ WinPOS 0. 0. 75. 20.
+ List.auto
+
+
+; Configure Autoloader
+
+ PRINT "configuring autoloader..."
+
+ ; add search paths for symbol files (.sym)
+ sYmbol.SourcePATH.Set &epoc32path\release\armv5\UDEB
+
+ ; scan rombuild log file for modules & addresses
+ sYmbol.AutoLOAD.LOADEPOC &epoc32path\rom\&romname.log "do "+OS.PPD()+"/../autoload "
+
+ ; define dynamic autoloader
+ sYmbol.AutoLOAD.CHECKEPOC "do "+OS.PPD()+"/../autoload "
+
+ ; switch off automatic process detection (slows down debugger execution)
+ sYmbol.AutoLOAD.CHECK OFF
+
+ ; add source search paths
+ sYmbol.SourcePATH.Set &symbianpath
+ ;sYmbol.SourcePATH.Set &symbianpath\src\CEDAR\GENERIC\base\e32\kernel   ; for kernel source files
+
+
+; Load the Symbian OS kernel symbols into the debugger
+
+ PRINT "loading Symbian OS kernel symbols..."
+
+ ; force autoloader to load ekern
+ sYmbol.AutoLOAD.TOUCH "*ekern.exe"
+ sYmbol.CLEANUP.sYmbols
+
+ ; when not using the autoloader, you can load and relocate the ekern
+ ; symbols by extracting the ekern addresses through a script:
+   ;do ../reloc &epoc32path/rom/&romname.log _ne1_tb_ekern.exe
+   ;entry &codeaddr &dataaddr
+   ;Data.LOAD.Elf &epoc32path/release/armv5/udeb/_fne1_tb_ekern.sym \
+   ;    /nocode /noclear /cpp /strippart 2 /reloc .text at &codeaddr \
+   ;    /reloc .data at &dataaddr /reloc .bss after .data
+
+ ; symbols for bootloader, if needed
+   ;Data.LOAD.Elf &epoc32path/release/armv5/_fne1_tb_bootldr.sym \
+   ;    /nocode /noclear /cpp /strippart 1 /reloc ER_RO at 0x80000000
+
+
+; Ok, we're done, let's start Symbian OS
+
+ ; set a breakpoint on restart, if kernel panics
+ Break.Set Kern::Restart
+
+ ; boot Symbian
+ Go
+ PRINT "starting Symbian OS, please wait..."
+ WAIT 10.s
+
+ ; halt target for further initializing
+ Break
+
+
+; Scan initial MMU settings and switch on debugger MMU
+ ;(not yet used)
+ ;MMU.SCAN
+ ;TRANSlation.ON
+
+
+; Initialize RTOS Support
+
+ PRINT "initializing SymbianOS support..."
+
+ TASK.CONFIG ../symbian2        ; loads Symbian OS awareness (symbian2.t32)
+ MENU.ReProgram ../symbian2     ; loads Symbian OS menu (symbian2.men)
+ HELP.FILTER.Add rtossymbian2   ; add Symbian OS awareness manual to help filter
+
+ PRINT "done."
+
+
+; --------------------------------------------------------------------------------
+; Application Debugging
+; e.g. "Agenda"
+
+ DO ../procentry Agenda
+
+ ENDDO
+

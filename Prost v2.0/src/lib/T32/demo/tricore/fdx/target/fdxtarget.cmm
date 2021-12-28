@@ -1,0 +1,99 @@
+; --------------------------------------------------------------------------------
+; @Title: FDX Communication Demo for TriCore
+; @Description: 
+;   This script shows how to use the FDX communication on TriCore.
+;   For more information about FDX, please refer to general_ref_f.pdf
+;
+;   Prerequisites:
+;    * System is connected
+; @Author: MEI
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: fdxtarget.cmm 16080 2020-05-15 10:26:37Z rweiss $
+
+PRIVATE &param &offset
+ENTRY &param
+
+; Prerequisites: Simulator? Connected? RemoteAPI activated?
+IF SIMULATOR()
+(
+  PRINT %ERROR "Error: This demo does not work with the simulator."
+  ENDDO FALSE()
+)
+IF RCL.PORT(0)!=20000.
+(
+  PRINT %ERROR "Error: This example requires the RemoteAPI to run on PORT 20000."
+  ENDDO FALSE()
+)
+
+IF !SYSTEM.UP()
+(
+  SYStem.DETECT CPU
+)
+PRIVATE &elfFile
+IF CPUIS("TC3*")
+(
+  &elfFile="~~~~/fdxtarget_tc3xx.elf"
+)
+ELSE
+(
+  PRINT %ERROR "CPU "+CPU()+" not supported!"
+  ENDDO FALSE()
+)
+
+IF !SYSTEM.UP()
+(
+  SYStem.Up
+)
+
+
+Data.LOAD.Elf &elfFile
+
+; preboot executable - run to *main*
+Go main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; The actual FDX stuff starts here
+
+; clear windows
+WinCLEAR FDXOC
+WinCLEAR FDXIC
+
+
+FDX.DISable
+FDX.METHOD BUFFERE
+  
+; open and show channels
+WinPOS 0 0 ,,,,, FDXOC 
+FDX.OutChannel FdxTestSendBuffer
+WinPOS 0 20. ,,,,, FDXIC 
+FDX.InChannel FdxTestReceiveBuffer
+
+WAIT 1s
+
+;Start FDX test application
+LOCAL &systempath &t32fdxhostparam
+&systempath=OS.PSD()
+&t32fdxhostparam="localhost"
+
+
+IF OS.VERSION(0)<0x10
+  OS.Command cmd /k "&systempath\demo\api\capi\test\t32fdxhost.exe &t32fdxhostparam"
+ELSE
+(
+  IF OS.FILE.EXIST("&systempath/demo/api/capi/test/t32fdxhost")
+  (
+    OS.Command "&systempath/demo/api/capi/test/t32fdxhost &t32fdxhostparam"
+  )
+  ELSE
+  (
+    PRINT %ERROR "Host executable ""&systempath/demo/api/capi/test/t32fdxhost"" not found"
+    ENDDO
+  )
+)
+
+PRINT "Press Go to start test"
+
+ENDDO TRUE()
+

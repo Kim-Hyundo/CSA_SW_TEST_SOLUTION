@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="t32transform.xsl"?>
+<TRACE32 file="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Gen\20210610_TRACE32_20_02\Failsafe-TestSpec_RS4_0104\Report\Total\MANDO_FailSafe_Integration\Rte_SWC_Diag\func-p-800023f0-800023f5.xml">
+	<coverage>
+		<COVerage.EXPORT.ListLine ts="1623300948" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE" metric="object">
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\Rte_SWC_Diag</tree>
+				<cov>partial</cov>
+				<exec metric="object">50.847%</exec>
+				<branches>-</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>0</never>
+				<bytes>590</bytes>
+				<bytesok>300</bytesok>
+				<function>
+					<addrFrom>P:800023F0</addrFrom>
+					<addrTo>P:800023F5</addrTo>
+					<tree uid="p-800023f0-800023f5">\\MANDO_FailSafe_Integration\Rte_SWC_Diag\Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C161487_SetEventStatus</tree>
+					<cov>never</cov>
+					<exec metric="object">0.000%</exec>
+					<branches>-</branches>
+					<ok>0</ok>
+					<taken>0</taken>
+					<nottaken>0</nottaken>
+					<never>0</never>
+					<bytes>6</bytes>
+					<bytesok>0</bytesok>
+					<line>
+						<addrFrom>P:800023F0</addrFrom>
+						<addrTo>P:800023F7</addrTo>
+						<tree>Rte_SWC_Diag.c \198--206</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Stubs\Rte_SWC_Diag.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<total>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</total>
+				</function>
+				<total>
+					<cov>never</cov>
+					<exec metric="object">0.000%</exec>
+					<branches>-</branches>
+					<ok>0</ok>
+					<taken>0</taken>
+					<nottaken>0</nottaken>
+					<never>0</never>
+					<bytes>6</bytes>
+					<bytesok>0</bytesok>
+				</total>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_HWFailure</tree>
+				<cov>partial</cov>
+				<exec metric="object">16.831%</exec>
+				<branches>10.000%</branches>
+				<ok>0</ok>
+				<taken>1</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>202</bytes>
+				<bytesok>34</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\SWC_Failsafe</tree>
+				<cov>partial</cov>
+				<exec metric="object">73.385%</exec>
+				<branches>-</branches>
+				<ok>11</ok>
+				<taken>9</taken>
+				<nottaken>17</nottaken>
+				<bytes>1548</bytes>
+				<bytesok>1136</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80002C38</addrFrom>
+				<addrTo>P:80002DC9</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\FS_BatteryVoltage</tree>
+				<cov>partial</cov>
+				<exec metric="object">86.567%</exec>
+				<branches>77.083%</branches>
+				<ok>14</ok>
+				<taken>2</taken>
+				<nottaken>7</nottaken>
+				<never>1</never>
+				<bytes>402</bytes>
+				<bytesok>348</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_CANBusOff</tree>
+				<cov>partial</cov>
+				<exec metric="object">89.922%</exec>
+				<branches>3.495%</branches>
+				<ok>9</ok>
+				<taken>2</taken>
+				<nottaken>3</nottaken>
+				<never>315</never>
+				<bytes>258</bytes>
+				<bytesok>232</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_CANTimeout</tree>
+				<cov>partial</cov>
+				<exec metric="object">75.082%</exec>
+				<branches>28.419%</branches>
+				<ok>65</ok>
+				<taken>40</taken>
+				<nottaken>17</nottaken>
+				<never>207</never>
+				<bytes>2432</bytes>
+				<bytesok>1826</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_InvalidSignal</tree>
+				<cov>partial</cov>
+				<exec metric="object">63.382%</exec>
+				<branches>54.103%</branches>
+				<ok>92</ok>
+				<taken>111</taken>
+				<nottaken>61</nottaken>
+				<never>65</never>
+				<bytes>5866</bytes>
+				<bytesok>3718</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_SWFailure</tree>
+				<cov>partial</cov>
+				<exec metric="object">55.102%</exec>
+				<branches>2.887%</branches>
+				<ok>7</ok>
+				<taken>4</taken>
+				<nottaken>1</nottaken>
+				<never>317</never>
+				<bytes>392</bytes>
+				<bytesok>216</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>5</never>
+				<bytes>806</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80005B2A</addrFrom>
+				<addrTo>P:80005CBB</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc1</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>402</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80005CBC</addrFrom>
+				<addrTo>P:80005E4D</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc2</tree>
+				<cov>partial</cov>
+				<exec metric="object">81.094%</exec>
+				<branches>87.500%</branches>
+				<ok>3</ok>
+				<taken>0</taken>
+				<nottaken>1</nottaken>
+				<never>0</never>
+				<bytes>402</bytes>
+				<bytesok>326</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc3</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc4</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_main</tree>
+				<cov>partial</cov>
+				<exec metric="object">25.925%</exec>
+				<branches>25.000%</branches>
+				<ok>1</ok>
+				<taken>1</taken>
+				<nottaken>1</nottaken>
+				<never>5</never>
+				<bytes>324</bytes>
+				<bytesok>84</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80006180</addrFrom>
+				<addrTo>P:80006315</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc5</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80006456</addrFrom>
+				<addrTo>P:80006485</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_stubs</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>2</never>
+				<bytes>48</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<total>
+				<cov>partial</cov>
+				<exec metric="object">55.204%</exec>
+				<branches>24.620%</branches>
+				<ok>202</ok>
+				<taken>170</taken>
+				<nottaken>108</nottaken>
+				<never>905</never>
+				<bytes>14890</bytes>
+				<bytesok>8220</bytesok>
+			</total>
+		</COVerage.EXPORT.ListLine>
+	</coverage>
+	<marker>
+		<BookMark.EXPORT ts="1623300948" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE">
+		</BookMark.EXPORT>
+	</marker>
+	<listing>
+		<List.EXPORT ts="1623300948" t32ver="R.2020.09.000128638" t32pv="TRICORE" order="source">
+			<mixed module="\\MANDO_FailSafe_Integration\Rte_SWC_Diag" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Stubs\Rte_SWC_Diag.c">
+				<hll><line>198</line><src></src></hll>
+				<hll><line>199</line><src>#define EcucPartition_Main_STOP_SEC_CODE</src></hll>
+				<hll><line>200</line><src>#include &quot;MemMap.h&quot;</src></hll>
+				<hll><line>201</line><src></src></hll>
+				<hll><line>202</line><src>#define EcucPartition_Main_START_SEC_CODE</src></hll>
+				<hll><line>203</line><src>#include &quot;MemMap.h&quot;</src></hll>
+				<hll><line>204</line><src>FUNC(Std_ReturnType, RTE_CODE) Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C161487_SetEventStatus(</src></hll>
+				<hll><line>205</line><src>        /* polyspace&lt;MISRA2012:D4.5:Not a defect:Justify with annotations&gt; User defines parameter name */</src></hll>
+				<hll><cov>never</cov><line>206</line><src>        IN Dem_EventStatusType EventStatus){ return 21;}</src></hll>
+				<asm><cov>never</cov><addr>P:800023F0</addr><code>2001503B</code><label>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C161487_SetEventStatus:                                                                                                                                                                                      </label><mnemonic>mov       d2,#0x15</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800023F4</addr><code>9000</code><mnemonic>ret16     </mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800023F6</addr><code>0000</code><mnemonic>nop16     </mnemonic></asm>
+			</mixed>
+		</List.EXPORT>
+	</listing>
+</TRACE32>

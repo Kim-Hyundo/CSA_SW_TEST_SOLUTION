@@ -1,0 +1,114 @@
+
+Patch Windows EC 7 kernel and OAL for tracing the thread id
+within the context id.
+
+
+1) WINCE700\private\winceos\oreos\nk\kernel\arm\armtrap.s:
+   In the function "UpdateAsidAndTranslationBase", just before the ASID is updated, add:
+
+        ; update ttbr0
+        mcr     p15, 0, r1, c2, c0, 0           ; update TTBR0
+        mcr     p15, 0, r3, c7, c5, 4           ; flush prefetch buffer (ISB)
+        
++       ; TRACE32 patch for Thread ID in Context ID
++       GetPCB r1, r2
++       ldr r1, [r1, #dwCurThId]
++       mov r1, r1, lsl #0x08
++       orr r0, r0, r1
++       ; TRACE32 patch ends
+
+        ; now update ASID to real value
+        mcr     p15, 0, r0, c13, c0, 1          ; set ASID to the desired ASID
+    
+    
+2) WINCE700\private\winceos\oreos\nk\kernel\arm\armtrap.s:
+   After function "UpdateAsidAndTranslationBase" add new function "StoreThreadIdInContextId":
+
+;-------------------------------------------------------------------------------
+; StoreThreadIdInContextId - update Context Id with current Thread Id
+; TRACE32 patch for Thread ID in Context ID
+;-------------------------------------------------------------------------------
+        LEAF_ENTRY StoreThreadIdInContextId
+        
+        ; save current cpsr and disable interrupts
+        mrs     r12, cpsr                       ; (r12) = current status
+        orr     r3, r12, #0x80                  ; set interrupt disable bit
+        msr     cpsr, r3                        ; update status register
+
+        mov     r0, #0
+        mrc     p15, 0, r0, c13, c0, 1          ; read context id
+        and     r0, r0, #0xff                   ; mask ASID
+
+        GetPCB  r1, r2                          ; (r1) = ppcb
+        ldr     r1, [r1, #dwCurThId]            ; (r1) = CurThId
+        mov     r1, r1, lsl #0x08               ; (r1) = (r1) << 8
+        orr     r0, r0, r1                      ; (r0) = (r1) | ASID
+        
+        ; now update context id with new thread id
+        mcr     p15, 0, r0, c13, c0, 1          ; set context id
+
+        ; restore cpsr, saved in r12
+        msr     cpsr, r12                       ; update status register
+
+        bx      lr
+
+        ENTRY_END  StoreThreadIdInContextId
+
+
+3) WINCE700\private\winceos\oreos\nk\inc\vmarm.h:
+   After prototype of "UpdateAsidAndTranslationBase" add:
+
+    void StoreThreadIdInContextId (void);
+
+
+4) WINCE700\private\winceos\oreos\nk\kernel\arm\vmarm.c:
+   In function "MDSetCPUASID" add call to StoreThreadIdInContextId in "else" branch:
+   
+    void MDSetCPUASID (void)
+    {
+        PPROCESS pprc = pVMProc;
+        if ((!pprc->bASID && IsV6OrLater()) || GetPFN (pprc->ppdir) != GetTranslationBase ()) {
+         MDSwitchVM (pprc);
+        }
++       else {
++           StoreThreadIdInContextId ();
++       }
+    }
+   
+
+5) WINCE700\platform\common\src\soc\<chip>\OAL\CACHE\cacheid.s
+   *If* this file is present, patch "OALGetContextID" to mask the ASID:
+   
+        LEAF_ENTRY OALGetContextID
+
+        mov     r0, #0
+        mrc     p15, 0, r0, c13, c0, 1   ; read context ID
+
++       ; TRACE32 patch for Thread ID in Context ID
++       and     r0, r0, #0xff                   ; mask out thread id
+        
+        RETURN
+
+
+6) WINCE700\platform\common\src\soc\<chip>\OAL\CACHE\cleardtlbentry.s,
+   clearitlbentry.s, clearutlbentry.s
+   *If* these files are present, patch *each* of the "OALClear*TLBEntry" functions 
+   to mask the ASID. E.g. for OALClearDTLBEntry:
+
+        LEAF_ENTRY OALClearDTLBEntry
+
+        mrc     p15, 0, r1, c13, c0, 1          ; Read Context ID Register
+
++       ; TRACE32 patch for Thread ID in Context ID
++       and     r1, r1, #0xff                   ; mask out thread id
+
+        orr     r0,  r0, r1                     ; r0 = MVA+ASID
+        mcr     p15, 0, r0, c8, c6, 1           ; clear data TLB entry by MVA+ASID
+
+        RETURN
+
+
+7) Rebuild the kernel by building the project WINCE700\private\winceos\coreos\nk\kernel.
+
+8) Rebuild your solution after building the kernel.
+

@@ -1,0 +1,98 @@
+; --------------------------------------------------------------------------------
+; @Title: SMP Start-Up Script on SRAM for TCI6638K2K on XTCIEVMK2X board from TI
+; @Description: 
+;   This demo demonstrates the debugging of the four Cortex-A15 cores of
+;   the KeyStone II Soc using a simple sieve demo loaded on the SRAM. 
+;   The script connects to the first core, enables the other cores and then 
+;   connects to all of them.
+;   Debug and on-chip and off-chip trace successfully tested with four Cortex-A15
+;   cores. The Debug Cable is connected via converter to MIPI trace preprocessor
+;   which goes to J3 on the board.
+;
+; @Keywords: Cortex-A15, KeyStone*, off-chip, sieve, SMP, TI, trace
+; @Author: PEG
+; @Board: XTCIEVMK2X
+; @Chip: TCI6638K2K, 66AK2H12
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: xtcievmk2x_2_smp_ptm_offchip_sram.cmm 15362 2019-12-03 14:50:48Z mschleinkofer $
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF SYStem.INSTANCE()<1.
+(
+  PRINT %ERROR "TRACE32 is not running in AMP mode! Use .bat/.sh file in this directory."
+  ENDDO
+)
+
+IF CPUFAMILY()!="ARM"
+(
+  PRINT %ERROR "TRACE32 instance is not an ARM debugger. Use .bat/.sh file in this directory."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; close any existing REMOTE GUIs
+INTERCOM.execute OTHERS QUIT
+
+RESet
+SYStem.CPU TCI6638K2K
+CORE.ASSIGN 1
+
+; configure off-chip trace if trace probe is connected
+IF Analyzer()
+(
+  TPIU.PortMode Continuous
+  TPIU.PortSize 16
+)
+
+; activate core #2, #3, #4
+SYStem.Mode Attach
+Data.Set EAHB:0x01e80414 %Long 0 ; CPU1_PDCTL
+Data.Set EAHB:0x01e8040c %Long 1 ; CPU1_PTCMD
+Data.Set EAHB:0x01e80420 %Long 0 ; CPU2_PDCTL
+Data.Set EAHB:0x01e80418 %Long 1 ; CPU2_PTCMD
+Data.Set EAHB:0x01e8042c %Long 0 ; CPU3_PDCTL
+Data.Set EAHB:0x01e80424 %Long 1 ; CPU3_PTCMD
+SYStem.Down
+
+; start-up with all cores
+CORE.ASSIGN 1 2 3 4
+SYStem.Mode Attach
+IF STATE.RUN()
+(
+  Break.direct
+  WAIT !STATE.RUN()
+)
+
+; --------------------------------------------------------------------------------
+; load demo program on all sessions (use internal RAM only)
+CORE.select 0.
+Data.LOAD.Elf ~~~~/master/sieve_ram_arm_v7.elf
+
+Register.Set PC _start_secondary /CORE 1.
+Register.Set PC _start_secondary /CORE 2.
+Register.Set PC _start_secondary /CORE 3.
+
+
+; enable system trace module
+Data.Set 0x01e80014 %Long 0 ; STM_DISABLE
+
+; open some windows
+WinCLEAR
+
+WinPOS 0% 0% 50% 50%
+List.auto
+
+WinPOS 50% 0% 50% 50%
+Register.view /SpotLight
+
+WinPOS 0% 50% 50% 50%
+Frame.view /Locals /Caller
+
+WinPOS 50% 50% 50% 50%
+Trace.List
+
+ENDDO

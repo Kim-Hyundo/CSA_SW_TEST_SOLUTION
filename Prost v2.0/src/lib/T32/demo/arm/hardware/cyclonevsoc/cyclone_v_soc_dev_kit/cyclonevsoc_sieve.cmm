@@ -1,0 +1,67 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo script for the CYCLONE V SOC
+; @Description:
+;   Loads the sieve demo into RAM and sets up a
+;   demo debug scenario on the first core.
+;   Prerequisites:
+;   * Please set bootsel pins to SDCARD
+;     BOOTSEL[0..2] = 2-3 2-3 1-2
+;   * Please REMOVE SD Card
+;     => Device will stop in BOOT ROM
+;   * Assume HPS-FPGA-MAX scanchain
+;     for CycloneV SoC Devkit
+;       * SW4[0..3]=0010, JTAG SEL=1, JTAG_HPS_SEL=1
+;       * connection via J24 10pin connector
+; @Keywords: ALTERA, Cortex-A9, Cyclone, Cyclonev
+; @Author: AME
+; @Board: CYCLONEVSOC, Cyclone V SoC Dev Kit
+; @Chip: CYCLONEVSOC
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: cyclonevsoc_sieve.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; Start-up the debugger
+  RESet
+  SYStem.CPU CYCLONEVSOC
+  SYStem.JtagClock CTCK 5MHz
+  CORE.ASSIGN 1                             ; "1" = first core, "2" = second core, "1 2" = both cores (SMP)
+  
+; assume HPS-FPGA-MAX scanchain
+; use e.g. SYStem.DETECT.DaisyChain, AREA to explore the current scanchain
+  SYStem.CONFIG DAPIRPOST 0.
+  SYStem.CONFIG DAPIRPRE 20.
+  SYStem.CONFIG DAPDRPOST 0.
+  SYStem.CONFIG DAPDRPRE 2.
+  
+; initially connect to the platform
+  SYStem.Up
+; Write to the clock manage to prevent the system from gating the debug clocks during a warm reset
+  Data.Set AHB:0xffd04010 %Long 0x1  
+; Watchdog is activated by BOOTROM 
+; the only way is to use the RESET MANAGER
+; disable Watchdog - Toggle RESET in PERMODRST
+  Data.Set A:0xFFD05014 %Long Data.Long(A:0xFFD05014)|0x40
+  Data.Set A:0xFFD05014 %Long Data.Long(A:0xFFD05014)&(~0x40)
+  
+  ; use inifinite loops as exception vectors
+  Data.Assemble A:0xffff0000 b $+0
+  Data.Assemble , b $+0
+  Data.Assemble , b $+0
+  Data.Assemble , b $+0
+  Data.Assemble , b $+0
+  Data.Assemble , b $+0
+  Data.Assemble , b $+0
+  ; remap exception vectors to SRAM - I-Cache Enabled, MMU OFF
+  Data.Set C15:0x1 0xC53878 
+  
+  ; load Position Independent SIEVE demo into SRAM
+  DO ~~/demo/arm/compiler/gnu-pic/demo_sieve 0xffff1000
+  Go main
+  WAIT !STATE.RUN()
+  List.auto
+  
+  ENDDO
+  
+
+

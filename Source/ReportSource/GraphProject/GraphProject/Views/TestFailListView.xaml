@@ -1,0 +1,90 @@
+﻿<UserControl x:Class="GraphProject.Views.TestFailListView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:models ="clr-namespace:GraphProject.Models"
+             xmlns:local="clr-namespace:GraphProject.Views"
+             xmlns:Etc="clr-namespace:GraphProject.Etc"
+             xmlns:cvt ="clr-namespace:GraphProject.Converter"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="1490"
+             d:DataContext="{Binding TestFailGridViewModel, Source={StaticResource Locator}}"
+             RenderSize="744,450">
+    <UserControl.Resources>
+        <Etc:CommonUtil x:Key="CommonUtil"/>
+        <cvt:BrushConverter x:Key="BrushConverter" 
+                             TrueBrush="#2CFFFFFF" FalseBrush="#2CC5B727"/>
+        <cvt:MultiBindingConverter x:Key="multivalueConverter"/>
+        <Style x:Key="SummaryTextBlock" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="11"/>
+        </Style>
+    </UserControl.Resources>
+    <Grid Width="744" Height="450">
+        <Grid Width="744" Height="450">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="656*"/>
+                <ColumnDefinition Width="51*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="0.5*"/>
+                <RowDefinition Height="10*"/>
+            </Grid.RowDefinitions>
+            <Grid Height="25" Width="{Binding Source={StaticResource CommonUtil},Path=TotalTestResultWidth}" HorizontalAlignment="Left" Margin="12,0,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="{Binding Source={StaticResource CommonUtil},Path=SenarioWidth}"/>
+                    <ColumnDefinition Width="{Binding Source={StaticResource CommonUtil},Path=TestIDWidth}"/>
+                    <ColumnDefinition Width="{Binding Source={StaticResource CommonUtil},Path=InputDataWidth}"/>
+                    <ColumnDefinition Width="{Binding Source={StaticResource CommonUtil},Path=ExOutputWidth}"/>
+                    <ColumnDefinition Width="{Binding Source={StaticResource CommonUtil},Path=AcOutputWidth}"/>
+                    <ColumnDefinition Width="70"/>
+                    <ColumnDefinition Width="125"/>
+                    <ColumnDefinition Width="50"/>
+                    <ColumnDefinition Width="50"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock  DockPanel.Dock="Left" Text="Senario" Foreground="White" TextAlignment="Left" Padding="5,3,0,0" Background="#1CFFFFFF" Margin="0,0,0,-0.333" Grid.Column="0"/>
+                <TextBlock  DockPanel.Dock="Left" Text="Test ID" Foreground="White" TextAlignment="Left" Padding="0,3,0,0" Background="#1CFFFFFF" Margin="0,0,0,-0.333" Grid.Column="1"/>
+                <TextBlock  DockPanel.Dock="Left" Text="Input Data" Foreground="White" TextAlignment="Left" Padding="5,3,0,0" Background="#1CFFFFFF" Margin="0,0,0,-0.333" Grid.Column="2"/>
+                <TextBlock  DockPanel.Dock="Left" Text="Output Data (Ex)" Foreground="White" TextAlignment="Left" Padding="5,3,0,0" Background="#1CFFFFFF" Grid.Column="3"/>
+                <TextBlock  DockPanel.Dock="Left" Text="Output Data (Ac)" Foreground="White" TextAlignment="Left" Padding="5,3,0,0" Background="#1CFFFFFF" Grid.Column="4"/>
+                <TextBlock  DockPanel.Dock="Left" Text="Tolerance" Foreground="White" TextAlignment="Left" Padding="5,3,0,0" Background="#1CFFFFFF" Grid.Column="5"/>
+                <TextBlock  DockPanel.Dock="Left" Text="Execution Time(us)" Foreground="White" TextAlignment="Left" Padding="5,3,0,0" Background="#1CFFFFFF" Grid.Column="6"/>
+                <TextBlock  DockPanel.Dock="Left" Text="PassFail" Foreground="White" TextAlignment="Left" Padding="0,3,0,0" Background="#1CFFFFFF" Grid.Column="7"/>
+            </Grid>
+
+            <ListView x:Name="ListView1" ItemsSource="{Binding testFailListModel,UpdateSourceTrigger=PropertyChanged}" Background="Transparent" BorderBrush="Transparent" Foreground="White" Padding="0,5,5,5" Margin="0,5,0,0" Grid.Row="1" Grid.ColumnSpan="2" >
+                <ListView.ItemTemplate>
+                    <DataTemplate DataType="{x:Type models:TestFailListModel}">
+                        <Border CornerRadius="5" Background="{Binding PassFail, Converter={StaticResource BrushConverter}}" Margin="5,0,5,0" Width="{Binding Source={StaticResource CommonUtil},Path=TotalTestResultWidth}">
+                            <StackPanel Orientation="Horizontal" Margin="5">
+                                <TextBlock TextAlignment="Left" VerticalAlignment="Center" Text="{Binding Path=ScenarioName}" Width="{Binding Source={StaticResource CommonUtil},Path=SenarioWidth}" Style="{StaticResource SummaryTextBlock}" HorizontalAlignment="Stretch"/>
+                                <TextBlock TextAlignment="Left" VerticalAlignment="Center" Text="{Binding Path=TestCaseNum}" Width="{Binding Source={StaticResource CommonUtil},Path=TestIDWidth}" Style="{StaticResource SummaryTextBlock}"/>
+                                <TextBlock TextAlignment="Left" VerticalAlignment="Center" Text="{Binding Path=InputData}" Width="{Binding Source={StaticResource CommonUtil},Path=InputDataWidth}" Style="{StaticResource SummaryTextBlock}"/>
+                                <TextBlock TextAlignment="Left" VerticalAlignment="Center" Text="{Binding Path=ExpectedOutputData}" Width="{Binding Source={StaticResource CommonUtil},Path=ExOutputWidth}" Style="{StaticResource SummaryTextBlock}"/>
+                                <TextBlock TextAlignment="Left" VerticalAlignment="Center" Text="{Binding Path=ActualOutputData}" Width="{Binding Source={StaticResource CommonUtil},Path=AcOutputWidth}" Style="{StaticResource SummaryTextBlock}"/>
+                                <TextBlock TextAlignment="Left" VerticalAlignment="Center" Text="{Binding Path=Tolerance}" Width="70" Style="{StaticResource SummaryTextBlock}"/>
+                                <TextBlock TextAlignment="Left" VerticalAlignment="Center" Text="{Binding Path=ExecutionTime}" Width="125" Style="{StaticResource SummaryTextBlock}"/>
+                                <TextBlock TextAlignment="Left" VerticalAlignment="Center" Text="{Binding Path=PassFail}" Width="50" Style="{StaticResource SummaryTextBlock}"/>
+                                <Button VerticalAlignment="Center" Height="25" Width="50" Background="#2C000000" BorderBrush="Transparent" Command="{Binding ElementName=ListView1, Path=DataContext.DebugButtonCommand}">
+                                    <DockPanel LastChildFill="True">
+                                        <Image Width="17" Height="17" Source="trace32.ico"/>
+                                        <TextBlock Text="go" Foreground="White"/>
+                                    </DockPanel>
+                                    <Button.CommandParameter>
+                                        <MultiBinding Converter="{StaticResource multivalueConverter}">
+                                            <Binding Path="ScenarioName"/>
+                                            <Binding Path="TestCaseNum" />
+                                            <Binding Path="InputData" />
+                                            <Binding Path="ExpectedOutputData" />
+                                        </MultiBinding>
+                                    </Button.CommandParameter>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
+    </Grid>
+</UserControl>

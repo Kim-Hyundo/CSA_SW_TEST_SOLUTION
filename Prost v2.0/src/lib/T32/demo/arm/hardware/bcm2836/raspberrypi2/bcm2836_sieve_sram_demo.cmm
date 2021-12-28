@@ -1,0 +1,60 @@
+; --------------------------------------------------------------------------------
+; @Title: Sieve demo for Raspberry Pi 2
+; @Description:
+;   The board requires a special adaption and a program running on the target
+;   to enable the JTAG port. See readme.txt.
+; @Author: HDA
+; @Keywords: CORTEXA7MPCORE, RASPI2
+; @Board: Raspberry Pi 2
+; @Chip: BCM2836
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: bcm2836_sieve_sram_demo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+  SYStem.CPU BCM2836
+  SYStem.Mode Attach
+  Break.direct
+  Data.LOAD.Elf ~~~~/sieve.elf 0x8000 /RelPATH
+
+  Register.Set PC background /CORE 1.
+  Register.Set PC background /CORE 2.
+  Register.Set PC background /CORE 3.
+
+; open some windows
+  WinCLEAR
+  WinPOS 0% 0% 30% 25%
+  List.auto /CORE 0.
+  WinPOS 30% 0% 20% 25%
+  Frame /Locals /Caller /CORE 0.
+  WinPOS 50% 0% 20% 25%
+  Register.view /SpotLight /CORE 0.
+
+  WinPOS 0% 25% 30% 25%
+  List.auto /CORE 1.
+  WinPOS 30% 25% 20% 25%
+  Frame /Locals /Caller /CORE 1.
+  WinPOS 50% 25% 20% 25%
+  Register.view /SpotLight /CORE 1.
+
+  WinPOS 0% 50% 30% 25%
+  List.auto /CORE 2.
+  WinPOS 30% 50% 20% 25%
+  Frame /Locals /Caller /CORE 2.
+  WinPOS 50% 50% 20% 25%
+  Register.view /SpotLight /CORE 2.
+
+  WinPOS 0% 75% 30% 25%
+  List.auto /CORE 3.
+  WinPOS 30% 75% 20% 25%
+  Frame /Locals /Caller /CORE 3.
+  WinPOS 50% 75% 20% 25%
+  Register.view /SpotLight /CORE 3.
+
+  WinPOS 70% 0% 30% 50%
+  Var.DRAW sinewave
+
+  WinPOS 70% 50% 30% 50%
+  Var.Watch %E %SpotLight.on flags
+  Var.AddWatch ast
+
+  ENDDO

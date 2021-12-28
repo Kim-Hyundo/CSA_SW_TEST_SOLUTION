@@ -1,0 +1,140 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to boot SoC + Boot into U-Boot Prompt
+; @Description: 
+;   Initialize the ZYNQ SoC using the TCL Script. Load the
+;   FPGA using the PCAP unit. Afterwards boot and stop in the U-Boot prompt.
+;   The scripts is designed for a ZedBoard configured for JTAG Boot and
+;   Cascaded JTAG configuration (MIO[2-6]=0y00000).
+;   Please connect JTAG to the 14-pin JTAG connector (next to the power
+;   socket). In case the FMC-105-DEBUG board is connected, please short TDI
+;   and TDO using a jumper.
+;   Please connect USB-Serial (J14) via USB. Assume COM3 in this script.
+; @Keywords: zynq
+; @Author: AME
+; @Board: ZedBoard
+; @Chip: ZYNQ-7000
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: start-uboot.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+WinCLEAR
+RESet
+SYStem.RESet
+
+AREA.CLEAR
+WinPOS 0.1 32. 80. 25. 0. 0. W002
+AREA.view
+
+PRINT "Please power off/on the target"
+
+ON powerup GOTO start
+STOP
+   
+start:
+ON powerup nothing
+WAIT 2.s
+
+; open the terminal
+TERM.RESet
+TERM.METHOD COM COM3 115200. 8 NONE 1STOP NONE 
+TERM.SIZE 80. 1000.
+TERM.Mode VT100 
+TERM.SCROLL ON
+WinPOS 76.0 25.0 80. 24. 0. 0. TermWin
+TERM.view
+
+; setup CPU, cascaded jtag
+; our system consists of one core only after startup
+PRINT "system configuration"
+SYStem.CPU ZYNQ-7000
+ 
+SYStem.CONFIG DAPIRPRE 6.
+SYStem.CONFIG DAPIRPOST 0.
+SYStem.CONFIG DAPDRPRE 1.
+SYStem.CONFIG DAPDRPOST 0.
+
+TrOnchip.Set PABORT OFF
+TrOnchip.Set DABORT OFF
+ETM.OFF // required as the TPIU is unclocked after reset
+CORE.ASSIGN 1.
+SYStem.Up
+
+PRINT "initializing the target"
+DO ~~/demo/arm/hardware/zynq-7000/scripts/ps7_init.cmm "~~~~/ps7_init.tcl"
+
+PRINT "programming the FPGA design"
+DO ~~/demo/arm/hardware/zynq-7000/scripts/ps7_init.cmm "~~~~/system.bit.bin" 0x00100000
+
+PRINT "initializing the target"
+DO ~~/demo/arm/hardware/zynq-7000/scripts/ps7_init.cmm "~~~~/ps7_init.tcl" "POST"
+
+IF Analyzer()
+(
+        ETM.PortSize 16
+        ETM.ON
+        Analyzer.AutoFocus
+)
+
+Data.LOAD.Elf ~~~~/u-boot-xlnx/u-boot /LowerPATH
+;sYmbol.SourcePATH.Translate "/home/...kernels-arm-zynq/" "x:\path\on\remote\machine"
+; set a temp breakpoint at the entry point after the relocation
+; reload symbols after relocation
+Break.Set here+0x1ff75000-0x04000000 /Onchip /DISableHIT /CMD "Data.LOAD.Elf ~~~~/u-boot-xlnx/u-boot 0x1ff75000-0x04000000 /NoCODE /LowerPATH"
+
+; you can debug lower u-boot now
+
+Go.direct
+WAIT !STATE.RUN() // wait till relocation bp triggers
+Go.direct
+
+GOSUB TerminalWaitString "Hit any key to stop"
+TERM.Out 0xa
+WAIT 0.1s
+Break.direct
+
+
+
+ENDDO
+
+TerminalWaitString: ;(&str)
+        LOCAL &str
+        ENTRY %LINE &str
+        &str=&str
+        SCREEN.ALways
+        RePeaT
+        (
+              WAIT 0.5s
+              SCREEN.display
+              WinFIND "&str" TermWin
+        )
+         WHILE !FOUND() 
+        RETURN
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

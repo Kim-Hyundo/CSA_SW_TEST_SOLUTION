@@ -1,0 +1,43 @@
+; --------------------------------------------------------------------------------
+; @Title: Generic ARM C Example for SRAM for ARM7, ARM9, ARM10, ARM11 and Cortex-A/R
+; @Description: 
+;   Generic demo for ARM7, ARM9, ARM10, ARM11 and Cortex-A/R cores.
+;   This demo cannot be used for Cortex-M cores.
+;   When using a debugger the demo requires, that the debugger is already configured
+;   for the CPU, Endianess and CONFIG settings.
+; @Author: STK
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: arm.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+  WinCLEAR
+
+; start-up in case of simulator
+  IF INTERFACE.SIM()
+  (
+    RESet
+    SYStem.CPU ARM7TDMI
+    SYStem.Up
+  )
+
+; Download the code
+  IF SYStem.BigEndian()
+    Data.LOAD.ELF "~~~~/thumbbe.axf" /SPATH /LPATH
+  ELSE
+    Data.LOAD.ELF "~~~~/thumble.axf" /SPATH /LPATH
+
+; Open some windows
+  WinPOS 0% 0% 100% 50%
+  List.auto
+  WinPOS 0% 50% 50% 50%
+  Frame /Locals /Caller
+  WinPOS 50% 50% 50% 50%
+  Var.Watch %SpotLight flags ast
+  
+; Init the target program
+  Register.Set CPSR 0x33
+  Register.Set PC main
+  Register.Set R13 0x1000
+  
+  ENDDO

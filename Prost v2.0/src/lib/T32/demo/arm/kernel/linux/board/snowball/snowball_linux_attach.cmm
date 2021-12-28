@@ -1,0 +1,73 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux Demo for TRACE32 OS Awareness on the Snowball
+; @Description: 
+;   This batchfile demonstrates the use of the OS Awareness for Linux
+;   The example is generated for the Snowball board using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   The debugger attaches to a running Linux on the target.
+; @Keywords: Attach, awareness, CortexA9, Linux, RTOS, SMP, ST, STE
+; @Board: Snowball
+; @Chip: A9500
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: snowball_linux_attach.cmm 16019 2020-05-06 08:47:23Z kjmal $
+
+
+  LOCAL &ka_path &awareness
+  
+  WinCLEAR
+  RESet
+  SYStem.CPU A9500
+  
+  SYStem.Option DACR ON          ; give Debugger global write permissions
+  TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+  TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+  TrOnchip.Set UNDEF OFF         ; my be used by Linux for FPU detection
+  SYStem.Option MMUSPACES ON            ; enable space ids to virtual addresses
+  
+  DO ~~/demo/etc/terminal/serial/term.cmm COM1 115200.
+      
+  
+  SYStem.Mode Attach  
+  
+  IF STATE.RUN()
+    Break.direct
+    
+  
+  
+  ; Load the Linux kernel symbols into the debugger
+  PRINT "loading Linux kernel symbols..."
+  Data.LOAD.Elf vmlinux /gnu /NoCODE
+  
+  ; Open a Code Window -- we like to see something
+  
+  WinPOS 0. 0. 75. 20.
+  List.auto
+  SCREEN.display
+  
+  
+  PRINT "initializing debugger MMU..."
+  MMU.FORMAT LINUX swapper_pg_dir 0xc0000000--0xdfffffff 0x00000000
+  TRANSlation.COMMON 0bf000000--0ffffffff            ; common area for kernel and processes
+  TRANSlation.TableWalk ON   ; debugger uses a table walk to decode virtual addresses
+  TRANSlation.ON
+
+  
+  ; check linux major version
+  IF STRing.SCAN(Data.STRing(linux_banner), "Linux version 2.", 0)==0
+  (
+      &ka_path="~~/demo/arm/kernel/linux/linux-2.x"
+      &awareness="linux.t32"
+  )
+  ELSE
+  (
+      &ka_path="~~/demo/arm/kernel/linux/linux-3.x"
+      &awareness="linux3.t32"  
+  )
+ 
+  PRINT "initializing RTOS support..."
+  TASK.CONFIG &ka_path/&awareness               ; loads Linux awareness 
+  MENU.ReProgram &ka_path/linux            ; loads Linux menu 
+  
+  Go.direct  

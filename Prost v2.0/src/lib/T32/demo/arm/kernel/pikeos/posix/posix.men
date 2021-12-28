@@ -1,0 +1,57 @@
+; --------------------------------------------------------------------------------
+; @Title:PikeOS-POSIX specific menu
+; @Description: -
+; @Author: DIE
+; @Copyright: (c) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: posix.men 5188 2020-04-07 14:38:55Z rdienstbeck $
+
+ADD
+MENU
+(
+  POPUP "&POSIX"
+  (
+    DEFAULT
+    MENUITEM "Display &Threads"     "TASK.PXThread"
+  )
+)
+
+
+MENU "task.pxt"
+(
+  DEFAULT
+  MENUITEM "Display detailed"
+  (
+    PRIVATE &magic
+    &magic=ADDRESS.OFFSET(TRACK.ADDRESS())
+    TASK.PXThread &magic
+  )
+  MENUITEM "Display thread struct"
+  (
+    PRIVATE &address
+    &address=TRACK.ADDRESS()
+    Var.View %Open %String (struct pthread*)(&address)
+  )
+  SEPARATOR
+  //  MENUITEM "Display Stack Frame"
+  //(
+  //  &address=ADDRESS.OFFSET(TRACK.ADDRESS())
+  //  Var.Frame /Locals /Caller /TASK &address
+  //)
+  //MENUITEM "Display Registers"
+  //(
+  //  &address=ADDRESS.OFFSET(TRACK.ADDRESS())
+  //  Register.view /TASK &address
+  //)
+  //MENUITEM "Switch Context"    "Frame.TASK     ADDRESS.OFFSET(TRACK.ADDRESS())"
+  //SEPARATOR
+  //MENUITEM "Add to Stack Cov"  "TASK.STacK.ADD    ADDRESS.OFFSET(TRACK.ADDRESS())"
+  //MENUITEM "Rm from Stack Cov" "TASK.STacK.ReMove ADDRESS.OFFSET(TRACK.ADDRESS())"
+  //SEPARATOR
+  MENUITEM "Dump thread entry"
+  (
+    PRIVATE &address
+    &address=TRACK.ADDRESS()
+    Data.dump &address /DIALOG
+  )
+)

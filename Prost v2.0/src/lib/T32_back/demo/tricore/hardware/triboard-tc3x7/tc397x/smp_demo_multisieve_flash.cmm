@@ -1,0 +1,198 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC397X on TriBoard-TC3x7 (SMP, Flash, multisieve)
+; @Description:
+;   Programs the multisieve demo application (multi-core) into the processor
+;   internal flash and sets up a demo debug scenario for SMP debugging. Further
+;   information is available in in the Tricore Processor Architecture Manual
+;   (pdf/debugger_tricore.pdf), chapter "SMP Debugging - Quick Start".
+; @Keywords: AURIX2G, flash, Infineon, multi-core, multisieve, TriCore
+; @Author: MOB
+; @Board: TriBoard-TC3x7
+; @Chip: TC397X
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: smp_demo_multisieve_flash.cmm 16184 2020-06-15 11:10:51Z sltaief $
+
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.CPU TC397X
+CORE.ASSIGN 1. 2. 3. 4. 5. 6. // assign cores to the SMP system
+SYStem.Up
+
+; optional settings:
+SYStem.Option DUALPORT ON
+SETUP.Var %SpotLight
+MAP.BOnchip 0x0--0xffffffff // force onchip-breakpoints
+
+; --------------------------------------------------------------------------------
+; Flash programming
+LOCAL &elfFile &progFlash &bmhdResult
+&elfFile="~~~~/tc39x_multisieve_intflash.elf"
+
+; prepare flash programming (declarations)
+DO ~~/demo/tricore/flash/tc39x.cmm CPU=TC397X PREPAREONLY
+
+; check if application is already in flash and load symbols
+Data.LOAD.Elf "&elfFile" /DIFF
+IF FOUND()
+(
+  ; ==== Step 1: Program TriCore code ====
+
+  DIALOG.YESNO "Program Lauterbach demo into flash memory?"
+  ENTRY &progFlash
+  IF (&progFlash)
+  (
+    ; enable flash programming
+    FLASH.ReProgram ALL
+
+    ; load demo application
+    Data.LOAD.Elf "&elfFile"
+
+    FLASH.ReProgram OFF
+  )
+
+  ; ==== Step 2: Write boot mode header ====
+
+  PRIVATE &progUcb &ucbOrigDiff &ucbCopyDiff &supported &DMU_HF_CONFIRM0 &result
+  &progUcb=FALSE()
+  ; Check if both UCBs are in state UNLOCKED or UNREAD. Other states are not supported by this script
+  &DMU_HF_CONFIRM0=Data.Long(ED:0xF8040020)
+  &supported=(((&DMU_HF_CONFIRM0)&(0x00020002))==0x00000000)
+  IF !&supported
+  (
+	  DIALOG.MESSAGE "UCB_BMHD0_ORIG or UCB_BMHD0_COPY are not in state unlocked or unread"
+  )
+  ; Check if we need to program the BMHD
+  &ucbOrigDiff=FALSE()
+  &ucbCopyDiff=FALSE()
+  IF &supported
+  (
+  	Data.LOAD.Elf "&elfFile" 0xAF400000++0x1FF /DIFF
+  	&ucbOrigDiff=FOUND()
+  	Data.LOAD.Elf "&elfFile" 0xAF401000++0x1FF /DIFF
+  	&ucbCopyDiff=FOUND()
+  )
+  IF (&ucbOrigDiff)||(&ucbCopyDiff)
+  (
+    DIALOG.YESNO "Configure UCB_BMHD0_ORIG and UCB_BMHD0_COPY to start demo application?"
+    ENTRY &progUcb
+  )
+
+  IF (&progUcb)&&(&ucbCopyDiff)
+  (
+    ; enable programming of UCB_BMHD0_COPY
+    DO ~~/demo/tricore/flash/tc3xx-ucb.cmm UCB=BMHD0_COPY PREPAREONLY
+    FLASH.AUTO 0xAF401000++0x1FF
+
+    ; load data of UCB_BMHD0_COPY
+    Data.LOAD.Elf "&elfFile" 0xAF401000++0x1FF
+
+    ; check if we loaded a valid UCB
+    DO ~~/demo/tricore/flash/tc3xx-ucb.cmm UCB=BMHD0_COPY CHECKUCB
+    ENTRY &result
+
+    IF ("&result"=="UCBOK")
+    (
+      FLASH.AUTO.off
+    )
+    ELSE
+    (
+      FLASH.AUTO.CANCEL
+    )
+    ; protect UCB sector against unwanted modification
+    FLASH.CHANGETYPE 0xAF401000++0x1FF NOP
+  )
+
+  IF (&progUcb)&&(&ucbOrigDiff)
+  (
+    ; enable programming of UCB_BMHD0_ORIG
+    DO ~~/demo/tricore/flash/tc3xx-ucb.cmm UCB=BMHD0_ORIG PREPAREONLY
+    FLASH.AUTO 0xAF400000++0x1FF
+
+    ; load data of UCB_BMHD0_ORIG
+    Data.LOAD.Elf "&elfFile" 0xAF400000++0x1FF
+
+    ; check if we loaded a valid UCB
+    DO ~~/demo/tricore/flash/tc3xx-ucb.cmm UCB=BMHD0_ORIG CHECKUCB
+    ENTRY &result
+
+    IF ("&result"=="UCBOK")
+    (
+      FLASH.AUTO.off
+    )
+    ELSE
+    (
+      FLASH.AUTO.CANCEL
+    )
+    ; protect UCB sector against unwanted modification
+    FLASH.CHANGETYPE 0xAF400000++0x1FF NOP
+  )
+
+  ; ==== Step 3: Verify programming ====
+
+  Data.LOAD.Elf "&elfFile" /DIFF
+  IF FOUND()
+  (
+    ; maybe some sections are still declared as NOP?
+    PRIVATE &diffAddress
+    &diffAddress=TRACK.ADDRESS()
+    DIALOG.MESSAGE "File &elfFile has not been fully flashed, difference found at address &diffAddress (check flash declaration)"
+  )
+)
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+WinPOS 0% 0% 33% 33%
+TargetSystem.state
+WinPOS 33% 0% 33% 33%
+List.auto
+WinPOS 66% 0% 33% 33%
+Var.Watch
+WinPOS 0% 33% 16% 33%
+List.auto /CORE 0.
+WinPOS 0% 66% 16% 33%
+Register.view /CORE 0.
+IF (CORENUMBER()>1.)
+(
+  WinPOS 16% 33% 16% 33%
+  List.auto /CORE 1.
+  WinPOS 16% 66% 16% 33%
+  Register.view /CORE 1.
+  IF (CORENUMBER()>2.)
+  (
+    WinPOS 32% 33% 16% 33%
+    List.auto /CORE 2.
+    WinPOS 32% 66% 16% 33%
+    Register.view /CORE 2.
+  )
+)
+  IF (CORENUMBER()>3.)
+  (
+    WinPOS 48% 33% 16% 33%
+    List.auto /CORE 3.
+    WinPOS 48% 66% 16% 33%
+    Register.view /CORE 3.
+  )
+
+  IF (CORENUMBER()>4.)
+  (
+    WinPOS 64% 33% 16% 33%
+    List.auto /CORE 4.
+    WinPOS 64% 66% 16% 33%
+    Register.view /CORE 4.
+  )
+
+  IF (CORENUMBER()>5.)
+  (
+    WinPOS 80% 33% 16% 33%
+    List.auto /CORE 5.
+    WinPOS 80% 66% 16% 33%
+    Register.view /CORE 5.
+  )
+
+Var.AddWatch %Hex flags flagsc flags0 flags1 flags2 flags3 flags4  flags5
+
+ENDDO

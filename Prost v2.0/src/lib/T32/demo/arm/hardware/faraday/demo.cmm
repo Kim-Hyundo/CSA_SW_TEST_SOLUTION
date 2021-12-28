@@ -1,0 +1,57 @@
+; --------------------------------------------------------------------------------
+; @Title: Sieve Demo for Faraday CPE-ASIC Motherboard + FA526 CPU Daughter Board
+; @Description: This script connects to the FA526 and loads a simple sieve demo on the SRAM
+; @Keywords: sieve
+; @Author: PEG
+; @Board: Faraday CPE-ASIC
+; @Chip: FA526
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+; PEG, 08.10.03
+
+  SYStem.CPU FA526
+  SYStem.JtagClock 4MHz
+  SYStem.Up
+
+; use program "burin2003" to initialize SDRAM at 0
+  Go
+  WAIT 2.s
+  Break
+
+; load demo application
+  Data.LOAD.AIF ~~~~/armla.axf
+
+; set program counter at program start
+  Register.Set PC main
+
+; initialize stack pointer
+  Register.Set r13 0x1000
+
+; open some windows
+  winclear
+  winpos 0% 0% 50% 50%
+  List.auto
+  winpos 50% 50% 50% 50%
+  MMU
+  winpos 0% 50% 50% 50%
+  Frame /Locals /Caller
+  winpos 50% 0% 50% 30%
+  Register /SpotLight
+  winpos 50% 30% 50% 20%
+  Var.Watch flags ast
+
+
+
+
+
+
+
+
+
+
+
+
+

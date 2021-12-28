@@ -1,0 +1,135 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo script for IMX8QM-CM4-0 on MX8QMLPD4CPU (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   Use this script for getting started.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to J500 using Adapter LA-3770
+;    * on some boards reset is not properly working -> please power cycle the board
+;    * follow the instructions in readme.txt
+;    * use bootimage-imx8qmlpd4cpu-bootloop-m4_0.img
+; @Keywords: ARM, Cortex-M4
+; @Author: AME
+; @Board: MX8QMLPD4CPU
+; @Chip: IMX8QM-CM4-0
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx8qm-lpd4cpu-m4_sieve_sram.cmm 15576 2020-01-27 10:11:09Z alintner $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU IMX8QM-CM4-0
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+SYStem.Mode Attach
+Break
+
+GOSUB InitHw_M4_0
+GOSUB DisableWatchdog_M4_0
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO
+
+InitHw_M4_0:
+(
+  ; Configure LMEM Parity/ECC Control Register
+  ;
+  ; Note: ECC Multi-bit IRQ should be disabled
+  ;       prior to list/dump of locations that
+  ;       have not been written to avoid vectoring
+  ;       to the NMI
+  ;
+  ; 31:22 RESERVED
+  ; 21    Enable Cache Parity IRQ
+  ; 20    Enable Cache Parity Report
+  ; 19:17 RESERVED
+  ; 16    Enable RAM Parity Reporting
+  ; 15:10 RESERVED
+  ; 9     Enable RAM ECC 1-bit IRQ
+  ; 8     Enable RAM ECC 1-bit Report
+  ; 7:2   RESERVED
+  ; 1     Enable RAM ECC Multi-bit IRQ
+  ; 0     Enable RAM ECC Multi-bit
+
+  Data.Set AD:0xE0080480 %LE %Long 0x00300001
+  RETURN
+)
+
+DisableWatchdog_M4_0:
+(
+  Data.Set AD:0x41420004 %Long 0xD928C520
+  Data.Set AD:0x41420008 %Long 0xFFFF
+  Data.Set AD:0x41420000 %Long 0y0X1Xxxxx ; (Data.Long(0x41420000)&~0x80)|0x20
+  ; Data.Assemble r(pc) movw r0,#0x0 movt r0,#0x4142 movw r1,#0xc520 movt r1,#0xd928 movw r2,#0xffff str r1,[r0,#0x4] str r2,[r0,#0x8] ldr r3,[r0] bic.w r3,r3,#0x80 orr r3,r3,#0x20 str r3,[r0] bkpt #0
+  ; Go
+  ; WAIT !STATE.RUN()
+  RETURN
+)
+
+InitHw_M4_1:
+(
+  ; Configure LMEM Parity/ECC Control Register
+  ;
+  ; Note: ECC Multi-bit IRQ should be disabled
+  ;       prior to list/dump of locations that
+  ;       have not been written to avoid vectoring
+  ;       to the NMI
+  ;
+  ; 31:22 RESERVED
+  ; 21    Enable Cache Parity IRQ
+  ; 20    Enable Cache Parity Report
+  ; 19:17 RESERVED
+  ; 16    Enable RAM Parity Reporting
+  ; 15:10 RESERVED
+  ; 9     Enable RAM ECC 1-bit IRQ
+  ; 8     Enable RAM ECC 1-bit Report
+  ; 7:2   RESERVED
+  ; 1     Enable RAM ECC Multi-bit IRQ
+  ; 0     Enable RAM ECC Multi-bit
+
+  Data.Set AD:0xE0080480 %LE %Long 0x00300001
+  RETURN
+)
+
+DisableWatchdog_M4_1:
+(
+  Data.Set AD:0x41420004 %Long 0xD928C520
+  Data.Set AD:0x41420008 %Long 0xFFFF
+  Data.Set AD:0x41420000 %Long 0y0X1Xxxxx ; (Data.Long(0x41420000)&~0x80)|0x20
+  ; Data.Assemble r(pc) movw r0,#0x0 movt r0,#0x4142 movw r1,#0xc520 movt r1,#0xd928 movw r2,#0xffff str r1,[r0,#0x4] str r2,[r0,#0x8] ldr r3,[r0] bic.w r3,r3,#0x80 orr r3,r3,#0x20 str r3,[r0] bkpt #0
+  ; Go
+  ; WAIT !STATE.RUN()
+  RETURN
+)

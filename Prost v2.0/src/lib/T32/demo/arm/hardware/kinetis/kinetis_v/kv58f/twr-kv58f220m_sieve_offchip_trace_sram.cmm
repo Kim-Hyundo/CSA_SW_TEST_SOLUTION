@@ -1,0 +1,134 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for MKV58F1M0VLQ24 on TWR-KV58F220M with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The Offchip Trace using a Combiprobe/uTrace or PowerTrace is set up.
+;   Use this script for testing the Offchip-Trace.
+;   Prerequisites:
+;      Connect Combiprobe/uTrace to J13
+;    * J17 MUST be removed!
+;    * Remove J19 and J20 to disconnect the onboard SDA
+; @Keywords: ARM, Cortex-M7, ETM, ITM
+; @Author: STK
+; @Board: TWR-KV58F220M
+; @Chip: MKV58F1M0VLQ24
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: twr-kv58f220m_sieve_offchip_trace_sram.cmm 16391 2020-08-07 13:23:12Z bwright $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU MKV58F1M0VLQ24
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock 10MHz
+Trace.DISable
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace (ETM, ITM)
+IF COMBIPROBE()||UTRACE()||Analyzer()
+(
+  ; set PinMux and enable Clocks
+  GOSUB enable_tpiu
+
+  TPIU.PortSize 4
+  TPIU.PortMode Continuous
+  ITM.DataTrace CorrelatedData
+  ITM.ON
+  ETM.Trace ON
+  ETM.COND ALL
+  ETM.ON
+)
+IF Analyzer()
+(
+  Trace.METHOD Analyzer
+  Trace.AutoInit ON
+  Trace.AutoFocus
+)
+ELSE IF COMBIPROBE()||UTRACE()
+(
+  Trace.METHOD CAnalyzer
+  Trace.AutoInit ON
+  CAnalyzer.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO
+
+DisableWatchdog:
+(
+  ; disable the Watchdog
+  Frame.SWAP
+  Data.Assemble ST:0x20000000  strh    r1,[r0]
+  Data.Assemble ,              strh    r2,[r0]
+  Data.Assemble ,              strh    r4,[r3]
+  Data.Assemble ,              bkpt    #0x0
+  Register.Set  R0 0x4005200E
+  Register.Set  R1 0x0000C520
+  Register.Set  R2 0x0000D928
+  Register.Set  R3 0x40052000
+  Register.Set  R4 0x00000000
+  Register.Set  PC 0x20000000
+  Go.direct
+  WAIT !RUN()
+  Frame.SWAP
+  RETURN
+)
+
+
+enable_tpiu:
+(
+  ; set PinMux and enable Clocks
+  Data.Set SD:0x40048038 %Long 0yXXXXxxxxXXXXxxxxXXXXxx1xXXXXxxxx // PORTA_CLK
+  Data.Set SD:0x40048004 %Long 0yXXXXxxxxXXXXxxxxXXX1xxxxXXXXxxxx // TRACE_CLK
+  Data.Set SD:0x40049018 %Long 0x00000740 // TRACECLK (PA6)
+  Data.Set SD:0x4004901C %Long 0x00000740 // TRACED3  (PA10)
+  Data.Set SD:0x40049020 %Long 0x00000740 // TRACED2  (PA9)
+  Data.Set SD:0x40049024 %Long 0x00000740 // TRACED1  (PA8)
+  Data.Set SD:0x40049028 %Long 0x00000740 // TRACED0  (PA7)
+  ;Data.Set SD:0x40048068 %Long 0x00000000 // Trace Clkdiv 0
+
+  RETURN
+)

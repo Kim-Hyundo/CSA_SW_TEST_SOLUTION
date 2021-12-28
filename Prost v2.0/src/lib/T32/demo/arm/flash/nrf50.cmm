@@ -1,0 +1,144 @@
+; --------------------------------------------------------------------------------
+; @Title: Example for flash declaration of Nordic Semiconductor NRF5x internal flash.
+;
+; @Description:
+; Script arguments:
+;
+;   DO nrf50 [PREPAREONLY]
+;
+;     PREPAREONLY only declares flash but does not execute flash programming
+;
+; Example:
+;
+;   DO ~~/demo/arm/flash/nrf50 PREPAREONLY
+;
+; List of NRF5x derivatives and their configuration:
+;
+;   CPU-Type        Flash size   Page size   SRAM size
+;                     (kB)         (Byte)       (kB)
+; ------------------------------------------------------------------------------
+;   nRF51422-QFAA     256          1024          16
+;   nRF51422-CEAA     256          1024          16
+;   nRF51422-QFAB     128          1024          16
+;   nRF51422-CDAB     128          1024          16
+;   nRF51422-QFAC     256          1024          32
+;   nRF51422-CFAC     256          1024          32
+;   nRF51822-QFAA     256          1024          16
+;   nRF51822-CEAA     256          1024          16
+;   nRF51822-QFAB     128          1024          16
+;   nRF51822-CDAB     128          1024          16
+;   nRF51822-QFAC     256          1024          32
+;   nRF51822-CFAC     256          1024          32
+;   nRF51822-CTAA     256          1024          32
+;   nRF51822-CTAC     256          1024          32
+;   nRF52810-QC       192          1024          24
+;   nRF52810_QF       192          1024          24
+;   nRF52832-CEAA     512          4096          64
+;   nRF52832-QFAA     512          4096          64
+;   nRF52832-QFAB     512          4096          64
+;   nRF52832-CIAA     512          4096          64
+;   nRF52840-QI      1024          4096         256
+;
+; @Author: FLC
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; @Chip: NRF5*
+; --------------------------------------------------------------------------------
+; $Rev: 7602 $
+; $Id: nrf50.cmm 7602 2019-11-05 15:02:25Z bschroefel $
+
+PRIVATE &parameters &param_prepareonly
+ENTRY %LINE &parameters
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+
+; ------------------------------------------------------------------------------
+; Setup CPU
+
+IF !SYStem.Up()
+(
+  SYStem.RESet
+  IF !CPUIS(NRF5*)
+  (
+    SYStem.CPU NRF5*
+  )
+  SYStem.JtagClock 1Mhz
+  ; nReset is likely to be configured as GPIO - use SYSRESETREQ only
+  SYStem.Option EnReset OFF
+  SYStem.Up
+)
+
+; --------------------------------------------------------------------------------
+; Flash declaration
+FLASH.RESet
+GOSUB FlashDeclaration
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; ------------------------------------------------------------------------------
+; Flash programming example
+
+DIALOG.YESNO "Program flash memory?"
+LOCAL &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.Erase.ALL
+  FLASH.ReProgram.ALL
+  Data.LOAD.auto * /Long
+  FLASH.ReProgram.off
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+)
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+; SUBROUTINES
+
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU
+FlashDeclaration:
+(
+  PRIVATE &flashsize &pagesize
+
+  IF CPUIS("NRF51822")||CPUIS("NRF51?22QFAB")||CPUIS("NRF51?22CDAB")
+  (
+    &flashsize=0x20000
+    &pagesize=0x400
+  )
+  ELSE IF CPUIS("NRF52810*")
+  (
+     &flashsize=0x30000
+     &pagesize=0x400
+  )
+  ELSE IF CPUIS("NRF52832*")
+  (
+     &flashsize=0x80000
+     &pagesize=0x1000
+  )
+  ELSE IF CPUIS("NRF52840*")
+  (
+     &flashsize=0x100000
+     &pagesize=0x1000
+  )
+  ELSE
+  (
+    &flashsize=0x40000
+    &pagesize=0x400
+  )
+
+  ; ------------------------------------------------------------------------------
+  ; Flash declaration
+  FLASH.Create 1. 0x000000000++(&flashsize-1) &pagesize TARGET Long
+  IF (CPUIS("NRF52*"))
+  (
+    FLASH.Create 2. 0x10001000++0x0FFF &pagesize NOP Long  ; UICR area
+  )
+
+  FLASH.TARGET 0x20000000 0x20001000 0x800 ~~/demo/arm/flash/long/nrf51.bin
+
+  RETURN
+)

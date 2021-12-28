@@ -1,0 +1,50 @@
+; --------------------------------------------------------------------------------
+; @Title: MB86R24 CFI NOR Flash configuration example
+; @Description:
+;   Show how to initialize CFI NOR Flash Programming on TWR-LS1021A board.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to J1 using adapter LA-3722
+;    * Set Bootmode: NOR-Flash
+;        SW4[6]=0y0        - SELFL=0y0
+;        SW4[3..1] = 0y100 - MPXMODE[2..0]=0y100
+;    * Set SW4[7] = 0y0 (ARM DAP)
+;    * Set SW4[5] = 0y0 (TESTMODE=0)
+; @Keywords: FLASH CFI M29EWL
+; @Author: AME
+; @Board: TRITON-C Promotion Board
+; @Chip: MB86R24
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: triton_flash_cfi.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU MB86R24
+SYStem.JtagClock CTCK 10MHz
+CORE.ASSIGN 1.
+SYStem.Up
+
+; some initializations
+; CRG.CRRRS = ?
+Data.Set AD:0x3B500028 %Long 0xF7FF770D
+; EBC.MODE0 = ?
+Data.Set AD:0x3C400000 %Long 0x1
+
+; use either the Misc->Flash Programming dialog
+; or the CLI
+; the board uses 16Bit bus, start address 0xe0000000
+; use the target SRAM "Target based programming"
+FLASH.CFI 0xe0000000 Word /TARGET 0x00100000 0x00101000 0x1000
+FLASH.List
+
+; FLASH.ReProgram ALL
+; Data.LOAD.Elf
+; DAta.Load.Binary
+; Flash.ReProgram OFF
+
+ENDDO

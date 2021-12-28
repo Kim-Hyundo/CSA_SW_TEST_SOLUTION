@@ -1,0 +1,173 @@
+; --------------------------------------------------------------------------------
+; @Title: AMP-Demo script for ZYNQ-ULTRASCALE+ on ZCU102 with Onchip-Trace
+; @Description:
+;   Setup a AMP debug session using a single script approach.
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario on the APU & RPU cores.
+;   The program flow is traced using the Onchip-Trace (ETF).
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to J6
+;    * set SW6 = 0y1111 (JTAG Bootmode)
+;    * short J14
+;    * TRACE32 is started using the .bat/.sh file in this directory
+; @Keywords: ARM, ETF, ETM
+; @Author: AME
+; @Board: ZCU102
+; @Chip: ZYNQ-ULTRASCALE+*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: zcu102_amp_onchip_etf_trace_sram.cmm 15576 2020-01-27 10:11:09Z alintner $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF VERSION.BUILD.BASE()<75524.
+(
+  PRINT %ERROR "Please use more recent Software! Contact support@lauterbach.com."
+  ENDDO
+)
+IF SYStem.INSTANCE()<1.
+(
+  PRINT %ERROR "TRACE32 is not running in AMP mode! Use .bat/.sh file in this directory."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; Close any existing REMOTE GUIs
+InterCom OTHERS QUIT
+
+; --------------------------------------------------------------------------------
+; open all SLAVE GUIs
+TargetSystem.NewInstance ARM_1 /ARCHitecture ARM
+TargetSystem.NewInstance ARM_2 /ARCHitecture ARM
+
+TITLE "TRACE32 for ARM64 - ZYNQ-ULTRASCALE+-APU - MASTER"
+InterCom ARM_1 TITLE "TRACE32 for ARM - ZYNQ-ULTRASCALE+-RPU - SLAVE1"
+InterCom ARM_2 TITLE "TRACE32 for ARM - ZYNQ-ULTRASCALE+-RPU - SLAVE2"
+
+; --------------------------------------------------------------------------------
+; common SYStem settings
+RESet
+InterCom ALL RESet
+InterCom ALL SYStem.RESet
+SYStem.CPU ZYNQ-ULTRASCALE+-APU
+SYStem.CONFIG CORE 1. 1.
+SYStem.CONFIG SLAVE OFF
+SYStem.Option TRST OFF
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 500ms
+CORE.ASSIGN 1.
+InterCom ARM_1 SYStem.CPU ZYNQ-ULTRASCALE+-RPU
+InterCom ARM_1 SYStem.CONFIG CORE 2. 1.
+InterCom ARM_1 SYStem.CONFIG SLAVE ON
+InterCom ARM_1 CORE.ASSIGN 1.
+InterCom ARM_2 SYStem.CPU ZYNQ-ULTRASCALE+-RPU
+InterCom ARM_2 SYStem.CONFIG CORE 3. 1.
+InterCom ARM_2 SYStem.CONFIG SLAVE ON
+InterCom ARM_2 CORE.ASSIGN 2.
+
+; disable Trace infrastructure for the moment - TPIU may be unclocked!
+ETM.OFF
+STM.OFF
+Trace.DISable
+InterCom ARM_1 ETM.OFF
+InterCom ARM_1 STM.OFF
+InterCom ARM_1 Trace.DISable
+InterCom ARM_2 ETM.OFF
+InterCom ARM_2 STM.OFF
+InterCom ARM_2 Trace.DISable
+
+SYStem.Mode Prepare
+
+DO "~~~~/../scripts/zynq-ultrascale_kick_bootcore.cmm" A53_X64
+
+SYStem.Mode.Attach
+IF STATE.RUN()
+  Break.direct
+
+; --------------------------------------------------------------------------------
+; kick secondary cores
+DO "~~~~/../scripts/zynq-ultrascale_kick_bootcore.cmm" _A53_234_X64
+DO "~~~~/../scripts/zynq-ultrascale_kick_bootcore.cmm" R5_SINGLE
+DO "~~~~/../scripts/zynq-ultrascale_kick_bootcore.cmm" _R5_2
+
+; --------------------------------------------------------------------------------
+; attach to all cores on all sessions
+SYStem.Down
+CORE.ASSIGN 1. 2. 3. 4.
+SYStem.Mode.Attach
+
+InterCom ARM_1 CORE.ASSIGN 1.
+InterCom ARM_1 SYStem.Mode.Up
+
+InterCom ARM_2 CORE.ASSIGN 2.
+InterCom ARM_2 SYStem.Mode.Up
+
+; --------------------------------------------------------------------------------
+; init ECC RAM on both CortexR cores
+InterCom ARM_1 Data.Set A:0x0--0xffff %Long 0x0
+InterCom ARM_2 Data.Set A:0x0--0xffff %Long 0x0
+
+; --------------------------------------------------------------------------------
+; load demo program on all cores (use internal RAM only)
+CORE.select 0.
+Data.LOAD.Elf ~~~~/master/sieve_ram_aarch64_v8.elf
+InterCom ARM_1 Data.LOAD.Elf ~~~~/slave1/sieve_ram_arm_v7r_le.elf
+InterCom ARM_2 Data.LOAD.Elf ~~~~/slave2/sieve_ram_arm_v7r_le.elf
+
+Register.Set PC _start_secondary /CORE 1.
+Register.Set PC _start_secondary /CORE 2.
+Register.Set PC _start_secondary /CORE 3.
+
+; --------------------------------------------------------------------------------
+; initialize ONCHIP trace (ETF)
+Trace.METHOD ONCHIP
+Trace.TraceCONNECT ETF1
+InterCom ARM_1 Trace.METHOD ONCHIP
+InterCom ARM_1 Trace.TraceCONNECT ETF2
+InterCom ARM_2 Trace.METHOD ONCHIP
+InterCom ARM_2 Trace.TraceCONNECT ETF2
+
+ETM.TraceID 1.
+ETM.Trace ON
+ETM.ON
+InterCom ARM_1 ETM.TraceID 5.
+InterCom ARM_1 ETM.Trace ON
+InterCom ARM_1 ETM.ON
+InterCom ARM_2 ETM.TraceID 6.
+InterCom ARM_2 ETM.Trace ON
+InterCom ARM_2 ETM.ON
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main\1
+WAIT !STATE.RUN()
+InterCom ARM_1 Go.direct main\1
+InterCom ARM_1 WAIT !STATE.RUN()
+InterCom ARM_2 Go.direct background\1
+InterCom ARM_2 WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 0. 32.
+Trace.List
+InterCom ARM_1 WinCLEAR
+InterCom ARM_1 Mode.Hll
+InterCom ARM_1 WinPOS 0. 0.
+InterCom ARM_1 List.auto
+InterCom ARM_1 WinPOS 0. 32.
+InterCom ARM_1 Trace.List
+InterCom ARM_2 WinCLEAR
+InterCom ARM_2 Mode.Hll
+InterCom ARM_2 WinPOS 0. 0.
+InterCom ARM_2 List.auto
+InterCom ARM_2 WinPOS 0. 32.
+InterCom ARM_2 Trace.List
+
+ENDDO

@@ -1,0 +1,79 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for STM32F401RE on nucleo-f401re (FLASH)
+; @Description:
+;   Programs the sieve demo application into the processor internal flash and
+;   sets up a demo debug scenario.
+;   This script can be used as a template for flashing an application.
+;   Prerequisites:
+;    This board does not provide a standard debug header. Please read the
+;    readme.txt for further instructions.
+; @Keywords: ARM, Cortex-M4, Flash
+; @Author: MIS
+; @Board: nucleo-f401re
+; @Chip: STM32F401RE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: nucleo-f401re_sieve_flash.cmm 14081 2019-03-08 14:14:26Z mschleinkofer $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU STM32F401RE
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock 10MHz
+Trace.DISable
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; Flash programming
+; Remove read protection if set
+PER.Set.simple AD:0x40023C08 %Long 0x08192A3B
+PER.Set.simple AD:0x40023C08 %Long 0x4C5D6E7F
+PER.Set.Field AD:0x40023C14 %Long 0xFF00 0xAA
+PER.Set.Field AD:0x40023C14 %Long 0x2 0x1
+WAIT 0.5s
+
+; prepare flash programming (declarations)
+DO ~~/demo/arm/flash/stm32f4xx.cmm PREPAREONLY
+
+; ReProgram Flash
+FLASH.ReProgram ALL
+Data.LOAD.Elf "~~~~/sieve_flash_thumb_ii_v7m.elf"
+FLASH.ReProgram OFF
+
+; --------------------------------------------------------------------------------
+; Reset the target again
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

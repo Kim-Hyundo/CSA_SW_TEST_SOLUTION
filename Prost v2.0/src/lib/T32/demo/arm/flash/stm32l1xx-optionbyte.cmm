@@ -1,0 +1,1332 @@
+; --------------------------------------------------------------------------------
+; @Title: ST STM32L1xx Flash Dialog to program Option Bytes.
+;
+; @Description:
+; Script arguments:
+;
+;   do stm32l1xx-optionbyte [RDP=0|1|NODEBUG]
+;           [BFB2=0|1] [NRST_STDBY=0|1] [NRST_STOP=0|1] [IWDG_SW=0|1]
+;           [BOR_LEV=<val>] [WRP1=<val>] [WRP2=<val>] [WRP3=<val>] [WRP4=<val>]
+;           [RESETDEVICE]
+;
+;     RDP=0|1|NODEBUG is programming read protection option byte
+;             0: disables flash read protection
+;             1: enables flash read protection
+;             NODEBUG: no debug
+;
+;     BFB2=0|1
+;             0: Boot from Bank2
+;             1: Boot space is selected by BOOT0 and BOOT1 pins
+;
+;     NRST_STDBY=0|1 is programming nRST_STDBY bit of user option byte
+;             0: Reset generated when entering Standby mode
+;             1: No reset generated
+;
+;     NRST_STOP=0|1 is programming nRST_STOP bit of user option byte
+;             0: Reset generated when entering Stop mode
+;             1: No reset generated.
+;
+;     IWDG_SW=0|1 is programming IWDG_SW bit of user option byte
+;             0: Hardware independant watchdog
+;             1: Software independant watchdog
+;
+;     BOR_LEV=<val> Brownout reset threshold level
+;
+;     WRPx=<val> is programming flash memory write protection option bytes
+;             WRP1..WRP4. Bit value 0 activates write protection for dedicated
+;             pages
+;
+;     RESETDEVICE reset device after option byte programming
+;
+;   Calling the script without argument starts the Option Byte programming
+;   dialog window.
+;
+; @Author: PHI
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 7616 $
+; $Id: stm32l1xx-optionbyte.cmm 7616 2019-11-08 07:18:24Z bschroefel $
+
+LOCAL &parameters
+ENTRY %LINE &parameters
+
+; LOCAL macros used as script global macros
+LOCAL &FlashRegBase       ; Flash controller base address
+LOCAL &FlashSize          ; Flash size
+LOCAL &OptionByteBase     ; Option byte base address
+LOCAL &WrpBits            ; Number of Write Proteect Bits
+LOCAL &PageSize           ; Page size
+LOCAL &WrpGranularity     ; Write protection granularity
+
+&FlashRegBase="tbd"
+&FlashSize=0x0
+&PageSize=0x0
+&OptionByteBase="tbd"
+&WrpBits=0.
+&WrpGranularity=0x1000
+
+; Macros for the Option Bytes
+LOCAL &OptByte_RDP &OptByte_USER &OptByte_SPRMOD
+LOCAL &OptByte_WRP1 &OptByte_WRP2 &OptByte_WRP3 &OptByte_WRP4
+
+&OptByte_SPRMOD=0x00
+&OptByte_RDP=0xAA
+&OptByte_USER=0x0
+&OptByte_WRP1=0x0
+&OptByte_WRP2=0x0
+&OptByte_WRP3=0x0
+&OptByte_WRP4=0x0
+&prog_rdp=FALSE()
+&prog_sprmod=FALSE()
+&prog_user=FALSE()
+&prog_wrp1=FALSE()
+&prog_wrp2=FALSE()
+&prog_wrp3=FALSE()
+&prog_wrp4=FALSE()
+
+; Look for any opened STM32L1x dialog windows and close them
+WHILE DIALOG.EXIST(CHK_WRP_0x0)
+  DIALOG.END
+
+; Checking CPU selection
+IF !CPUIS(STM32L1*)
+(
+  SYStem.RESet
+  SYStem.CPU STM32L1*
+)
+
+; Check system mode
+IF SYStem.MODE()<5
+  SYStem.Up
+
+; Setup configuration for CPU derivative
+&PageSize=0x100
+IF CPUIS("STM32L1???6*")
+(
+  &FlashSize=0x8000
+)
+ELSE IF CPUIS("STM32L1???8*")
+(
+  &FlashSize=0x10000
+)
+ELSE IF CPUIS("STM32L1???B*")
+(
+  &FlashSize=0x20000
+)
+ELSE IF CPUIS("STM32L1???C*")
+(
+  &FlashSize=0x40000
+)
+ELSE IF CPUIS("STM32L1???D*")
+(
+  &FlashSize=0x60000
+)
+ELSE IF CPUIS("STM32L1???E*")
+(
+  &FlashSize=0x80000
+)
+ELSE
+(
+  PRINT %ERROR "FLASH size of CPU type is unknown"
+  ENDDO
+)
+
+; Calculate number of write protect bits
+&WrpBits=&FlashSize/&WrpGranularity
+IF &WrpBits>96.
+(
+  PRINT %ERROR "FLASH write protection granularity problem, please request an update"
+  ENDDO
+)
+
+IF &WrpBits==0.||&FlashSize==0.
+(
+  DIALOG.OK SYStem.CPU()+" is not supported by the script"
+  ENDDO
+)
+ELSE
+(
+  &FlashRegBase="D:0x40023C00"
+  &OptionByteBase="D:0x1FF80000"
+)
+
+; Parse script arguments
+IF "&parameters"==""
+(
+  ;print "Call script with parameters: DO stm32l1xx-optionbyte [RDP=0|1|NODEBUG] [NRST_STDBY=0|1] [NRST_STOP=0|1] [IWDG_SW=0|1] [WRP1=<val>] [WRP2=<val>]"
+  GOSUB OptionByteDialog
+)
+ELSE
+(
+  LOCAL &param_SPRMOD &param_RDP &param_nRST_STDBY &param_nRST_STOP
+  LOCAL &param_IWDG_SW &param_BFB2 &param_BOR_LEV
+  LOCAL &param_WRP1 &param_WRP2 &param_WRP3 &param_WRP4 &param_resetDevice
+  LOCAL &read_user
+
+  &param_RDP=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"RDP=","")
+  &param_SPRMOD=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"SPRMOD=","")
+  &param_BFB2=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"BFB2=","")
+  &param_nRST_STDBY=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"NRST_STDBY=","")
+  &param_nRST_STOP=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"NRST_STOP=","")
+  &param_IWDG_SW=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"IWDG_SW=","")
+  &param_BOR_LEV=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"BOR_LEV=","")
+  &param_WRP1=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"WRP1=","")
+  &param_WRP2=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"WRP2=","")
+  &param_WRP3=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"WRP3=","")
+  &param_WRP4=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"WRP4=","")
+  &param_resetDevice=(STRing.SCAN(STRing.UPpeR("&parameters"),"RESETDEVICE",0)!=-1)
+  &prog_sprmod=FALSE()
+  &prog_rdp=FALSE()
+  &prog_user=FALSE()
+  &prog_wrp1=FALSE()
+  &prog_wrp2=FALSE()
+  &prog_wrp3=FALSE()
+  &prog_wrp4=FALSE()
+
+  GOSUB ReadOptionBytes
+
+  IF "&param_RDP"!=""
+  (
+    IF  ("&param_RDP"=="0")
+    (
+      IF (&OptByte_RDP!=0xAA)
+      (
+        &OptByte_RDP=0xAA
+        &prog_rdp=TRUE()
+      )
+    )
+    ELSE IF ("&param_RDP"=="1")
+    (
+      IF (&OptByte_RDP!=0x0)
+      (
+        &OptByte_RDP=0x00
+        &prog_rdp=TRUE()
+      )
+    )
+    ELSE IF "&param_RDP"=="NODEBUG"
+      &OptByte_RDP=0xCC
+    ELSE
+    (
+      PRINT %ERROR "Illagal parameter RDP="+"&param_RDP"
+      ENDDO
+    )
+    IF (&OptByte_RDP==0xCC)
+    (
+      GOSUB QueryNoDebug
+      ENTRY &nodebug
+      IF (!&nodebug)
+        ENDDO
+      &prog_rdp=TRUE()
+    )
+  )
+  IF "&param_SPRMOD"!=""
+  (
+     IF ("&param_SPRMOD"=="1")
+     (
+       IF (&OptByte_SPRMOD!=0x1)
+       (
+         &OptByte_SPRMOD=0x1
+         &prog_sprmod=TRUE()
+       )
+    )
+    ELSE IF ("&param_SPRMOD"=="0")
+    (
+      IF (&OptByte_SPRMOD!=0x0)
+      (
+        &OptByte_SPRMOD=0x0
+        &prog_sprmod=TRUE()
+      )
+    )
+    ELSE
+    (
+      PRINT %ERROR "Illagal parameter SPRMOD="+"&param_SPRMOD"
+      ENDDO
+    )
+  )
+
+  &read_user=&OptByte_USER
+
+  IF "&param_BFB2"!=""
+  (
+    IF "&param_BFB2"=="1"
+      &OptByte_USER=&OptByte_USER|0x80
+    ELSE IF  "&param_BFB2"=="0"
+      &OptByte_USER=&OptByte_USER&0x7F
+    ELSE
+    (
+      PRINT %ERROR "Illagal parameter BFB2="+"&param_BFB2"
+      ENDDO
+    )
+  )
+
+  IF "&param_nRST_STDBY"!=""
+  (
+    IF "&param_nRST_STDBY"=="1"
+      &OptByte_USER=&OptByte_USER|0x40
+    ELSE IF  "&param_nRST_STDBY"=="0"
+      &OptByte_USER=&OptByte_USER&0xBF
+    ELSE
+    (
+      PRINT %ERROR "Illagal parameter NRST_STDBY="+"&param_nRST_STDBY"
+      ENDDO
+    )
+  )
+
+  IF "&param_nRST_STOP"!=""
+  (
+    IF "&param_nRST_STOP"=="1"
+      &OptByte_USER=&OptByte_USER|0x20
+    ELSE IF  "&param_nRST_STOP"=="0"
+      &OptByte_USER=&OptByte_USER&0xDF
+    ELSE
+    (
+      PRINT %ERROR "Illagal parameter NRST_STOP="+"&param_nRST_STOP"
+      ENDDO
+    )
+  )
+
+  IF "&param_IWDG_SW"!=""
+  (
+    IF "&param_IWDG_SW"=="1"
+      &OptByte_USER=&OptByte_USER|0x10
+    ELSE IF  "&param_IWDG_SW"=="0"
+      &OptByte_USER=&OptByte_USER&0xEF
+    ELSE
+    (
+      PRINT %ERROR "Illagal parameter IWDG_SW="+"&param_IWDG_SW"
+      ENDDO
+    )
+  )
+
+  IF "&param_BOR_LEV"!=""
+  (
+    &OptByte_USER=(&OptByte_USER&0xF0)|&param_BOR_LEV
+    IF (&param_BOR_LEV>0xF||&param_BOR_LEV<0x0)
+    (
+      PRINT %ERROR "Illagal parameter BOR_LEV="+"&param_BOR_LEV" "! BOR_LEV is out of range! " "BOR_LEV must be a 8-bit unsigned numeric value"
+      ENDDO
+    )
+  )
+
+  IF (&read_user!=&OptByte_USER)
+    &prog_user=TRUE()
+  
+
+  IF ("&param_WRP1"!="")
+  (
+    IF (&OptByte_WRP1!=&param_WRP1)
+    (
+      &OptByte_WRP1=&param_WRP1
+      &prog_wrp1=TRUE()
+    )
+  )
+  IF ("&param_WRP2"!="")
+  (
+    IF (&OptByte_WRP2!=&param_WRP2)
+    (
+      &OptByte_WRP2=&param_WRP2
+      &prog_wrp2=TRUE()
+    )
+  )
+  IF ("&param_WRP3"!="")
+  (
+    IF (&OptByte_WRP3!=&param_WRP3)
+    (
+      &OptByte_WRP3=&param_WRP3
+      &prog_wrp3=TRUE()
+    )
+  )
+  IF ("&param_WRP4"!="")
+  (
+    IF (&OptByte_WRP4!=&param_WRP4)
+    (
+      &OptByte_WRP4=&param_WRP4
+      &prog_wrp4=TRUE()
+    )
+  )
+
+  ; Program option bytes into flash
+  IF (&prog_rdp==TRUE())||(&prog_sprmod==TRUE())||(&prog_user==TRUE())||(&prog_wrp1==TRUE())||(&prog_wrp2==TRUE())||(&prog_wrp3==TRUE())||(&prog_wrp4==TRUE())
+    GOSUB ProgramOptionBytes
+
+  ; Reset device to activate programmed option bytes
+  IF &param_resetDevice
+    GOSUB ResetDevice
+)
+
+ENDDO
+
+
+; --------------------------------------------------------------------------------
+; NVM bit programming dialog window
+
+OptionByteDialog:
+(
+  LOCAL &WRP_0_pages &WRP_1_pages &WRP_2_pages &WRP_3_pages &WRP_4_pages &WRP_5_pages &WRP_6_pages &WRP_7_pages &WRP_8_pages &WRP_9_pages
+  LOCAL &WRP_10_pages &WRP_11_pages &WRP_12_pages &WRP_13_pages &WRP_14_pages &WRP_15_pages &WRP_16_pages &WRP_17_pages &WRP_18_pages &WRP_19_pages
+  LOCAL &WRP_20_pages &WRP_21_pages &WRP_22_pages &WRP_23_pages &WRP_24_pages &WRP_25_pages &WRP_26_pages &WRP_27_pages &WRP_28_pages &WRP_29_pages
+  LOCAL &WRP_30_pages &WRP_31_pages &WRP_32_pages &WRP_33_pages &WRP_34_pages &WRP_35_pages &WRP_36_pages &WRP_37_pages &WRP_38_pages &WRP_39_pages
+  LOCAL &WRP_40_pages &WRP_41_pages &WRP_42_pages &WRP_43_pages &WRP_44_pages &WRP_45_pages &WRP_46_pages &WRP_47_pages &WRP_48_pages &WRP_49_pages
+  LOCAL &WRP_50_pages &WRP_51_pages &WRP_52_pages &WRP_53_pages &WRP_54_pages &WRP_55_pages &WRP_56_pages &WRP_57_pages &WRP_58_pages &WRP_59_pages
+  LOCAL &WRP_60_pages &WRP_61_pages &WRP_62_pages &WRP_63_pages &WRP_64_pages &WRP_65_pages &WRP_66_pages &WRP_67_pages &WRP_68_pages &WRP_69_pages
+  LOCAL &WRP_70_pages &WRP_71_pages &WRP_72_pages &WRP_73_pages &WRP_74_pages &WRP_75_pages &WRP_76_pages &WRP_77_pages &WRP_78_pages &WRP_79_pages
+  LOCAL &WRP_80_pages &WRP_81_pages &WRP_82_pages &WRP_83_pages &WRP_84_pages &WRP_85_pages &WRP_86_pages &WRP_87_pages &WRP_88_pages &WRP_89_pages
+  LOCAL &WRP_90_pages &WRP_91_pages &WRP_92_pages &WRP_93_pages &WRP_94_pages &WRP_95_pages &WRP_96_pages &WRP_97_pages &WRP_98_pages &WRP_99_pages
+  LOCAL &WRP_100_pages &WRP_101_pages &WRP_102_pages &WRP_103_pages  &WRP_104_pages &WRP_105_pages &WRP_106_pages &WRP_107_pages &WRP_108_pages
+  LOCAL &WRP_109_pages &WRP_110_pages &WRP_111_pages &WRP_112_pages &WRP_113_pages &WRP_114_pages &WRP_115_pages &WRP_116_pages &WRP_117_pages
+  LOCAL &WRP_118_pages &WRP_119_pages &WRP_120_pages &WRP_121_pages &WRP_122_pages &WRP_123_pages &WRP_124_pages &WRP_125_pages &WRP_126_pages &WRP_127_pages
+
+
+  &WRP_0_pages="0--15"
+  &WRP_1_pages="16--31"
+  &WRP_2_pages="32--47"
+  &WRP_3_pages="48--63"
+  &WRP_4_pages="64--79"
+  &WRP_5_pages="80--95"
+  &WRP_6_pages="96--111"
+  &WRP_7_pages="112--127"
+;  IF (&FlashSize>0x8000)
+  (
+    &WRP_8_pages="128--143"
+    &WRP_9_pages="144--159"
+    &WRP_10_pages="160--177"
+    &WRP_11_pages="176--191"
+    &WRP_12_pages="192--207"
+    &WRP_13_pages="208--223"
+    &WRP_14_pages="224--239"
+    &WRP_15_pages="240--255"
+;;    IF (&FlashSize>0x10000)
+    (
+      &WRP_16_pages="256--271"
+      &WRP_17_pages="272--287"
+      &WRP_18_pages="288--303"
+      &WRP_19_pages="304--319"
+      &WRP_20_pages="320--335"
+      &WRP_21_pages="336--351"
+      &WRP_22_pages="352--367"
+      &WRP_23_pages="368--383"
+      &WRP_24_pages="384--399"
+      &WRP_25_pages="400--415"
+      &WRP_26_pages="416--431"
+      &WRP_27_pages="432--447"
+      &WRP_28_pages="448--463"
+      &WRP_29_pages="464--479"
+      &WRP_30_pages="480--495"
+      &WRP_31_pages="496--511"
+;      IF (&FlashSize>0x20000)
+      (
+        &WRP_32_pages="512--527"
+        &WRP_33_pages="528--543"
+        &WRP_34_pages="544--559"
+        &WRP_35_pages="560--575"
+        &WRP_36_pages="576--591"
+        &WRP_37_pages="592--607"
+        &WRP_38_pages="608--623"
+        &WRP_39_pages="624--639"
+        &WRP_40_pages="640--655"
+        &WRP_41_pages="656--671"
+        &WRP_42_pages="672--687"
+        &WRP_43_pages="688--703"
+        &WRP_44_pages="704--719"
+        &WRP_45_pages="720--735"
+        &WRP_46_pages="736--751"
+        &WRP_47_pages="752--767"
+        &WRP_48_pages="768--783"
+        &WRP_49_pages="784--799"
+        &WRP_50_pages="800--815"
+        &WRP_51_pages="816--831"
+        &WRP_52_pages="832--847"
+        &WRP_53_pages="848--863"
+        &WRP_54_pages="864--879"
+        &WRP_55_pages="880--895"
+        &WRP_56_pages="896--911"
+        &WRP_57_pages="912--927"
+        &WRP_58_pages="928--943"
+        &WRP_59_pages="944--959"
+        &WRP_60_pages="960--9750"
+        &WRP_61_pages="976--991"
+        &WRP_62_pages="992--1007"
+        &WRP_63_pages="1008--1023"
+;        IF (&FlashSize>0x40000)
+        (
+          &WRP_64_pages="1024--1039"
+          &WRP_65_pages="1040--1055"
+          &WRP_66_pages="1056--1071"
+          &WRP_67_pages="1072--1087"
+          &WRP_68_pages="1088--1103"
+          &WRP_69_pages="1104--1119"
+          &WRP_70_pages="1120--1135"
+          &WRP_71_pages="1136--1151"
+          &WRP_72_pages="1152--1167"
+          &WRP_73_pages="1168--1183"
+          &WRP_74_pages="1184--1199"
+          &WRP_75_pages="1200--1215"
+          &WRP_76_pages="1216--1231"
+          &WRP_77_pages="1232--1247"
+          &WRP_78_pages="1248--1263"
+          &WRP_79_pages="1264--1279"
+          &WRP_80_pages="1280--1295"
+          &WRP_81_pages="1296--1311"
+          &WRP_82_pages="1312--1327"
+          &WRP_83_pages="1328--1343"
+          &WRP_84_pages="1344--1359"
+          &WRP_85_pages="1360--1375"
+          &WRP_86_pages="1376--1391"
+          &WRP_87_pages="1392--1407"
+          &WRP_88_pages="1408--1423"
+          &WRP_89_pages="1424--1439"
+          &WRP_90_pages="1440--1455"
+          &WRP_91_pages="1456--1471"
+          &WRP_92_pages="1472--1487"
+          &WRP_93_pages="1488--1503"
+          &WRP_94_pages="1504--1519"
+          &WRP_95_pages="1520--1535"
+;         IF (&FlashSize>0x60000)
+          (
+            &WRP_96_pages="1536--1551"
+            &WRP_97_pages="1552--1567"
+            &WRP_98_pages="1568--1583"
+            &WRP_99_pages="1584--1599"
+            &WRP_100_pages="1600--1615"
+            &WRP_101_pages="1616--1631"
+            &WRP_102_pages="1632--1647"
+            &WRP_103_pages="1648--1663"
+            &WRP_104_pages="1664--1679"
+            &WRP_105_pages="1680--1695"
+            &WRP_106_pages="1696--1711"
+            &WRP_107_pages="1712--1727"
+            &WRP_108_pages="1728--1743"
+            &WRP_109_pages="1744--1759"
+            &WRP_110_pages="1760--1775"
+            &WRP_111_pages="1776--1791"
+            &WRP_112_pages="1792--1807"
+            &WRP_113_pages="1808--1823"
+            &WRP_114_pages="1824--1839"
+            &WRP_115_pages="1840--1855"
+            &WRP_116_pages="1856--1871"
+            &WRP_117_pages="1872--1887"
+            &WRP_118_pages="1888--1903"
+            &WRP_119_pages="1904--1919"
+            &WRP_120_pages="1920--1935"
+            &WRP_121_pages="1936--1951"
+            &WRP_122_pages="1952--1967"
+            &WRP_123_pages="1968--1983"
+            &WRP_124_pages="1984--1999"
+            &WRP_125_pages="2000--2015"
+            &WRP_126_pages="2016--2031"
+            &WRP_127_pages="2032--2047"
+          )
+        )
+      )
+    )
+  )
+
+  ; Creating the main dialog. (& afer DIALOG command must be in first column!
+  WinPOS 50. 5. 69. 34.
+
+  DIALOG.view
+  (&
+                HEADER SYStem.CPU()+" option bytes"
+
+                POS  1. 0. 67. 21.
+                BOX "Write protected flash pages"
+
+                POS  3. 2. 7. 1.
+CHK_WRP_0x0:    CHECKBOX "&WRP_0_pages" ""
+                POS 11. 2. 7. 1.
+CHK_WRP_0x1:    CHECKBOX "&WRP_1_pages" ""
+                POS 19. 2. 7. 1.
+CHK_WRP_0x2:    CHECKBOX "&WRP_2_pages" ""
+                POS 27. 2. 7. 1.
+CHK_WRP_0x3:    CHECKBOX "&WRP_3_pages" ""
+                POS 35. 2. 7. 1.
+CHK_WRP_0x4:    CHECKBOX "&WRP_4_pages" ""
+                POS 43. 2. 7. 1.
+CHK_WRP_0x5:    CHECKBOX "&WRP_5_pages" ""
+                POS 51. 2. 7. 1.
+CHK_WRP_0x6:    CHECKBOX "&WRP_6_pages" ""
+                POS 59. 2. 7. 1.
+CHK_WRP_0x7:    CHECKBOX "&WRP_7_pages" ""
+                POS  3. 3. 7. 1.
+CHK_WRP_0x8:    CHECKBOX "&WRP_8_pages" ""
+                POS 11. 3. 7. 1.
+CHK_WRP_0x9:    CHECKBOX "&WRP_9_pages" ""
+                POS 19. 3. 7. 1.
+CHK_WRP_0xA:    CHECKBOX "&WRP_10_pages" ""
+                POS 27. 3. 7. 1.
+CHK_WRP_0xB:    CHECKBOX "&WRP_11_pages" ""
+                POS 35. 3. 7. 1.
+CHK_WRP_0xC:    CHECKBOX "&WRP_12_pages" ""
+                POS 43. 3. 7. 1.
+CHK_WRP_0xD:    CHECKBOX "&WRP_13_pages" ""
+                POS 51. 3. 7. 1.
+CHK_WRP_0xE:    CHECKBOX "&WRP_14_pages" ""
+                POS 59. 3. 7. 1.
+CHK_WRP_0xF:    CHECKBOX "&WRP_15_pages" ""
+                POS  3. 4. 7. 1.
+CHK_WRP_0x10:   CHECKBOX "&WRP_16_pages" ""
+                POS 11. 4. 7. 1.
+CHK_WRP_0x11:   CHECKBOX "&WRP_17_pages" ""
+                POS 19. 4. 7. 1.
+CHK_WRP_0x12:   CHECKBOX "&WRP_18_pages" ""
+                POS 27. 4. 7. 1.
+CHK_WRP_0x13:   CHECKBOX "&WRP_19_pages" ""
+                POS 35. 4. 7. 1.
+CHK_WRP_0x14:   CHECKBOX "&WRP_20_pages" ""
+                POS 43. 4. 7. 1.
+CHK_WRP_0x15:   CHECKBOX "&WRP_21_pages" ""
+                POS 51. 4. 7. 1.
+CHK_WRP_0x16:   CHECKBOX "&WRP_22_pages" ""
+                POS 59. 4. 7. 1.
+CHK_WRP_0x17:   CHECKBOX "&WRP_23_pages" ""
+                POS  3. 5. 7. 1.
+CHK_WRP_0x18:   CHECKBOX "&WRP_24_pages" ""
+                POS 11. 5. 7. 1.
+CHK_WRP_0x19:   CHECKBOX "&WRP_25_pages" ""
+                POS 19. 5. 7. 1.
+CHK_WRP_0x1A:   CHECKBOX "&WRP_26_pages" ""
+                POS 27. 5. 7. 1.
+CHK_WRP_0x1B:   CHECKBOX "&WRP_27_pages" ""
+                POS 35. 5. 7. 1.
+CHK_WRP_0x1C:   CHECKBOX "&WRP_28_pages" ""
+                POS 43. 5. 7. 1.
+CHK_WRP_0x1D:   CHECKBOX "&WRP_29_pages" ""
+                POS 51. 5. 7. 1.
+CHK_WRP_0x1E:   CHECKBOX "&WRP_30_pages" ""
+                POS 59. 5. 7. 1.
+CHK_WRP_0x1F:   CHECKBOX "&WRP_31_pages" ""
+                POS  3. 6. 7. 1.
+CHK_WRP_0x20:   CHECKBOX "&WRP_32_pages" ""
+                POS 11. 6. 7. 1.
+CHK_WRP_0x21:    CHECKBOX "&WRP_33_pages" ""
+                POS 19. 6. 7. 1.
+CHK_WRP_0x22:    CHECKBOX "&WRP_34_pages" ""
+                POS 27. 6. 7. 1.
+CHK_WRP_0x23:    CHECKBOX "&WRP_35_pages" ""
+                POS 35. 6. 7. 1.
+CHK_WRP_0x24:    CHECKBOX "&WRP_36_pages" ""
+                POS 43. 6. 7. 1.
+CHK_WRP_0x25:    CHECKBOX "&WRP_37_pages" ""
+                POS 51. 6. 7. 1.
+CHK_WRP_0x26:    CHECKBOX "&WRP_38_pages" ""
+                POS 59. 6. 7. 1.
+CHK_WRP_0x27:    CHECKBOX "&WRP_39_pages" ""
+                POS  3. 7. 7. 1.
+CHK_WRP_0x28:    CHECKBOX "&WRP_40_pages" ""
+                POS 11. 7. 7. 1.
+CHK_WRP_0x29:    CHECKBOX "&WRP_41_pages" ""
+                POS 19. 7. 7. 1.
+CHK_WRP_0x2A:    CHECKBOX "&WRP_42_pages" ""
+                POS 27. 7. 7. 1.
+CHK_WRP_0x2B:    CHECKBOX "&WRP_43_pages" ""
+                POS 35. 7. 7. 1.
+CHK_WRP_0x2C:    CHECKBOX "&WRP_44_pages" ""
+                POS 43. 7. 7. 1.
+CHK_WRP_0x2D:    CHECKBOX "&WRP_45_pages" ""
+                POS 51. 7. 7. 1.
+CHK_WRP_0x2E:    CHECKBOX "&WRP_46_pages" ""
+                POS 59. 7. 7. 1.
+CHK_WRP_0x2F:    CHECKBOX "&WRP_47_pages" ""
+                POS  3. 8. 7. 1.
+CHK_WRP_0x30:   CHECKBOX "&WRP_48_pages" ""
+                POS  11. 8. 7. 1.
+CHK_WRP_0x31:   CHECKBOX "&WRP_49_pages" ""
+                POS  19. 8. 7. 1.
+CHK_WRP_0x32:   CHECKBOX "&WRP_50_pages" ""
+                POS  27. 8. 7. 1.
+CHK_WRP_0x33:   CHECKBOX "&WRP_51_pages" ""
+                POS  35. 8. 7. 1.
+CHK_WRP_0x34:   CHECKBOX "&WRP_52_pages" ""
+                POS  43. 8. 7. 1.
+CHK_WRP_0x35:   CHECKBOX "&WRP_53_pages" ""
+                POS  51. 8. 7. 1.
+CHK_WRP_0x36:   CHECKBOX "&WRP_54_pages" ""
+                POS  59. 8. 7. 1.
+CHK_WRP_0x37:   CHECKBOX "&WRP_55_pages" ""
+                POS  3. 9. 7. 1.
+CHK_WRP_0x38:    CHECKBOX "&WRP_56_pages" ""
+                POS  11. 9. 7. 1.
+CHK_WRP_0x39:    CHECKBOX "&WRP_57_pages" ""
+                POS  19. 9. 7. 1.
+CHK_WRP_0x3A:    CHECKBOX "&WRP_58_pages" ""
+                POS  27. 9. 7. 1.
+CHK_WRP_0x3B:    CHECKBOX "&WRP_59_pages" ""
+                POS  35. 9. 7. 1.
+CHK_WRP_0x3C:    CHECKBOX "&WRP_60_pages" ""
+                POS  43. 9. 7. 1.
+CHK_WRP_0x3D:    CHECKBOX "&WRP_61_pages" ""
+                POS  51. 9. 7. 1.
+CHK_WRP_0x3E:    CHECKBOX "&WRP_62_pages" ""
+                POS  59. 9. 7. 1.
+CHK_WRP_0x3F:    CHECKBOX "&WRP_63_pages" ""
+                POS  3. 10. 7. 1.
+CHK_WRP_0x40:    CHECKBOX "&WRP_64_pages" ""
+                POS  11. 10. 7. 1.
+CHK_WRP_0x41:    CHECKBOX "&WRP_65_pages" ""
+                POS  19. 10. 7. 1.
+CHK_WRP_0x42:    CHECKBOX "&WRP_66_pages" ""
+                POS  27. 10. 7. 1.
+CHK_WRP_0x43:    CHECKBOX "&WRP_67_pages" ""
+                POS  35. 10. 7. 1.
+CHK_WRP_0x44:    CHECKBOX "&WRP_68_pages" ""
+                POS  43. 10. 7. 1.
+CHK_WRP_0x45:    CHECKBOX "&WRP_69_pages" ""
+                POS  51. 10. 7. 1.
+CHK_WRP_0x46:    CHECKBOX "&WRP_70_pages" ""
+                POS  59. 10. 7. 1.
+CHK_WRP_0x47:    CHECKBOX "&WRP_71_pages" ""
+                POS  3. 11. 7. 1.
+CHK_WRP_0x48:    CHECKBOX "&WRP_72_pages" ""
+                POS  11. 11. 7. 1.
+CHK_WRP_0x49:    CHECKBOX "&WRP_73_pages" ""
+                POS  19. 11. 7. 1.
+CHK_WRP_0x4A:    CHECKBOX "&WRP_74_pages" ""
+                POS  27. 11. 7. 1.
+CHK_WRP_0x4B:    CHECKBOX "&WRP_75_pages" ""
+                POS  35. 11. 7. 1.
+CHK_WRP_0x4C:    CHECKBOX "&WRP_76_pages" ""
+                POS  43. 11. 7. 1.
+CHK_WRP_0x4D:    CHECKBOX "&WRP_77_pages" ""
+                POS  51. 11. 7. 1.
+CHK_WRP_0x4E:    CHECKBOX "&WRP_78_pages" ""
+                POS  59. 11. 7. 1.
+CHK_WRP_0x4F:    CHECKBOX "&WRP_79_pages" ""
+                POS  3. 12. 7. 1.
+CHK_WRP_0x50:    CHECKBOX "&WRP_80_pages" ""
+                POS  11. 12. 7. 1.
+CHK_WRP_0x51:    CHECKBOX "&WRP_81_pages" ""
+                POS  19. 12. 7. 1.
+CHK_WRP_0x52:    CHECKBOX "&WRP_82_pages" ""
+                POS  27. 12. 7. 1.
+CHK_WRP_0x53:    CHECKBOX "&WRP_83_pages" ""
+                POS  35. 12. 7. 1.
+CHK_WRP_0x54:    CHECKBOX "&WRP_84_pages" ""
+                POS  43. 12. 7. 1.
+CHK_WRP_0x55:    CHECKBOX "&WRP_85_pages" ""
+                POS  51. 12. 7. 1.
+CHK_WRP_0x56:    CHECKBOX "&WRP_86_pages" ""
+                POS  59. 12. 7. 1.
+CHK_WRP_0x57:    CHECKBOX "&WRP_87_pages" ""
+                POS  3. 13. 7. 1.
+CHK_WRP_0x58:    CHECKBOX "&WRP_88_pages" ""
+                POS  11. 13. 7. 1.
+CHK_WRP_0x59:    CHECKBOX "&WRP_89_pages" ""
+                POS  19. 13. 7. 1.
+CHK_WRP_0x5A:    CHECKBOX "&WRP_90_pages" ""
+                POS  27. 13. 7. 1.
+CHK_WRP_0x5B:    CHECKBOX "&WRP_91_pages" ""
+                POS  35. 13. 7. 1.
+CHK_WRP_0x5C:    CHECKBOX "&WRP_92_pages" ""
+                POS  43. 13. 7. 1.
+CHK_WRP_0x5D:    CHECKBOX "&WRP_93_pages" ""
+                POS  51. 13. 7. 1.
+CHK_WRP_0x5E:    CHECKBOX "&WRP_94_pages" ""
+                POS  59. 13. 7. 1.
+CHK_WRP_0x5F:    CHECKBOX "&WRP_95_pages" ""
+                POS  3. 14. 7. 1.
+CHK_WRP_0x60:    CHECKBOX "&WRP_96_pages" ""
+                POS  11. 14. 7. 1.
+CHK_WRP_0x61:    CHECKBOX "&WRP_97_pages" ""
+                POS  19. 14. 7. 1.
+CHK_WRP_0x62:    CHECKBOX "&WRP_98_pages" ""
+                POS  27. 14. 7. 1.
+CHK_WRP_0x63:    CHECKBOX "&WRP_99_pages" ""
+                POS  35. 14. 7. 1.
+CHK_WRP_0x64:    CHECKBOX "&WRP_100_pages" ""
+                POS  43. 14. 7. 1.
+CHK_WRP_0x65:    CHECKBOX "&WRP_101_pages" ""
+                POS  51. 14. 7. 1.
+CHK_WRP_0x66:    CHECKBOX "&WRP_102_pages" ""
+                POS  59. 14. 7. 1.
+CHK_WRP_0x67:    CHECKBOX "&WRP_103_pages" ""
+                POS  3. 15. 7. 1.
+CHK_WRP_0x68:    CHECKBOX "&WRP_104_pages" ""
+                POS  11. 15. 7. 1.
+CHK_WRP_0x69:    CHECKBOX "&WRP_105_pages" ""
+                POS  19. 15. 7. 1.
+CHK_WRP_0x6A:    CHECKBOX "&WRP_106_pages" ""
+                POS  27. 15. 7. 1.
+CHK_WRP_0x6B:    CHECKBOX "&WRP_107_pages" ""
+                POS  35. 15. 7. 1.
+CHK_WRP_0x6C:    CHECKBOX "&WRP_108_pages" ""
+                POS  43. 15. 7. 1.
+CHK_WRP_0x6D:    CHECKBOX "&WRP_109_pages" ""
+                POS  51. 15. 7. 1.
+CHK_WRP_0x6E:    CHECKBOX "&WRP_110_pages" ""
+                POS  59. 15. 7. 1.
+CHK_WRP_0x6F:    CHECKBOX "&WRP_111_pages" ""
+                POS  3. 16. 7. 1.
+CHK_WRP_0x70:    CHECKBOX "&WRP_112_pages" ""
+                POS  11. 16. 7. 1.
+CHK_WRP_0x71:    CHECKBOX "&WRP_113_pages" ""
+                POS  19. 16. 7. 1.
+CHK_WRP_0x72:    CHECKBOX "&WRP_114_pages" ""
+                POS  27. 16. 7. 1.
+CHK_WRP_0x73:    CHECKBOX "&WRP_115_pages" ""
+                POS  35. 16. 7. 1.
+CHK_WRP_0x74:    CHECKBOX "&WRP_116_pages" ""
+                POS  43. 16. 7. 1.
+CHK_WRP_0x75:    CHECKBOX "&WRP117__pages" ""
+                POS  51. 16. 7. 1.
+CHK_WRP_0x76:    CHECKBOX "&WRP_118_pages" ""
+                POS  59. 16. 7. 1.
+CHK_WRP_0x77:    CHECKBOX "&WRP_119_pages" ""
+                POS  3. 17. 7. 1.
+CHK_WRP_0x78:    CHECKBOX "&WRP_120_pages" ""
+                POS  11. 17. 7. 1.
+CHK_WRP_0x79:    CHECKBOX "&WRP_121_pages" ""
+                POS  19. 17. 7. 1.
+CHK_WRP_0x7A:    CHECKBOX "&WRP_122_pages" ""
+                POS  27. 17. 7. 1.
+CHK_WRP_0x7B:    CHECKBOX "&WRP_123_pages" ""
+                POS  35. 17. 7. 1.
+CHK_WRP_0x7C:    CHECKBOX "&WRP_124_pages" ""
+                POS  43. 17. 7. 1.
+CHK_WRP_0x7D:    CHECKBOX "&WRP_125_pages" ""
+                POS  51. 17. 7. 1.
+CHK_WRP_0x7E:    CHECKBOX "&WRP_126_pages" ""
+                POS  59. 17. 7. 1.
+CHK_WRP_0x7F:    CHECKBOX "&WRP_127_pages" ""
+
+                POS  3. 19. 9. 1.
+                BUTTON "Select All" "GOSUB WRPSelectAll"
+                POS 13. 19. 9. 1.
+                BUTTON "Deselect All" "GOSUB WRPDeselectAll"
+                POS  1. 21. 67. 5.
+                BOX "Read protection option byte"
+
+                POS  3. 23. 20. 1.
+CHSB_SPRMOD.WR:   CHOOSEBOX "WRP is only write protection" ""
+                POS  24. 23. 20. 1.
+CHSB_SPRMOD.RDWR: CHOOSEBOX "WRP is read/write protection" ""
+                POS  3. 24. 20. 1.
+CHSB_RDP.OFF:   CHOOSEBOX "no read protection" ""
+                POS  24. 24. 20. 1.
+CHSB_RDP.ON:    CHOOSEBOX "read protection" ""
+                POS  45. 24. 20. 1.
+CHSB_RDP.NODEBUG: CHOOSEBOX "no debug" "GOSUB SelectNoDebug"
+
+                POS  1. 26. 67. 5.
+                BOX "User option byte"
+                
+                POS  3. 28. 24. 1.
+CHK_RST_STDBY:  CHECKBOX "Reset when entering Standby mode" ""
+                POS  3. 29. 24. 1.
+CHK_RST_STOP:   CHECKBOX "Reset when entering Stop mode" ""
+                POS 30. 28. 15. 1.
+CHSB_WDG.SW:    CHOOSEBOX "Hardware independant watchdog" ""
+CHSB_WDG.HW:    CHOOSEBOX "Software independant watchdog" ""
+                POS 50. 28. 15. 1.
+CHK_BFB2:       CHECKBOX "Boot mode selected by BOOT pins" ""
+                POS  50. 29. 7. 1.
+                TEXT "BOR_LEV"
+                POS 57. 29.  4. 1.
+EDIT_BORLEV:    EDIT "" "GOSUB CheckBorLev"
+
+                POS  1. 32. 10. 1.
+                BUTTON "Program flash" "GOSUB ProgramFlashSettings"
+
+                POS 20. 32. 10. 1.
+                BUTTON "Reset device" "GOSUB ActivateFlashSettings"
+
+                POS 39. 32. 10. 1.
+                BUTTON "Refresh" "GOSUB UpdateWindowFromFlashContents"
+
+                POS 58. 32. 10. 1.
+                BUTTON "Exit" "CONTinue"
+
+                CLOSE "CONTinue"
+  )
+
+  ; Disable/Enable the check boxes
+  GOSUB UpdateWindowFromFlashType
+  GOSUB UpdateWindowFromFlashContents
+  STOP
+
+  DIALOG.END
+
+  ENDDO
+)
+
+SelectNoDebug:
+(
+  LOCAL &result
+  IF &OptByte_RDP!=0xCC
+  (
+    GOSUB QueryNoDebug
+    ENTRY &result
+    IF !&result
+    (
+      IF &OptByte_RDP==0xAA
+        DIALOG.Set CHSB_RDP.OFF
+      ELSE IF &OptByte_RDP==0xCC
+        DIALOG.Set CHSB_RDP.NODEBUG
+      ELSE
+        DIALOG.Set CHSB_RDP.ON
+    )
+  )
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Lock not available write protection bit fields
+
+UpdateWindowFromFlashType:
+(
+  LOCAL &bitnum
+
+  &bitnum=4.*32.-1.
+  WHILE &bitnum>=&WrpBits
+  (
+    LOCAL &fieldname
+    &fieldname="CHK_WRP_0x"+FORMAT.HEX(1.,&bitnum)
+    DIALOG.Disable &fieldname
+    &bitnum=&bitnum-1.
+  )
+
+  IF (&FlashSize<=0x40000)
+  (
+    DIALOG.Disable CHK_BFB2
+  )
+
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Read out option bytes and set dialog entries
+
+UpdateWindowFromFlashContents:
+(
+  GOSUB ReadOptionBytes
+
+  ; Get protection option bits
+  LOCAL &bitnum &bytenum &bitindex
+  &bitnum=0.
+  &bytenum=1.
+  &bitindex=0.
+  WHILE &bitnum<&WrpBits
+  (
+    LOCAL &fieldname
+    LOCAL &regname &regval
+
+    &fieldname="CHK_WRP_0x"+FORMAT.HEX(1.,&bitnum)
+    &regname="&"+"OptByte_WRP"+FORMAT.Decimal(1.,&bytenum)
+    &&regval=&regname
+    IF ((&regval)&(1.<<&bitindex))==0
+      DIALOG.Set &fieldname " "
+    ELSE
+      DIALOG.Set &fieldname ""
+
+    &bitnum=&bitnum+1.
+    &bitindex=&bitindex+1.
+    IF &bitindex>=32.
+    (
+      &bytenum=&bytenum+1.
+      &bitindex=0.
+    )
+  )
+
+  ; Get read protection
+  IF &OptByte_RDP==0xAA
+    DIALOG.Set CHSB_RDP.OFF
+  ELSE IF &OptByte_RDP==0xCC
+    DIALOG.Set CHSB_RDP.NODEBUG
+  ELSE
+    DIALOG.Set CHSB_RDP.ON
+
+  IF (&OptByte_SPRMOD&0x1)!=0
+    DIALOG.Set CHSB_SPRMOD.RDWR
+  ELSE
+    DIALOG.Set CHSB_SPRMOD.WR
+
+  ; Get user option byte
+  DIALOG.Set EDIT_BORLEV "0x"+FORMAT.HEX(1.,&OptByte_USER&0xF)
+ 
+  IF (&OptByte_USER&0x10)!=0
+    DIALOG.Set CHSB_WDG.HW
+  ELSE
+    DIALOG.Set CHSB_WDG.SW
+
+  IF (&OptByte_USER&0x20)!=0
+    DIALOG.Set CHK_RST_STOP "OFF"
+  ELSE
+    DIALOG.Set CHK_RST_STOP "ON"
+
+  IF (&OptByte_USER&0x40)!=0
+    DIALOG.Set CHK_RST_STDBY "OFF"
+  ELSE
+    DIALOG.Set CHK_RST_STDBY "ON"
+
+  IF (&OptByte_USER&0x80)!=0
+    DIALOG.Set CHK_BFB2 "ON"
+  ELSE
+    DIALOG.Set CHK_BFB2 "OFF"
+  
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Select all EEFC sector lock bits
+
+WRPSelectAll:
+  LOCAL &bitnum
+
+  &bitnum=0.
+  WHILE &bitnum<&WrpBits
+  (
+    LOCAL &fieldname
+    &fieldname="CHK_WRP_0x"+FORMAT.HEX(1.,&bitnum)
+    DIALOG.Set &fieldname ""
+    &bitnum=&bitnum+1.
+  )
+
+  RETURN
+
+
+; --------------------------------------------------------------------------------
+; Deselect all EEFC sector lock bits
+
+WRPDeselectAll:
+(
+  LOCAL &bitnum
+
+  &bitnum=0.
+  WHILE &bitnum<&WrpBits
+  (
+    LOCAL &fieldname
+    &fieldname="CHK_WRP_0x"+FORMAT.HEX(1.,&bitnum)
+    DIALOG.Set &fieldname " "
+    &bitnum=&bitnum+1.
+  )
+
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Check user data value
+
+CheckBorLev:
+(
+  LOCAL &data
+  LOCAL &error
+  &error=0
+
+  ON.ERROR GOSUB
+  (
+    &error=1
+    RETURN
+  )
+
+  &data=DIALOG.STRing(EDIT_BORLEV)
+  &data="0x"+FORMAT.HEX(1.,&data)
+  
+  IF &error!=0
+  (
+    DIALOG.OK "BOR_LEV must be a 4-bit unsigned numeric value!"
+    DIALOG.Set EDIT_BORLEV "&OptByte_USER&0xF"
+  )
+  ELSE
+  (
+    Eval &data
+    IF EVAL()>0xF||EVAL()<0x00
+    (
+      DIALOG.OK "Data is out of range!" "Data must be a 8-bit unsigned numeric value"
+      DIALOG.Set EDIT_BORLEV "&OptByte_USER&0xF"
+    )
+    ELSE
+    (
+      &data="0x"+FORMAT.HEX(1.,&data)
+      DIALOG.Set EDIT_BORLEV "&data"
+    )
+  )
+
+  RETURN
+)
+
+QueryNoDebug:
+  LOCAL &result
+  DIALOG.YESNO "Are you really sure you want to disable DEBUG mode?" "Read protection level 2 cannot be removed at all:" "I T   I S   A N   I R R E V E R S I B L E   O P E R A T I O N !"
+  ENTRY &result
+  RETURN &result
+
+
+; --------------------------------------------------------------------------------
+; Programming Option Bytes
+
+ProgramFlashSettings:
+(
+  LOCAL &result &error
+  LOCAL &TargetOptByteUser &bor_lev
+  LOCAL &sectorlockbit
+
+  ; Set write protection option bytes
+  LOCAL &bitnum &wrpval1 &wrpval2 &wrpval3 &wrpval4
+  &bitnum=0.
+  &wrpval1=0x0
+  &wrpval2=0x0
+  &wrpval3=0x0
+  &wrpval4=0x0
+  
+  WHILE &bitnum<&WrpBits
+  (
+    LOCAL &fieldname
+
+    &fieldname="CHK_WRP_0x"+FORMAT.HEX(1.,&bitnum)
+    IF DIALOG.BOOLEAN(&fieldname)
+    (
+      if (&bitnum>=96.)
+        &wrpval4=&wrpval4|(0x1<<&bitnum)
+      else if (&bitnum>=64.)
+        &wrpval3=&wrpval3|(0x1<<(&bitnum%32.))
+      else if (&bitnum>=32.)
+        &wrpval2=&wrpval2|(0x1<<(&bitnum%32.))
+      else
+        &wrpval1=&wrpval1|(0x1<<(&bitnum%32.))
+    )
+    &bitnum=&bitnum+1.
+  )
+  if (&OptByte_WRP1!=&wrpval1)
+  (
+    &OptByte_WRP1=&wrpval1
+    &prog_wrp1=TRUE()
+  )
+  if (&OptByte_WRP2!=&wrpval2)
+  (
+    &OptByte_WRP2=&wrpval2
+    &prog_wrp2=TRUE()
+  )
+  if (&OptByte_WRP3!=&wrpval3)
+  (
+    &OptByte_WRP3=&wrpval3
+    &prog_wrp3=TRUE()
+  )
+  if (&OptByte_WRP4!=&wrpval4)
+  (
+    &OptByte_WRP4=&wrpval4
+    &prog_wrp4=TRUE()
+  )
+
+  ; Set read protection option byte and SPRMOD
+  
+  &value=&OptByte_SPRMOD
+  IF (DIALOG.BOOLEAN("CHSB_SPRMOD.RDWR"))
+    &OptByte_SPRMOD=0x1
+  ELSE
+    &OptByte_SPRMOD=0x0
+  IF (&OptByte_SPRMOD!=&value)
+    &prog_sprmod=TRUE()
+
+  IF (DIALOG.BOOLEAN("CHSB_RDP.OFF")&&(&OptByte_RDP!=0xAA))
+  (
+    &OptByte_RDP=0xAA
+    &prog_rdp=TRUE()
+  )
+  ELSE IF DIALOG.BOOLEAN("CHSB_RDP.NODEBUG")
+  (
+    LOCAL &result
+    GOSUB QueryNoDebug
+    ENTRY &result
+    IF &result
+      &OptByte_RDP=0xCC
+    ELSE
+    (
+      PRINT %ERROR "Option byte programming aborted"
+      RETURN
+    )
+  )
+  ELSE IF (DIALOG.BOOLEAN("CHSB_RDP.ON")&&(&OptByte_RDP!=0x00))
+  (
+    &OptByte_RDP=0x00
+    &prog_rdp=TRUE()
+  )
+
+  ; Set user option byte
+  
+  &value=&OptByte_USER
+  IF DIALOG.BOOLEAN(CHSB_WDG.SW)
+    &OptByte_USER=&OptByte_USER&0xEF
+  ELSE
+    &OptByte_USER=&OptByte_USER|0x10
+
+  IF !DIALOG.BOOLEAN("CHK_RST_STOP")
+    &OptByte_USER=&OptByte_USER|0x20
+  ELSE
+    &OptByte_USER=&OptByte_USER&0xDF
+
+  IF !DIALOG.BOOLEAN("CHK_RST_STDBY")
+    &OptByte_USER=&OptByte_USER|0x40
+  ELSE
+    &OptByte_USER=&OptByte_USER&0xBF
+
+  &bor_lev=DIALOG.STRing(EDIT_BORLEV)
+  &bor_lev="0x"+FORMAT.HEX(1.,&bor_lev)
+  &OptByte_USER=(&OptByte_USER&0xF0)|&bor_lev
+
+  IF (&OptByte_USER!=&value)
+    &prog_user=TRUE()
+    
+  ; Program into option byte flash section
+  GOSUB ProgramOptionBytes
+
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Activate programmed flash settings by resetting device
+
+ActivateFlashSettings:
+(
+  GOSUB ResetDevice
+  GOSUB UpdateWindowFromFlashContents
+
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Reset device
+
+ResetDevice:
+(
+  LOCAL &pecr
+  
+  &pecr=Data.Long(&FlashRegBase+0x04)
+  
+  ; Unlock the Flash Program Erase controller
+  IF ((&pecr&0x1)==0x1)
+  (
+    Data.Set &FlashRegBase+0x0C %Long 0x89ABCDEF              // FLASH->PEKEYR = FLASH_KEY1;
+    Data.Set &FlashRegBase+0x0C %Long 0x02030405              // FLASH->PEKEYR = FLASH_KEY2;
+  )
+  ; Authorize the small information block programming
+  IF ((&pecr&0x1)==0x1)
+  (
+    Data.Set &FlashRegBase+0x14 %Long 0xFBEAD9C8              // FLASH->OPTKEYR = OPTKEY1;
+    Data.Set &FlashRegBase+0x14 %Long 0x24252627              // FLASH->OPTKEYR = OPTKEY2;
+  )
+  ; Set OBL_LAUNCH to power down core (necessary for loading option bytes into Flash registers)
+  ON.ERROR CONTINUE
+  Data.Set &FlashRegBase+0x04 %Long &pecr|(1.<<18.)
+  ON.ERROR
+  WAIT 0.1s
+  IF (SYStem.UP())
+    BREAK
+  ELSE
+    SYStem.UP
+
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Read option byte values out of flash
+; Note : Changed due to stm32fxx-optionbyte script :
+;        Read option bytes out of flash, because Flash registers will be updated
+;        after next core reset (done by setting OBL_LAUNCH in FLASH_PECR). After 
+;        programming the option bytes, they can be checked on sd:0x1FF80000 and
+;        can be reprogrammed again.
+
+ReadOptionBytes:
+(
+  &OptByte_SPRMOD=(Data.Long(D:0x1FF80000)&0x00000100)>>8.
+  &OptByte_RDP=Data.Long(D:0x1FF80000)&0x000000FF
+  &OptByte_USER=Data.Long(D:0x1FF80004)&0x000000FF
+  &OptByte_WRP1=(Data.Long(D:0x1FF80008)&0x0000FFFF)|((Data.Long(D:0x1FF8000C)&0x0000FFFF)<<16.)
+  IF (&FlashSize>=0x40000)
+  (
+    &OptByte_WRP2=(Data.Long(D:0x1FF80010)&0x0000FFFF)|((Data.Long(D:0x1FF80014)&0x0000FFFF)<<16.)
+    IF (&FlashSize>=0x60000)
+    (
+      &OptByte_WRP3=(Data.Long(D:0x1FF80018)&0x0000FFFF)|((Data.Long(D:0x1FF8001C)&0x0000FFFF)<<16.)
+      IF (&FlashSize>=0x80000)
+      (
+        &OptByte_WRP4=(Data.Long(D:0x1FF80080)&0x0000FFFF)|((Data.Long(D:0x1FF80084)&0x0000FFFF)<<16.)
+      )
+    )
+  )
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Program option bytes
+
+ProgramOptionBytes:
+(
+  LOCAL &pecr &value
+  &pecr=Data.Long(&FlashRegBase+0x04)
+
+  ; Unlock the Flash Program Erase controller
+  IF ((&pecr&0x1)==0x1)
+  (
+    Data.Set &FlashRegBase+0x0C %Long 0x89ABCDEF              // FLASH->PEKEYR = FLASH_KEY1;
+    Data.Set &FlashRegBase+0x0C %Long 0x02030405              // FLASH->PEKEYR = FLASH_KEY2;
+  )
+
+  ; Clear All pending flags
+  Data.Set &FlashRegBase+0x18 %Long 0x00001F03              // FLASH->SR = FLASH_FLAG_BSY | FLASH_FLAG_EOP | OPTVERRUSR | OPTVERR | SIZERR | PGAERR: | WRPERR:;
+
+  ; Wait for last operation to be completed
+  IF (Data.Long(&FlashRegBase+0x18)&0x00000001)==0x00000001 // if ((FLASH->SR & FLASH_FLAG_BSY) == FLASH_FLAG_BSY)
+  (
+    PRINT %ERROR "Flash memory interface busy, operation aborted"
+    RETURN
+  )
+
+  ; Authorize the small information block programming
+  IF ((&pecr&0x1)==0x1)
+  (
+    Data.Set &FlashRegBase+0x14 %Long 0xFBEAD9C8              // FLASH->OPTKEYR = OPTKEY1;
+    Data.Set &FlashRegBase+0x14 %Long 0x24252627              // FLASH->OPTKEYR = OPTKEY2;
+  )
+
+  ; Clear error flags in FLASH_SR
+  Data.Set &OptionByteBase+0x18 %Long 0x3F00
+
+  ; program option bytes by writing them directly on the adress of option byte field + offset
+  IF ((&prog_rdp==TRUE())||(&prog_sprmod==TRUE()))
+  (
+    &value=(&OptByte_SPRMOD<<8.)|&OptByte_RDP
+    Data.Set &OptionByteBase %Long &value|(~&value<<16.)
+  )
+  
+  IF (&prog_user==TRUE())
+    Data.Set &OptionByteBase+0x04 %Long &OptByte_USER|(~&OptByte_USER<<16.)
+    
+  IF (&prog_wrp1==TRUE())
+  (
+    &value=&OptByte_WRP1&0xFFFF
+    Data.Set &OptionByteBase+0x08 %Long &value|(~&value<<16.)
+    &value=(&OptByte_WRP1>>16.)&0xFFFF
+    Data.Set &OptionByteBase+0x0C %Long &value|(~&value<<16.)
+  )
+  IF (&prog_wrp2==TRUE())
+  (
+    &value=&OptByte_WRP2&0xFFFF
+    Data.Set &OptionByteBase+0x10 %Long &value|(~&value<<16.)
+    &value=(&OptByte_WRP2>>16.)&0xFFFF
+    Data.Set &OptionByteBase+0x14 %Long &value|(~&value<<16.)
+  )
+  IF (&prog_wrp3==TRUE())
+  (
+    &value=&OptByte_WRP3&0xFFFF
+    Data.Set &OptionByteBase+0x18 %Long &value|(~&value<<16.)
+    &value=(&OptByte_WRP3>>16.)&0xFFFF
+    Data.Set &OptionByteBase+0x1c %Long &value|(~&value<<16.)
+  )
+  IF (&prog_wrp4==TRUE())
+  (
+    &value=&OptByte_WRP4&0xFFFF
+    Data.Set &OptionByteBase+0x80 %Long &value|(~&value<<16.)
+    &value=(&OptByte_WRP4>>16.)&0xFFFF
+    Data.Set &OptionByteBase+0x84 %Long &value|(~&value<<16.)
+  )
+  
+  ; Wait for last operation to be completed */
+  WHILE (Data.Long(&FlashRegBase+0x18)&0x00000001)==0x00000001
+  (
+  )
+
+  ; restore FLASH_PECR register
+  Data.Set &FlashRegBase+0x04 %Long &pecr
+
+  RETURN
+)
+

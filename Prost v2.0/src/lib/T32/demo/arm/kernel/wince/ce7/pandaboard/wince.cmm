@@ -1,0 +1,245 @@
+; --------------------------------------------------------------------------------
+; @Title: WinCE 7.0 Demo for TRACE32 OS Awareness on the PandaBoard
+; @Description:
+;
+;   This batchfile demonstrates the use of the OS Awareness for CE7
+;
+;   The example is generated for a PandaBoard using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   The Windows CE image is downloaded via the ICD.
+;
+;   This script initializes the target by the debugger.
+;   Neither X-Loader nor u-boot are used.
+;
+; @Keywords: awareness, Windows
+; @Author: DIE
+; @Board: PandaBoard
+; @Chip: OMAP4430
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: wince.cmm 15227 2019-11-06 11:57:41Z bschroefel $
+
+
+; Starting WinCE example with TRACE32:
+; - Start TRACE32
+; - Power on the board
+; - TRACE32: "do wince"
+; - Start "compute.exe" on target via CMD
+
+; For debugging with TRACE32 we recommend to disable demand paging
+; by setting bit one of ROMFLAGS in PLATFORM\NE1TB\FILES\config.bib
+
+; Connect STRAIGHT serial cable to RS232
+; - 115200 baud, 8/N/1, no(!) handshake
+
+
+LOCAL &winceroot &reldir &term
+
+&winceroot=".\WINCE700"    ; typically C:\WINCE700
+&reldir="&winceroot\OSDesigns\PandaBoard\PandaBoard\RelDir\PANDABOARD_ARMV7_Debug"
+
+&term="COM3"
+;&term="\\.\COM11"
+
+
+// Debugger Reset
+WinPAGE.RESet
+AREA.RESet
+WinPOS 0. 50% 50% 8.
+AREA.view
+SCREEN.ON
+PRINT "resetting..."
+RESet
+DIALOG.OK "Please reset the target and continue"
+
+
+// Initializing Debugger
+PRINT "initializing..."
+SYStem.CPU OMAP4430
+SYStem.JtagClock CTCK 30MHz
+SYStem.Option DACR ON          ; give Debugger global write permissions
+SYStem.Option ResBreak OFF     ; hardware dependent (see manual)
+SYStem.Option WaitReset ON     ; hardware dependent (see manual)
+SYStem.Option IMASKASM  ON     ; lock interrupts during Assembler single steps
+SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+TrOnchip.Set DABORT OFF        ; used by Windows CE for page miss!
+TrOnchip.Set PABORT OFF        ; used by Windows CE for page miss!
+TrOnchip.Set UNDEF  OFF        ; my be used by Windows CE for FPU detection
+TrOnchip.Set IRQ    OFF
+MAP.DenyAccess A:0xC0000000--0xDFFFFFFF  ; disable access to non-existent memory
+SYStem.Mode Up
+
+
+// Open serial terminal window on COM1
+IF "&term"!=""
+(
+	TERM.METHOD COM &term 115200. 8 NONE 1STOP  RTSCTS
+	TERM.SIZE 80. 1000.
+	TERM.Mode VT100
+	TERM.SCROLL ON
+	WinPOS 50% 50% 50% 50%,,,TERMview
+	TERM.view
+	SCREEN.ALways   ; permanent screen update for internal terminal window
+
+)
+
+
+// Target Setup
+IF FALSE()
+(
+	// Let the bootloader initialize the board:
+	// Run u-boot from SD card
+	PRINT "target setup... with u-boot"
+	Go
+	WAIT 1.s
+	Break
+)
+ELSE
+(
+	// Setup the board with the debugger:
+	PRINT "target setup... with script"
+	Go
+	WAIT 1.s
+	Break
+	DO "~~~~/panda_setup_1.cmm"
+	DO "~~~~/panda_setup_2.cmm"
+)
+
+
+// Load the Windows CE image
+// Use the next lines only to load the image into RAM using the debugger.
+
+PRINT "loading Windows CE image..."
+
+// Prepare for direct download: disable MMU!
+;PER.Set C15:0x1   %Long data.long(c15:1)&~1        ; switch off MMU
+
+Register.Init
+
+// Download the image to physical address.
+// In case of PandaBoard, physical=virtual address, so we don't need any adjustment
+Data.LOAD.eXe "&reldir\nk.bin"
+
+// set PC to physical start address for each core
+// see config.bib NK RAMIMAGE
+CORE.select 0
+Register.Set PC 0x80100000
+CORE.select 1
+Register.Set PC 0x80100000
+CORE.select 0
+
+
+// We'd like to see something, open a code window.
+WinPOS 0 0,,50%
+List.auto
+
+
+// Declare the MMU format to the debugger
+//   table format is "WINCE6"
+//   skip root table (0)
+//   declare default translation for kernel
+MMU.FORMAT WINCE6 0 C:0x80000000++0x07ffffff A:0x80000000
+
+// ROM DLL, shared heap and kernel addresses are common to all processes
+TRANSlation.COMMON     0x40000000--0x5fffffff
+TRANSlation.COMMON.ADD 0x70000000--0xffffffff
+
+// debugger uses a table walk to decode virtual addresses
+TRANSlation.TableWalk ON
+
+// switch on debugger(!) address translation
+TRANSlation.ON
+
+// Initialize RTOS Support
+PRINT "initializing Windows CE support..."
+TASK.CONFIG    "~~\demo\arm\kernel\wince\ce7\wince7.t32"   ; loads WinCE awareness
+MENU.ReProgram "~~\demo\arm\kernel\wince\ce7\wince7.men"   ; loads WinCE menu
+HELP.FILTER.Add rtoswince6     ; add WinCE awareness manual to help
+
+// switch on autoloader and add path to symbol files to source path list
+sYmbol.AutoLoad.CHECKWINCE "do ~~\demo\arm\kernel\wince\ce7\autoload "
+sYmbol.SourcePATH.SetDir "&reldir"
+
+// Group kernel area to be displayed with red bar
+GROUP.Create "winceos" 0x80000000--0xffffffff /RED
+
+// adapt source paths if necessary (case sensitive!)
+sYmbol.SourcePATH.Translate "c:\wince700"    "&winceroot"
+sYmbol.SourcePATH.Translate "d:\chelanrtm14" "&winceroot"
+sYmbol.SourcePATH.SetBaseDir .  ; add current directory to search path
+
+
+// Setup Trace
+IF Analyzer()
+(
+	// configure TPIU
+	IF OS.FILE("~~/demo/arm/hardware/omap44xx/pandaboard/ti_scripts/omap4430_tpiu.cmm")
+	(
+		DO "~~/demo/arm/hardware/omap44xx/pandaboard/ti_scripts/omap4430_tpiu.cmm" 0
+	)
+	else
+	(
+		// configure PAD: EMU[2:19] for 16-bit TPIU (PADx_DPM_EMUx)
+		Data.Set A:0x4A1001B0 %Long Data.Long(a:0x4A1001B0)&0x0000FFFF
+		Data.Set A:0x4A1001B4 %Long 0
+		Data.Set A:0x4A1001B8 %Long 0
+		Data.Set A:0x4A1001BC %Long 0
+		Data.Set A:0x4A1001C0 %Long 0
+		Data.Set A:0x4A1001C4 %Long 0
+		Data.Set A:0x4A1001C8 %Long 0
+		Data.Set A:0x4A1001CC %Long 0
+		Data.Set A:0x4A1001D0 %Long 0
+		Data.Set A:0x4A1001d4 %Long 0
+	)
+
+	// initialize ETM and preprocessor
+	ETM.RESet
+	ETM.PortSize 16a
+	ETM.PortMode Wrapped
+	ETM.TImeMode ExternalInterpolated
+	ETM.ContextID 32
+	ETM.ReturnStack ON
+	Analyzer.RESet
+	Analyzer.OFF
+	Analyzer.THreshold VCC
+	Analyzer.TERMination ON
+	IF hardware.POWERDEBUG()
+	(
+		Analyzer.TestFocus // test trace port
+		IF FOUND() // if trace port test failed...
+		(
+			PRINT "Performing AutoFocus..."
+			Analyzer.AutoFocus
+		)
+	)
+	Analyzer.Mode Fifo
+	Analyzer.AutoArm  ON
+	Analyzer.AutoInit ON
+	CTS.UseReadCycle  OFF
+	CTS.UseWriteCycle OFF
+
+	// Tell OS awareness the context ID messages contain Thread IDs (requires loaded OS awareness)
+	TASK.Option THRCTX ON
+)
+
+
+// Now let's boot and start Windows CE!
+Go
+WinTOP TERMview
+PRINT "booting Windows CE... (please wait)"
+WAIT 4.s
+Break
+
+
+PRINT "done."
+
+
+// -------- Application Debugging -------------
+// --------- e.g. "compute.exe" --------------
+
+DO  "~~\demo\arm\kernel\wince\ce7\app_debug.cmm" compute
+;DO "~~\demo\arm\kernel\wince\ce7\app_debug.cmm" appstarter
+
+
+ENDDO

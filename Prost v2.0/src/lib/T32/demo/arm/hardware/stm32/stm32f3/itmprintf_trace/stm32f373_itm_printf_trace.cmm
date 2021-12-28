@@ -1,0 +1,75 @@
+; --------------------------------------------------------------------------------
+; @Title: ITM printf demo for STM32373C-EVAL board
+; @Description:
+;   This is a very simple demo to show how to display ascii encoded itm trace
+;   into a text message (Printf style).
+;   Prerequisites:
+;     - Use CN15 connector
+;     - Remove R29, R73, and R89 : In this situation, the touch slider
+;       and joystick do not work.
+;     - Remove the SD card
+; @Keywords: Cortex-M4, ITM, off-chip, printf, SWD, trace
+; @Author: HDA
+; @Board: STM32373C-EVAL
+; @Chip: STM32F373VC
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: stm32f373_itm_printf_trace.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; memory map
+; 0x00000000 256kB FLASH (aliased from 0x08000000)
+; 0x20000000  32kB SRAM
+
+  Break.Reset
+  SYStem.RESet
+  MAP.DENYACCESS 0x20020000--0x3FFFFFFF
+  SYStem.CPU STM32F373VC
+  SYStem.CONFIG DEBUGPORTTYPE SWD
+  SYStem.CONFIG CONNECTOR MIPI20T
+  SYStem.Up
+
+; load stack pointer and PC from vector table
+  Register.Init
+
+; Prevent error during power saving states and stop peripherals in debug mode
+  Data.Set E:0xE0042004 %Long 0yXXXXxxxxXXX11111XXXXxxxxXXXXx111  ; DBGMCU_CR
+; Setup GPIO clock
+  Data.Set E:0x40021014  %Long 0yXXXXxxxxXX1XxxxxXXXXxxxxXXXXxxxx  ; RCC_AHBENR
+; Setup pin multiplexing for using the 4 bit trace
+  Data.Set E:0x48001000 %Long 0yXXXXxxxxXXXXxxxxXX1010101010xxxx  ; GPOIE_PORTMODE
+  Data.Set E:0x48001008 %Long 0yXXXXxxxxXXXXxxxxXX1111111111xxxx  ; GPOIE_PORTSPEED
+  Data.Set E:0x48001020 %Long 0yXXXX00000000000000000000XXXXxxxx  ; GPIOE_AFRL
+
+; load debug information of demo application on the board
+  Data.LOAD.ELF ~~~~/demo.axf
+  Register.Set PC main
+  Register.Set R13 0x20005000
+
+; Turn on ITM and ETM
+  ETM.OFF
+  ITM.ON
+
+  ITM.PortMode Continuous
+  ITM.PortSize 4.
+
+; Slect the Analyzer (PowerTrace with Preprocessor)
+  IF hardware.COMBIPROBE()||hardware.UTRACE()
+  (
+    Trace.Method CAnalyzer   ; Using CombiProbe
+  )
+  ELSE IF ANALYZER()
+  (
+    Trace.Method Analyzer    ; Using ARM preprocessor
+  )
+
+  Trace.Off              ; Enable the trace and turn it off
+
+  Go.direct
+
+  WAIT 5.s
+  Break.direct
+
+  PrintfTrace.List MESSAGE List.NoDummy
+
+  ENDDO
+

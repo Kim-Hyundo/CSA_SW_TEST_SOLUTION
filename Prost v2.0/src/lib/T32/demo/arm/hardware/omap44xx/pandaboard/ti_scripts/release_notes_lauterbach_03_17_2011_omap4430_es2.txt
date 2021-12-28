@@ -1,0 +1,117 @@
+release note Lauterbach version 05.03 (date 03-17-2011).
+=======================================
+
+
+This release is the mirror of all Lauterbach scripts available March 17th 2011 under topsimomap4430 view.
+All scripts have been validated and designed for OMAP4430 ES2, ES2.1, ES2.2 and ES2.2.1 chips. These scripts have been only tested on GP/EMU devices using PAB/TEB board.
+
+Major updates:
+==============
+	-) modify scripts for working with SAMSUNG memory.
+
+release note Lauterbach version 05.01 (date 08-03-2011).
+=======================================
+
+
+This release is the mirror of all Lauterbach scripts available March 8th 2011 under topsimomap4430 view.
+All scripts have been validated and designed for OMAP4430 ES2, ES2.1, ES2.2 and ES2.2.1 chips. These scripts have been only tested on GP/EMU devices using PAB/TEB board.
+
+Major updates:
+==============
+	-) Add ES2.2.1 chip management.
+	-) Add ES2.3 chip management (base release)
+	-) Remove memory setting patch for old release.
+
+release note Lauterbach version 04.08 (date 02-03-2011).
+=======================================
+
+
+This release is the mirror of all Lauterbach scripts available March 2th 2011 under topsimomap4430 view.
+All scripts have been validated and designed for OMAP4430 ES2, ES2.1 and ES2.2 chips. These scripts have been only tested on GP/EMU devices using PAB/TEB board.
+
+Major updates:
+==============
+	-) Provide information concerning DDR memory (Type/Size/Architecture)
+	-) Last Lauterbach driver for Linux/Window include in this release (update_windowspc_linuxpc.zip). Unzip file and copy/replace files in 
+	   your trace32 directory. Last PER files are include with this distribution.
+        -) add cross-triggering tests for Tesla.
+          
+
+release note Lauterbach version 04.05 (date 01-10-2011).
+=======================================
+
+
+This release is the mirror of all Lauterbach scripts available January 10th 2011 under topsimomap4430 view.
+All scripts have been validated and designed for OMAP4430 ES2, ES2.1 and ES2.2 chips. These scripts have been only tested on GP/EMU devices using PAB/TEB board.
+
+Major updates:
+==============
+	-) Added I2C driver for OMAP4430
+	-) Added information concerning current Phoenix power release
+	-) Applying 1100 mv on all VCORE depending Phoenix release
+	-) Minimize information displayed at startup : &DEBUG_INFO=0
+		*) added &DEBUG_INFO flag at startup of omap4430_cortexa9_CPU0.cmm. When set to 0 no debug information are displayed, when set to 1 all debug informations are displayed
+	-) Add cross triggerring tests (CTI, ivahd, cortexM3).
+	-) Detect chip release and apply DDR frequencies (200MHzs DDR settings if ES2.0).
+	-) reconfigure PSRAM in case of GP boot. 
+
+=================================================================================================================================================
+
+
+release note Lauterbach version 03.04 (date 10-25-2010).
+=======================================
+
+
+This release is the mirror of all Lauterbach scripts available October 25th 2010 under topsimomap4430 view.
+All scripts have been validated and designed for OMAP4430 ES2 and ES2.1 chip. These scripts have been only tested on GP/EMU devices using PAB/TEB board.
+
+Major updates:
+==============
+	-) Test done on PTM traces. Modify omap4430_tpiu.cmm for using PDLO clock for providing TPI clock at 100 and 150 MHz (max freq) to TPIU interfaces.
+	-) test done on PTM trace. In case of PTM traces redirected to eTB. It's possible to program ETB to stop capture when ETB FIFO full.
+	-) Test done on STM traces, Modify omap4430_stm.cmm for using PDLO clock. Add functionality for testing STM 2 and 1 bit mode.
+	-) Test done on STM trace : allow STM trace redirected to ETB.
+	-) Added test for testing SW message on CortexA9 CPU0 captured by STM. No user interface available in this release. 
+
+
+=================================================================================================================================================
+release note Lauterbach version 03.03 (date 10-07-2010).
+=======================================
+
+
+This release is the mirror of all Lauterbach scripts available October 7th 2010 under topsimomap4430 view.
+All scripts have been validated and designed for OMAP4430 ES2 and ES2.1 chip. These scripts have been only tested on GP/EMU devices using PAB/TEB board.
+
+Major updates:
+==============
+	-) Detect chip release ES2.1 . Now we are able to distinguish ES2.1 to other chip release (ES2.0 and ES1.0). In the console, if you are using ES2.1 chip, you have a message , if no message you are using ES2.0 or previous release. You have also info for informing you that you are using EMU/GP or TEST device.
+	-) OMAP4430 OPP100 ES2 configuration only valid for ES2.0 version. OMAP4430 OPP100 apply by default on ES2.1 (MPU DPLL -> 1200MHz, Core DPLL -> 1600 MHz, DDR -> 400 MHz, IVA DPLL 1866 MHz). ON ES@.0 , MPU DLL was 666 MHzs.
+	-) Force keeper is applied only for ES2.0 and not for ES2.1.
+	-) Increase voltage for VCORE1 and VCORE2 to 1.1V (previous value was 0.9 V).
+	-) Only on CortexA9 CPU0 initialisation scripts are executed (no more on CPU1).
+
+
+=================================================================================================================================================
+
+
+release note Lauterbach version 02.01 (date 08-01-2010).
+=======================================
+
+
+This release is the mirror of all Lauterbach scripts available August 1st 2010 under topsimomap4430 view.
+All scripts have been validated and designed for OMAP4430 ES2 chip.
+
+Major updates:
+==============
+	-) All scripts have been updated for working only on ES2 OMAP4430. These scripts have been only tested on GP/EMU devices using PAB/TEB board. 
+	-) Implement OMAP4430 OPP100 ES2 configuration only valid for ES2.0 version.
+	-) rework totally framework concerning DDR/PRCM scripts implenemtations.
+	-) remove WIR functionalities for CortexM3/IVAHD and TESLA at startup when WIR mode is selected (only CortexA9 CPU0 and CPU1 are in this mode).
+	-) Add functionality for removing WIR mode for CortexA9 CPU1.
+	-) Only on CortexA9 CPU0 initialisation scripts are executed (no more on CPU1).
+
+Best regards
+
+Thomas Salamito (t-salamito@ti.com, 54.11)
+
+ 

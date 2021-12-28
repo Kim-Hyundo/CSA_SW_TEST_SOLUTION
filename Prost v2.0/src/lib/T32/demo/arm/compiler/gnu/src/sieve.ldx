@@ -1,0 +1,56 @@
+#ifndef RAM_ORIGIN
+# define RAM_ORIGIN 1K
+#endif
+
+#ifndef ROM_ORIGIN
+# define FLASH SRAM
+#endif
+
+ENTRY(_start)
+
+MEMORY 
+{
+#ifdef ROM_ORIGIN
+	FLASH : ORIGIN = ROM_ORIGIN, LENGTH = 31K
+#endif
+	SRAM  : ORIGIN = RAM_ORIGIN, LENGTH = 31K
+}
+
+PHDRS
+{
+	phText  PT_LOAD;
+	phData  PT_LOAD;
+}
+
+SECTIONS
+{
+	.text : {
+		crt0* (.text)
+		* (.text)
+	} > FLASH :phText
+
+	.rodata : ALIGN(16) {
+		* (.rodata) 
+	} > FLASH :phText
+
+	.data : ALIGN(16) {
+		__init_array_start = .;
+		__init_array_end = .;
+		* (.data)
+		* (.sdata)
+	} > SRAM AT> FLASH :phData
+
+	__bss_start = .;
+	.bss : ALIGN(16) {
+		* (.sbss)
+		* (.bss)
+	} > SRAM :phData
+	__bss_end = .;
+
+	__heap_start = .;
+}
+
+__stack_end  = ORIGIN(SRAM)+LENGTH(SRAM);
+__data_vaddr = ADDR(.data);
+__data_laddr = LOADADDR(.data);
+__data_size  = SIZEOF(.data);

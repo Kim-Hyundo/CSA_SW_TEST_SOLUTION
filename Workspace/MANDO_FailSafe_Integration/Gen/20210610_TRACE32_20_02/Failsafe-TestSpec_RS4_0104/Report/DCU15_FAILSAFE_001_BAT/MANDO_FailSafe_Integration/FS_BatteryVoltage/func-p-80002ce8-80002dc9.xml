@@ -1,0 +1,997 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="t32transform.xsl"?>
+<TRACE32 file="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Gen\20210610_TRACE32_20_02\Failsafe-TestSpec_RS4_0104\Report\DCU15_FAILSAFE_001_BAT\MANDO_FailSafe_Integration\FS_BatteryVoltage\func-p-80002ce8-80002dc9.xml">
+	<coverage>
+		<COVerage.EXPORT.ListLine ts="1623300792" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE" metric="object">
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\Rte_SWC_Diag</tree>
+				<cov>partial</cov>
+				<exec metric="object">50.847%</exec>
+				<branches>-</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>0</never>
+				<bytes>590</bytes>
+				<bytesok>300</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_HWFailure</tree>
+				<cov>partial</cov>
+				<exec metric="object">16.831%</exec>
+				<branches>10.000%</branches>
+				<ok>0</ok>
+				<taken>1</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>202</bytes>
+				<bytesok>34</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\SWC_Failsafe</tree>
+				<cov>partial</cov>
+				<exec metric="object">67.441%</exec>
+				<branches>-</branches>
+				<ok>4</ok>
+				<taken>11</taken>
+				<nottaken>21</nottaken>
+				<bytes>1548</bytes>
+				<bytesok>1044</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80002C38</addrFrom>
+				<addrTo>P:80002DC9</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\FS_BatteryVoltage</tree>
+				<cov>partial</cov>
+				<exec metric="object">83.582%</exec>
+				<branches>68.750%</branches>
+				<ok>12</ok>
+				<taken>3</taken>
+				<nottaken>6</nottaken>
+				<never>3</never>
+				<bytes>402</bytes>
+				<bytesok>336</bytesok>
+				<function>
+					<addrFrom>P:80002CE8</addrFrom>
+					<addrTo>P:80002DC9</addrTo>
+					<tree uid="p-80002ce8-80002dc9">\\MANDO_FailSafe_Integration\FS_BatteryVoltage\update_vol_info</tree>
+					<cov>partial</cov>
+					<exec metric="object">84.070%</exec>
+					<branches>67.647%</branches>
+					<ok>8</ok>
+					<taken>3</taken>
+					<nottaken>4</nottaken>
+					<never>2</never>
+					<bytes>226</bytes>
+					<bytesok>190</bytesok>
+					<line>
+						<addrFrom>P:80002CE8</addrFrom>
+						<addrTo>P:80002CE9</addrTo>
+						<tree>FS_BatteryVoltage.c \1--40</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002CEA</addrFrom>
+						<addrTo>P:80002CED</addrTo>
+						<tree>FS_BatteryVoltage.c \41--41</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>0.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>1</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002CEE</addrFrom>
+						<addrTo>P:80002CEF</addrTo>
+						<tree>FS_BatteryVoltage.c \42--42</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002CF0</addrFrom>
+						<addrTo>P:80002CF3</addrTo>
+						<tree>FS_BatteryVoltage.c \43--43</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>0.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>1</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002CF4</addrFrom>
+						<addrTo>P:80002CF5</addrTo>
+						<tree>FS_BatteryVoltage.c \44--44</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_BatteryVoltage.c \45--48</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>6</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_BatteryVoltage.c \49--50</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>not taken</cov>
+						<exec metric="object">90.000%</exec>
+						<branches>-</branches>
+						<ok>2</ok>
+						<taken>0</taken>
+						<nottaken>1</nottaken>
+						<bytes>20</bytes>
+						<bytesok>18</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002D10</addrFrom>
+						<addrTo>P:80002D13</addrTo>
+						<tree>FS_BatteryVoltage.c \51--52</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>not taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>1</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002D14</addrFrom>
+						<addrTo>P:80002D23</addrTo>
+						<tree>FS_BatteryVoltage.c \53--53</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>16</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002D24</addrFrom>
+						<addrTo>P:80002D27</addrTo>
+						<tree>FS_BatteryVoltage.c \54--54</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002D28</addrFrom>
+						<addrTo>P:80002D29</addrTo>
+						<tree>FS_BatteryVoltage.c \55--56</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_BatteryVoltage.c \57--58</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>not taken</cov>
+						<exec metric="object">90.000%</exec>
+						<branches>-</branches>
+						<ok>2</ok>
+						<taken>0</taken>
+						<nottaken>1</nottaken>
+						<bytes>20</bytes>
+						<bytesok>18</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002D44</addrFrom>
+						<addrTo>P:80002D45</addrTo>
+						<tree>FS_BatteryVoltage.c \59--60</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>not taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>1</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002D46</addrFrom>
+						<addrTo>P:80002D55</addrTo>
+						<tree>FS_BatteryVoltage.c \61--61</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>16</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002D56</addrFrom>
+						<addrTo>P:80002D59</addrTo>
+						<tree>FS_BatteryVoltage.c \62--62</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002D5A</addrFrom>
+						<addrTo>P:80002D5F</addrTo>
+						<tree>FS_BatteryVoltage.c \63--64</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>6</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_BatteryVoltage.c \65--65</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>6</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002D60</addrFrom>
+						<addrTo>P:80002D63</addrTo>
+						<tree>FS_BatteryVoltage.c \66--68</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002D64</addrFrom>
+						<addrTo>P:80002D67</addrTo>
+						<tree>FS_BatteryVoltage.c \70--70</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002D68</addrFrom>
+						<addrTo>P:80002D77</addrTo>
+						<tree>FS_BatteryVoltage.c \71--71</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>16</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002D78</addrFrom>
+						<addrTo>P:80002D81</addrTo>
+						<tree>FS_BatteryVoltage.c \72--74</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>100.000%</branches>
+						<ok>1</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>10</bytes>
+						<bytesok>10</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002D82</addrFrom>
+						<addrTo>P:80002D85</addrTo>
+						<tree>FS_BatteryVoltage.c \75--75</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002D86</addrFrom>
+						<addrTo>P:80002D8F</addrTo>
+						<tree>FS_BatteryVoltage.c \76--76</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>100.000%</branches>
+						<ok>1</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>10</bytes>
+						<bytesok>10</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002D90</addrFrom>
+						<addrTo>P:80002D93</addrTo>
+						<tree>FS_BatteryVoltage.c \77--77</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002D94</addrFrom>
+						<addrTo>P:80002D9D</addrTo>
+						<tree>FS_BatteryVoltage.c \78--78</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>100.000%</branches>
+						<ok>1</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>10</bytes>
+						<bytesok>10</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002D9E</addrFrom>
+						<addrTo>P:80002DA1</addrTo>
+						<tree>FS_BatteryVoltage.c \79--79</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002DA2</addrFrom>
+						<addrTo>P:80002DAB</addrTo>
+						<tree>FS_BatteryVoltage.c \80--80</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>100.000%</branches>
+						<ok>1</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>10</bytes>
+						<bytesok>10</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002DAC</addrFrom>
+						<addrTo>P:80002DAF</addrTo>
+						<tree>FS_BatteryVoltage.c \81--81</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002DB0</addrFrom>
+						<addrTo>P:80002DBB</addrTo>
+						<tree>FS_BatteryVoltage.c \82--84</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">83.333%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>10</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002DBC</addrFrom>
+						<addrTo>P:80002DBF</addrTo>
+						<tree>FS_BatteryVoltage.c \85--85</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002DC0</addrFrom>
+						<addrTo>P:80002DC3</addrTo>
+						<tree>FS_BatteryVoltage.c \86--86</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">50.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002DC4</addrFrom>
+						<addrTo>P:80002DC7</addrTo>
+						<tree>FS_BatteryVoltage.c \87--87</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002DC8</addrFrom>
+						<addrTo>P:80002DC9</addrTo>
+						<tree>FS_BatteryVoltage.c \88--88</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<total>
+						<cov>partial</cov>
+						<exec metric="object">84.070%</exec>
+						<branches>-</branches>
+						<ok>8</ok>
+						<taken>3</taken>
+						<nottaken>4</nottaken>
+						<bytes>226</bytes>
+						<bytesok>190</bytesok>
+					</total>
+				</function>
+				<total>
+					<cov>partial</cov>
+					<exec metric="object">84.070%</exec>
+					<branches>67.647%</branches>
+					<ok>8</ok>
+					<taken>3</taken>
+					<nottaken>4</nottaken>
+					<never>2</never>
+					<bytes>226</bytes>
+					<bytesok>190</bytesok>
+				</total>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_CANBusOff</tree>
+				<cov>partial</cov>
+				<exec metric="object">45.736%</exec>
+				<branches>1.215%</branches>
+				<ok>0</ok>
+				<taken>6</taken>
+				<nottaken>2</nottaken>
+				<never>321</never>
+				<bytes>258</bytes>
+				<bytesok>118</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_CANTimeout</tree>
+				<cov>partial</cov>
+				<exec metric="object">37.582%</exec>
+				<branches>16.413%</branches>
+				<ok>8</ok>
+				<taken>82</taken>
+				<nottaken>10</nottaken>
+				<never>229</never>
+				<bytes>2432</bytes>
+				<bytesok>914</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_InvalidSignal</tree>
+				<cov>partial</cov>
+				<exec metric="object">54.381%</exec>
+				<branches>34.650%</branches>
+				<ok>3</ok>
+				<taken>130</taken>
+				<nottaken>92</nottaken>
+				<never>104</never>
+				<bytes>5866</bytes>
+				<bytesok>3190</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_SWFailure</tree>
+				<cov>partial</cov>
+				<exec metric="object">36.224%</exec>
+				<branches>1.215%</branches>
+				<ok>0</ok>
+				<taken>7</taken>
+				<nottaken>1</nottaken>
+				<never>321</never>
+				<bytes>392</bytes>
+				<bytesok>142</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>5</never>
+				<bytes>806</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80005B2A</addrFrom>
+				<addrTo>P:80005CBB</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc1</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>402</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80005CBC</addrFrom>
+				<addrTo>P:80005E4D</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc2</tree>
+				<cov>partial</cov>
+				<exec metric="object">79.104%</exec>
+				<branches>75.000%</branches>
+				<ok>2</ok>
+				<taken>1</taken>
+				<nottaken>1</nottaken>
+				<never>0</never>
+				<bytes>402</bytes>
+				<bytesok>318</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc3</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc4</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_main</tree>
+				<cov>partial</cov>
+				<exec metric="object">24.691%</exec>
+				<branches>25.000%</branches>
+				<ok>1</ok>
+				<taken>1</taken>
+				<nottaken>1</nottaken>
+				<never>5</never>
+				<bytes>324</bytes>
+				<bytesok>80</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80006180</addrFrom>
+				<addrTo>P:80006315</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc5</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80006456</addrFrom>
+				<addrTo>P:80006485</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_stubs</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>2</never>
+				<bytes>48</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<total>
+				<cov>partial</cov>
+				<exec metric="object">43.492%</exec>
+				<branches>15.740%</branches>
+				<ok>30</ok>
+				<taken>242</taken>
+				<nottaken>134</nottaken>
+				<never>979</never>
+				<bytes>14890</bytes>
+				<bytesok>6476</bytesok>
+			</total>
+		</COVerage.EXPORT.ListLine>
+	</coverage>
+	<marker>
+		<BookMark.EXPORT ts="1623300792" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE">
+		</BookMark.EXPORT>
+	</marker>
+	<listing>
+		<List.EXPORT ts="1623300792" t32ver="R.2020.09.000128638" t32pv="TRICORE" order="source">
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><line>1</line><src>/*</src></hll>
+				<hll><line>2</line><src> * Author: Insub Song (insub.song@halla.com)</src></hll>
+				<hll><line>3</line><src> * Date  : 2019.02.01</src></hll>
+				<hll><line>4</line><src> */</src></hll>
+				<hll><line>5</line><src></src></hll>
+				<hll><line>6</line><src>#include &quot;Rte_SWC_DiagnosticMonitor.h&quot;</src></hll>
+				<hll><line>7</line><src></src></hll>
+				<hll><line>8</line><src>#include &quot;SWC_Failsafe.h&quot;</src></hll>
+				<hll><line>9</line><src>#include &quot;FS_BatteryVoltage.h&quot;</src></hll>
+				<hll><line>10</line><src></src></hll>
+				<hll><line>11</line><src>static vol_cond_t bat_cond = {</src></hll>
+				<hll><line>12</line><src>    .high = {16000, 17000},</src></hll>
+				<hll><line>13</line><src>    .low = {8000, 9000},</src></hll>
+				<hll><line>14</line><src>    .detect_tick_thr = MS2TICK(10000),</src></hll>
+				<hll><line>15</line><src>    .recover_tick_thr = MS2TICK(4000),</src></hll>
+				<hll><line>16</line><src>};</src></hll>
+				<hll><line>17</line><src></src></hll>
+				<hll><line>18</line><src>vol_info_t bat_info = {</src></hll>
+				<hll><line>19</line><src>    .p_vol = &amp;vol_grp[VOL_BAT],</src></hll>
+				<hll><line>20</line><src>};</src></hll>
+				<hll><line>21</line><src></src></hll>
+				<hll><line>22</line><src>void update_vol_info(boolean meet_precond, vol_info_t *info, vol_cond_t *cond)</src></hll>
+				<hll><line>23</line><src>{</src></hll>
+				<hll><line>24</line><src>/*</src></hll>
+				<hll><line>25</line><src> * T: True / F: False / X: Don&apos;t care / D: Detect / R: Recover</src></hll>
+				<hll><line>26</line><src> *</src></hll>
+				<hll><line>27</line><src> * [Logic Table]</src></hll>
+				<hll><line>28</line><src> * ----------------------------------------------------</src></hll>
+				<hll><line>29</line><src> * |          Vol range          | fault | High | Low |</src></hll>
+				<hll><line>30</line><src> * ----------------------------------------------------</src></hll>
+				<hll><line>31</line><src> * |        v &gt; high_upper       |   X   |   D  |  R  |</src></hll>
+				<hll><line>32</line><src> * | high_lower &lt; v &lt; high_upper |   T   |   D  |  R  |</src></hll>
+				<hll><line>33</line><src> * | high_lower &lt; v &lt; high_upper |   F   |   R  |  R  |</src></hll>
+				<hll><line>34</line><src> * |  low_upper &lt; v &lt; high_lower |   X   |   R  |  R  |</src></hll>
+				<hll><line>35</line><src> * |  low_lower &lt; v &lt; low_upper  |   F   |   R  |  R  |</src></hll>
+				<hll><line>36</line><src> * |  low_lower &lt; v &lt; low_upper  |   T   |   R  |  D  |</src></hll>
+				<hll><line>37</line><src> * |        v &lt; low_lower        |   X   |   R  |  D  |</src></hll>
+				<hll><line>38</line><src> * ----------------------------------------------------</src></hll>
+				<hll><line>39</line><src> */</src></hll>
+				<hll><cov>taken</cov><line>40</line><src>    if (!meet_precond) {</src></hll>
+				<asm><cov>taken</cov><addr>P:80002CE8</addr><code>47F6</code><label>update_vol_info:                                                                                                                                                                                                                                                </label><mnemonic>jnz16     d4,0x80002CF6</mnemonic><comment>meet_precond,0x80002CF6</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>never</cov><line>41</line><src>        if (!info-&gt;high.fault)</src></hll>
+				<asm><cov>never</cov><addr>P:80002CEA</addr><code>4F14</code><mnemonic>ld16.bu   d15,[a4]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80002CEC</addr><code>02EE</code><mnemonic>jnz16     d15,0x80002CF0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>never</cov><line>42</line><src>            info-&gt;high.detect_tick = 0;</src></hll>
+				<asm><cov>never</cov><addr>P:80002CEE</addr><code>41AC</code><mnemonic>st16.h    [a4]0x2,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>never</cov><line>43</line><src>        if (!info-&gt;low.fault)</src></hll>
+				<asm><cov>never</cov><addr>P:80002CF0</addr><code>460C</code><mnemonic>ld16.bu   d15,[a4]0x6</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80002CF2</addr><code>02EE</code><mnemonic>jnz16     d15,0x80002CF6</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>never</cov><line>44</line><src>            info-&gt;low.detect_tick = 0;</src></hll>
+				<asm><cov>never</cov><addr>P:80002CF4</addr><code>44AC</code><mnemonic>st16.h    [a4]0x8,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c" type="multiple">
+				<hll><line>45</line><src>    }</src></hll>
+				<hll><line>46</line><src></src></hll>
+				<hll><line>47</line><src></src></hll>
+				<hll><cov>ok</cov><line>48</line><src>    uint16 vol = *info-&gt;p_vol;</src></hll>
+				<asm><cov>ok</cov><addr>P:80002CF6</addr><code>43CC</code><mnemonic>ld16.a    a15,[a4]0x0C</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002CFC</addr><code>08C0F009</code><mnemonic>ld.hu     d0,[a15]0x0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c" type="multiple">
+				<hll><line>49</line><src></src></hll>
+				<hll><cov>ok</cov><line>50</line><src>    if (vol &gt; cond-&gt;high.upper || (vol &gt; cond-&gt;high.lower &amp;&amp; info-&gt;high.fault)) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80002CF8</addr><code>08C25F09</code><mnemonic>ld.hu     d15,[a5]0x2</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002D00</addr><code>80080F3F</code><mnemonic>jlt.u     d15,d0,0x80002D10</mnemonic><comment>d15,vol,0x80002D10</comment></asm>
+				<asm><cov>ok</cov><addr>P:80002D04</addr><code>08C05F09</code><mnemonic>ld.hu     d15,[a5]0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002D08</addr><code>80110F7F</code><mnemonic>jge.u     d15,d0,0x80002D2A</mnemonic><comment>d15,vol,0x80002D2A</comment></asm>
+				<asm><cov>ok</cov><addr>P:80002D0C</addr><code>4F14</code><mnemonic>ld16.bu   d15,[a4]</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:80002D0E</addr><code>0E6E</code><mnemonic>jz16      d15,0x80002D2A</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><line>51</line><src>        // High detect &amp; Low recover</src></hll>
+				<hll><did>not</did><dec>taken</dec><cov>taken</cov><line>52</line><src>        if (meet_precond) {</src></hll>
+				<asm><cov>not taken</cov><addr>P:80002D10</addr><code>002A04DF</code><mnemonic>jeq       d4,#0x0,0x80002D64</mnemonic><comment>meet_precond,#0,0x80002D64</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>ok</cov><line>53</line><src>            info-&gt;high.detect_tick = __min(info-&gt;high.detect_tick + 1, cond-&gt;detect_tick_thr);</src></hll>
+				<asm><cov>ok</cov><addr>P:80002D14</addr><code>08C24F09</code><mnemonic>ld.hu     d15,[a4]0x2</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002D18</addr><code>08C85009</code><mnemonic>ld.hu     d0,[a5]0x8</mnemonic><comment>vol,[a5]8</comment></asm>
+				<asm><cov>ok</cov><addr>P:80002D1C</addr><code>1FC2</code><mnemonic>add16     d15,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002D1E</addr><code>F1800F0B</code><mnemonic>min       d15,d15,d0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002D22</addr><code>41AC</code><mnemonic>st16.h    [a4]0x2,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>ok</cov><line>54</line><src>            info-&gt;high.recover_tick = 0;</src></hll>
+				<asm><cov>ok</cov><addr>P:80002D24</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002D26</addr><code>42AC</code><mnemonic>st16.h    [a4]0x4,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><line>55</line><src>        }</src></hll>
+				<hll><cov>ok</cov><line>56</line><src>        info-&gt;low.detect_tick = 0;</src></hll>
+				<asm><cov>ok</cov><addr>P:80002D28</addr><code>1E3C</code><mnemonic>j16       0x80002D64</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c" type="multiple">
+				<hll><line>57</line><src>        info-&gt;low.recover_tick = __min(info-&gt;low.recover_tick + 1, cond-&gt;recover_tick_thr);</src></hll>
+				<hll><cov>ok</cov><line>58</line><src>    } else if (vol &lt; cond-&gt;low.lower || (vol &lt; cond-&gt;low.upper &amp;&amp; info-&gt;low.fault)) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80002D2E</addr><code>08C45F09</code><mnemonic>ld.hu     d15,[a5]0x4</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002D34</addr><code>8008F03F</code><mnemonic>jlt.u     d0,d15,0x80002D44</mnemonic><comment>vol,d15,0x80002D44</comment></asm>
+				<asm><cov>ok</cov><addr>P:80002D38</addr><code>08C65F09</code><mnemonic>ld.hu     d15,[a5]0x6</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002D3C</addr><code>8012F07F</code><mnemonic>jge.u     d0,d15,0x80002D60</mnemonic><comment>vol,d15,0x80002D60</comment></asm>
+				<asm><cov>ok</cov><addr>P:80002D40</addr><code>460C</code><mnemonic>ld16.bu   d15,[a4]0x6</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:80002D42</addr><code>0F6E</code><mnemonic>jz16      d15,0x80002D60</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><line>59</line><src>        // High recover &amp; Low detect</src></hll>
+				<hll><did>not</did><dec>taken</dec><cov>taken</cov><line>60</line><src>        if (meet_precond) {</src></hll>
+				<asm><cov>not taken</cov><addr>P:80002D44</addr><code>4B76</code><mnemonic>jz16      d4,0x80002D5A</mnemonic><comment>meet_precond,0x80002D5A</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>ok</cov><line>61</line><src>            info-&gt;low.detect_tick = __min(info-&gt;low.detect_tick + 1, cond-&gt;detect_tick_thr);</src></hll>
+				<asm><cov>ok</cov><addr>P:80002D46</addr><code>08C84F09</code><mnemonic>ld.hu     d15,[a4]0x8</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002D4A</addr><code>08C85009</code><mnemonic>ld.hu     d0,[a5]0x8</mnemonic><comment>vol,[a5]8</comment></asm>
+				<asm><cov>ok</cov><addr>P:80002D4E</addr><code>1FC2</code><mnemonic>add16     d15,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002D50</addr><code>F1800F0B</code><mnemonic>min       d15,d15,d0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002D54</addr><code>44AC</code><mnemonic>st16.h    [a4]0x8,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>ok</cov><line>62</line><src>            info-&gt;low.recover_tick = 0;</src></hll>
+				<asm><cov>ok</cov><addr>P:80002D56</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002D58</addr><code>45AC</code><mnemonic>st16.h    [a4]0x0A,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><line>63</line><src>        }</src></hll>
+				<hll><cov>ok</cov><line>64</line><src>        info-&gt;high.detect_tick = 0;</src></hll>
+				<asm><cov>ok</cov><addr>P:80002D5A</addr><code>FF6FFF61</code><mnemonic>fcall     0x80002C38</mnemonic><comment>.cocofun_3</comment></asm>
+				<asm><cov>ok</cov><addr>P:80002D5E</addr><code>0D3C</code><mnemonic>j16       0x80002D78</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c" type="multiple">
+				<hll><cov>ok</cov><line>65</line><src>        info-&gt;high.recover_tick = __min(info-&gt;high.recover_tick + 1, cond-&gt;recover_tick_thr);</src></hll>
+				<asm><cov>ok</cov><addr>P:80002D2A</addr><code>08C44109</code><mnemonic>ld.hu     d1,[a4]0x4</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002D32</addr><code>11C2</code><mnemonic>add16     d1,#0x1</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><line>66</line><src>    } else {</src></hll>
+				<hll><line>67</line><src>        // High &amp; Low recover</src></hll>
+				<hll><cov>ok</cov><line>68</line><src>        info-&gt;high.detect_tick = 0;</src></hll>
+				<asm><cov>ok</cov><addr>P:80002D60</addr><code>FF6CFF61</code><mnemonic>fcall     0x80002C38</mnemonic><comment>.cocofun_3</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>ok</cov><line>70</line><src>        info-&gt;low.detect_tick = 0;</src></hll>
+				<asm><cov>ok</cov><addr>P:80002D64</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002D66</addr><code>44AC</code><mnemonic>st16.h    [a4]0x8,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>ok</cov><line>71</line><src>        info-&gt;low.recover_tick = __min(info-&gt;low.recover_tick + 1, cond-&gt;recover_tick_thr);</src></hll>
+				<asm><cov>ok</cov><addr>P:80002D68</addr><code>08CA4F09</code><mnemonic>ld.hu     d15,[a4]0x0A</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002D6C</addr><code>08CA5009</code><mnemonic>ld.hu     d0,[a5]0x0A</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002D70</addr><code>1FC2</code><mnemonic>add16     d15,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002D72</addr><code>F1800F0B</code><mnemonic>min       d15,d15,d0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002D76</addr><code>45AC</code><mnemonic>st16.h    [a4]0x0A,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><line>72</line><src>    }</src></hll>
+				<hll><line>73</line><src></src></hll>
+				<hll><cov>ok</cov><line>74</line><src>    if (info-&gt;high.detect_tick == cond-&gt;detect_tick_thr)</src></hll>
+				<asm><cov>ok</cov><addr>P:80002D78</addr><code>08C24F09</code><mnemonic>ld.hu     d15,[a4]0x2</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002D7C</addr><code>08C85009</code><mnemonic>ld.hu     d0,[a5]0x8</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002D80</addr><code>037E</code><mnemonic>jne16     d15,d0,0x80002D86</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>ok</cov><line>75</line><src>        info-&gt;high.fault = TRUE;</src></hll>
+				<asm><cov>ok</cov><addr>P:80002D82</addr><code>01DA</code><mnemonic>mov16     d15,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002D84</addr><code>4F34</code><mnemonic>st16.b    [a4],d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>ok</cov><line>76</line><src>    if (info-&gt;high.recover_tick == cond-&gt;recover_tick_thr)</src></hll>
+				<asm><cov>ok</cov><addr>P:80002D86</addr><code>08C44F09</code><mnemonic>ld.hu     d15,[a4]0x4</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002D8A</addr><code>08CA5009</code><mnemonic>ld.hu     d0,[a5]0x0A</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002D8E</addr><code>037E</code><mnemonic>jne16     d15,d0,0x80002D94</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>ok</cov><line>77</line><src>        info-&gt;high.fault = FALSE;</src></hll>
+				<asm><cov>ok</cov><addr>P:80002D90</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002D92</addr><code>4F34</code><mnemonic>st16.b    [a4],d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>ok</cov><line>78</line><src>    if (info-&gt;low.detect_tick == cond-&gt;detect_tick_thr)</src></hll>
+				<asm><cov>ok</cov><addr>P:80002D94</addr><code>08C84F09</code><mnemonic>ld.hu     d15,[a4]0x8</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002D98</addr><code>08C85009</code><mnemonic>ld.hu     d0,[a5]0x8</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002D9C</addr><code>037E</code><mnemonic>jne16     d15,d0,0x80002DA2</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>ok</cov><line>79</line><src>        info-&gt;low.fault = TRUE;</src></hll>
+				<asm><cov>ok</cov><addr>P:80002D9E</addr><code>01DA</code><mnemonic>mov16     d15,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002DA0</addr><code>462C</code><mnemonic>st16.b    [a4]0x6,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>ok</cov><line>80</line><src>    if (info-&gt;low.recover_tick == cond-&gt;recover_tick_thr)</src></hll>
+				<asm><cov>ok</cov><addr>P:80002DA2</addr><code>08CA4F09</code><mnemonic>ld.hu     d15,[a4]0x0A</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002DA6</addr><code>08CA5009</code><mnemonic>ld.hu     d0,[a5]0x0A</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002DAA</addr><code>037E</code><mnemonic>jne16     d15,d0,0x80002DB0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>ok</cov><line>81</line><src>        info-&gt;low.fault = FALSE;</src></hll>
+				<asm><cov>ok</cov><addr>P:80002DAC</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002DAE</addr><code>462C</code><mnemonic>st16.b    [a4]0x6,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><line>82</line><src></src></hll>
+				<hll><line>83</line><src></src></hll>
+				<hll><cov>taken</cov><line>84</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_0], VOL_HIGH))</src></hll>
+				<asm><cov>ok</cov><addr>P:80002DB0</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002DB4</addr><code>507AFFD9</code><mnemonic>lea       a15,[a15]0x57A</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80002DB8</addr><code>FF14</code><mnemonic>ld16.bu   d15,[a15]</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80002DBA</addr><code>032E</code><mnemonic>jz16.t    d15,#0x0,0x80002DC0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>never</cov><line>85</line><src>        info-&gt;high.fault = FALSE;</src></hll>
+				<asm><cov>never</cov><addr>P:80002DBC</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80002DBE</addr><code>4F34</code><mnemonic>st16.b    [a4],d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>taken</cov><line>86</line><src>    if (TEST_BIT(recover_mask[RECOVER_GROUP_0], VOL_LOW))</src></hll>
+				<asm><cov>ok</cov><addr>P:80002DC0</addr><code>FF14</code><mnemonic>ld16.bu   d15,[a15]</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80002DC2</addr><code>132E</code><mnemonic>jz16.t    d15,#0x1,0x80002DC8</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>never</cov><line>87</line><src>        info-&gt;low.fault = FALSE;</src></hll>
+				<asm><cov>never</cov><addr>P:80002DC4</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80002DC6</addr><code>462C</code><mnemonic>st16.b    [a4]0x6,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><cov>ok</cov><line>88</line><src>}</src></hll>
+				<asm><cov>ok</cov><addr>P:80002DC8</addr><code>9000</code><mnemonic>ret16     </mnemonic></asm>
+			</mixed>
+		</List.EXPORT>
+	</listing>
+</TRACE32>

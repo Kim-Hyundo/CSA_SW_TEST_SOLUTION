@@ -1,0 +1,185 @@
+; --------------------------------------------------------------------------------
+; @Title: TianoCore UEFI Demo for TRACE32 UEFI Debugger on BeagleBoard
+; @Description: 
+;   This scripts start on-board u-boot, then loads TianoCore UEFI
+;   into RAM for debugging.
+; @Keywords: UEFI, Tiano
+; @Author: DIE
+; @Board: BeagleBoard
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tiano.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; IMPORTANT when using GCC on ARM:
+; The ELF->COFF converter (GenFw) may spoil the debug information
+; when using several text/data sections (check with "-v").
+; The linker must combine all sections into one text section 
+; and one data section. Check the file edk2/Conf/tools_def.txt
+; and the template edk2/BaseTools/Conf/tools_def.template,
+; and add the following switch to the _ARMGCC_ARM_DLINK_FLAGS:
+; --script=$(EDK_TOOLS_PATH)/Scripts/gcc4.4-ld-script
+
+
+; Declare directories of EDK2 and build
+&uefidir="C:/Development/UEFI"
+&edk2dir="&uefidir/TianoCore/BeagleBoard/edk2"
+&builddir="&edk2dir/Build/BeagleBoard/DEBUG_ARMGCC"
+
+; COM port for terminal window
+&term="COM4"
+
+
+ screen.always      ; permanent update for internal terminal window
+ ; screen.on        ; if you use external terminal
+
+
+; Debugger Reset
+
+ winpage.reset
+ area.reset
+ WINPOS 0. 21. 70. 9. 0. 0. W000
+ area
+ 
+ print "resetting..."
+
+ RESet
+
+ 
+; Initializing Debugger
+
+ print "initializing..."
+ SYStem.CPU OMAP3530
+ SYStem.JtagClock RTCK
+ SYStem.Option ResBreak OFF     ; hardware dependent (see manual)
+ SYStem.Option WaitReset ON     ; hardware dependent (see manual)
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+
+ SYStem.Up
+
+
+; Open a Code Window -- we like to see something
+
+ WINPOS 0. 0. 75. 20.
+ Data.List
+ screen
+ 
+
+; Open serial terminal window on COM1
+ 
+ winpos 35. 0. ,,,,, term
+ TERM.METHOD COM &term 115200. 8 NONE 1STOP NONE
+ TERM.SIZE 80. 1000.
+ TERM.MODE VT100
+ TERM.SCROLL ON
+ TERM
+
+
+; Target Setup
+
+ ; start u-boot to initialize the board
+ Go
+ print "target setup..."
+ wait 5.s
+ Break
+
+
+; Disable caches and MMU
+ PER.Set c15:0x1 %Long 0x0005007A     ; disable L1 caches and MMU
+ PER.Set c15:0x101 %Long 0x00000070   ; disable L2 cache
+
+
+; Load the UEFI image
+   
+ ; Use the next lines only to load the UEFI image into
+ ; RAM using the debugger.
+ ; Start address is defined in edk2\BeagleBoardPkg\build.sh
+   
+ print "loading UEFI image..."
+ Data.LOAD.Binary "&builddir/FV/BEAGLEBOARD_EFI.fd" 0x80008000
+
+ Register.RESet
+ Register.Set PC 0x80008000
+ 
+
+; Load TianoCore UEFI support
+
+ print "initializing UEFI support..."
+
+ ; Specify the memory base address and size,
+ ; see BeagleBoardPkg/BeagleBoardPkg.dsc:
+ ; PcdSystemMemoryBase = 0x80000000
+ ; PcdSystemMemorySize = 0x08000000
+
+ EXTension.CONFIG ~~/demo/arm/bootloader/uefi/tiano/tiano.t32 0x80000000 0x08000000
+ MENU.ReProgram ~~/demo/arm/bootloader/uefi/tiano/tiano.men
+
+ ; install symbol autoloader for PEI modules/DXE drivers
+
+ sYmbol.AutoLOAD.CHECKUEFI "do ~~/demo/arm/bootloader/uefi/tiano/autoload "
+ 
+
+; Load symbols of PEI
+
+ print "loading ARM platform symbols..."
+
+ ; adapt paths if necessary
+
+ sYmbol.SourcePATH.Translate "/storcenter/UEFI" "&uefidir"
+ sYmbol.SourcePATH.Translate "\storcenter\UEFI" "&uefidir"
+
+ ; search for current installed modules (only PEI)
+
+ sYmbol.AutoLOAD.CHECK
+ 
+ ; and force loading of platform module
+ 
+ sYmbol.AutoLOAD.TOUCH "ArmPlatformPrePiUniCore"
+
+
+; Early loading of DxeMain symbols
+
+ ; this is necessary, if you want to debug DxeMain,
+ ; or want to trap early starts of DXE Drivers
+
+ print "starting DxeMain..."
+
+ Go LoadDxeCoreFromFfsFile
+ wait !STATE.RUN()
+ Go BuildModuleHob
+ wait !STATE.RUN()
+ Go.up
+
+ ; load symbols of DxeCore before starting DxeMain
+ 
+ sYmbol.AutoLOAD.CHECK
+ sYmbol.AutoLOAD.TOUCH "DxeCore"
+ 
+ ; and go to main
+
+ Go DxeMain
+ wait !STATE.RUN()
+ 
+ ; now we're at DxeMain...
+ 
+
+; Let DXE initialize and start the DXE dispatcher
+
+ print "initializing DXE dispatcher..."
+ 
+ Go CoreDispatcher
+ wait !STATE.RUN()
+ 
+ print "done!"
+ 
+
+; We're in DXE phase and right there to debug drivers.
+; Use the script "go_dxedrv.cmm" to debug DXE drivers
+; from the entry point. E.g.:
+ 
+ do ~~/demo/arm/bootloader/uefi/tiano/go_dxedrv ArmPlatformBds
+ 
+ Go \\ArmPlatformBds\AutoGen\ProcessModuleEntryPointList
+ 
+ enddo
+ 

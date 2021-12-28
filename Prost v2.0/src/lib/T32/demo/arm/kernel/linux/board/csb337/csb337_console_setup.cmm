@@ -1,0 +1,44 @@
+; --------------------------------------------------------------------------------
+; @Title: Initialize SERIAL 0 as console for the Cogent CSB337
+; @Description: Initialize SERIAL 0 as console for the Cogent CSB337. Called by csb337_linux.cmm
+; @Keywords: Cogent, console, RTOS, serial
+; @Author: DIE
+; @Board: CSB337
+; @Chip: AT91RM9200
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: csb337_console_setup.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+&AT91C_BASE_SYS=0xFFFFF000             // (SYS) Base Address
+&DBGU_CR=&AT91C_BASE_SYS+0x200         // Control Register
+&DBGU_IDR=&AT91C_BASE_SYS+0x200+0xC    // Interrupt Disable Register
+&DBGU_IMR=&AT91C_BASE_SYS+0x200+0x10   // Interrupt Mask Register
+&DBGU_BRGR=&AT91C_BASE_SYS+0x200+0x20  // Baud Rate Generator Register
+&DBGU_MR=&AT91C_BASE_SYS+0x200+0x4     // Mode Register
+&DBGU_THR=&AT91C_BASE_SYS+0x200+0x1C   // Transmitter Holding Register
+&DBGU_CSR=&AT91C_BASE_SYS+0x200+0x14   // Channel Status Register
+&DBGU_INT_TXBUFE=0x20000
+
+// clear error bits and reset tx and rx
+Data.Set &DBGU_CR %Long 0x10C 
+// clear any pending interrupts and mask all further interrupts
+//data.set &DBGU_IDR %LONG 0xC0001AFB
+Data.Set &DBGU_IDR %Long 0x200002B8
+//Data.Set &DBGU_IMR %LONG 0x0
+// Set baud rate 38400=75=0x4b
+Data.Set &DBGU_BRGR %Long 0x4B
+// set the port to no parity, no loopback
+Data.Set &DBGU_MR %Long 0x800
+// Enable
+Data.Set &DBGU_CR %Long 0x50
+
+WAIT 0.5s
+PRINT "printing 'OK' on console"
+Data.Set &DBGU_THR %Byte 'O'
+Data.Set &DBGU_THR %Byte 'K'
+Data.Set &DBGU_THR %Byte 0x0a
+Data.Set &DBGU_THR %Byte 0x0d
+
+ENDDO
+

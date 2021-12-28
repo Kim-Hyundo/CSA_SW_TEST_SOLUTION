@@ -1,0 +1,37 @@
+; --------------------------------------------------------------------------------
+; @Title: PIPE Demo Setup Script for STM32F103 (PipeWRITE)
+; @Description: -
+; @Keywords: PIPE, PIPEWRITE, PROTO
+; @Chip: STM32F103ZE
+; @Board: STM32F103 EVB
+; @Author: ING
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: setup_pipewrite.cmm 15209 2019-11-04 10:07:55Z bschroefel $
+
+
+; bring up board, load application etc.
+  DO common
+
+; set timer rate
+; for SWV with 32Mbps, ca 1MB/s
+  Var.set timerReload = 1399.
+
+  IF (OS.VERSION(0)>=0x10)||(OS.VERSION(0)==0x0)
+  (
+    PRINT "Demo unsupported for this OS"
+    ENDDO
+  )
+
+; Start application which will 
+; receive data from windows named pipe
+  OS.screen ./pread_pipe.exe \\.\pipe\pproto00
+  WAIT 2.s
+
+; Configure windows named pipe as trace sink
+  SystemTrace.PipeWRITE \\.\pipe\pproto00
+
+; Start to receive data
+  SystemTrace.Arm
+
+; Now start application

@@ -1,0 +1,33 @@
+; --------------------------------------------------------------------------------
+; @Title: Infineon TC275 STM initialization script
+; @Description: initialize STM
+; @Keywords: STM, Infineon, simulator, TriCore
+; @Author: DIE
+; @Chip: TC275TE
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: stm_tc27x.cmm 16456 2020-08-24 13:30:20Z hdammak $
+
+LOCAL &STM0_BASE &IR_SRC_STM0SR0
+&STM0_BASE=D:0xF0000000
+&IR_SRC_STM0SR0=D:0xF0038490
+SIM.UNLOAD ; unload all modules
+
+; load stm module for tc275
+&OS_Name=OS.NAME()
+IF "&OS_Name"=="Windows"
+(
+  IF SOFTWARE.64BIT()
+  (
+    SIM.LOAD ~~~~/timer_tc275_64bit.dll &STM0_BASE &IR_SRC_STM0SR0
+  )
+  ELSE
+  (
+    SIM.LOAD ~~~~/timer_tc275.dll &STM0_BASE &IR_SRC_STM0SR0
+  )
+)
+ELSE
+(
+  PRINT "This demo is not supported for &OS_Name.
+)
+

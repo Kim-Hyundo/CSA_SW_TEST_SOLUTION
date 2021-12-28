@@ -1,0 +1,203 @@
+; --------------------------------------------------------------------------------
+; @Title: Menu entry point trace Script for PandaBoard CortexA9
+; @Description: 
+;   This script add CMM menu that link to CortexA9 trace ti-script. 
+;   For description please take a look at (omap4430_lauterbach_startup_guide.doc)
+; @Keywords: OMAP4430 PandaBoard
+; @Author: TI
+; @Board: PandaBoard
+; @Chip: OMAP4430
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: omap4430_cortexa9_menu_traces.cmm 8886 2015-11-18 18:06:51Z mobermeir $
+
+ENTRY &menu_type
+
+GLOBAL &CMM_DIR
+&CMM_DIR="~~~~"
+
+MENU.ReProgram
+(
+  ADD
+  MENU
+  (
+    POPUP "CMM"
+    (
+      POPUP "STM configuration"
+      (
+        MENUITEM "Configure_STM_4_bits_to_Output_with_PDLO"
+        (
+          DO  &CMM_DIR/omap4430_stm 0x0
+          DO  &CMM_DIR/omap4430_stm 0x1
+          DO  &CMM_DIR/omap4430_stm 0x2
+        )
+        MENUITEM "Configure_STM_2_bits_to_Output_with_PDLO"
+        (
+          DO  &CMM_DIR/omap4430_stm 0x0
+          DO  &CMM_DIR/omap4430_stm 0x8
+          DO  &CMM_DIR/omap4430_stm 0x6
+        )
+        MENUITEM "Configure_STM_1_bits_to_Output_with_PDLO"
+        (
+          DO  &CMM_DIR/omap4430_stm 0x0
+          DO  &CMM_DIR/omap4430_stm 0x9
+          DO  &CMM_DIR/omap4430_stm 0x7
+        )
+                    
+        MENUITEM "Configure_STM_to_ETB"
+        ( 
+          ; open some windows
+          WinCLEAR
+          WinPOS 0% 0% 100% 50%
+          List.auto
+          WinPOS 0% 50% 50% 50%
+          Register.view /SpotLight                  
+                                   
+          DO  &CMM_DIR/omap4430_stm 0x0
+          DO  &CMM_DIR/omap4430_stm 0x1                        
+          DO  &CMM_DIR/omap4430_stm 0x5 
+                        
+          Trace.List diag 
+                        
+          Trace.METHOD onchip
+                        
+          Trace.state                                      
+
+        )
+                    
+        MENUITEM "Configure_EMU0_4_SmartIO_Load_1pF_10pF"
+        (
+          DO  &CMM_DIR/omap4430_stm 0x3
+         )
+          
+         MENUITEM "Configure_EMU0_4_SmartIO_Load_10pF_16pF"
+         (
+          DO  &CMM_DIR/omap4430_stm 0x4
+         )
+      )
+      POPUP "TPIU configuration"
+      (
+        MENUITEM "Configure_TPIU_FOR_16_bits_Core_Tpiu_clk_200MHZ"
+        (
+          DO &CMM_DIR/omap4430_tpiu 0x0
+          DO &CMM_DIR/omap4430_tpiu 0x4
+          ETM.ON
+          Trace.state
+          Trace.AutoFocus
+        )
+        ;MENUITEM "Configure_TPIU_FOR_16_bits_Per_Tpiu_clk_152MHZ"
+        ;(
+        ; do &CMM_DIR/omap4430_tpiu 0x1
+        ; do &CMM_DIR/omap4430_tpiu 0x4
+        ;    etm.on
+        ;    trace
+        ;    trace.autofocus
+        ;)
+        ;MENUITEM "Configure_TPIU_FOR_16_bits_Per_Tpiu_clk_252MHZ"
+        ;(
+        ; do &CMM_DIR/omap4430_tpiu 0x2
+        ; do &CMM_DIR/omap4430_tpiu 0x4
+        ;    etm.on
+        ;    trace
+        ;    trace.autofocus
+        ;)
+        MENUITEM "Configure_TPIU_FOR_16_bits_Sys_clk_Tpiu_clk_19_2MHZ"
+        (
+          DO &CMM_DIR/omap4430_tpiu 0x3
+          DO &CMM_DIR/omap4430_tpiu 0x4
+          ETM.ON
+          Trace.state
+          Trace.AutoFocus
+        )
+        MENUITEM "Configure_TPIU_FOR_18_bits_Core_Tpiu_clk_200MHZ"
+        (
+          DO &CMM_DIR/omap4430_tpiu 0x0
+          DO &CMM_DIR/omap4430_tpiu 0x5
+          ETM.ON
+          Trace.state
+          Trace.AutoFocus
+        )
+        MENUITEM "Configure_TPIU_FOR_18_bits_PDLO_Tpiu_clk_200MHZ"
+        (
+          DO &CMM_DIR/omap4430_tpiu 0xA
+          DO &CMM_DIR/omap4430_tpiu 0x5
+          ETM.ON
+          Trace.state
+          Trace.AutoFocus
+        )
+        MENUITEM "Configure_TPIU_FOR_18_bits_PDLO_Tpiu_clk_266MHZ"
+        (
+          DO &CMM_DIR/omap4430_tpiu 0xC
+          DO &CMM_DIR/omap4430_tpiu 0x5
+          ETM.ON
+          Trace.state
+          Trace.AutoFocus
+        )
+        MENUITEM "Configure_TPIU_FOR_18_bits_PDLO_Tpiu_clk_300MHZ"
+        (
+          DO &CMM_DIR/omap4430_tpiu 0xB
+          DO &CMM_DIR/omap4430_tpiu 0x5
+          ETM.ON
+          Trace.state
+          Trace.AutoFocus
+        )
+        ;MENUITEM "Configure_TPIU_FOR_18_bits_Per_Tpiu_clk_152MHZ"
+        ;(
+        ; do &CMM_DIR/omap4430_tpiu 0x1
+        ; do &CMM_DIR/omap4430_tpiu 0x5
+        ;    etm.on
+        ;    trace
+        ;    trace.autofocus
+        ;)
+        ;MENUITEM "Configure_TPIU_FOR_18_bits_Per_Tpiu_clk_252MHZ"
+        ;(
+        ; do &CMM_DIR/omap4430_tpiu 0x2
+        ; do &CMM_DIR/omap4430_tpiu 0x5
+        ;    etm.on
+        ;   trace
+        ;    trace.autofocus
+        ;)
+        MENUITEM "Configure_TPIU_FOR_18_bits_Sys_clk_Tpiu_clk_19_2MHZ"
+        (
+          DO &CMM_DIR/omap4430_tpiu 0x3
+          DO &CMM_DIR/omap4430_tpiu 0x5
+          ETM.ON
+          Trace.state
+          Trace.AutoFocus
+        )
+        MENUITEM "Configure_PTM_to_ETB_Fifo_full"
+        (
+          DO &CMM_DIR/omap4430_tpiu 0xA
+          DO &CMM_DIR/omap4430_tpiu 0x5
+          Trace.METHOD.Onchip
+          Onchip.Mode FIFO
+          Onchip.Init
+          DO &CMM_DIR/omap4430_tpiu 0x9
+          ETM.ON
+          Trace.state
+        )
+        MENUITEM "Configure_PTM_to_ETB_Fifo"
+        (
+          DO &CMM_DIR/omap4430_tpiu 0xA
+          DO &CMM_DIR/omap4430_tpiu 0x5
+          Trace.METHOD.Onchip
+          Onchip.Mode FIFO
+          Onchip.Init
+          ;do &CMM_DIR/omap4430_tpiu 0x9
+          ETM.ON
+          Trace.state
+        )
+        MENUITEM "Configure_EMU0_19_SmartIO_Load_1pF_10pF"
+        (
+          DO  &CMM_DIR/omap4430_tpiu 0x6
+        )
+        MENUITEM "Configure_EMU0_19_SmartIO_Load_10pF_16pF"
+        (
+          DO  &CMM_DIR/omap4430_tpiu 0x7
+        )
+      )
+    )
+  )
+) 
+
+ENDDO

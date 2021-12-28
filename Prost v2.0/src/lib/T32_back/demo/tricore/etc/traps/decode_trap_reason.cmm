@@ -1,0 +1,69 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to decode the reason of a trap
+; @Description:
+;   This script analyzes the register values in case the TriCore ran into a trap
+;   to find out which 'Trap Class Number' and 'Trap Identification Number' it was.
+;   Use it to look up possible reasons for the trap in the Infineon 'TriCore
+;   Architecture Manual'.
+;   To stop on any trap, it might be helpful to set an on-chip range breakpoint to
+;   the 'Base Trap Vector' with
+;     Break.Set Register(BTV)++0xFF /Program /Onchip
+;   before running this script.
+; @Keywords: BTV, Infineon, TCN, TIN, trap, traps, TriCore
+; @Author: MOB
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: decode_trap_reason.cmm 7539 2014-08-18 09:51:20Z mobermeir $
+
+
+LOCAL &interactive &rPC &rD15 &rBTV &TCN &TIN
+ENTRY &interactive
+
+IF ("&interactive"!="")
+(
+  AREA.Create TrapDecod
+  AREA.Select TrapDecod
+  AREA.view TrapDecod
+  PRINT "Decoding Trap Reason"
+  PRINT "Enter register values manually: "
+  PRINT "PC="
+  ENTER &rPC
+  PRINT "D15="
+  ENTER &rD15
+  PRINT "BTV="
+  ENTER &rBTV
+  WinCLEAR TOP ;delete TrapDecod window
+)
+ELSE
+(
+  PRINT "Decoding Trap Reason"
+  &rPC=Register(PC)
+  &rD15=Register(D15)
+  &rBTV=Register(BTV)
+)
+&TCN=((&rPC)>>5.)&0x7
+&TIN=&rD15
+
+IF ((&rPC<&rBTV)||(&rPC>&rBTV+0xff))
+(
+  PRINT %ERROR "Program Counter is not in Trap Range"
+)
+ELSE IF STATE.RUN()
+(
+  PRINT %ERROR "can not decode, processor running"
+)
+ELSE
+(
+  IF ("&interactive"!="")
+    PRINT "trap decoding based on manually entered values"
+  ELSE
+    PRINT "trap decoding based on automatically read values"
+  PRINT "Register values are: PC=0x" FORMAT.HEX(8.,&rPC) " D15=0x" FORMAT.HEX(8.,&rD15) " BTV=0x" FORMAT.HEX(8.,&rBTV)
+  PRINT "BTV = &rBTV (Base Trap Vector)"
+  PRINT "TCN = &TCN (Trap Class Number)"
+  PRINT "TIN = &TIN (Trap Identification Number)"
+  PRINT ""
+  PRINT "TCN=&TCN, TIN=&TIN; See 'Table 6-1' in 'Chapter 6 Trap System' of the 'TriCore Achitecture Manual' for details"
+)
+
+ENDDO

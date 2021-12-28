@@ -1,0 +1,110 @@
+﻿<UserControl x:Class="ProstMain.View.MenuBarView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:i ="http://schemas.microsoft.com/expression/2010/interactivity"
+             xmlns:Command ="http://www.galasoft.ch/mvvmlight"
+             xmlns:customcontrol="clr-namespace:ProstMain.CustomControl"
+             xmlns:local="clr-namespace:ProstMain.View"
+             xmlns:util="clr-namespace:ProstMain.Util"
+             mc:Ignorable="d" 
+             DataContext="{Binding Source={StaticResource Locator},Path=MenuBarVM}"
+                Background="{DynamicResource ResourceKey=PrimaryHueMidBrush}" >
+    <UserControl.Resources>
+        <util:HidenmenuVisibleConvert x:Key="HidenmenuVisibleConvert"/>
+    </UserControl.Resources>
+    <StackPanel>
+        <Menu IsMainMenu="True"  x:Name="topMenu"  Background="{DynamicResource ResourceKey=PrimaryHueMidBrush}" IsEnabled="{Binding IsMenubarEnable}">
+            <MenuItem Header="File" Foreground="{DynamicResource ResourceKey=MenuBarForeground}">
+                <MenuItem Header="Create New Project" Foreground="{DynamicResource ResourceKey=MenuBarForeground}" Command="{Binding CreateProjectCommand}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="Folder" Height="22" Width="22" Margin="-10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Save Project" Foreground="{DynamicResource ResourceKey=MenuBarForeground}" Command="{Binding SaveProjectCommand}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="ZipDisk" Height="22" Width="22" Margin="-10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Delete Project" Foreground="{DynamicResource ResourceKey=MenuBarForeground}" Command="{Binding DeleteProjectCommand}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="DeleteEmptyOutline" Height="22" Width="22" Margin="-10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="Import Project Properties" Foreground="{DynamicResource ResourceKey=MenuBarForeground}" Command="{Binding ImportProjectCommand}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="Import" Height="22" Width="22" Margin="-10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Export Project Properties" Foreground="{DynamicResource ResourceKey=MenuBarForeground}" Command="{Binding ExportProjectCommand}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="Export" Height="22" Width="22" Margin="-10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="Change WorkSpace" Foreground="{DynamicResource ResourceKey=MenuBarForeground}" Command="{Binding ChangeWorkSpaceCommand}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="RotateLeft" Height="22" Width="22" Margin="-10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Exit" Foreground="{DynamicResource ResourceKey=MenuBarForeground}" Command="{Binding ExitProjectCommand}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="Close" Height="22" Width="22" Margin="-10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem  Header="Tools" Foreground="{DynamicResource ResourceKey=MenuBarForeground}">
+                <MenuItem Header="Theme">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="ThemeLightDark" Height="22" Width="22" Margin="-10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                    <MenuItem Header="Light" Click="ThemaClick_Ligh"/>
+                    <MenuItem Header="Dark" Click="ThemaClick_Dark"/>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem  Header="Option" Foreground="{DynamicResource ResourceKey=MenuBarForeground}">
+                <MenuItem IsCheckable="True" Header="AD File Generator" Foreground="{DynamicResource ResourceKey=MenuBarForeground}" IsChecked="{Binding IsADFileGenerator}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="GoogleAnalytics" Height="22" Width="22" Margin="-10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Log Level" Foreground="{DynamicResource ResourceKey=MenuBarForeground}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="MathLog" Height="22" Width="22" Margin="-10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+
+                    <MenuItem Name="LogLevel_1" IsCheckable="True" Header="Level 1 (Standard)" Foreground="{DynamicResource ResourceKey=MenuBarForeground}" IsChecked="{Binding LogLevel_1_Checked }" Command="{Binding LogLevelClickCommand}" CommandParameter="{Binding ElementName=LogLevel_1,Path=Name}"/>
+                    <MenuItem Name="LogLevel_2" IsCheckable="True" Header="Level 2 (Infomation)" Foreground="{DynamicResource ResourceKey=MenuBarForeground}" IsChecked="{Binding LogLevel_2_Checked}" Command="{Binding LogLevelClickCommand}" CommandParameter="{Binding ElementName=LogLevel_2,Path=Name}"/>
+                    <MenuItem Name="LogLevel_3" IsCheckable="True" Header="Level 3 (Debug)" Foreground="{DynamicResource ResourceKey=MenuBarForeground}" IsChecked="{Binding LogLevel_3_Checked}" Command="{Binding LogLevelClickCommand}" CommandParameter="{Binding ElementName=LogLevel_3,Path=Name}"/>
+                </MenuItem>
+                <MenuItem Header="Resoultion (ms)" Foreground="{DynamicResource ResourceKey=MenuBarForeground}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="GoogleAnalytics" Height="22" Width="22" Margin="-10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                    <customcontrol:NumericSpinner TextWidthPer="100" ButtonWidthPer="50" Value="{Binding Source={StaticResource Locator},Path=MenuBarVM.Resolution,Mode=TwoWay}" MaxValue="200" MinValue="0" Step="0.01" Foreground="White" Decimals="2" />
+                </MenuItem>
+                <MenuItem Header="AD Time Out (sec)" Foreground="{DynamicResource ResourceKey=MenuBarForeground}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="TimelineClock" Height="22" Width="22" Margin="-10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                    <customcontrol:NumericSpinner TextWidthPer="100" ButtonWidthPer="50" Value="{Binding Source={StaticResource Locator},Path=MenuBarVM.ADFileCheckTime,Mode=TwoWay}" MaxValue="3000" MinValue="0" Step="1" Foreground="White"/>
+                </MenuItem>
+                <MenuItem IsCheckable="True" Header="Using Simulation Test" Foreground="{DynamicResource ResourceKey=MenuBarForeground}" IsChecked="{Binding Source={StaticResource Locator},Path=MainVM.MainModel.IsTestSimulationEnable}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="TestTube" Height="22" Width="22" Margin="-10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem  Header="Help" Foreground="{DynamicResource ResourceKey=MenuBarForeground}">
+                <MenuItem Header="About Prost" Foreground="{DynamicResource ResourceKey=MenuBarForeground}" Command="{Binding AboutProstCommand}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="InfoOutline" Height="22" Width="22" Margin="-10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+        </Menu>
+    </StackPanel>
+</UserControl>

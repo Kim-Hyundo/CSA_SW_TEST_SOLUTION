@@ -1,0 +1,59 @@
+; --------------------------------------------------------------------------------
+; @Title: QXK Demo for TRACE32 OS Awareness
+; @Description: 
+;   This batchfile loads all necessary files to demonstrate
+;   the OS Awareness for QXK on STM32F4-DISCOVERY.
+; @Chip: STM32F407VG
+; @Keywords: Awareness, QXK, RTOS
+; @Author: ydaoud
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: qxk.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+SCREEN.ON
+AREA.RESet
+WinPAGE.RESet
+WinCLEAR
+WinPOS 0. 27. 63. 7. 0. 0. W006
+AREA.view
+
+; Debugger reset
+PRINT "resetting..."
+RESet
+SYStem.RESet
+
+; Initializing Debugger
+PRINT "initializing..."
+SYStem.CPU STM32F407VG
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+SYStem.MemAccess DAP
+SYStem.Option DUALPORT ON
+SYStem.Up
+
+; Load application
+PRINT "loading application..."
+Data.LOAD.Elf dpp-qxk.elf /NoCODE
+
+; Initialize RTOS support
+PRINT "initializing QXK support..."
+TASK.CONFIG ~~/demo/arm/kernel/qxk/qxk.t32      ; load QXK awareness
+MENU.ReProgram ~~/demo/arm/kernel/qxk/qxk.men   ; load QXK menu
+
+PRINT "load complete."  ; send to Message Line
+
+; Open some windows
+WinPOS 0.0 0.0 73. 23. 11. 1. W001
+WinTABS 16. 10. 25.
+List.auto
+
+WinPOS 0.28571 29.667 63. 7. 0. 0. W006
+AREA.view
+
+WinPOS 78.429 0.0 40. 25. 0. 1. W000
+WinTABS 10. 5. 9.
+TASK.ActiveObj
+
+; Start application
+Go main
+
+ENDDO

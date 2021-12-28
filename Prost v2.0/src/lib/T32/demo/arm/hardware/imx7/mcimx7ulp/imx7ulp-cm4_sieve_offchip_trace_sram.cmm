@@ -1,0 +1,187 @@
+; --------------------------------------------------------------------------------
+; @Title: Template script for IMX7ULP-CM4 with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The Offchip Trace using a Combiprobe/uTrace or PowerTrace is set up.
+;   Use this script for testing the Offchip-Trace.
+;   Prerequisites:
+;    * Connect JTAG, TraceClk & TraceData lines
+;    * adapt the script according to the connections used
+; @Keywords: ARM, Cortex-M4, ETM, ITM
+; @Props: Template
+; @Author: AME
+; @Board: -
+; @Chip: IMX7ULP
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx7ulp-cm4_sieve_offchip_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU IMX7ULP-CM4
+SYStem.CONFIG.DEBUGPORTTYPE JTAG
+IF UTRACE()||COMBIPROBE()
+(
+  ; in case of uTrace / Combiprobe this settings depends on the used header
+  SYStem.CONFIG.CONNECTOR MIPI34
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; initialize offchip-trace (ETM ON, ITM ON)
+IF CAnalyzer()||Analyzer()
+(
+  ; set PinMux and enable Clocks
+  ; set PCC1-PCC_TPIU PCS to 5 (M4_BUS_CLK)
+  ; as the ATB Replicators are clocked from TPIU-CLK also necessary for ETR
+  Data.Set AD:0x410B2050 %Long Data.Long(AD:0x410B2050)|(5.<<24.)
+  Data.Set AD:0x410B2050 %Long Data.Long(AD:0x410B2050)|(1.<<30.)
+
+  ; set SWO TPIU to Integration mode - prevent backpressure
+  Data.Set DAP:0x80017EF0 %Long 0x1
+  Data.Set DAP:0x80017F00 %Long 0x1
+
+  PRIVATE &dsClk &dsData
+  &dsClk=(0x1<<6.)  ; drive strength=HIGH
+  &dsData=(0x1<<6.) ; drive strength=HIGH
+  ; set IOMUXC - please select the used lines
+  ; TraceClk = PTB2 set MUX_MODE=0xA, DriveStrength, SlewRate=STANDARD, OBE=1
+  Data.Set AD:0x4103D088 %Long (0xA<<8.)|&dsClk|(0x1<<17.)
+  ; TraceData[0] = PTB3 set MUX_MODE=0xA, DriveStrength, SlewRate=STANDARD, OBE=1
+  Data.Set AD:0x4103D08C %Long (0xA<<8.)|&dsData|(0x1<<17.)
+  ; TraceData[1] = PTB4 set MUX_MODE=0xA, DriveStrength, SlewRate=STANDARD, OBE=1
+  Data.Set AD:0x4103D090 %Long (0xA<<8.)|&dsData|(0x1<<17.)
+  ; TraceData[2] = PTB5 set MUX_MODE=0xA, DriveStrength, SlewRate=STANDARD, OBE=1
+  Data.Set AD:0x4103D094 %Long (0xA<<8.)|&dsData|(0x1<<17.)
+  ; TraceData[3] = PTB6 set MUX_MODE=0xA, DriveStrength, SlewRate=STANDARD, OBE=1
+  Data.Set AD:0x4103D098 %Long (0xA<<8.)|&dsData|(0x1<<17.)
+  ; TraceData[4] = PTB10 set MUX_MODE=0xA, DriveStrength, SlewRate=STANDARD, OBE=1
+  Data.Set AD:0x4103D0A8 %Long (0xA<<8.)|&dsData|(0x1<<17.)
+  ; TraceData[5] = PTB11 set MUX_MODE=0xA, DriveStrength, SlewRate=STANDARD, OBE=1
+  Data.Set AD:0x4103D0AC %Long (0xA<<8.)|&dsData|(0x1<<17.)
+  ; TraceData[6] = PTB12 set MUX_MODE=0xA, DriveStrength, SlewRate=STANDARD, OBE=1
+  Data.Set AD:0x4103D0B0 %Long (0xA<<8.)|&dsData|(0x1<<17.)
+  ; TraceData[7] = PTB13 set MUX_MODE=0xA, DriveStrength, SlewRate=STANDARD, OBE=1
+  Data.Set AD:0x4103D0B4 %Long (0xA<<8.)|&dsData|(0x1<<17.)
+
+  ; TraceClk = PTC16 set MUX_MODE=0xA, DriveStrength, OBE=1
+  Data.Set AD:0x40AC0040 %Long (0xA<<8.)|&dsClk|(0x1<<17.)
+  ; TraceData[0] = PTC15 set MUX_MODE=0xA, DriveStrength, OBE=1
+  Data.Set AD:0x40AC003C %Long (0xA<<8.)|&dsData|(0x1<<17.)
+  ; TraceData[1] = PTC14 set MUX_MODE=0xA, DriveStrength, OBE=1
+  Data.Set AD:0x40AC0038 %Long (0xA<<8.)|&dsData|(0x1<<17.)
+  ; TraceData[2] = PTC13 set MUX_MODE=0xA, DriveStrength, OBE=1
+  Data.Set AD:0x40AC0034 %Long (0xA<<8.)|&dsData|(0x1<<17.)
+  ; TraceData[3] = PTC12 set MUX_MODE=0xA, DriveStrength, OBE=1
+  Data.Set AD:0x40AC0030 %Long (0xA<<8.)|&dsData|(0x1<<17.)
+  ; TraceData[4] = PTC11 set MUX_MODE=0xA, DriveStrength, OBE=1
+  Data.Set AD:0x40AC002C %Long (0xA<<8.)|&dsData|(0x1<<17.)
+  ; TraceData[5] = PTC10 set MUX_MODE=0xA, DriveStrength, OBE=1
+  Data.Set AD:0x40AC0028 %Long (0xA<<8.)|&dsData|(0x1<<17.)
+  ; TraceData[6] = PTC09 set MUX_MODE=0xA, DriveStrength, OBE=1
+  Data.Set AD:0x40AC0024 %Long (0xA<<8.)|&dsData|(0x1<<17.)
+  ; TraceData[7] = PTC08 set MUX_MODE=0xA, DriveStrength, OBE=1
+  Data.Set AD:0x40AC0020 %Long (0xA<<8.)|&dsData|(0x1<<17.)
+  ; TraceData[8] = PTC07 set MUX_MODE=0xA, DriveStrength, OBE=1
+  Data.Set AD:0x40AC001C %Long (0xA<<8.)|&dsData|(0x1<<17.)
+  ; TraceData[9] = PTC06 set MUX_MODE=0xA, DriveStrength, OBE=1
+  Data.Set AD:0x40AC0018 %Long (0xA<<8.)|&dsData|(0x1<<17.)
+  ; TraceData[10] = PTC05 set MUX_MODE=0xA, DriveStrength, OBE=1
+  Data.Set AD:0x40AC0014 %Long (0xA<<8.)|&dsData|(0x1<<17.)
+  ; TraceData[11] = PTC04 set MUX_MODE=0xA, DriveStrength, OBE=1
+  Data.Set AD:0x40AC0010 %Long (0xA<<8.)|&dsData|(0x1<<17.)
+  ; TraceData[12] = PTC03 set MUX_MODE=0xA, DriveStrength, OBE=1
+  Data.Set AD:0x40AC000C %Long (0xA<<8.)|&dsData|(0x1<<17.)
+  ; TraceData[13] = PTC02 set MUX_MODE=0xA, DriveStrength, OBE=1
+  Data.Set AD:0x40AC0008 %Long (0xA<<8.)|&dsData|(0x1<<17.)
+  ; TraceData[14] = PTC01 set MUX_MODE=0xA, DriveStrength, OBE=1
+  Data.Set AD:0x40AC0004 %Long (0xA<<8.)|&dsData|(0x1<<17.)
+  ; TraceData[15] = PTC00 set MUX_MODE=0xA, DriveStrength, OBE=1
+  Data.Set AD:0x40AC0000 %Long (0xA<<8.)|&dsData|(0x1<<17.)
+
+
+  TPIU.PortSize 4
+  TPIU.PortMode Continuous
+  ITM.DataTrace CorrelatedData
+  ITM.ON
+  ETM.Trace ON
+  GOSUB EtmTimestampCalibration
+  ETM.ON
+)
+IF CAnalyzer()
+(
+  Trace.METHOD CAnalyzer
+  Trace.AutoInit ON
+  CAnalyzer.AutoFocus
+)
+IF Analyzer()
+(
+  Trace.METHOD Analyzer
+  Trace.AutoInit ON
+  Trace.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch %SpotLight
+Var.AddWatch ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+
+DisableWatchdog:
+(
+  ; not possible, code continuously triggers the watchdog
+  RETURN
+)
+
+; start the timestamp generator and count the number of ticks in one second
+EtmTimestampCalibration: ;()
+(
+  PRIVATE &tmp
+  Data.Set DAP:0x80018000 %Long 0x00000001
+  &tmp=Data.Quad(DAP:0x80018000+0x8)
+  WAIT 1.s
+  &tmp=Data.Quad(DAP:0x80018000+0x8)-&tmp
+  ETM.TimeStampClock &(tmp)
+  ETM.TimeStamps ON
+  RETURN
+)

@@ -1,0 +1,180 @@
+; --------------------------------------------------------------------------------
+; @Title: Erika3 demo for TC27x emulation devices
+; @Description:
+;  Setup and run Erika3 on all 3 cores of a TC27x device.
+;  The demo uses MCDS trace to show TASK switches trace and CPU load, thus
+;  an emulation device is required
+; @Keywords: AURIX, AUTOSAR, flash, Infineon, TriCore
+; @Author: HDA
+; @Chip: TC275TE, TC275TF, TC277TE, TC277TF
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: start_erika3_tc27x.cmm 16280 2020-07-07 13:12:52Z hdammak $
+
+LOCAL &cpu &elfFile
+
+; --------------------------------------------------------------------------------
+; system startup
+RESet
+AREA.CLEAR
+SYStem.Down
+; detect the target CPU
+SYStem.DETECT CPU
+
+&cpu=CPU()
+; check if the CPU is valid for this demo
+IF !CPUIS(TC27?TE)&&!CPUIS(TC27?TF)
+(
+  PRINT %ERROR "This demo is not suitable for &cpu"
+  ENDDO
+)
+
+; this demo is only using 3 cores
+CORE.ASSIGN 1. 2. 3.
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; flash programming
+&elfFile="~~~~/tc27x/out/erika3app.elf"
+GOSUB ProgramFlash
+
+; --------------------------------------------------------------------------------
+; reset the target
+SYStem.RESetOut
+
+GOSUB OptionalSettings
+
+; --------------------------------------------------------------------------------
+; load the debug symbols
+Data.LOAD.Elf &elfFile /NoCODE /SingleLineAdjacent /StripPART "erika3" /SOURCEPATH "~~~~/"
+
+; --------------------------------------------------------------------------------
+; load the ORTI file
+TASK.ORTI ~~~~/tc27x/out/system.orti
+
+; execute the target startup code
+Go.direct StartOS /Onchip
+WAIT !STATE.RUN() 1.s
+
+
+; --------------------------------------------------------------------------------
+; configure tracing of the task switches
+
+IF !Analyzer()
+  Trace.METHOD Onchip
+  
+MCDS.RESet
+MCDS.SOURCE.Set CpuMux0.Program OFF
+
+MCDS.SOURCE.Set CpuMux0.Core TriCore0
+MCDS.SOURCE.Set CpuMux1.Core TriCore1
+
+; enable tracing task switches
+Break.Set TASK.CONFIG(magic[0]) /Write /TraceData
+Break.Set TASK.CONFIG(magic[1]) /Write /TraceData
+
+; enable onchip time stamps
+MCDS.TimeStamp ON
+; enables the computation of clock frequencies
+CLOCK.ON
+
+; --------------------------------------------------------------------------------
+; create Groups for CPU load measurements
+GOSUB CreateGroups
+
+; --------------------------------------------------------------------------------
+; run for a while
+Go.direct
+SCREEN.WAIT 1.s
+Break.direct
+
+; --------------------------------------------------------------------------------
+; setup demo display
+Do ~~~~/display.cmm
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+; SUBROUTINES
+; --------------------------------------------------------------------------------
+
+; --------------------------------------------------------------------------------
+; flash programming
+ProgramFlash:
+
+  ; flash declaration
+  DO ~~/demo/tricore/flash/tc27x.cmm  CPU="&cpu" PREPAREONLY DUALPORT=1
+
+  Data.LOAD.Elf "&elfFile" /DIFF /SingleLineAdjacent /NosYmbol
+
+  IF FOUND()
+  (
+    DIALOG.YESNO "Program Lauterbach ERIKA3 demo into flash memory?"
+
+    ; ==== Step 1: Program TriCore code ====
+
+    ENTRY &progFlash
+  
+    IF (&progFlash)
+    (
+      ; enable flash programming
+      FLASH.ReProgram ALL
+
+      ; load demo application
+      Data.LOAD.Elf "&elfFile"
+
+      ; check if there is at least one valid Boot Mode Header
+      DO ~~/demo/tricore/flash/tc27x.cmm CHECKBMHD
+      ENTRY &bmhdResult
+      IF ("&bmhdResult"=="BMHD_OK")
+      (
+        ; finally program flash memory
+        FLASH.ReProgram off
+      )
+      ELSE
+      (
+        DIALOG.OK "No valid Boot Mode Header found!" "Reverting loaded data"
+        FLASH.ReProgram CANCEL
+        ENDDO
+      )
+    )
+
+    ; ==== Step 3: Verify programming ====
+
+    Data.LOAD.Elf "&elfFile" /DIFF /NosYmbol
+    IF FOUND()
+    (
+      ; maybe some sections are still declared as NOP?
+      PRIVATE &diffAddress
+      &diffAddress=TRACK.ADDRESS()
+      DIALOG.MESSAGE "File &elfFile has not been fully flashed, difference found at address &diffAddress (check flash declaration)"
+    )
+
+  )
+  RETURN
+  
+; --------------------------------------------------------------------------------
+; optional debugger settings
+OptionalSettings:
+(
+  SYStem.Option DUALPORT ON
+  SETUP.Var %SpotLight.on
+  ; force onchip-breakpoints
+  MAP.BOnchip 0x0--0xffffffff
+
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; create groups for cpu load measurements
+CreateGroups:
+(
+  GROUP.CreateTASK "idle" "Idle_Core0"
+  GROUP.CreateTASK "idle" "Idle_Core1"
+  ;GROUP.CreateTASK "idle" "Idle_Core2"
+  GROUP.COLOR "other" RED
+  GROUP.COLOR "idle" LIME
+  GROUP.Merge "other"
+  GROUP.Merge "idle"
+  RETURN
+)

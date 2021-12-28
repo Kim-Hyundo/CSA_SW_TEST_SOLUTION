@@ -1,0 +1,61 @@
+; --------------------------------------------------------------------------------
+; @Title: Script for Task State tracing with the analyzer (Nucleus Plus)
+; @Description:
+;   Perform a Task State tracing with the analyzer (Nucleus Plus)
+;
+;   The analyzer is programmed to record the Task States and the magic,
+;   so the analyzer can use it for task specific actions.
+;
+; @Keywords: Emulator, ICE, Infineon, kernel, nucleus, TriCore
+; @Props: NoWelcome
+; @Author: MAX
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: taskstat.cmm 7494 2014-07-29 14:02:09Z mobermeir $
+
+
+E::
+
+; delete all predefined Alpha breakpoints
+Break.Delete /Alpha
+
+; start the demo for 200 ms to set up task control blocks
+IF (!STATE.RUN())
+  Go.direct
+WAIT 200.ms
+Break.direct
+
+; set Alpha Breakpoint on magic
+Break.Set task.config(magic)++(task.config(magicsize)-0x1) /Alpha
+
+; set Alpha breakpoints on state values in TCBs
+TASK.TASKState
+
+; program analyzer with focus on alpha and beta breakpoints:
+Analyzer.ReProgram
+(
+  Sample.Enabled IF (AB||BB)&&WRITE
+)
+
+; configure analyzer to trace task states
+Analyzer.Mode prepost OFF
+Analyzer.Mode stack
+Analyzer.SIZE 5000.
+Analyzer.Init
+Analyzer.Arm
+
+; start program for 10 seconds
+SCREEN.ALways
+PRINT "running program for 10 seconds..."
+Go.direct
+WAIT 10.s
+Break.direct
+SCREEN.ON
+
+;configure statistic command and window
+PRINT "initializing analyzer windows..."
+Analyzer.OFF
+Analyzer.STATistic.Sort symbol
+Analyzer.stat.taskstate
+Analyzer.chart.taskstate
+PRINT ""

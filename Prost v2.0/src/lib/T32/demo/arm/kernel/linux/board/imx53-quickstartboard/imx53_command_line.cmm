@@ -1,0 +1,41 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to set the Linux Default Command Line
+; @Description: 
+; Change Linux command line set from u-boot
+; adding "jtag=on", in order to prevent JTAG clock power down
+; which causes trouble to debugger
+; @Author: MFE
+; @Board:  i.MX53 QuickStartBoard
+; @Chip: IMX53*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx53_command_line.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+;
+; change Linux command line set from u-boot
+; adding "jtag=on", in order to prevent JTAG clock power down
+; which causes trouble to debugger
+;
+
+; ATAG format:
+; 0x70000140  %LONG  <ATAG_length>
+; 0x70000144  %LONG  0x54410009
+; 0x70000148  %BYTE  <u-boot_cmd>
+
+&baseaddr=0x70000140
+&cmd=Data.STRing(ZSD:&baseaddr+8)
+;&cmd="console=ttymxc0,115200 video=mxcdi1fb:GBR24,XGA di1_primary tve root=/dev/mmcblk0p1 rw rootwait"
+&cmd="console=ttymxc0,115200 gpu_nommu setenv bootargs console=ttymxc0,115200 video=mxcdi1fb:GBR24,VGA-XGA di1_primary vga root=/dev/mmcblk0p1 rw rootwait"
+&newcmd="&cmd"+" jtag=on"
+Data.Set ZSD:&baseaddr+8 "&newcmd" 00
+
+; update command length
+&newcmdsize=(STRing.LENgth("&newcmd")+4+8)&~0x3
+Data.Set ZSD:&baseaddr %Long %LE (&newcmdsize)/4
+
+; write end ATAG = ATAG_NONE
+Data.Set ZSD:&baseaddr+&newcmdsize %Long 00
+Data.Set ZSD:&baseaddr+4+&newcmdsize %Long 00
+
+ENDDO

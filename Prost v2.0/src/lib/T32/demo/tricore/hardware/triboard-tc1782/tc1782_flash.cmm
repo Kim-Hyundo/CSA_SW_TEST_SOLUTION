@@ -1,0 +1,83 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC1782 on TriBoard-TC1782 (Flash)
+; @Description:
+;   Initializes TriCore,
+;   declares flash and prepares for target based flashing.
+;
+;   CAUTION: Script erases all flash contents!
+; @Keywords: Flash, Infineon, TriCore
+; @Author: MAX
+; @Board: TriBoard-TC1782
+; @Chip: TC1782
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc1782_flash.cmm 7576 2014-08-27 14:49:47Z mobermeir $
+
+
+; --------------------------------------------------------------------------------
+; Memory mappings:
+; processor internal program memory mapped to 0xD4000000--0xD4009FFF   40 KB
+; processor internal data memory    mapped to 0xD0000000--0xD001FFFF  128 KB
+; processor internal program flash  mapped to 0xA0000000--0xA027FFFF  2.5 MB
+; processor internal data flash     mapped to 0xAFE00000--0xAFE0FFFF   64 KB
+;                                             0xAFE10000--0xAFE1FFFF   64 KB
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+WinCLEAR
+SYStem.CPU TC1782
+
+IF DAP.Available()
+(
+  ; Bi-Directional Debug Cable detected
+  SYStem.CONFIG.DEBUGPORTTYPE DAP2    ; instead of JTAG
+)
+
+SYStem.Up
+
+Data.Set 0xF00005F4 %Long 0x00000008    ; disable watchdog
+
+; --------------------------------------------------------------------------------
+; flash declaration
+FLASH.RESet
+
+; flash declaration for processor internal flash - uncached address segment
+; processor internal program flash
+FLASH.Create 1. 0xA0000000--0xA000FFFF 0x4000  TARGET Long
+FLASH.Create 2. 0xA0010000--0xA001FFFF 0x4000  TARGET Long
+FLASH.Create 3. 0xA0020000--0xA003FFFF 0x20000 TARGET Long
+FLASH.Create 3. 0xA0040000--0xA027FFFF 0x40000 TARGET Long
+; processor internal data flash
+FLASH.Create 4. 0xAFE00000--0xAFE0FFFF 0x10000  TARGET Long
+FLASH.Create 5. 0xAFE10000--0xAFE1FFFF 0x10000  TARGET Long
+FLASH.TARGET 0xD4000000 0xD0000000 0x1000 ~~/demo/tricore/flash/long/tc1797.bin
+
+; flash declaration for cached address segments
+FLASH.CreateALIAS 0x80000000--0x8FFFFFFF 0xA0000000
+
+; show flash declaration
+WinPOS 0% 0%
+FLASH.List
+
+; --------------------------------------------------------------------------------
+; example download to processor internal flash
+;
+; FLASH.AUTO or FLASH.ReProgram is required for flash programming of
+; unsorted files. FLASH.PROGRAM may result in incorrect CRCs.
+
+DIALOG.YESNO "Program internal flash memory?"
+ENTRY &execflash
+IF &execflash
+(
+  FLASH.ReProgram ALL /Erase
+  Data.LOAD.auto *
+  FLASH.ReProgram off
+)
+
+; --------------------------------------------------------------------------------
+; open some window
+WinPOS 0% 50%
+List.auto
+
+ENDDO

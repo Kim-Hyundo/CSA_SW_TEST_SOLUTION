@@ -1,0 +1,282 @@
+; --------------------------------------------------------------------------------
+; @Title: Atomthreads specific menu
+; @Description: -
+; @Keywords: atomthreads menu awareness
+; @Author: RIC
+; @Copyright: (c) 1989-2018 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: atomthreads.men 3620 2018-09-04 14:23:50Z rweiss $
+
+add
+menu
+(
+  popup "&Atomthreads"
+  (
+    default
+    MENUITEM "Display &Tasks"        "TASK.TaskList"
+    MENUITEM "Display &Mutexes"
+    (
+			TASK.MuTeX
+    )
+    menuitem "Display &Queues"
+    (
+		TASK.Queue
+    )
+    MENUITEM "Display &Semaphores"
+    (
+      TASK.SEMaphore
+    )
+    MENUITEM "Display &Timers"
+    (
+    	TASK.TIMer
+    )
+    separator
+    popup "&Stack Coverage"
+    (
+      menuitem "&List Stacks"
+      (
+        if !ice()&&!fire()
+          TASK.STacK.PATtern 0x5A
+        TASK.STacK.view
+      )
+      menuitem "Add Task"        "TASK.STacK.ADD"
+      menuitem "Remove Task"     "TASK.STacK.RM"
+      enable ice()||fire()
+      menuitem "&Reset Coverage" "TASK.STacK.RESet"
+    )
+  )
+  popup "Trace"
+  (
+    popup "List"
+    (
+      separator
+      menuitem "&Task Switches"     "Trace.List List.TASK"
+      menuitem "&Default and Tasks" "Trace.List List.TASK DEFault"
+    )
+  )
+  popup "Perf"
+  (
+    separator
+    popup "&Task Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+        )
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak&&Write
+          )
+          Break.Delete /Alpha
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+        )
+        if a.mode.flow()
+        (
+          Break.Delete /TraceEnable
+          Break.Set task.config(magic) /TraceEnable
+        )
+      )
+      menuitem "[:perf]Show &Numerical"   "Trace.STATistic.TASK"
+      menuitem "[:achart]Show as &Timing" "Trace.CHART.TASK"
+      menuitem "[:achart]Tracking with Trace &List"
+      (
+        Trace.List List.TASK DEFault /Track
+        Trace.CHART.TASK /Track
+      )
+    )
+    popup "Task &Function Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+          Analyzer.STATistic.PreFetch on
+        )
+
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          if a.config.hac()
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak
+               Sample.Enable if BetaBreak
+               Mark.A        if AlphaBreak
+               Mark.B        if BetaBreak
+             )
+          )
+          else
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak||BetaBreak
+               Mark.A if AlphaBreak
+               Mark.B if BetaBreak
+             )
+          )
+          Break.Delete /Alpha /Beta /Charly
+          Break.SetFunc
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+        )
+        if a.mode.flow()
+        (
+          Break.Delete /TraceData
+          Break.Set task.config(magic) /TraceData
+        )
+      )
+      menuitem "[:perf]Show &Numerical"     "Trace.STATistic.TASKFUNC"
+      menuitem "[:perf]Show as &Tree"       "Trace.STATistic.TASKTREE"
+      menuitem "[:perf]Show &Detailed Tree" "Trace.STATistic.TASKTREE ALL"
+      menuitem "[:achart]Show as &Timing"   "Trace.CHART.TASKFUNC"
+      menuitem "[:alist]Show N&esting"      "Trace.List List.TASK FUNC TI.FUNC"
+    )
+  )
+  popup "&Help"
+  (
+    MENUITEM "[:manual]OS Awareness Manual Atomthreads" "HELP __RTOS_ATOMTHREADS_"
+  )
+)
+
+
+MENU "AT.TIML"
+(
+	default
+	MENUITEM "Display detailed Information"
+	(
+		&address=track.address()
+		TASK.TIMer &address
+	)
+	SEPARATOR
+	MENUITEM "Display Timer Structure"
+	(
+		&address=track.address()
+		&struct="ATOM_TIMER"
+		Var.View %Open %String (&struct *)(&address)
+  )
+  SEPARATOR
+  MENUITEM "Dump Memory"
+  (
+  	&address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+  SEPARATOR
+  MENUITEM "Show Callback Function"
+  (
+  	&magic=address.offset(track.address())
+    &address=Var.Value(((ATOM_TIMER*)&magic)->cb_func)
+  	List &address
+  )
+)
+
+MENU "AT.QL"
+(
+	default
+	MENUITEM "Display Detailed Information"
+	(
+		&address=track.offset()
+		TASK.Queue &address
+	)
+	SEPARATOR
+	MENUITEM "Display Queue Structure"
+	(
+		&address=track.address()
+		&struct="ATOM_QUEUE"
+		Var.View %Open %String (&struct *)(&address)
+  )
+  SEPARATOR
+  MENUITEM "Dump Memory"
+  (
+  	&address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+MENU "AT.SEML"
+(
+	default
+	MENUITEM "Display Detailed Information"
+	(
+		&address=track.address()
+		TASK.SEMaphore &address
+	)
+	SEPARATOR
+	MENUITEM "Display Semaphore Structure"
+	(
+		&address=track.address()
+		&struct="ATOM_SEM"
+		Var.View %Open %String (&struct *)(&address)
+  )
+  SEPARATOR
+  MENUITEM "Dump Memory"
+  (
+  	&address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+MENU "AT.ML"
+(
+	default
+	MENUITEM "Display Detailed Information"
+	(
+		&address=track.address()
+		TASK.MuTeX &address
+	)
+	SEPARATOR
+	MENUITEM "Display Mutex Structure"
+	(
+		&address=track.address()
+		&struct="ATOM_MUTEX"
+		Var.View %Open %String (&struct *)(&address)
+  )
+  SEPARATOR
+  MENUITEM "Dump Memory"
+  (
+  	&address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+menu "AT.TL"
+(
+  default
+  ;menuitem "Display detailed"
+  ;(
+  ;  &address=address.offset(track.address())
+  ;  TASK.TaskList &address
+  ;)
+  menuitem "Display task struct"
+  (
+    &address=track.address()
+    ;&struct=task.struct(tcb)
+    &struct="ATOM_TCB"
+    Var.View %Open %String (&struct*)(&address)
+  )
+  separator
+  menuitem "Display Stack Frame"
+  (
+    &address=address.offset(track.address())
+    Var.Frame /Locals /Caller /Task &address
+  )
+  menuitem "Display Registers"
+  (
+    &address=address.offset(track.address())
+    Register /Task &address
+  )
+  menuitem "Switch Context" "Register.TASK address.offset(track.address())"
+  separator
+  menuitem "Add to Stack Cov"  "TASK.STK.ADD address.offset(track.address())"
+  menuitem "Rm from Stack Cov" "TASK.STK.RM  address.offset(track.address())"
+  separator
+  menuitem "Dump task entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+

@@ -1,0 +1,166 @@
+; --------------------------------------------------------------------------------
+; @Title: eMMC FLASH Program script for the AM654x
+; @Description:
+; The MTFC16GAKAEJP is connected to the MMCSD0 controller
+;
+; SRAM:
+; MMCSD0 Base: 0x04F80000
+;
+; Prerequisites: Switch Settings
+;    SW3[10:1]: [xxxxxx1101] SYSBOOT for eMMC memory
+;
+; @Chip: 
+; @Board:
+; @Author: JIM
+; @Keywords:
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: am654x-emmc.cmm 7481 2019-10-09 11:58:07Z jjeong $
+
+&MMC_BASE=0x04f80000  ;MMC0
+
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+SYStem.CPU AM6548-CR5
+CORE.ASSIGN 1.
+SYStem.Option RB off
+SYStem.Option EnReset ON
+SYStem.MemAccess DAP  ;Enable to use the dualport
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; stop DMSC watchdog
+  Data.Set AXI:0x44135120 %Long 0x4658fc21
+  Data.Set AXI:0x44135124 %Long 0x3ac4f102
+  Data.Set AXI:0x44135150 %Long 0x0000000a
+
+; --------------------------------------------------------------------------------
+; pin multiplexing for MMCSD0
+GOSUB PIN_MUX
+
+; --------------------------------------------------------------------------------
+; Configure MMCSD0 Host controller
+Data.Set &MMC_BASE+0x04 %Long 0x00010200
+Data.Set &MMC_BASE+0x28 %Long 0x00000B00 ; high speed disable, data_width 1bit
+Data.Set &MMC_BASE+0x2C %Long 0x000EF007|(0x3<<25.) ; Reset cmd&data line & set the mmc clock 400khz
+WAIT 100.ms
+
+Data.Set &MMC_BASE+0x34 %Long 0x7f0037 ; Enable the Interrupt Status Register Field (&MMC_BASE+0x30)
+Data.Set &MMC_BASE+0x38 %Long 0x7f0037 ; Interrupt Enable, Normal Interrupt Signal Enable Register
+
+  GOSUB READ_ID_TEST
+ 
+  Break.RESet
+
+  FLASHFILE.RESet
+
+//FLASHFILE.CONFIG <MMCSD0_CTL_CFG>  0x0   0x0
+  FLASHFILE.CONFIG &MMC_BASE   0x0   0x0
+
+//FLASHFILE.target <Code_range>         <Data_range>           <Algorithm file>
+  FLASHFILE.TARGET 0x41C00000++0x2FFF   E:0x41C03000++0x23FF    ~~/demo/arm/flash/byte/emmc_omap.bin  /KEEP  /DualPort  /STACKSIZE 0x200
+
+  Data.Set &MMC_BASE+0x2C %Long 0x000EF007    ;400Khz
+  FLASHFILE.GETID
+ 
+  Data.Set &MMC_BASE+0x2C %Long 0x000E0407    ;25Mhz
+  FLASHFILE.GETEXTCSD
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+ENDDO
+
+//When you access to the other partition on the flash
+; FLASHFILE.SETEXTCSD 179. 0x48  ; access: partition null
+; FLASHFILE.SETEXTCSD 179. 0x49  ; access: partition boot 1
+; FLASHFILE.SETEXTCSD 179. 0x4A  ; access: partition boot 2
+
+ FLASHFILE.DUMP 0x0               ; Read eMMC
+;FLASHFILE.ERASE 0x0--0xFFFFF     ; Erase eMMC
+;FLASHFILE.LOAD * 0x0             ; Write eMMC
+
+ENDDO
+
+READ_ID_TEST:
+(
+//MMC interface, not SD(HC)
+//CMD0
+RePeaT 2.
+(
+Data.Set &MMC_BASE+0x30 %Long 0xFFFFFFFF ;clear status
+Data.Set &MMC_BASE+0x8 %Long 0x0  ;arg 
+Data.Set &MMC_BASE+0xc %Long 0x0  ;cmd
+WAIT 10.ms
+)
+
+//CMD1
+RePeaT 10.
+(
+Data.Set &MMC_BASE+0x30 %Long 0xFFFFFFFF ;clear status
+Data.Set &MMC_BASE+0x8 %Long 0x40FF8000 ;arg
+Data.Set &MMC_BASE+0xc %Long 0x01020000 ;cmd1
+WAIT 100.ms
+&resp=Data.Long(A:(&MMC_BASE+0x10))
+//print "CMD1 resp: 0x" &resp
+IF (&resp&0x80000000)==0x80000000
+(
+GOTO jump_cmd2
+)
+)
+
+PRINT "CMD1 fail"
+END
+
+jump_cmd2:
+//CMD2
+Data.Set &MMC_BASE+0x30 %Long 0xFFFFFFFF ;clear status
+Data.Set &MMC_BASE+0x8 %Long 0x0     ;arg
+Data.Set &MMC_BASE+0xc %Long 0x02010000 ;cmd2
+WAIT 10.ms
+
+//CMD3
+Data.Set &MMC_BASE+0x30 %Long 0xFFFFFFFF ;clear status
+Data.Set &MMC_BASE+0x8 %Long 0x00010000  ; arg, MMC RCA is (0x0001<<16.)
+Data.Set &MMC_BASE+0xc %Long 0x03020000  ;cmd3
+WAIT 10.ms
+
+//CMD10
+Data.Set &MMC_BASE+0x30 %Long 0xFFFFFFFF ;clear status
+Data.Set &MMC_BASE+0x8 %Long 0x00010000 ; arg, MMC RCA is (0x0001<<16.)
+Data.Set &MMC_BASE+0xc %Long 0x0A010000  ;cmd10
+WAIT 10.ms
+
+//Response2
+PRINT "CID register"
+PRINT "[127:104] 0x" Data.Long(A:(&MMC_BASE+0x1c))
+PRINT "[103:72]  0x" Data.Long(A:(&MMC_BASE+0x18))
+PRINT "[71:40]   0x" Data.Long(A:(&MMC_BASE+0x14))
+PRINT "[39:8]    0x" Data.Long(A:(&MMC_BASE+0x10))
+
+RETURN
+)
+
+PIN_MUX:
+(
+;MMR_unlock
+Data.Set AXI:0x0011D008 %Long 0x68ef3490  ; CTRLMMR_LOCK7_KICK0 -> unlock I/O partition
+Data.Set AXI:0x0011D00C %Long 0xD172BC5A  ; CTRLMMR_LOCK7_KICK1
+
+Data.Set AXI:0x0011C188 %Long 0x08060007  ;MMC0_DAT7, CTRLMMR_PADCONFIG98
+Data.Set AXI:0x0011C18C %Long 0x08060007  ;MMC0_DAT6
+Data.Set AXI:0x0011C190 %Long 0x08060007  ;MMC0_DAT5
+Data.Set AXI:0x0011C194 %Long 0x08060007  ;MMC0_DAT4
+Data.Set AXI:0x0011C198 %Long 0x00060000  ;MMC0_DAT3
+Data.Set AXI:0x0011C19C %Long 0x00060000  ;MMC0_DAT2
+Data.Set AXI:0x0011C1A0 %Long 0x00060000  ;MMC0_DAT1
+Data.Set AXI:0x0011C1A4 %Long 0x00060000  ;MMC0_DAT0
+Data.Set AXI:0x0011C1A8 %Long 0x00030000  ;MMC0_CLK
+Data.Set AXI:0x0011C1AC %Long 0x00060000  ;MMC0_CMD
+Data.Set AXI:0x0011C1B0 %Long 0x08040007  ;MMC0_DS
+Data.Set AXI:0x0011C1B4 %Long 0x00260000  ;MMC0_SDCD
+Data.Set AXI:0x0011C1B8 %Long 0x08210007  ;MMC0_SDWP
+
+RETURN
+)

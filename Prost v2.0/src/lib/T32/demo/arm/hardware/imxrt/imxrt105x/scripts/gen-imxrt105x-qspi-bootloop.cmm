@@ -1,0 +1,97 @@
+; --------------------------------------------------------------------------------
+; @Title: QSPI Bootimage generation for i.MXRT105x
+; @Description:
+;   This scripts creates a super simple/trivial QSPI bootimage including the
+;   QSPI configuration header and Image Vector Table.
+;   The QSPI parameters are the BOOTROM defaults and should work with every QSPI
+;   flash. The application is a endless loop.
+; @Keywords: QSPI, IVT
+; @Author: AME
+; @Board: -
+; @Chip: IMXRT105*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: gen-imxrt105x-qspi-bootloop.cmm 13898 2019-02-07 12:42:31Z amerkle $
+
+PRIVATE &nFlashSizeBytes
+&nFlashSizeBytes=0x01000000 // 16MB
+
+; clear AVM
+Data.Set AVM:0x0++0x3fff %Long 0xffffffff
+
+
+; FlexSPI Configuration block for QSPI
+; 1bit mode, 30MHz, read command 0x3
+(
+  Data.Set AVM:0x0++0x1ff %Long 0x0
+  Data.Set AVM:0x0  %Long 0x42464346 // TAG
+  Data.Set AVM:0x4  %Long 0x56010400 // Version
+  Data.Set AVM:0x8  %Long 0x0
+  Data.Set AVM:0xc  %Byte 0x0        // readSampleClkSrc
+  Data.Set AVM:0xd  %Byte 0x3        // csHoldTime
+  Data.Set AVM:0xe  %Byte 0x3        // csSetupTime
+  Data.Set AVM:0xf  %Byte 0x0        // columnAddressWidth
+  Data.Set AVM:0x10 %Byte 0x0        // deviceModeCfgEnable
+  Data.Set AVM:0x11 %Byte 0x1
+  Data.Set AVM:0x12 %Word 0x0        // waitTimeCfgCommands
+  Data.Set AVM:0x14 %Long 0x0601     // deviceModeSeq
+  Data.Set AVM:0x18 %Long 0x0        // deviceModeArg
+  Data.Set AVM:0x1c %Byte 0x0        // configCmdEnable
+  Data.Set AVM:0x1d++0x2 %Byte 0x0
+  Data.Set AVM:0x20++0xb %Byte 0x0   // configCmdSeqs
+  Data.Set AVM:0x2c %Long 0x0
+  Data.Set AVM:0x30++0xb %Byte 0x0   // ccfgCmdArgs
+  Data.Set AVM:0x3c %Long 0x0
+  Data.Set AVM:0x40 %Long 0x0        // controllerMiscOption
+  Data.Set AVM:0x44 %Byte 0x1        // deviceType
+  Data.Set AVM:0x45 %Byte 0x1        // sflashPadType
+  Data.Set AVM:0x46 %Byte 0x0        // serialClkFreq
+  Data.Set AVM:0x47 %Byte 0x0        // lutCustomSeqEnable
+  Data.Set AVM:0x48++0x7 %Byte 0x0
+  Data.Set AVM:0x50 %Long (&nFlashSizeBytes>>10.) // sflashA1Size
+  Data.Set AVM:0x54 %Long 0x0        // sflashA2Size
+  Data.Set AVM:0x58 %Long 0x0        // sflashB1Size
+  Data.Set AVM:0x5c %Long 0x0        // sflashB2Size
+  Data.Set AVM:0x60 %Long 0x0        // csPadSettingOverride
+  Data.Set AVM:0x64 %Long 0x0        // sclkPadSettingOverride
+  Data.Set AVM:0x68 %Long 0x0        // dataPadSettingOverride
+  Data.Set AVM:0x6c %Long 0x0        // dqsPadSettingOverride
+  Data.Set AVM:0x70 %Long 0x0        // timeoutInMs
+  Data.Set AVM:0x74 %Long 0x0        // commandInterval
+  Data.Set AVM:0x78 %Long 0x0        // dataValidTime
+  Data.Set AVM:0x7c %Word 0x0        // busyOffset
+  Data.Set AVM:0x7e %Word 0x0        // busyBitPolarity
+  Data.Set AVM:0x80 %Long 0x08180403 // LUT - read command 0x3
+  Data.Set AVM:0x84 %Long 0x00002404
+  Data.Set AVM:0x88 %Long 0x0
+  Data.Set AVM:0x8c %Long 0x0
+)
+
+; create super simple IVT
+; entry 0x60002001
+(
+  Data.Set AVM:0x1000 %Long 0x402000D1 // magic
+  Data.Set AVM:0x1004 %Long 0x60002001 // entry address
+  Data.Set AVM:0x1008 %Long 0x0        // res
+  Data.Set AVM:0x100c %Long 0x0        // dcd
+  Data.Set AVM:0x1010 %Long 0x60001020 // boot data
+  Data.Set AVM:0x1014 %Long 0x60001000 // self
+  Data.Set AVM:0x1018 %Long 0x0        // csf
+  Data.Set AVM:0x101c %Long 0x0        // res
+)
+
+; BOOT DATA
+(
+  Data.Set AVM:0x1020 %Long 0x60000000 // start
+  Data.Set AVM:0x1024 %Long &nFlashSizeBytes // start
+  Data.Set AVM:0x1028 %Long 0x0        // plugin
+)
+
+; CODE
+(
+  Data.Set AVM:0x2000 %Long 0xe7fee7fe // b $+0x0
+)
+
+Data.SAVE.Binary ~~~~/imxrt105x-qspi-bootloop.bin AVM:0x0++0x2003
+
+ENDDO

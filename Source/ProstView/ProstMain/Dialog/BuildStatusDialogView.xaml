@@ -1,0 +1,32 @@
+﻿<!-- 빌드 완료 시 성공, 실패여부를 표시 Dialog -->
+    <UserControl x:Class="ProstMain.Dialog.BuildStatusDialogView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:wpf="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
+             mc:Ignorable="d" Background="DarkGray" Height="150" Width="180"
+             FocusManager.FocusedElement="{Binding ElementName=BUTTON_OK}">
+
+    <Grid>
+        <GroupBox>
+            <GroupBox.Header>
+                <StackPanel Orientation="Horizontal">
+                    <wpf:PackIcon Kind="InformationOutline" Foreground="LightGreen"/>
+                    <TextBlock Text="SW TEST AUTOMATION TOOL" Foreground="{DynamicResource ResourceKey=GroupBoxHeaderForeground}" Margin="8,0,0,0" FontWeight="Bold"/>
+                </StackPanel>
+            </GroupBox.Header>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2*"/>
+                    <RowDefinition Height="1*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Name="dialog_text" FontSize="17" Text="{Binding Source={StaticResource Locator},Path=MainVM.MainModel.PopupDialogText}"  Foreground="Black" VerticalAlignment="Center" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" FontWeight="Bold"/>
+
+                <Button Name="BUTTON_OK" Grid.Row="1" FontSize="12" Foreground="{DynamicResource ResourceKey=ButtonForeground}"  Background="{DynamicResource ButtonBackground}" Command="{Binding Source={StaticResource Locator},Path=PopupBuildStatusVM.CloseBuildStatusViewCommand}" Height="Auto">OK</Button>
+            </Grid>
+        </GroupBox>
+    </Grid>
+</UserControl>
+

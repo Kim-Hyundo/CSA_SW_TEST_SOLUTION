@@ -1,0 +1,31 @@
+; --------------------------------------------------------------------------------
+; @Title: LS1021A simple setup script
+; @Description:
+;   This script contains the required settings to connect to a LS1021A from
+;   Freescale.
+;   Prerequisites:
+;   * connect Debugcable to J12
+;     using the ARM20-MIPI converter LA-3770
+;     OR
+;     connect Combiprobe to J12 directly
+; @Keywords: Freescale, Layerscape, CortexA7, QorIQ
+; @Author: AME
+; @Board: TWR-LS1021A
+; @Chip: LS1021A
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: setup.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; board setup
+RESet
+SYStem.RESet
+SYStem.CPU LS1021A
+; check SYStem.Detect.ShowCHAIN
+; on LS1021A Rev2 the USB-JTAG TAP may be bypassed
+;SYStem.CONFIG DAPIRPRE 8.
+;SYStem.CONFIG DAPDRPRE 1.
+SYStem.Option ResBreak OFF
+CORE.ASSIGN 1.
+SYStem.Up
+
+; debug session is up now

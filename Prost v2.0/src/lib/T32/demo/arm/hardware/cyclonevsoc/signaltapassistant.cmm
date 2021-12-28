@@ -1,0 +1,154 @@
+; --------------------------------------------------------------------------------
+; @Title: Crosstrigger Handling for CycloneV
+; @Description:
+;   This script assists in setting up the Crosstrigger settings for an
+;   CYCLONEV type cpu.
+;   Usage:
+;     DO signaltapassistant
+;       will open a dialog
+;     DO signaltapassistant SIGNALTAPTOCPU
+;     DO signaltapassistant CPUTOSIGNALTAP
+;       will enable the triggering between SignalTAP and CPU or vice versa.
+; @Keywords: Altera, Crosstrigger, CTI, SignalTAP
+; @Props: NoIndex, NoWelcome, NoMetaTags
+; @Author: AME
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: signaltapassistant.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+LOCAL &arg &setctiin &setctiout &clrctiin &clrctiout
+ENTRY %LINE &arg
+
+IF "&arg"==""
+(
+  GOSUB ShowDialog
+  ENDDO
+)
+ELSE
+(
+  GOSUB ParseParameters &arg
+  ENTRY &arg &setctiin &setctiout &clrctiin &clrctiout
+)
+
+IF &arg==FALSE()
+  ENDDO
+
+GOSUB ProgCti 0x80007000 &setctiin &setctiout &clrctiin &clrctiout
+GOSUB EnableCoreCti
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+; SUBROUTINES
+;
+ParseParameters: ;(param)
+  LOCAL &param &setctiin &setctiout &clrctiin &clrctiout
+  LOCAL &signaltaptocpu &cputosignaltap
+  ENTRY %LINE &param
+  &setctiin=STRing.SCANAndExtract("&param","SETCTIIN=0x","")
+  &setctiout=STRing.SCANAndExtract("&param","SETCTIOUT=0x","")
+  &clrctiin=STRing.SCANAndExtract("&param","CLRCTIIN=0x","")
+  &clrctiout=STRing.SCANAndExtract("&param","CLRCTIOUT=0x","")
+  &signaltaptocpu=STRing.SCAN("&param","SIGNALTAPTOCPU",0)
+  &cputosignaltap=STRing.SCAN("&param","CPUTOSIGNALTAP",0)
+  
+  IF ("&setctiin&setctiout&clrctiin&clrctiout"=="")&&(&signaltaptocpu<0.)&&(&cputosignaltap<0.)
+  (
+    PRINT %ERROR "Error: Wrong Usage "
+    ENDDO FALSE()
+  )
+  ; ensure parameter is HEX
+  &setctiin="0x0&setctiin"
+  &setctiout="0x0&setctiout"
+  &clrctiin="0x0&clrctiin"
+  &clrctiout="0x0&clrctiout"
+
+  IF &signaltaptocpu>=0.
+  (
+    &setctiin=&setctiin|0x1
+  )
+  IF &cputosignaltap>=0.
+  (
+    &setctiout=&setctiout|0x1
+  )
+
+  RETURN TRUE() &setctiin &setctiout &clrctiin &clrctiout
+
+ShowDialog: ;()
+  LOCAL &ppf
+  &ppf=OS.PPF()
+  DIALOG
+  (&+
+    HEADER "SignalTAP II Crosstriggering"
+    POS 1. 0. 25. 1.
+    Option0: CHECKBOX "Enable CROSS-TRIGGER"
+    (
+      IF DIALOG.BOOLEAN(Option0)
+      (
+        DIALOG.ENable Option1
+        DIALOG.ENable Option2
+        DIALOG.DISable Option0
+      )
+    )
+  
+    POS 5. 1. 30. 1.
+    Option1: CHECKBOX "Enable Trigger from SignalTAP to CPU" 
+    (
+      IF DIALOG.BOOLEAN(Option1)
+      (
+        DO "&ppf" SETCTIIN=0x1 
+      )
+      ELSE
+      (
+        DO "&ppf" CLRCTIIN=0x1
+      )
+    )
+    Option2: CHECKBOX "Enable Trigger from CPU to SignalTAP"
+    (
+      IF DIALOG.BOOLEAN(Option2)
+      (
+        DO "&ppf" SETCTIOUT=0x1 
+      )
+      ELSE
+      (
+        DO "&ppf" CLRCTIOUT=0x1
+      )      
+    )
+    POS 1. 3. 10. 1.
+    BUTTON "Advanced" "PER ~~/percti 0x80007000 /DualPort /SpotLight"
+  
+    ;define action when window is closed
+    CLOSE "DIALOG.END"
+  )
+  DIALOG.DISable Option1
+  DIALOG.DISable Option2
+  RETURN
+
+ProgCti: ;(ctiaddr, setctiin, setctiout, clrctiin, clrctiout)
+  LOCAL &ctiaddr &setctiin &setctiout &clrctiin &clrctiout
+  ENTRY &ctiaddr &setctiin &setctiout &clrctiin &clrctiout
+  Data.Set EDAP:&ctiaddr %Long 0x1
+  
+  Data.Set EDAP:&ctiaddr+0x20 %Long Data.Long(EDAP:&ctiaddr+0x20)|&setctiin
+  Data.Set EDAP:&ctiaddr+0x20 %Long Data.Long(EDAP:&ctiaddr+0x20)&~(&clrctiin)
+
+  Data.Set EDAP:&ctiaddr+0xa0 %Long Data.Long(EDAP:&ctiaddr+0xa0)|&setctiout
+  Data.Set EDAP:&ctiaddr+0xa0 %Long Data.Long(EDAP:&ctiaddr+0xa0)&~(&clrctiout)
+
+  RETURN
+
+EnableCoreCti:
+  LOCAL &ccorectibase
+  IF COMPONENT.AVAILABLE("CTI")
+  (
+    &ccorectibase=COMPonent.BASE("CTI",-1)
+    &ccorectibase="E&ccorectibase"
+    Data.Set &ccorectibase %Long 0x1
+    Data.Set &ccorectibase+0x20 %Long 0x1
+    Data.Set &ccorectibase+0xa0 %Long 0x1
+  )
+  RETURN
+
+
+

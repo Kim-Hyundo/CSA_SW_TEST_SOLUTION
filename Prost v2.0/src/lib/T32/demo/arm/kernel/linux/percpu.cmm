@@ -1,0 +1,128 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to display PER CPU Linux Variables
+; @Description: 
+;   DO percpu [<percpu_var> <corenumber>]
+;   e.g.
+;   DO percpu  to get a dialog
+;   DO percpu cpu_data 1
+; @Keywords: PERCPU
+; @Author: KJM
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: percpu.cmm 4743 2019-11-04 11:27:06Z bschroefel $
+
+LOCAL &symname &core &type &percpu_address &corenumber &corestr &num &dialog
+
+&core=0
+
+ENTRY &symname &core
+
+&corenumber=CORE.NUMBER()
+
+IF &corenumber==1
+(
+    PRINT "Not an SMP System! Exit."
+    ENDDO
+)
+&core=0
+&corestr="0."
+&num=1.
+RePeaT &corenumber-1
+(
+    &corestr="&corestr"+","+"&num"
+    &num=&num+1.
+)
+&corestr="&corestr"+","+"all"
+
+&dialog=FALSE()
+
+IF "&symname"==""||"&core"==""
+(
+    &dialog=TRUE()
+    DIALOG.view
+    (&
+        HEADER "View PERCPU Variable"
+        POS 0. 0. 30. 6.
+        BOX ""
+        POS 1. 1. 10. 1.
+        TEXT "Symbol name:"
+        POS 12. 1. 17. 1.
+SYM:    EDIT "" "gosub set_var"
+
+        POS 1. 2. 10. 1.
+        TEXT "Core:"
+        POS 12. 2. 17. 1.
+CORE:   PULLDOWN "&corestr" "GOSUB set_core"
+        POS 6. 4. 8. 1.
+        BUTTON "Display" "gosub startme"
+        POS 15. 4. 8. 1.
+        BUTTON "CLOSE" "JUMPTO winclose"
+        CLOSE "JUMPTO winclose"
+    )
+
+ STOP
+
+set_var:
+  LOCAL &str &address
+  &str=DIALOG.STRing(SYM)
+  ON ERROR GOSUB
+  (
+      ON ERROR
+      PRINT %ERROR "Symbol &str not found!"
+      RETURN
+  )
+  //IF !sYmbol.EXIST(&str)
+  //(
+  //    IF (VAR.A
+  //    PRINT %ERROR "Symbol &str not found!"
+  //    RETURN
+  //)
+  //&address=address.offset(symbol.begin(&str))
+  &address=Var.ADDRESS(&str)
+  IF (address.offset(&address)>address.offset(symbol.secend(.data..percpu)))||address.offset(&address)<address.offset(symbol.secaddress(.data..percpu))
+  (
+      PRINT %WARNING "Symbol &str not in .data..percpu section!"
+  )
+  &symname="&str"
+  RETURN
+set_core:
+  LOCAL &str
+  &str=DIALOG.STRING(CORE)
+  &core="&str"
+  RETURN
+
+)
+
+startme:
+  IF "&core"=="all"
+  (
+      &num=0.
+      RePeaT &corenumber
+      (
+          GOSUB display_percpu &symname &num
+          &num=&num+1
+      )
+  )
+  ELSE
+  (
+      GOSUB display_percpu &symname &core
+  )
+  IF &dialog==TRUE()
+      RETURN
+  ELSE
+      ENDDO
+
+display_percpu:
+  LOCAL &core &symname
+  ENTRY &symname &core
+  WinPOS  , ,, , , , WINtlist Normal "PERCPU &symname /CORE &core"
+  &type=Var.TYPEOF(&symname)
+  &percpu_address=Var.VALUE(__per_cpu_offset[&core])+Var.ADDRESS(&symname)
+  Var.View %OPEN *((&type *)(&percpu_address))
+  RETURN
+
+
+winclose:
+  DIALOG.END
+  ENDDO
+  

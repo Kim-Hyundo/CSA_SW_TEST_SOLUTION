@@ -1,0 +1,56 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo script for LPC845M301JBD64 on  (RAM)
+; @Description:
+;   Loads the midi demo application into RAM and sets up a demo debug scenario.
+;   Use this script for getting started.
+;   Prerequisites:
+;    * Connect Debug Cable to P4 using Adapter LA-3770
+;      or
+;      Connect Combiprobe/uTrace to P4
+;    * Disable onboard debugger by setting JP1
+; @Keywords: ARM, Cortex-M0+
+; @Author: STK
+; @Board:
+; @Chip: LPC845M301JBD64
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: lpcxpresso845max_sieve_sram.cmm 16067 2020-05-14 15:02:18Z skrausse $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.CPU LPC845M301JBD64
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/midi_ram_thumb_v6m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

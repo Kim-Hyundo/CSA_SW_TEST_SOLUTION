@@ -1,0 +1,39 @@
+; --------------------------------------------------------------------------------
+; @Title: UClinux Patch for "printk" Output
+; @Description: 
+;   This script patches the printk outputs to reroute it
+;   to a TRACE32 terminal -- even if printk outputs are
+;   switched off.
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: patch_printk.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+;   set t32outchar to an unused memory location (2 bytes)
+
+ LOCAL &t32outchar
+ &t32outchar=0x1000     ; this is the communication channel
+
+ Data.Assemble emit_log_char nop      ; patch output routine
+ Data.Assemble , mov  r2,#&t32outchar ; load address of comm chan
+ Data.Assemble , mov  r1,#0x0         ; clear R0
+ Data.Assemble , ldrb r1,[r2]         ; load comm chan
+ Data.Assemble , cmp  r1,#0x00        ; already read&cleared by T32?
+ Data.Assemble , bne  $-0x08          ; no -> wait until cleared
+ Data.Assemble , cmp  r0,#0x0a        ; is it a CR?
+ Data.Assemble , bne  $+0x18          ; if yes:
+ Data.Assemble , mov  r1,#0x0d        ;   insert a LF
+ Data.Assemble , strb r1,[r2]         ;   print it to T32
+ Data.Assemble , ldrb r1,[r2]         ;   wait until it is read
+ Data.Assemble , cmp  r1,#0x00
+ Data.Assemble , bne    $-0x08
+ Data.Assemble , strb r0,[r2]         ; print character to T32
+ Data.Assemble , mov pc,r14
+
+ IF !WINDOW.NAME(printk)            ; check if window already opened
+ (
+   TERM.Protocol SingleE            ; single char on dual-port memory
+   WinPOS 0. 3. 80. 24. ,,, printk   ; position and name window
+   TERM.view &t32outchar &t32outchar+1   ; open terminal window
+ )

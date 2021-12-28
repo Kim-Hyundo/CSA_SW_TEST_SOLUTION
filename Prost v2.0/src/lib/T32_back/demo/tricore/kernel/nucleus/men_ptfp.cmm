@@ -1,0 +1,50 @@
+; --------------------------------------------------------------------------------
+; @Title: Helper script for nucleus menu
+; @Description:
+;   PRACTICE file for menu item
+;   "Perf -> Task Function Runtime -> Prepare"
+;   in a Nuclues PLUS environment
+; @Keywords: Emulator, ICE, Infineon, kernel, nucleus, TriCore
+; @Props: NoWelcome
+; @Author: MAX
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: men_ptfp.cmm 7494 2014-07-29 14:02:09Z mobermeir $
+
+
+; The analyzer is programmed to record the Functions and the magic,
+; so the analyzer can use it for task specific actions.
+
+E::
+
+; program analyzer with focus on alpha and beta breakpoints:
+Analyzer.ReProgram
+(
+  Sample.Enabled    IF (AB||BB)
+  Mark.A IF AB
+  Mark.B IF BB
+)
+Analyzer.STATistic.PreFetch ON
+Analyzer.STATistic.Sort symbol
+
+; delete all predefined Alpha an Beta breakpoints
+Break.Delete /Alpha /Beta
+
+; set Alpha Breakpoint on magic address
+Break.Set task.config(magic)++(task.config(magicsize)-0x1) /Alpha
+
+; set Alpha and Beta breakpoints on Function Entries/Exits
+Break.SetFunc
+
+; Important !! Delete Breakpoints in interrupt routines
+; to avoid overrun problems
+;  b.d y.range(int1)  /a /b
+;  b.d y.range(int2)  /a /b
+
+; Important !! Delete Breakpoints in user tasks (no main loop traced)
+; or move Alpha & Beta breakpoints to beginning and end of endless
+; loops (main loops treated as functions)
+Break.Delete sYmbol.RANGE(task_1)  /Alpha /Beta
+Break.Delete sYmbol.RANGE(task_2)  /Alpha /Beta
+Break.Delete sYmbol.RANGE(DBT_Get_Char) /Alpha /Beta
+Break.Delete sYmbol.RANGE(DBT_Put_Char) /Alpha /Beta

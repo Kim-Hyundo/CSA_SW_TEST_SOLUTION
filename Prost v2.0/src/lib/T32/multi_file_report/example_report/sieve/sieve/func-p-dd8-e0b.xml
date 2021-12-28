@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="../../t32transform.xsl"?>
+<TRACE32 file="D:\svn\demo\demo\coverage\multi_file_report\example_report\sieve\sieve\func-p-dd8-e0b.xml">
+	<coverage>
+		<COVerage.EXPORT.ListLine ts="1539005269" t32ver="S.2018.10.000101728" t32pv="ARM">
+			<module>
+				<addrFrom>P:0x4B0</addrFrom>
+				<addrTo>P:0x167B</addrTo>
+				<tree>\\sieve\sieve</tree>
+				<cov>partial</cov>
+				<exec>75.109%</exec>
+				<branches>78.125%</branches>
+				<ok>47</ok>
+				<taken>4</taken>
+				<nottaken>2</nottaken>
+				<never>11</never>
+				<bytes>4556</bytes>
+				<bytesok>3422</bytesok>
+				<function>
+					<addrFrom>P:0xDD8</addrFrom>
+					<addrTo>P:0xE0B</addrTo>
+					<tree uid="p-dd8-e0b">\\sieve\sieve\func20</tree>
+					<cov>ok</cov>
+					<exec>100.000%</exec>
+					<branches>-</branches>
+					<ok>0</ok>
+					<taken>0</taken>
+					<nottaken>0</nottaken>
+					<never>-</never>
+					<bytes>52</bytes>
+					<bytesok>52</bytesok>
+					<line>
+						<addrFrom>P:0xDD8</addrFrom>
+						<addrTo>P:0xDE9</addrTo>
+						<tree>sieve.c \516--518</tree>
+						<srcpath>.\src</srcpath>
+						<cov>ok</cov>
+						<exec>100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>-</never>
+						<bytes>18</bytes>
+						<bytesok>18</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:0xDEA</addrFrom>
+						<addrTo>P:0xDFF</addrTo>
+						<tree>sieve.c \519--519</tree>
+						<srcpath>.\src</srcpath>
+						<cov>ok</cov>
+						<exec>100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>-</never>
+						<bytes>22</bytes>
+						<bytesok>22</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:0xE00</addrFrom>
+						<addrTo>P:0xE0B</addrTo>
+						<tree>sieve.c \520--520</tree>
+						<srcpath>.\src</srcpath>
+						<cov>ok</cov>
+						<exec>100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>-</never>
+						<bytes>12</bytes>
+						<bytesok>12</bytesok>
+					</line>
+				</function>
+			</module>
+		<total>
+			<cov>partial</cov>
+			<exec>75.109%</exec>
+			<branches>78.125%</branches>
+			<ok>47</ok>
+			<taken>4</taken>
+			<nottaken>2</nottaken>
+			<never>11</never>
+			<bytes>4556</bytes>
+			<bytesok>3422</bytesok>
+		</total>
+		</COVerage.EXPORT.ListLine>
+	</coverage>
+	<marker>
+		<BookMark.EXPORT ts="1539005269" t32ver="S.2018.10.000101728" t32pv="ARM">
+		</BookMark.EXPORT>
+	</marker>
+	<listing>
+		<List.EXPORT ts="1539005269" t32ver="S.2018.10.000101728" t32pv="ARM" cpu="ARM922T">
+			<mixed module="\\sieve\sieve\sieve.c">
+				<hll><line>516</line><src></src></hll>
+				<hll><line>517</line><src>int func20( short x1, short x2, short x3 )  /* Parameter: 3 Short */</src></hll>
+				<hll><cov>ok</cov><line>518</line><src>{</src></hll>
+				<asm><cov>ok</cov><addr>ST:00000DD8</addr><code>B580</code><label>func20:</label><mnemonic>push    {r7,r14}</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:00000DDA</addr><code>B082</code><mnemonic>sub     sp,#0x8</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:00000DDC</addr><code>AF00</code><mnemonic>add     r7,sp,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:00000DDE</addr><code>1DBB</code><mnemonic>add     r3,r7,#0x6</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:00000DE0</addr><code>8018</code><mnemonic>strh    r0,[r3]</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:00000DE2</addr><code>1D3B</code><mnemonic>add     r3,r7,#0x4</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:00000DE4</addr><code>8019</code><mnemonic>strh    r1,[r3]</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:00000DE6</addr><code>1CBB</code><mnemonic>add     r3,r7,#0x2</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:00000DE8</addr><code>801A</code><mnemonic>strh    r2,[r3]</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\sieve\sieve.c">
+				<hll><cov>ok</cov><line>519</line><src>    return x1*x2*x3;</src></hll>
+				<asm><cov>ok</cov><addr>ST:00000DEA</addr><code>1DBB</code><mnemonic>add     r3,r7,#0x6</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:00000DEC</addr><code>2100</code><mnemonic>mov     r1,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:00000DEE</addr><code>5E5B</code><mnemonic>ldrsh   r3,[r3,r1]</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:00000DF0</addr><code>1D3A</code><mnemonic>add     r2,r7,#0x4</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:00000DF2</addr><code>2100</code><mnemonic>mov     r1,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:00000DF4</addr><code>5E52</code><mnemonic>ldrsh   r2,[r2,r1]</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:00000DF6</addr><code>4353</code><mnemonic>mul     r3,r2</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:00000DF8</addr><code>1CBA</code><mnemonic>add     r2,r7,#0x2</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:00000DFA</addr><code>2100</code><mnemonic>mov     r1,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:00000DFC</addr><code>5E52</code><mnemonic>ldrsh   r2,[r2,r1]</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:00000DFE</addr><code>4353</code><mnemonic>mul     r3,r2</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\sieve\sieve.c">
+				<hll><cov>ok</cov><line>520</line><src>}</src></hll>
+				<asm><cov>ok</cov><addr>ST:00000E00</addr><code>1C18</code><mnemonic>mov     r0,r3</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:00000E02</addr><code>46BD</code><mnemonic>mov     r13,r7</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:00000E04</addr><code>B002</code><mnemonic>add     sp,#0x8</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:00000E06</addr><code>BC80</code><mnemonic>pop     {r7}</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:00000E08</addr><code>BC02</code><mnemonic>pop     {r1}</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:00000E0A</addr><code>4708</code><mnemonic>bx      r1</mnemonic></asm>
+			</mixed>
+		</List.EXPORT>
+	</listing>
+</TRACE32>

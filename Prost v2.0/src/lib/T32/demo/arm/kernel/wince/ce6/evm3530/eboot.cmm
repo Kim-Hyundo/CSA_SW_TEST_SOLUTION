@@ -1,0 +1,124 @@
+; --------------------------------------------------------------------------------
+; @Title: Startup Script for Debugging Eboot on Mistral EVM 3530 board
+; @Description: 
+;   Connect NULL modem cable to UART 3
+;   - 115200 baud, 8/N/1, no(!) handshake
+; @Keywords: awareness, Windows
+; @Author: DIE
+; @Chip: OMAP3530
+; @Board: Mistral EVM 3530
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: eboot.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+LOCAL &winceroot &reldir
+
+;&winceroot="C:\WINCE600" 
+&winceroot=".\WINCE600" 
+&reldir="&winceroot\OSDesigns\EVM_3530\EVM_3530\RelDir\EVM_OMAP3530_ARMV4I_Release"
+
+
+ SCREEN.ALways      ; permanent update for internal terminal window
+ ; screen.on        ; if you use external terminal
+
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 24. 75. 8. 
+ AREA.view
+ 
+ PRINT "resetting..."
+
+ RESet
+
+
+; Open serial terminal window on COM1
+ 
+ WinPOS 35. 0. ,,,,, TERM.view
+ TERM.METHOD COM COM1 115200. 8 NONE 1STOP NONE
+ TERM.SIZE 80. 1000.
+ TERM.Mode VT100
+ TERM.SCROLL ON
+ TERM.view
+ 
+
+; Initializing Debugger
+
+ PRINT "initializing..."
+ SYStem.CPU OMAP3530
+ SYStem.JtagClock RTCK          ; hardware dependent (see manual)
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ 
+
+; Wait for power up of target
+
+ ON powerup GOTO start
+ PRINT "waiting for power cycle..."
+ STOP
+start:
+ ON powerup     ; remove powerup action
+ WAIT 100.ms
+
+ SYStem.Up
+
+
+; Wait for Eboot
+
+ ; set onchip(!) breakpoint on Eboot start
+ Break.Set 0x87E00000 /Onchip
+ Go 
+ PRINT "waiting for Eboot..."
+ WAIT !STATE.RUN() 
+ 
+ 
+; Yep! Eboot code loaded & started
+
+ Break.RESet
+ SETUP.IMASKASM ON      ; lock interrupts while single stepping
+ 
+
+; if you like to load new Eboot code:
+ 
+ ; print "loading new Eboot..."
+ ; Data.LOAD.EXE &reldir\Ebootsd.bin
+
+
+; Load eboot awareness (eboot.t32) for section detection
+ ; specify physical address of image
+ 
+ EXTension.CONFIG ~~\demo\arm\kernel\wince\ce6\eboot.t32 0x87E00000
+ 
+
+; Load eboot.exe symbols
+ 
+ PRINT "loading XLoader symbols..."
+
+ &text=eboot.addr(0)    ; code segment
+ &data=eboot.addr(1)    ; data segment
+
+ Data.LOAD.eXe &reldir\ebootsd.exe /NoCODE /NoClear \
+   /reloc .text at &text /RELOC .data at &data
+   
+ ; adapt source paths if necessary (case sensitive!)
+ sYmbol.SourcePATH.Translate "c:\wince600" "&winceroot"
+
+
+; Start Eboot
+ 
+ Go main
+ PRINT "starting Eboot..."
+ 
+
+; That's it! Open a code window.
+
+ WinPOS 0. 0. 77. 22.
+ List.auto
+
+ PRINT "done."
+
+
+ ENDDO
+ 

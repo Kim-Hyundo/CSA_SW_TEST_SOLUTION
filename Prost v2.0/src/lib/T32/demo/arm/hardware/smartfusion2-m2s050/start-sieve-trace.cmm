@@ -1,0 +1,64 @@
+; --------------------------------------------------------------------------------
+; @Title: Microsemi SmartFusion2 Dev Kit Start with Trace script
+; @Description:
+;   Load a simple sieve demo into the SRAM of the Microsemi SmartFusion2.
+;   The off chip trace is prepared.
+;   Prerequisites:
+;     * J93 JTAG SEL - Short Pin 2-3
+;     * FPGA Design loaded which clocks the Cortex-M
+;     * RVI-Header, place a 1k Resistor between Pin 1,3
+;     * debugger/trace is connected to MIPI-20 connector
+; @Author: AME
+; @Board: SmartFusion2
+; @Chip: M2S*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: start-sieve-trace.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+  RESet
+  SYStem.RESet
+  SYStem.CPU M2S050
+  SYStem.CONFIG CONNECTOR      MIPI20T
+  SYStem.CONFIG DEBUGPORTTYPE  SWD
+  SYStem.Option ResBreak       OFF
+  SYStem.Option WaitReset      1ms
+  SYStem.Option DUALPORT       ON
+  SYStem.MemAccess DAP
+  SYStem.Up
+
+; load stack pointer and PC from vector table
+  Register.RESet
+
+; Init internal SRAM
+  Data.Set 0x20000000++013FFF % Long 0
+
+; load debug information of demo application on the board
+  DO ~~/demo/arm/compiler/gnu-pic/demo_sieve 0x20008000
+  Go main
+  WAIT !STATE.RUN()
+
+; Configure Trace
+  IF Analyzer()
+  (
+    ETM.PortSize 4
+    Trace.METHOD Analyzer
+    Trace.AutoFocus
+  )
+  ELSE IF hardware.COMBIPROBE()||hardware.UTRACE()
+  (
+    ETM.PortSize 4
+    Trace.METHOD CAnalyzer
+    CAnalyzer.CLOCKDelay MAXimum
+  )
+
+  Mode.Hll
+  WinPOS 0% 0%
+  List.auto
+
+  IF Analyzer()||hardware.COMBIPROBE()||hardware.UTRACE()
+  (
+    Trace.List
+  )
+
+  ENDDO

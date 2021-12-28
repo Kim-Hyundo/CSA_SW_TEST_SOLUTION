@@ -1,0 +1,42 @@
+; --------------------------------------------------------------------------------
+; @Title: IT Quicksort Demo for the STM32F103 EVB using the CombiProbe
+; @Description: -
+; @Author: ING
+; @Chip: STM32F103ZE
+; @Board: STM32F103 EVB
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: setup.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; bring up board, load application etc.
+  ChDir ../pipeproto
+  DO common
+  ChDir ../quicksort
+
+  Data.LOAD.Elf quicksort.elf
+
+  IF (OS.VERSION(0)>=0x10)||(OS.VERSION(0)==0x0)
+  (
+    PRINT "Demo unsupported for this OS"
+    ENDDO
+  )
+
+; Start application which will 
+; receive data from windows named pipe
+  OS.screen ./itm_analyze.exe \\.\pipe\itm
+  WAIT 2.s
+
+; Configure named pipe as trace sink
+  SystemTrace.PipeWRITE \\.\pipe\itm
+
+  Break.Set quicksort
+  Break.Set qs_h\8
+; Now start application
+  Go.direct
+  WAIT !STATE.RUN()
+
+  WinPOS 0% 0%
+  List.auto
+  WinPOS 61% 0% 38%
+  Var.AddWatch %Hex g_array

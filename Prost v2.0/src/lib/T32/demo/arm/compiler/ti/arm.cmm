@@ -1,0 +1,37 @@
+; --------------------------------------------------------------------------------
+; @Title: C Example for SRAM (TI Compiler)
+; @Description:
+;   Simple C++ application for ARM targets
+;   compiled with the TI compiler
+;   running from SRAM
+; @Author: -
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: arm.cmm 15227 2019-11-06 11:57:41Z bschroefel $
+
+
+ WinCLEAR
+
+ SYStem.RESet
+
+ IF hardware.ICD()||INTERFACE.SIM()
+ (
+  SYStem.CPU ARM7TDMI
+  SYStem.Up
+ )
+ IF hardware.ICE()||hardware.FIRE()
+ (
+  SYStem.Mode AloneInt
+  MAP.Ram 0x0--0x0ffff
+  MAP.Intern
+ )
+
+ Data.LOAD.COFF arm.abs
+
+; Open some windows
+ WinPOS 0% 0% 100% 50%
+ List
+ WinPOS 0% 50% 50% 50%
+ Frame /Caller
+ WinPOS 50% 50% 50% 50%
+ Var.Watch %SpotLight flags ast

@@ -1,0 +1,94 @@
+; --------------------------------------------------------------------------------
+; @Title: MB86R24 NAND Program script on TritonC
+; @Description:
+; The MT29F2G16ABAEA(16bit NAND) is on the EBC NAND controller ( XCS1(default) )
+;
+; SRAM: 0x101000
+; NAND Base(ExternalROM, XCS1): 0xE0000000
+; EBC Reg(NAND MODE1): 0x3C400004
+;
+; @Author: jjeong
+; @Chip: MB86R24
+; @Keywords: MT29F2G16 Flash NAND
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mb86r24-nand.cmm 7602 2019-11-05 15:02:25Z bschroefel $
+;assumptions: 
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+
+;NAND boot 16bit 2048+64 64pages 
+;  S1 [1 2 3 4] OFF OFF OFF OFF (default); GPIO[3:0]=0b1111
+;NAND Flash boot device, pinmux#A/#B is both mode0
+;  SW4[1 2 3] OFF OFF OFF   ;MPXMODE[2:0] 1 0 0 0
+;  SW4[6]     ON    ;SELFL
+
+&nand_base=0xE0000000
+
+RESet
+SYStem.RESet
+SYStem.CPU MB86R24
+SYStem.JtagClock CTCK 10MHz
+CORE.ASSIGN 1.
+SYStem.Up
+
+; some initializations
+Data.Set A:0x3B500028 %Long 0xF7FF770D ; CRG.CRRRS = ?
+
+; EBC setting for 16bit NAND
+Data.Set A:0x3C400000 %LE %Long (0x1<<4)|0x1  ; MODE0
+Data.Set A:0x3C400004 %LE %Long (0x1<<4)|0x1  ; MODE1 
+Data.Set A:0x3C400020 %LE %Long 0x13171036    ; MODE0 timing
+Data.Set A:0x3C400024 %LE %Long 0x13171036    ; MODE1 timing
+
+GOSUB READ_ID_TEST
+
+Break.RESet
+
+FLASHFILE.RESet
+
+//FLASHFILE.CONFIG  <nand base>  <nand ebc mode reg> , ,
+FLASHFILE.CONFIG    0xE0000000   0x3c400004  ,  ,
+
+//FLASHFILE.TARGET  <Code Range>      <Data Range>          <Algorithm File>
+  FLASHFILE.TARGET 0x101000++0x2FFF  0x104000++0x1FFF   ~~/demo/arm/flash/word/nand2g16_mb86r24.bin    /KEEP  
+
+//Read FLASH Manufacture and Device ID
+  FLASHFILE.GETID
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+ENDDO
+
+
+//Open the NAND Dump Windows - Main Area
+  FLASHFILE.DUMP 0x0
+
+//Open the NAND Dump Windows - Spare Area
+  FLASHFILE.DUMP /SPARE /Track
+
+ENDDO
+
+READ_ID_TEST:
+
+Data.Set A:0x3C400004 %LE %Long Data.Long(A:0x3C400004)|(0x1<<4)  ;NAND CE_Low
+
+Data.Set A:(&nand_base+0x1000)  %Byte 0x90	; COMMAND Reg Address 
+WAIT 10.ms
+
+Data.Set A:(&nand_base+0x2000) %Byte 0x00	; Address Reg Address
+WAIT 10.ms
+Data.Set A:(&nand_base+0x3000) %Byte 0x00	; deselect Address Reg Address (dummy)
+
+PRINT "1st 0x" Data.Byte(A:&nand_base) " (Manufacture)"
+PRINT "2nd 0x" Data.Byte(A:&nand_base) " (Device ID)"
+PRINT "3rd 0x" Data.Byte(A:&nand_base)
+PRINT "4th 0x" Data.Byte(A:&nand_base)
+PRINT "5th 0x" Data.Byte(A:&nand_base)
+
+Data.Set A:0x3C400004 %LE %Long Data.Long(A:0x3C400004)&~(0x1<<4)  ;NAND CE_High
+
+RETURN
+

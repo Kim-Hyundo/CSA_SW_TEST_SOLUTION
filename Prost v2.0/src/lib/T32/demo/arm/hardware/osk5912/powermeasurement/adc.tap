@@ -1,0 +1,23 @@
+;0x10 written with Analyzer Programing Dialog Version 1.8.0: 03.11.2005
+;#C0,1.6,us
+TimeCouNTer COUNT0 1.6us
+;#C1,100,us
+TimeCouNTer COUNT1 100us
+ 
+LEVEL0:
+;#IC0,,,,
+Counter.Increment COUNT0
+;#GS1,COUNT0,,,
+GOTO LEVEL1 IF COUNT0
+;#SE,!COUNT0,,,
+SAMPLE.ENABLE IF !COUNT0
+;#RC1,COUNT0,,,
+Counter.Restart COUNT1 IF COUNT0
+ 
+LEVEL1:
+;#IC1,,,,
+Counter.Increment COUNT1
+;#RC0,COUNT1,,,
+Counter.Restart COUNT0 IF COUNT1
+;#GS0,COUNT1,,,
+GOTO LEVEL0 IF COUNT1

@@ -1,0 +1,215 @@
+; --------------------------------------------------------------------------------
+; @Title: AMP-Demo script for CY8C6347BZI-BLD53 with Offchip-Trace (AMP, RAM)
+; @Description:
+;   Setup a AMP debug session using a single script approach.
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Offchip-Trace. Pinmuxing and Clock
+;   setup is handled in the script.
+;   Use this script to test the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to P6
+;    * Connect AutoFocus Preprocessor to P6 using Mictor38 cable and adapter
+;      LA-3809
+;    * TRACE32 is started using the .bat/.sh file in this directory
+; @Keywords: ARM, ETM
+; @Author: AME
+; @Board: CY8CKIT-062-BLE, PSoC6 BLE Pioneer Kit
+; @Chip: CY8C6*-BLD* CY8C6*-D*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: psoc6dual_amp_offchip_trace_sram.cmm 15362 2019-12-03 14:50:48Z mschleinkofer $
+
+PRIVATE &currPath &rclPort &remoteCmd
+&currPath=OS.PPD()
+&rclPort=FORMAT.DecimalU(1.,RCL.PORT(0))+"."
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF SYStem.INSTANCE()<1.
+(
+  PRINT %ERROR "TRACE32 is not running in AMP mode! Use .bat/.sh file in this directory."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; enable INTERCOM if not already specified and prepare related variables
+IF (INTERCOM.PORT()==0)
+(
+  InterCom.ENable CM0
+)
+&remoteCmd="InterCom.execute CM4"
+
+; --------------------------------------------------------------------------------
+; close any existing REMOTE GUI
+INTERCOM.execute OTHERS QUIT
+; --------------------------------------------------------------------------------
+; open SLAVE GUI with or without enabled remote API
+IF (RCL.PORT(0)!=0)
+(
+  TargetSystem.NewInstance CM4 /ARCHitecture ARM /ChipIndex 2. /APIPORT &rclPort+1. /ONCE
+)
+ELSE
+(
+  TargetSystem.NewInstance CM4 /ARCHitecture ARM /ChipIndex 2. /ONCE
+)
+
+; --------------------------------------------------------------------------------
+; set titles for SLAVE GUIs
+TITLE "TRACE32 for ARM - CY8C6347BZI-BLD53-M0+ - MASTER"
+&remoteCmd TITLE "TRACE32 for ARM - CY8C6347BZI-BLD53-M4 - SLAVE1"
+
+; --------------------------------------------------------------------------------
+; common SYStem settings
+RESet
+&remoteCmd RESet
+SYStem.RESet
+&remoteCmd SYStem.RESet
+SYStem.CPU CY8C6347BZI-BLD53-M0+
+SYStem.CONFIG CORE 1. 1.
+SYStem.CONFIG SLAVE OFF
+SYStem.CONFIG DEBUGPORTTYPE SWD
+IF hardware.COMBIPROBE()||hardware.UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+&remoteCmd SYStem.CPU CY8C6347BZI-BLD53-M4
+&remoteCmd SYStem.CONFIG CORE 2. 1.
+&remoteCmd SYStem.CONFIG SLAVE ON
+&remoteCmd SYStem.CONFIG DEBUGPORTTYPE SWD
+IF hardware.COMBIPROBE()||hardware.UTRACE()
+(
+  &remoteCmd SYStem.CONFIG.CONNECTOR MIPI20T
+)
+
+; disable Trace for connection phase
+Trace.DISable
+&remoteCmd Trace.DISable
+
+SYStem.Up
+
+GOSUB WatchdogDisable
+
+; --------------------------------------------------------------------------------
+; kick secondary core
+; DO ~~/demo/arm/hardware/psoc/psoc6/scripts/disable_m4
+DO ~~~~/../../scripts/disable_m4
+; set initial SP, initial PC and create a endless loop
+Data.Set A:0x08010000 %Long 0x08010100 0x08010009 0xE7FEE7FE
+; DO ~~/demo/arm/hardware/psoc/psoc6/scripts/enable_m4 "0x08010000"
+DO ~~~~/../../scripts/enable_m4 "0x08010000"
+
+; --------------------------------------------------------------------------------
+; attach to all cores on all sessions
+&remoteCmd SYStem.Mode.Up
+
+; --------------------------------------------------------------------------------
+; load demo program on all sessions (use internal RAM only)
+Data.LOAD.Elf ~~~~/master/sieve_ram_thumb_v6m.elf
+&remoteCmd ChDir &currPath
+&remoteCmd Data.LOAD.Elf ./slave1/sieve_ram_thumb_ii_v7m.elf
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace if Combiprobe/uTrace/Analyzer is plugged (ETM)
+IF hardware.COMBIPROBE()||hardware.UTRACE()||Analyzer()
+(
+  ; set PinMux and enable Clocks
+  ; assign CPUSS_CLOCK_TRACE_IN to clock-divider 1
+  Data.Set AD:0x40010CD8 %Long 0x00000001
+  ; enable clock-divider 1
+  Data.Set AD:0x40010400 %Long 0x8000FF01
+  ; GPIO_PRT7     ((GPIO_PRT_Type*) &GPIO->PRT[7])     0x40320380
+  ; HSIOM_PRT7    ((HSIOM_PRT_Type*) &HSIOM->PRT[7])   0x40310070
+  ; GPIO_PRT9     ((GPIO_PRT_Type*) &GPIO->PRT[7])     0x40320480
+  ; HSIOM_PRT9    ((HSIOM_PRT_Type*) &HSIOM->PRT[9])   0x40310090
+  ; P7.0       - ACT14, drive strength
+  Data.Set AD:0x403203a8 %Long (Data.Long(AD:0x403203a8)&0xfffffff0)|0x0000000e
+  Data.Set AD:0x40310070 %Long (Data.Long(AD:0x40310070)&0xffffff00)|0x0000001a
+
+  ; TRACEDATA[0] = P7.7 - ACT15, drive strength
+  ; Data.Set AD:0x403203a8 %Long (Data.Long(AD:0x403203a8)&0x0fffffff)|0xe0000000
+  ; Data.Set AD:0x40310074 %Long (Data.Long(AD:0x40310074)&0x00ffffff)|0x1b000000
+  ; TraceDATA[0] = P9.3 - ACT15, drive stength
+  Data.Set AD:0x403204a8 %Long (Data.Long(AD:0x403204a8)&0xffff0fff)|0x0000e000
+  Data.Set AD:0x40310090 %Long (Data.Long(AD:0x40310090)&0x00ffffff)|0x1b000000
+
+  ; TRACEDATA[1] = P7.6 - ACT15, drive strength
+  Data.Set AD:0x403203a8 %Long (Data.Long(AD:0x403203a8)&0xf0ffffff)|0x0e000000
+  Data.Set AD:0x40310074 %Long (Data.Long(AD:0x40310074)&0xff00ffff)|0x001b0000
+  ; TraceDATA[1] = P9.2 - ACT15, drive stength
+  ; Data.Set AD:0x403204a8 %Long (Data.Long(AD:0x403204a8)&0xfffff0ff)|0x00000e00
+  ; Data.Set AD:0x40310090 %Long (Data.Long(AD:0x40310090)&0xff00ffff)|0x001b0000
+
+  ; TRACEDATA[2] = P7.5 - ACT15, drive strength
+  Data.Set AD:0x403203a8 %Long (Data.Long(AD:0x403203a8)&0xff0fffff)|0x00e00000
+  Data.Set AD:0x40310074 %Long (Data.Long(AD:0x40310074)&0xffff00ff)|0x00001b00
+  ; TraceDATA[2] = P9.1 - ACT15, drive stength
+  ; Data.Set AD:0x403204a8 %Long (Data.Long(AD:0x403204a8)&0xffffff0f)|0x000000e0
+  ; Data.Set AD:0x40310090 %Long (Data.Long(AD:0x40310090)&0xffff00ff)|0x00001b00
+
+  ; TRACEDATA[3] = P7.4 - ACT15, drive strength
+  Data.Set AD:0x403203a8 %Long (Data.Long(AD:0x403203a8)&0xfff0ffff)|0x000e0000
+  Data.Set AD:0x40310074 %Long (Data.Long(AD:0x40310074)&0xffffff00)|0x0000001b
+  ; TraceDATA[3] = P9.0 - ACT15, drive stength
+  ; Data.Set AD:0x403204a8 %Long (Data.Long(AD:0x403204a8)&0xfffffff0)|0x0000000e
+  ; Data.Set AD:0x40310090 %Long (Data.Long(AD:0x40310090)&0xffffff00)|0x0000001b
+
+  &remoteCmd TPIU.PortSize 4
+  &remoteCmd TPIU.PortMode Continuous
+  &remoteCmd ETM.Trace ON
+  &remoteCmd ETM.ON
+)
+IF Analyzer()
+(
+  &remoteCmd Trace.Method Analyzer
+
+  ; use Autofocus based calibration
+  &remoteCmd Analyzer.AutoFocus
+)
+ELSE IF hardware.COMBIPROBE()||hardware.UTRACE()
+(
+  &remoteCmd Trace.Method CAnalyzer
+
+  ; use Autofocus based calibration
+  &remoteCmd CAnalyzer.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main\1
+WAIT !STATE.RUN()
+&remoteCmd Go.direct main\1
+&remoteCmd WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+&remoteCmd WinCLEAR
+&remoteCmd Mode.Hll
+&remoteCmd WinPOS 0. 0. 116. 26.
+&remoteCmd List.auto
+&remoteCmd WinPOS 0. 32.
+&remoteCmd Trace.List
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+
+WatchdogDisable: ;()
+(
+  ; Unlock and disable WDT
+  ; SRSS->WDT_CTL = ((SRSS->WDT_CTL & (uint32_t)(~SRSS_WDT_CTL_WDT_LOCK_Msk)) | CY_WDT_LOCK_BIT0);
+  ; SRSS->WDT_CTL = (SRSS->WDT_CTL | CY_WDT_LOCK_BIT1);
+  ; SRSS->WDT_CTL &= (~ (uint32_t) SRSS_WDT_CTL_WDT_EN_Msk);
+
+  Data.Set A:0x40260180 %Long (Data.Long(A:0x40260180)&~0xC0000000)|0x40000000
+  Data.Set A:0x40260180 %Long Data.Long(A:0x40260180)|0x80000000
+  Data.Set A:0x40260180 %Long Data.Long(A:0x40260180)&~0x1
+  RETURN
+)
+

@@ -1,0 +1,731 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags
+; @Author: TI
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: omap4430_i2c_driver.cmm 8886 2015-11-18 18:06:51Z mobermeir $
+
+GLOBAL &stuck
+&stuck=0x0
+GLOBAL &timeoutCounter
+&timeoutCounter=0x0
+
+ENTRY &menu_type &arg0 &arg1 &arg2 &arg3 &arg4 &arg5
+ 
+&CMM_DIR="~~~~"
+
+
+IF (Var.VALUE(&menu_type)==0x0)
+( 
+  GOSUB MSI2C_Init &arg0 &arg1 &arg2 &arg3 &arg4 &arg5
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0x1) 
+( 
+  GOSUB MSI2C_Configure &arg0 &arg1 &arg2 &arg3 &arg4 &arg5
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0x2)
+( 
+    
+  GOSUB MSI2C_MasterSendPolling &arg0 &arg1 &arg2 &arg3 &arg4
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0x3) 
+( 
+  GOSUB MSI2C_MasterReceivePolling &arg0 &arg1 &arg2 &arg3
+  ENDDO
+)
+
+
+MSI2C_Init:
+(
+ENTRY &baseAddress &prescaler &scll &sclh &hsscll &hssclh
+LOCAL &data
+&data=0
+&timeoutCounter=0x000000FF
+
+;PRINT "MSI2C_Init Function"
+
+IF 0x0==0
+  GOTO __L0
+PRINT ""
+__L0:
+IF 0x0==0
+  GOTO __L1
+PRINT "baseAddress " %Hex &baseAddress ""
+PRINT ""
+PRINT "prescaler " %Hex &prescaler ""
+PRINT ""
+PRINT "scll " %Hex &scll ""
+PRINT ""
+PRINT "sclh " %Hex &sclh ""
+PRINT ""
+PRINT "hsscll " %Hex &hsscll ""
+PRINT ""
+PRINT "hssclh " %Hex &hssclh ""
+PRINT ""
+__L1:
+
+;Enable I2C1 module
+;*(int*)0x4A0094A0 |= 0x2;
+&data=Data.Long(SR:0x4A0094A0);
+&data=&data|0x2
+Data.Set SR:0x4A0094A0 %Long &data
+  
+; Wait I2C1 is accessible 
+;while( ( (*(int*)(0x4A0094A0)) & 0x30000 ) != 0x0);
+WAIT (Data.Long(SR:0x4A0094A0)&0x30000)==0x0  
+
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&data=Var.VALUE((unsigned short)*((unsigned short *)&__V2))
+&data=&data&0x7FFF
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&__V0=Var.VALUE((unsigned short)&data)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+IF 0x0==0
+  GOTO __L2
+PRINT " data " %Hex &data ""
+PRINT ""
+__L2:
+&__V2=&baseAddress+Var.VALUE((int)0xB0)
+&__V0=Var.VALUE((unsigned short)&prescaler)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&__V2=&baseAddress+Var.VALUE((int)0xB4)
+&data=Var.VALUE((unsigned short)*((unsigned short *)&__V2))
+&data=&data&0xFF00
+&data=&data|&scll
+&__V2=&baseAddress+Var.VALUE((int)0xB4)
+&__V0=Var.VALUE((unsigned short)&data)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&__V2=Var.VALUE((int)&baseAddress)+Var.VALUE((int)(int)0xB8)
+&data=Var.VALUE((unsigned short)*((unsigned short *)&__V2))
+&data=&data&0xFF00
+&data=&data|&sclh
+&__V2=&baseAddress+Var.VALUE((int)0xB8)
+&__V0=Var.VALUE((unsigned short)&data)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&__V2=&baseAddress+Var.VALUE((int)0xB4)
+&data=Var.VALUE((unsigned short)*((unsigned short *)&__V2))
+&data=&data&0xFF
+&data=&data|&hsscll
+&__V2=&baseAddress+Var.VALUE((int)0xB4)
+&__V0=Var.VALUE((unsigned short)&data)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&__V2=&baseAddress+Var.VALUE((int)0xB8)
+&data=Var.VALUE((unsigned short)*((unsigned short *)&__V2))
+&data=&data&0xFF
+&data=&data|&hssclh
+&__V2=&baseAddress+Var.VALUE((int)0xB8)
+&__V0=Var.VALUE((unsigned short)&data)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&data=Var.VALUE((unsigned short)*((unsigned short *)&__V2))
+&data=&data|0x8000
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&__V0=Var.VALUE((unsigned short)&data)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+__L3:
+&__V4=&baseAddress+Var.VALUE((int)0x90)
+&__V2=(Var.VALUE((unsigned short)*((unsigned short *)&__V4)))&(0x0001)
+IF &__V2!=0x0001
+&__V1=1
+ELSE
+&__V1=0
+&timeoutCounter=&timeoutCounter-1
+IF &timeoutCounter!=0x0
+&__V2=1
+ELSE
+&__V2=0
+IF (&__V1!=0)&&(&__V2!=0)
+&__V0=1
+ELSE
+&__V0=0
+IF &__V0==0
+  GOTO __L4
+GOTO __L3
+__L4:
+IF &timeoutCounter==0x0
+&__V0=1
+ELSE
+&__V0=0
+IF &__V0==0
+  GOTO __L5
+PRINT "Time Out !!!"
+PRINT ""
+__L5:
+RETURN
+)
+
+MSI2C_Configure:
+(
+ENTRY &baseAddress &opMode &startByte &addressLength &ownAddress &masterCode
+LOCAL &data
+
+;PRINT "MSI2C_Configure Function"
+
+&data=0
+IF 0x0==0
+  GOTO __L6
+
+PRINT ""
+__L6:
+IF 0x0==0
+  GOTO __L7
+PRINT "baseAddress " %Hex &baseAddress ""
+PRINT ""
+PRINT "opMode " %Hex &opMode ""
+PRINT ""
+PRINT "startByte " %Hex &startByte ""
+PRINT ""
+PRINT "addressLength " %Hex &addressLength ""
+PRINT ""
+PRINT "ownAddress " %Hex &ownAddress ""
+PRINT ""
+PRINT "masterCode " %Hex &masterCode ""
+PRINT ""
+__L7:
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&data=Var.VALUE((unsigned short)*((unsigned short *)&__V2))
+&data=&data&0xCFFF
+&__V1=&opMode<<0xC
+&data=&data|&__V1
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&__V0=Var.VALUE((unsigned short)&data)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&data=Var.VALUE((unsigned short)*((unsigned short *)&__V2))
+&data=&data&0xF7FF
+&__V1=&startByte<<0xB
+&data=&data|&__V1
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&__V0=Var.VALUE((unsigned short)&data)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&data=Var.VALUE((unsigned short)*((unsigned short *)&__V2))
+&data=&data&0xFEFF
+&__V1=&addressLength<<0x8
+&data=&data|&__V1
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&__V0=Var.VALUE((unsigned short)&data)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&__V2=&baseAddress+Var.VALUE((int)0xA8)
+&data=Var.VALUE((unsigned short)*((unsigned short *)&__V2))
+&data=&data&0xFC00
+&data=&data|&ownAddress
+&__V2=&baseAddress+Var.VALUE((int)0xA8)
+&__V0=Var.VALUE((unsigned short)&data)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&__V2=&baseAddress+Var.VALUE((int)0xA8)
+&data=Var.VALUE((unsigned short)*((unsigned short *)&__V2))
+&data=&data&0x1FFF
+&__V1=&ownAddress<<0xD
+&data=&data|&__V1
+&__V2=&baseAddress+Var.VALUE((int)0xA8)
+&__V0=Var.VALUE((unsigned short)&data)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+RETURN
+)
+
+MSI2C_IntAck:
+(
+ENTRY &baseAddress &intSet
+LOCAL &RegVal
+
+;PRINT "MSI2C_IntAck Function"
+
+;PRINT "intSet " %HEX &intSet ""
+;PRINT "baseAddress " %HEX &baseAddress ""
+
+&RegVal=0
+IF 0x0==0
+  GOTO __L8
+
+PRINT ""
+__L8:
+IF 0x0==0
+  GOTO __L9
+PRINT "baseAddress " %Hex &baseAddress ""
+PRINT ""
+PRINT "intSet " %Hex &intSet ""
+PRINT ""
+__L9:
+&__V3=&baseAddress+Var.VALUE((int)0x88)
+&RegVal=Var.VALUE((unsigned short)*((unsigned short *)&__V3))
+&RegVal=&RegVal
+&__V2=(&RegVal)&(0xFFE0)
+&__V3=(&intSet)&(0x001F)
+&__V1=&__V2|&__V3
+&RegVal=&__V1
+&__V2=&baseAddress+Var.VALUE((int)0x88)
+&__V0=Var.VALUE((unsigned short)(short)&RegVal)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+RETURN
+)
+
+MSI2C_MasterSendPolling:
+(
+ENTRY &baseAddress &slaveAddress &regAddress &pDataArray &dataNumber
+LOCAL &stop
+&stop=0x0
+LOCAL &DATA
+&DATA=0x0
+LOCAL &sendData
+&sendData=0
+LOCAL &count
+&count=0
+LOCAL &currentState
+&currentState=0
+&timeoutCounter=0x00000FFF
+
+;PRINT "MSI2C_MasterSendPolling Function"
+
+IF 0x0==0
+  GOTO __L10
+
+PRINT ""
+__L10:
+IF 0x0==0
+  GOTO __L11
+PRINT "baseAddress " %Hex &baseAddress ""
+PRINT ""
+PRINT "slaveAddress " %Hex &slaveAddress ""
+PRINT ""
+PRINT "regAddress " %Hex &regAddress ""
+PRINT ""
+PRINT "dataNumber " %Hex &dataNumber ""
+PRINT ""
+__L11:
+__L12:
+&__V4=&baseAddress+Var.VALUE((int)0x88)
+&__V2=Var.VALUE((unsigned short)*((unsigned short *)&__V4))>>0xC
+IF &__V2==0x1
+&__V1=1
+ELSE
+&__V1=0
+&timeoutCounter=&timeoutCounter-1
+IF &timeoutCounter!=0x0
+&__V2=1
+ELSE
+&__V2=0
+IF (&__V1!=0)&&(&__V2!=0)
+&__V0=1
+ELSE
+&__V0=0
+IF &__V0==0
+  GOTO __L13
+GOTO __L12
+__L13:
+IF &timeoutCounter==0x0
+&__V0=1
+ELSE
+&__V0=0
+IF &__V0==0
+  GOTO __L14
+PRINT "Time Out !!!"
+PRINT ""
+__L14:
+&__V2=&baseAddress+Var.VALUE((int)0xAC)
+&__V0=Var.VALUE((unsigned short)&slaveAddress)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&__V2=&baseAddress+Var.VALUE((int)0x98)
+&__V0=Var.VALUE((unsigned short)&dataNumber)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&sendData=Var.VALUE((unsigned short)*((unsigned short *)&__V2))
+&sendData=&sendData&0xFBFF
+&__V1=0x1<<0xA
+&sendData=&sendData|&__V1
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&__V0=Var.VALUE((unsigned short)&sendData)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&sendData=Var.VALUE((unsigned short)*((unsigned short *)&__V2))
+&sendData=&sendData&0xFDFF
+&__V1=0x1<<0x9
+&sendData=&sendData|&__V1
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&__V0=Var.VALUE((unsigned short)&sendData)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&sendData=Var.VALUE((unsigned short)*((unsigned short *)&__V2))
+&sendData=&sendData&0xFFFD
+&__V1=0x1<<0x1
+&sendData=&sendData|&__V1
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&__V0=Var.VALUE((unsigned short)&sendData)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&sendData=Var.VALUE((unsigned short)*((unsigned short *)&__V2))
+&sendData=&sendData&0xFFFE
+&__V1=0x1<<0x0
+&sendData=&sendData|&__V1
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&__V0=Var.VALUE((unsigned short)&sendData)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&count=0x0
+__L15:
+IF &stop==0x0
+&__V0=1
+ELSE
+&__V0=0
+IF &__V0==0
+  GOTO __L16
+IF &count==0x0
+&__V0=1
+ELSE
+&__V0=0
+IF &__V0==0
+  GOTO __L17
+&DATA=Var.VALUE((char)&regAddress)
+GOTO __L18
+__L17:
+IF &count==0x1
+&__V0=1
+ELSE
+&__V0=0
+IF &__V0==0
+  GOTO __L19
+&DATA=Var.VALUE((char)&pDataArray)
+GOTO __L20
+__L19:
+&DATA=0x0
+__L20:
+__L18:
+&__V2=&baseAddress+Var.VALUE((int)0x88)
+&currentState=Var.VALUE((unsigned short)*((unsigned short *)&__V2))
+IF 0x0==0
+  GOTO __L21
+PRINT "currentState = " %Decimal &currentState ""
+PRINT ""
+__L21:
+&__V1=(&currentState)&(0x1)
+IF &__V1==0x01
+&__V0=1
+ELSE
+&__V0=0
+IF &__V0==0
+  GOTO __L22
+&__V2=&baseAddress+Var.VALUE((int)0x88)
+&__V0=Var.VALUE((unsigned short)0x1)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&stop=0x1
+&currentState=&currentState&0xFFFE
+PRINT "STOP_AL"
+PRINT ""
+__L22:
+&__V1=(&currentState)&(0x2)
+IF &__V1==0x00
+&__V0=1
+ELSE
+&__V0=0
+IF &__V0==0
+  GOTO __L23
+&__V1=(&currentState)&(0x4)
+IF &__V1==0x00
+&__V0=1
+ELSE
+&__V0=0
+IF &__V0==0
+  GOTO __L25
+&__V1=(&currentState)&(0x10)
+IF &__V1!=0x00
+&__V0=1
+ELSE
+&__V0=0
+IF &__V0==0
+  GOTO __L27
+IF 0x0==0
+  GOTO __L29
+PRINT "DATA " %Hex &DATA ""
+PRINT ""
+__L29:
+&__V2=&baseAddress+Var.VALUE((int)0x9C)
+&__V0=Var.VALUE((unsigned short)(char)&DATA)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&__V0=&count
+&count=&count+1
+;GOSUB MSI2C_IntAck V.VALUE((int)&baseAddress) 0x0010
+GOSUB MSI2C_IntAck &baseAddress 0x0010
+ENTRY &__V0
+GOTO __L28
+__L27:
+&__V1=(&currentState)&(0xBFFF)
+IF &__V1!=0x00
+&__V0=1
+ELSE
+&__V0=0
+IF &__V0==0
+  GOTO __L30
+IF 0x0==0
+  GOTO __L31
+PRINT "DATA1 " %Hex &DATA ""
+PRINT ""
+__L31:
+&__V2=&baseAddress+Var.VALUE((int)0x9C)
+&__V0=Var.VALUE((unsigned short)(char)&DATA)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&__V0=&count
+&count=&count+1
+;GOSUB MSI2C_IntAck V.VALUE((int)&baseAddress) 0x4000
+GOSUB MSI2C_IntAck &baseAddress 0x4000
+ENTRY &__V0
+__L30:
+__L28:
+GOTO __L26
+__L25:
+;GOSUB MSI2C_IntAck V.VALUE((int)&baseAddress) 0x0004
+GOSUB MSI2C_IntAck &baseAddress 0x0004
+ENTRY &__V0
+&__V3=&baseAddress+Var.VALUE((int)0xA4)
+&__V1=(Var.VALUE((unsigned short)*((unsigned short *)&__V3)))&(0x2)
+IF &__V1==0x0
+&__V0=1
+ELSE
+&__V0=0
+IF &__V0==0
+  GOTO __L32
+&stop=0x1
+IF 0x0==0
+  GOTO __L33
+PRINT "STOP_ARDY"
+PRINT ""
+__L33:
+__L32:
+__L26:
+GOTO __L24
+__L23:
+&__V2=&baseAddress+Var.VALUE((int)0x88)
+&__V0=Var.VALUE((unsigned short)0x2)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&__V0=Var.VALUE((unsigned short)0x2)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&stop=0x1
+PRINT "STOP_NACK"
+PRINT ""
+__L24:
+GOTO __L15
+__L16:
+RETURN
+)
+
+MSI2C_MasterReceivePolling:
+(
+ENTRY &baseAddress &slaveAddress &pDataArray &dataNumber
+LOCAL &stop
+&stop=0x0
+LOCAL &currentState
+&currentState=0
+LOCAL &currentData
+&currentData=0
+LOCAL &data
+&data=0x0
+LOCAL &sendData
+&sendData=0
+
+;PRINT "MSI2C_MasterReceivePolling Function"
+
+&timeoutCounter=0x00000FFF
+IF 0x0==0
+  GOTO __L34
+
+PRINT ""
+__L34:
+IF 0x0==0
+  GOTO __L35
+PRINT "baseAddress " %Hex &baseAddress ""
+PRINT ""
+PRINT "slaveAddress " %Hex &slaveAddress ""
+PRINT ""
+PRINT "dataNumber " %Hex &dataNumber ""
+PRINT ""
+__L35:
+__L36:
+&__V4=&baseAddress+Var.VALUE((int)0x88)
+&__V2=Var.VALUE((unsigned short)*((unsigned short *)&__V4))>>0xC
+IF &__V2==0x1
+&__V1=1
+ELSE
+&__V1=0
+&timeoutCounter=&timeoutCounter-1
+IF &timeoutCounter!=0x0
+&__V2=1
+ELSE
+&__V2=0
+IF (&__V1!=0)&&(&__V2!=0)
+&__V0=1
+ELSE
+&__V0=0
+IF &__V0==0
+  GOTO __L37
+GOTO __L36
+__L37:
+IF &timeoutCounter==0x0
+&__V0=1
+ELSE
+&__V0=0
+IF &__V0==0
+  GOTO __L38
+PRINT "Time Out !!!"
+PRINT ""
+__L38:
+&__V2=&baseAddress+Var.VALUE((int)0xAC)
+&__V0=Var.VALUE((unsigned short)&slaveAddress)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&__V2=&baseAddress+Var.VALUE((int)0x98)
+&__V0=Var.VALUE((unsigned short)&dataNumber)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&sendData=Var.VALUE((unsigned short)*((unsigned short *)&__V2))
+&sendData=&sendData&0xFBFF
+&__V1=0x1<<0xA
+&sendData=&sendData|&__V1
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&__V0=Var.VALUE((unsigned short)&sendData)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&sendData=Var.VALUE((unsigned short)*((unsigned short *)&__V2))
+&sendData=&sendData&0xFDFF
+&__V1=0x0<<0x9
+&sendData=&sendData|&__V1
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&__V0=Var.VALUE((unsigned short)&sendData)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&sendData=Var.VALUE((unsigned short)*((unsigned short *)&__V2))
+&sendData=&sendData&0xFFFD
+&__V1=0x1<<0x1
+&sendData=&sendData|&__V1
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&__V0=Var.VALUE((unsigned short)&sendData)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&sendData=Var.VALUE((unsigned short)*((unsigned short *)&__V2))
+&sendData=&sendData&0xFFFE
+&__V1=0x1<<0x0
+&sendData=&sendData|&__V1
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&__V0=Var.VALUE((unsigned short)&sendData)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+__L39:
+IF &stop==0x0
+&__V0=1
+ELSE
+&__V0=0
+IF &__V0==0
+  GOTO __L40
+&__V2=&baseAddress+Var.VALUE((int)0x88)
+&currentState=Var.VALUE((unsigned short)*((unsigned short *)&__V2))
+&__V1=(&currentState)&(0x1)
+IF &__V1==0x01
+&__V0=1
+ELSE
+&__V0=0
+IF &__V0==0
+  GOTO __L41
+&__V2=&baseAddress+Var.VALUE((int)0x88)
+&__V0=Var.VALUE((unsigned short)0x1)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&stop=0x1
+PRINT "STOP_AL"
+PRINT ""
+__L41:
+&__V1=(&currentState)&(0x2)
+IF &__V1==0x00
+&__V0=1
+ELSE
+&__V0=0
+IF &__V0==0
+  GOTO __L42
+&__V1=(&currentState)&(0x4)
+IF &__V1==0x00
+&__V0=1
+ELSE
+&__V0=0
+IF &__V0==0
+  GOTO __L44
+&__V1=(&currentState)&(0x08)
+IF &__V1!=0x00
+&__V0=1
+ELSE
+&__V0=0
+IF &__V0==0
+  GOTO __L46
+&__V2=&baseAddress+Var.VALUE((int)0x9C)
+&currentData=Var.VALUE((unsigned short)*((unsigned short *)&__V2))
+&__V1=(&currentData)&(0x00FF)
+&data=Var.VALUE((char)&__V1)
+IF 0x0==0
+  GOTO __L48
+PRINT "DATA " %Hex &data ""
+PRINT ""
+__L48:
+;GOSUB MSI2C_IntAck V.VALUE((int)&baseAddress) 0x0008
+GOSUB MSI2C_IntAck &baseAddress 0x0008
+ENTRY &__V0
+GOTO __L47
+__L46:
+&__V1=(&currentState)&(0xDFFF)
+IF &__V1!=0x00
+&__V0=1
+ELSE
+&__V0=0
+IF &__V0==0
+  GOTO __L49
+&__V2=&baseAddress+Var.VALUE((int)0x9C)
+&currentData=Var.VALUE((unsigned short)*((unsigned short *)&__V2))
+&__V1=(&currentData)&(0x00FF)
+&data=Var.VALUE((char)&__V1)
+IF 0x0==0
+  GOTO __L50
+PRINT "DATA " %Hex &data ""
+PRINT ""
+__L50:
+;GOSUB MSI2C_IntAck V.VALUE((int)&baseAddress) 0x2000
+GOSUB MSI2C_IntAck &baseAddress 0x2000
+ENTRY &__V0
+__L49:
+__L47:
+GOTO __L45
+__L44:
+;GOSUB MSI2C_IntAck V.VALUE((int)&baseAddress) 0x0004
+GOSUB MSI2C_IntAck &baseAddress 0x0004
+ENTRY &__V0
+&__V3=&baseAddress+Var.VALUE((int)0xA4)
+&__V1=(Var.VALUE((unsigned short)*((unsigned short *)&__V3)))&(0x2)
+IF &__V1==0x0
+&__V0=1
+ELSE
+&__V0=0
+IF &__V0==0
+  GOTO __L51
+&stop=0x1
+IF 0x0==0
+  GOTO __L52
+PRINT "STOP_ARDY"
+PRINT ""
+__L52:
+__L51:
+__L45:
+GOTO __L43
+__L42:
+&__V2=&baseAddress+Var.VALUE((int)0x88)
+&__V0=Var.VALUE((unsigned short)0x2)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&__V2=&baseAddress+Var.VALUE((int)0xA4)
+&__V0=Var.VALUE((unsigned short)0x2)
+Var.Assign *((unsigned short *)&__V2)=&__V0
+&stop=0x1
+PRINT "STOP_NACK"
+PRINT ""
+__L43:
+GOTO __L39
+__L40:
+&PHOENIX_REVISION= &data
+RETURN &data
+RETURN
+)

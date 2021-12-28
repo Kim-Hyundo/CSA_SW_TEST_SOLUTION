@@ -1,0 +1,136 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux Demo for TRACE32 OS Awareness on the BeagleBoneBlack
+; @Description: 
+;   This batchfile demonstrates the use of the OS Awareness for Linux
+;   The example is generated for the BlackBoneBlack using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   Linux is downloaded to the board via ICD.
+;   This script initializes the target by u-boot.
+; @Keywords: awareness, AM3359, Beagle*, RTOS
+; @Board: BeagleBoneBlack
+; @Chip: AM3359
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: beaglebone_linux.cmm 16133 2020-06-01 11:09:18Z mcharfi $
+
+
+; Starting Linux example with TRACE32:
+;   - Connect the Serial to USb convertor cable 
+;     to the RX(PIN4),TX(PIN5),GND(PIN1) PINS of the board
+;   - 115200 baud, 8/N/1, no(!) handshake
+;   - Start TRACE32
+;   - Switch on the board
+;   - TRACE32: "DO beaglebone_linux.cmm"
+
+
+LOCAL &ka_path &awareness
+
+  SCREEN.ALways      ; permanent update for internal terminal window
+  WinCLEAR
+  AREA.CLEAR
+  SYStem.RESet
+  Break.RESet
+  TRANSlation.RESet
+  sYmbol.RESet
+  MAP.RESet
+
+
+  WinPOS 0. 0. 80. 20. 0. 0. W000
+  AREA.view
+
+; Initializing Debugger
+
+  PRINT "initializing..." 
+  SYStem.CPU AM3359
+  SYStem.Option DACR ON          ; give Debugger global write permissions
+  TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+  TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+  TrOnchip.Set UNDEF OFF 	 ; my be used by Linux for FPU detection
+  SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+  SYStem.Up
+
+
+; Serial terminal
+  WinPOS 0. 25. 80. 25. 0. 0. W001
+
+  DO ~~/demo/etc/terminal/serial/term.cmm COM15 115200.
+  SETUP.IMASKASM ON          ; lock interrupts while single stepping
+
+
+; Runing the u-boot to initialize the target  
+  
+  PRINT "Initializing the target by u-boot..."
+  Go.direct
+  WAIT 4.s 
+  Break.direct
+ 
+; Loading Linux image and DTB via ICD   
+
+  PRINT "loading Linux image..."
+  ; vmlinux starts physically at RAM start (=0x80000000) + 0x8000
+  ; We have to adjust it from the virtual start address at the label
+  ; "stext" from the System.map ("nm vmlinux | sort")
+  ; i.e.: Data.LOAD.Elf vmlinux <physical start>-<virtual start>
+  Data.LOAD.Elf vmlinux 0x80008000-0xc0008000  /gnu /NosYmbol /noreg
+  
+  PRINT "loading DTB..."  
+  Data.LOAD.Binary beagleboneblack.dtb 0x80F80000
+
+; Setting PC and Kernel start parameters
+
+  Register.RESet
+  ; Set PC on start address of image
+  Register.Set PC 0x80008000
+  ; Set machine type in R1; see arch/arm/tools/mach-types
+  Register.Set R1 0x0E05
+  ; Set pointer to the DTB in R2; see arch/arm/tools/mach-types
+  Register.Set R2 0x80F80000
+
+; Loading RAM disk
+
+  PRINT "loading ram disk..."
+  Data.LOAD.Binary ramdisk.image.gz 0x81600000 /NoClear /NosYmbol
+    
+; Load the Linux kernel symbols into the debugger
+
+  PRINT "loading Linux kernel symbols..."
+  Data.LOAD.Elf vmlinux /gnu /NoCODE  /StripPART "kernel"
+
+; Starting the kernel
+
+  Go.direct start_kernel /Onchip  ;   _text /ONCHIP
+  WAIT !STATE.RUN()
+
+  ; Map the virtual kernel symbols to physical addresses
+  ; to give the debugger access to it before CPU MMU is
+  ; initialized 
+  PRINT "initializing debugger MMU..."
+  MMU.FORMAT LINUXSWAP3 swapper_pg_dir 0xc0000000--0xdfffffff 0x80000000
+  TRANSlation.COMMON 0bf000000--0ffffffff     ; common area for kernel and processes
+  TRANSlation.TableWalk ON   ; debugger uses a table walk to decode virtual addresses
+  TRANSlation.ON
+
+  ; Initialize Linux Awareness
+  ; Note that the Linux awareness needs the kernel symbols to work 
+  IF STRing.SCAN(Data.STRing(linux_banner), "Linux version 2.", 0)==0
+  (
+    &ka_path="~~/demo/arm/kernel/linux/linux-2.x"
+    &awareness="linux.t32"
+  )
+  ELSE
+  (
+    &ka_path="~~/demo/arm/kernel/linux/linux-3.x"
+    &awareness="linux3.t32"  
+  )
+  PRINT "initializing RTOS support..."
+  TASK.CONFIG &ka_path/&awareness      ; loads Linux awareness 
+  MENU.ReProgram &ka_path/linux        ; loads Linux menu 
+  ; Group kernel area to be displayed with red bar
+  GROUP.Create "kernel" 0xc0000000--0xffffffff /RED
+
+  Go.direct
+
+  Mode.Hll
+
+  ENDDO

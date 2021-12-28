@@ -1,0 +1,324 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC387QP on TriBoard-TC3x7 (AMP, waveform app)
+; @Description:
+;   Loads the waveform generation demo application (multi-core) into flash and
+;   sets up a demo debug scenario for AMP debugging. Further information is
+;   available in in the Tricore Processor Architecture Manual
+;   (pdf/debugger_tricore.pdf), chapter "AMP Debugging - Quick Start". More
+;   information about the demo application can be found in "waveform.c".
+; @Keywords: AURIX2G, flash, Infineon, multi-core, TriCore, waveform
+; @Author: MEI
+; @Board: TriBoard-TC3x7
+; @Chip: TC387QP
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo_amp_waveform_flash.cmm 15539 2020-01-17 12:22:53Z meick $
+
+
+RESet
+MENU.RESet
+WinCLEAR
+
+LOCAL &demoPath &elfFile
+
+&demoPath=OS.PPD()
+&elfFile="&demoPath/tc38x_waveform_intflash.elf"
+
+GOSUB InstallMenuAndButtons
+
+; enable Intercom for communication with PowerView instances of other cores
+; call this instance "TC0"
+InterCom.ENable "TC0"
+; configure core 0
+SYStem.CPU TC387QP
+SYStem.CONFIG.CORE 1. 1.
+
+; optional settings:
+SYStem.Option DUALPORT ON
+SETUP.Var %SpotLight
+MAP.BOnchip 0x0--0xffffffff // force onchip-breakpoints
+
+; The TriBoard-TC3x7 comes with a TLF35584 power supply
+; This power supply has integrated watchdog functionality which will cut all
+; power if not served correctly. By default this demo will disable this
+; watchdog functionality. This includes configuring the QSPI controller as
+; well as writing data to the QSPI.
+
+IF !STATE.POWER()
+(
+  DO ~~~~/disable_tlf35584.cmm
+)
+; connect to Core 0
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+
+; --------------------------------------------------------------------------------
+; Flash programming
+LOCAL &progFlash &bmhdResult
+
+; prepare flash programming (declarations)
+DO ~~/demo/tricore/flash/tc38x.cmm CPU=TC387QP PREPAREONLY
+
+; check if application is already in flash and load symbols
+Data.LOAD.Elf "&elfFile" /DIFF /SingleLineAdjacent
+IF FOUND()
+(
+  ; ==== Step 1: Program TriCore code ====
+
+  DIALOG.YESNO "Program Lauterbach demo into flash memory?"
+  ENTRY &progFlash
+  IF (&progFlash)
+  (
+    ; enable flash programming
+    FLASH.ReProgram ALL
+
+    ; load demo application
+    Data.LOAD.Elf "&elfFile"
+
+    FLASH.ReProgram OFF
+  )
+
+  ; ==== Step 2: Write boot mode header ====
+
+  PRIVATE &progUcb &ucbOrigDiff &ucbCopyDiff &supported &DMU_HF_CONFIRM0 &result
+  &progUcb=FALSE()
+  ; Check if both UCBs are in state UNLOCKED or UNREAD. Other states are not supported by this script
+  &DMU_HF_CONFIRM0=Data.Long(ED:0xF8040020)
+  &supported=(((&DMU_HF_CONFIRM0)&(0x00020002))==0x00000000)
+  IF !&supported
+  (
+	  DIALOG.MESSAGE "UCB_BMHD0_ORIG or UCB_BMHD0_COPY are not in state unlocked or unread"
+  )
+  ; Check if we need to program the BMHD
+  &ucbOrigDiff=FALSE()
+  &ucbCopyDiff=FALSE()
+  IF &supported
+  (
+  	Data.LOAD.Elf "&elfFile" 0xAF400000++0x1FF /DIFF
+  	&ucbOrigDiff=FOUND()
+  	Data.LOAD.Elf "&elfFile" 0xAF401000++0x1FF /DIFF
+  	&ucbCopyDiff=FOUND()
+  )
+  IF (&ucbOrigDiff)||(&ucbCopyDiff)
+  (
+    DIALOG.YESNO "Configure UCB_BMHD0_ORIG and UCB_BMHD0_COPY to start demo application?"
+    ENTRY &progUcb
+  )
+
+  IF (&progUcb)&&(&ucbCopyDiff)
+  (
+    ; enable programming of UCB_BMHD0_COPY
+    DO ~~/demo/tricore/flash/tc3xx-ucb.cmm UCB=BMHD0_COPY PREPAREONLY
+    FLASH.AUTO 0xAF401000++0x1FF
+
+    ; load data of UCB_BMHD0_COPY
+    Data.LOAD.Elf "&elfFile" 0xAF401000++0x1FF
+
+    ; check if we loaded a valid UCB
+    DO ~~/demo/tricore/flash/tc3xx-ucb.cmm UCB=BMHD0_COPY CHECKUCB
+    ENTRY &result
+
+    IF ("&result"=="UCBOK")
+    (
+      FLASH.AUTO.off
+    )
+    ELSE
+    (
+      FLASH.AUTO.CANCEL
+    )
+    ; protect UCB sector against unwanted modification
+    FLASH.CHANGETYPE 0xAF401000++0x1FF NOP
+  )
+
+  IF (&progUcb)&&(&ucbOrigDiff)
+  (
+    ; enable programming of UCB_BMHD0_ORIG
+    DO ~~/demo/tricore/flash/tc3xx-ucb.cmm UCB=BMHD0_ORIG PREPAREONLY
+    FLASH.AUTO 0xAF400000++0x1FF
+
+    ; load data of UCB_BMHD0_ORIG
+    Data.LOAD.Elf "&elfFile" 0xAF400000++0x1FF
+
+    ; check if we loaded a valid UCB
+    DO ~~/demo/tricore/flash/tc3xx-ucb.cmm UCB=BMHD0_ORIG CHECKUCB
+    ENTRY &result
+
+    IF ("&result"=="UCBOK")
+    (
+      FLASH.AUTO.off
+    )
+    ELSE
+    (
+      FLASH.AUTO.CANCEL
+    )
+    ; protect UCB sector against unwanted modification
+    FLASH.CHANGETYPE 0xAF400000++0x1FF NOP
+  )
+
+  ; ==== Step 3: Verify programming ====
+
+  Data.LOAD.Elf "&elfFile" /DIFF
+  IF FOUND()
+  (
+    ; maybe some sections are still declared as NOP?
+    PRIVATE &diffAddress
+    &diffAddress=TRACK.ADDRESS()
+    DIALOG.MESSAGE "File &elfFile has not been fully flashed, difference found at address &diffAddress (check flash declaration)"
+  )
+)
+
+IF !Analyzer()
+  Trace.Method Onchip
+
+Trace.OFF
+
+; go to begin of main of Core 0
+Go.direct TC0_main
+
+; Open some windows
+WinPOS 0% 0% 50% 70%
+List.auto
+WinPOS 50% 0% 50% 70%
+Var.Watch
+WinPOS 0% 70% 50% 30%
+Var.DRAW inputBufs[0].a inputBufs[0].b 10000.0 -1500000.0
+WinPOS 50% 70% 50% 30%
+Var.DRAW TC0_mixed 10000.0 -1500000.0
+
+Var.AddWatch TC0_result
+Var.AddWatch nNowProcessing
+Var.AddWatch %Decimal %BINary.OFF TC0_mixed
+
+ENDDO
+
+InstallMenuAndButtons:
+(
+  PRIVATE  &ToolXConnect &ToolQuit
+  &ToolXConnect=OS.PSD()+"/demo/practice/intercom/synch_xconnect.cmm"
+  &ToolQuit=OS.PSD()+"/demo/practice/intercom/toolbar_quit_all.cmm"
+  MENU.ReProgram
+  (&+ ; Enable macro expansion inside menu definition
+    ADD
+    MENU
+    (
+      POPUP "Multi-Core"
+      (
+        MENUITEM "Core 1"
+        (
+          DO &demoPath/init_amp_waveform.cmm "&elfFile" "CORENAME=TC1"
+        )
+        MENUITEM "Core 2"
+        (
+          DO &demoPath/init_amp_waveform.cmm "&elfFile" "CORENAME=TC2"
+        )
+        MENUITEM "Core 3"
+        (
+          DO &demoPath/init_amp_waveform.cmm "&elfFile" "CORENAME=TC3"
+        )
+
+        SEPARATOR
+        MENUITEM "TargetSystem"
+        (
+          TargetSystem.state CoreType CoreState SYnch.Go SYnch.Break /Global
+        )
+        ENABLE FILE.EXIST("&ToolXConnect")
+        MENUITEM "Setup SYNCHronization"
+        (
+          DO &ToolXConnect
+        )
+        ENABLE FILE.EXIST("&ToolQuit")
+        MENUITEM "Close all instances"
+        (
+            DO &ToolQuit COMMAND_QUIT
+        )
+      )
+    )
+    ADD
+    TOOLBAR
+    (
+      TOOLITEM "Core 1"
+      (
+        DO &demoPath/init_amp_waveform.cmm "&elfFile" "CORENAME=TC1"
+      )
+      [
+     BBBBBB
+   BB      BB
+  B          B
+ B      B     B
+ B      B     B
+B       B      B
+B       B      B
+B       B      B
+B       B      B
+B       B      B
+B       B      B
+ B      B     B
+ B      B     B
+  B          B
+   BB      BB
+     BBBBBB
+      ]
+    TOOLITEM "Core 2"
+      (
+        DO &demoPath/init_amp_waveform.cmm "&elfFile" "CORENAME=TC2"
+      )
+      [
+     BBBBBB
+   BB      BB
+  B          B
+ B    BBB     B
+ B   B   B    B
+B         B    B
+B         B    B
+B        B     B
+B       B      B
+B      B       B
+B     B        B
+ B   B        B
+ B   BBBBBB   B
+  B          B
+   BB      BB
+     BBBBBB
+      ]
+    TOOLITEM "Core 3"
+      (
+        DO &demoPath/init_amp_waveform.cmm "&elfFile" "CORENAME=TC3"
+      )
+      [
+     BBBBBB
+   BB      BB
+  B          B
+ B            B
+ B    BBBB    B
+B    B    B    B
+B         B    B
+B         B    B
+B     BBBB     B
+B         B    B
+B         B    B
+ B   B    B   B
+ B    BBBB    B
+  B          B
+   BB      BB
+     BBBBBB
+      ]
+
+      SEPARATOR
+      TOOLITEM "TargetSystem" "[:vpureg]"
+      (
+        TargetSystem.state CoreType CoreState SYnch.Go SYnch.Break InterComName /Global
+      )
+      TOOLITEM "Setup SYNCHronization" "[:mmu]"
+      (
+        IC ALL SYNCH.Connect OTHERS
+      )
+      TOOLITEM "Close all instances" "[=7VlX$s10E0NN02FV0F100yUViSqonGaL1TVWG0@0lfgNRL0]"
+      (
+        IC.executeNoWait OTHERS QUIT
+        QUIT
+      )
+    )
+  )
+  RETURN
+)

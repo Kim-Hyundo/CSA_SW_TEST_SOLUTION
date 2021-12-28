@@ -1,0 +1,90 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for MKL43Z256VLH4 on FRDM-KL43Z (FLASH)
+; @Description:
+;   Programs the sieve demo application into the processor internal flash and
+;   sets up a demo debug scenario.
+;   This script can be used as a template for flashing an application.
+;   Prerequisites:
+;    * Connect Debug Cable to J11 using Adapter LA-3770
+;      or
+;      Connect Combiprobe/uTrace to J11
+; @Keywords: ARM, Cortex-M0+, Flash
+; @Author: STK
+; @Board: FRDM-KL43Z
+; @Chip: MKL43Z256VLH4
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: frdm-kl43z_sieve_flash.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU MKL43Z256VLH4
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; Flash programming
+
+; prepare flash programming (declarations)
+DO ~~/demo/arm/flash/mkl40.cmm PREPAREONLY
+
+; ReProgram Flash
+FLASH.ReProgram ALL
+Data.LOAD.Elf "~~~~/sieve_flash_thumb_v6m.elf"
+FLASH.ReProgram OFF
+
+; Change boot mode to flash
+FLASH.AUTO 0x400--0x40F /CENSORSHIP
+Data.Set 0x40d %Byte 0x3F
+FLASH.AUTO OFF
+
+; --------------------------------------------------------------------------------
+; Reset the target again
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO
+
+DisableWatchdog:
+(
+  ; Disable watchdog
+  Data.Set SD:0x40048100 %Long 0x00000000 ; this register can only be accessed once after reset.
+  RETURN
+)

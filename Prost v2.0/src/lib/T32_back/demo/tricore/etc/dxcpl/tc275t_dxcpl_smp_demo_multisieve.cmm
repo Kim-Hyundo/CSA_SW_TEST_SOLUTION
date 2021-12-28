@@ -1,0 +1,89 @@
+; --------------------------------------------------------------------------------
+; @Title: DXCPL Demo script for TC275T on TriBoard-TC2x5 (SMP, multisieve app)
+; @Description:
+;   Use the Debugporttype DXCPL DAP over CAN Physical Layer
+;   RXDCAN1B and TXDCAN1 (P14.1, P14.0) used for DXCPL
+;   /TRST pin has been active (low) since Power-on Reset
+;   Loads the multisieve demo application (multi-core) into RAM and sets up a
+;   demo debug scenario for SMP debugging.
+; @Keywords: AURIX, Infineon, multi-core, multisieve, TriCore, DXCPL
+; @Author: RAI
+; @Board: TriBoard-TC2x5
+; @Chip: TC275T
+; @Copyright: (C) 1989-2015 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc275t_dxcpl_smp_demo_multisieve.cmm 13321 2018-10-16 08:26:29Z rsagerer $
+
+
+; --------------------------------------------------------------------------------
+; clear all windows
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.CPU TC275T
+CORE.ASSIGN 1. 2. 3. // assign cores to the SMP system
+SYStem.CONFIG DEBUGPORTTYPE DXCPL
+SYStem.CONFIG DXCPL.Timing 750.ns
+SYStem.Mode Attach
+Break.direct
+SYStem.Mode Down
+SYStem.Option RESetBehavior Halt
+
+DIALOG.OK "Please switch OFF the target"
+
+SYStem.Mode StandBy
+
+DIALOG.OK "Please switch ON the target"
+
+CORE 0
+
+IF STATE.RUN()
+(
+  print %error "Application not stoped at reset vector"
+  break
+)
+
+; optional settings:
+SYStem.Option DUALPORT ON
+SETUP.Var %SpotLight
+MAP.BOnchip 0x0--0xffffffff // force onchip-breakpoints
+
+; --------------------------------------------------------------------------------
+; Load elf file
+; - uses internal RAM only
+; - uses global addressing (core-local addressing of SPRAM is not recommended)
+Data.LOAD.Elf "~~~~/triboard-tc275_multisieve_intmem.elf"
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+WinPOS 0% 0% 33% 33%
+TargetSystem.state
+WinPOS 33% 0% 33% 33%
+List.auto
+WinPOS 66% 0% 33% 33%
+Var.Watch
+WinPOS 0% 33% 33% 33%
+List.auto /CORE 0.
+WinPOS 0% 66% 33% 33%
+Register.view /CORE 0.
+IF (CORENUMBER()>1.)
+(
+  WinPOS 33% 33% 33% 33%
+  List.auto /CORE 1.
+  WinPOS 33% 66% 33% 33%
+  Register.view /CORE 1.
+  IF (CORENUMBER()>2.)
+  (
+    WinPOS 66% 33% 33% 33%
+    List.auto /CORE 2.
+    WinPOS 66% 66% 33% 33%
+    Register.view /CORE 2.
+  )
+)
+
+Var.AddWatch %Hex flags flagsc flags0 flags1 flags2
+
+ENDDO

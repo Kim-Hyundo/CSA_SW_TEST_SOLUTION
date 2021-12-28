@@ -1,0 +1,45 @@
+; --------------------------------------------------------------------------------
+; @Title: Sample Based Profiling (PERF) for the PC, Kernel and User Space
+; @Description: 
+;   The PC and the current task are sampled periodically without stopping the CPU.
+; @Author: KJM
+; @Keywords: PERF
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: perf_linux_pc.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+  LOCAL &corenumber
+  
+  IF !SYSTEM.UP()
+  (
+      DIALOG.OK "System must be UP to run this demo"
+      ENDDO
+  )
+  IF STATE.RUN()
+      Break
+      
+  ; Load Process Symbols, if this command is unknown then you need to load the 
+  ; Linux Awareness
+  TASK.sYmbol.option AutoLoad Process
+  
+  sYmbol.AutoLoad.CHECK
+  sYmbol.AutoLoad.TOUCH
+
+  PERF.RESet
+  PERF.METHOD StopAndGo
+  PERF.Mode PC
+  PERF.MMUSPACES ON
+
+  PERF.Arm
+  WinCLEAR
+  
+  WinPOS 50% 0%
+  PERF
+  
+  IF &corenumber>1
+      PERF.List ALL /SplitCore
+  ELSE
+      PERF.List ALL
+
+  Go
+  

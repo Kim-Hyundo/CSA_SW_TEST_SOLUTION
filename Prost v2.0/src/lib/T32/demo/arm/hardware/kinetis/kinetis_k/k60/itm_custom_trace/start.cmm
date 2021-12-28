@@ -1,0 +1,83 @@
+; --------------------------------------------------------------------------------
+; @Title: Instrumented function demo for K60 Kinetis board
+; @Description:
+;   The Script setup ITM to output instrumented function entries/exits
+;   1st: Init hardware:
+;        DO "~~/demo/arm/hardware/kinetis/kinetis_k/k60/setup.cmm"
+;        Select SWD and SWV in dialog
+;   2nd: Execute this example:
+;        DO sieve_inst/start.cmm
+; @Keywords: custom, ITM, trace
+; @Props: NoIndex, NoWelcome, NoFullText
+; @Author: ING
+; @Board: TWR-K60N512
+; @Chip: MK60DN512VMD10*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: start.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+
+// Execute ../setup.cmm first !
+// Use SWD & SWV
+
+  IF !CAnalyzer()
+    ENDDO
+
+  ITM.RESet
+  ETM.OFF
+  ITM.ON
+  ITM.PortMode NRZ/2
+
+  Data.LOAD.Elf "~~~~/sieve.elf" /RelPATH
+
+; turn on ITM software trace
+  Data.Set E:0xE0000E00 %Long 0xFFFFFFFF
+
+; initialize combiprobe
+  CAnalyzer.Mode FIFO
+  CAnalyzer.Init
+
+; Load custom DLL to interpret instrumented
+; function entries and exits
+
+
+  IF (OS.VERSION(0)>=0x20)||(OS.VERSION(0)==0x0)
+  (
+    PRINT "Demo unsupported for this OS"
+    ENDDO
+  )
+  ELSE IF OS.VERSION(0)>=0x10
+  (
+    CAnalyzer.CustomTraceLoad "myfunc" "~~~~/dll/func_inst"
+  )
+  ELSE
+  (
+    IF SOFTWARE.64BIT()
+      CAnalyzer.CustomTraceLoad "myfunc" "~~~~/dll/func_inst64.dll"
+    ELSE
+      CAnalyzer.CustomTraceLoad "myfunc" "~~~~/dll/func_inst32.dll"
+  )
+
+; open some windows
+  WinCLEAR
+  WinPOS 0% 0% 70% 32%
+  List.auto
+
+  WinPOS 0% 33% 70% 32%
+  CAnalyzer.CustomTrace.MYFUNC.Chart
+
+  WinPOS 0% 66% 70% 32%
+  CAnalyzer.CustomTrace.MYFUNC.STATistic
+
+  WinPOS 70% 0% 30% 32%
+  CAnalyzer.List
+
+  WinPOS 70% 33% 30% 32%
+  CAnalyzer.CustomTrace.MYFUNC.List
+
+  WinPOS 70% 66% 30% 32%
+  Var.AddWatch %Fixed %Decimal gCount; ITM_MSGCNT; ITM_MSGWAIT; ITM_WAIT;
+
+  ENDDO
+

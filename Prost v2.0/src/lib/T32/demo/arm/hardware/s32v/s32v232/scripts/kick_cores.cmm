@@ -1,0 +1,179 @@
+; --------------------------------------------------------------------------------
+; @Title: Kick cores on S32V232
+; @Description:
+;   This script assists to start sleeping/disabled cores on S32V232.
+;   Parameters:
+;     A53_1      - kick first A53 in AARCH64 mode
+;     A53_2      - kick A53 core 2
+;     NOBOOTLOOP - don't assemble a bootloop into TCM
+;   Usage:
+;     DO kick_cores "A53_1"
+;     DO kick_cores "A53_2"
+;
+; @Keywords: ARM, NXP
+; @Author: AME
+; @Board: -
+; @Chip: S32V232
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: kick_cores.cmm 16225 2020-06-25 14:27:47Z bschroefel $
+
+PRIVATE &params &a53_1 &a53_2 &m0_seq &bootloop
+ENTRY %LINE &params
+
+&params=STRing.UPpeR("&params")
+&a53_1=STRing.SCAN("&params","A53_1",0.)>=0.
+&a53_2=STRing.SCAN("&params","A53_2",0.)>=0.
+&m0_seq=STRing.SCAN("&params","M0_SEQ",0.)>=0.
+&bootloop=STRing.SCAN("&params","NOBOOTLOOP",0.)<0.
+
+PRIVATE &current_mode &mode_mc &cctl_mask
+
+&current_mode=Data.Long(EAHB:0x4004A004)>>28.
+IF (&current_mode==0x0)
+(
+  &mode_mc=0x4004a020
+  &cctl_mask=0x0
+)
+ELSE IF (&current_mode==0x3) // DRUN
+(
+  &mode_mc=0x4004a02c
+  &cctl_mask=0x8
+)
+ELSE IF (&current_mode==0x4) // RUN0
+(
+  &mode_mc=0x4004a030
+  &cctl_mask=0x1
+)
+ELSE IF (&current_mode==0x5) // RUN1
+(
+  &mode_mc=0x4004a034
+  &cctl_mask=0x20
+)
+ELSE IF (&current_mode==0x6) // RUN2
+(
+  &mode_mc=0x4004a038
+  &cctl_mask=0x40
+)
+ELSE IF (&current_mode==0x7) // RUN3
+(
+  &mode_mc=0x4004a03c
+  &cctl_mask=0x80
+)
+
+IF (&a53_1||&a53_2)
+(
+  GOSUB Init "&current_mode" "&mode_mc"
+)
+IF (&m0_seq)
+(
+  ; assert CM0+ reset
+  Data.Set EAHB:0x7c021000 %Long Data.Long(EAHB:0x7c021000)|0x2
+)
+
+IF &bootloop&&(&a53_1||&a53_2)
+(
+  ; ECC init of OCM first 16 bytes with use eDMA TCD1
+  WAIT (Data.Word(EAHB:0x4000303C)&0x0040)==0x0
+  Data.Set EAHB:0x40003020 %Long 0x6230
+  Data.Set EAHB:0x40003024 %Long 0x03030000
+  Data.Set EAHB:0x40003028 %Long 0x10
+  Data.Set EAHB:0x40003030 %Long 0x3e800000
+  Data.Set EAHB:0x40003034 %Long 0x00010008
+  Data.Set EAHB:0x4000303C %Long 0x00010001
+  WAIT (Data.Word(EAHB:0x4000303C)&0x0080)==0x0080
+
+  ; set entry point to endless loop
+  Data.Set EAHB:0x3e800000 %Long 0xEA000000       // AArch64: "ands x0,x0,x0"; AArch32: "B $+0x8"
+  Data.Set EAHB:0x3e800004 %Long 0x14000000       // Endless loop in OCM (64bit A64 Code)
+  Data.Set EAHB:0x3e800008 %Long 0xEAFFFFFE       // Endless loop in OCM (32bit ARM code)
+)
+IF &bootloop&&(&m0_seq)
+(
+  Data.Set EAHB:0x7c000000 %Long 0x20001000 0x9 0xe7fee7fe
+)
+
+IF (&a53_1)
+(
+  GOSUB KickA53_x "&current_mode" "&cctl_mask" "0."
+)
+
+IF (&a53_2)
+(
+  GOSUB KickA53_x "&current_mode" "&cctl_mask" "1."
+)
+
+IF (&m0_seq)
+(
+  ; release CM0+ reset
+  Data.Set EAHB:0x7c021000 %Long Data.Long(EAHB:0x7c021000)&~0x2
+)
+
+ENDDO
+
+Init: ;(current_mode, &mode_mc)
+(
+  PARAMETERS &current_mode &mode_mc
+  ; MC_ME
+  Data.Set EAHB:0x4004A008 %Word 0x00ff   ; enable all modes
+  Data.Set EAHB:0x4004A080 %Word 0x00ff   ; enable all peripherals to be active during all modes except of RESET
+  Data.Set EAHB:0x4004A004 %Long (&current_mode<<28.)|0x5AF0             ; Mode & Key
+  Data.Set EAHB:0x4004A004 %Long (&current_mode<<28.)|0xA50F             ; Mode & Key
+  WAIT ((DATA.LONG(EAHB:0x4004A000))&0x08000000)==0x00000000
+  WAIT 0.7s
+
+  Data.Set EAHB:&mode_mc %Long Data.Long(EAHB:&mode_mc)|0x30  ; start FXOSC
+  Data.Set EAHB:0x4004A004 %Long (&current_mode<<28.)|0x5AF0             ; Mode & Key
+  Data.Set EAHB:0x4004A004 %Long (&current_mode<<28.)|0xA50F             ; Mode & Key
+  WAIT ((DATA.LONG(EAHB:0x4004A000))&0x08000000)==0x00000000
+  WAIT ((DATA.LONG(EAHB:0x4004A000))&0x00000030)==0x00000030
+  RETURN
+)
+
+KickA53_x: ;(current_mode, cctl_mask, core)
+(
+  PARAMETERS &current_mode &cctl_mask &core
+  PRIVATE &cctl &caddr &cs_mask
+  IF (&core==0x0)
+  (
+    &cctl=0x4004a1c4
+    &caddr=0x4004a1e4
+    &cs_mask=0x2
+  )
+  ELSE IF (&core==0x1)
+  (
+    &cctl=0x4004a1ca
+    &caddr=0x4004a1e8
+    &cs_mask=0x4
+  )
+  ELSE IF (&core==0x2)
+  (
+    &cctl=0x4004a1c8
+    &caddr=0x4004a1ec
+    &cs_mask=0x8
+  )
+  ELSE IF (&core==0x3)
+  (
+    &cctl=0x4004a1ce
+    &caddr=0x4004a1f0
+    &cs_mask=0x10
+  )
+
+  PRIVATE &cnt
+  &cnt=0.
+  WHILE (((Data.Long(EAHB:0x4004a1c0)&(&cs_mask))==0.)&&(&cnt<10.))
+  (
+    ; set Core active
+    Data.Set EAHB:&cctl %Word Data.Word(EAHB:&cctl)|(&cctl_mask)
+
+    Data.Set EAHB:&caddr %Long 0x3e800001             ; Set A53 boot address and Reset on next mode change
+
+    Data.Set EAHB:0x4004A004 %Long (&current_mode<<28.)|0x5AF0             ; Mode & Key
+    Data.Set EAHB:0x4004A004 %Long (&current_mode<<28.)|0xA50F             ; Mode & Key
+    WAIT ((DATA.LONG(EAHB:0x4004A000))&0x08000000)==0x00000000
+    WAIT 0.7s
+    &cnt=&cnt+1.
+  )
+
+  RETURN
+)

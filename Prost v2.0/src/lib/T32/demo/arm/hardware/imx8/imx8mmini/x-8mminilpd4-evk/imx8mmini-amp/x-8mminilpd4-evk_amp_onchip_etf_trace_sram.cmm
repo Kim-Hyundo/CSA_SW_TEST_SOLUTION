@@ -1,0 +1,139 @@
+; --------------------------------------------------------------------------------
+; @Title: AMP-Demo script for IMX8MMQ with Onchip-Trace (AMP, RAM, ETF)
+; @Description:
+;   Setup a AMP debug session using a single script approach.
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Onchip-Trace (ETF).
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to J902 using Adapter LA-3770
+;    * set bootmode to SD-Card and remove SD-Card -> A53_0 will stop in BootROM
+;      set SW1101[1..8]=0y01000110 SW1102[1..8]=0y00110100
+; @Keywords: ARM, ETF, ETM
+; @Author: ALI
+; @Board: X-8MMINILPD4-EVK
+; @Chip: IMX8MMQ
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: x-8mminilpd4-evk_amp_onchip_etf_trace_sram.cmm 15576 2020-01-27 10:11:09Z alintner $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF VERSION.BUILD.BASE()<104665.
+(
+  PRINT %ERROR "Please use more recent software. Contact support@lauterbach.com."
+  ENDDO
+)
+IF SYStem.INSTANCE()!=1.
+(
+  PRINT %ERROR "This script must be called from MASTER GUI!"
+  ENDDO
+)
+
+; store current script path in &ppd
+PRIVATE &ppd
+&ppd=OS.PPD()
+
+; --------------------------------------------------------------------------------
+; [optional] close any existing REMOTE GUIs
+; IC OTHERS QUIT
+
+; --------------------------------------------------------------------------------
+; open all SLAVE GUIs
+IF !INTERCOM.PING(CM4)
+  TargetSystem.NewInstance CM4 /ARCHitecture ARM
+
+; --------------------------------------------------------------------------------
+; set titles for SLAVE GUIs
+TITLE "TRACE32 for ARM64 - IMX8MM - MASTER"
+InterCom CM4 TITLE "TRACE32 for ARM - IMX8MM-CM4 - SLAVE1"
+
+; --------------------------------------------------------------------------------
+; common SYStem settings
+RESet
+InterCom CM4 RESet
+SYStem.RESet
+InterCom CM4 SYStem.RESet
+SYStem.CPU IMX8MMQ
+SYStem.CONFIG CORE 1. 1.
+SYStem.CONFIG SLAVE OFF
+SYStem.Option ResBreak OFF
+SYStem.Option WaitIDCODE 1.5s
+InterCom CM4 SYStem.CPU IMX8MMQ-CM4
+InterCom CM4 SYStem.CONFIG CORE 2. 1.
+InterCom CM4 SYStem.CONFIG SLAVE ON
+
+; disable Trace for connection phase
+ETM.OFF
+Trace.DISable
+InterCom CM4 ETM.OFF
+InterCom CM4 ITM.OFF
+InterCom CM4 Trace.DISable
+
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; kick secondary cores
+; DO ~~/demo/arm64/hardware/imx8/imx8mmini/scripts/kick-cores "A53_234"
+DO ~~~~/../../scripts/kick-cores "A53_234"
+; DO ~~/demo/arm64/hardware/imx8/imx8mmini/scripts/kick-cores "M4_0"
+DO ~~~~/../../scripts/kick-cores "M4_0"
+
+; --------------------------------------------------------------------------------
+; attach to all cores on all sessions
+SYStem.Down
+CORE.ASSIGN 1. 2. 3. 4.
+Trace.DISable
+SYStem.Mode.Attach
+InterCom CM4 SYStem.Mode.Up
+
+; --------------------------------------------------------------------------------
+; load demo program on all sessions (use internal RAM only)
+CORE.select 0.
+Data.LOAD.Elf &(ppd)/master/sieve_ram_aarch64_v8.elf
+InterCom CM4 Data.LOAD.Elf &(ppd)/slave1/sieve_ram_thumb_ii_v7m.elf
+
+Register.Set PC _start /CORE 1.
+Register.Set PC _start /CORE 2.
+Register.Set PC _start /CORE 3.
+
+; --------------------------------------------------------------------------------
+; initialize ONCHIP trace (ETF)
+Trace.METHOD ONCHIP
+Trace.TraceCONNECT ETF
+InterCom CM4 Trace.METHOD ONCHIP
+InterCom CM4 Trace.TraceCONNECT ETF
+
+ETM.TraceID 1.
+ETM.Trace ON
+ETM.ON
+InterCom CM4 ETM.TraceID 5.
+InterCom CM4 ETM.Trace ON
+InterCom CM4 ETM.ON
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main\1
+WAIT !STATE.RUN()
+InterCom CM4 Go.direct main\1
+InterCom CM4 WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 0. 32.
+Trace.List
+InterCom CM4 WinCLEAR
+InterCom CM4 Mode.Hll
+InterCom CM4 WinPOS 0. 0. 116. 26.
+InterCom CM4 List.auto
+InterCom CM4 WinPOS 0. 32.
+InterCom CM4 Trace.List
+
+ENDDO

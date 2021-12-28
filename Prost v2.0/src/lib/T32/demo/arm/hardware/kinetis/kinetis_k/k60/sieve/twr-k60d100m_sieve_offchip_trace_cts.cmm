@@ -1,0 +1,188 @@
+; --------------------------------------------------------------------------------
+; @Title: CTS demo script for MK60N512VMD10 on TWR-K60D100M board (RAM)
+; @Description:
+;   This is a small demo how to setup off chip ETM trace on Cortex-M4 for
+;   MK60DN512VMD100 on the TWR-K60D100M board. The ETM trace are then used
+;   in order to perform reverse debugging using CTS.
+;   Prerequisites:
+;    * Connect Combiprobe/uTrace to J16
+;      or
+;      Connect AutoFocus Preprocessor to J16
+;      and connect DebugCable to Preprocessor
+; @Keywords: ARM, Cortex-M4, ETM, CTS
+; @Author: HDA
+; @Board: TWR-K60D100M
+; @Chip: MK60DN512VMD10
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: twr-k60d100m_sieve_offchip_trace_cts.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU MK60DN512VMD10
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock 10MHz
+Trace.DISable
+SYStem.Up
+
+GOSUB DisableWatchdog
+GOSUB SetupPLL
+
+; --------------------------------------------------------------------------------
+; load demo program into internal RAM and additionally to the VM
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf" /PlusVM
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace (ETM, ITM)
+IF COMBIPROBE()||UTRACE()||Analyzer()
+(
+  ; set PinMux and enable Clocks
+  GOSUB EnableTPIU
+
+  TPIU.PortSize 4
+  TPIU.PortMode Continuous
+  ITM.DataTrace CorrelatedData
+  ITM.ON
+  ETM.Trace ON
+  ETM.ON
+)
+IF COMBIPROBE()||UTRACE()
+(
+  Trace.METHOD CAnalyzer
+  Trace.AutoInit ON
+  CAnalyzer.AutoFocus
+)
+IF Analyzer()
+(
+  Trace.METHOD Analyzer
+  Trace.AutoInit ON
+  Trace.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; Go to main
+Go.direct main
+WAIT !STATE.RUN()
+
+; Run the principle while loop 10. times 
+Break.Set main\102 /Program /COUNT 10.
+CTS.UseVM ON
+CTS.CAPTURE
+Go.direct
+
+WAIT !STATE.RUN() 2.s
+IF STATE.RUN()
+(
+  Break.direct
+)
+Break.Delete
+
+CTS.ON
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+
+WinPOS 121.71 32.667 38. 13. 0. 0.
+CTS.state
+WinPOS 167.86 32.583 48. 9. 0. 0.
+Register.view
+WinPOS 121.57 0.083333 95. 26. 10. 1.
+Trace.List
+WinPOS 0.0 0.0 116. 51. 16. 1.
+List.auto
+
+ENDDO
+
+
+
+; -------------------------------------------------------------------------------
+; disable the Watchdog
+DisableWatchdog:
+(
+  ; The watchdog has a restrictive timing. It has to be configured and unlocked within a peripod
+  ; of 20+256 cycles. Therefor the unlock sequence needs to be done by a small target program.
+  Data.Assemble ST:0x20000000  strh r1,[r0]  ;SD:0x4005200E = 0xC520   (Key 1)
+  Data.Assemble ,              strh r2,[r0]  ;SD:0x4005200E = 0xD928   (Key 2)
+  Data.Assemble ,              strh r4,[r3]  ;SD:0x40052000 = 0x0000   (Config register)
+  Data.Assemble ,              bkpt #0       ;breakpoint, stop
+  Register.Set PC 0x20000000
+  Register.Set R0 0x4005200E
+  Register.Set R1 0xC520
+  Register.Set R2 0xD928
+  Register.Set R3 0x40052000
+  Register.Set R4 0x0000
+  Go.direct
+  WAIT !STATE.RUN()
+  
+  RETURN
+)
+
+
+; --------------------------------------------------------------------------------
+; Enable Trace Pins for MK60DN512
+EnableTPIU:
+(
+  ; Enable Trace Pins
+  Data.Set SD:0x40048038 %Long 0x0000FFFF                        ; PORTA_CLK
+  Data.Set SD:0x40048004 %Long 0x00001000                        ; TRACE_CLK
+  Data.Set SD:0x40049018 %Long 0x00000740                        ; TRACECLK
+  Data.Set SD:0x4004901C %Long 0x00000740                        ; TRACED3
+  Data.Set SD:0x40049020 %Long 0x00000740                        ; TRACED2
+  Data.Set SD:0x40049024 %Long 0x00000740                        ; TRACED1
+  Data.Set SD:0x40049028 %Long 0x00000740                        ; TRACED0
+  
+  RETURN
+)
+
+
+
+;--------------------------------------------------------------------------------
+; PLL Setup for MK60DN512   
+SetupPLL:
+(
+  ; Switches to PLL with 75Mhz, external OSC(50MHz) / 16 * 24 = 75Mhz
+  ; Core Clock    75 Mhz
+  ; Bus/FlexBus  37.5Mhz
+  ; Flash         25 Mhz
+  Data.Set SD:0x40064001 %Byte 0x00          ; MCG_C2: Default, select EXTAL mode (external clock provided)
+  Data.Set SD:0x40064004 %Byte 0x0F          ; MCG_C5: PRDIV = 16
+  Data.Set SD:0x40064005 %Byte 0x00          ; MCG_C6: VDIV = /24
+  Data.Set SD:0x40048044 %Long 0x01120000    ; SIM: CLKDIV1 Core = /1, Bus = /2, FlexBus = /2, FlashClock = /3
+
+  Data.Set SD:0x40064000 %Byte 0x84          ; MCG_C1: Switch to external clock        
+  Data.Set SD:0x40064004 %Byte 0x4F          ; Engage PLL.
+  ; Wait for Lock of PLL
+  LOCAL &h
+  &h=0
+  WHILE ((&h)&0x40)==0
+  (
+    &h=Data.Byte(sd:0x40064006)
+  )
+  Data.Set SD:0x40064005 %Byte 0x40          ; MCG_C6: Feed PLL to clock selector
+  ; Wait until PLL is feed to clock selector
+  &h=0
+  WHILE ((&h)&0x20)==0
+  (
+    &h=Data.Byte(sd:0x40064006)
+  )
+  Data.Set SD:0x40064000 %Byte 0x04          ; MCG_C1: Switch to PLL clock
+  ; Wait until PLL is feed to clock selector
+  &h=0
+  WHILE ((&h)&0x0C)!=0x0C
+  (
+    &h=Data.Byte(sd:0x40064006)
+  )
+  RETURN
+)

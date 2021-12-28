@@ -1,0 +1,94 @@
+; --------------------------------------------------------------------------------
+; @Title: Additional Nucleus+ Menus
+; @Description: Additional menu for Nucleaus+.
+; @Author: DIE
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: nuc.men 6997 2014-04-24 14:15:38Z mobermeir $
+
+
+add
+menu
+(
+  popup "&Nucleus+"
+  (
+    menuitem "&DBUG+ Terminal" "TERM T32OUT T32IN"
+    separator
+    default
+    menuitem "Display &Tasks"      "TASK.TS"
+    menuitem "Display &Mailboxes"  "TASK.MS"
+    menuitem "Display &Queues"     "TASK.QS"
+    menuitem "Display &Pipes"      "TASK.PS"
+    menuitem "Display &Semaphores" "TASK.SS"
+    menuitem "Display &Events"     "TASK.ES"
+    menuitem "Display T&imers"     "TASK.TI"
+    menuitem "Display &Partitions" "TASK.PM"
+    menuitem "Display D&yn. Mem."  "TASK.DM"
+    menuitem "Display HISRs"       "TASK.HISR"
+    separator
+    popup "&Stack Coverage"
+    (
+      menuitem "&List Stacks"    "TASK.STK"
+      menuitem "Add Task"        "TASK.CHOOSE.STKADD"
+      menuitem "Remove Task"     "TASK.CHOOSE.STKRM"
+      menuitem "&Reset Coverage" "TASK.STK.RES"
+    )
+  )
+  popup "&Trace"
+  (
+    popup "&List"
+    (
+      separator
+      menuitem "&Task Switches" "Trace.List l.task"
+      menuitem "Default and Tasks" "Trace.List l.task def"
+    )
+  )
+  popup "&Perf"
+  (
+    separator
+    popup "&Task Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        a.rp
+        (
+          s.e if alphab&&write
+        )
+        b.d /a
+        b.s task.config(magic)++0x3 /a
+      )
+      menuitem "Show &Numerical" "Trace.STATistic.TASK"
+      menuitem "Show as &Timing" "Trace.CHART.TASK"
+    )
+    popup "&Task Function Runtime"
+    (
+      menuitem "&Prepare"            "DO men_ptfp.cmm"
+      menuitem "Show &Numerical"     "Trace.STATistic.TASKFUNC"
+      menuitem "Show as &Tree"       "Trace.STATistic.TASKTREE"
+      menuitem "Show &Detailed Tree" "Trace.STATistic.TASKTREE ALL"
+      menuitem "Show as &Timing"     "Trace.CHART.TASKFUNC"
+      menuitem "Show N&esting"       "Trace.List l.task FUNC TI.FUNC"
+    )
+    popup "Task &Status"
+    (
+      menuitem "&Prepare"
+      (
+        a.rp
+        (
+          s.e if alphab&&write
+        )
+        b.d /a
+        b.s task.config(magic)++0x3 /a
+        task.taskstate
+      )
+      menuitem "Show &Numerical" "Trace.STATistic.TASKSTATE"
+      menuitem "Show as &Timing" "Trace.CHART.TASKSTATE"
+    )
+  )
+  popup "&Help"
+  (
+     menuitem "Nucleus+ Extension" "HELP __RTOS_NUCLEUS_"
+  )
+)
+
+

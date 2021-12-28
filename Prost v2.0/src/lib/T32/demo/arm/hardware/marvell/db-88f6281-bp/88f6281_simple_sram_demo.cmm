@@ -1,0 +1,51 @@
+; --------------------------------------------------------------------------------
+; @Title: Start-up script for DB-88F6281-BP board from Marvell.
+; @Description:
+;   The processor is a 88F6281, the core a 88FR131 (similar to ARM926EJ-S).
+; @Keywords: 88F6281, ARM926EJ-S, MArvell
+; @Author: STK
+; @Board: DB-88F6281-BP
+; @Chip: 88FR131
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: 88f6281_simple_sram_demo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+;   June 2008, STK
+
+; connect ATX power supply to CON25
+; connect debugger to CON34
+; switch power on (SW1)
+
+
+  SYStem.RESet
+  SYStem.CPU 88F6281
+  SYStem.JtagClock 5Mhz
+  SYStem.Up
+
+  ; Increase JTAG clock (limited to 5MHz during nSRST is asserted)
+  SYStem.JtagClock CTCK 50Mhz
+
+  ; Let the target boot loader initialize the SDRAM
+  Go
+  WAIT 2s
+  Break
+
+  ; Load demo application
+  Register.Reset
+  Data.LOAD.ELF ~~~~/demo.axf
+  Register.Set PC main
+  Register.Set R13 0x00120000
+
+    ; open some windows
+  WinCLEAR
+  WinPOS 0% 0% 100% 50%
+  List.auto
+  WinPOS 0% 50% 50% 50%
+  Frame /Locals /Caller
+  WinPOS 50% 50% 50% 50%
+  Var.Watch
+  Var.AddWatch ast; flags;
+
+  ENDDO
+
+

@@ -1,0 +1,81 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo script for R7FA6M1* chips on EK-RA6M1 boards (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   Use this script for getting started.
+;   Prerequisites:
+;    * Connect Debug Cable to j10 using Adapter LA-3770
+;      or
+;      Connect Combiprobe/uTrace to j10
+; @Keywords: ARM, Cortex-M4
+; @Author: CMO
+; @Board: EK-RA6M1
+; @Chip: R7FA6M1*
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: ek-ra6m1_sieve_sram.cmm 15690 2020-02-17 10:25:11Z cmorgenstern $
+
+LOCAL &chip
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+
+; Script compatible chips:
+; R7FA6M1AD2CLJ
+; R7FA6M1AD3CFM
+; R7FA6M1AD3CFP
+; R7FA6M1AD3CNB
+&chip="R7FA6M1AD3CFP"
+SYStem.CPU &chip
+
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock 10MHz
+Trace.DISable
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO
+
+DisableWatchdog:
+(
+  ; disable the Watchdog by setting mask bits in DBGSTOPCR
+  Data.Set ASD:0x4001B010 %Long (Data.Long(ASD:0x4001B010)|0x3)
+  RETURN
+)

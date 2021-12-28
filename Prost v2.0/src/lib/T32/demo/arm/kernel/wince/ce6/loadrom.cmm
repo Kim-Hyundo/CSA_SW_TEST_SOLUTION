@@ -1,0 +1,32 @@
+; --------------------------------------------------------------------------------
+; @Title: Helper script
+; @Description: 
+;   
+;   This script load and relocate the symbols of a built in ROM
+;   Module (see TASK.ROM.MODule).
+;   Just for use with Eboot or early boot debugging!
+;   
+;   Start the script with the module name and optionally
+;   the load path.
+;   
+; @Props: NoWelcome, NoIndex
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: loadrom.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+LOCAL &name &text &data
+ENTRY &name &path
+
+ IF "&path"==""
+   &path="&name"
+
+ &text=task.rom.addr("&name",0)
+ &data=task.rom.addr("&name",1)
+ 
+ &name=STRing.MID("&name",0,string.scan("&name",".dll",1))
+
+ Data.LOAD.eXe &path /NoCODE /NoClear \
+  /strippart "c:\ymzki\" /StripPART "c:\yzkiqfe" /PATH "c:\wince600\" \
+  /reloc .text at &text /RELOC .data at &data /name &name

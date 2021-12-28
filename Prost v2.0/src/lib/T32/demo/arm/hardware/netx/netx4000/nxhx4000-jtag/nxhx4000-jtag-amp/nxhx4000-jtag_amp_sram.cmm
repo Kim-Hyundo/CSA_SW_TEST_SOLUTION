@@ -1,0 +1,114 @@
+; --------------------------------------------------------------------------------
+; @Title: AMP-Demo script for NXHX4000-JTAG+ (AMP, RAM)
+; @Description:
+;   Setup a AMP debug session using a single script approach.
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   Use this script to test the AMP-Debugging.
+;   Prerequisites:
+;    * Connect Debug Cable to X300
+;      or connect Combiprobe/uTrace to X300 using Adapter LA-3771.
+;    * JTAG debugging must be enabled (depends on SQI-flash content).
+;      If JTAG debugging is disabled, the SQI-flash can be programmed if the board
+;      is running in console mode (S300[5] "ON") via the USB connector X301.
+; @Keywords: ARM, Cortex-R7, Cortex-A9
+; @Author: ALI
+; @Board: NXHX4000-JTAG+
+; @Chip: NETX4000-COM, NETX4000-APP
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: nxhx4000-jtag_amp_sram.cmm 13925 2019-02-11 08:40:48Z alintner $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF VERSION.BUILD()<105856.
+(
+  PRINT %ERROR "Please use more recent software. Contact support@lauterbach.com."
+  ENDDO
+)
+IF SYStem.INSTANCE()!=1.
+(
+  PRINT %ERROR "This script must be called from MASTER GUI!"
+  ENDDO
+)
+
+; store current script path in &ppd
+PRIVATE &ppd
+&ppd=OS.PPD()
+
+; --------------------------------------------------------------------------------
+; [optional] close any existing REMOTE GUIs
+; IC OTHERS QUIT
+
+; --------------------------------------------------------------------------------
+; open all SLAVE GUIs
+IF !INTERCOM.PING(NXHX4000-JTAG-APP)
+  TargetSystem.NewInstance NXHX4000-JTAG-APP /ARCHitecture ARM
+
+; --------------------------------------------------------------------------------
+; set titles for SLAVE GUIs
+TITLE "TRACE32 for ARM - NETX4000-COM - MASTER"
+InterCom NXHX4000-JTAG-APP TITLE "TRACE32 for ARM - NETX4000-APP - SLAVE1"
+
+; --------------------------------------------------------------------------------
+; common SYStem settings
+RESet
+InterCom NXHX4000-JTAG-APP RESet
+SYStem.RESet
+InterCom NXHX4000-JTAG-APP SYStem.RESet
+SYStem.CPU NETX4000-COM
+SYStem.CONFIG CORE 1. 1.
+SYStem.CONFIG SLAVE OFF
+SYStem.Option.ResBreak OFF
+SYStem.Option.WaitIDCODE 1.5s
+InterCom NXHX4000-JTAG-APP SYStem.CPU NETX4000-APP
+InterCom NXHX4000-JTAG-APP SYStem.CONFIG CORE 2. 1.
+InterCom NXHX4000-JTAG-APP SYStem.CONFIG SLAVE ON
+
+; disable Trace for connection phase
+ETM.OFF
+ITM.OFF
+Trace.DISable
+
+InterCom NXHX4000-JTAG-APP ETM.OFF
+InterCom NXHX4000-JTAG-APP ITM.OFF
+InterCom NXHX4000-JTAG-APP Trace.DISable
+
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; attach to all cores on all sessions
+
+InterCom NXHX4000-JTAG-APP CORE.ASSIGN 1. 2.
+InterCom NXHX4000-JTAG-APP SYStem.Mode.Up
+
+; --------------------------------------------------------------------------------
+; load demo program on all sessions (use internal RAM only)
+Data.LOAD.Elf &(ppd)/master/sieve_ram_arm_v7r_le.elf
+InterCom NXHX4000-JTAG-APP CORE.select 0.
+InterCom NXHX4000-JTAG-APP Data.LOAD.Elf &(ppd)/slave1/sieve_ram_arm_v7.elf
+
+InterCom NXHX4000-JTAG-APP Register.Set PC _start_secondary /CORE 1.
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main\1
+WAIT !STATE.RUN()
+InterCom NXHX4000-JTAG-APP Go.direct main\1
+InterCom NXHX4000-JTAG-APP WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+InterCom NXHX4000-JTAG-APP WinCLEAR
+InterCom NXHX4000-JTAG-APP Mode.Hll
+InterCom NXHX4000-JTAG-APP WinPOS 0. 0. 116. 26.
+InterCom NXHX4000-JTAG-APP List.auto
+
+ENDDO

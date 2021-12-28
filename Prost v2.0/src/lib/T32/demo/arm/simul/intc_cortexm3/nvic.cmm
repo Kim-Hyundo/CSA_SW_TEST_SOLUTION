@@ -1,0 +1,1806 @@
+; --------------------------------------------------------------------------------
+; @Title: CortexM3 NVIC Nested Vectored Interrupt Controller Model Initialization Script
+; @Description: 
+;   This is example script file for TRACE32 32-bit/64-bit version.
+;   ports p.0 to p.111 are reserved for internal interrupts and errors
+;   (nmi, reset ... divbyzero, bkpt ... )
+;   This script uses all 240 external interrupts from p.112 to p.351
+; @Keywords: API, Model, Simulator
+; @Author: SYL
+; @Board: TRACE32 Simulator
+; @Chip: Cortex-M3
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: nvic.cmm 15209 2019-11-04 10:07:55Z bschroefel $
+
+
+;wake-up input
+NAME.Set port.0   rxev
+;internal interrupts
+NAME.Set port.1   reset
+NAME.Set port.2   nmi
+NAME.Set port.3   hardf
+NAME.Set port.4   memman
+NAME.Set port.5   busf
+NAME.Set port.6   usagef
+NAME.Set port.11  svcall
+NAME.Set port.12  debugmon
+NAME.Set port.14  pendsv
+NAME.Set port.15  systick
+;memory manage, bus and usage faults
+NAME.Set port.16  iaccviol
+NAME.Set port.17  daccviol
+NAME.Set port.19  munstkerr
+NAME.Set port.20  mstkerr
+NAME.Set port.23  mmarvalid
+NAME.Set port.24  ibuserr
+NAME.Set port.25  preciserr
+NAME.Set port.26  impreciser
+NAME.Set port.27  unstkerr
+NAME.Set port.28  stkerr
+NAME.Set port.31  bfarvalid
+NAME.Set port.32  undefinstr
+NAME.Set port.33  invstate
+NAME.Set port.34  invpc
+NAME.Set port.35  nocp
+NAME.Set port.40  unaligned
+NAME.Set port.41  divbyzero
+;hard faults
+NAME.Set port.49  vecttbl
+NAME.Set port.78  forced
+NAME.Set port.79  debugevt
+;debug faults
+NAME.Set port.80  halted
+NAME.Set port.81  bkpt
+NAME.Set port.82  dwtrap
+NAME.Set port.83  vcatch
+NAME.Set port.84  external
+;external interrupts
+NAME.Set port.112 irq0
+NAME.Set port.113 irq1
+NAME.Set port.114 irq2
+NAME.Set port.115 irq3
+NAME.Set port.116 irq4
+NAME.Set port.117 irq5
+NAME.Set port.118 irq6
+NAME.Set port.119 irq7
+NAME.Set port.120 irq8
+NAME.Set port.121 irq9
+NAME.Set port.122 irq10
+NAME.Set port.123 irq11
+NAME.Set port.124 irq12
+NAME.Set port.125 irq13
+NAME.Set port.126 irq14
+NAME.Set port.127 irq15
+NAME.Set port.128 irq16
+NAME.Set port.129 irq17
+NAME.Set port.130 irq18
+NAME.Set port.131 irq19
+NAME.Set port.132 irq20
+NAME.Set port.133 irq21
+NAME.Set port.134 irq22
+NAME.Set port.135 irq23
+NAME.Set port.136 irq24
+NAME.Set port.137 irq25
+NAME.Set port.138 irq26
+NAME.Set port.139 irq27
+NAME.Set port.140 irq28
+NAME.Set port.141 irq29
+NAME.Set port.142 irq30
+NAME.Set port.143 irq31
+NAME.Set port.144 irq32
+NAME.Set port.145 irq33
+NAME.Set port.146 irq34
+NAME.Set port.147 irq35
+NAME.Set port.148 irq36
+NAME.Set port.149 irq37
+NAME.Set port.150 irq38
+NAME.Set port.151 irq39
+NAME.Set port.152 irq40
+NAME.Set port.153 irq41
+NAME.Set port.154 irq42
+NAME.Set port.155 irq43
+NAME.Set port.156 irq44
+NAME.Set port.157 irq45
+NAME.Set port.158 irq46
+NAME.Set port.159 irq47
+NAME.Set port.160 irq48
+NAME.Set port.161 irq49
+NAME.Set port.162 irq50
+NAME.Set port.163 irq51
+NAME.Set port.164 irq52
+NAME.Set port.165 irq53
+NAME.Set port.166 irq54
+NAME.Set port.167 irq55
+NAME.Set port.168 irq56
+NAME.Set port.169 irq57
+NAME.Set port.170 irq58
+NAME.Set port.171 irq59
+NAME.Set port.172 irq60
+NAME.Set port.173 irq61
+NAME.Set port.174 irq62
+NAME.Set port.175 irq63
+NAME.Set port.176 irq64
+NAME.Set port.177 irq65
+NAME.Set port.178 irq66
+NAME.Set port.179 irq67
+NAME.Set port.180 irq68
+NAME.Set port.181 irq69
+NAME.Set port.182 irq70
+NAME.Set port.183 irq71
+NAME.Set port.184 irq72
+NAME.Set port.185 irq73
+NAME.Set port.186 irq74
+NAME.Set port.187 irq75
+NAME.Set port.188 irq76
+NAME.Set port.189 irq77
+NAME.Set port.190 irq78
+NAME.Set port.191 irq79
+NAME.Set port.192 irq80
+NAME.Set port.193 irq81
+NAME.Set port.194 irq82
+NAME.Set port.195 irq83
+NAME.Set port.196 irq84
+NAME.Set port.197 irq85
+NAME.Set port.198 irq86
+NAME.Set port.199 irq87
+NAME.Set port.200 irq88
+NAME.Set port.201 irq89
+NAME.Set port.202 irq90
+NAME.Set port.203 irq91
+NAME.Set port.204 irq92
+NAME.Set port.205 irq93
+NAME.Set port.206 irq94
+NAME.Set port.207 irq95
+NAME.Set port.208 irq96
+NAME.Set port.209 irq97
+NAME.Set port.210 irq98
+NAME.Set port.211 irq99
+NAME.Set port.212 irq100
+NAME.Set port.213 irq101
+NAME.Set port.214 irq102
+NAME.Set port.215 irq103
+NAME.Set port.216 irq104
+NAME.Set port.217 irq105
+NAME.Set port.218 irq106
+NAME.Set port.219 irq107
+NAME.Set port.220 irq108
+NAME.Set port.221 irq109
+NAME.Set port.222 irq110
+NAME.Set port.223 irq111
+NAME.Set port.224 irq112
+NAME.Set port.225 irq113
+NAME.Set port.226 irq114
+NAME.Set port.227 irq115
+NAME.Set port.228 irq116
+NAME.Set port.229 irq117
+NAME.Set port.230 irq118
+NAME.Set port.231 irq119
+NAME.Set port.232 irq120
+NAME.Set port.233 irq121
+NAME.Set port.234 irq122
+NAME.Set port.235 irq123
+NAME.Set port.236 irq124
+NAME.Set port.237 irq125
+NAME.Set port.238 irq126
+NAME.Set port.239 irq127
+NAME.Set port.240 irq128
+NAME.Set port.241 irq129
+NAME.Set port.242 irq130
+NAME.Set port.243 irq131
+NAME.Set port.244 irq132
+NAME.Set port.245 irq133
+NAME.Set port.246 irq134
+NAME.Set port.247 irq135
+NAME.Set port.248 irq136
+NAME.Set port.249 irq137
+NAME.Set port.250 irq138
+NAME.Set port.251 irq139
+NAME.Set port.252 irq140
+NAME.Set port.253 irq141
+NAME.Set port.254 irq142
+NAME.Set port.255 irq143
+NAME.Set port.256 irq144
+NAME.Set port.257 irq145
+NAME.Set port.258 irq146
+NAME.Set port.259 irq147
+NAME.Set port.260 irq148
+NAME.Set port.261 irq149
+NAME.Set port.262 irq150
+NAME.Set port.263 irq151
+NAME.Set port.264 irq152
+NAME.Set port.265 irq153
+NAME.Set port.266 irq154
+NAME.Set port.267 irq155
+NAME.Set port.268 irq156
+NAME.Set port.269 irq157
+NAME.Set port.270 irq158
+NAME.Set port.271 irq159
+NAME.Set port.272 irq160
+NAME.Set port.273 irq161
+NAME.Set port.274 irq162
+NAME.Set port.275 irq163
+NAME.Set port.276 irq164
+NAME.Set port.277 irq165
+NAME.Set port.278 irq166
+NAME.Set port.279 irq167
+NAME.Set port.280 irq168
+NAME.Set port.281 irq169
+NAME.Set port.282 irq170
+NAME.Set port.283 irq171
+NAME.Set port.284 irq172
+NAME.Set port.285 irq173
+NAME.Set port.286 irq174
+NAME.Set port.287 irq175
+NAME.Set port.288 irq176
+NAME.Set port.289 irq177
+NAME.Set port.290 irq178
+NAME.Set port.291 irq179
+NAME.Set port.292 irq180
+NAME.Set port.293 irq181
+NAME.Set port.294 irq182
+NAME.Set port.295 irq183
+NAME.Set port.296 irq184
+NAME.Set port.297 irq185
+NAME.Set port.298 irq186
+NAME.Set port.299 irq187
+NAME.Set port.300 irq188
+NAME.Set port.301 irq189
+NAME.Set port.302 irq190
+NAME.Set port.303 irq191
+NAME.Set port.304 irq192
+NAME.Set port.305 irq193
+NAME.Set port.306 irq194
+NAME.Set port.307 irq195
+NAME.Set port.308 irq196
+NAME.Set port.309 irq197
+NAME.Set port.310 irq198
+NAME.Set port.311 irq199
+NAME.Set port.312 irq200
+NAME.Set port.313 irq201
+NAME.Set port.314 irq202
+NAME.Set port.315 irq203
+NAME.Set port.316 irq204
+NAME.Set port.317 irq205
+NAME.Set port.318 irq206
+NAME.Set port.319 irq207
+NAME.Set port.320 irq208
+NAME.Set port.321 irq209
+NAME.Set port.322 irq210
+NAME.Set port.323 irq211
+NAME.Set port.324 irq212
+NAME.Set port.325 irq213
+NAME.Set port.326 irq214
+NAME.Set port.327 irq215
+NAME.Set port.328 irq216
+NAME.Set port.329 irq217
+NAME.Set port.330 irq218
+NAME.Set port.331 irq219
+NAME.Set port.332 irq220
+NAME.Set port.333 irq221
+NAME.Set port.334 irq222
+NAME.Set port.335 irq223
+NAME.Set port.336 irq224
+NAME.Set port.337 irq225
+NAME.Set port.338 irq226
+NAME.Set port.339 irq227
+NAME.Set port.340 irq228
+NAME.Set port.341 irq229
+NAME.Set port.342 irq230
+NAME.Set port.343 irq231
+NAME.Set port.344 irq232
+NAME.Set port.345 irq233
+NAME.Set port.346 irq234
+NAME.Set port.347 irq235
+NAME.Set port.348 irq236
+NAME.Set port.349 irq237
+NAME.Set port.350 irq238
+NAME.Set port.351 irq239
+
+;load nvic model into TRACE32 32-bit/64-bit version.
+;we use all 240-external interrupts in ports p.112 -- p.351
+IF (OS.VERSION(0)>=0x20)||(OS.VERSION(0)==0x00)
+(
+  PRINT "Unsupported OS"
+  ENDDO FALSE()
+)
+ELSE IF OS.VERSION(0)>=0x10
+(
+  IF SOFTWARE.64BIT()
+  (
+    SIM.UNLOAD ~~/demo/arm/simul/intc_cortexm3/nvic_pclinux64.so
+    SIM.LOAD   ~~/demo/arm/simul/intc_cortexm3/nvic_pclinux64.so
+  )
+  ELSE
+  (
+    SIM.UNLOAD ~~/demo/arm/simul/intc_cortexm3/nvic_pclinux.so
+    SIM.LOAD   ~~/demo/arm/simul/intc_cortexm3/nvic_pclinux.so
+  )
+)
+ELSE
+(
+  IF SOFTWARE.64BIT()
+  (
+    SIM.UNLOAD ~~/demo/arm/simul/intc_cortexm3/nvic_x64.dll
+    SIM.LOAD   ~~/demo/arm/simul/intc_cortexm3/nvic_x64.dll
+  )
+  ELSE
+  (
+    SIM.UNLOAD ~~/demo/arm/simul/intc_cortexm3/nvic.dll
+    SIM.LOAD   ~~/demo/arm/simul/intc_cortexm3/nvic.dll
+  )
+)
+
+;enable usage, bus and memory faults
+Data.Set SD:0xE000ED24 %LONG 0x00070000
+
+;enable DIV_0_TRP, UNALIGN_TRP and USERSETMPEND
+Data.Set SD:0xE000ED14 %LONG 0x0000001A
+
+;enable all 240-external interrupts
+Data.Set SD:0xE000E100 %LONG 0xFFFFFFFF
+Data.Set SD:0xE000E104 %LONG 0xFFFFFFFF
+Data.Set SD:0xE000E108 %LONG 0xFFFFFFFF
+Data.Set SD:0xE000E10C %LONG 0xFFFFFFFF
+Data.Set SD:0xE000E110 %LONG 0xFFFFFFFF
+Data.Set SD:0xE000E114 %LONG 0xFFFFFFFF
+Data.Set SD:0xE000E118 %LONG 0xFFFFFFFF
+Data.Set SD:0xE000E11C %LONG 0xFFFFFFFF
+
+LOCAL &port
+
+&port="p.reset"
+
+dialog
+(
+  header "CortexM3 Nested Vectored Interrupt Controller"
+
+  POS 0. 0. 32. 8.
+  box "Interrupt"
+
+  POS 1. 1. 30. 1.
+  text "Interrupt Source:"
+
+  POS 1. 2. 30. 1.
+  SIGNAL_COMBO: pulldown "RXEV,Reset,NMI,Hard Fault,Memory Management,Bus Fault,Usage Fault,SVCall,Debug Monitor,PendSv,SysTick,
+MEMMANFAL[IACCVIOL],MEMMANFAL[DACCVIOL],MEMMANFAL[MUNSTKERR],MEMMANFAL[MSTKERR],MEMMANFAL[MMARVALID],
+BUSFAULT[IBUSERR],BUSFAULT[PRECISERR],BUSFAULT[IMPRECISERR],BUSFAULT[UNSTKERR],BUSFAULT[STKERR],BUSFAULT[BFARVALID],
+USAFAULT[UNDEFINSTR],USAFAULT[INVSTATE],USAFAULT[INVPC],USAFAULT[NOCP],USAFAULT[UNALIGNED],USAFAULT[DIVBYZERO],
+HARDFAULT[VECTTBL],HARDFAULT[FORCED],HARDFAULT[DEBUGEVT],
+DEBUGFAULT[HALTED],DEBUGFAULT[BKPT],DEBUGFAULT[DWTRAP],DEBUGFAULT[VCATCH],DEBUGFAULT[EXTERNAL],
+IRQ-0,IRQ-1,IRQ-2,IRQ-3,IRQ-4,IRQ-5,IRQ-6,IRQ-7,IRQ-8,IRQ-9,IRQ-10,IRQ-11,IRQ-12,IRQ-13,IRQ-14,IRQ-15,IRQ-16,IRQ-17,IRQ-18,IRQ-19,
+IRQ-20,IRQ-21,IRQ-22,IRQ-23,IRQ-24,IRQ-25,IRQ-26,IRQ-27,IRQ-28,IRQ-29,IRQ-30,IRQ-31,IRQ-32,IRQ-33,IRQ-34,IRQ-35,IRQ-36,IRQ-37,IRQ-38,IRQ-39,
+IRQ-40,IRQ-41,IRQ-42,IRQ-43,IRQ-44,IRQ-45,IRQ-46,IRQ-47,IRQ-48,IRQ-49,IRQ-50,IRQ-51,IRQ-52,IRQ-53,IRQ-54,IRQ-55,IRQ-56,IRQ-57,IRQ-58,IRQ-59,
+IRQ-60,IRQ-61,IRQ-62,IRQ-63,IRQ-64,IRQ-65,IRQ-66,IRQ-67,IRQ-68,IRQ-69,IRQ-70,IRQ-71,IRQ-72,IRQ-73,IRQ-74,IRQ-75,IRQ-76,IRQ-77,IRQ-78,IRQ-79,
+IRQ-80,IRQ-81,IRQ-82,IRQ-83,IRQ-84,IRQ-85,IRQ-86,IRQ-87,IRQ-88,IRQ-89,IRQ-90,IRQ-91,IRQ-92,IRQ-93,IRQ-94,IRQ-95,IRQ-96,IRQ-97,IRQ-98,IRQ-99,
+IRQ-100,IRQ-101,IRQ-102,IRQ-103,IRQ-104,IRQ-105,IRQ-106,IRQ-107,IRQ-108,IRQ-109,IRQ-110,IRQ-111,IRQ-112,IRQ-113,IRQ-114,IRQ-115,IRQ-116,IRQ-117,IRQ-118,IRQ-119,
+IRQ-120,IRQ-121,IRQ-122,IRQ-123,IRQ-124,IRQ-125,IRQ-126,IRQ-127,IRQ-128,IRQ-129,IRQ-130,IRQ-131,IRQ-132,IRQ-133,IRQ-134,IRQ-135,IRQ-136,IRQ-137,IRQ-138,IRQ-139,
+IRQ-140,IRQ-141,IRQ-142,IRQ-143,IRQ-144,IRQ-145,IRQ-146,IRQ-147,IRQ-148,IRQ-149,IRQ-150,IRQ-151,IRQ-152,IRQ-153,IRQ-154,IRQ-155,IRQ-156,IRQ-157,IRQ-158,IRQ-159,
+IRQ-160,IRQ-161,IRQ-162,IRQ-163,IRQ-164,IRQ-165,IRQ-166,IRQ-167,IRQ-168,IRQ-169,IRQ-170,IRQ-171,IRQ-172,IRQ-173,IRQ-174,IRQ-175,IRQ-176,IRQ-177,IRQ-178,IRQ-179,
+IRQ-180,IRQ-181,IRQ-182,IRQ-183,IRQ-184,IRQ-185,IRQ-186,IRQ-187,IRQ-188,IRQ-189,IRQ-190,IRQ-191,IRQ-192,IRQ-193,IRQ-194,IRQ-195,IRQ-196,IRQ-197,IRQ-198,IRQ-199,
+IRQ-200,IRQ-201,IRQ-202,IRQ-203,IRQ-204,IRQ-205,IRQ-206,IRQ-207,IRQ-208,IRQ-209,IRQ-210,IRQ-211,IRQ-212,IRQ-213,IRQ-214,IRQ-215,IRQ-216,IRQ-217,IRQ-218,IRQ-219,
+IRQ-220,IRQ-221,IRQ-222,IRQ-223,IRQ-224,IRQ-225,IRQ-226,IRQ-227,IRQ-228,IRQ-229,IRQ-230,IRQ-231,IRQ-232,IRQ-233,IRQ-234,IRQ-235,IRQ-236,IRQ-237,IRQ-238,IRQ-239"  "GOSUB ON_INT_CHANGE"
+
+  POS 1. 4. 30. 1.
+  HINT: EDIT "" ""
+
+  POS 1. 6. 8. 1.
+  ASSERT: button "Assert"
+  (
+    PORT.SET &port high
+    DIALOG.ENABLE DEASSERT
+    DIALOG.DISABLE ASSERT
+  )
+
+  POS 11. 6. 8. 1.
+  DEASSERT: button "Deassert"
+  (
+    PORT.SET &port low
+    DIALOG.DISABLE DEASSERT
+    DIALOG.ENABLE ASSERT
+  )
+
+  CLOSE "goto ON_CLOSE_DIALOG"
+)
+  DIALOG.DISABLE HINT
+  GOSUB ON_INT_CHANGE
+  STOP
+
+ON_CLOSE_DIALOG:
+  DIALOG.END
+  ENDDO
+
+ON_INT_CHANGE:
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="RXEV")
+  (
+    DIALOG.SET HINT "RXEV wakeup event"
+    &port="p.rxev"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="Reset")
+  (
+    DIALOG.SET HINT "Reset"
+    &port="p.reset"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="NMI")
+  (
+    DIALOG.SET HINT "Non-maskable Interrupt (NMI)"
+    &port="p.nmi"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="Hard Fault")
+  (
+    DIALOG.SET HINT "Hard Fault"
+    &port="p.hardf"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="Memory Management")
+  (
+    DIALOG.SET HINT "Memory Management"
+    &port="p.memman"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="Bus Fault")
+  (
+    DIALOG.SET HINT "Bus Fault"
+    &port="p.busf"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="Usage Fault")
+  (
+    DIALOG.SET HINT "Usage Fault"
+    &port="p.usagef"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="SVCall")
+  (
+    DIALOG.SET HINT "SVCall"
+    &port="p.svcall"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="Debug Monitor")
+  (
+    DIALOG.SET HINT "Debug Monitor"
+    &port="p.debugmon"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="PendSv")
+  (
+    DIALOG.SET HINT "PendSV"
+    &port="p.pendsv"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="SysTick")
+  (
+    DIALOG.SET HINT "SysTick"
+    &port="p.systick"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="MEMMANFAL[IACCVIOL]")
+  (
+    DIALOG.SET HINT "Memory Manage Fault Register, IACCVIOL"
+    &port="p.iaccviol"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="MEMMANFAL[DACCVIOL]")
+  (
+    DIALOG.SET HINT "Memory Manage Fault Register, DACCVIOL"
+    &port="p.daccviol"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="MEMMANFAL[MUSNTKERR]")
+  (
+    DIALOG.SET HINT "Memory Manage Fault Register, MUNSTKERR"
+    &port="p.munstkerr"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="MEMMANFAL[MSTKERR]")
+  (
+    DIALOG.SET HINT "Memory Manage Fault Register, MSTKERR"
+    &port="p.mstkerr"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="MEMMANFAL[MMARVALID]")
+  (
+    DIALOG.SET HINT "Memory Manage Fault Register, MMARVALID"
+    &port="p.mmarvalid"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="BUSFAULT[IBUSERR]")
+  (
+    DIALOG.SET HINT "Bus Fault Register, IBUSERR"
+    &port="p.ibuserr"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="BUSFAULT[PRECISERR]")
+  (
+    DIALOG.SET HINT "Bus Fault Register, PRECISERR"
+    &port="p.preciserr"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="BUSFAULT[IMPRECISERR]")
+  (
+    DIALOG.SET HINT "Bus Fault Register, IMPRECISERR"
+    &port="p.impreciser"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="BUSFAULT[UNSTKERR]")
+  (
+    DIALOG.SET HINT "Bus Fault Register, UNSTKERR"
+    &port="p.unstkerr"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="BUSFAULT[STKERR]")
+  (
+    DIALOG.SET HINT "Bus Fault Register, STKERR"
+    &port="p.stkerr"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="BUSFAULT[BFARVALID]")
+  (
+    DIALOG.SET HINT "Bus Fault Register, BFARVALID"
+    &port="p.bfarvalid"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="USAFAULT[UNDEFINSTR]")
+  (
+    DIALOG.SET HINT "Usage Fault Register, UNDEFINSTR"
+    &port="p.undefinstr"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="USAFAULT[INVSTATE]")
+  (
+    DIALOG.SET HINT "Usage Fault Register, INVSTATE"
+    &port="p.invstate"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="USAFAULT[INVPC]")
+  (
+    DIALOG.SET HINT "Usage Fault Register, INVPC"
+    &port="p.invpc"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="USAFAULT[NOCP]")
+  (
+    DIALOG.SET HINT "Usage Fault Register, NOCP"
+    &port="p.nocp"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="USAFAULT[UNALIGNED]")
+  (
+    DIALOG.SET HINT "Usage Fault Register, UNALIGNED"
+    &port="p.unaligned"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="USAFAULT[DIVBYZERO]")
+  (
+    DIALOG.SET HINT "Usage Fault Register, DIVBYZERO"
+    &port="p.divbyzero"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="HARDFAULT[VECTTBL]")
+  (
+    DIALOG.SET HINT "Hard Fault Register, VECTTBL"
+    &port="p.vecttbl"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="HARDFAULT[FORCED]")
+  (
+    DIALOG.SET HINT "Hard Fault Register, FORCED"
+    &port="p.forced"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="HARDFAULT[DEBUGEVT]")
+  (
+    DIALOG.SET HINT "Hard Fault Register, DEBUGEVT"
+    &port="p.debugevt"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="DEBUGFAULT[HALTED]")
+  (
+    DIALOG.SET HINT "Debug Fault Register, HALTED"
+    &port="p.halted"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="DEBUGFAULT[BKPT]")
+  (
+    DIALOG.SET HINT "Debug Fault Register, BKPT"
+    &port="p.bkpt"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="DEBUGFAULT[DWTRAP]")
+  (
+    DIALOG.SET HINT "Debug Fault Register, DWTRAP"
+    &port="p.dwtrap"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="DEBUGFAULT[VCATCH]")
+  (
+    DIALOG.SET HINT "Debug Fault Register, VCATCH"
+    &port="p.vcatch"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="DEBUGFAULT[EXTERNAL]")
+  (
+    DIALOG.SET HINT "Debug Fault Register, EXTERNAL"
+    &port="p.external"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-0")
+  (
+    DIALOG.SET HINT "Interrupt 0 (IRQ-0)"
+    &port="p.irq0"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-1")
+  (
+    DIALOG.SET HINT "Interrupt 1 (IRQ-1)"
+    &port="p.irq1"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-2")
+  (
+    DIALOG.SET HINT "Interrupt 2 (IRQ-2)"
+    &port="p.irq2"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-3")
+  (
+    DIALOG.SET HINT "Interrupt 3 (IRQ-3)"
+    &port="p.irq3"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-4")
+  (
+    DIALOG.SET HINT "Interrupt 4 (IRQ-4)"
+    &port="p.irq4"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-5")
+  (
+    DIALOG.SET HINT "Interrupt 5 (IRQ-5)"
+    &port="p.irq5"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-6")
+  (
+    DIALOG.SET HINT "Interrupt 6 (IRQ-6)"
+    &port="p.irq6"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-7")
+  (
+    DIALOG.SET HINT "Interrupt 7 (IRQ-7)"
+    &port="p.irq7"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-8")
+  (
+    DIALOG.SET HINT "Interrupt 8 (IRQ-8)"
+    &port="p.irq8"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-9")
+  (
+    DIALOG.SET HINT "Interrupt 9 (IRQ-9)"
+    &port="p.irq9"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-10")
+  (
+    DIALOG.SET HINT "Interrupt 10 (IRQ-10)"
+    &port="p.irq10"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-11")
+  (
+    DIALOG.SET HINT "Interrupt 11 (IRQ-11)"
+    &port="p.irq11"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-12")
+  (
+    DIALOG.SET HINT "Interrupt 12 (IRQ-12)"
+    &port="p.irq12"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-13")
+  (
+    DIALOG.SET HINT "Interrupt 13 (IRQ-13)"
+    &port="p.irq13"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-14")
+  (
+    DIALOG.SET HINT "Interrupt 14 (IRQ-14)"
+    &port="p.irq14"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-15")
+  (
+    DIALOG.SET HINT "Interrupt 15 (IRQ-15)"
+    &port="p.irq15"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-16")
+  (
+    DIALOG.SET HINT "Interrupt 16 (IRQ-16)"
+    &port="p.irq16"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-17")
+  (
+    DIALOG.SET HINT "Interrupt 17 (IRQ-17)"
+    &port="p.irq17"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-18")
+  (
+    DIALOG.SET HINT "Interrupt 18 (IRQ-18)"
+    &port="p.irq18"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-19")
+  (
+    DIALOG.SET HINT "Interrupt 19 (IRQ-19)"
+    &port="p.irq19"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-20")
+  (
+    DIALOG.SET HINT "Interrupt 20 (IRQ-20)"
+    &port="p.irq20"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-21")
+  (
+    DIALOG.SET HINT "Interrupt 21 (IRQ-21)"
+    &port="p.irq21"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-22")
+  (
+    DIALOG.SET HINT "Interrupt 22 (IRQ-22)"
+    &port="p.irq22"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-23")
+  (
+    DIALOG.SET HINT "Interrupt 23 (IRQ-23)"
+    &port="p.irq23"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-24")
+  (
+    DIALOG.SET HINT "Interrupt 24 (IRQ-24)"
+    &port="p.irq24"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-25")
+  (
+    DIALOG.SET HINT "Interrupt 25 (IRQ-25)"
+    &port="p.irq25"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-26")
+  (
+    DIALOG.SET HINT "Interrupt 26 (IRQ-26)"
+    &port="p.irq26"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-27")
+  (
+    DIALOG.SET HINT "Interrupt 27 (IRQ-27)"
+    &port="p.irq27"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-28")
+  (
+    DIALOG.SET HINT "Interrupt 28 (IRQ-28)"
+    &port="p.irq28"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-29")
+  (
+    DIALOG.SET HINT "Interrupt 29 (IRQ-29)"
+    &port="p.irq29"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-30")
+  (
+    DIALOG.SET HINT "Interrupt 30 (IRQ-30)"
+    &port="p.irq30"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-31")
+  (
+    DIALOG.SET HINT "Interrupt 31 (IRQ-31)"
+    &port="p.irq31"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-32")
+  (
+    DIALOG.SET HINT "Interrupt 32 (IRQ-32)"
+    &port="p.irq32"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-33")
+  (
+    DIALOG.SET HINT "Interrupt 33 (IRQ-33)"
+    &port="p.irq33"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-34")
+  (
+    DIALOG.SET HINT "Interrupt 34 (IRQ-34)"
+    &port="p.irq34"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-35")
+  (
+    DIALOG.SET HINT "Interrupt 35 (IRQ-35)"
+    &port="p.irq35"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-36")
+  (
+    DIALOG.SET HINT "Interrupt 36 (IRQ-36)"
+    &port="p.irq36"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-37")
+  (
+    DIALOG.SET HINT "Interrupt 37 (IRQ-37)"
+    &port="p.irq37"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-38")
+  (
+    DIALOG.SET HINT "Interrupt 38 (IRQ-38)"
+    &port="p.irq38"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-39")
+  (
+    DIALOG.SET HINT "Interrupt 39 (IRQ-39)"
+    &port="p.irq39"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-40")
+  (
+    DIALOG.SET HINT "Interrupt 40 (IRQ-40)"
+    &port="p.irq40"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-41")
+  (
+    DIALOG.SET HINT "Interrupt 41 (IRQ-41)"
+    &port="p.irq41"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-42")
+  (
+    DIALOG.SET HINT "Interrupt 42 (IRQ-42)"
+    &port="p.irq42"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-43")
+  (
+    DIALOG.SET HINT "Interrupt 43 (IRQ-43)"
+    &port="p.irq43"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-44")
+  (
+    DIALOG.SET HINT "Interrupt 44 (IRQ-44)"
+    &port="p.irq44"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-45")
+  (
+    DIALOG.SET HINT "Interrupt 45 (IRQ-45)"
+    &port="p.irq45"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-46")
+  (
+    DIALOG.SET HINT "Interrupt 46 (IRQ-46)"
+    &port="p.irq46"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-47")
+  (
+    DIALOG.SET HINT "Interrupt 47 (IRQ-47)"
+    &port="p.irq47"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-48")
+  (
+    DIALOG.SET HINT "Interrupt 48 (IRQ-48)"
+    &port="p.irq48"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-49")
+  (
+    DIALOG.SET HINT "Interrupt 49 (IRQ-49)"
+    &port="p.irq49"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-50")
+  (
+    DIALOG.SET HINT "Interrupt 50 (IRQ-50)"
+    &port="p.irq50"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-51")
+  (
+    DIALOG.SET HINT "Interrupt 51 (IRQ-51)"
+    &port="p.irq51"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-52")
+  (
+    DIALOG.SET HINT "Interrupt 52 (IRQ-52)"
+    &port="p.irq52"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-53")
+  (
+    DIALOG.SET HINT "Interrupt 53 (IRQ-53)"
+    &port="p.irq53"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-54")
+  (
+    DIALOG.SET HINT "Interrupt 54 (IRQ-54)"
+    &port="p.irq54"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-55")
+  (
+    DIALOG.SET HINT "Interrupt 55 (IRQ-55)"
+    &port="p.irq55"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-56")
+  (
+    DIALOG.SET HINT "Interrupt 56 (IRQ-56)"
+    &port="p.irq56"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-57")
+  (
+    DIALOG.SET HINT "Interrupt 57 (IRQ-57)"
+    &port="p.irq57"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-58")
+  (
+    DIALOG.SET HINT "Interrupt 58 (IRQ-58)"
+    &port="p.irq58"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-59")
+  (
+    DIALOG.SET HINT "Interrupt 59 (IRQ-59)"
+    &port="p.irq59"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-60")
+  (
+    DIALOG.SET HINT "Interrupt 60 (IRQ-60)"
+    &port="p.irq60"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-61")
+  (
+    DIALOG.SET HINT "Interrupt 61 (IRQ-61)"
+    &port="p.irq61"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-62")
+  (
+    DIALOG.SET HINT "Interrupt 62 (IRQ-62)"
+    &port="p.irq62"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-63")
+  (
+    DIALOG.SET HINT "Interrupt 63 (IRQ-63)"
+    &port="p.irq63"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-64")
+  (
+    DIALOG.SET HINT "Interrupt 64 (IRQ-64)"
+    &port="p.irq64"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-65")
+  (
+    DIALOG.SET HINT "Interrupt 65 (IRQ-65)"
+    &port="p.irq65"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-66")
+  (
+    DIALOG.SET HINT "Interrupt 66 (IRQ-66)"
+    &port="p.irq66"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-67")
+  (
+    DIALOG.SET HINT "Interrupt 67 (IRQ-67)"
+    &port="p.irq67"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-68")
+  (
+    DIALOG.SET HINT "Interrupt 68 (IRQ-68)"
+    &port="p.irq68"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-69")
+  (
+    DIALOG.SET HINT "Interrupt 69 (IRQ-69)"
+    &port="p.irq69"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-70")
+  (
+    DIALOG.SET HINT "Interrupt 70 (IRQ-70)"
+    &port="p.irq70"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-71")
+  (
+    DIALOG.SET HINT "Interrupt 71 (IRQ-71)"
+    &port="p.irq71"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-72")
+  (
+    DIALOG.SET HINT "Interrupt 72 (IRQ-72)"
+    &port="p.irq72"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-73")
+  (
+    DIALOG.SET HINT "Interrupt 73 (IRQ-73)"
+    &port="p.irq73"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-74")
+  (
+    DIALOG.SET HINT "Interrupt 74 (IRQ-74)"
+    &port="p.irq74"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-75")
+  (
+    DIALOG.SET HINT "Interrupt 75 (IRQ-75)"
+    &port="p.irq75"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-76")
+  (
+    DIALOG.SET HINT "Interrupt 76 (IRQ-76)"
+    &port="p.irq76"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-77")
+  (
+    DIALOG.SET HINT "Interrupt 77 (IRQ-77)"
+    &port="p.irq77"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-78")
+  (
+    DIALOG.SET HINT "Interrupt 78 (IRQ-78)"
+    &port="p.irq78"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-79")
+  (
+    DIALOG.SET HINT "Interrupt 79 (IRQ-79)"
+    &port="p.irq79"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-80")
+  (
+    DIALOG.SET HINT "Interrupt 80 (IRQ-80)"
+    &port="p.irq80"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-81")
+  (
+    DIALOG.SET HINT "Interrupt 81 (IRQ-81)"
+    &port="p.irq81"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-82")
+  (
+    DIALOG.SET HINT "Interrupt 82 (IRQ-82)"
+    &port="p.irq82"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-83")
+  (
+    DIALOG.SET HINT "Interrupt 83 (IRQ-83)"
+    &port="p.irq83"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-84")
+  (
+    DIALOG.SET HINT "Interrupt 84 (IRQ-84)"
+    &port="p.irq84"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-85")
+  (
+    DIALOG.SET HINT "Interrupt 85 (IRQ-85)"
+    &port="p.irq85"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-86")
+  (
+    DIALOG.SET HINT "Interrupt 86 (IRQ-86)"
+    &port="p.irq86"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-87")
+  (
+    DIALOG.SET HINT "Interrupt 87 (IRQ-87)"
+    &port="p.irq87"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-88")
+  (
+    DIALOG.SET HINT "Interrupt 88 (IRQ-88)"
+    &port="p.irq88"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-89")
+  (
+    DIALOG.SET HINT "Interrupt 89 (IRQ-89)"
+    &port="p.irq89"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-90")
+  (
+    DIALOG.SET HINT "Interrupt 90 (IRQ-90)"
+    &port="p.irq90"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-91")
+  (
+    DIALOG.SET HINT "Interrupt 91 (IRQ-91)"
+    &port="p.irq91"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-92")
+  (
+    DIALOG.SET HINT "Interrupt 92 (IRQ-92)"
+    &port="p.irq92"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-93")
+  (
+    DIALOG.SET HINT "Interrupt 93 (IRQ-93)"
+    &port="p.irq93"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-94")
+  (
+    DIALOG.SET HINT "Interrupt 94 (IRQ-94)"
+    &port="p.irq94"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-95")
+  (
+    DIALOG.SET HINT "Interrupt 95 (IRQ-95)"
+    &port="p.irq95"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-96")
+  (
+    DIALOG.SET HINT "Interrupt 96 (IRQ-96)"
+    &port="p.irq96"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-97")
+  (
+    DIALOG.SET HINT "Interrupt 97 (IRQ-97)"
+    &port="p.irq97"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-98")
+  (
+    DIALOG.SET HINT "Interrupt 98 (IRQ-98)"
+    &port="p.irq98"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-99")
+  (
+    DIALOG.SET HINT "Interrupt 99 (IRQ-99)"
+    &port="p.irq99"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-100")
+  (
+    DIALOG.SET HINT "Interrupt 100 (IRQ-100)"
+    &port="p.irq100"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-101")
+  (
+    DIALOG.SET HINT "Interrupt 101 (IRQ-101)"
+    &port="p.irq101"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-102")
+  (
+    DIALOG.SET HINT "Interrupt 102 (IRQ-102)"
+    &port="p.irq102"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-103")
+  (
+    DIALOG.SET HINT "Interrupt 103 (IRQ-103)"
+    &port="p.irq103"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-104")
+  (
+    DIALOG.SET HINT "Interrupt 104 (IRQ-104)"
+    &port="p.irq104"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-105")
+  (
+    DIALOG.SET HINT "Interrupt 105 (IRQ-105)"
+    &port="p.irq105"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-106")
+  (
+    DIALOG.SET HINT "Interrupt 106 (IRQ-106)"
+    &port="p.irq106"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-107")
+  (
+    DIALOG.SET HINT "Interrupt 107 (IRQ-107)"
+    &port="p.irq107"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-108")
+  (
+    DIALOG.SET HINT "Interrupt 108 (IRQ-108)"
+    &port="p.irq108"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-109")
+  (
+    DIALOG.SET HINT "Interrupt 109 (IRQ-109)"
+    &port="p.irq109"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-110")
+  (
+    DIALOG.SET HINT "Interrupt 110 (IRQ-110)"
+    &port="p.irq110"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-111")
+  (
+    DIALOG.SET HINT "Interrupt 111 (IRQ-111)"
+    &port="p.irq111"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-112")
+  (
+    DIALOG.SET HINT "Interrupt 112 (IRQ-112)"
+    &port="p.irq112"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-113")
+  (
+    DIALOG.SET HINT "Interrupt 113 (IRQ-113)"
+    &port="p.irq113"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-114")
+  (
+    DIALOG.SET HINT "Interrupt 114 (IRQ-114)"
+    &port="p.irq114"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-115")
+  (
+    DIALOG.SET HINT "Interrupt 115 (IRQ-115)"
+    &port="p.irq115"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-116")
+  (
+    DIALOG.SET HINT "Interrupt 116 (IRQ-116)"
+    &port="p.irq116"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-117")
+  (
+    DIALOG.SET HINT "Interrupt 117 (IRQ-117)"
+    &port="p.irq117"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-118")
+  (
+    DIALOG.SET HINT "Interrupt 118 (IRQ-118)"
+    &port="p.irq118"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-119")
+  (
+    DIALOG.SET HINT "Interrupt 119 (IRQ-119)"
+    &port="p.irq119"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-120")
+  (
+    DIALOG.SET HINT "Interrupt 120 (IRQ-120)"
+    &port="p.irq120"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-121")
+  (
+    DIALOG.SET HINT "Interrupt 121 (IRQ-121)"
+    &port="p.irq121"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-122")
+  (
+    DIALOG.SET HINT "Interrupt 122 (IRQ-122)"
+    &port="p.irq122"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-123")
+  (
+    DIALOG.SET HINT "Interrupt 123 (IRQ-123)"
+    &port="p.irq123"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-124")
+  (
+    DIALOG.SET HINT "Interrupt 124 (IRQ-124)"
+    &port="p.irq124"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-125")
+  (
+    DIALOG.SET HINT "Interrupt 125 (IRQ-125)"
+    &port="p.irq125"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-126")
+  (
+    DIALOG.SET HINT "Interrupt 126 (IRQ-126)"
+    &port="p.irq126"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-127")
+  (
+    DIALOG.SET HINT "Interrupt 127 (IRQ-127)"
+    &port="p.irq127"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-128")
+  (
+    DIALOG.SET HINT "Interrupt 128 (IRQ-128)"
+    &port="p.irq128"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-129")
+  (
+    DIALOG.SET HINT "Interrupt 129 (IRQ-129)"
+    &port="p.irq129"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-130")
+  (
+    DIALOG.SET HINT "Interrupt 130 (IRQ-130)"
+    &port="p.irq130"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-131")
+  (
+    DIALOG.SET HINT "Interrupt 131 (IRQ-131)"
+    &port="p.irq131"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-132")
+  (
+    DIALOG.SET HINT "Interrupt 132 (IRQ-132)"
+    &port="p.irq132"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-133")
+  (
+    DIALOG.SET HINT "Interrupt 133 (IRQ-133)"
+    &port="p.irq133"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-134")
+  (
+    DIALOG.SET HINT "Interrupt 134 (IRQ-134)"
+    &port="p.irq134"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-135")
+  (
+    DIALOG.SET HINT "Interrupt 135 (IRQ-135)"
+    &port="p.irq135"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-136")
+  (
+    DIALOG.SET HINT "Interrupt 136 (IRQ-136)"
+    &port="p.irq136"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-137")
+  (
+    DIALOG.SET HINT "Interrupt 137 (IRQ-137)"
+    &port="p.irq137"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-138")
+  (
+    DIALOG.SET HINT "Interrupt 138 (IRQ-138)"
+    &port="p.irq138"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-139")
+  (
+    DIALOG.SET HINT "Interrupt 139 (IRQ-139)"
+    &port="p.irq139"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-140")
+  (
+    DIALOG.SET HINT "Interrupt 140 (IRQ-140)"
+    &port="p.irq140"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-141")
+  (
+    DIALOG.SET HINT "Interrupt 141 (IRQ-141)"
+    &port="p.irq141"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-142")
+  (
+    DIALOG.SET HINT "Interrupt 142 (IRQ-142)"
+    &port="p.irq142"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-143")
+  (
+    DIALOG.SET HINT "Interrupt 143 (IRQ-143)"
+    &port="p.irq143"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-144")
+  (
+    DIALOG.SET HINT "Interrupt 144 (IRQ-144)"
+    &port="p.irq144"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-145")
+  (
+    DIALOG.SET HINT "Interrupt 145 (IRQ-145)"
+    &port="p.irq145"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-146")
+  (
+    DIALOG.SET HINT "Interrupt 146 (IRQ-146)"
+    &port="p.irq146"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-147")
+  (
+    DIALOG.SET HINT "Interrupt 147 (IRQ-147)"
+    &port="p.irq147"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-148")
+  (
+    DIALOG.SET HINT "Interrupt 148 (IRQ-148)"
+    &port="p.irq148"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-149")
+  (
+    DIALOG.SET HINT "Interrupt 149 (IRQ-149)"
+    &port="p.irq149"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-150")
+  (
+    DIALOG.SET HINT "Interrupt 150 (IRQ-150)"
+    &port="p.irq150"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-151")
+  (
+    DIALOG.SET HINT "Interrupt 151 (IRQ-151)"
+    &port="p.irq151"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-152")
+  (
+    DIALOG.SET HINT "Interrupt 152 (IRQ-152)"
+    &port="p.irq152"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-153")
+  (
+    DIALOG.SET HINT "Interrupt 153 (IRQ-153)"
+    &port="p.irq153"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-154")
+  (
+    DIALOG.SET HINT "Interrupt 154 (IRQ-154)"
+    &port="p.irq154"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-155")
+  (
+    DIALOG.SET HINT "Interrupt 155 (IRQ-155)"
+    &port="p.irq155"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-156")
+  (
+    DIALOG.SET HINT "Interrupt 156 (IRQ-156)"
+    &port="p.irq156"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-157")
+  (
+    DIALOG.SET HINT "Interrupt 157 (IRQ-157)"
+    &port="p.irq157"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-158")
+  (
+    DIALOG.SET HINT "Interrupt 158 (IRQ-158)"
+    &port="p.irq158"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-159")
+  (
+    DIALOG.SET HINT "Interrupt 159 (IRQ-159)"
+    &port="p.irq159"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-160")
+  (
+    DIALOG.SET HINT "Interrupt 160 (IRQ-160)"
+    &port="p.irq160"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-161")
+  (
+    DIALOG.SET HINT "Interrupt 161 (IRQ-161)"
+    &port="p.irq161"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-162")
+  (
+    DIALOG.SET HINT "Interrupt 162 (IRQ-162)"
+    &port="p.irq162"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-163")
+  (
+    DIALOG.SET HINT "Interrupt 163 (IRQ-163)"
+    &port="p.irq163"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-164")
+  (
+    DIALOG.SET HINT "Interrupt 164 (IRQ-164)"
+    &port="p.irq164"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-165")
+  (
+    DIALOG.SET HINT "Interrupt 165 (IRQ-165)"
+    &port="p.irq165"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-166")
+  (
+    DIALOG.SET HINT "Interrupt 166 (IRQ-166)"
+    &port="p.irq166"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-167")
+  (
+    DIALOG.SET HINT "Interrupt 167 (IRQ-167)"
+    &port="p.irq167"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-168")
+  (
+    DIALOG.SET HINT "Interrupt 168 (IRQ-168)"
+    &port="p.irq168"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-169")
+  (
+    DIALOG.SET HINT "Interrupt 169 (IRQ-169)"
+    &port="p.irq169"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-170")
+  (
+    DIALOG.SET HINT "Interrupt 170 (IRQ-170)"
+    &port="p.irq170"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-171")
+  (
+    DIALOG.SET HINT "Interrupt 171 (IRQ-171)"
+    &port="p.irq171"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-172")
+  (
+    DIALOG.SET HINT "Interrupt 172 (IRQ-172)"
+    &port="p.irq172"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-173")
+  (
+    DIALOG.SET HINT "Interrupt 173 (IRQ-173)"
+    &port="p.irq173"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-174")
+  (
+    DIALOG.SET HINT "Interrupt 174 (IRQ-174)"
+    &port="p.irq174"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-175")
+  (
+    DIALOG.SET HINT "Interrupt 175 (IRQ-175)"
+    &port="p.irq175"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-176")
+  (
+    DIALOG.SET HINT "Interrupt 176 (IRQ-176)"
+    &port="p.irq176"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-177")
+  (
+    DIALOG.SET HINT "Interrupt 177 (IRQ-177)"
+    &port="p.irq177"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-178")
+  (
+    DIALOG.SET HINT "Interrupt 178 (IRQ-178)"
+    &port="p.irq178"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-179")
+  (
+    DIALOG.SET HINT "Interrupt 179 (IRQ-179)"
+    &port="p.irq179"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-180")
+  (
+    DIALOG.SET HINT "Interrupt 180 (IRQ-180)"
+    &port="p.irq180"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-181")
+  (
+    DIALOG.SET HINT "Interrupt 181 (IRQ-181)"
+    &port="p.irq181"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-182")
+  (
+    DIALOG.SET HINT "Interrupt 182 (IRQ-182)"
+    &port="p.irq182"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-183")
+  (
+    DIALOG.SET HINT "Interrupt 183 (IRQ-183)"
+    &port="p.irq183"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-184")
+  (
+    DIALOG.SET HINT "Interrupt 184 (IRQ-184)"
+    &port="p.irq184"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-185")
+  (
+    DIALOG.SET HINT "Interrupt 185 (IRQ-185)"
+    &port="p.irq185"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-186")
+  (
+    DIALOG.SET HINT "Interrupt 186 (IRQ-186)"
+    &port="p.irq186"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-187")
+  (
+    DIALOG.SET HINT "Interrupt 187 (IRQ-187)"
+    &port="p.irq187"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-188")
+  (
+    DIALOG.SET HINT "Interrupt 188 (IRQ-188)"
+    &port="p.irq188"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-189")
+  (
+    DIALOG.SET HINT "Interrupt 189 (IRQ-189)"
+    &port="p.irq189"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-190")
+  (
+    DIALOG.SET HINT "Interrupt 190 (IRQ-190)"
+    &port="p.irq190"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-191")
+  (
+    DIALOG.SET HINT "Interrupt 191 (IRQ-191)"
+    &port="p.irq191"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-192")
+  (
+    DIALOG.SET HINT "Interrupt 192 (IRQ-192)"
+    &port="p.irq192"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-193")
+  (
+    DIALOG.SET HINT "Interrupt 193 (IRQ-193)"
+    &port="p.irq193"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-194")
+  (
+    DIALOG.SET HINT "Interrupt 194 (IRQ-194)"
+    &port="p.irq194"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-195")
+  (
+    DIALOG.SET HINT "Interrupt 195 (IRQ-195)"
+    &port="p.irq195"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-196")
+  (
+    DIALOG.SET HINT "Interrupt 196 (IRQ-196)"
+    &port="p.irq196"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-197")
+  (
+    DIALOG.SET HINT "Interrupt 197 (IRQ-197)"
+    &port="p.irq197"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-198")
+  (
+    DIALOG.SET HINT "Interrupt 198 (IRQ-198)"
+    &port="p.irq198"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-199")
+  (
+    DIALOG.SET HINT "Interrupt 199 (IRQ-199)"
+    &port="p.irq199"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-200")
+  (
+    DIALOG.SET HINT "Interrupt 200 (IRQ-200)"
+    &port="p.irq200"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-201")
+  (
+    DIALOG.SET HINT "Interrupt 201 (IRQ-201)"
+    &port="p.irq201"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-202")
+  (
+    DIALOG.SET HINT "Interrupt 202 (IRQ-202)"
+    &port="p.irq202"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-203")
+  (
+    DIALOG.SET HINT "Interrupt 203 (IRQ-203)"
+    &port="p.irq203"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-204")
+  (
+    DIALOG.SET HINT "Interrupt 204 (IRQ-204)"
+    &port="p.irq204"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-205")
+  (
+    DIALOG.SET HINT "Interrupt 205 (IRQ-205)"
+    &port="p.irq205"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-206")
+  (
+    DIALOG.SET HINT "Interrupt 206 (IRQ-206)"
+    &port="p.irq206"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-207")
+  (
+    DIALOG.SET HINT "Interrupt 207 (IRQ-207)"
+    &port="p.irq207"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-208")
+  (
+    DIALOG.SET HINT "Interrupt 208 (IRQ-208)"
+    &port="p.irq208"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-209")
+  (
+    DIALOG.SET HINT "Interrupt 209 (IRQ-209)"
+    &port="p.irq209"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-210")
+  (
+    DIALOG.SET HINT "Interrupt 210 (IRQ-210)"
+    &port="p.irq210"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-211")
+  (
+    DIALOG.SET HINT "Interrupt 211 (IRQ-211)"
+    &port="p.irq211"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-212")
+  (
+    DIALOG.SET HINT "Interrupt 212 (IRQ-212)"
+    &port="p.irq212"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-213")
+  (
+    DIALOG.SET HINT "Interrupt 213 (IRQ-213)"
+    &port="p.irq213"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-214")
+  (
+    DIALOG.SET HINT "Interrupt 214 (IRQ-214)"
+    &port="p.irq214"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-215")
+  (
+    DIALOG.SET HINT "Interrupt 215 (IRQ-215)"
+    &port="p.irq215"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-216")
+  (
+    DIALOG.SET HINT "Interrupt 216 (IRQ-216)"
+    &port="p.irq216"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-217")
+  (
+    DIALOG.SET HINT "Interrupt 217 (IRQ-217)"
+    &port="p.irq217"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-218")
+  (
+    DIALOG.SET HINT "Interrupt 218 (IRQ-218)"
+    &port="p.irq218"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-219")
+  (
+    DIALOG.SET HINT "Interrupt 219 (IRQ-219)"
+    &port="p.irq219"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-220")
+  (
+    DIALOG.SET HINT "Interrupt 220 (IRQ-220)"
+    &port="p.irq220"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-221")
+  (
+    DIALOG.SET HINT "Interrupt 221 (IRQ-221)"
+    &port="p.irq221"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-222")
+  (
+    DIALOG.SET HINT "Interrupt 222 (IRQ-222)"
+    &port="p.irq222"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-223")
+  (
+    DIALOG.SET HINT "Interrupt 223 (IRQ-223)"
+    &port="p.irq223"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-224")
+  (
+    DIALOG.SET HINT "Interrupt 224 (IRQ-224)"
+    &port="p.irq224"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-225")
+  (
+    DIALOG.SET HINT "Interrupt 225 (IRQ-225)"
+    &port="p.irq225"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-226")
+  (
+    DIALOG.SET HINT "Interrupt 226 (IRQ-226)"
+    &port="p.irq226"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-227")
+  (
+    DIALOG.SET HINT "Interrupt 227 (IRQ-227)"
+    &port="p.irq227"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-228")
+  (
+    DIALOG.SET HINT "Interrupt 228 (IRQ-228)"
+    &port="p.irq228"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-229")
+  (
+    DIALOG.SET HINT "Interrupt 229 (IRQ-229)"
+    &port="p.irq229"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-230")
+  (
+    DIALOG.SET HINT "Interrupt 230 (IRQ-230)"
+    &port="p.irq230"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-231")
+  (
+    DIALOG.SET HINT "Interrupt 231 (IRQ-231)"
+    &port="p.irq231"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-232")
+  (
+    DIALOG.SET HINT "Interrupt 232 (IRQ-232)"
+    &port="p.irq232"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-233")
+  (
+    DIALOG.SET HINT "Interrupt 233 (IRQ-233)"
+    &port="p.irq233"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-234")
+  (
+    DIALOG.SET HINT "Interrupt 234 (IRQ-234)"
+    &port="p.irq234"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-235")
+  (
+    DIALOG.SET HINT "Interrupt 235 (IRQ-235)"
+    &port="p.irq235"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-236")
+  (
+    DIALOG.SET HINT "Interrupt 236 (IRQ-236)"
+    &port="p.irq236"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-237")
+  (
+    DIALOG.SET HINT "Interrupt 237 (IRQ-237)"
+    &port="p.irq237"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-238")
+  (
+    DIALOG.SET HINT "Interrupt 238 (IRQ-238)"
+    &port="p.irq238"
+  )
+  IF (DIALOG.STRING(SIGNAL_COMBO)=="IRQ-239")
+  (
+    DIALOG.SET HINT "Interrupt 239 (IRQ-239)"
+    &port="p.irq239"
+  )
+  IF (p.get(&port)==0)
+  (
+    DIALOG.ENABLE ASSERT
+    DIALOG.DISABLE DEASSERT
+  )
+  ELSE
+  (
+    DIALOG.DISABLE ASSERT
+    DIALOG.ENABLE DEASSERT
+  )
+RETURN
+
+ENDDO

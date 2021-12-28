@@ -1,0 +1,81 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC387Q on TriBoard-TC3x7 (SMP, multisieve app)
+; @Description:
+;   Loads the multisieve demo application (multi-core) into RAM and sets up a
+;   demo debug scenario for SMP debugging. Further information is available in
+;   in the Tricore Processor Architecture Manual (pdf/debugger_tricore.pdf),
+;   chapter "SMP Debugging - Quick Start".
+; @Keywords: AURIX2G, Infineon, multi-core, multisieve, TriCore
+; @Author: MOB
+; @Board: TriBoard-TC3x7
+; @Chip: TC387Q
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: smp_demo_multisieve.cmm 15539 2020-01-17 12:22:53Z meick $
+
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.CPU TC387Q
+CORE.ASSIGN 1. 2. 3. 4. // assign cores to the SMP system
+SYStem.Up
+
+; optional settings:
+SYStem.Option DUALPORT ON
+SETUP.Var %SpotLight
+MAP.BOnchip 0x0--0xffffffff // force onchip-breakpoints
+
+; --------------------------------------------------------------------------------
+; Load elf file
+; - uses internal RAM only
+; - uses global addressing (core-local addressing of SPRAM is not recommended)
+Data.LOAD.Elf "~~~~/tc38x_multisieve_intmem.elf"
+
+; --------------------------------------------------------------------------------
+; select trace method
+IF !Analyzer()
+  Trace.Method Onchip
+
+; --------------------------------------------------------------------------------
+; set up MCDS trace
+Trace.OFF
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+WinPOS 0% 0% 33% 33%
+TargetSystem.state
+WinPOS 33% 0% 33% 33%
+List.auto
+WinPOS 66% 0% 33% 33%
+Var.Watch
+WinPOS 0% 33% 25% 33%
+List.auto /CORE 0.
+WinPOS 0% 66% 25% 33%
+Register.view /CORE 0.
+IF (CORENUMBER()>1.)
+(
+  WinPOS 25% 33% 25% 33%
+  List.auto /CORE 1.
+  WinPOS 25% 66% 25% 33%
+  Register.view /CORE 1.
+  IF (CORENUMBER()>2.)
+  (
+    WinPOS 50% 33% 25% 33%
+    List.auto /CORE 2.
+    WinPOS 50% 66% 25% 33%
+    Register.view /CORE 2.
+  )
+)
+  IF (CORENUMBER()>3.)
+  (
+    WinPOS 75% 33% 25% 33%
+    List.auto /CORE 3.
+    WinPOS 75% 66% 25% 33%
+    Register.view /CORE 3.
+  )
+
+Var.AddWatch %Hex flags flagsc flags0 flags1 flags2 flags3
+
+ENDDO

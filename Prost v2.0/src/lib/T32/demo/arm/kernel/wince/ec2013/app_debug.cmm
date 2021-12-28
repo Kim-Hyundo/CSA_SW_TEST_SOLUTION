@@ -1,0 +1,130 @@
+; --------------------------------------------------------------------------------
+; @Title: Windows Embedded Compact 2013 Application Debugging Script
+; @Description: 
+;   AutoLoader version
+;   This script waits for an application to be started,
+;   loads the symbols and halts the application at main()
+;   NOTE: Windows CE and the Windows CE awareness must be up.
+;   Start this script with the process name (without .exe) as argument.
+;   Examples: do app_debug hello
+;   Prerequisites:
+;   - Windows CE must be booted
+;   - Windows CE awareness must be configured
+;   - Autoloader must be configured
+; @Keywords: awareness
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: app_debug.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; define local macros
+ LOCAL &process         ; process name (basename of symbol file)
+ LOCAL &spaceid         ; space id of the new process
+ LOCAL &proccreate      ; process creation breakpoint inside kernel
+ 
+; get the process name as parameter to the script
+ ENTRY &process
+
+
+; delete possibly existing breakpoints of previous process runs
+ 
+ IF sYmbol.EXIST("\\&process")
+   Break.Delete sYmbol.SECRANGE(\\&process\.text)
+
+
+; Wait for process to be loaded.
+; The process must be started by executing it in the WinCE user interface.
+
+ ; We cannot load process symbols as long as we don't
+ ; know the address translation. The MMU for the new
+ ; process is set up, right before it is started
+ ; at CELOG_ProcessCreateEx()
+
+ IF STATE.RUN()
+   Break    ; halt target for breakpoint setting
+   
+ ; we need access to the kernel symbols, ensure they're loaded
+ 
+ IF !sYmbol.EXIST(CELOG_ProcessCreateEx)
+ (
+   TASK.sYmbol.Option AutoLoad RomMod
+   sYmbol.AutoLOAD.CHECK
+   sYmbol.AutoLOAD.TOUCH "kernel.dll"
+   IF !sYmbol.EXIST(CELOG_ProcessCreateEx)
+   (
+     PRINT "Error: process creation location not found!"
+     ENDDO
+   )
+ )
+
+ &proccreate=ADDRESS.OFFSET(CELOG_ProcessCreateEx)
+ 
+ ; The process creation is called for every process to start -
+ ; the conditional breakpoint halts only, if the desired process
+ ; is found in the process table.
+ 
+ Break.Delete &proccreate  ; delete previous set breakpoints
+ Break.Set &proccreate /CONDition task.proc.spaceid("&process")!=0xffffffff
+
+ ON PBREAKAT &proccreate GOTO continue1     ; if breakpoint reached: continue
+ Go         ; let the target run and load the process
+ PRINT "waiting for &process to be started..."
+
+ STOP       ; halt script until breakpoint reached
+ 
+ ; breakpoint hit, continue script
+continue1:
+
+ Break.Delete &proccreate   // delete breakpoint
+ ON PBREAKAT &proccreate    // delete script action
+
+
+; Yep! The process is loaded and we found it.
+
+; Now load the process symbols to the space id of the process.
+
+ PRINT "process &process started, loading symbols..."
+
+ TASK.sYmbol.Option AutoLoad Process
+ sYmbol.AutoLOAD.CHECK
+ sYmbol.AutoLOAD.TOUCH "&process.exe"
+ 
+; Now set a breakpoint at it's main entry point.
+ 
+ ; NOTE: The code is still not available, so we MUST set 
+ ; onchip breakpoints, because those are the only ones
+ ; operating on virtual addresses
+
+ IF sYmbol.EXIST(main)
+   &entry=ADDRESS.OFFSET(main)
+ ELSE IF sYmbol.EXIST(wmain)
+   &entry=ADDRESS.OFFSET(wmain)
+ ELSE IF sYmbol.EXIST(WinMain)
+   &entry=ADDRESS.OFFSET(WinMain)
+ ELSE
+ (
+    PRINT "Error: main routine of process not found!"
+    ENDDO
+ )
+ 
+ Break.Set &entry /Onchip               ; set breakpoint on main\1
+
+ ; Let the system run. As soon as the process
+ ; is started at main(), it halts.
+
+ Go
+ PRINT "starting &process..."
+ WAIT !STATE.RUN()
+ Break.Delete &entry
+
+
+ PRINT "done."
+ 
+ ; NOTE: if finished debugging with a process, or if restarting
+ ; the process, you have to delete the symbols and restart the
+ ; application debugging. Delete the symbols with
+ ; sYmbol.AutoLoad.CLEAR "&process"
+
+ ENDDO
+ 

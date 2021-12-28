@@ -1,0 +1,74 @@
+; @Title: Start-Up Script for ARM9 on OMAP5912
+; @Description: -
+; @Author: PEG
+; @Board: OSK5912
+; @Chip: OMAP5912
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: oskdemo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; PEG, October 2004
+
+LOCAL &demofile
+
+; start-up debugger
+  SYStem.CPU OMAP5912
+  SYStem.JtagClock RTCK
+  SYStem.Option resbreak OFF
+  SYStem.Option waitreset ON
+  SYStem.Up
+
+  Analyzer.CLOCK 10MHz
+
+; disable MMU
+  Data.Set C15:1 50078
+
+; soft reset of ARM and DSP core
+; Data.Set 0xfffece10 %Word 0x000c
+; Data.Set 0xfffece10 %Word 0x0004
+
+ Data.Set 0fffecf00 %Word 0x0010
+
+; disable watchdog
+  Data.Set 0xfffec808 %Word 0x00f5
+  Data.Set 0xfffec808 %Word 0x00a0
+
+; allow access to DSP memory
+;  Data.Set 0xfffece08 %Word 0x0040
+;  Data.Set 0xfffec900 %Long 0xff1b
+
+; patch branch to itself for DSP to get a defined behaviour after reset release
+  Data.Set 0xe0010000 %Long 0x4a7e4a7e
+
+; DSP reset release; now the start-up script for the DSP will work
+  Data.Set 0xfffec918 %Long 0x05
+  Data.Set 0xfffece10 %Word 0x00
+  Data.Set 0xfffece10 %Word 0x0006
+
+; load demo program for ARM
+  &demofile="I:"+"\EVB\arm\dsk5912\demo.axf"
+  Data.LOAD.Elf &demofile /PlusVM
+  Register.Set PC main
+  Register.Set R13 0x10010000
+  Register.Set CPSR 0x600000d3 
+
+; do some mods of the demo code to get more action
+ Data.Assemble SR:0x1000120C bl 1000045e bl 100006f8 bl 1000078c b 0x10001208 
+
+;ETM pin multiplexing - Normal Mode
+  PER.Set.simple ASD:0xFFFE1014 %Long 09200000
+  PER.Set.simple ASD:0xFFFE1018 %Long 09249249
+
+;Set pin mode to PWM
+  PER.Set.simple ASD:0xFFFE101C %Long 9
+; Enable PWM
+  PER.Set.simple ASD:0xFFFB5804 1
+;Set any PWM value
+  PER.Set.simple ASD:0xFFFB5800 80
+
+;Set pin to LED mode
+  PER.Set.simple SD:0xFFFBE430 %Long 0f0d8
+;Set LED pins to output
+  PER.Set.simple SD:0xFFFBE434 %Long 00f27
+
+

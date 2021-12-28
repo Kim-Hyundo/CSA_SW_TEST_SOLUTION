@@ -1,0 +1,94 @@
+; --------------------------------------------------------------------------------
+; @Title: AMP-Demo script for App and Net cores on NRF5340-PDK (AMP, RAM)
+; @Description:
+;   Setup a AMP debug session using a single script approach.
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   Use this script to test the AMP-Debugging.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to P18/P25
+; @Keywords: ARM, Cortex-M33, Flash
+; @Author: BWR
+; @Board: NRF5340-PDK
+; @Chip: NRF5340QKAA
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: nrf5340pdk_amp_sram.cmm 16418 2020-08-13 11:46:17Z bwright $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF SYStem.INSTANCE()!=1.
+(
+  PRINT %ERROR "This script must be called from MASTER GUI!"
+  ENDDO
+)
+
+; store current script path in &ppd
+PRIVATE &ppd
+&ppd=OS.PPD()
+
+; --------------------------------------------------------------------------------
+; open all SLAVE GUIs
+IF !INTERCOM.PING(NRF5340-PDK-NET)
+  TargetSystem.NewInstance NRF5340-PDK-NET /ARCHitecture ARM
+
+; --------------------------------------------------------------------------------
+; set titles for SLAVE GUIs
+TITLE "TRACE32 for ARM - NRF5340QKAA-APP - MASTER"
+InterCom NRF5340-PDK-NET TITLE "TRACE32 for ARM - NRF5340QKAA-NET - SLAVE"
+
+; --------------------------------------------------------------------------------
+; common SYStem settings
+RESet
+InterCom NRF5340-PDK-NET RESet
+SYStem.RESet
+InterCom NRF5340-PDK-NET SYStem.RESet
+SYStem.CPU NRF5340QKAA-APP
+SYStem.CONFIG CORE 1. 1.
+SYStem.CONFIG Slave OFF
+InterCom NRF5340-PDK-NET SYStem.CPU NRF5340QKAA-NET
+InterCom NRF5340-PDK-NET SYStem.CONFIG CORE 2. 1.
+InterCom NRF5340-PDK-NET SYStem.CONFIG Slave ON
+
+; disable Trace for connection phase
+ETM.OFF
+ITM.OFF
+Trace.DISable
+
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; stop forcing off power and clock in network core
+PER.Set.simple AZSD:0x50005614 %Long 0x0
+
+; --------------------------------------------------------------------------------
+; attach to all cores on all sessions
+InterCom NRF5340-PDK-NET SYStem.Mode.Up
+
+; --------------------------------------------------------------------------------
+; load demo program on all sessions (use internal RAM only)
+Data.LOAD.Elf &(ppd)/application/sieve_ram_thumb_ii_v7m.elf
+InterCom NRF5340-PDK-NET Data.LOAD.Elf &(ppd)/network/sieve_ram_thumb_ii_v7m.elf
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main\1
+WAIT !STATE.RUN()
+InterCom NRF5340-PDK-NET Go.direct main\1
+InterCom NRF5340-PDK-NET WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+InterCom NRF5340-PDK-NET WinCLEAR
+InterCom NRF5340-PDK-NET Mode.Hll
+InterCom NRF5340-PDK-NET WinPOS 0. 0. 116. 26.
+InterCom NRF5340-PDK-NET List.auto
+
+ENDDO

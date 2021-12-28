@@ -1,0 +1,41 @@
+; --------------------------------------------------------------------------------
+; @Title: PIPE Demo Setup Script for the Mistral Board
+; @Description: -
+; @Keywords: beagle, PIPE, PROTO
+; @Board: Mistral
+; @Chip: OMAP3503
+; @Author: ING
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: setup_mistral.cmm 15209 2019-11-04 10:07:55Z bschroefel $
+
+
+; Demo with DLL
+; Setup for OMAP3530 Mistral board
+
+; bring up board, load application etc.
+DO common_mistral
+
+; Influence speed of application
+Var.set timerReload = 30.
+
+
+
+; Start program, which will read from windows PIPE
+&a="pproto00"
+
+OS.screen ./pread.exe \\.\pipe\&a
+WAIT 500.ms
+
+; Load DLL, which will connect to windows PIPE
+CAnalyzer.PipePROTO dll/pproto &a
+
+; ARM CombiProbe
+CAnalyzer.Arm
+
+
+
+
+
+
+

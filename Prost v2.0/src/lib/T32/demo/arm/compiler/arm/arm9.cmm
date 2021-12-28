@@ -1,0 +1,133 @@
+; --------------------------------------------------------------------------------
+; @Title: Example Script File for ARM Development Board with ARM940T Pid Header Card
+; @Description:
+;   Example script file for ARM development board (HBI-0011B) with ARM940T pid
+;   header card
+;   do not forget to set the jumper "BIGEND" correctly 
+;   (especially in the thumb examples)
+; @Author: PEG
+; @Board: HBI-0011B
+; @Chip: ARM940T
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: arm9.cmm 15209 2019-11-04 10:07:55Z bschroefel $
+
+;   01.12.99, PEG
+
+LOCAL &sel
+ENTRY &sel
+
+ON ERROR GOTO selection
+IF ("&sel"=="")
+	GOTO selection
+IF (&sel<0x1)||(&sel>0x8)
+	GOTO selection
+ON ERROR
+
+
+WinCLEAR
+AREA.RESet
+
+// initialize system
+SYStem.RESet
+
+// select CPU type
+SYStem.CPU ARM940T
+
+// set AMBA option (for BUS-RiscTrace)
+SYStem.Option AMBA ON
+
+// start debugger
+SYStem.Up
+
+// set endianism according to the selection
+// (data set command for 920T and 940T only)
+IF (&sel&((0x1)))==0x0
+(
+	SYStem.Option BigEndian ON
+	Data.Set C15:2 %Long 0xf8
+)
+ELSE
+(
+	SYStem.Option BigEndian OFF
+	Data.Set C15:2 %Long 0x78
+)
+
+// map ram at address 0 (only for this ARM evaluation board)
+Data.Set 0x0b000020 %Long 0x0b000000
+
+// load selected example program
+IF &sel==0x1
+	Data.LOAD.AIF "~~~~/armla.axf" /SPATH /LPATH
+IF &sel==0x2
+	Data.LOAD.AIF "~~~~/armba.axf" /SPATH /LPATH
+IF &sel==0x3
+	Data.LOAD.ELF "~~~~/armle.axf" /SPATH /LPATH
+IF &sel==0x4
+	Data.LOAD.ELF "~~~~/armbe.axf" /SPATH /LPATH
+IF &sel==0x5
+	Data.LOAD.AIF "~~~~/thumbla.axf" /SPATH /LPATH
+IF &sel==0x6
+	Data.LOAD.AIF "~~~~/thumbba.axf" /SPATH /LPATH
+IF &sel==0x7
+	Data.LOAD.ELF "~~~~/thumble.axf" /SPATH /LPATH
+IF &sel==0x8
+	Data.LOAD.ELF "~~~~/thumbbe.axf" /SPATH /LPATH
+
+// open some windows
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch %SpotLight flags ast
+
+// set thumb bit in CPSR if thumb example
+IF &sel>0x4
+	Register.Set CPSR 0xf3
+
+// set program counter at program start
+Register.Set PC main
+
+// initialize stack pointer
+Register.Set R13 0x1000
+
+ENDDO
+
+
+
+selection:
+	LOCAL &ppf &sel
+	&ppf=os.ppf()
+	&sel="&"+"sel"
+	DIALOG
+	(&+
+		HEADER "Choose target application"
+		POS 2. 0.5 24. 1.
+		ARM.0x1: CHOOSEBOX "ARM AIF Little Endian" ""
+		ARM.0x2: CHOOSEBOX "ARM AIF Big Endian" ""
+		posy 0.2
+		ARM.0x3: CHOOSEBOX "ARM ELF Little Endian" ""
+		ARM.0x4: CHOOSEBOX "ARM ELF Big Endian" ""
+		posy 0.2
+		ARM.0x5: CHOOSEBOX "THUMB AIF Little Endian" ""
+		ARM.0x6: CHOOSEBOX "THUMB AIF Big Endian" ""
+		posy 0.2
+		ARM.0x7: CHOOSEBOX "THUMB ELF Little Endian" ""
+		ARM.0x8: CHOOSEBOX "THUMB ELF Big Endian" ""
+		POS 7. 9.7 12. 1.
+		DEFBUTTON "Start" 
+		(
+			PRIVATE &sel
+
+			&sel=0x1
+			WHILE !DIALOG.BOOLEAN(ARM.&sel)
+				&sel=&sel+0x1
+
+			DIALOG.END
+			DO "&ppf" &sel
+			ENDDO
+		)
+	)
+	DIALOG.Set ARM.0x3 "ON"
+	ENDDO

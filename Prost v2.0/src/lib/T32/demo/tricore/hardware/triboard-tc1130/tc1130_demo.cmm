@@ -1,0 +1,104 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TriCore TC1130 on TriBoard TC1130
+; @Description:
+;   Initializes the TriCore, SDRAM and Flash,
+;   and loads the Sieve-Demo into memory.
+;
+;   Use the Boot-Option selected by following:
+;   Dip Switch S301: SW1=OFF, SW2=OFF, SW3=ON, SW4=OFF
+;   (Test condition was: SW5=OFF, SW6=OFF, SW7=OFF, SW8=OFF)
+;
+;   A-steps: Since the watchdog is not suspended in debug mode, do not use a
+;   low JTAG clock frequency in case the watchdog is not already disabled by
+;   the target program. Otherwise the debugger is possibly to slow to disable
+;   the watchdog in time. Minimum JTAG clock depends on the core clock. Default
+;   JTAG clock should be fine.
+;
+;   Requirements to use OCDS-1:
+;   Set jumper JP501 to 2-3 (= disable on-board wiggler)
+;
+; @Keywords: Infineon, TriCore
+; @Author: MAX
+; @Board: TriBoard-TC1130
+; @Chip: TC1130
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc1130_demo.cmm 8335 2015-04-14 14:05:50Z mobermeir $
+
+
+; --------------------------------------------------------------------------------
+; Performed tests:
+; TriBoard TC1130.200 TC1130 EES-BA 2005-01-18 MAX
+; TriBoard TC1130.100 TC1130 EES-AA 2005-01-18 MAX
+;
+; Memory mappings:
+; 64 MB SDRAM mapped to 0xA0000000--0xA3FFFFFF
+; 32 MB Flash mapped to 0xA4000000--0xA5FFFFFF
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.CPU TC1130
+SYStem.Up
+
+IF Analyzer()
+(
+  ; Port3 Pins set to OCDS-L2 function
+  Data.Set 0xF0000F18 %Long 0x0000FFFF    ; P3_DIR
+  Data.Set 0xF0000F44 %Long 0x0000FFFF    ; P3_ALTSEL0
+  Data.Set 0xF0000F48 %Long 0x0000FFFF    ; P3_ALTSEL1
+)
+
+; --------------------------------------------------------------------------------
+; Memory initialzation
+; initialize external bus unit
+Data.Set 0xF8000010 %Long 0x00F9FF68    ; EBU_CON
+Data.Set 0xF0000110 %Long 0x400900F0    ; EBU_SBCUCON
+Data.Set 0xF8000020 %Long 0x001001D0    ; EBU_BFCON
+
+; memory assignment
+; Intel 28F128K3C flash
+Data.Set 0xF8000080 %Long 0xA4000021    ; EBU_ADDR_SEL0
+Data.Set 0xF80000C0 %Long 0x00922300    ; EBU_BUSCON0
+Data.Set 0xF8000100 %Long 0x23FF0100    ; EBU_BUSAP0
+; Infineon HYB39S256160DT SDRAM
+Data.Set 0xF8000088 %Long 0xA0000011    ; EBU_ADDR_SEL1
+Data.Set 0xF80000C8 %Long 0x30B20000    ; EBU_BUSCON1
+Data.Set 0xF8000108 %Long 0x22070000    ; EBU_BUSAP1
+; unused
+Data.Set 0xF8000090 %Long 0x00000000    ; EBU_ADDR_SEL2
+Data.Set 0xF8000098 %Long 0x00000000    ; EBU_ADDR_SEL3
+
+; SDRAM initialization
+Data.Set 0xF8000050 %Long 0x01162075    ; EBU_SDRMCON0
+Data.Set 0xF8000060 %Long 0x00000023    ; EBU_SDRMMOD0
+Data.Set 0xF8000040 %Long 0x000000D7    ; EBU_SDRMREF0
+
+; --------------------------------------------------------------------------------
+; TC1130 bug fix: PMI line buffer not invalidated during CPU halt
+; see Errata CPU_TC.053 for more details
+Data.Assemble 0xA1001000++0x3F nop16
+Data.Assemble 0xA1001000 debug16
+Data.Set 0xA1001040++0x3F %Long 0x0 ; context save area
+Data.PROLOG.TARGET 0xA1001000++0x3F 0xA1001040++0x3F
+Data.PROLOG.ON
+Register.Set PC 0xA1001002
+Step.single
+
+; --------------------------------------------------------------------------------
+; load demo program
+Data.LOAD.Elf "~~~~/demo.elf"
+Trace.Init
+Go.direct main
+
+; open some windows
+WinCLEAR
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame.view /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch
+Var.AddWatch ast flags
+
+ENDDO

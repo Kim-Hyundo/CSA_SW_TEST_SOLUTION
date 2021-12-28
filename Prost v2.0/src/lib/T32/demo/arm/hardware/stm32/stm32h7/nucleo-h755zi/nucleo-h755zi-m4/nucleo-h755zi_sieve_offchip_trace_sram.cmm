@@ -1,0 +1,132 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for STM32H755ZI-CM4 with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The Offchip Trace using a Combiprobe/uTrace or PowerTrace is set up.
+;   Use this script for testing the Offchip-Trace.
+;   Prerequisites:
+;    * Use this script, if only M4 core is booting (BCM7 = 0, BCM4 = 1)
+;    * The debug signals are avaialbe on CN5.
+;    * This demo uses the trace pins PE2 to PE6, that are avaialbe on CN11.
+; @Keywords: ARM, Cortex-M4, ETM, ITM
+; @Author: STK
+; @Board: NUCLEO-H755ZI
+; @Chip: STM32H755ZI-CM4
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: nucleo-h755zi_sieve_offchip_trace_sram.cmm 15857 2020-03-20 16:44:39Z skrausse $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.CPU STM32H755ZI-CM4
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace (ETM, ITM)
+IF COMBIPROBE()||UTRACE()||Analyzer()
+(
+  ; set PinMux and enable Clocks
+  ; set HSIDIV = /4 => 16 MHz => TRACECLK is 8 MHz
+  Data.Set AD:0x58024400 %Long Data.Long(AD:0x58024400)|0x10
+
+  ; set output speed to 0x0 to reduce EMI, should be set to 0x3 at full speed
+  GOSUB configure_trace_pins "0x0"
+
+  TPIU.PortSize 4
+  TPIU.PortMode Continuous
+  ITM.DataTrace CorrelatedData
+  ITM.ON
+  ETM.Trace ON
+  ETM.ON
+)
+IF Analyzer()
+(
+  Trace.METHOD Analyzer
+  Trace.AutoInit ON
+  Trace.AutoFocus
+)
+ELSE IF COMBIPROBE()||UTRACE()
+(
+  Trace.METHOD CAnalyzer
+  Trace.AutoInit ON
+  CAnalyzer.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO
+
+
+
+configure_trace_pins: ;(OSPEED)
+(
+  ; valid range of 'os' is 0x0 to 0x3, with 0x3 being the fastest option
+  PRIVATE &os
+  PARAMETERS &os
+
+  ; GPIOE ENable
+  Data.Set AD:0x580244E0 %Long Data.Long(AD:0x580244E0)|0x10
+
+  ; PE[2..6] set to Alternate Function 0
+  ; MODER, OSPEED, AFR
+  ; PE2 AF0 - TraceClk
+  Data.Set AD:0x58021000 %Long (Data.Long(AD:0x58021000)&~(0x3<<(2.*2.)))|(0x2<<(2.*2.))
+  Data.Set AD:0x58021008 %Long (Data.Long(AD:0x58021008)&~(0x3<<(2.*2.)))|(&os<<(2.*2.))
+  Data.Set AD:0x58021020 %Long (Data.Long(AD:0x58021020)&~(0xf<<(2.*4.)))|(0x0<<(2.*4.))
+  ; PE3 AF0 - TraceData0
+  Data.Set AD:0x58021000 %Long (Data.Long(AD:0x58021000)&~(0x3<<(3.*2.)))|(0x2<<(3.*2.))
+  Data.Set AD:0x58021008 %Long (Data.Long(AD:0x58021008)&~(0x3<<(3.*2.)))|(&os<<(3.*2.))
+  Data.Set AD:0x58021020 %Long (Data.Long(AD:0x58021020)&~(0xf<<(3.*4.)))|(0x0<<(3.*4.))
+  ; PE4 AF0 - TraceData1
+  Data.Set AD:0x58021000 %Long (Data.Long(AD:0x58021000)&~(0x3<<(4.*2.)))|(0x2<<(4.*2.))
+  Data.Set AD:0x58021008 %Long (Data.Long(AD:0x58021008)&~(0x3<<(4.*2.)))|(&os<<(4.*2.))
+  Data.Set AD:0x58021020 %Long (Data.Long(AD:0x58021020)&~(0xf<<(4.*4.)))|(0x0<<(4.*4.))
+  ; PE5 AF0 - TraceData2
+  Data.Set AD:0x58021000 %Long (Data.Long(AD:0x58021000)&~(0x3<<(5.*2.)))|(0x2<<(5.*2.))
+  Data.Set AD:0x58021008 %Long (Data.Long(AD:0x58021008)&~(0x3<<(5.*2.)))|(&os<<(5.*2.))
+  Data.Set AD:0x58021020 %Long (Data.Long(AD:0x58021020)&~(0xf<<(5.*4.)))|(0x0<<(5.*4.))
+  ; PE6 AF0 - TraceData3
+  Data.Set AD:0x58021000 %Long (Data.Long(AD:0x58021000)&~(0x3<<(6.*2.)))|(0x2<<(6.*2.))
+  Data.Set AD:0x58021008 %Long (Data.Long(AD:0x58021008)&~(0x3<<(6.*2.)))|(&os<<(6.*2.))
+  Data.Set AD:0x58021020 %Long (Data.Long(AD:0x58021020)&~(0xf<<(6.*4.)))|(0x0<<(6.*4.))
+
+  RETURN
+)

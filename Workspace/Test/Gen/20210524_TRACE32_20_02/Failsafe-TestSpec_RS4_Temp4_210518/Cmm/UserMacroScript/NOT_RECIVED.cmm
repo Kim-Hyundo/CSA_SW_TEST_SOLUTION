@@ -1,0 +1,12 @@
+//CAN Timeout 고장조건 확인
+B::
+//&para3 : 10ms -> 1cycle
+ENTRY &para1 &para2 &para3
+
+//ALL messages clear fault
+d.set Var.RANGE(can_timeout_tick) 0x0
+d.set Var.RANGE(can_timeout_fault) 0x0
+
+v msg_received_flags[&para1]=msg_received_flags[&para1]&~(1<<&para2)
+v can_timeout_tick[&para1][&para2]=&para3/10.
+ENDDO

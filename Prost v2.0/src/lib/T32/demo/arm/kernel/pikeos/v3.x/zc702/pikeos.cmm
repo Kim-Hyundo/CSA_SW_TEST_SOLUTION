@@ -1,0 +1,184 @@
+; --------------------------------------------------------------------------------
+; @Title: SIMPLE PikeOS Demo for TRACE32 OS Awareness
+; @Description: 
+;   
+;   This batchfile demonstrates the use of the OS Awareness for PikeOS
+;   on a small static PikeOS system. It is useful if you have only a
+;   small amount of PikeOS tasks with a static configuration.
+;   
+;   The example is generated for the Xilinx ZC702 evaluation board.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   PikeOS is downloaded to the board via ICD.
+;   
+; @Keywords: awareness, pikeos, RTOS, zc702
+; @Author: DIE
+; @Board: ZC702
+; @Chip: ZYNQ-7000
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: pikeos.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; Starting PikeOS "hello" example with TRACE32:
+; - Connect USB-UART cable
+; - Start TRACE32
+; - TRACE32: "do pikeos"
+; - Switch on the board
+
+
+&workspace="X:\RTOS\PikeOS\workspace\v3.3"
+
+
+ SCREEN.ALways      ; permanent update for internal terminal window
+ ; screen.on        ; if you use external terminal
+
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 21. 70. 9. 0. 0. W000
+ AREA.view
+ 
+ PRINT "resetting..."
+ RESet
+
+
+; Open serial terminal window
+ 
+ &term="COM4"
+ PRINT "starting terminal on &term"
+ WinPOS 35. 0. ,,,,, TERM.view
+ TERM.METHOD COM &term 115200. 8 NONE 1STOP NONE
+ TERM.SIZE 80. 1000.
+ TERM.Mode VT100
+ TERM.SCROLL ON
+ TERM.view
+ 
+ 
+; Repower target
+
+ IF STATE.POWER()
+ (
+    PRINT "please switch off power!"
+    WAIT !STATE.POWER()
+ )
+ PRINT "please switch on power!"
+ WAIT STATE.POWER()
+ 
+
+; Initialize Target
+
+ ; let bootloader initialize everything
+ PRINT "booting target..."
+ WAIT 8.s
+ 
+
+; Initialize debugger
+
+ PRINT "initializing debugger..."
+ 
+ SYStem.CPU ZYNQ-7000
+
+ SYStem.CONFIG DAPIRPRE 6.
+ SYStem.CONFIG DAPIRPOST 0.
+ SYStem.CONFIG DAPDRPRE 1.
+ SYStem.CONFIG DAPDRPOST 0.
+ 
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ TrOnchip.Set DABORT OFF        ; used by PikeOS for page miss!
+ TrOnchip.Set PABORT OFF        ; used by PikeOS for page miss!
+ TrOnchip.Set UNDEF OFF         ; my be used by PikeOS for FPU detection
+ TrOnchip.Set RESet OFF
+
+ SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+ 
+ MAP.DenyAccess 0x80000000--0x9fffffff  ; prevent bus error
+ 
+ SYStem.Up
+ 
+ SETUP.IMASKASM ON          ; lock interrupts while single stepping
+
+ Register.RESet
+ CORE.select 0
+ Register.RESet
+
+
+; Load the FPGA to support ETM trace
+
+ ;do trace/trace.cmm
+
+
+; Open a Code Window -- we like to see something
+
+ WinPOS 0. 0. 75. 20.
+ List.auto
+ 
+
+; Download PikeOS image
+
+ ; load and entry address see project.config, skip uboot-header
+ PRINT "loading PikeOS image..."
+ Data.LOAD.Binary &workspace\hello-zync.int\boot\hello-zynq-zc702-uboot_unc 0x00120000 /SKIP 0x40
+ Register.Set PC 0x00120000
+
+
+; Load kernel and application symbols
+
+ ; you can find the kernel symbol file in $(PIKEOS_PSP_DIR)/$(PIKEOS_PSP)/objects
+ PRINT "loading kernel symbols..."
+ Data.LOAD.Elf &workspace\psp\zync\psp-kernel-smp-tracesys /NoCODE /NoClear
+
+ ; load the application's symbol file to its space id,
+ ; which is equal to the task id it gets in the running system
+ PRINT "loading application symbols..."
+ Data.LOAD.Elf &workspace\hello-zync.app\hello.unstripped 2:0 /NoCODE /NoClear
+
+
+; Start kernel
+
+ Break.Set P4Main /Program /Onchip  ; use onchip due to MMU switch
+ Go
+ PRINT "initilizing PikeOS..."
+ WAIT !STATE.RUN()
+ Break.Delete P4Main
+
+
+; Declare the MMU format to the debugger
+
+ PRINT "initializing debugger translation..."
+ ;MMU.FORMAT PIKEOS
+ MMU.FORMAT STD
+ TRANSlation.Create 0x80000000--0x9fffffff 0x0  ; kernel
+ TRANSlation.COMMON 0x80000000--0xffffffff
+ TRANSlation.TableWalk ON
+ TRANSlation.ON
+ 
+
+; Initialize PikeOS Support
+
+ PRINT "initializing PikeOS support..."
+ TASK.CONFIG ~~/demo/arm/kernel/pikeos/v3.x/pikeos.t32      ; load PikeOS awareness
+ MENU.ReProgram ~~/demo/arm/kernel/pikeos/v3.x/pikeos.men   ; load PikeOS specific menu
+ 
+ ; Group kernel area to be displayed with red bar
+ GROUP.Create "kernel" 0x80000000--0xffffffff /RED
+
+
+; Start "hello" task by setting an onchip(!) breakpoint
+; onto its entry point
+
+ Break.Set hello_main /Onchip
+ Go
+ PRINT "starting hello task..."
+ WAIT !STATE.RUN()
+ Break.Delete
+
+
+; That's it!
+
+ PRINT "done."
+ 
+
+ENDDO

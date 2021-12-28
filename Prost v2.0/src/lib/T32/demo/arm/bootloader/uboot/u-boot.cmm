@@ -1,0 +1,11 @@
+; --------------------------------------------------------------------------------
+; @Title: Load the u-boot menu file
+; @Description:
+;   This script loads the u-boot menu in TRACE32
+;
+; @Author: KJM
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; $Id: u-boot.cmm 15209 2019-11-04 10:07:55Z bschroefel $
+; --------------------------------------------------------------------------------
+
+ MENU.ReProgram "~~~~/u-boot.men"

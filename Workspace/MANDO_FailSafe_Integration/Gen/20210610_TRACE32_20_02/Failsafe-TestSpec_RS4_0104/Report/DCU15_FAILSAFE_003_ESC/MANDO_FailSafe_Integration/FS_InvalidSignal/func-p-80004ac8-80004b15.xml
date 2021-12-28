@@ -1,0 +1,879 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="t32transform.xsl"?>
+<TRACE32 file="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Gen\20210610_TRACE32_20_02\Failsafe-TestSpec_RS4_0104\Report\DCU15_FAILSAFE_003_ESC\MANDO_FailSafe_Integration\FS_InvalidSignal\func-p-80004ac8-80004b15.xml">
+	<coverage>
+		<COVerage.EXPORT.ListLine ts="1623300910" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE" metric="object">
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\Rte_SWC_Diag</tree>
+				<cov>partial</cov>
+				<exec metric="object">50.847%</exec>
+				<branches>-</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>0</never>
+				<bytes>590</bytes>
+				<bytesok>300</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_HWFailure</tree>
+				<cov>partial</cov>
+				<exec metric="object">16.831%</exec>
+				<branches>10.000%</branches>
+				<ok>0</ok>
+				<taken>1</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>202</bytes>
+				<bytesok>34</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\SWC_Failsafe</tree>
+				<cov>partial</cov>
+				<exec metric="object">70.413%</exec>
+				<branches>-</branches>
+				<ok>4</ok>
+				<taken>10</taken>
+				<nottaken>22</nottaken>
+				<bytes>1548</bytes>
+				<bytesok>1090</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80002C38</addrFrom>
+				<addrTo>P:80002DC9</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\FS_BatteryVoltage</tree>
+				<cov>partial</cov>
+				<exec metric="object">50.248%</exec>
+				<branches>37.500%</branches>
+				<ok>1</ok>
+				<taken>10</taken>
+				<nottaken>6</nottaken>
+				<never>7</never>
+				<bytes>402</bytes>
+				<bytesok>202</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_CANBusOff</tree>
+				<cov>partial</cov>
+				<exec metric="object">54.263%</exec>
+				<branches>1.671%</branches>
+				<ok>1</ok>
+				<taken>4</taken>
+				<nottaken>5</nottaken>
+				<never>319</never>
+				<bytes>258</bytes>
+				<bytesok>140</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_CANTimeout</tree>
+				<cov>partial</cov>
+				<exec metric="object">74.013%</exec>
+				<branches>26.443%</branches>
+				<ok>53</ok>
+				<taken>40</taken>
+				<nottaken>28</nottaken>
+				<never>208</never>
+				<bytes>2432</bytes>
+				<bytesok>1800</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_InvalidSignal</tree>
+				<cov>partial</cov>
+				<exec metric="object">62.870%</exec>
+				<branches>51.823%</branches>
+				<ok>77</ok>
+				<taken>111</taken>
+				<nottaken>76</nottaken>
+				<never>65</never>
+				<bytes>5866</bytes>
+				<bytesok>3688</bytesok>
+				<function>
+					<addrFrom>P:80004AC8</addrFrom>
+					<addrTo>P:80004B15</addrTo>
+					<tree uid="p-80004ac8-80004b15">\\MANDO_FailSafe_Integration\FS_InvalidSignal\update_info</tree>
+					<cov>ok</cov>
+					<exec metric="object">100.000%</exec>
+					<branches>100.000%</branches>
+					<ok>6</ok>
+					<taken>0</taken>
+					<nottaken>0</nottaken>
+					<never>0</never>
+					<bytes>78</bytes>
+					<bytesok>78</bytesok>
+					<line>
+						<addrFrom>P:80004AC8</addrFrom>
+						<addrTo>P:80004ACB</addrTo>
+						<tree>FS_InvalidSignal.c \168--507</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004ACC</addrFrom>
+						<addrTo>P:80004ACD</addrTo>
+						<tree>FS_InvalidSignal.c \508--509</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>100.000%</branches>
+						<ok>1</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004ACE</addrFrom>
+						<addrTo>P:80004AD1</addrTo>
+						<tree>FS_InvalidSignal.c \510--510</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004AD2</addrFrom>
+						<addrTo>P:80004AD9</addrTo>
+						<tree>FS_InvalidSignal.c \511--512</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>100.000%</branches>
+						<ok>2</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>8</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_InvalidSignal.c \513--513</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>8</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004ADE</addrFrom>
+						<addrTo>P:80004AED</addrTo>
+						<tree>FS_InvalidSignal.c \514--514</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>100.000%</branches>
+						<ok>1</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>16</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004AEE</addrFrom>
+						<addrTo>P:80004AF1</addrTo>
+						<tree>FS_InvalidSignal.c \515--515</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004AF2</addrFrom>
+						<addrTo>P:80004AF5</addrTo>
+						<tree>FS_InvalidSignal.c \516--516</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_InvalidSignal.c \517--518</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>50.000%</branches>
+						<ok>1</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>1</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004AFE</addrFrom>
+						<addrTo>P:80004B03</addrTo>
+						<tree>FS_InvalidSignal.c \519--519</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>6</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004B04</addrFrom>
+						<addrTo>P:80004B0D</addrTo>
+						<tree>FS_InvalidSignal.c \520--520</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>100.000%</branches>
+						<ok>1</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>10</bytes>
+						<bytesok>10</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004B0E</addrFrom>
+						<addrTo>P:80004B11</addrTo>
+						<tree>FS_InvalidSignal.c \521--522</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_InvalidSignal.c \523--525</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<total>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>85.714%</branches>
+						<ok>6</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>1</never>
+						<bytes>78</bytes>
+						<bytesok>78</bytesok>
+					</total>
+				</function>
+				<total>
+					<cov>ok</cov>
+					<exec metric="object">100.000%</exec>
+					<branches>100.000%</branches>
+					<ok>6</ok>
+					<taken>0</taken>
+					<nottaken>0</nottaken>
+					<never>0</never>
+					<bytes>78</bytes>
+					<bytesok>78</bytesok>
+				</total>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_SWFailure</tree>
+				<cov>partial</cov>
+				<exec metric="object">48.979%</exec>
+				<branches>1.975%</branches>
+				<ok>2</ok>
+				<taken>4</taken>
+				<nottaken>5</nottaken>
+				<never>318</never>
+				<bytes>392</bytes>
+				<bytesok>192</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>5</never>
+				<bytes>806</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80005B2A</addrFrom>
+				<addrTo>P:80005CBB</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc1</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>402</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80005CBC</addrFrom>
+				<addrTo>P:80005E4D</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc2</tree>
+				<cov>partial</cov>
+				<exec metric="object">79.104%</exec>
+				<branches>75.000%</branches>
+				<ok>2</ok>
+				<taken>1</taken>
+				<nottaken>1</nottaken>
+				<never>0</never>
+				<bytes>402</bytes>
+				<bytesok>318</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc3</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc4</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_main</tree>
+				<cov>partial</cov>
+				<exec metric="object">24.691%</exec>
+				<branches>25.000%</branches>
+				<ok>1</ok>
+				<taken>1</taken>
+				<nottaken>1</nottaken>
+				<never>5</never>
+				<bytes>324</bytes>
+				<bytesok>80</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80006180</addrFrom>
+				<addrTo>P:80006315</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc5</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80006456</addrFrom>
+				<addrTo>P:80006485</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_stubs</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>2</never>
+				<bytes>48</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<total>
+				<cov>partial</cov>
+				<exec metric="object">52.679%</exec>
+				<branches>21.949%</branches>
+				<ok>141</ok>
+				<taken>182</taken>
+				<nottaken>144</nottaken>
+				<never>918</never>
+				<bytes>14890</bytes>
+				<bytesok>7844</bytesok>
+			</total>
+		</COVerage.EXPORT.ListLine>
+	</coverage>
+	<marker>
+		<BookMark.EXPORT ts="1623300910" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE">
+		</BookMark.EXPORT>
+	</marker>
+	<listing>
+		<List.EXPORT ts="1623300910" t32ver="R.2020.09.000128638" t32pv="TRICORE" order="source">
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>168</line><src></src></hll>
+				<hll><line>169</line><src>#elif CCAN == HSCAN</src></hll>
+				<hll><line>170</line><src>uint8 EMS16_bytes[8];</src></hll>
+				<hll><line>171</line><src>uint8 TCS11_bytes[8];</src></hll>
+				<hll><line>172</line><src>uint8 TCS13_bytes[8];</src></hll>
+				<hll><line>173</line><src>boolean CallOutRx_EMS16(void *SignalDataPtr, uint8 status)</src></hll>
+				<hll><line>174</line><src>{</src></hll>
+				<hll><line>175</line><src>    signal_data_t *info = SignalDataPtr;</src></hll>
+				<hll><line>176</line><src>    memcpy(EMS16_bytes, info-&gt;data_ptr, info-&gt;data_len);</src></hll>
+				<hll><line>177</line><src></src></hll>
+				<hll><line>178</line><src>    static uint8 EMS16_AlvCnt_prev = 4;</src></hll>
+				<hll><line>179</line><src>    uint8 EMS16_AlvCnt = (EMS16_bytes[7] &amp; 0x30) &gt;&gt; 4,</src></hll>
+				<hll><line>180</line><src>          EMS16_Checksum = EMS16_bytes[7] &amp; 0xF;</src></hll>
+				<hll><line>181</line><src></src></hll>
+				<hll><line>182</line><src>    uint8 chksum = 0; // 4-bit checksum</src></hll>
+				<hll><line>183</line><src>    for (int i = 0; i &lt;= 6; i++)</src></hll>
+				<hll><line>184</line><src>        chksum += EMS16_bytes[i] + (EMS16_bytes[i] &gt;&gt; 4);</src></hll>
+				<hll><line>185</line><src>    chksum += (EMS16_bytes[7] &gt;&gt; 4);</src></hll>
+				<hll><line>186</line><src>    chksum = (0x10 - (chksum &amp; 0xF)) &amp; 0xF;</src></hll>
+				<hll><line>187</line><src></src></hll>
+				<hll><line>188</line><src>    if (check_ac(&amp;EMS16_AlvCnt_prev, &amp;EMS16_AlvCnt, 3) ||</src></hll>
+				<hll><line>189</line><src>        (chksum != EMS16_Checksum))</src></hll>
+				<hll><line>190</line><src>        e2e_err_flags[CHASSIS_0] |= BIT(EMS16_POS);</src></hll>
+				<hll><line>191</line><src>    else</src></hll>
+				<hll><line>192</line><src>        e2e_err_flags[CHASSIS_0] &amp;= ~BIT(EMS16_POS);</src></hll>
+				<hll><line>193</line><src></src></hll>
+				<hll><line>194</line><src>    return TRUE;</src></hll>
+				<hll><line>195</line><src>}</src></hll>
+				<hll><line>196</line><src></src></hll>
+				<hll><line>197</line><src>boolean CallOutRx_TCS11(void *SignalDataPtr, uint8 status)</src></hll>
+				<hll><line>198</line><src>{</src></hll>
+				<hll><line>199</line><src>    signal_data_t *info = SignalDataPtr;</src></hll>
+				<hll><line>200</line><src>    memcpy(TCS11_bytes, info-&gt;data_ptr, info-&gt;data_len);</src></hll>
+				<hll><line>201</line><src></src></hll>
+				<hll><line>202</line><src>    static uint8 TCS11_AlvCnt_prev = 16;</src></hll>
+				<hll><line>203</line><src>    uint8 TCS11_AlvCnt = (TCS11_bytes[6] &amp; 0xF0) &gt;&gt; 4,</src></hll>
+				<hll><line>204</line><src>          TCS11_Checksum = TCS11_bytes[7];</src></hll>
+				<hll><line>205</line><src></src></hll>
+				<hll><line>206</line><src>    uint8 chksum = 0;</src></hll>
+				<hll><line>207</line><src>    for (int i = 0; i &lt;= 6; i++)</src></hll>
+				<hll><line>208</line><src>        chksum += TCS11_bytes[i];</src></hll>
+				<hll><line>209</line><src></src></hll>
+				<hll><line>210</line><src>    if (check_ac(&amp;TCS11_AlvCnt_prev, &amp;TCS11_AlvCnt, 15) ||</src></hll>
+				<hll><line>211</line><src>        (chksum != TCS11_Checksum))</src></hll>
+				<hll><line>212</line><src>        e2e_err_flags[CHASSIS_0] |= BIT(TCS11_POS);</src></hll>
+				<hll><line>213</line><src>    else</src></hll>
+				<hll><line>214</line><src>        e2e_err_flags[CHASSIS_0] &amp;= ~BIT(TCS11_POS);</src></hll>
+				<hll><line>215</line><src></src></hll>
+				<hll><line>216</line><src>    return TRUE;</src></hll>
+				<hll><line>217</line><src>}</src></hll>
+				<hll><line>218</line><src></src></hll>
+				<hll><line>219</line><src>boolean CallOutRx_TCS13(void *SignalDataPtr, uint8 status)</src></hll>
+				<hll><line>220</line><src>{</src></hll>
+				<hll><line>221</line><src>    signal_data_t *info = SignalDataPtr;</src></hll>
+				<hll><line>222</line><src>    memcpy(TCS13_bytes, info-&gt;data_ptr, info-&gt;data_len);</src></hll>
+				<hll><line>223</line><src></src></hll>
+				<hll><line>224</line><src>    static uint8 TCS13_AlvCnt_prev = 8;</src></hll>
+				<hll><line>225</line><src>    uint8 TCS13_AlvCnt = (TCS13_bytes[1] &amp; 0xE0) &gt;&gt; 5,</src></hll>
+				<hll><line>226</line><src>          TCS13_Checksum = TCS13_bytes[6] &amp; 0xF;</src></hll>
+				<hll><line>227</line><src></src></hll>
+				<hll><line>228</line><src>    uint8 chksum = 0; // 4-bit checksum</src></hll>
+				<hll><line>229</line><src>    for (int i = 0; i &lt;= 5; i++)</src></hll>
+				<hll><line>230</line><src>        chksum += TCS13_bytes[i] + (TCS13_bytes[i] &gt;&gt; 4);</src></hll>
+				<hll><line>231</line><src>    chksum += (TCS13_bytes[6] &gt;&gt; 4);</src></hll>
+				<hll><line>232</line><src>    chksum = (0x10 - (chksum &amp; 0xF)) &amp; 0xF;</src></hll>
+				<hll><line>233</line><src></src></hll>
+				<hll><line>234</line><src>    if (check_ac(&amp;TCS13_AlvCnt_prev, &amp;TCS13_AlvCnt, 7) ||</src></hll>
+				<hll><line>235</line><src>        (chksum != TCS13_Checksum))</src></hll>
+				<hll><line>236</line><src>        e2e_err_flags[CHASSIS_0] |= BIT(TCS13_POS);</src></hll>
+				<hll><line>237</line><src>    else</src></hll>
+				<hll><line>238</line><src>        e2e_err_flags[CHASSIS_0] &amp;= ~BIT(TCS13_POS);</src></hll>
+				<hll><line>239</line><src></src></hll>
+				<hll><line>240</line><src>    return TRUE;</src></hll>
+				<hll><line>241</line><src>}</src></hll>
+				<hll><line>242</line><src></src></hll>
+				<hll><line>243</line><src>void UpdateRx_E2E_P_STS(MsgGr_CCAN_P_STS *P_STS)</src></hll>
+				<hll><line>244</line><src>{</src></hll>
+				<hll><line>245</line><src>    if (!is_updated(CHASSIS_0, P_STS_POS))</src></hll>
+				<hll><line>246</line><src>        return;</src></hll>
+				<hll><line>247</line><src></src></hll>
+				<hll><line>248</line><src>    static uint8 P_STS_AlvCnt_prev = 16;</src></hll>
+				<hll><line>249</line><src></src></hll>
+				<hll><line>250</line><src>    if (check_ac(&amp;P_STS_AlvCnt_prev, &amp;P_STS-&gt;P_STS_AliveCounter, 15))</src></hll>
+				<hll><line>251</line><src>        e2e_err_flags[CHASSIS_0] |= BIT(P_STS_POS);</src></hll>
+				<hll><line>252</line><src>    else</src></hll>
+				<hll><line>253</line><src>        e2e_err_flags[CHASSIS_0] &amp;= ~BIT(P_STS_POS);</src></hll>
+				<hll><line>254</line><src>}</src></hll>
+				<hll><line>255</line><src></src></hll>
+				<hll><line>256</line><src>void UpdateRx_E2E_CLU11(MsgGr_CCAN_CLU11 *CLU11)</src></hll>
+				<hll><line>257</line><src>{</src></hll>
+				<hll><line>258</line><src>    if (!is_updated(CHASSIS_0, CLU11_POS))</src></hll>
+				<hll><line>259</line><src>        return;</src></hll>
+				<hll><line>260</line><src></src></hll>
+				<hll><line>261</line><src>    static uint8 CLU11_AlvCnt_prev = 16;</src></hll>
+				<hll><line>262</line><src></src></hll>
+				<hll><line>263</line><src>    if (check_ac(&amp;CLU11_AlvCnt_prev, &amp;CLU11-&gt;CF_Clu_AliveCnt1, 15))</src></hll>
+				<hll><line>264</line><src>        e2e_err_flags[CHASSIS_0] |= BIT(CLU11_POS);</src></hll>
+				<hll><line>265</line><src>    else</src></hll>
+				<hll><line>266</line><src>        e2e_err_flags[CHASSIS_0] &amp;= ~BIT(CLU11_POS);</src></hll>
+				<hll><line>267</line><src>}</src></hll>
+				<hll><line>268</line><src></src></hll>
+				<hll><line>269</line><src>void UpdateRx_E2E_SAS11(MsgGr_CCAN_SAS11 *SAS11)</src></hll>
+				<hll><line>270</line><src>{</src></hll>
+				<hll><line>271</line><src>    if (!is_updated(CHASSIS_0, SAS11_POS))</src></hll>
+				<hll><line>272</line><src>        return;</src></hll>
+				<hll><line>273</line><src></src></hll>
+				<hll><line>274</line><src>    static uint8 SAS11_AlvCnt_prev = 16;</src></hll>
+				<hll><line>275</line><src></src></hll>
+				<hll><line>276</line><src>    uint8 bytes[4] = {</src></hll>
+				<hll><line>277</line><src>        [0] = SAS11-&gt;SAS_Angle &amp; 0xFF,</src></hll>
+				<hll><line>278</line><src>        [1] = SAS11-&gt;SAS_Angle &gt;&gt; 8,</src></hll>
+				<hll><line>279</line><src>        [2] = SAS11-&gt;SAS_Speed,</src></hll>
+				<hll><line>280</line><src>        [3] = SAS11-&gt;SAS_Stat,</src></hll>
+				<hll><line>281</line><src>    };</src></hll>
+				<hll><line>282</line><src></src></hll>
+				<hll><line>283</line><src>    uint8 chksum = 0;</src></hll>
+				<hll><line>284</line><src>    for (int i = 0; i &lt;= 3; i++)</src></hll>
+				<hll><line>285</line><src>        chksum ^= bytes[i];</src></hll>
+				<hll><line>286</line><src>    chksum = (chksum &gt;&gt; 4) ^ (chksum &amp; 0xF) ^ (SAS11-&gt;MsgCount);</src></hll>
+				<hll><line>287</line><src></src></hll>
+				<hll><line>288</line><src>    if (check_ac(&amp;SAS11_AlvCnt_prev, &amp;SAS11-&gt;MsgCount, 15) ||</src></hll>
+				<hll><line>289</line><src>        (chksum != SAS11-&gt;CheckSum))</src></hll>
+				<hll><line>290</line><src>        e2e_err_flags[CHASSIS_0] |= BIT(SAS11_POS);</src></hll>
+				<hll><line>291</line><src>    else</src></hll>
+				<hll><line>292</line><src>        e2e_err_flags[CHASSIS_0] &amp;= ~BIT(SAS11_POS);</src></hll>
+				<hll><line>293</line><src>}</src></hll>
+				<hll><line>294</line><src></src></hll>
+				<hll><line>295</line><src>void UpdateTx_E2E_ADAS_CMD_10_1_20ms(MsgGr_CCAN_ADAS_CMD_10_1_20ms *ADAS_CMD_10_1_20ms)</src></hll>
+				<hll><line>296</line><src>{</src></hll>
+				<hll><line>297</line><src>    ADAS_CMD_10_1_20ms-&gt;ADAS_CMD_AlvCnt10_1Val = ++ADAS_CMD_10_1_20ms-&gt;ADAS_CMD_AlvCnt10_1Val % ALV_CNT_LIM;</src></hll>
+				<hll><line>298</line><src></src></hll>
+				<hll><line>299</line><src>    uint8 bytes[7] = {</src></hll>
+				<hll><line>300</line><src>        [0] = ADAS_CMD_10_1_20ms-&gt;ADAS_CMD_AlvCnt10_1Val &lt;&lt; 4,</src></hll>
+				<hll><line>301</line><src>        [1] = ADAS_CMD_10_1_20ms-&gt;FCA_StbltActvReq &lt;&lt; 5 | ADAS_CMD_10_1_20ms-&gt;FCA_WrngLvlSta &lt;&lt; 3 | ADAS_CMD_10_1_20ms-&gt;FCA_HydrlcBstAsstReq &lt;&lt; 1 | ADAS_CMD_10_1_20ms-&gt;FCA_PrefillActvReq,</src></hll>
+				<hll><line>302</line><src>        [2] = ADAS_CMD_10_1_20ms-&gt;FCA_DclReqVal &amp; 0xFF,</src></hll>
+				<hll><line>303</line><src>        [3] = ADAS_CMD_10_1_20ms-&gt;FCA_PartialActvReq &lt;&lt; 5 | ADAS_CMD_10_1_20ms-&gt;FCA_VehStpReq &lt;&lt; 4 | ADAS_CMD_10_1_20ms-&gt;FCA_FullActvReq &lt;&lt; 3 | ADAS_CMD_10_1_20ms-&gt;FCA_SysFlrSta,</src></hll>
+				<hll><line>304</line><src>        [5] = ADAS_CMD_10_1_20ms-&gt;FCA_WrngTrgtDis &lt;&lt; 7,</src></hll>
+				<hll><line>305</line><src>        [6] = ADAS_CMD_10_1_20ms-&gt;FCA_WrngSndSta &lt;&lt; 6 | ADAS_CMD_10_1_20ms-&gt;ADAS_DRV_FCA_Plus_Sta &lt;&lt; 4 | ADAS_CMD_10_1_20ms-&gt;FCA_WrngTrgtDis &gt;&gt; 1,</src></hll>
+				<hll><line>306</line><src>    };</src></hll>
+				<hll><line>307</line><src>    ADAS_CMD_10_1_20ms-&gt;ADAS_CMD_Crc10_1Val = calc_crc(bytes, sizeof(bytes));</src></hll>
+				<hll><line>308</line><src>}</src></hll>
+				<hll><line>309</line><src></src></hll>
+				<hll><line>310</line><src>void UpdateTx_E2E_ADAS_CMD_10_2_200ms(MsgGr_CCAN_ADAS_CMD_10_2_200ms *ADAS_CMD_10_2_200ms)</src></hll>
+				<hll><line>311</line><src>{</src></hll>
+				<hll><line>312</line><src>    ADAS_CMD_10_2_200ms-&gt;ADAS_CMD_AlvCnt10_2Val = ++ADAS_CMD_10_2_200ms-&gt;ADAS_CMD_AlvCnt10_2Val % ALV_CNT_LIM;</src></hll>
+				<hll><line>313</line><src></src></hll>
+				<hll><line>314</line><src>    uint8 bytes[7] = {</src></hll>
+				<hll><line>315</line><src>        [0] = ADAS_CMD_10_2_200ms-&gt;ADAS_CMD_AlvCnt10_2Val &lt;&lt; 4,</src></hll>
+				<hll><line>316</line><src>        [1] = ADAS_CMD_10_2_200ms-&gt;Nmode_FCAOff_Sta &lt;&lt; 6 | ADAS_CMD_10_2_200ms-&gt;FCA_SnstvtyModRetVal &lt;&lt; 3 | ADAS_CMD_10_2_200ms-&gt;FCA_OnOffEquipSta,</src></hll>
+				<hll><line>317</line><src>        [2] = ADAS_CMD_10_2_200ms-&gt;FCA_Jnctn_OnOffEquipSta,</src></hll>
+				<hll><line>318</line><src>#if 1 /* FIXME: Remove after resolving padding issue */</src></hll>
+				<hll><line>319</line><src>        [5] = 0xFF,</src></hll>
+				<hll><line>320</line><src>        [6] = 0xFF,</src></hll>
+				<hll><line>321</line><src>#endif</src></hll>
+				<hll><line>322</line><src>    };</src></hll>
+				<hll><line>323</line><src>    ADAS_CMD_10_2_200ms-&gt;ADAS_CMD_Crc10_2Val = calc_crc(bytes, sizeof(bytes));</src></hll>
+				<hll><line>324</line><src>}</src></hll>
+				<hll><line>325</line><src></src></hll>
+				<hll><line>326</line><src>void UpdateTx_E2E_ADAS_CMD_20_1_20ms(MsgGr_CCAN_ADAS_CMD_20_1_20ms *ADAS_CMD_20_1_20ms)</src></hll>
+				<hll><line>327</line><src>{</src></hll>
+				<hll><line>328</line><src>    ADAS_CMD_20_1_20ms-&gt;ADAS_CMD_AlvCnt20_1Val = ++ADAS_CMD_20_1_20ms-&gt;ADAS_CMD_AlvCnt20_1Val % ALV_CNT_LIM;</src></hll>
+				<hll><line>329</line><src></src></hll>
+				<hll><line>330</line><src>    uint8 bytes[7] = {</src></hll>
+				<hll><line>331</line><src>        [0] = ADAS_CMD_20_1_20ms-&gt;ADAS_CMD_AlvCnt20_1Val &lt;&lt; 4,</src></hll>
+				<hll><line>332</line><src>        [1] = ADAS_CMD_20_1_20ms-&gt;SCC_AccelReqVal &amp; 0xFF,</src></hll>
+				<hll><line>333</line><src>        [2] = (ADAS_CMD_20_1_20ms-&gt;SCC_AccelReqRawVal &lt;&lt; 3 | ADAS_CMD_20_1_20ms-&gt;SCC_AccelReqVal &gt;&gt; 8) &amp; 0xFF,</src></hll>
+				<hll><line>334</line><src>        [3] = (ADAS_CMD_20_1_20ms-&gt;SCC_JrkUppLimVal &lt;&lt; 6 | ADAS_CMD_20_1_20ms-&gt;SCC_AccelReqRawVal &gt;&gt; 5) &amp; 0xFF,</src></hll>
+				<hll><line>335</line><src>        [4] = (ADAS_CMD_20_1_20ms-&gt;SCC_JrkLwrLimVal &lt;&lt; 5 | ADAS_CMD_20_1_20ms-&gt;SCC_JrkUppLimVal &gt;&gt; 2) &amp; 0xFF,</src></hll>
+				<hll><line>336</line><src>        [5] = (ADAS_CMD_20_1_20ms-&gt;SCC_AccelLimBandUppVal &lt;&lt; 4 | ADAS_CMD_20_1_20ms-&gt;SCC_JrkLwrLimVal &gt;&gt; 3) &amp; 0xFF,</src></hll>
+				<hll><line>337</line><src>        [6] = ADAS_CMD_20_1_20ms-&gt;SCC_AccelLimBandLwrVal &lt;&lt; 2 | ADAS_CMD_20_1_20ms-&gt;SCC_AccelLimBandUppVal &gt;&gt; 4,</src></hll>
+				<hll><line>338</line><src>    };</src></hll>
+				<hll><line>339</line><src>    ADAS_CMD_20_1_20ms-&gt;ADAS_CMD_Crc20_1Val = calc_crc(bytes, sizeof(bytes));</src></hll>
+				<hll><line>340</line><src>}</src></hll>
+				<hll><line>341</line><src></src></hll>
+				<hll><line>342</line><src>void UpdateTx_E2E_ADAS_CMD_20_2_20ms(MsgGr_CCAN_ADAS_CMD_20_2_20ms *ADAS_CMD_20_2_20ms)</src></hll>
+				<hll><line>343</line><src>{</src></hll>
+				<hll><line>344</line><src>    ADAS_CMD_20_2_20ms-&gt;ADAS_CMD_AlvCnt20_2Val = ++ADAS_CMD_20_2_20ms-&gt;ADAS_CMD_AlvCnt20_2Val % ALV_CNT_LIM;</src></hll>
+				<hll><line>345</line><src></src></hll>
+				<hll><line>346</line><src>    uint8 bytes[7] = {</src></hll>
+				<hll><line>347</line><src>        [0] = ADAS_CMD_20_2_20ms-&gt;ADAS_CMD_AlvCnt20_2Val &lt;&lt; 4,</src></hll>
+				<hll><line>348</line><src>        [1] = ADAS_CMD_20_2_20ms-&gt;SCC_ObjDstVal &amp; 0xFF,</src></hll>
+				<hll><line>349</line><src>        [2] = ADAS_CMD_20_2_20ms-&gt;SCC_TakeoverReq &lt;&lt; 7 | ADAS_CMD_20_2_20ms-&gt;SCC_OpSta &lt;&lt; 4 | ADAS_CMD_20_2_20ms-&gt;SCC_MainOnOffSta &lt;&lt; 3 | ADAS_CMD_20_2_20ms-&gt;SCC_ObjDstVal &gt;&gt; 8,</src></hll>
+				<hll><line>350</line><src>        [3] = (ADAS_CMD_20_2_20ms-&gt;SCC_HeadwayDstSetVal &lt;&lt; 5 | ADAS_CMD_20_2_20ms-&gt;SCC_DrvAlrtDis &lt;&lt; 3 | ADAS_CMD_20_2_20ms-&gt;SCC_InfoDis) &amp; 0xFF,</src></hll>
+				<hll><line>351</line><src>        [4] = (ADAS_CMD_20_2_20ms-&gt;SCC_TrgtSpdSetVal &lt;&lt; 1 | ADAS_CMD_20_2_20ms-&gt;SCC_HeadwayDstSetVal &gt;&gt; 3) &amp; 0xFF,</src></hll>
+				<hll><line>352</line><src>        [5] = (ADAS_CMD_20_2_20ms-&gt;SCC_TrgtDstVal &lt;&lt; 2 | ADAS_CMD_20_2_20ms-&gt;SCC_VehStpReq &lt;&lt; 1 | ADAS_CMD_20_2_20ms-&gt;SCC_TrgtSpdSetVal &gt;&gt; 7) &amp; 0xFF,</src></hll>
+				<hll><line>353</line><src>        [6] = ADAS_CMD_20_2_20ms-&gt;SCC_TrgtDstVal &gt;&gt; 6,</src></hll>
+				<hll><line>354</line><src>    };</src></hll>
+				<hll><line>355</line><src>    ADAS_CMD_20_2_20ms-&gt;ADAS_CMD_Crc20_2Val = calc_crc(bytes, sizeof(bytes));</src></hll>
+				<hll><line>356</line><src>}</src></hll>
+				<hll><line>357</line><src></src></hll>
+				<hll><line>358</line><src>void UpdateTx_E2E_ADAS_CMD_20_3_20ms(MsgGr_CCAN_ADAS_CMD_20_3_20ms *ADAS_CMD_20_3_20ms)</src></hll>
+				<hll><line>359</line><src>{</src></hll>
+				<hll><line>360</line><src>    ADAS_CMD_20_3_20ms-&gt;ADAS_CMD_AlvCnt20_3Val = ++ADAS_CMD_20_3_20ms-&gt;ADAS_CMD_AlvCnt20_3Val % ALV_CNT_LIM;</src></hll>
+				<hll><line>361</line><src></src></hll>
+				<hll><line>362</line><src>    uint8 bytes[7] = {</src></hll>
+				<hll><line>363</line><src>        [0] = ADAS_CMD_20_3_20ms-&gt;ADAS_CMD_AlvCnt20_3Val &lt;&lt; 4,</src></hll>
+				<hll><line>364</line><src>        [1] = ADAS_CMD_20_3_20ms-&gt;SCC_ObjRelSpdVal &amp; 0xFF,</src></hll>
+				<hll><line>365</line><src>        [2] = (ADAS_CMD_20_3_20ms-&gt;SCC_ObjLatPosVal &lt;&lt; 4 | ADAS_CMD_20_3_20ms-&gt;SCC_ObjRelSpdVal &gt;&gt; 8) &amp; 0xFF,</src></hll>
+				<hll><line>366</line><src>        [3] = ADAS_CMD_20_3_20ms-&gt;SCC_SysFlrSta &lt;&lt; 5 | ADAS_CMD_20_3_20ms-&gt;SCC_ObjLatPosVal &gt;&gt; 4,</src></hll>
+				<hll><line>367</line><src>        [4] = (ADAS_CMD_20_3_20ms-&gt;SCC_NSCCOpSta &lt;&lt; 7) &amp; 0xFF,</src></hll>
+				<hll><line>368</line><src>        [5] = (ADAS_CMD_20_3_20ms-&gt;SCC_SnstvtyModRetVal &lt;&lt; 6 | ADAS_CMD_20_3_20ms-&gt;SCC_ObjSta &lt;&lt; 3 | ADAS_CMD_20_3_20ms-&gt;SCC_NSCCOnOffSta &lt;&lt; 1 | ADAS_CMD_20_3_20ms-&gt;SCC_NSCCOpSta &gt;&gt; 1) &amp; 0xFF,</src></hll>
+				<hll><line>369</line><src>        [6] = ADAS_CMD_20_3_20ms-&gt;SCC_NSCCInfoPUDis &lt;&lt; 5 | ADAS_CMD_20_3_20ms-&gt;SCC_NSCCAutoSetSpdUpdtSta &lt;&lt; 3 | ADAS_CMD_20_3_20ms-&gt;SCC_NSCCAutoSetSpdSta &lt;&lt; 1 | ADAS_CMD_20_3_20ms-&gt;SCC_SnstvtyModRetVal &gt;&gt; 2,</src></hll>
+				<hll><line>370</line><src>    };</src></hll>
+				<hll><line>371</line><src>    ADAS_CMD_20_3_20ms-&gt;ADAS_CMD_Crc20_3Val = calc_crc(bytes, sizeof(bytes));</src></hll>
+				<hll><line>372</line><src>}</src></hll>
+				<hll><line>373</line><src></src></hll>
+				<hll><line>374</line><src>void UpdateTx_E2E_ADAS_CMD_21_1_50ms(MsgGr_CCAN_ADAS_CMD_21_1_50ms *ADAS_CMD_21_1_50ms)</src></hll>
+				<hll><line>375</line><src>{</src></hll>
+				<hll><line>376</line><src>    ADAS_CMD_21_1_50ms-&gt;ADAS_CMD_AlvCnt21_1Val = ++ADAS_CMD_21_1_50ms-&gt;ADAS_CMD_AlvCnt21_1Val % ALV_CNT_LIM;</src></hll>
+				<hll><line>377</line><src></src></hll>
+				<hll><line>378</line><src>    uint8 bytes[7] = {</src></hll>
+				<hll><line>379</line><src>        [0] = ADAS_CMD_21_1_50ms-&gt;ADAS_CMD_AlvCnt21_1Val &lt;&lt; 4,</src></hll>
+				<hll><line>380</line><src>        [1] = ADAS_CMD_21_1_50ms-&gt;SCCML_LearningChar1Sta &lt;&lt; 5 | ADAS_CMD_21_1_50ms-&gt;SCCMode_OptUsmSta,</src></hll>
+				<hll><line>381</line><src>        [2] = ADAS_CMD_21_1_50ms-&gt;SCCML_LearningChar3Sta &lt;&lt; 3 | ADAS_CMD_21_1_50ms-&gt;SCCML_LearningChar2Sta,</src></hll>
+				<hll><line>382</line><src>    };</src></hll>
+				<hll><line>383</line><src>    ADAS_CMD_21_1_50ms-&gt;ADAS_CMD_Crc21_1Val = calc_crc(bytes, sizeof(bytes));</src></hll>
+				<hll><line>384</line><src>}</src></hll>
+				<hll><line>385</line><src></src></hll>
+				<hll><line>386</line><src>void UpdateTx_E2E_ADAS_CMD_30_1_10ms(MsgGr_CCAN_ADAS_CMD_30_1_10ms *ADAS_CMD_30_1_10ms)</src></hll>
+				<hll><line>387</line><src>{</src></hll>
+				<hll><line>388</line><src>    ADAS_CMD_30_1_10ms-&gt;ADAS_CMD_Crc30_1Val = 0xFF;</src></hll>
+				<hll><line>389</line><src>    ADAS_CMD_30_1_10ms-&gt;ADAS_CMD_AlvCnt30_1Val = ++ADAS_CMD_30_1_10ms-&gt;ADAS_CMD_AlvCnt30_1Val % 16;</src></hll>
+				<hll><line>390</line><src></src></hll>
+				<hll><line>391</line><src>    uint8 bytes[8] = {</src></hll>
+				<hll><line>392</line><src>        [0] = 0xFF, // ADAS_CMD_30_1_10ms-&gt;ADAS_CMD_Crc30_1Val,</src></hll>
+				<hll><line>393</line><src>        [1] = (ADAS_CMD_30_1_10ms-&gt;LKA_RHLnWrnSta &lt;&lt; 6) | (ADAS_CMD_30_1_10ms-&gt;LKA_LHLnWrnSta &lt;&lt; 4) | (ADAS_CMD_30_1_10ms-&gt;LKA_SysWrn),</src></hll>
+				<hll><line>394</line><src>        [2] = (ADAS_CMD_30_1_10ms-&gt;ADAS_StrTqReqVal &amp; 0xFF),</src></hll>
+				<hll><line>395</line><src>        [3] = (ADAS_CMD_30_1_10ms-&gt;LKA_RcgSta &lt;&lt; 6) | (ADAS_CMD_30_1_10ms-&gt;LKA_HndsoffSnd &lt;&lt; 5) | (ADAS_CMD_30_1_10ms-&gt;LKA_ToiFltSta &lt;&lt; 4) | (ADAS_CMD_30_1_10ms-&gt;LKA_ActToiSta &lt;&lt; 3) | (ADAS_CMD_30_1_10ms-&gt;ADAS_StrTqReqVal &gt;&gt; 8),</src></hll>
+				<hll><line>396</line><src>        [4] = (ADAS_CMD_30_1_10ms-&gt;ADAS_CMD_AlvCnt30_1Val &lt;&lt; 4) | (ADAS_CMD_30_1_10ms-&gt;LKA_SysIndReq),</src></hll>
+				<hll><line>397</line><src>        [5] = ADAS_CMD_30_1_10ms-&gt;ADAS_Damping_Gain,</src></hll>
+				<hll><line>398</line><src>        [6] = 0x00, // ADAS_CMD_30_1_10ms-&gt;ADAS_CMD_Chksum30_1Val,</src></hll>
+				<hll><line>399</line><src>        [7] = ADAS_CMD_30_1_10ms-&gt;FCA_ESA_CtrlSta &lt;&lt; 5,</src></hll>
+				<hll><line>400</line><src>    };</src></hll>
+				<hll><line>401</line><src></src></hll>
+				<hll><line>402</line><src>    uint8 chksum = 0;</src></hll>
+				<hll><line>403</line><src>    for (int i = 0; i &lt; 8; i++)</src></hll>
+				<hll><line>404</line><src>        chksum += bytes[i];</src></hll>
+				<hll><line>405</line><src></src></hll>
+				<hll><line>406</line><src>    ADAS_CMD_30_1_10ms-&gt;ADAS_CMD_Chksum30_1Val = chksum;</src></hll>
+				<hll><line>407</line><src>}</src></hll>
+				<hll><line>408</line><src></src></hll>
+				<hll><line>409</line><src>void UpdateTx_E2E_ADAS_CMD_30_2_20ms(MsgGr_CCAN_ADAS_CMD_30_2_20ms *ADAS_CMD_30_2_20ms)</src></hll>
+				<hll><line>410</line><src>{</src></hll>
+				<hll><line>411</line><src>    ADAS_CMD_30_2_20ms-&gt;ADAS_CMD_AlvCnt30_2Val = ++ADAS_CMD_30_2_20ms-&gt;ADAS_CMD_AlvCnt30_2Val % ALV_CNT_LIM;</src></hll>
+				<hll><line>412</line><src></src></hll>
+				<hll><line>413</line><src>    uint8 bytes[7] = {</src></hll>
+				<hll><line>414</line><src>        [0] = ADAS_CMD_30_2_20ms-&gt;ADAS_CMD_AlvCnt30_2Val &lt;&lt; 4,</src></hll>
+				<hll><line>415</line><src>        [1] = (ADAS_CMD_30_2_20ms-&gt;FCA_LS_WrnSta &lt;&lt; 6 | ADAS_CMD_30_2_20ms-&gt;FCA_LO_WrnSta &lt;&lt; 3) &amp; 0xFF,</src></hll>
+				<hll><line>416</line><src>        [2] = (ADAS_CMD_30_2_20ms-&gt;FCA_ESA_WrnSta &lt;&lt; 6 | ADAS_CMD_30_2_20ms-&gt;FCA_LS_WrnSta &gt;&gt; 2) &amp; 0xFF,</src></hll>
+				<hll><line>417</line><src>        [3] = ADAS_CMD_30_2_20ms-&gt;LKA_UsmMod &lt;&lt; 4 | ADAS_CMD_30_2_20ms-&gt;LKA_OptUsmSta &lt;&lt; 1 | ADAS_CMD_30_2_20ms-&gt;FCA_ESA_WrnSta &gt;&gt; 2,</src></hll>
+				<hll><line>418</line><src>    };</src></hll>
+				<hll><line>419</line><src>    ADAS_CMD_30_2_20ms-&gt;ADAS_CMD_Crc30_2Val = calc_crc(bytes, sizeof(bytes));</src></hll>
+				<hll><line>420</line><src>}</src></hll>
+				<hll><line>421</line><src></src></hll>
+				<hll><line>422</line><src>void UpdateTx_E2E_ADAS_CMD_31_1_50ms(MsgGr_CCAN_ADAS_CMD_31_1_50ms *ADAS_CMD_31_1_50ms)</src></hll>
+				<hll><line>423</line><src>{</src></hll>
+				<hll><line>424</line><src>    ADAS_CMD_31_1_50ms-&gt;ADAS_CMD_AlvCnt31_1Val = ++ADAS_CMD_31_1_50ms-&gt;ADAS_CMD_AlvCnt31_1Val % ALV_CNT_LIM;</src></hll>
+				<hll><line>425</line><src></src></hll>
+				<hll><line>426</line><src>    uint8 bytes[7] = {</src></hll>
+				<hll><line>427</line><src>        [0] = ADAS_CMD_31_1_50ms-&gt;ADAS_CMD_AlvCnt31_1Val &lt;&lt; 4,</src></hll>
+				<hll><line>428</line><src>        [1] = ADAS_CMD_31_1_50ms-&gt;HDA_InfoPUDis &lt;&lt; 5 | ADAS_CMD_31_1_50ms-&gt;HDA_CntrlModSta &lt;&lt; 3 | ADAS_CMD_31_1_50ms-&gt;HDA_OptUsmSta,</src></hll>
+				<hll><line>429</line><src>        [2] = ADAS_CMD_31_1_50ms-&gt;HDA_InfoPUDis1 &lt;&lt; 3 | ADAS_CMD_31_1_50ms-&gt;HDA_LFA_SymSta &lt;&lt; 1 | ADAS_CMD_31_1_50ms-&gt;HDA_LFA_WrnSnd,</src></hll>
+				<hll><line>430</line><src>    };</src></hll>
+				<hll><line>431</line><src>    ADAS_CMD_31_1_50ms-&gt;ADAS_CMD_Crc31_1Val = calc_crc(bytes, sizeof(bytes));</src></hll>
+				<hll><line>432</line><src>}</src></hll>
+				<hll><line>433</line><src></src></hll>
+				<hll><line>434</line><src>void UpdateTx_E2E_ADAS_CMD_32_1_50ms(MsgGr_CCAN_ADAS_CMD_32_1_50ms *ADAS_CMD_32_1_50ms)</src></hll>
+				<hll><line>435</line><src>{</src></hll>
+				<hll><line>436</line><src>    ADAS_CMD_32_1_50ms-&gt;ADAS_CMD_AlvCnt32_1Val = ++ADAS_CMD_32_1_50ms-&gt;ADAS_CMD_AlvCnt32_1Val % ALV_CNT_LIM;</src></hll>
+				<hll><line>437</line><src></src></hll>
+				<hll><line>438</line><src>    uint8 bytes[7] = {</src></hll>
+				<hll><line>439</line><src>        [0] = ADAS_CMD_32_1_50ms-&gt;ADAS_CMD_AlvCnt32_1Val &lt;&lt; 4,</src></hll>
+				<hll><line>440</line><src>        [1] = (ADAS_CMD_32_1_50ms-&gt;HDA_LeftLCAvailSta &lt;&lt; 6 | ADAS_CMD_32_1_50ms-&gt;HDA_LCFuncSta &lt;&lt; 3 | ADAS_CMD_32_1_50ms-&gt;HDA_LCFuncOptUsmSta) &amp; 0xFF,</src></hll>
+				<hll><line>441</line><src>        [2] = (ADAS_CMD_32_1_50ms-&gt;HDA_FrntLeftVehLongPos &lt;&lt; 7 | ADAS_CMD_32_1_50ms-&gt;HDA_PathSta &lt;&lt; 4 | ADAS_CMD_32_1_50ms-&gt;HDA_RightLCAvailSta &lt;&lt; 1 | ADAS_CMD_32_1_50ms-&gt;HDA_LeftLCAvailSta &gt;&gt; 2) &amp; 0xFF,</src></hll>
+				<hll><line>442</line><src>        [3] = ADAS_CMD_32_1_50ms-&gt;HDA_FrntLeftVehLongPos &gt;&gt; 1 &amp; 0xFF,</src></hll>
+				<hll><line>443</line><src>        [4] = (ADAS_CMD_32_1_50ms-&gt;HDA_FrntLeftVehLatPos &lt;&lt; 2 | ADAS_CMD_32_1_50ms-&gt;HDA_FrntLeftVehLongPos &gt;&gt; 9) &amp; 0xFF,</src></hll>
+				<hll><line>444</line><src>        [5] = ADAS_CMD_32_1_50ms-&gt;HDA_FrntLeftVehSta &lt;&lt; 2 | ADAS_CMD_32_1_50ms-&gt;HDA_FrntLeftVehLatPos &gt;&gt; 6,</src></hll>
+				<hll><line>445</line><src>    };</src></hll>
+				<hll><line>446</line><src>    ADAS_CMD_32_1_50ms-&gt;ADAS_CMD_Crc32_1Val = calc_crc(bytes, sizeof(bytes));</src></hll>
+				<hll><line>447</line><src>}</src></hll>
+				<hll><line>448</line><src></src></hll>
+				<hll><line>449</line><src>void UpdateTx_E2E_ADAS_CMD_32_2_50ms(MsgGr_CCAN_ADAS_CMD_32_2_50ms *ADAS_CMD_32_2_50ms)</src></hll>
+				<hll><line>450</line><src>{</src></hll>
+				<hll><line>451</line><src>    ADAS_CMD_32_2_50ms-&gt;ADAS_CMD_AlvCnt32_2Val = ++ADAS_CMD_32_2_50ms-&gt;ADAS_CMD_AlvCnt32_2Val % ALV_CNT_LIM;</src></hll>
+				<hll><line>452</line><src></src></hll>
+				<hll><line>453</line><src>    uint8 bytes[7] = {</src></hll>
+				<hll><line>454</line><src>        [0] = ADAS_CMD_32_2_50ms-&gt;ADAS_CMD_AlvCnt32_2Val &lt;&lt; 4,</src></hll>
+				<hll><line>455</line><src>        [1] = ADAS_CMD_32_2_50ms-&gt;HDA_FrntRightVehLongPos &amp; 0xFF,</src></hll>
+				<hll><line>456</line><src>        [2] = (ADAS_CMD_32_2_50ms-&gt;HDA_FrntRightVehLatPos &lt;&lt; 3 | ADAS_CMD_32_2_50ms-&gt;HDA_FrntRightVehLongPos &gt;&gt; 8) &amp; 0xFF,</src></hll>
+				<hll><line>457</line><src>        [3] = ADAS_CMD_32_2_50ms-&gt;HDA_FrntRightVehSta &lt;&lt; 3 | ADAS_CMD_32_2_50ms-&gt;HDA_FrntRightVehLatPos &gt;&gt; 5,</src></hll>
+				<hll><line>458</line><src>    };</src></hll>
+				<hll><line>459</line><src>    ADAS_CMD_32_2_50ms-&gt;ADAS_CMD_Crc32_2Val = calc_crc(bytes, sizeof(bytes));</src></hll>
+				<hll><line>460</line><src>}</src></hll>
+				<hll><line>461</line><src></src></hll>
+				<hll><line>462</line><src>void UpdateTx_E2E_ADAS_CMD_32_3_50ms(MsgGr_CCAN_ADAS_CMD_32_3_50ms *ADAS_CMD_32_3_50ms)</src></hll>
+				<hll><line>463</line><src>{</src></hll>
+				<hll><line>464</line><src>    ADAS_CMD_32_3_50ms-&gt;ADAS_CMD_AlvCnt32_3Val = ++ADAS_CMD_32_3_50ms-&gt;ADAS_CMD_AlvCnt32_3Val % ALV_CNT_LIM;</src></hll>
+				<hll><line>465</line><src></src></hll>
+				<hll><line>466</line><src>    uint8 bytes[7] = {</src></hll>
+				<hll><line>467</line><src>        [0] = ADAS_CMD_32_3_50ms-&gt;ADAS_CMD_AlvCnt32_3Val &lt;&lt; 4,</src></hll>
+				<hll><line>468</line><src>        [1] = ADAS_CMD_32_3_50ms-&gt;HDA_LeftVehLongPos &amp; 0xFF,</src></hll>
+				<hll><line>469</line><src>        [2] = (ADAS_CMD_32_3_50ms-&gt;HDA_LeftVehLatPos &lt;&lt; 1 | ADAS_CMD_32_3_50ms-&gt;HDA_LeftVehLongPos &gt;&gt; 8) &amp; 0xFF,</src></hll>
+				<hll><line>470</line><src>        [3] = (ADAS_CMD_32_3_50ms-&gt;HDA_RightVehLongPos &lt;&lt; 4 | ADAS_CMD_32_3_50ms-&gt;HDA_LeftVehSta &lt;&lt; 1 | ADAS_CMD_32_3_50ms-&gt;HDA_LeftVehLatPos &gt;&gt; 7) &amp; 0xFF,</src></hll>
+				<hll><line>471</line><src>        [4] = (ADAS_CMD_32_3_50ms-&gt;HDA_RightVehLatPos &lt;&lt; 5 | ADAS_CMD_32_3_50ms-&gt;HDA_RightVehLongPos &gt;&gt; 4) &amp; 0xFF,</src></hll>
+				<hll><line>472</line><src>        [5] = ADAS_CMD_32_3_50ms-&gt;HDA_RightVehSta &lt;&lt; 5 | ADAS_CMD_32_3_50ms-&gt;HDA_RightVehLatPos &gt;&gt; 3,</src></hll>
+				<hll><line>473</line><src>    };</src></hll>
+				<hll><line>474</line><src>    ADAS_CMD_32_3_50ms-&gt;ADAS_CMD_Crc32_3Val = calc_crc(bytes, sizeof(bytes));</src></hll>
+				<hll><line>475</line><src>}</src></hll>
+				<hll><line>476</line><src></src></hll>
+				<hll><line>477</line><src>void UpdateTx_E2E_ADAS_CMD_32_4_50ms(MsgGr_CCAN_ADAS_CMD_32_4_50ms *ADAS_CMD_32_4_50ms)</src></hll>
+				<hll><line>478</line><src>{</src></hll>
+				<hll><line>479</line><src>    ADAS_CMD_32_4_50ms-&gt;ADAS_CMD_AlvCnt32_4Val = ++ADAS_CMD_32_4_50ms-&gt;ADAS_CMD_AlvCnt32_4Val % ALV_CNT_LIM;</src></hll>
+				<hll><line>480</line><src></src></hll>
+				<hll><line>481</line><src>    uint8 bytes[7] = {</src></hll>
+				<hll><line>482</line><src>        [0] = ADAS_CMD_32_4_50ms-&gt;ADAS_CMD_AlvCnt32_4Val &lt;&lt; 4,</src></hll>
+				<hll><line>483</line><src>        [1] = ADAS_CMD_32_4_50ms-&gt;HDA_InfoPUDis2 &lt;&lt; 4,</src></hll>
+				<hll><line>484</line><src>        [2] = ADAS_CMD_32_4_50ms-&gt;HDA_LaneCvrtLvlVal,</src></hll>
+				<hll><line>485</line><src>        [4] = ADAS_CMD_32_4_50ms-&gt;HDA_LeftLineLatPos &lt;&lt; 5 &amp; 0xFF,</src></hll>
+				<hll><line>486</line><src>        [5] = ADAS_CMD_32_4_50ms-&gt;HDA_RightLineLatPos &lt;&lt; 3 | ADAS_CMD_32_4_50ms-&gt;HDA_LeftLineLatPos &gt;&gt; 3,</src></hll>
+				<hll><line>487</line><src>        [6] = ADAS_CMD_32_4_50ms-&gt;HDA_LCTurnSigReq &lt;&lt; 3 | ADAS_CMD_32_4_50ms-&gt;HDA_LCFuncWrnSnd &lt;&lt; 1 | ADAS_CMD_32_4_50ms-&gt;HDA_RightLineLatPos &gt;&gt; 5,</src></hll>
+				<hll><line>488</line><src>    };</src></hll>
+				<hll><line>489</line><src>    ADAS_CMD_32_4_50ms-&gt;ADAS_CMD_Crc32_4Val = calc_crc(bytes, sizeof(bytes));</src></hll>
+				<hll><line>490</line><src>}</src></hll>
+				<hll><line>491</line><src></src></hll>
+				<hll><line>492</line><src>void UpdateTx_E2E_ADAS_DRV_01_1_200ms(MsgGr_CCAN_ADAS_DRV_01_1_200ms *ADAS_DRV_01_1_200ms)</src></hll>
+				<hll><line>493</line><src>{</src></hll>
+				<hll><line>494</line><src>    ADAS_DRV_01_1_200ms-&gt;ADAS_DRV_AlvCnt01_1Val = ++ADAS_DRV_01_1_200ms-&gt;ADAS_DRV_AlvCnt01_1Val % ALV_CNT_LIM;</src></hll>
+				<hll><line>495</line><src></src></hll>
+				<hll><line>496</line><src>    uint8 bytes[7] = {</src></hll>
+				<hll><line>497</line><src>        [0] = ADAS_DRV_01_1_200ms-&gt;ADAS_DRV_AlvCnt01_1Val &lt;&lt; 4,</src></hll>
+				<hll><line>498</line><src>        [1] = ADAS_DRV_01_1_200ms-&gt;ADAS_DRV_ACANMonSta &lt;&lt; 6 | ADAS_DRV_01_1_200ms-&gt;ADAS_DRV_CodingSta &lt;&lt; 5 |</src></hll>
+				<hll><line>499</line><src>              ADAS_DRV_01_1_200ms-&gt;ADAS_DRV_FailInfoSta &lt;&lt; 3 | ADAS_DRV_01_1_200ms-&gt;ADAS_DRV_MDPSCtrlSta &lt;&lt; 2 |</src></hll>
+				<hll><line>500</line><src>              ADAS_DRV_01_1_200ms-&gt;ADAS_DRV_SCCEquipSta &lt;&lt; 1 | ADAS_DRV_01_1_200ms-&gt;ADAS_DRV_FCAEquipSta,</src></hll>
+				<hll><line>501</line><src>    };</src></hll>
+				<hll><line>502</line><src>    ADAS_DRV_01_1_200ms-&gt;ADAS_DRV_Crc01_1Val = calc_crc(bytes, sizeof(bytes));</src></hll>
+				<hll><line>503</line><src>}</src></hll>
+				<hll><line>504</line><src>#endif /* for HSCAN */</src></hll>
+				<hll><line>505</line><src></src></hll>
+				<hll><line>506</line><src></src></hll>
+				<hll><cov>ok</cov><line>507</line><src>void update_info(sigerr_t *info, boolean meet_precond, boolean detect_cond, boolean recover_cond, uint16 detect_thr, uint16 recover_thr)</src></hll>
+				<asm><cov>ok</cov><addr>P:80004AC8</addr><code>08C0A009</code><label>update_info:                                                                                                                                                                                                                                                    </label><mnemonic>ld.hu     d0,[a10]0x0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>508</line><src>{</src></hll>
+				<hll><cov>ok</cov><line>509</line><src>    if (!meet_precond)</src></hll>
+				<asm><cov>ok</cov><addr>P:80004ACC</addr><code>43F6</code><mnemonic>jnz16     d4,0x80004AD2</mnemonic><comment>meet_precond,0x80004AD2</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>ok</cov><line>510</line><src>        info-&gt;detect_cnt = 0;</src></hll>
+				<asm><cov>ok</cov><addr>P:80004ACE</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80004AD0</addr><code>41AC</code><mnemonic>st16.h    [a4]0x2,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>511</line><src></src></hll>
+				<hll><cov>ok</cov><line>512</line><src>    if (meet_precond &amp;&amp; detect_cond) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80004AD2</addr><code>001304DF</code><mnemonic>jeq       d4,#0x0,0x80004AF8</mnemonic><comment>meet_precond,#0,0x80004AF8</comment></asm>
+				<asm><cov>ok</cov><addr>P:80004AD6</addr><code>001105DF</code><mnemonic>jeq       d5,#0x0,0x80004AF8</mnemonic><comment>detect_cond,#0,0x80004AF8</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c" type="multiple">
+				<hll><cov>ok</cov><line>513</line><src>        info-&gt;recover_cnt = 0;</src></hll>
+				<asm><cov>ok</cov><addr>P:80004ADA</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80004ADC</addr><code>42AC</code><mnemonic>st16.h    [a4]0x4,d15</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80004AFA</addr><code>08C44109</code><mnemonic>ld.hu     d1,[a4]0x4</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>ok</cov><line>514</line><src>        if (++info-&gt;detect_cnt &gt;= detect_thr) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80004ADE</addr><code>08C24F09</code><mnemonic>ld.hu     d15,[a4]0x2</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80004AE2</addr><code>1FC2</code><mnemonic>add16     d15,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80004AE4</addr><code>00700F37</code><mnemonic>extr.u    d0,d15,0x0,#0x10</mnemonic><comment>recover_thr,d15,0,#16</comment></asm>
+				<asm><cov>ok</cov><addr>P:80004AE8</addr><code>41AC</code><mnemonic>st16.h    [a4]0x2,d15</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80004AEA</addr><code>8006703F</code><mnemonic>jlt.u     d0,d7,0x80004AF6</mnemonic><comment>d0,detect_thr,0x80004AF6</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>ok</cov><line>515</line><src>            info-&gt;detect_cnt = detect_thr;</src></hll>
+				<asm><cov>ok</cov><addr>P:80004AEE</addr><code>08824789</code><mnemonic>st.h      [a4]0x2,d7</mnemonic><comment>[a4]2,detect_thr</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>ok</cov><line>516</line><src>            info-&gt;fault = TRUE;</src></hll>
+				<asm><cov>ok</cov><addr>P:80004AF2</addr><code>01DA</code><mnemonic>mov16     d15,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80004AF4</addr><code>4F34</code><mnemonic>st16.b    [a4],d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c" type="multiple">
+				<hll><line>517</line><src>        }</src></hll>
+				<hll><cov>ok</cov><line>518</line><src>    } else if (recover_cond) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80004AF8</addr><code>6E76</code><mnemonic>jz16      d6,0x80004B14</mnemonic><comment>recover_cond,0x80004B14</comment></asm>
+				<asm><cov>ok</cov><addr>P:80004B12</addr><code>42AC</code><mnemonic>st16.h    [a4]0x4,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>ok</cov><line>519</line><src>        info-&gt;detect_cnt = 0;</src></hll>
+				<asm><cov>ok</cov><addr>P:80004AFE</addr><code>0282</code><mnemonic>mov16     d2,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80004B00</addr><code>08824289</code><mnemonic>st.h      [a4]0x2,d2</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>ok</cov><line>520</line><src>        if (++info-&gt;recover_cnt &gt;= recover_thr) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80004B04</addr><code>11C2</code><mnemonic>add16     d1,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80004B06</addr><code>F0700137</code><mnemonic>extr.u    d15,d1,0x0,#0x10</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80004B0A</addr><code>80040F3F</code><mnemonic>jlt.u     d15,d0,0x80004B12</mnemonic><comment>d15,recover_thr,0x80004B12</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>521</line><src>            info-&gt;recover_cnt = recover_thr;</src></hll>
+				<hll><cov>ok</cov><line>522</line><src>            info-&gt;fault = FALSE;</src></hll>
+				<asm><cov>ok</cov><addr>P:80004B0E</addr><code>0F02</code><mnemonic>mov16     d15,d0</mnemonic><comment>d15,recover_thr</comment></asm>
+				<asm><cov>ok</cov><addr>P:80004B10</addr><code>4234</code><mnemonic>st16.b    [a4],d2</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c" type="multiple">
+				<hll><line>523</line><src>        }</src></hll>
+				<hll><line>524</line><src>    }</src></hll>
+				<hll><cov>ok</cov><line>525</line><src>}</src></hll>
+				<asm><cov>ok</cov><addr>P:80004AF6</addr><code>9000</code><mnemonic>ret16     </mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80004B14</addr><code>9000</code><mnemonic>ret16     </mnemonic></asm>
+			</mixed>
+		</List.EXPORT>
+	</listing>
+</TRACE32>

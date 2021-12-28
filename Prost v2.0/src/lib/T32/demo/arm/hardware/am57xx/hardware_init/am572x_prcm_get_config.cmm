@@ -1,0 +1,595 @@
+; --------------------------------------------------------------------------------
+; @Title: Setup Script for AM572x : am572x_prcm_config.cmm
+; @Description: see "am572x_hardware_init.cmm"
+; @Keywords: AM57xx
+; @Author: jvogl
+; @Board: AM572x EVM
+; @Chip: AM572x
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: am572x_prcm_get_config.cmm 15893 2020-03-31 07:11:47Z jvogl $
+
+// Standby Modes Available
+&STBY_FUNCTIONAL=(0)
+&STBY_STANDBY=(1)
+
+// Idle Modes Available
+&IDLE_FUNCTIONAL=(0)
+&IDLE_INTRANSITION=(1)
+&IDLE_INTERFACE_IDLE=(2)
+&IDLE_DISABLED=(3)
+
+&PWRST_OFF=(0)
+&PWRST_RET=(1)
+&PWRST_ON_INACTIVE=(2)
+&PWRST_ON_ACTIVE=(3)
+
+&FINALST_INVALID=(0xFFFF)
+&FINALST_ALWAYS_EN=(0x1)
+&FINALST_AUTO_CG=(0x2)
+&FINALST_DISABLED=(0x3)
+
+LOCAL &MODULESTATE
+LOCAL &CLOCKSTATE
+LOCAL &POWERSTATE
+
+GOSUB PRCM_GetConfig
+
+ENDDO
+
+getModuleState:
+(
+	PARAMETERS &ADDR
+
+	&REGVAL=Data.Long(AD:&ADDR)
+	&STANDBYST=(&REGVAL&0x40000)>>18.
+	&IDLEST=(&REGVAL&0x30000)>>16.
+
+	IF &IDLEST==&IDLE_DISABLED
+	(
+		&MODULESTATE=&IDLE_DISABLED
+		PRINT "	Module State : DISABLED"
+	)
+	ELSE IF &IDLEST==&IDLE_INTERFACE_IDLE
+	(
+		&MODULESTATE=&IDLE_INTERFACE_IDLE
+		PRINT "	Module State : IDLE"
+	)
+	ELSE IF &IDLEST==&IDLE_INTRANSITION
+	(
+		&MODULESTATE=&IDLE_INTRANSITION
+		PRINT "	Module State : IN TRANSITION"
+	)
+	ELSE
+	(
+		IF &STANDBYST==&STBY_STANDBY
+		(
+			PRINT "	Module State : STANDBY"
+			&MODULESTATE=&IDLE_INTERFACE_IDLE
+		)
+		ELSE
+		(
+			PRINT "	Module State : ON"
+			&MODULESTATE=&IDLE_FUNCTIONAL
+		)
+	)
+
+	RETURN
+)
+
+getClockState:
+(
+	PARAMETERS &ADDR &MASK
+
+	&REGVAL=Data.Long(AD:&ADDR)
+
+	IF (&REGVAL&MASK)!=0
+	(
+		PRINT "	Clock State : ON"
+		&CLOCKSTATE=1
+	)
+	ELSE
+	(
+		PRINT "	Clock State : OFF"
+		&CLOCKSTATE=0
+	)
+
+	RETURN
+)
+
+getPowerState:
+(
+	PARAMETERS &ADDR
+
+	&REGVAL=Data.Long(AD:&ADDR)
+	&REGVAL=&REGVAL&0x3
+
+	IF &REGVAL==&PWRST_OFF
+	(
+		PRINT "	Power State : OFF"
+		&POWERSTATE=&PWRST_OFF
+	)
+	ELSE IF &REGVAL==&PWRST_RET
+	(
+		PRINT "	Power State : RETENTION"
+		&POWERSTATE=&PWRST_RET
+	)
+	ELSE IF &REGVAL==&PWRST_ON_INACTIVE
+	(
+		PRINT "	Power State : ON INACTIVE"
+		&POWERSTATE=&PWRST_ON_INACTIVE
+	)
+	ELSE
+	(
+		PRINT "	Power State : ON"
+		&POWERSTATE=&PWRST_ON_ACTIVE
+	)
+
+	RETURN
+)
+
+getFinalState:
+(
+	;PARAMETERS &&MODULESTATE &CLOCKSTATE &POWERSTATE
+
+	&FINALST=&FINALST_INVALID
+
+	IF &POWERSTATE==&PWRST_OFF
+	(
+		IF &CLOCKSTATE==0
+		(
+			&FINALST=&FINALST_DISABLED
+		)
+	)
+	ELSE IF &POWERSTATE==&PWRST_RET
+	(
+		IF &MODULESTATE==&IDLE_INTERFACE_IDLE
+		(
+			IF &CLOCKSTATE==0
+				&FINALST=&FINALST_AUTO_CG
+		)
+		ELSE IF &MODULESTATE==&IDLE_DISABLED
+		(
+			IF &CLOCKSTATE==0
+				&FINALST=&FINALST_DISABLED
+		)
+	)
+	ELSE IF &POWERSTATE==&PWRST_ON_INACTIVE
+	(
+		IF &CLOCKSTATE==0
+		(
+			IF &MODULESTATE==&IDLE_INTERFACE_IDLE
+				&FINALST=&FINALST_AUTO_CG
+			ELSE IF &MODULESTATE==&IDLE_DISABLED
+				&FINALST=&FINALST_DISABLED
+		)
+	)
+	ELSE
+	(
+		IF &MODULESTATE==&IDLE_INTERFACE_IDLE
+			&FINALST=&FINALST_AUTO_CG
+		ELSE IF &MODULESTATE==&IDLE_DISABLED
+			&FINALST=&FINALST_DISABLED
+		ELSE IF &MODULESTATE==&IDLE_FUNCTIONAL
+		(
+			IF &CLOCKSTATE==1
+				&FINALST=&FINALST_ALWAYS_EN
+			ELSE
+				&FINALST=&FINALST_DISABLED
+		)
+	)
+	IF &FINALST==&FINALST_DISABLED
+		PRINT "	Final State : MODULE DISABLED"
+	ELSE IF &FINALST==&FINALST_AUTO_CG
+		PRINT "	Final State : MODULE AUTO CLOCK GATED"
+	ELSE IF &FINALST==&FINALST_ALWAYS_EN
+		PRINT "	Final State : MODULE ALWAYS ENABLED"
+	ELSE
+		PRINT "	Final State : INVALID MODULE STATE"
+
+	RETURN
+)
+
+PRCM_GetConfig:
+(
+	PRINT "-------------------------------------------------------"
+	PRINT " PRCM State of all modules on the device"
+	PRINT "-------------------------------------------------------"
+
+	//--------------------------------------------------------------------------------------------
+	// Module : DSP1, Clock Domain: CD_DSP1, Power Domain: PD_DSP1
+	//--------------------------------------------------------------------------------------------
+	PRINT "Module : DSP1 (CD_DSP1, PD_DSP1)"
+	// Checking the CLKCTRL register to see IF the module is Functional
+	// or in standby/idle state.
+	&ADDR=0x4A005420
+	GOSUB getModuleState "&ADDR"
+	// Checking the CLKSTCTRL register to see IF the module has clocks
+	&ADDR=0x4A005400
+	&MASK=0x100
+	GOSUB getClockState "&ADDR" "&MASK"
+	&ADDR=0x4AE06404
+	GOSUB getPowerState "&ADDR"
+	GOSUB getFinalState
+	PRINT "=========================================="
+
+	//--------------------------------------------------------------------------------------------
+	// Module : DSP2, Clock Domain: CD_DSP2, Power Domain: PD_DSP2
+	//--------------------------------------------------------------------------------------------
+	PRINT "Module : DSP2 (CD_DSP2, PD_DSP2)"
+	// Checking the CLKCTRL register to see IF the module is Functional
+	// or in standby/idle state.
+
+	&ADDR=0x4A005620
+	GOSUB getModuleState "&ADDR"
+	// Checking the CLKSTCTRL register to see IF the module has clocks
+	&ADDR=0x4A005600
+	&MASK=0x100
+	GOSUB getClockState "&ADDR" "&MASK"
+	&ADDR=0x4AE07B04
+	GOSUB getPowerState "&ADDR"
+	GOSUB getFinalState
+	PRINT "=========================================="
+
+	//--------------------------------------------------------------------------------------------
+	// Module : BB2D, Clock Domain: CD_DSS, Power Domain: PD_DSS
+	//--------------------------------------------------------------------------------------------
+	PRINT "Module : BB2D (CD_DSS, PD_DSS)"
+	// Checking the CLKCTRL register to see if the module is Functional
+	// or in standby/idle state.
+
+	&ADDR=0x4A009130
+	GOSUB getModuleState "&ADDR"
+	// Checking the CLKSTCTRL register to see if the module has clocks
+	&ADDR=0x4A009100
+	&MASK=0x2100
+	GOSUB getClockState "&ADDR" "&MASK"
+	&ADDR=0x4AE07104
+	GOSUB getPowerState "&ADDR"
+	GOSUB getFinalState
+	PRINT "=========================================="
+
+	//--------------------------------------------------------------------------------------------
+	// Module : DSS, Clock Domain: CD_DSS, Power Domain: PD_DSS
+	//--------------------------------------------------------------------------------------------
+	PRINT "Module : DSS (CD_DSS, PD_DSS)"
+	// Checking the CLKCTRL register to see if the module is Functional
+	// or in standby/idle state.
+
+	&ADDR=0x4A009120
+	GOSUB getModuleState "&ADDR"
+	// Checking the CLKSTCTRL register to see if the module has clocks
+	&ADDR=0x4A009100
+	&MASK=0x300
+	GOSUB getClockState "&ADDR" "&MASK"
+	&ADDR=0x4AE07104
+	GOSUB getPowerState "&ADDR"
+	GOSUB getFinalState
+	PRINT "=========================================="
+
+	//--------------------------------------------------------------------------------------------
+	// Module : DLL, Clock Domain: CD_EMIF, Power Domain: PD_CORE
+	//--------------------------------------------------------------------------------------------
+	PRINT "Module : DLL (CD_EMIF, PD_CORE)"
+	// For these modules the clock domain status
+	// determines the module status.
+
+	PRINT "	Module State : Determined by Clock State"
+	&MODULESTATE=&IDLE_FUNCTIONAL
+	// Checking the CLKSTCTRL register to see if the module has clocks
+	&ADDR=0x4a008b00
+	&MASK=0x200
+	GOSUB getClockState "&ADDR" "&MASK"
+	&ADDR=0x4AE06704
+	GOSUB getPowerState "&ADDR"
+	GOSUB getFinalState
+	PRINT "=========================================="
+
+	//--------------------------------------------------------------------------------------------
+	// Module : DMM, Clock Domain: CD_EMIF, Power Domain: PD_CORE
+	//--------------------------------------------------------------------------------------------
+	PRINT "Module : DMM (CD_EMIF, PD_CORE)"
+	// Checking the CLKCTRL register to see if the module is Functional
+	// or in standby/idle state.
+
+	&ADDR=0x4a008b20
+	GOSUB getModuleState "&ADDR"
+	// Checking the CLKSTCTRL register to see if the module has clocks
+	&ADDR=0x4a008b00
+	&MASK=0x100
+	GOSUB getClockState "&ADDR" "&MASK"
+	&ADDR=0x4AE06704
+	GOSUB getPowerState "&ADDR"
+	GOSUB getFinalState
+	PRINT "=========================================="
+
+	//--------------------------------------------------------------------------------------------
+	// Module : EMIF1, Clock Domain: CD_EMIF, Power Domain: PD_CORE
+	//--------------------------------------------------------------------------------------------
+	PRINT "Module : EMIF1 (CD_EMIF, PD_CORE)"
+	// Checking the CLKCTRL register to see if the module is Functional
+	// or in standby/idle state.
+
+	&ADDR=0x4a008b30
+	GOSUB getModuleState "&ADDR"
+	// Checking the CLKSTCTRL register to see if the module has clocks
+	&ADDR=0x4a008b00
+	&MASK=0x700
+	GOSUB getClockState "&ADDR" "&MASK"
+	&ADDR=0x4AE06704
+	GOSUB getPowerState "&ADDR"
+	GOSUB getFinalState
+	PRINT "=========================================="
+
+	//--------------------------------------------------------------------------------------------
+	// Module : EMIF2, Clock Domain: CD_EMIF, Power Domain: PD_CORE
+	//--------------------------------------------------------------------------------------------
+	PRINT "Module : EMIF2 (CD_EMIF, PD_CORE)"
+	// Checking the CLKCTRL register to see if the module is Functional
+	// or in standby/idle state.
+
+	&ADDR=0x4a008b38
+	GOSUB getModuleState "&ADDR"
+	// Checking the CLKSTCTRL register to see if the module has clocks
+	&ADDR=0x4a008b00
+	&MASK=0x700
+	GOSUB getClockState "&ADDR" "&MASK"
+	&ADDR=0x4AE06704
+	GOSUB getPowerState "&ADDR"
+	GOSUB getFinalState
+	PRINT "=========================================="
+
+	//--------------------------------------------------------------------------------------------
+	// Module : EMIF_OCP_FW, Clock Domain: CD_EMIF, Power Domain: PD_CORE
+	//--------------------------------------------------------------------------------------------
+	PRINT "Module : EMIF_OCP_FW (CD_EMIF, PD_CORE)"
+	// Checking the CLKCTRL register to see if the module is Functional
+	// or in standby/idle state.
+
+	&ADDR=0x4a008b28
+	GOSUB getModuleState "&ADDR"
+	// Checking the CLKSTCTRL register to see if the module has clocks
+	&ADDR=0x4a008b00
+	&MASK=0x100
+	GOSUB getClockState "&ADDR" "&MASK"
+	&ADDR=0x4AE06704
+	GOSUB getPowerState "&ADDR"
+	GOSUB getFinalState
+	PRINT "=========================================="
+
+	//--------------------------------------------------------------------------------------------
+	// Module : CPGMAC, Clock Domain: CD_GMAC, Power Domain: PD_L3INIT
+	//--------------------------------------------------------------------------------------------
+	PRINT "Module : CPGMAC (CD_GMAC, PD_L3INIT)"
+	// Checking the CLKCTRL register to see if the module is Functional
+	// or in standby/idle state.
+
+	&ADDR=0x4a0093D0
+	GOSUB getModuleState "&ADDR"
+	// Checking the CLKSTCTRL register to see if the module has clocks
+	&ADDR=0x4a0093c0
+	&MASK=0x1000
+	GOSUB getClockState "&ADDR" "&MASK"
+	&ADDR=0x4AE07304
+	GOSUB getPowerState "&ADDR"
+	GOSUB getFinalState
+	PRINT "=========================================="
+
+	//--------------------------------------------------------------------------------------------
+	// Module : GPU, Clock Domain: CD_GPU, Power Domain: PD_GPU
+	//--------------------------------------------------------------------------------------------
+	PRINT "Module : GPU (CD_GPU, PD_GPU)"
+	// Checking the CLKCTRL register to see if the module is Functional
+	// or in standby/idle state.
+
+	&ADDR=0x4A009220
+	GOSUB getModuleState "&ADDR"
+	// Checking the CLKSTCTRL register to see if the module has clocks
+	&ADDR=0x4A009200
+	&MASK=0x700
+	GOSUB getClockState "&ADDR" "&MASK"
+	&ADDR=0x4AE07204
+	GOSUB getPowerState "&ADDR"
+	GOSUB getFinalState
+	PRINT "=========================================="
+
+	//--------------------------------------------------------------------------------------------
+	// Module : I2C5, Clock Domain: CD_IPU, Power Domain: PD_IPU
+	//--------------------------------------------------------------------------------------------
+	PRINT "Module : I2C5 (CD_IPU, PD_IPU)"
+	// Checking the CLKCTRL register to see if the module is Functional
+	// or in standby/idle state.
+
+	&ADDR=0x4A005578
+	GOSUB getModuleState "&ADDR"
+	// Checking the CLKSTCTRL register to see if the module has clocks
+	&ADDR=0x4A005540
+	&MASK=0x2100
+	GOSUB getClockState "&ADDR" "&MASK"
+	&ADDR=0x4AE06504
+	GOSUB getPowerState "&ADDR"
+	GOSUB getFinalState
+	PRINT "=========================================="
+
+	//--------------------------------------------------------------------------------------------
+	// Module : MCASP1, Clock Domain: CD_IPU, Power Domain: PD_IPU
+	//--------------------------------------------------------------------------------------------
+	PRINT "Module : MCASP1 (CD_IPU, PD_IPU)"
+	// Checking the CLKCTRL register to see if the module is Functional
+	// or in standby/idle state.
+
+	&ADDR=0x4A005550
+	GOSUB getModuleState "&ADDR"
+	// Checking the CLKSTCTRL register to see if the module has clocks
+	&ADDR=0x4A005540
+	&MASK=0x70100
+	GOSUB getClockState "&ADDR" "&MASK"
+	&ADDR=0x4AE06504
+	GOSUB getPowerState "&ADDR"
+	GOSUB getFinalState
+	PRINT "=========================================="
+
+	//--------------------------------------------------------------------------------------------
+	// Module : TIMER5, Clock Domain: CD_IPU, Power Domain: PD_IPU
+	//--------------------------------------------------------------------------------------------
+	PRINT "Module : TIMER5 (CD_IPU, PD_IPU)"
+	// Checking the CLKCTRL register to see if the module is Functional
+	// or in standby/idle state.
+
+	&ADDR=0x4A005558
+	GOSUB getModuleState "&ADDR"
+	// Checking the CLKSTCTRL register to see if the module has clocks
+	&ADDR=0x4A005540
+	&MASK=0x200
+	GOSUB getClockState "&ADDR" "&MASK"
+	&ADDR=0x4AE06504
+	GOSUB getPowerState "&ADDR"
+	GOSUB getFinalState
+	PRINT "=========================================="
+
+	//--------------------------------------------------------------------------------------------
+	// Module : TIMER6, Clock Domain: CD_IPU, Power Domain: PD_IPU
+	//--------------------------------------------------------------------------------------------
+	PRINT "Module : TIMER6 (CD_IPU, PD_IPU)"
+	// Checking the CLKCTRL register to see if the module is Functional
+	// or in standby/idle state.
+
+	&ADDR=0x4A005560
+	GOSUB getModuleState "&ADDR"
+	// Checking the CLKSTCTRL register to see if the module has clocks
+	&ADDR=0x4A005540
+	&MASK=0x400
+	GOSUB getClockState "&ADDR" "&MASK"
+	&ADDR=0x4AE06504
+	GOSUB getPowerState "&ADDR"
+	GOSUB getFinalState
+	PRINT "=========================================="
+
+	//--------------------------------------------------------------------------------------------
+	// Module : TIMER7, Clock Domain: CD_IPU, Power Domain: PD_IPU
+	//--------------------------------------------------------------------------------------------
+	PRINT "Module : TIMER7 (CD_IPU, PD_IPU)"
+	// Checking the CLKCTRL register to see if the module is Functional
+	// or in standby/idle state.
+
+	&ADDR=0x4A005568
+	GOSUB getModuleState "&ADDR"
+	// Checking the CLKSTCTRL register to see if the module has clocks
+	&ADDR=0x4A005540
+	&MASK=0x800
+	GOSUB getClockState "&ADDR" "&MASK"
+	&ADDR=0x4AE06504
+	GOSUB getPowerState "&ADDR"
+	GOSUB getFinalState
+	PRINT "=========================================="
+
+	//--------------------------------------------------------------------------------------------
+	// Module : TIMER8, Clock Domain: CD_IPU, Power Domain: PD_IPU
+	//--------------------------------------------------------------------------------------------
+	PRINT "Module : TIMER8 (CD_IPU, PD_IPU)"
+	// Checking the CLKCTRL register to see if the module is Functional
+	// or in standby/idle state.
+
+	&ADDR=0x4A005570
+	GOSUB getModuleState "&ADDR"
+	// Checking the CLKSTCTRL register to see if the module has clocks
+	&ADDR=0x4A005540
+	&MASK=0x1000
+	GOSUB getClockState "&ADDR" "&MASK"
+	&ADDR=0x4AE06504
+	GOSUB getPowerState "&ADDR"
+	GOSUB getFinalState
+	PRINT "=========================================="
+
+	//--------------------------------------------------------------------------------------------
+	// Module : UART6, Clock Domain: CD_IPU, Power Domain: PD_IPU
+	//--------------------------------------------------------------------------------------------
+	PRINT "Module : UART6 (CD_IPU, PD_IPU)"
+	// Checking the CLKCTRL register to see if the module is Functional
+	// or in standby/idle state.
+
+	&ADDR=0x4A005580
+	GOSUB getModuleState "&ADDR"
+	// Checking the CLKSTCTRL register to see if the module has clocks
+	&ADDR=0x4A005540
+	&MASK=0x4000
+	GOSUB getClockState "&ADDR" "&MASK"
+	&ADDR=0x4AE06504
+	GOSUB getPowerState "&ADDR"
+	GOSUB getFinalState
+	PRINT "=========================================="
+
+	//--------------------------------------------------------------------------------------------
+	// Module : IPU1, Clock Domain: CD_IPU1, Power Domain: PD_IPU
+	//--------------------------------------------------------------------------------------------
+	PRINT "Module : IPU1 (CD_IPU1, PD_IPU)"
+	// Checking the CLKCTRL register to see if the module is Functional
+	// or in standby/idle state.
+	&ADDR=0x4A005520
+	GOSUB getModuleState "&ADDR"
+	// Checking the CLKSTCTRL register to see if the module has clocks
+	&ADDR=0x4A005500
+	&MASK=0x100
+	GOSUB getClockState "&ADDR" "&MASK"
+	&ADDR=0x4AE06504
+	GOSUB getPowerState "&ADDR"
+	GOSUB getFinalState
+	PRINT "=========================================="
+
+	//--------------------------------------------------------------------------------------------
+	// Module : IPU2, Clock Domain: CD_IPU2, Power Domain: PD_CORE
+	//--------------------------------------------------------------------------------------------
+	PRINT "Module : IPU2 (CD_IPU2, PD_CORE)"
+	// Checking the CLKCTRL register to see if the module is Functional
+	// or in standby/idle state.
+	&ADDR=0x4A008920
+	GOSUB getModuleState "&ADDR"
+	// Checking the CLKSTCTRL register to see if the module has clocks
+	&ADDR=0x4A008900
+	&MASK=0x100
+	GOSUB getClockState "&ADDR" "&MASK"
+	&ADDR=0x4AE06704
+	GOSUB getPowerState "&ADDR"
+	GOSUB getFinalState
+	PRINT "=========================================="
+
+		//--------------------------------------------------------------------------------------------
+	// Module : PRUSS1, Clock Domain: CD_L4PER2, Power Domain: PD_L4PER
+	//--------------------------------------------------------------------------------------------
+	PRINT "Module : PRUSS1 (CD_L4PER2, PD_L4PER)"
+	// Checking the CLKCTRL register to see IF the module is Functional
+	// or in standby/idle state.
+	&ADDR=0x4A009718
+	GOSUB getModuleState "&ADDR"
+	// Checking the CLKSTCTRL register to see IF the module has clocks
+	&ADDR=0x4A0098FC
+	&MASK=0x6100
+	GOSUB getClockState "&ADDR" "&MASK"
+	&ADDR=0x4AE07404
+	GOSUB getPowerState "&ADDR"
+	GOSUB getFinalState
+	PRINT "=========================================="
+
+	//--------------------------------------------------------------------------------------------
+	// Module : PRUSS2, Clock Domain: CD_L4PER2, Power Domain: PD_L4PER
+	//--------------------------------------------------------------------------------------------
+	PRINT "Module : PRUSS2 (CD_L4PER2, PD_L4PER)"
+	// Checking the CLKCTRL register to see IF the module is Functional
+	// or in standby/idle state.
+	&ADDR=0x4A009720
+	GOSUB getModuleState "&ADDR"
+	// Checking the CLKSTCTRL register to see IF the module has clocks
+	&ADDR=0x4A0098FC
+	&MASK=0x6100
+	GOSUB getClockState "&ADDR" "&MASK"
+	&ADDR=0x4AE07404
+	GOSUB getPowerState "&ADDR"
+	GOSUB getFinalState
+	PRINT "=========================================="
+
+	PRINT
+
+	RETURN
+)
+
+ENDDO

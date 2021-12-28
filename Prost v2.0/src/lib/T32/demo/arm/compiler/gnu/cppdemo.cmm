@@ -1,0 +1,184 @@
+; --------------------------------------------------------------------------------
+; @Title: GNU C++ Example for SRAM
+; @Description:
+;   Simple C++ application for ARM targets
+;   compiled with GNU GCC compiler
+;   running from SRAM
+;
+;   Supported Targets:
+;       OMAP4430 PandaBoard     (Cortex-A9)
+;       EPXA10 Altera Excalibur (ARM922T)
+;       TRACE32 Instruction Set Simulator
+;
+; @Author: HLG
+; @Board: OMAP4430 PandaBoard; EPXA10 Excalibur; TRACE32 Simulator
+; @Chip: EPXA10, OMAP4430
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: cppdemo.cmm 15309 2019-11-22 19:14:20Z hlohn $
+
+
+WinCLEAR
+AREA.CLEAR
+SYStem.RESet
+Break.RESet
+FramePOS ,,,,Maximized
+
+SYStem.CPU ARM922T
+SYStem.Option BigEndian OFF
+SYStem.Option IMASKASM ON
+SYStem.Option IMASKHLL ON
+SYStem.Option INTDIS ON
+SYStem.JtagClock CTCK 1MHz
+
+LOCAL &device
+SYStem.DETECT IDCode
+&device=idcode(0)&0x0fffffff;
+
+IF &device==0x0B95C02F
+(
+	// TI PandaBoard : http://en.wikipedia.org/wiki/PandaBoard
+
+	LOCAL &CONTROL_ID_CODE &EmifBase &cs
+
+	SYStem.CPU OMAP4430APP1
+	SYStem.JtagClock CTCK 20.MHz
+	SYStem.CONFIG CTIBASE 0xd4148000
+	SYStem.Option ResBreak ON
+	SYStem.Mode Up
+
+	&CONTROL_ID_CODE=Data.Long(ASD:0x4A002204)
+	PRINT "OMAP Control ID: 0x" FORMAT.HEX(8,&CONTROL_ID_CODE);
+
+	IF &CONTROL_ID_CODE!=0x3B95C02F
+	(
+		PRINT %ERROR "ERROR ! This is not a PandaBoard"
+		ENDDO
+	)
+
+	Data.Set c15:1 %Long Data.Long(c15:1)&~1 ;disable MMU
+
+	// Setting up 1GiB of SDRAM at0x80000000
+	Data.Set SD:0x4e000040 %Long 0x80640300 ;DMM_LISA_MAP_0
+	Data.Set SD:0x4e00004a %Long 0x00000000 ;DMM_LISA_MAP_1
+	Data.Set SD:0x4e000048 %Long 0x00000000 ;DMM_LISA_MAP_2
+	Data.Set SD:0x4e00004c %Long 0x00000000 ;DMM_LISA_MAP_3
+	&EmifBase="SD:0x4c000000" ;EMIF1
+	RePeaT 2
+	(
+		Data.Set &EmifBase+0x38 %Long 0x00000000 ;EMIF_PWR_MGMT_CTRL
+		Data.Set &EmifBase+0x0c %Long 0x00000010 ;EMIF_SDRAM_CONFIG_2
+		Data.Set &EmifBase+0x08 %Long 0x80000eb9 ;EMIF_SDRAM_CONFIG	(LPDDR2-S4,ReadLatency=3)
+		Data.Set &EmifBase+0xe4 %Long 0x849ff403 ;EMIF_DDR_PHY_CTRL_1
+		Data.Set &EmifBase+0xec %Long 0x00000000 ;EMIF_DDR_PHY_CTRL_2
+		Data.Set &EmifBase+0x10 %Long 0x00000618 ;EMIF_SDRAM_REF_CTRL
+		Data.Set &EmifBase+0x18 %Long 0x04442049 ;EMIF_SDRAM_TIM_1
+		Data.Set &EmifBase+0x20 %Long 0x1002008a ;EMIF_SDRAM_TIM_2
+		Data.Set &EmifBase+0x28 %Long 0x0040802f ;EMIF_SDRAM_TIM_3
+		Data.Set &EmifBase+0x98 %Long 0x000501ff ;EMIF_READ_IDLE_CTRL
+		Data.Set &EmifBase+0xc8 %Long 0xd00b3215 ;EMIF_ZQ_CONFIG
+		&cs=0 ;ChipSelect0
+		RePeaT 2
+		(
+			Data.Set &EmifBase+0x50 %Long 0x0000003f|&cs ;MR63
+			Data.Set &EmifBase+0x40 %Long 0x000000ff     ;Reset device
+			WAIT 1.ms ;waiting for Device Auto-Initialization (tINIT5==10us)
+			Data.Set &EmifBase+0x50 %Long 0x0000000a|&cs ;MR10
+			Data.Set &EmifBase+0x40 %Long 0x000000ff     ;Start calibration
+			WAIT 1.ms ;waiting for ZQ Initial Calibration (tZQINIT==1us)
+			Data.Set &EmifBase+0x50 %Long 0x00000001|&cs ;MR1
+			Data.Set &EmifBase+0x40 %Long 0x00000083     ;BurstLength=8 (required), nWR=6
+			Data.Set &EmifBase+0x50 %Long 0x00000002|&cs ;MR2
+			Data.Set &EmifBase+0x40 %Long 0x00000001     ;ReadLatency=3/WriteLatency=1 (must fit to EMIF_SDRAM_CONFIG.REG_CL)
+			&cs=0x80000000 ;ChipSelect1
+		)
+		&EmifBase="SD:0x4d000000" ;EMIF2
+	)
+
+	// Configure the MMU to map 256MiB of SDRAM at physical address 0x80000000 to virtual address 0x00000000--0x0FFFFFFF
+	Data.Set SD:0x40300000++0x3fff %Long 0   ;clear 16KiB Translation Table
+	Data.Set SD:0x40300000 %Long 0x80000012  ;create translation entries
+	Data.Set c15:0x0002 %Long 0x40300000     ;set Translation Table Base register
+	Data.Set c15:0x0102 %Long 0x40300000     ;set Translation Table Base register
+	Data.Set c15:0x0003 %Long 0x00000003     ;set domain 0 access to Manager
+	Data.Set c15:0x0001 %Long 0x00000079     ;enable MMU
+
+	; Adding translation table for debugger to get memory access with logical addresses via DAP during runtime
+	TRANSlation.Create C:0x00000000++0x0FFFFFFF A:0x80000000++0x0FFFFFFF
+	TRANSlation.SHADOW ON  // use VM with logical addresses (instead of translating VM to VMA)
+	TRANSlation.ON
+	SYStem.MemAccess DAP
+)
+ELSE IF &device==0x049220DD
+(
+	 // Altera Excalibur : http://www.altera.com/products/devices/excalibur
+
+	LOCAL &EXC_REGISTERS_BASE &exc_id
+	&EXC_REGISTERS_BASE=0x7fffc000
+
+	SYStem.CPU EPXA
+	SYStem.JtagClock CTCK 10.MHz
+	SYStem.Mode Up
+
+	&exc_id=Data.Long(D:(&EXC_REGISTERS_BASE+0x8)) ; read Excalibur-ID
+	PRINT "Excalibur ID: " &exc_id
+
+	IF &exc_id!=0x090010DD
+	(
+		PRINT %ERROR "ERROR ! This is not an EPXA10 target board"
+		ENDDO
+	)
+	PRINT "Detected EPXA10"
+
+	; Turn off all memories except the SRAM
+	Data.Set (&EXC_REGISTERS_BASE+0x0) %Long 0x00000001	; Turn off default boot mapping
+	&addr=(&EXC_REGISTERS_BASE+0xA0)
+	WHILE &addr<=(&EXC_REGISTERS_BASE+0xDC)
+	(
+		Data.Set &addr %Long 0
+		&addr=&addr+4
+	)
+
+	Data.Set (&EXC_REGISTERS_BASE+0x90) %Long 0x00020803 ; Map SRAM0 to Address 0x0000 with a size of 128KB
+	Data.Set (&EXC_REGISTERS_BASE+0x94) %Long 0x00000803 ; Map SRAM1 to Address 0x0000 with a size of 128KB
+)
+ELSE
+(
+	SYStem.Mode Up
+)
+
+
+Register.RESet
+Register.Set CPSR 0x00f3
+Data.Set 0x00--0x3ff %Long 0xeafffffe
+
+Data.LOAD.Elf "~~~~/cppdemo.elf" /RelPath
+Data.LOAD.Elf "~~~~/cppdemo.elf" /DIFF /NosYmbol
+IF FOUND()
+(
+	AREA.view
+	PRINT %ERROR "ERROR ! Failed to download the code of the example. Please check the memory settings of your target."
+	Data.LOAD.Elf "~~~~/cppdemo.elf" /ComPare /NosYmbol
+	ENDDO
+)
+
+Mode.Hll
+
+Go main
+
+
+WinPOS 0% 0% 100% 50%
+List.auto
+
+WinPOS 0% 50% 36% 50%
+Var.Ref %Hex %Decimal
+
+WinPOS 36% 50% 28% 50% ,, 5.
+Frame.view /Args /Locals
+
+WinPOS 64% 50% 36% 50%
+Var.Watch
+Var.AddWatch flags; ast;
+
+ENDDO
+

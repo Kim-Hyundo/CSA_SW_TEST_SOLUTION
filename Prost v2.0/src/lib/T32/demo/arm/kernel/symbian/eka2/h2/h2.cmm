@@ -1,0 +1,152 @@
+; --------------------------------------------------------------------------------
+; @Title: H2 16xx Raw Hardware Setup Script
+; @Description: -
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: h2.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+SYStem.Option enreset ON
+
+; Enable TI onchip debug support
+SYStem.Option tidbgen ON
+
+; enable the turbo option for faster memory access
+SYStem.Option turbo ON
+
+; Set ranges that debugger must not access
+MAP.DenyAccess 0x0fffff00--0x0fffffff
+
+; Set ETM to default to just addresses
+ETM.DataTrace Address
+
+
+; --------------------------------------------------------------------------------
+
+; Disable ARM9 Watchdog Timer
+Data.Set 0xFFFEC808 %Long 0x00F5
+Data.Set 0xFFFEC808 %Long 0x00A0
+
+; Disable Helen2 Watchdog
+Data.Set 0xFFFEB048 %Long 0xAAAA
+Data.Set 0xFFFEB048 %Long 0x5555
+
+
+; --------------------------------------------------------------------------------
+
+;	KClockSpeed_INIT 192 MHz : 0x2810	; PLL_MULT=16, PLL_DIV=1
+Data.Set 0xFFFECF00 %Word 0x2810			; KClockSpeed_INIT
+
+;KClkm_CKCTL_INIT	EQU	(	KARM_CKCTL_PERDIV_BY2 :OR: 
+;							KARM_CKCTL_LCDDIV_BY4 :OR: 
+;							KARM_CKCTL_ARMDIV_BY1 :OR: 
+;							KARM_CKCTL_DSPDIV_BY1 :OR: 
+;							KARM_CKCTL_TCDIV_BY2 :OR: 
+;							KARM_CKCTL_DSPMMUDIV_BY4 :OR: 
+;							KARM_CKCTL_TIMXO_ARMTIM_FROM_CKREF :OR: 
+;							KARM_CKCTL_DIS_DSPCK :OR: 
+;							KARM_CKCTL_INTHCK_BY2 
+;						)
+Data.Set 0xFFFECE00 %Word 0x4909			; KClkm_CKCTL_INIT
+Data.Set 0xFFFECE14 %Long 0x1				; RSTCT1
+Data.Set 0xFFFECE08 %Long 0x88E			; IDLECT2
+Data.Set 0xFFFECE18 %Word 0x1000			; KHoCLKM_ARM_SYSST
+
+; --------------------------------------------------------------------------------
+; DDR setup 
+; --------------------------------------------------------------------------------
+
+GLOBAL &core
+&core=0
+
+; Call a helper script to identify the core type
+LOCAL &identify
+&identify=OS.PPD()+"\identifyomap.cmm"
+DO &identify
+
+; setup variables here
+&emiffconf=0
+&urdctrl=0
+&lrdctrl=0
+&wrtctrl=0
+
+IF (&core==1623)
+	(
+	; 1623
+	PRINT "Using 1623 memory config"
+	&emiffconf=0x0002BCD6
+	;&urdctrl=0x00800002
+	;&lrdctrl=0x00800002
+	;&wrtctrl=0x03F00002
+	&urdctrl=0x6		; Enable DLL, phase 90
+	&lrdctrl=0x6		; Bits 19:0 SBZ
+	&wrtctrl=0x3500002	; Enable DLL, write offset -53
+	)
+ELSE
+	(
+	; For our purposes, a 1610 or 1611
+	PRINT "Using 1610 memory config"
+	&emiffconf=0x2BCF6
+	&urdctrl=0x6		; DLL Enable + 90degrees + read offset=0	
+	&lrdctrl=0x0		; Read offset = 0
+	&wrtctrl=0x6		; DLL Enable + 90degrees + write offset=0
+	)
+
+Data.Set 0xFFFECC80 %Long 0x07				; KHoTC_FastSDRAMOper_Init
+Data.Set 0xFFFECC20 %Long &emiffconf		; KHoTC_EmifFastConf_Init
+
+;data.set 0xFFFECC84 %l 0x08				; KHmTCIF_EmifFastSDRAMCmdSetCKELow
+Data.Set 0xFFFECC84 %Long 0x07				; KHmTCIF_EmifFastSDRAMCmdSetCKEHigh
+
+; assemble a spin in SRAM and wait a short while
+Data.Assemble SR:0x20000400 sub pc, pc, #8
+Register.Set PC 0x20000400
+Go
+WAIT 2.ms
+Break
+
+Data.Set 0xFFFECC84 %Long 0x00				; KHmTCIF_EmifFastSDRAMCmdNOP
+Data.Set 0xFFFECC84 %Long 0x01				; KHmTCIF_EmifFastSDRAMCmdPrecharge
+Data.Set 0xFFFECC84 %Long 0x02				; KHmTCIF_EmifFastSDRAMCmdAutorefresh
+Data.Set 0xFFFECC84 %Long 0x02				; KHmTCIF_EmifFastSDRAMCmdAutorefresh
+
+Data.Set 0xFFFECC70 %Long 0x33				; KHoTC_FastSDRAMMrs2_Init
+Data.Set 0xFFFECC78 %Long 0x00				; KHoTCIF_EmifFastSDRAMEmrs1
+
+Data.Set 0xFFFECCC0 %Long &urdctrl			; KHoTCIF_EmifFastDLLUrdCtrl_Init
+Data.Set 0xFFFECCCC %Long &lrdctrl			; KHoTCIF_EmifFastDLLLrdCtrl_Init
+Data.Set 0xFFFECC64 %Long &wrtctrl			; KHoTCIF_EmifFastDLLWrtCtrl_Init
+
+;
+; ERATTA 1.4.28 reads from external DDR memory can fail when URD
+; is set in lock mode.
+;
+; Give the board a little time to stabilize (using the spin in sram)
+Go
+WAIT 2.ms
+Break
+
+; read urd status
+&urdstatus=Data.Long(sd:0xFFFECCC4)
+
+; mask out all but the "DLLCount" bits (15:8)
+&urdstatus=&urdstatus&0xFF00
+
+; Read the URD ctrl value
+&urdctrl=Data.Long(sd:0xFFFECCC0)
+
+; Clear the delay and lock bits
+&urdctrl=(&urdctrl^0x2)				; Clear the "EnaDLL" bit (bit 1)
+&urdctrl=&urdctrl&~0xFF00			; Blank the "Delay" bits (bits 15:8)
+
+; "Configure URD_DLL to unlock mode using the "counter value" read
+; previously as "delay value"
+&urdctrl=&urdctrl|&urdstatus			; bit positions identical so just OR them
+&urdctrl=&urdctrl|0x8					; Set the loaddll bit (bit 4)
+
+; write the new value to the URD Control register
+Data.Set (sd:0xFFFECCC0) %Long &urdctrl
+
+ENDDO
+

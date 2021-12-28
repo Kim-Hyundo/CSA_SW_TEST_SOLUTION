@@ -1,0 +1,106 @@
+; --------------------------------------------------------------------------------
+; @Title: Example for flash declaration of Ambiq Apollo2 internal flash
+; @Description:
+;   Script arguments:
+;
+;    DO apollo2 [PREPAREONLY] [CPU=<cpu>]
+;
+;      PREPAREONLY only declares flash but does not execute flash programming
+;
+;      CPU=<cpu> selects CPU derivative <cpu>
+;
+;   Example:
+;
+;   DO ~~/demo/arm/flash/apollo2 CPU=AMAPH1KK PREPAREONLY
+;
+;   List of AMAPH* derivatives and their configuration:
+;
+;     CPU-Type        Flash size      SRAM size
+;                        [Byte]         [Byte]
+;     AMAPH1KK         0x100000        0x40000
+;
+; @Author: AME
+; @Chip: AMAPH*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 7577 $
+; $Id: apollo2.cmm 7577 2019-10-30 15:30:31Z bschroefel $
+
+
+LOCAL &parameters
+ENTRY %LINE &parameters
+
+LOCAL &param_prepareonly &param_cpu
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CPU=","")
+
+; ------------------------------------------------------------------------------
+; Setup CPU
+
+IF !SYStem.Up()
+(
+  SYStem.RESet
+
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  IF !CPUIS(AMAPH*)
+    SYStem.CPU AMAPH*
+  SYStem.CONFIG.DEBUGPORTTYPE SWD
+  SYStem.JtagClock 5MHz
+  SYStem.Up
+)
+
+; ------------------------------------------------------------------------------
+; Flash declaration
+
+FLASH.RESet
+GOSUB FlashDeclaration
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; -------------------------------------------------------------------------------
+; Flash programming example
+
+DIALOG.YESNO "Program flash memory?"
+LOCAL &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram.ALL
+  Data.LOAD.auto *
+  FLASH.ReProgram.off
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+)
+
+ENDDO
+
+
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU
+
+FlashDeclaration:
+(
+  PRIVATE &FlashSize &FlashDriver
+
+  IF CPUIS("AMAPH1KK")
+  (
+    &FlashSize=0x00100000
+    &FlashDriver="apollo2.bin"
+  )
+  ELSE
+  (
+    PRINT %ERROR "FLASH size of CPU type is unknown"
+    ENDDO
+  )
+
+  FLASH.Create  1. 0x00000000--(&FlashSize-1.) 0x2000 TARGET Long
+
+  FLASH.TARGET 0x10000000 0x10000800 0x400 ~~/demo/arm/flash/long/&FlashDriver
+
+  RETURN
+)

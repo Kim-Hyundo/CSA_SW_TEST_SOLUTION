@@ -1,0 +1,68 @@
+; --------------------------------------------------------------------------------
+; @Title: CMX Demo for TRACE32 OS Awareness
+; @Description: 
+;   This batchfile loads all necessary files to demonstrate
+;   the OS Awareness for CMX.
+; @Keywords: awareness, RTOS
+; @Author: DIE
+; @Chip: AT91RM9200
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: cmx.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+ SCREEN.ON                    ; all messages are displayed
+
+ AREA.RESet
+ WinPAGE.RESet
+ WinCLEAR
+ WinPOS 0 24. 70. 8. 0. 0. W000
+ AREA.view
+
+; Debugger reset
+ PRINT "resetting..."
+ SYStem.RESet
+
+; Initializing Debugger
+
+ PRINT "initializing..."
+
+ SYStem.CPU AT91RM9200
+ SYStem.Up
+ 
+; load sample application
+ PRINT "loading sample application..."
+ Data.LOAD.Elf cmxsamp.elf
+ 
+; patch some peripheral stuff if run in simulator
+ IF INTERFACE.SIM()
+ (
+   Data.Assemble LowLevelInit+0x18 nop
+   Data.Assemble LowLevelInit+0x2a nop
+   Data.Assemble LowLevelInit+0x36 nop
+   Data.Assemble LowLevelInit+0x4a nop
+   Data.Assemble LowLevelInit+0x62 nop
+   Data.Assemble LowLevelInit+0xf4 pop {r0-r2} bx r2
+ )
+ 
+; initialize RTOS support
+ PRINT "initializing RTOS support..."
+ TASK.CONFIG cmxrtx         ; load CMX awareness (cmxrtx.t32)
+ MENU.ReProgram cmxrtx      ; load CMX specific menu (cmxrtx.men)
+ HELP.FILTER.Add rtoscmx    ; add CMX awareness manual to help filter
+
+ PRINT "load complete."
+
+; open some windows
+ WinPOS 0 0 84. 13. 0. 1. W001
+ TASK.DTASK
+  
+ WinPOS 50. 6. 70. 21. 11. 1. W002
+ List.auto
+ 
+; start application
+ ;Go main
+ Go task6
+ 
+ ENDDO
+ 

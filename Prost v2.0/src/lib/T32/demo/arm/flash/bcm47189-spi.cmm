@@ -1,0 +1,459 @@
+; --------------------------------------------------------------------------------
+; @Title: BCM47189 Serial FLASH Programming Script
+; @Description:
+; Serial FLASH (Macronix, MX25L256) is connected the SPI0
+; (Serial Peripheral Interface)
+;
+; SDRAM    : 0x1000
+; Serial FLASH Controller Addr: 0x18000040
+;
+; @Author: jjeong
+; @Keywords: MX25L256 FLASH SPI
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: bcm47189-spi.cmm 7577 2019-10-30 15:30:31Z bschroefel $
+
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+
+; Setup debugger
+RESet
+SYStem.CPU BCM47189
+SYStem.Up
+
+GOSUB SDRAM_INIT
+Data.Test 0x1000++0x3FFF  /Prime ;s(d)ram test
+IF FOUND()
+(
+PRINT "s(d)ram is NOT initialized around 0x" ADDRESS.OFFSET(TRACK.ADDRESS())
+ENDDO
+)
+
+GOSUB READ_ID_TEST
+
+programFlash:
+
+  Break.RESet
+
+  FLASHFILE.RESet
+  FLASHFILE.CONFIG  0x18000040 0x0 0x0
+
+//FLASHFILE.TARGET <<code range>>    <<data range>>    <<algorithm file>>
+  FLASHFILE.TARGET 0x1000++0x1FFF    0x3000++0x1FFF   ~~/demo/arm/flash/byte/spi4b64_bcm47189.bin   /KEEP
+
+  FLASHFILE.GETID
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+ENDDO
+
+  FLASHFILE.DUMP 0x0
+
+  ;FLASHFILE.unlock 0x0--0xFFFFFF
+  ;FLASHFILE.erase 0x0--0xFFFFF
+  ;FLASHFILE.load * 0x0
+  ;FLASHFILE.load * 0x0  /ComPare
+
+ENDDO
+
+READ_ID_TEST:
+
+    &cmd=0x9F
+    &cmd=&cmd|0x9<<8  ; cmd + 2byte read
+    Data.Set ZSD:0x18000040 %LE %Long (&cmd|0x80000000)
+    &read=Data.Long(A:0x18000048)
+    PRINT "Read 1st = 0x" (&read&0xFF)  " (Manufacture ID)"
+    PRINT "Read 2nd = 0x" ((&read>>8.)&0xFF)  " (Device ID)"
+
+RETURN
+
+SDRAM_INIT:
+
+;***	getnvram_item:	nvram(7)=	sdram_config=0x1c6
+;init_ddr:	sdram_config	=	0x1c6
+;Memory	config:	0x1c6
+;mode:	ddr3
+;***	clkfreq.fab.0	is	not	listed	in	nvram	or	is	blank	***
+;***	getnvram_item:	nvram(5)=	"clkfreq=900,392"
+;usdelay(19)(100):	Elapsed	time	103	tics
+;do_init_53573	register	init	sequence	for	ddr:	ddr3	"392,"	cl6
+
+  Data.Set A:0x18007404 %LE %Long 0x00000000
+  Data.Set A:0x18007408 %LE %Long 0x00000000
+  Data.Set A:0x1800740C %LE %Long 0x00000000
+  Data.Set A:0x18007410 %LE %Long 0x00000000
+  Data.Set A:0x18007414 %LE %Long 0x00000000
+  Data.Set A:0x18007458 %LE %Long 0x01000202
+  Data.Set A:0x18007488 %LE %Long 0x00010000
+  Data.Set A:0x18007494 %LE %Long 0x00000000
+  Data.Set A:0x18007498 %LE %Long 0x00000000
+  Data.Set A:0x180074A0 %LE %Long 0x00200400
+  Data.Set A:0x180074A4 %LE %Long 0x01000400
+  Data.Set A:0x180074A8 %LE %Long 0x00000180
+  Data.Set A:0x180074AC %LE %Long 0x00000000
+  Data.Set A:0x180074B0 %LE %Long 0x00000001
+  Data.Set A:0x180074B4 %LE %Long 0x00000000
+  Data.Set A:0x180074B8 %LE %Long 0x00000000
+  Data.Set A:0x180074CC %LE %Long 0x00000000
+  Data.Set A:0x180074D0 %LE %Long 0x00010100
+  Data.Set A:0x180074D4 %LE %Long 0x00000000
+  Data.Set A:0x180074D8 %LE %Long 0x00000000
+  Data.Set A:0x180074DC %LE %Long 0x00020000
+  Data.Set A:0x180074E0 %LE %Long 0x00400100
+  Data.Set A:0x180074E4 %LE %Long 0x01000200
+  Data.Set A:0x180074E8 %LE %Long 0x02000040
+  Data.Set A:0x180074EC %LE %Long 0x00000040
+  Data.Set A:0x180074F0 %LE %Long 0x01030000
+  Data.Set A:0x180074F4 %LE %Long 0x01ffff0a
+  Data.Set A:0x180074F8 %LE %Long 0x01010101
+  Data.Set A:0x180074FC %LE %Long 0x03010101
+  Data.Set A:0x18007500 %LE %Long 0x0c000001
+  Data.Set A:0x18007504 %LE %Long 0x00000000
+  Data.Set A:0x18007508 %LE %Long 0x00010000
+  Data.Set A:0x1800750C %LE %Long 0x00000000
+  Data.Set A:0x18007510 %LE %Long 0x00000000
+  Data.Set A:0x18007514 %LE %Long 0x00000000
+  Data.Set A:0x18007518 %LE %Long 0x00000000
+  Data.Set A:0x1800751C %LE %Long 0x00000000
+  Data.Set A:0x18007520 %LE %Long 0x00000000
+  Data.Set A:0x18007524 %LE %Long 0x00000000
+  Data.Set A:0x18007528 %LE %Long 0x00000000
+  Data.Set A:0x1800752C %LE %Long 0x00000000
+  Data.Set A:0x18007530 %LE %Long 0x00000000
+  Data.Set A:0x18007534 %LE %Long 0x00000000
+  Data.Set A:0x18007544 %LE %Long 0x00000000
+  Data.Set A:0x18007548 %LE %Long 0x00000000
+  Data.Set A:0x1800754C %LE %Long 0x00000000
+  Data.Set A:0x18007550 %LE %Long 0x0d000000
+  Data.Set A:0x18007554 %LE %Long 0x00000028
+  Data.Set A:0x18007558 %LE %Long 0x00000000
+  Data.Set A:0x1800755C %LE %Long 0x00000000
+  Data.Set A:0x18007560 %LE %Long 0x00000000
+  Data.Set A:0x18007564 %LE %Long 0x00000000
+  Data.Set A:0x18007568 %LE %Long 0x00000000
+  Data.Set A:0x1800756C %LE %Long 0x00000000
+  Data.Set A:0x18007570 %LE %Long 0x00000000
+  Data.Set A:0x18007574 %LE %Long 0x00000000
+  Data.Set A:0x18007578 %LE %Long 0x00000000
+  Data.Set A:0x1800757C %LE %Long 0x00000000
+  Data.Set A:0x18007580 %LE %Long 0x00000000
+  Data.Set A:0x18007584 %LE %Long 0x00000000
+  Data.Set A:0x18007588 %LE %Long 0x00000000
+  Data.Set A:0x1800758C %LE %Long 0x00000000
+  Data.Set A:0x18007590 %LE %Long 0x00000202
+  Data.Set A:0x18007594 %LE %Long 0x00000000
+  Data.Set A:0x18007598 %LE %Long 0x00000000
+  Data.Set A:0x1800759C %LE %Long 0x00000000
+  Data.Set A:0x180075A0 %LE %Long 0x00000000
+  Data.Set A:0x180075A4 %LE %Long 0x00000000
+  Data.Set A:0x180075A8 %LE %Long 0xff03ff00
+  Data.Set A:0x180075B0 %LE %Long 0x00000000
+  Data.Set A:0x180075B8 %LE %Long 0x02000200
+  Data.Set A:0x180075C8 %LE %Long 0x02000200
+  Data.Set A:0x180075CC %LE %Long 0x02000200
+  Data.Set A:0x180075DC %LE %Long 0x000a0301
+  Data.Set A:0x180075E0 %LE %Long 0x0000000d
+  Data.Set A:0x180075E4 %LE %Long 0x00000000
+  Data.Set A:0x180075E8 %LE %Long 0x00000000
+  Data.Set A:0x180075EC %LE %Long 0x00000000
+  Data.Set A:0x180075F0 %LE %Long 0x00000a00
+  Data.Set A:0x180075F4 %LE %Long 0x00000000
+  Data.Set A:0x180075F8 %LE %Long 0x000d0000
+  Data.Set A:0x180075FC %LE %Long 0x00000000
+  Data.Set A:0x18007600 %LE %Long 0x00000000
+  Data.Set A:0x18007604 %LE %Long 0x00000000
+  Data.Set A:0x18007608 %LE %Long 0x00000000
+  Data.Set A:0x1800760C %LE %Long 0x00000000
+  Data.Set A:0x18007610 %LE %Long 0x00000000
+  Data.Set A:0x18007614 %LE %Long 0x00000001
+  Data.Set A:0x1800761C %LE %Long 0x00000101
+  Data.Set A:0x18007620 %LE %Long 0x00000000
+  Data.Set A:0x18007624 %LE %Long 0x00000000
+  Data.Set A:0x18007628 %LE %Long 0x00000000
+  Data.Set A:0x1800762C %LE %Long 0x00000000
+  Data.Set A:0x18007630 %LE %Long 0x00000000
+  Data.Set A:0x18007634 %LE %Long 0x00000000
+  Data.Set A:0x18007638 %LE %Long 0x00000000
+  Data.Set A:0x1800763C %LE %Long 0x00000000
+  Data.Set A:0x18007640 %LE %Long 0x00000000
+  Data.Set A:0x18007644 %LE %Long 0x00000000
+  Data.Set A:0x18007648 %LE %Long 0x00000000
+  Data.Set A:0x1800764C %LE %Long 0x00000000
+  Data.Set A:0x18007650 %LE %Long 0x00000000
+  Data.Set A:0x18007654 %LE %Long 0x00000000
+  Data.Set A:0x18007658 %LE %Long 0x00000000
+  Data.Set A:0x1800765C %LE %Long 0x00000000
+  Data.Set A:0x18007664 %LE %Long 0x00010000
+  Data.Set A:0x18007668 %LE %Long 0x00000100
+  Data.Set A:0x1800766C %LE %Long 0x00000101
+  Data.Set A:0x18007670 %LE %Long 0x00010000
+  Data.Set A:0x18007674 %LE %Long 0x00000100
+  Data.Set A:0x18007678 %LE %Long 0x00000000
+  Data.Set A:0x1800767C %LE %Long 0x0003ffff
+  Data.Set A:0x18007680 %LE %Long 0x00000000
+  Data.Set A:0x18007684 %LE %Long 0x0003ffff
+  Data.Set A:0x18007688 %LE %Long 0x00000000
+  Data.Set A:0x1800768C %LE %Long 0x0003ffff
+  Data.Set A:0x18007690 %LE %Long 0x00000000
+  Data.Set A:0x18007694 %LE %Long 0x0003ffff
+  Data.Set A:0x18007698 %LE %Long 0x00000000
+  Data.Set A:0x1800769C %LE %Long 0x0003ffff
+  Data.Set A:0x180076A0 %LE %Long 0x00000000
+  Data.Set A:0x180076A4 %LE %Long 0x0003ffff
+  Data.Set A:0x180076A8 %LE %Long 0x00000000
+  Data.Set A:0x180076AC %LE %Long 0x0003ffff
+  Data.Set A:0x180076B0 %LE %Long 0x00000000
+  Data.Set A:0x180076B4 %LE %Long 0x0003ffff
+  Data.Set A:0x180076B8 %LE %Long 0x00000000
+  Data.Set A:0x180076BC %LE %Long 0x0003ffff
+  Data.Set A:0x180076C0 %LE %Long 0x00000000
+  Data.Set A:0x180076C4 %LE %Long 0x0003ffff
+  Data.Set A:0x180076C8 %LE %Long 0x00000000
+  Data.Set A:0x180076CC %LE %Long 0x0003ffff
+  Data.Set A:0x180076D0 %LE %Long 0x00000000
+  Data.Set A:0x180076D4 %LE %Long 0x0003ffff
+  Data.Set A:0x180076D8 %LE %Long 0x00000000
+  Data.Set A:0x180076DC %LE %Long 0x0003ffff
+  Data.Set A:0x180076E0 %LE %Long 0x00000000
+  Data.Set A:0x180076E4 %LE %Long 0x0003ffff
+  Data.Set A:0x180076E8 %LE %Long 0x00000000
+  Data.Set A:0x180076EC %LE %Long 0x0003ffff
+  Data.Set A:0x180076F0 %LE %Long 0x00000000
+  Data.Set A:0x180076F4 %LE %Long 0x0303ffff
+  Data.Set A:0x180076F8 %LE %Long 0xffffffff
+  Data.Set A:0x180076FC %LE %Long 0x000f000f
+  Data.Set A:0x18007700 %LE %Long 0x00ffff03
+  Data.Set A:0x18007704 %LE %Long 0x000fffff
+  Data.Set A:0x18007708 %LE %Long 0x0003000f
+  Data.Set A:0x1800770C %LE %Long 0xffffffff
+  Data.Set A:0x18007710 %LE %Long 0x000f000f
+  Data.Set A:0x18007714 %LE %Long 0x00ffff03
+  Data.Set A:0x18007718 %LE %Long 0x000fffff
+  Data.Set A:0x1800771C %LE %Long 0x0003000f
+  Data.Set A:0x18007720 %LE %Long 0xffffffff
+  Data.Set A:0x18007724 %LE %Long 0x000f000f
+  Data.Set A:0x18007728 %LE %Long 0x00ffff03
+  Data.Set A:0x1800772C %LE %Long 0x000fffff
+  Data.Set A:0x18007730 %LE %Long 0x0003000f
+  Data.Set A:0x18007734 %LE %Long 0xffffffff
+  Data.Set A:0x18007738 %LE %Long 0x000f000f
+  Data.Set A:0x1800773C %LE %Long 0x00ffff03
+  Data.Set A:0x18007740 %LE %Long 0x000fffff
+  Data.Set A:0x18007744 %LE %Long 0x0003000f
+  Data.Set A:0x18007748 %LE %Long 0xffffffff
+  Data.Set A:0x1800774C %LE %Long 0x000f000f
+  Data.Set A:0x18007750 %LE %Long 0x00ffff03
+  Data.Set A:0x18007754 %LE %Long 0x000fffff
+  Data.Set A:0x18007758 %LE %Long 0x0003000f
+  Data.Set A:0x1800775C %LE %Long 0xffffffff
+  Data.Set A:0x18007760 %LE %Long 0x000f000f
+  Data.Set A:0x18007764 %LE %Long 0x00ffff03
+  Data.Set A:0x18007768 %LE %Long 0x000fffff
+  Data.Set A:0x1800776C %LE %Long 0x0003000f
+  Data.Set A:0x18007770 %LE %Long 0xffffffff
+  Data.Set A:0x18007774 %LE %Long 0x000f000f
+  Data.Set A:0x18007778 %LE %Long 0x00ffff03
+  Data.Set A:0x1800777C %LE %Long 0x000fffff
+  Data.Set A:0x18007780 %LE %Long 0x0003000f
+  Data.Set A:0x18007784 %LE %Long 0xffffffff
+  Data.Set A:0x18007788 %LE %Long 0x000f000f
+  Data.Set A:0x1800778C %LE %Long 0x00ffff03
+  Data.Set A:0x18007790 %LE %Long 0x000fffff
+  Data.Set A:0x18007800 %LE %Long 0x00000413
+  Data.Set A:0x18007804 %LE %Long 0x00000415
+  Data.Set A:0x18007808 %LE %Long 0x80010088
+  Data.Set A:0x18007814 %LE %Long 0x00004040
+  Data.Set A:0x18007818 %LE %Long 0x00000413
+  Data.Set A:0x1800781C %LE %Long 0x00000415
+  Data.Set A:0x18007820 %LE %Long 0x80010060
+  Data.Set A:0x18007824 %LE %Long 0x00000003
+  Data.Set A:0x18007828 %LE %Long 0x0912007f
+  Data.Set A:0x1800782C %LE %Long 0x00004040
+  Data.Set A:0x18007830 %LE %Long 0x00000000
+  Data.Set A:0x18007834 %LE %Long 0x00000000
+  Data.Set A:0x18007838 %LE %Long 0x00000000
+  Data.Set A:0x1800783C %LE %Long 0x00000000
+  Data.Set A:0x18007840 %LE %Long 0x00000000
+  Data.Set A:0x18007844 %LE %Long 0x0000818a
+  Data.Set A:0x18007848 %LE %Long 0x0000818a
+  Data.Set A:0x1800784C %LE %Long 0x00000000
+  Data.Set A:0x18007850 %LE %Long 0x00000000
+  Data.Set A:0x18007854 %LE %Long 0x4240f000
+  Data.Set A:0x18007858 %LE %Long 0x4240f000
+  Data.Set A:0x1800785C %LE %Long 0x00000000
+  Data.Set A:0x18007860 %LE %Long 0x00000000
+  Data.Set A:0x18007864 %LE %Long 0x00000000
+  Data.Set A:0x18007868 %LE %Long 0x00000000
+  Data.Set A:0x1800786C %LE %Long 0x00000000
+  Data.Set A:0x18007870 %LE %Long 0x00000000
+  Data.Set A:0x18007874 %LE %Long 0x00000000
+  Data.Set A:0x18007878 %LE %Long 0x00000000
+  Data.Set A:0x1800787C %LE %Long 0x00000000
+  Data.Set A:0x18007880 %LE %Long 0x00000413
+  Data.Set A:0x18007884 %LE %Long 0x00000415
+  Data.Set A:0x18007888 %LE %Long 0x80010088
+  Data.Set A:0x18007894 %LE %Long 0x00004040
+  Data.Set A:0x18007898 %LE %Long 0x00000413
+  Data.Set A:0x1800789C %LE %Long 0x00000415
+  Data.Set A:0x180078A0 %LE %Long 0x80010060
+  Data.Set A:0x180078A4 %LE %Long 0x00000003
+  Data.Set A:0x180078A8 %LE %Long 0x0912007f
+  Data.Set A:0x180078AC %LE %Long 0x00004040
+  Data.Set A:0x180078B0 %LE %Long 0x00000000
+  Data.Set A:0x180078B4 %LE %Long 0x00000000
+  Data.Set A:0x180078B8 %LE %Long 0x00000000
+  Data.Set A:0x180078BC %LE %Long 0x00000000
+  Data.Set A:0x180078C0 %LE %Long 0x00000000
+  Data.Set A:0x180078C4 %LE %Long 0x0000818a
+  Data.Set A:0x180078C8 %LE %Long 0x0000818a
+  Data.Set A:0x180078CC %LE %Long 0x00000000
+  Data.Set A:0x180078D0 %LE %Long 0x00000000
+  Data.Set A:0x180078D4 %LE %Long 0x4240f000
+  Data.Set A:0x180078D8 %LE %Long 0x4240f000
+  Data.Set A:0x180078DC %LE %Long 0x00000000
+  Data.Set A:0x180078E0 %LE %Long 0x00000000
+  Data.Set A:0x180078E4 %LE %Long 0x00000000
+  Data.Set A:0x180078E8 %LE %Long 0x00000000
+  Data.Set A:0x180078EC %LE %Long 0x00000000
+  Data.Set A:0x180078F0 %LE %Long 0x00000000
+  Data.Set A:0x180078F4 %LE %Long 0x00000000
+  Data.Set A:0x180078F8 %LE %Long 0x00000000
+  Data.Set A:0x180078FC %LE %Long 0x00000000
+  Data.Set A:0x18007900 %LE %Long 0x00000413
+  Data.Set A:0x18007904 %LE %Long 0x00000415
+  Data.Set A:0x18007908 %LE %Long 0x80010088
+  Data.Set A:0x18007914 %LE %Long 0x00004040
+  Data.Set A:0x18007918 %LE %Long 0x00000413
+  Data.Set A:0x1800791C %LE %Long 0x00000415
+  Data.Set A:0x18007920 %LE %Long 0x80010060
+  Data.Set A:0x18007924 %LE %Long 0x00000003
+  Data.Set A:0x18007928 %LE %Long 0x0912007f
+  Data.Set A:0x1800792C %LE %Long 0x00004040
+  Data.Set A:0x18007930 %LE %Long 0x00000000
+  Data.Set A:0x18007934 %LE %Long 0x00000000
+  Data.Set A:0x18007938 %LE %Long 0x00000000
+  Data.Set A:0x1800793C %LE %Long 0x00000000
+  Data.Set A:0x18007940 %LE %Long 0x00000000
+  Data.Set A:0x18007944 %LE %Long 0x0000818a
+  Data.Set A:0x18007948 %LE %Long 0x0000818a
+  Data.Set A:0x1800794C %LE %Long 0x00000000
+  Data.Set A:0x18007950 %LE %Long 0x00000000
+  Data.Set A:0x18007954 %LE %Long 0x4240f000
+  Data.Set A:0x18007958 %LE %Long 0x4240f000
+  Data.Set A:0x1800795C %LE %Long 0x00000000
+  Data.Set A:0x18007960 %LE %Long 0x00000000
+  Data.Set A:0x18007964 %LE %Long 0x00000000
+  Data.Set A:0x18007968 %LE %Long 0x00000000
+  Data.Set A:0x1800796C %LE %Long 0x00000000
+  Data.Set A:0x18007970 %LE %Long 0x00000000
+  Data.Set A:0x18007974 %LE %Long 0x00000000
+  Data.Set A:0x18007978 %LE %Long 0x00000000
+  Data.Set A:0x1800797C %LE %Long 0x00000000
+  Data.Set A:0x18007980 %LE %Long 0x00000413
+  Data.Set A:0x18007984 %LE %Long 0x00000415
+  Data.Set A:0x18007988 %LE %Long 0x80010088
+  Data.Set A:0x18007994 %LE %Long 0x00004040
+  Data.Set A:0x18007998 %LE %Long 0x00000413
+  Data.Set A:0x1800799C %LE %Long 0x00000415
+  Data.Set A:0x180079A0 %LE %Long 0x80010060
+  Data.Set A:0x180079A4 %LE %Long 0x00000003
+  Data.Set A:0x180079A8 %LE %Long 0x0912007f
+  Data.Set A:0x180079AC %LE %Long 0x00004040
+  Data.Set A:0x180079B0 %LE %Long 0x00000000
+  Data.Set A:0x180079B4 %LE %Long 0x00000000
+  Data.Set A:0x180079B8 %LE %Long 0x00000000
+  Data.Set A:0x180079BC %LE %Long 0x00000000
+  Data.Set A:0x180079C0 %LE %Long 0x00000000
+  Data.Set A:0x180079C4 %LE %Long 0x0000818a
+  Data.Set A:0x180079C8 %LE %Long 0x0000818a
+  Data.Set A:0x180079CC %LE %Long 0x00000000
+  Data.Set A:0x180079D0 %LE %Long 0x00000000
+  Data.Set A:0x180079D4 %LE %Long 0x4240f000
+  Data.Set A:0x180079D8 %LE %Long 0x4240f000
+  Data.Set A:0x180079DC %LE %Long 0x00000000
+  Data.Set A:0x180079E0 %LE %Long 0x00000000
+  Data.Set A:0x180079E4 %LE %Long 0x00000000
+  Data.Set A:0x180079E8 %LE %Long 0x00000000
+  Data.Set A:0x180079EC %LE %Long 0x00000000
+  Data.Set A:0x180079F0 %LE %Long 0x00000000
+  Data.Set A:0x180079F4 %LE %Long 0x00000000
+  Data.Set A:0x180079F8 %LE %Long 0x00000000
+  Data.Set A:0x180079FC %LE %Long 0x00000000
+  Data.Set A:0x18007A00 %LE %Long 0x00000000
+  Data.Set A:0x18007A0C %LE %Long 0x00000000
+
+  Data.Set A:0x18007400 %LE %Long 0x00000600
+  Data.Set A:0x1800741C %LE %Long 0x00000002
+  Data.Set A:0x18007428 %LE %Long 0x00000000
+  Data.Set A:0x1800742C %LE %Long 0x00000000
+  Data.Set A:0x18007434 %LE %Long 0x0400060a
+  Data.Set A:0x18007440 %LE %Long 0x02040507
+  Data.Set A:0x18007444 %LE %Long 0x0c040407
+  Data.Set A:0x1800744C %LE %Long 0x0c040403
+  Data.Set A:0x18007450 %LE %Long 0x03002247
+  Data.Set A:0x1800746C %LE %Long 0x000003c7
+  Data.Set A:0x18007478 %LE %Long 0x00000000
+  Data.Set A:0x1800747C %LE %Long 0x00000000
+  Data.Set A:0x18007484 %LE %Long 0x000f0200
+  Data.Set A:0x18007490 %LE %Long 0x00000005
+  Data.Set A:0x1800749C %LE %Long 0x20020100
+  Data.Set A:0x180074C4 %LE %Long 0x00030220
+  Data.Set A:0x180074C8 %LE %Long 0x00000008
+  Data.Set A:0x1800753C %LE %Long 0x00000605
+  Data.Set A:0x18007540 %LE %Long 0x00000000
+  Data.Set A:0x180075AC %LE %Long 0x0c0d0000
+  Data.Set A:0x180075D0 %LE %Long 0x0000078e
+  Data.Set A:0x180075D4 %LE %Long 0x000025c6
+  Data.Set A:0x180075D8 %LE %Long 0x02020605
+  Data.Set A:0x18007618 %LE %Long 0x02000200
+  Data.Set A:0x18007660 %LE %Long 0x03020101
+  Data.Set A:0x18007798 %LE %Long 0x00000505
+  Data.Set A:0x1800780C %LE %Long 0x00000004
+  Data.Set A:0x1800788C %LE %Long 0x00000004
+  Data.Set A:0x1800790C %LE %Long 0x00000004
+  Data.Set A:0x1800798C %LE %Long 0x00000004
+  Data.Set A:0x18007A04 %LE %Long 0x00001006
+  Data.Set A:0x18007A08 %LE %Long 0x00001005
+
+  Data.Set A:0x18007418 %LE %Long 0x00000004
+  Data.Set A:0x18007420 %LE %Long 0x0001312d
+  Data.Set A:0x18007424 %LE %Long 0x0002faf1
+  Data.Set A:0x18007430 %LE %Long 0x00050c00
+  Data.Set A:0x18007438 %LE %Long 0x0f140404
+  Data.Set A:0x1800743C %LE %Long 0x04140604
+  Data.Set A:0x18007448 %LE %Long 0x03006b1d
+  Data.Set A:0x18007454 %LE %Long 0x06060003
+  Data.Set A:0x1800745C %LE %Long 0x03070c01
+  Data.Set A:0x18007460 %LE %Long 0x00000206
+  Data.Set A:0x18007464 %LE %Long 0x002b0100
+  Data.Set A:0x18007468 %LE %Long 0x000e0bde
+  Data.Set A:0x18007470 %LE %Long 0x00030003
+  Data.Set A:0x18007474 %LE %Long 0x000a000a
+  Data.Set A:0x18007480 %LE %Long 0x002f0200
+  Data.Set A:0x1800748C %LE %Long 0x05050500
+  Data.Set A:0x180074BC %LE %Long 0x00042000
+  Data.Set A:0x180074C0 %LE %Long 0x00000046
+  Data.Set A:0x18007538 %LE %Long 0x04000000
+  Data.Set A:0x180075B4 %LE %Long 0x020017bc
+  Data.Set A:0x180075BC %LE %Long 0x17bc0200
+  Data.Set A:0x180075C0 %LE %Long 0x000076ac
+  Data.Set A:0x180075C4 %LE %Long 0x078e0506
+  Data.Set A:0x18007794 %LE %Long 0x0405000f
+  Data.Set A:0x18007810 %LE %Long 0x0a120024
+  Data.Set A:0x18007890 %LE %Long 0x0a120024
+  Data.Set A:0x18007910 %LE %Long 0x0a120024
+  Data.Set A:0x18007990 %LE %Long 0x0a120024
+
+  Data.Set A:0x18007504 %LE %Long 0x00000001
+  Data.Set A:0x180074f0 %LE %Long 0x01030000
+  Data.Set A:0x18007400 %LE %Long 0yXXXXxxxxXXXXxxxxXXXXxxxxXXXXxxx1
+
+;wait	for	AXI	ready	to	start	transaction
+  WAIT (Data.Long(A:0x18007004)&0x80)!=0
+
+;wait	for	AXI	ready	to	start	transaction
+;dmemc	"initialized,"	memtype:	0x1c6
+
+RETURN

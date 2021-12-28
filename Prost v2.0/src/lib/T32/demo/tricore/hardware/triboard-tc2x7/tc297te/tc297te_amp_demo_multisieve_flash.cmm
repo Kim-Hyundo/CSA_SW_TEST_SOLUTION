@@ -1,0 +1,260 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC297TE on TriBoard-TC2x7 (AMP, Flash, multisieve app)
+; @Description:
+;   Programs the multisieve demo application (multi-core) into the processor
+;   internal flash and sets up a demo debug scenario for AMP debugging. Further
+;   information is available in in the Tricore Processor Architecture Manual
+;   (pdf/debugger_tricore.pdf), chapter "AMP Debugging - Quick Start".
+; @Keywords: AURIX, flash, Infineon, multi-core, multisieve, TriCore
+; @Author: MOB
+; @Board: TriBoard-TC2x7
+; @Chip: TC297TE
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc297te_amp_demo_multisieve_flash.cmm 15579 2020-01-27 15:08:53Z sltaief $
+
+
+; --------------------------------------------------------------------------------
+; hardware setup
+;   TC297T* A-Step requires connection of pin P23.5 to 3.3 V.
+;   See INFINEON device status sheet.
+
+; script-local macros:
+LOCAL &portGUI0 &portGUI1 &portGUI2
+LOCAL &addressGUI0 &addressGUI1 &addressGUI2
+
+; --------------------------------------------------------------------------------
+; generic setup
+
+; setup communication between GUIs:
+GOSUB setup_intercom
+
+; set up user-defined helper commands for this script:
+ON CMD CORE0 GOSUB coreTC0
+ON CMD CORE1 GOSUB coreTC1
+ON CMD CORE2 GOSUB coreTC2
+ON CMD COREALL GOSUB coreAll
+
+; check connection / launch GUIs:
+GOSUB other_guis
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+COREALL RESet
+COREALL SYStem.CPU TC297TE
+
+; mount all cores into the same chip:
+CORE0 SYStem.CONFIG.CORE 1. 1.
+CORE1 SYStem.CONFIG.CORE 2. 1.
+CORE2 SYStem.CONFIG.CORE 3. 1.
+CORE0 SYStem.Up
+CORE1 SYStem.Mode Attach
+CORE2 SYStem.Mode Attach
+
+; optional settings:
+COREALL SYStem.Option DUALPORT ON
+COREALL SETUP.Var %SpotLight
+COREALL MAP.BOnchip 0x0--0xffffffff // force onchip-breakpoints
+; COREALL DO ~~/demo/practice/intercom/toolbar_quit_all.cmm
+
+; --------------------------------------------------------------------------------
+; Flash programming
+LOCAL &elfFile &progFlash &bmhdResult
+&elfFile=OS.PPD()+"/triboard-tc29x_multisieve_intflash.elf" // including the full path
+
+; prepare flash programming (declarations)
+DO ~~/demo/tricore/flash/tc29x.cmm CPU=TC297TE PREPAREONLY
+
+; check if application is already in flash and load symbols on core0
+CORE0 Data.LOAD.Elf "&elfFile" /DIFF /SingleLineAdjacent
+IF FOUND()
+(
+  DIALOG.YESNO "Program Lauterbach multisieve demo into flash memory?"
+  ENTRY &progFlash
+  IF (&progFlash)
+  (
+    ; enable flash programming
+    CORE0 FLASH.ReProgram ALL
+
+    ; load demo application
+    CORE0 Data.LOAD.Elf "&elfFile"
+
+    ; check if there is at least one valid Boot Mode Header
+    DO ~~/demo/tricore/flash/tc29x.cmm CHECKBMHD
+    ENTRY &bmhdResult
+    IF ("&bmhdResult"=="BMHD_OK")
+    (
+      ; finally program flash memory
+      CORE0 FLASH.ReProgram off
+
+      ; sanity check after flashing
+      CORE0 Data.LOAD.Elf "&elfFile" /DIFF
+      IF FOUND()
+      (
+        ; maybe some sections are still declared as NOP?
+        PRIVATE &diffAddress
+        &diffAddress=TRACK.ADDRESS()
+        CORE0 DIALOG.MESSAGE "File &elfFile has not been fully flashed, difference found at address &diffAddress (check flash declaration)"
+      )
+    )
+    ELSE
+    (
+      CORE0 DIALOG.OK "No valid Boot Mode Header found!" "Reverting loaded data"
+      CORE0 FLASH.ReProgram ALL
+      CORE0 FLASH.ReProgram off
+      ENDDO
+    )
+  )
+)
+; load the symbols on other cores
+CORE1 Data.LOAD.Elf "&elfFile" /SingleLineAdjacent /NoCODE /NoRegister
+CORE2 Data.LOAD.Elf "&elfFile" /SingleLineAdjacent /NoCODE /NoRegister
+
+; --------------------------------------------------------------------------------
+; select trace method
+IF !Analyzer()
+  COREALL Trace.Method Onchip
+
+; --------------------------------------------------------------------------------
+; set up MCDS trace
+Trace.OFF
+
+; enable TriCore core 1 for flow trace (core 0 is enabled by default)
+
+CORE1 MCDS.SOURCE.Set CpuMux1.Core TriCore1
+CORE1 MCDS.SOURCE.Set CpuMux1.Program ON
+CORE1 MCDS.SOURCE.Set CpuMux1.PTMode FlowTrace
+
+; --------------------------------------------------------------------------------
+; arrange GUIs and open some windows
+CORE0 FramePOS 0% 0% 33% 75% Auto
+CORE1 FramePOS 33% 0% 33% 75% Auto
+CORE2 FramePOS 67% 0% 33% 75% Auto
+COREALL WinCLEAR
+COREALL WinPOS 0% 0% 100% 33%
+COREALL List.auto
+COREALL WinPOS 0% 33% 100% 33%
+COREALL Var.Watch
+IF Analyzer()||Onchip()
+(
+  ; show trace results for core 0 and 1
+  CORE0 WinPOS 0% 67% 100% 33%
+  CORE0 Trace.List
+  CORE1 WinPOS 0% 67% 100% 33%
+  CORE1 Trace.List
+)
+CORE0 TargetSystem.state DEFault Title SYnch.All InterComPort /Global
+
+COREALL Var.AddWatch %Hex flags flagsc flags0 flags1 flags2
+
+; set up synchronization between GUIs:
+COREALL SYnch.Connect &addressGUI0 &addressGUI1 &addressGUI2
+; required when setting breakpoints on slave GUIs:
+CORE0 SYnch.MasterGo ON
+CORE1 SYnch.SlaveGo ON
+CORE2 SYnch.SlaveGo ON
+; optional:
+COREALL SYnch.MasterBreak ON
+COREALL SYnch.SlaveBreak ON
+
+; demo script ends here
+ENDDO
+
+; --------------------------------------------------------------------------------
+; helper subroutines:
+
+coreTC0:
+(
+  LOCAL &params
+  ENTRY %LINE &params
+  &params ; execute on this GUI
+  RETURN
+)
+
+coreTC1:
+(
+  LOCAL &params
+  ENTRY %LINE &params
+  INTERCOM.execute &addressGUI1 &params ; execute on remote GUI 1
+  RETURN
+)
+
+coreTC2:
+(
+  LOCAL &params
+  ENTRY %LINE &params
+  INTERCOM.execute &addressGUI2 &params ; execute on remote GUI 2
+  RETURN
+)
+
+coreAll:
+(
+  LOCAL &params
+  ENTRY %LINE &params
+  GOSUB coreTC0 &params
+  GOSUB coreTC1 &params
+  GOSUB coreTC2 &params
+  RETURN
+)
+
+setup_intercom:
+(
+  &portGUI0=FORMAT.Decimal(1.,INTERCOM.PORT())
+  &portGUI1=FORMAT.Decimal(1.,INTERCOM.PORT()+1.)
+  &portGUI2=FORMAT.Decimal(1.,INTERCOM.PORT()+2.)
+  &addressGUI0="127.0.0.1:&portGUI0"
+  &addressGUI1="127.0.0.1:&portGUI1"
+  &addressGUI2="127.0.0.1:&portGUI2"
+  RETURN
+)
+
+other_guis:
+(
+  LOCAL &nodename &config &launchGUI &p3_tmp &p4_sys &p5_help &p6_pbi &p7_opt &p8_opt
+  &p3_tmp=OS.PTD()
+  &p4_sys=OS.PSD()
+  &p5_help=OS.PHELPD()
+
+  IF (VERSION.BUILD.BASE()<45240.)
+  (
+    PRINT %ERROR "This script requires TRACE32 Version 2013.06.000045240 or later, contact bdmtc-support@lauterbach.com"
+    ENDDO
+  )
+
+  &config=IFCONFIG.CONFIGURATION()
+  &nodename=IFCONFIG.DEVICENAME()
+  IF (STRing.SCAN("&config","USB",0)!=-1)
+  (
+    &p6_pbi="USB"
+    IF "&nodename"!=""
+    (
+      &p7_opt="NODE=&nodename"
+    )
+  )
+  ELSE
+  (
+    &p6_pbi="NET"
+    &p7_opt="NODE=&nodename"
+    &p8_opt="PACKLEN=1024"
+  )
+
+  WAIT INTERCOM.PING(&addressGUI1) 5.s
+  IF !INTERCOM.PING(&addressGUI1)
+  (
+    PRINT "no debugger / GUI at &addressGUI1 detected, launching second GUI..."
+    &launchGUI=OS.PEF()+" -c "+OS.PPD()+"/config_multicore.t32 &portGUI1 TriCore-Core1 &p3_tmp &p4_sys &p5_help &p6_pbi &p7_opt &p8_opt CORE=2"
+    OS.screen &launchGUI
+  )
+
+  WAIT INTERCOM.PING(&addressGUI2) 5.s
+  IF !INTERCOM.PING(&addressGUI2)
+  (
+    PRINT "no debugger / GUI at &addressGUI2 detected, launching third GUI..."
+    &launchGUI=OS.PEF()+" -c "+OS.PPD()+"/config_multicore.t32 &portGUI2 TriCore-Core2 &p3_tmp &p4_sys &p5_help &p6_pbi &p7_opt &p8_opt CORE=3"
+    OS.screen &launchGUI
+  )
+
+  WAIT INTERCOM.PING(&addressGUI1) 5.s
+  WAIT INTERCOM.PING(&addressGUI2) 5.s
+  RETURN
+)

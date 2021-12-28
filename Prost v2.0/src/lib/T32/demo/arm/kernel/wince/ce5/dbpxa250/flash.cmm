@@ -1,0 +1,40 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash Programming Example for DBPXA250 
+; @Description: 
+;   This sample script shows how to program the onboard flash
+;   of the DBPXA250 development board with the WinCE boot loader
+;   (eboot) and the WinCE system (nk)
+; @Author: DIE
+; @Board: DBPXA250
+; @Chip: PXA250
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: flash.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+; Flash programming: set S15 to dot position!
+
+ SYStem.Down
+ SYStem.CPU PXA250
+ SYStem.Up
+ 
+ ; define the flash type
+ FLASH.Create 1. 0x0--0x1ffffff 0x40000 I28F200J3 Long
+ 
+ ; program boot loader (eboot.nb0)
+
+ FLASH.Erase 0x0--0x7ffff
+ FLASH.Program.off 0x0--0x7ffff
+ Data.LOAD.Binary eboot.nb0 0x0 /Long
+ FLASH.Program.off
+ Data.LOAD.Binary eboot.nb0 /ComPare
+ 
+ ; program WinCE system (nk.nb0)
+
+ FLASH.Erase 0x80000--0x1ffffff
+ FLASH.Program.off 0x80000--0x1ffffff
+ Data.LOAD.Binary nk.nb0 0x0 /Long
+ FLASH.Program.off
+ Data.LOAD.Binary nk.nb0 /ComPare
+ 
+ 

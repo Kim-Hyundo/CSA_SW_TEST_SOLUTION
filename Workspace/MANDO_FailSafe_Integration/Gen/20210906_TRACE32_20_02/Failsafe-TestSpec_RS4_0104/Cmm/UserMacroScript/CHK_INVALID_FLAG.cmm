@@ -1,0 +1,20 @@
+//Invalid signal fault 확인
+B::
+ENTRY &para1
+ON ERROR JUMPTO errorhandler
+
+if string.scan("&para1","ESC",0)==0
+     &result=v.value(esc[&para1].fault)
+else if string.scan("&para1","CLU",0)==0
+     &result=v.value(clu[&para1].fault)
+else
+    &result="ERROR3"
+
+print %decimal &result
+ON ERROR
+ENDDO
+
+errorhandler:
+PRINT %ERROR "ERROR3"
+ON ERROR
+ENDDO

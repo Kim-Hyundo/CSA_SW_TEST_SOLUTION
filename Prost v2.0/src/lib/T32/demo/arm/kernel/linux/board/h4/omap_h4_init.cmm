@@ -1,0 +1,65 @@
+; --------------------------------------------------------------------------------
+; @Title: Initialization Script for the OMAP H4 Board
+; @Description: Initialization of the OMAP H4 board. Called by omap_h4_linux.cmm
+; @Keywords: OMAP24*, omaph4, RTOS
+; @Author: DIE
+; @Board: OMAP-H4
+; @Chip: OMAP2420
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: omap_h4_init.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+; pin mux for the UART1 
+ Data.Set SD:0x480000c5 %LE %Byte 0x0
+ Data.Set SD:0x480000c6 %LE %Byte 0x0
+ Data.Set SD:0x480000c7 %LE %Byte 0x0
+ Data.Set SD:0x480000c8 %LE %Byte 0x0
+
+; Configure the DPLL/APLL/Divisor
+ Data.Set SD:0x48008544 %LE %Long 0x00000002 ; CM_CLKSEL2_PLL
+ Data.Set SD:0x48008240 %LE %Long 0x04300221 ; CM_CLKSEL1_CORE
+ Data.Set SD:0x48008140 %LE %Long 0x00000001 ; CM_CLKSEL_MPU
+
+; Setup the DPLL div/mult
+ Data.Set SD:0x48008540 %LE %Long 0x01819500 ; CM_CLKSEL1_PLL // 60 MHz
+
+; Enable APLL 96 MHz
+ Data.Set SD:0x48008500 %LE %Long 0x0000000F ; CM_CLKEN_PLL
+
+; Wait lock DPLL
+ ;WAIT (Data.Long(SD:0x48008520)&0x102)!=0x102 ; CM_IDLEST_CKGEN
+ WAIT 1.s
+
+; Valid the configuration
+ Data.Set SD:0x48008080 %LE %Long 0x00000001 ; CLKCFG_CTRL
+ WAIT 100.ms
+
+;  /* SDRC DLLA control register */
+;  /* Enable DLL, Load counter with 115 (middle of range) */ 
+;  /* Delay is 90 degrees */
+ Data.Set SD:0x68009060 %LE %Long 0x00002;
+  
+;  /* SDRC DLLB control register */
+;  /* Enable DLL, Load counter with 128 (middle of range) */ 
+;  /* Delay is 90 degrees */
+ Data.Set SD:0x68009068 %LE %Long 0x00002;
+    
+;  /* SDRC DLLA control register */
+;  /* Enable DLL, Load counter with 115 (middle of range) */ 
+;  /* Delay is 90 degrees */
+ Data.Set SD:0x68009060 %LE %Long 0x00009B07;
+  
+;  /* SDRC DLLB control register */
+;  /* Enable DLL, Load counter with 128 (middle of range) */ 
+;  /* Delay is 90 degrees */
+ Data.Set SD:0x68009068 %LE %Long 0x00009B07;
+    
+ Data.Set SD:0x68009094 %LE %Long 0x00000000;
+ Data.Set SD:0x68009098 %LE %Long 0x00000000;
+
+; initialize SDR
+ DO omap_h4_init_sdr
+
+ ENDDO
+ 

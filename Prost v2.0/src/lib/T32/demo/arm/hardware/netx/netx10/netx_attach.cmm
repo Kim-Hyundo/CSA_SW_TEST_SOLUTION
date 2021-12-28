@@ -1,0 +1,22 @@
+; --------------------------------------------------------------------------------
+; @Title: Setup up a connection (SYStem.Mode Attach) to the NXHX10 Board
+; @Description: This script connects to a running ARM966E-S on the NXHX10 Board
+; @Keywords: attach, Hilscher, NetX*
+; @Board: NXHX10
+; @Chip: ARM966E-S
+; @Author: Hilscher
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: netx_attach.cmm 15237 2019-11-08 08:25:07Z bschroefel $
+
+
+;setup ROM to let the software decide about how to set breakpoints
+MAP.BOnchip 0x08070000--0x0807ffff
+MAP.BOnchip 0xfff70000--0xfff7ffff
+
+SYStem.CPU ARM966E-S
+SYStem.JtagClock 10MHz
+SYStem.MemAccess Denied
+SYStem.Mode Attach
+
+ENDDO

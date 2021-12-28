@@ -1,0 +1,76 @@
+; --------------------------------------------------------------------------------
+; @Title: Software Interrupt Routines of the Demon on ARMPID Board (Chorus OS)
+; @Description: 
+;  This scripts simulates the software interrupt routines of the demon 
+;  on ARMPID board
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: swi.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+; set the SWI vector
+; Data.Assemble 8 b 70000
+  Data.Set 0x8 0x0fc 0x0bf 0x01 0x0ea
+;  Break.Set 8
+
+; SWI service routine
+
+; check if arm or thumb and load SWI number
+; Data.Assemble 70000 mrs r0,spsr
+  Data.Set 0x70000 %Long 0x0e14f0000
+; Data.Assemble ,     tst r0,#20
+  Data.Set 0x70004 %Long 0x0e3100020
+; Data.Assemble ,     bne 700014
+  Data.Set 0x70008 %Long 0x01a000001
+; Data.Assemble ,     ldrb r0,[r14,#-4]
+  Data.Set 0x7000c %Long 0x0e55e0004
+; Data.Assemble ,     b 700014+4
+  Data.Set 0x70010 %Long 0x0ea000000
+; Data.Assemble 70014 ldrb r0,[r14,#-2]
+
+; branch to SWI routines
+  Data.Set 0x70014 %Long 0x0e55e0002
+; Data.Assemble ,     teq r0,#10
+  Data.Set 0x70018 %Long 0x0e3300010
+; Data.Assemble ,     beq 70100
+  Data.Set 0x7001c %Long 0x00a000037
+; Data.Assemble ,     teq r0,#16
+  Data.Set 0x70020 %Long 0x0e3300016
+; Data.Assemble ,     beq 70110
+  Data.Set 0x70024 %Long 0x00a000039
+; Data.Assemble ,     teq r0,#71
+  Data.Set 0x70028 %Long 0x0e3300071
+; Data.Assemble ,     beq 70130
+  Data.Set 0x7002c %Long 0x00a00003f
+
+; unserviced SWI -> endless loop
+; Data.Assemble ,     b $
+  Data.Set 0x70030 %Long 0x0eafffffe
+  Break.Set 0x70030
+
+; SWI_GetEnv
+; Data.Assemble 70100 mov r0,#0
+  Data.Set 0x70100 %Long 0x0e3a00000
+; Data.Assemble ,     mov r1,#80000
+  Data.Set 0x70104 %Long 0x0e3a01702
+; Data.Assemble ,     movs pc,r14_svc
+  Data.Set 0x70108 %Long 0x0e1b0f00e
+
+; SWI_EnterOS
+; Data.Assemble 70110 mrs r0,cpsr
+  Data.Set 0x70110 %Long 0x0e10f0000
+; Data.Assemble ,     bic r0,r0,#01f
+  Data.Set 0x70114 %Long 0x0e3c0001f
+; Data.Assemble ,     orr r0,r0,#13
+  Data.Set 0x70118 %Long 0x0e3800013
+; Data.Assemble ,     msr cpsr_c,r0
+  Data.Set 0x7011c %Long 0x0e129f000
+; Data.Assemble ,     movs pc,r14_svc
+  Data.Set 0x70120 %Long 0x0e1b0f00e
+
+; SWI_GenerateError - Now restart
+; Data.Assemble 70130 mov pc,#2000
+; Data.Set 70130 %l 0e3a0fa02
+  Data.Set 0x70130 %Long 0x0eafffffe
+  Break.Set 0x70130

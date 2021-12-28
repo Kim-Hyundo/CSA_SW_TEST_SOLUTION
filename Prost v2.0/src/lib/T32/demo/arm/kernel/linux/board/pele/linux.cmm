@@ -1,0 +1,196 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux Demo for TRACE32 OS Awareness for the Zynq-7000 PELE Board
+; @Description: 
+;   
+;   This batchfile demonstrates the use of the OS Awareness for Linux
+;   
+;   The example is generated for the PELE board using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   Linux is downloaded to the board via ICD.
+;   
+; @Keywords: FPGA, PELE, Zynq7000
+; @Author: KJM
+; @Board: PELE
+; @Chip: Zynq-7000
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: linux.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; Starting Linux example with TRACE32 and Hyperterminal:
+; - Start TRACE32
+; - Open Terminal,connect to serial port
+; - 9600  baud, 8/N/1, no(!) handshake
+; - Switch on the board
+; - TRACE32: "do linux"
+; - Terminal: login as "root" and start "sieve"
+
+
+ SCREEN.ALways
+
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 25. 75. 8.
+ AREA.view
+ 
+ PRINT "resetting..."
+
+ RESet
+ 
+ DIALOG.OK "Please power on the target"
+ 
+ TERM.METHOD COM COM1 9600. 8 NONE 1STOP NONE 
+ TERM.Mode VT100
+ TERM.SCROLL ON 
+ TERM.SIZE 80 1000
+ WinPOS 76.0 25.0 80. 24. 0. 0. TermWin
+ SCREEN.ALways
+ 
+ TERM.view
+ 
+ &count=5.;
+ 
+ WHILE (&count>0)
+ (
+         PRINT "Waiting for target initialisation... " &count
+         &count=&count-1;
+         AREA.CLEAR
+         WAIT 1.s
+ )
+
+
+; setup of ICD
+ 
+ SYStem.RESet
+
+ SYStem.CPU ZYNQ-7000
+
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set UNDEF OFF         ; my be used by Linux for FPU detection
+ TrOnchip.Set RESET OFF
+ SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+
+ Trace.METHOD Onchip
+
+ SYStem.Mode Attach
+ 
+ Break.direct
+ 
+ Data.Assemble 0x700000 nop nop nop b 0x700000                ; need this loop for core 1
+ Register.Set PC 0x700000 /core 1
+
+ 
+ Register.RESet
+
+ SETUP.IMASKASM ON          ; lock interrupts while single stepping
+ 
+
+; Load the Linux kernel
+
+ ; If you are using a flashed kernel, or if you're loading 
+ ; your kernel via TFTP, use the boot monitor to do so.
+ 
+ ; Use the next lines (loading the kernel, setting registers
+ ; and boot parameters) only to load the kernel into
+ ; RAM using the debugger.
+
+ ; vmlinux starts physically at RAM start (=0x00008000)
+ ; We have to adjust it from the virtual start address (=0xc0008000)
+ ; i.e.: Data.LOAD.Elf vmlinux <physical start>-<virtual start>
+
+ PRINT "loading Linux kernel..."
+ Data.LOAD.Elf vmlinux 0x0-0xc0000000 /gnu /NosYmbol
+ 
+ CORE.select 0
+
+ Register.RESet
+
+ ; Set PC on start address of image
+ Register.Set PC 0x00008000
+ 
+
+; Loading initial ram disk (initrd)
+
+ ; Use the next lines only, if you want to use an initrd,
+ ; and if you want to download this with the debugger.
+
+ ; Load ram file system image into ram disk
+ ; The load address is either hardcoded in arch/arm/<board>/arch.c,
+ ; The load address must be passed as command line option (initrd=0x80500000)
+ 
+ PRINT "loading ramdisk..."
+ Data.LOAD.Binary ramdisk.image.gz 0x00800000 /NoClear /NosYmbol
+
+
+; Load the Linux kernel symbols into the debugger
+ ; use /strippart and /path to map source paths, if necessary
+ 
+ PRINT "loading Linux kernel symbols..."
+ Data.LOAD.Elf vmlinux /gnu /NoCODE /StripPART 4
+ 
+
+; Open a Code Window -- we like to see something
+
+ WinPOS 0. 0. 75. 20.
+ List.auto
+ SCREEN.display
+ 
+ IF Analyzer()
+ (
+         Trace.METHOD Analyzer
+         ETM.PortSize 32
+         Analyzer.AutoFocus
+ )
+ 
+
+; Declare the MMU format to the debugger
+ ; - table format is "LINUX"
+ ; - table base address is at label "swapper_pg_dir"
+ ; - kernel address translation
+ ; Map the virtual kernel symbols to physical addresses to give 
+ ; the debugger access to it before CPU MMU is initialized
+
+ PRINT "initializing debugger MMU..."
+ MMU.FORMAT LINUX swapper_pg_dir 0xc0000000--0xc7ffffff 0x00000000
+ TRANSlation.COMMON 0xbf000000--0xffffffff            ; common area for kernel and processes
+ TRANSlation.TableWalk ON   ; debugger uses a table walk to decode virtual addresses
+ TRANSlation.ON             ; switch on debugger(!) address translation 
+ 
+
+; Initialize Linux Awareness
+
+Go.direct start_kernel
+
+WAIT !STATE.RUN()
+
+ ; Note that the Linux awareness needs the kernel symbols to work
+ 
+ PRINT "initializing multitask support..."
+ TASK.CONFIG ~~/demo/arm/kernel/linux/linux-2.x/linux       ; loads Linux awareness (linux.t32)
+ MENU.ReProgram ~~/demo/arm/kernel/linux/linux-2.x/linux    ; loads Linux menu (linux.men)
+ HELP.FILTER.Add rtoslinux  ; add linux awareness manual to help filter
+ 
+ TASK.sYmbol.Option MMUSCAN OFF  ; not necessary with tablewalk
+  
+ ; switch on symbol autoloader
+ 
+ ; Group kernel area to be displayed with red bar
+ GROUP.Create "kernel" 0xc0000000--0xffffffff /RED
+ 
+
+; Ok, we're done, let's start Linux
+ 
+ Go.direct
+ PRINT "starting Linux... (please wait)"
+
+
+ ENDDO
+
+
+

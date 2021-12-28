@@ -1,0 +1,88 @@
+; --------------------------------------------------------------------------------
+; @Title: Upload a file into a VxWorks system
+; @Description:
+;
+;   This script uploads a file to the target via TRACE32
+;   into a memory device.
+;   Pleast note the prerequisites below!
+;
+;   usage: do memputfile <sourcefile>
+;   e.g.:  do memputfile C:\WindRiver\workspace\myfile.out
+;
+; @Keywords: VxWorks
+; @Author: DIE
+; @Copyright: (C) 1989-2018 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: memputfile.cmm 4754 2019-11-06 10:55:10Z rdienstbeck $
+
+
+; Prerequisites:
+; - INCLUDE_SHELL (target-resident kernel shell)
+; - INCLUDE_SHELL_INTERP_C (C line interpreter)
+; - INCLUDE_SHELL_INTERP_CMD (command line interpreter)
+; - INCLUDE_MEMDRV (memory disk driver) for memDevCreate()
+; - INCLUDE_STANDALONE_SYM_TBL (built-in symbol table) for TASK.LKUP
+; - Access to kernel shell via TERM window within TRACE32
+
+
+LOCAL &file &filename &filesize &varname &malloc
+
+; get and check parameters
+ENTRY &file
+IF ("&file"=="")
+(
+    PRINT "usage: do memputfile <sourcefile>"
+    ENDDO
+)
+
+IF !FILE.EXIST(&file)
+(
+    PRINT "File &file doesn't exist!"
+    ENDDO
+)
+
+&filename=OS.FILE.NAME(&file)
+&filesize=conv.inttohex(OS.FILE.SIZE(&file))
+&varname="t32put_"+string.split("&filename",".",0)
+
+; run target if halted
+IF !STATE.RUN()
+    Go
+
+; eventually remove existing file with memDevDelete() and free()
+; - check with task.lkup, if the t32put variable exists.
+
+; change to C interpreter mode
+TERM.Out 0x0a
+TERM.Out "C" 0x0a
+WAIT 2s
+
+; allocate required amount of memory
+
+TERM.Out "&varname = malloc(&filesize)" 0x0a
+WAIT 0.2s
+
+; get allocated address
+
+Break
+
+&malloc=data.long(D:task.lkup("&varname"))
+IF &malloc==0
+(
+    PRINT "malloc() failed!"
+    ENDDO
+)
+
+; load binary into allocated area
+
+Data.LOAD.Binary &file D:&malloc /NoClear
+
+Go
+
+; create memory device with loaded file
+
+TERM.Out "memDevCreate(""/mem/&filename"", &malloc, &filesize)" 0x0a
+WAIT 0.2s
+
+PRINT "&filename loaded onto /mem/&filename."
+ENDDO

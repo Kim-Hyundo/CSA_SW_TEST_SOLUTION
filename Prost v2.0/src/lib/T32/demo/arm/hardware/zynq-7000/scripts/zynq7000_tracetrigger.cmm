@@ -1,0 +1,43 @@
+; --------------------------------------------------------------------------------
+; @Title: CTI based TraceTrigger initialization
+; @Description: 
+;   This script contains the intialization sequence using CTM Channel 2 to
+;   connect the Trigger Output of the PTMs with the ETB/TPIU.
+;   Afterwards the Break.Set <addr> /TraceTrigger functionality is working
+; @Keywords: Xilinx, Cortex-A9, ZYNQ, ETB, TPIU, trace
+; @Props: Template
+; @Board: -
+; @Chip: ZYNQ-7000
+; @Author: AME
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: zynq7000_tracetrigger.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+; refer to ZYNQ-7000 TRM - Chapter System Test and Debug
+; Table xx CTI Trigger Inputs and Outputs
+
+; CTI connected to ETB/TPIU
+; enable
+Data.Set EDAP:0x80002000 %Long 0x1
+; listen to CTM channel 2 -> Trigger Out 1 (ETB  Trigger)
+Data.Set EDAP:0x800020A4 %Long 0x4
+; listen to CTM channel 2 -> Trigger Out 3 (TPIU Trigger)
+Data.Set EDAP:0x800020AC %Long 0x4
+
+; CTI connected to CPU0
+; enable
+Data.Set EDAP:0x80098000 %Long 0x1
+; publish Trigger In 6 (PTM Trigger) -> to CTM channel 2
+Data.Set EDAP:0x80098038 %Long 0x4
+
+; if it's a SMP debug session ....
+IF CORE.NUMBER()==2.
+(
+  ; CTI connected to CPU1
+  ; skip enable (done by core.assign/core.number)
+  ; Data.Set EDAP:0x80099000 %Long 0x1
+  ; publish Trigger In 6 (PTM Trigger) -> to CTM channel 2
+  Data.Set EDAP:0x80099038 %Long 0x4
+)
+
+ENDDO

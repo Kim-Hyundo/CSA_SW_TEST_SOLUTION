@@ -1,0 +1,7 @@
+//CAN Timeout 모두 회복
+B::
+//ALL messages clear fault
+d.set Var.RANGE(can_timeout_tick) 0x0
+d.set Var.RANGE(can_timeout_fault) 0x0
+
+ENDDO

@@ -1,0 +1,82 @@
+; --------------------------------------------------------------------------------
+; @Title: Code Coverage Example
+; @Description:
+;   Example to show the generation and export of code coverage data.
+;
+;   Loads simple example application in SRAM, then does a trace recording, from
+;   which coverage data is extracted.
+;   Creates XML-file "example.xml"
+;
+;   With "t32transform.xsl" in the same directory you can view "example.xml"
+;   directly in your webbrowser
+;
+; @Author: HLG
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo_codecoverage.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+LOCAL &min
+&min=41727.
+IF VERSION.BUILD()<&min
+(
+	DIALOG.OK "Sorry, this demo requires a least TRACE32 build "+FORMAT.Decimal(1,&min)+"."
+	ENDDO
+)
+
+COVerage.RESet
+ISTATistic.RESet
+BookMark.RESet
+
+DO "~~~~/demo_sram.cmm"
+WAIT !STATE.RUN()
+Go.direct func23
+WAIT !STATE.RUN()
+WAIT analyzer.state()==0
+COVerage.ADD
+//ISTATistic.add
+
+BookMark.Create     "1"    0x1280
+BookMark.Create     "myBM" 0x072c
+BookMark.EditRemark "1"    "This NOP shouldn't be here"
+BookMark.EditRemark "myBM" "Function func4 was called here"
+
+Mode.Hll
+
+WinCLEAR
+FramePOS ,,,,Maximized
+
+WinPOS 0% 85% 100% 15%
+WinTABS 10. 14. 33. 8. 66.
+BookMark.List /TRACK
+
+WinPOS 0% 0% 100% 50%
+List.auto /COVerage /TRACK
+
+WinPOS 0% 50% 100% 35%
+WinTABS 18.
+COVerage.ListFunc
+
+BookMark.EXPORT            "~~~~/example.xml" _start--sYmbol.END(main)
+COVerage.EXPORT.ListModule "~~~~/example.xml"  _start--sYmbol.END(main)  /Append
+COVerage.EXPORT.ListFunc   "~~~~/example.xml"  _start--sYmbol.END(main)  /Append
+COVerage.EXPORT.ListLine   "~~~~/example.xml"  _start--sYmbol.END(main)  /Append
+COVerage.EXPORT.ListVar    "~~~~/example.xml"  ,                         /Append
+List.EXPORT.auto           "~~~~/example.xml"  _start--sYmbol.END(main)  /Append /COVerage
+
+//List.EXPORT              "~~~~/example-list.xml"  _start--y.end(main)
+//List.EXPORT              "~~~~/example-istat.xml" _start--y.end(main) /ISTAT
+
+
+IF PRACTICE.CoMmanD.AVAILable("OS.OPEN")
+(
+	OS.OPEN "&ppd/example.xml?mode=mix&color=normal"
+)
+ELSE IF OS.FILE("~~/demo/practice/lib.cmm")
+(
+	LOCAL &ppd
+	&ppd=OS.PPD()
+	DO "~~/demo/practice/lib.cmm" OPENURL "&ppd/example.xml?mode=mix&color=normal"
+)
+ENDDO
+

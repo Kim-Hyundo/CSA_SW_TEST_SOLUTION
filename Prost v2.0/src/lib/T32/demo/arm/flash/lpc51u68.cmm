@@ -1,0 +1,188 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash declaration of NXP LPC51U68 Cortex-M4 internal flash.
+; @Description:
+;   Reprogam internal Flash of NXP LPC51U68.
+;   Script arguments:
+;     DO lpc51u68 [PREPAREONLY] [CPU=<cpu>]
+;         PREPAREONLY    only declares flash but does not execute flash programming
+;         CPU=<cpu>      selects CPU derivative <cpu>
+;         DUALPORT=<0|1> use dual port memory access, default 0
+;   Example:
+;     DO ~~/demo/arm/flash/lpc51u68 CPU=LPC51U68JBD48 PREPAREONLY
+;
+;   List of LPC40xx derivatives and their configuration:
+;
+;     CPU-Type          Flash   SRAM0+SRAMX    ROM
+;                        [kB]    [kB]         [kB]
+; --------------------------------------------------------------------------------
+;    LPC51U68JBD48       256.   64. + 32.      32
+;    LPC51U68JBD64       256.   64. + 32.      32
+;   Memories:
+;     Flash at                 0x00000000
+;     up to 64 kB SRAM at      0x20000000
+;     up to 32 kB SRAMX at     0x04000000
+;     Boot and Driver ROM at   0x03000000
+;     Flash Controller at      0x40034000
+;
+;   Flash characteristics:
+;     Page size      256 Byte
+;     Sector size    32  KB
+;
+;   Note: Flash programming commands use the top 32 bytes of the onchip SRAM0, so
+;         the addresses from 0x2000ffe0--0x2000ffff are reserved.
+;
+;   Code Read Protection (CRP):
+;
+;     CRP is invoked by programming a specific pattern in flash location
+;     0x000002FC.
+;
+;    Name     Pattern      Description
+; --------------------------------------------------------------------------------
+;    CRP1     0x12345678   Access to chip via the JTAG pins is disabled. This mode
+;                          allows partial flash update using the following ISP
+;                          commands and restrictions:
+;                          Write to RAM command can not access RAM below
+;                          0x02000300.
+;                          Read Memory command: disabled.
+;                          Copy RAM to Flash command: cannot write to Sector 0.
+;                          Erase sector(s) command: can erase any individual
+;                          sector except sector 0 only, or can erase all sectors
+;                          at once.
+;                          Compare command: disabled
+;                          This mode is useful when CRP is required and flash
+;                          field updates are needed but all sectors can not be
+;                          erased. The compare command is disabled, so in the
+;                          case of partial flash updates the secondary loader
+;                          should implement a checksum mechanism to verify the
+;                          integrity of the flash.
+;    CRP2     0x87654321   Access to chip via the SWD pins is disabled.
+;                          The following ISP commands are disabled:
+;                            Read Memory
+;                            Write to RAM
+;                            Go
+;                            Copy RAM to flash
+;                            Compare
+;                          When CRP2 is enabled the ISP erase command only allows
+;                          erasure of all user sectors.
+;    CRP3     0x43218765   This is similar to CRP2, but ISP entry by pulling
+;                          P2[10] LOW is disabled if a valid user code is present
+;                          in flash sector 0.
+;                          This mode effectively disables ISP override using the
+;                          P2[10] pin. It is up to the user’s application to
+;                          provide for flash updates by using IAP calls or by
+;                          invoking ISP with UART0.
+;                          CAUTION: If CRP3 is selected, no future factory testing
+;                          can be performed on the device.
+;
+;    Flash programming commands use 32 bytes of space in the top portion of the
+;    on-chip SRAM0 0x0200FFE0-0x0200FFFF for execution.
+;
+;   HINTS:
+;     Flash clock has to match System Clock Frequency (M4_CLK).
+;     FLASH.CLocK.AUTO can be used for automatic flash clock measurement.
+;     Boot flash cannot be programmed or erased with builtin flash
+;     algorithm.
+;     Data has to be loaded into flash aligned to page boundaries.
+; @Chip: LPC51U68*
+; @Author: PHI
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 7706 $
+; $Id: lpc51u68.cmm 7706 2019-12-05 10:19:41Z sphilipp $
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+PRIVATE &param_prepareonly &param_cpu &param_DualPort
+
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CPU=","")
+&param_DualPort=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"DUALPORT=","0")
+
+; ------------------------------------------------------------------------------
+; Setup CPU
+
+IF !SYStem.Up()
+(
+  SYStem.RESet
+
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  IF !CPUIS(LPC51U68*)
+    SYStem.CPU LPC51U68JBD64	
+
+  SYStem.CONFIG.DEBUGPORTTYPE SWD
+
+  SYStem.Option ResBreak OFF
+  SYStem.Up
+)
+
+; Not described in manual ! If problems occur replace/deletd it.
+; Switch memory mapping to user flash mode, so that on-chip flash is
+; mapped to address 0x0--0x1ff. System Memory Remap register
+; SYSMEMREMAP:0..1 = 10b
+Data.Set 0x40000000 %Long 0x02
+
+; ------------------------------------------------------------------------------
+; Flash declaration
+
+FLASH.RESet
+GOSUB FlashDeclaration "&param_DualPort"
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+
+; ------------------------------------------------------------------------------
+; Flash programming
+
+DIALOG.YESNO "Program flash memory?"
+PRIVATE &progflash
+ENTRY &progflash
+
+IF &progflash
+(
+  FLASH.Erase.ALL
+  FLASH.ReProgram.ALL
+  Data.LOAD.auto * /Long
+  Data.SUM 0x00000000--0x0000001B /Long  ; Calculate checksum of all (other) vectors
+  Data.Set 0x0000001C %Long -Data.SUM()  ; Write the 2's complement in reserved vector's spot
+  FLASH.ReProgram.off
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+
+  ; Switch memory mapping to user flash mode, so that on-chip flash is
+  ; mapped to address 0x0--0x1ff. System Memory Remap register
+  ; SYSMEMREMAP:0..1 = 10b
+  Data.Set 0x40000000 %Long 0x02
+)
+
+ENDDO
+
+--------------------------------------------------------------------------------
+Flash declaration depending on selected CPU
+
+FlashDeclaration:
+(
+  PARAMETERS &DualPortOpt
+  PRIVATE &FlashDriver
+
+  &FlashSize=0x40000
+  &RamAddress=0x20000000
+
+  &FlashDriver="lpc5400.bin"
+
+  FLASH.Create 1. 0x00000000--(&FlashSize-1) 0x8000 TARGET Long
+
+  IF "&DualPortOpt"=="0" 
+    FLASH.TARGET &RamAddress &RamAddress+0x1000 0x1000 ~~/demo/arm/flash/long/&FlashDriver /STACKSIZE 0x200
+  ELSE
+    FLASH.TARGET &RamAddress E:&RamAddress+0x1000 0x1000 ~~/demo/arm/flash/long/&FlashDriver /DualPort /STACKSIZE 0x200
+
+  FLASH.CLocK.AUTO
+
+  RETURN
+)

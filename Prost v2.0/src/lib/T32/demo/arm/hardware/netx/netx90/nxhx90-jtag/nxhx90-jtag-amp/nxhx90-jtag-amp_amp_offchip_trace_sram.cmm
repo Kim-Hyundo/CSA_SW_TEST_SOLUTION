@@ -1,0 +1,139 @@
+; --------------------------------------------------------------------------------
+; @Title: AMP-Demo script for  on NXHX90-JTAG with Offchip-Trace (AMP, RAM)
+; @Description:
+;   Setup a AMP debug session using a single script approach.
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Offchip-Trace. Pinmuxing and Clock
+;   setup is handled in the script.
+;   Use this script to test the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Combiprobe/uTrace to X400.
+;    * Set S701[1] to "ON".
+; @Keywords: ARM, ETM
+; @Author: ALI
+; @Board: NXHX90-JTAG
+; @Chip: NETX90-COM, NETX90-APP
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: nxhx90-jtag-amp_amp_offchip_trace_sram.cmm 15067 2019-10-10 16:26:53Z skrausse $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF VERSION.BUILD()<105856.
+(
+  PRINT %ERROR "Please use more recent software. Contact support@lauterbach.com."
+  ENDDO
+)
+IF SYStem.INSTANCE()!=1.
+(
+  PRINT %ERROR "This script must be called from MASTER GUI!"
+  ENDDO
+)
+
+; store current script path in &ppd
+PRIVATE &ppd
+&ppd=OS.PPD()
+
+; --------------------------------------------------------------------------------
+; [optional] close any existing REMOTE GUIs
+; IC OTHERS QUIT
+
+; --------------------------------------------------------------------------------
+; open all SLAVE GUIs
+IF !INTERCOM.PING(APP)
+  TargetSystem.NewInstance APP /ARCHitecture ARM
+
+; --------------------------------------------------------------------------------
+; set titles for SLAVE GUIs
+TITLE "TRACE32 for ARM - NETX90-COM - MASTER"
+InterCom APP TITLE "TRACE32 for ARM - NETX90-APP - SLAVE1"
+
+; --------------------------------------------------------------------------------
+; common SYStem settings
+InterCom ALL RESet
+SYStem.CPU NETX90-COM
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option.ResBreak OFF
+SYStem.Option.WaitIDCODE 1.5s
+SYStem.CONFIG CORE 1. 1.
+SYStem.CONFIG SLAVE OFF
+
+InterCom APP SYStem.CPU NETX90-APP
+InterCom APP SYStem.CONFIG CORE 2. 1.
+InterCom APP SYStem.CONFIG SLAVE ON
+
+; disable Trace for connection phase
+InterCom ALL ETM.OFF
+InterCom ALL ITM.OFF
+InterCom ALL Trace.DISable
+
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; kick secondary cores
+Data.Set EAHB:0xFF4012C0 %LE %Long Data.Long(EAHB:0xFF4012C0) ; asic_ctrl_access_key
+Data.Set EAHB:0xFF401268 %LE %Long 0x08000800 ; enable application CPU
+
+; --------------------------------------------------------------------------------
+; attach to all cores on all sessions
+InterCom APP SYStem.Mode.Up
+
+; --------------------------------------------------------------------------------
+; load demo program on all sessions (use internal RAM only)
+Data.LOAD.Elf &(ppd)/master/sieve_ram_thumb_ii_v7m.elf
+InterCom APP Data.LOAD.Elf &(ppd)/slave1/sieve_ram_thumb_ii_v7m.elf
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace (ETM)
+
+IF COMBIPROBE()||UTRACE()
+(
+  ; Enable trace pins
+  Data.Set EAHB:0xFF4012C0 %LE %Long Data.Long(EAHB:0xFF4012C0) ; asic_ctrl_access_key
+  Data.Set EAHB:0xFF401240 %LE %LONG 0x00030003
+
+  ; set PinMux and enable Clocks
+  TPIU.PortSize 4
+  TPIU.PortMode Continuous
+
+  InterCom ALL ETM.Trace ON
+  InterCom ALL ETM.ON
+
+  InterCom ALL Trace.METHOD CAnalyzer
+  CAnalyzer.AutoFocus 0x00020000++0xFFF
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main\1
+WAIT !STATE.RUN()
+InterCom APP Go.direct main\1
+InterCom APP WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+InterCom ALL WinCLEAR
+InterCom ALL Mode.Hll
+InterCom ALL WinPOS 0. 0. 116. 26.
+InterCom ALL List.auto
+InterCom ALL WinPOS 0. 32.
+InterCom ALL Trace.List
+
+; --------------------------------------------------------------------------------
+; enable synchronization between the cores
+InterCom ALL SYnch.ON
+InterCom ALL SYnch.Connect OTHERS
+InterCom ALL SYnch.MasterBreak ON
+InterCom ALL SYnch.SlaveBreak  ON
+InterCom ALL SYnch.MasterGo    ON
+InterCom ALL SYnch.SlaveGo     ON
+
+ENDDO

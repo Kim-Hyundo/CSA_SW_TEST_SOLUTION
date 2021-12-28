@@ -1,0 +1,35 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for loading TASKING object file (v3.3) in ELF format
+; @Description:
+;   Compiler: TASKING VX-toolset for TriCore, Version 3.3r1
+;   CPU: TC1782
+;   Language: C
+;
+;   Application is linked to internal RAM.
+;   Use the simulator to avoid conflicts with non-existent memory.
+;
+; @Keywords: compiler, Infineon, sieve, tasking, TriCore, v3.3
+; @Author: MOB
+; @Chip: TC1782
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: sieve.cmm 7822 2014-10-29 13:57:15Z kjmal $
+
+
+WinCLEAR
+
+SYStem.RESet
+SYStem.CPU TC1782
+SYStem.Up
+
+Data.LOAD.Elf "~~~~/sieve.elf"
+
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch
+Var.AddWatch ast flags
+
+ENDDO

@@ -1,0 +1,28 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to open windows for nucleus plus
+; @Description: Opens some windows
+; @Keywords: Emulator, ICE, Infineon, kernel, nucleus, TriCore
+; @Props: NoWelcome
+; @Author: MAX
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: taskwin.cmm 7821 2014-10-29 11:06:58Z kjmal $
+
+
+ E::
+
+ WinPAGE.RESet
+
+ WinCLEAR
+ WinPOS 74.0 6. 74. 22. 13. 1. W000
+ E::List.auto
+
+ WinPOS 5.0 3. 80. 24. 0. 0. W000
+ E::TERM.view T32OUT T32IN
+
+ WinPOS 5. 31. 77. 9. 0. 1. W002
+ E::TASK.TS
+
+ WinPAGE.select P000
+
+ ENDDO

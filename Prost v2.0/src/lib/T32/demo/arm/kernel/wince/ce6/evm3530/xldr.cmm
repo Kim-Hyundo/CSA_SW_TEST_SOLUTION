@@ -1,0 +1,98 @@
+; --------------------------------------------------------------------------------
+; @Title: Startup Script for Debugging XLoader (MLO) on Mistral EVM 3530 Board, WinCE 6.0
+; @Description: -
+; @Keywords: awareness, windows
+; @Author: DIE
+; @Board: EVM-3530
+; @Chip: OMAP3530
+; @Board: Mistral EVM 3530
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: xldr.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+LOCAL &winceroot &reldir
+
+;&winceroot="C:\WINCE600" 
+&winceroot=".\WINCE600" 
+&reldir="&winceroot\OSDesigns\EVM_3530\EVM_3530\RelDir\EVM_OMAP3530_ARMV4I_Release"
+
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 24. 75. 8. 
+ AREA.view
+ 
+ PRINT "resetting..."
+
+ RESet
+
+
+; Initializing Debugger
+
+ PRINT "initializing..."
+ SYStem.CPU OMAP3530
+ SYStem.JtagClock RTCK          ; hardware dependent (see manual)
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ 
+
+; Wait for power up of target
+ ON powerup GOTO start
+ PRINT "waiting for power cycle..."
+ STOP
+start:
+ ON powerup     ; remove powerup action
+ WAIT 100.ms
+
+ SYStem.Up
+
+
+; Wait for XLoader
+
+ ; set onchip(!) breakpoint on XLoader start
+ Break.Set 0x40200000 /Onchip
+ Go 
+ PRINT "waiting for XLDR..."
+ WAIT !STATE.RUN() 
+ 
+ 
+; Yep! Xloader code loaded & started
+
+ Break.RESet
+ SETUP.IMASKASM ON      ; lock interrupts while single stepping
+ 
+
+; if you like to load new XLoader code:
+ 
+ ; print "loading new MLO..."
+ ; Data.LOAD.Binary &reldir\MLO 0x40200000 /skip 0x8
+ ; MLO 0x0: data offset
+ ; MLO 0x4: text address
+
+
+; Load XLoader symbols
+
+ PRINT "loading XLoader symbols..."
+ 
+ Data.LOAD.eXe &reldir\xldrsd.exe /NoCODE /RELOC .text at 0x40200000 /RELOC .data at 0x4020C000
+
+ ; adapt source paths if necessary (case sensitive!)
+ sYmbol.SourcePATH.Translate "c:\wince600" "&winceroot"
+
+
+; Start XLoader
+
+ Go XLDRMain
+ PRINT "starting XLoader..."
+ 
+
+; That's it! Open a code window.
+
+ WinPOS 0. 0. 77. 22.
+ List.auto
+
+ PRINT "done."
+
+ ENDDO

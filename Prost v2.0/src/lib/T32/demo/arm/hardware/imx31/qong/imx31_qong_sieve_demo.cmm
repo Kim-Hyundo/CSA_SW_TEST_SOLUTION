@@ -1,0 +1,68 @@
+; --------------------------------------------------------------------------------
+; @Title: Startup of standard Sieve demo into DAVE-Qong i.MX31 Based board
+; @Description:
+;   The script is set to download the program into internal RAM
+;   once preloaded u-boot already set the memories.
+; @Author:  MFE
+; @Keywords: i.MX31
+; @Board: DAVE-Qong i.MX31
+; @Chip: IMX31
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx31_qong_sieve_demo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+ WinCLEAR
+
+
+ RESet
+
+; start-up the debugger
+  PRINT "Starting the debugger..."
+  SYStem.RESet
+  SYStem.CPU MCIMX31
+  SYStem.Option ResBreak OFF
+  SYStem.JtagClock RTCK
+  SYStem.Up
+
+; peripheral set for "soft" reset of MMU and I D caches.
+  PER.Set.simple C15:0x1 %Long 0x0005107A
+  SYStem.Up
+  Register.RESet
+
+  IF Register(pc)!=0x0
+  (
+      DIALOG.OK "Board needs a power cycle!"
+      ENDDO
+  )
+
+;initial startup conditions
+  MAP.DenyAccess 0x90000000--0x9FFFFFFF
+
+; let uboot startup the board
+  Go.direct
+  WAIT 1.s
+  Break.direct
+
+; load demo application (in RAM at 0x80000000)
+
+  Data.LOAD.Elf ~~~~/demo
+  Register.Set PC main
+  Register.Set r13 80010000
+
+; open some windows
+  WinPOS 0% 0% 100% 50%
+  List.auto
+  WinPOS 0% 50% 50% 50%
+  Frame /Locals /Caller
+  WinPOS 50% 50% 50% 50%
+  Var.Watch flags ast
+
+  ENDDO
+
+
+
+
+
+
+

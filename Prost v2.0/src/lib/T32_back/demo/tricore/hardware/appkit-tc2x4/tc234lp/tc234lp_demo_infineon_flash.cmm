@@ -1,0 +1,185 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC234LP on Application-Kit-TC2x4 (Flash, Infineon demo)
+; @Description:
+;   Programs the Infineon demo application (single-core) into the processor
+;   internal flash and sets up a demo debug scenario. This script can be used
+;   as a template for flashing an application.
+; @Keywords: AURIX, flash, Infineon, TriCore
+; @Author: SBL
+; @Board: Application-Kit-TC2x4
+; @Chip: TC234LP
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc234lp_demo_infineon_flash.cmm 16679 2020-10-20 09:19:20Z sltaief $
+
+
+; --------------------------------------------------------------------------------
+LOCAL &elfFile &progFlash &bmhdResult &sourcepath &programTPSector
+
+; initialize and start the debugger
+RESet
+
+; clear all windows
+WinPAGE.RESet
+
+SYStem.CPU TC234LP
+
+; disable the external watchdog
+DO disable_tlf35584.cmm "AREA"
+
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+
+DIALOG.MESSAGE "The demo source files must be downloaded from MyInfineon collaboration platform (myICP)"
+
+; open a dialog to select the demo elf file
+WinPOS ,,,,,,,, "Select the ELF file of the Infineon demo application"
+DIALOG.File.open "*.elf"
+ENTRY %LINE &elfFile
+
+IF "&elfFile"==""
+(
+PRINT %WARNING "No ELF File is loaded. HLL debugging is not possible."
+  ; skip the FLASH programming
+  GOTO OpenWindows
+)
+
+&sourcepath=STRing.SPLIT("&elfFile","2_Out",0)
+&sourcepath="&sourcepath"+"0_Src"
+
+; --------------------------------------------------------------------------------
+; prepare flash programming (declarations)
+DO ~~/demo/tricore/flash/tc23x.cmm CPU=TC234LP PREPAREONLY
+
+
+; check if the application is already programmed and load the debug symbols
+Data.LOAD.Elf "&elfFile" /DIFF /SingleLineAdjacent /StripPART "0_Src" /SOURCEPATH "&sourcepath"
+
+IF FOUND()
+(
+  DIALOG.YESNO "Program Infineon demo into the flash memory?"
+  ENTRY &progFlash
+  IF (&progFlash)
+  (
+    GOSUB CheckTuningProtection
+
+    IF (&programTPSector)
+    (
+      FLASH.CHANGETYPE 0x80014000--0x80017FFF TARGET
+    )
+
+    ; enable the flash programming
+    FLASH.ReProgram ALL
+
+    ; load the demo application
+    Data.LOAD.Elf "&elfFile" /NosYmbol /NoClear
+
+    ; check if there is at least one valid BootModeHeader
+    DO ~~/demo/tricore/flash/tc23x.cmm CHECKBMHD
+    ENTRY &bmhdResult
+    IF ("&bmhdResult"=="BMHD_OK")
+    (
+      ; finally program the FLASH memory
+      FLASH.ReProgram.off
+
+      IF (&programTPSector)
+      (
+        ; change the tuning protection FLASH sector type from TARGET to NOP
+        FLASH.CHANGETYPE 0x80014000--0x80017FFF NOP
+      )
+
+      ; sanity check after flashing
+      Data.LOAD.Elf "&elfFile" /DIFF /NosYmbol /NoClear
+      IF FOUND()
+      (
+        ; maybe some sections are still declared as NOP?
+        PRIVATE &diffAddress
+        &diffAddress=TRACK.ADDRESS()
+        DIALOG.MESSAGE "File &elfFile has not been fully flashed, difference found at address &diffAddress (check the FLASH declaration)"
+      )
+    )
+    ELSE
+    (
+      DIALOG.OK "No valid Boot Mode Header found!" "Reverting loaded data"
+      FLASH.ReProgram CANCEL
+
+      IF (&programTPSector)
+      (
+        ; change tuning protection FLASH sector type from TARGET to NOP
+        FLASH.CHANGETYPE 0x80014000--0x80017FFF NOP
+      )
+      ENDDO
+    )
+  )
+  ELSE
+  (
+    sYmbol.RESet
+  )
+)
+
+; --------------------------------------------------------------------------------
+; open some windows
+OpenWindows:
+
+WinCLEAR
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame.view /Locals /Caller
+WinPOS 50% 50% 50% 50%
+IF sYmbol.EXIST(Vddp3)
+(
+  Var.Watch %SpotLight %E
+  Var.AddWatch Vddp3
+  Var.AddWatch core_voltage
+  Var.AddWatch die_temp
+  Var.AddWatch backgroundlightsize
+  Var.AddWatch %Open g_AppCpu0
+  Var.AddWatch %Open Time2Set
+)
+ELSE
+(
+  TargetSystem.state
+)
+
+ENDDO
+
+
+; --------------------------------------------------------------------------------
+; This subroutine checks if the Elf file is making changes to the tuning
+; protection FLASH sectors. If this is the case and if the tuning protection
+; is configured the subroutine prints an error and abort the demo
+; --------------------------------------------------------------------------------
+CheckTuningProtection:
+(
+  &FLASH0_PROCONOTP0=D:0xF8002038
+  &programTPSector=FALSE()
+
+  ; check if the application use the tuning protection range
+  Data.LOAD.Elf "&elfFile" 0x80014000--0x80017FFF /DIFF /NosYmbol /NoClear
+  IF FOUND()
+  (
+    &programTPSector=TRUE()
+  )
+  ELSE
+  (
+    Data.LOAD.Elf "&elfFile" 0xA0014000--0xA0017FFF /DIFF /NosYmbol /NoClear
+    IF FOUND()
+    (
+      &programTPSector=TRUE()
+    )
+  )
+
+  IF (&programTPSector)
+  (
+    ;check if tuning protection is configured in FLASH0_PROCONOTP0.TP
+    IF ((Data.Long(&FLASH0_PROCONOTP0)&0x80000000)==0x80000000)
+    (
+      PRINT %ERROR "The ELF file uses the tuning protection sectors while the tuning protection is configured"
+      ENDDO
+    )
+  )
+
+  RETURN
+)

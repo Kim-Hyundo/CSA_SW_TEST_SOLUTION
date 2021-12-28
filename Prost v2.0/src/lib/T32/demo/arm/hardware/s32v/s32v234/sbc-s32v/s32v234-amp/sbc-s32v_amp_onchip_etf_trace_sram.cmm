@@ -1,0 +1,180 @@
+; --------------------------------------------------------------------------------
+; @Title: AMP-Demo script for S32V234 on SBC-S32V with Onchip-Trace (AMP, RAM, ETF)
+; @Description:
+;   Setup a AMP debug session using a single script approach.
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Onchip-Trace (ETF).
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to header JTAG using adapter LA-3770
+;    * set Bootmode to SD-Card, switch BOOT[1]=OFF
+;    * remove SD-Card (M4 will stop in BootROM)
+;    * TRACE32 is started using the .bat/.sh file in this directory
+; @Keywords: ARM, ETF, ETM
+; @Author: AME
+; @Board: miriac SBC-S32V
+; @Chip: S32V234
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: sbc-s32v_amp_onchip_etf_trace_sram.cmm 15576 2020-01-27 10:11:09Z alintner $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF SYStem.INSTANCE()<1.
+(
+  PRINT %ERROR "TRACE32 is not running in AMP mode! Use .bat/.sh file in this directory."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; close any existing REMOTE GUIs
+IC OTHERS QUIT
+
+; --------------------------------------------------------------------------------
+; open all SLAVE GUIs
+IF !INTERCOM.PING(ARM64_1)
+  TargetSystem.NewInstance ARM64_1 /ARCHitecture ARM64
+  
+; IF !INTERCOM.PING(ARM_2)
+;   TargetSystem.NewInstance ARM_2 /ARCHitecture ARM
+
+TITLE "TRACE32 for ARM - S32V234-CM4 - MASTER"
+InterCom ARM64_1 TITLE "TRACE32 for ARM64 - S32V234 - SLAVE1"
+; InterCom ARM_2 TITLE "TRACE32 for ARM - S32V234-CM0+ - SLAVE2"
+
+; --------------------------------------------------------------------------------
+; common SYStem settings
+RESet
+InterCom ARM64_1 RESet
+; InterCom ARM_2 RESet
+SYStem.RESet
+InterCom ARM64_1 SYStem.RESet
+; InterCom ARM_2 SYStem.RESet
+SYStem.CPU S32V234-CM4
+SYStem.CONFIG CORE 1. 1.
+SYStem.CONFIG SLAVE OFF
+SYStem.Option AHBHPROT 0x3
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 200ms
+InterCom ARM64_1 SYStem.CPU S32V234
+InterCom ARM64_1 SYStem.CONFIG CORE 2. 1.
+InterCom ARM64_1 SYStem.CONFIG SLAVE ON
+InterCom ARM64_1 SYStem.Option AHBHPROT 0x3
+; InterCom ARM_2 SYStem.CPU S32V234-CM0+
+; InterCom ARM_2 SYStem.CONFIG CORE 3. 1.
+; InterCom ARM_2 SYStem.CONFIG SLAVE ON
+; InterCom ARM_2 SYStem.Option AHBHPROT 0x3
+
+; disable Trace for connection phase - TPIU may be unclocked
+ETM.OFF
+ITM.OFF
+HTM.OFF
+Trace.DISable
+
+InterCom ARM64_1 ETM.OFF
+InterCom ARM64_1 ITM.OFF
+InterCom ARM64_1 Trace.DISable
+
+SYStem.Mode Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; kick secondary cores
+; DO ~~/demo/arm64/hardware/s32v/s32v234/scripts/kick_cores "A53_1 A53_234"
+DO ~~~~/../../scripts/kick_cores "A53_1 A53_234"
+; kick M0+ ... by time of development we do not know how to kick the M0+
+
+; --------------------------------------------------------------------------------
+; attach to all cores on all sessions
+
+InterCom ARM64_1 CORE.ASSIGN 1. 2. 3. 4.
+InterCom ARM64_1 SYStem.Mode.Up
+; InterCom ARM_2 SYStem.Mode.Up
+
+GOSUB InitEcc
+
+; --------------------------------------------------------------------------------
+; load demo program on all cores (use internal RAM only)
+Data.LOAD.Elf ~~~~/master/sieve_ram_thumb_ii_v7m.elf
+InterCom ARM64_1 Data.LOAD.Elf ~~~~/slave1/sieve_ram_aarch64_v8.elf
+; InterCom ARM_2 Data.LOAD.Elf ~~~~/slave2/sieve_ram_thumb_v6m.elf
+
+InterCom ARM64_1 Register.Set PC _start_secondary /CORE 1.
+InterCom ARM64_1 Register.Set PC _start_secondary /CORE 2.
+InterCom ARM64_1 Register.Set PC _start_secondary /CORE 3.
+
+; --------------------------------------------------------------------------------
+; initialize ONCHIP trace (ETF)
+Trace.METHOD ONCHIP
+Trace.TraceCONNECT ETF
+InterCom ARM64_1 Trace.METHOD ONCHIP
+InterCom ARM64_1 Trace.TraceCONNECT ETF
+
+ETM.TraceID 1.
+ETM.Trace ON
+ETM.ON
+InterCom ARM64_1 ETM.TraceID 2.
+InterCom ARM64_1 ETM.Trace ON
+InterCom ARM64_1 ETM.ON
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main\1
+WAIT !STATE.RUN()
+InterCom ARM64_1 Go.direct main\1
+InterCom ARM64_1 WAIT !STATE.RUN()
+; InterCom ARM_2 Go.direct main\1
+; InterCom ARM_2 WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 0. 32.
+Trace.List
+InterCom ARM64_1 WinCLEAR
+InterCom ARM64_1 Mode.Hll
+InterCom ARM64_1 WinPOS 0. 0.
+InterCom ARM64_1 List.auto
+InterCom ARM64_1 WinPOS 0. 32.
+InterCom ARM64_1 Trace.List
+; InterCom ARM_2 WinCLEAR
+; InterCom ARM_2 Mode.Hll
+; InterCom ARM_2 WinPOS 0. 0.
+; InterCom ARM_2 List.auto
+; InterCom ARM_2 WinPOS 0. 32.
+; InterCom ARM_2 Trace.List
+
+ENDDO
+
+DisableWatchdog:
+(
+  ; use the AHB access port to disable the WDOG before the actual connection
+  Data.Set EAHB:0x40086010 %Long 0xc520
+  Data.Set EAHB:0x40086010 %Long 0xd928
+  Data.Set EAHB:0x40086000 %Long Data.Long(EAHB:0x40086000)&~0x1
+  Data.Set EAHB:0x40086000 %Long Data.Long(EAHB:0x40086000)|0x40
+  RETURN
+)
+
+InitEcc:
+(
+  Data.Set 0x3e000000++0x7fff %Long 0x0
+
+  ; ECC init of SRAM with use eDMA TCD1
+  Data.Set EAHB:0x40003020 %Long 0x6230
+  Data.Set EAHB:0x40003024 %Long 0x03030000
+  Data.Set EAHB:0x40003028 %Long 0x00400000
+  Data.Set EAHB:0x40003030 %Long 0x3e800000
+  Data.Set EAHB:0x40003034 %Long 0x00010008
+  Data.Set EAHB:0x4000303C %Long 0x00010001
+  WAIT (Data.Word(EAHB:0x4000303C)&0x0080)==0x0080
+  RETURN
+)
+

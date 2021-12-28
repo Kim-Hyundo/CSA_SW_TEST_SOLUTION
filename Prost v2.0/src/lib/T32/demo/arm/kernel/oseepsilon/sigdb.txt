@@ -1,0 +1,11 @@
+
+sigdb.pl: Perl script to generate union over all signals
+
+Usage: sigdb.pl *.sig >all_sig.c
+
+When double-clicking on the address of a signal inside the 
+TASK.DQueue window, the Debugger tries to display the 
+signal as union ALL_SIGNALS over all signal structures.
+The perl script sigdb.pl generates this union automatically
+and writes it into a file called all_sig.c. This C file
+must be linked into your application.

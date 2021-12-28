@@ -1,0 +1,268 @@
+; --------------------------------------------------------------------------------
+; @Title: Internal SPI (Winbond Serial NOR)Flash Program script for IMXRT1064-EVK
+; @Description:
+;   The internal SPI Flash is connected to the FLEXSPI2 controller
+;
+;   SRAM: 0x20001000
+;   FlexSPI(controller) Base: 0x402A4000
+;   FlexSPI AHB memory mapped ADDRESS: 0x70000000
+;
+;   Peripheral PinMux
+;    FLEXSPI2_A_SS0_B GPIO_SPI_B1_06 ALT0
+;    FLEXSPI2_A_SCLK GPIO_SPI_B0_08 ALT0
+;    FLEXSPI2_A_DQS GPIO_SPI_B0_09 ALT0
+;    FLEXSPI2_A_DATA0 GPIO_SPI_B0_02 ALT0
+;    FLEXSPI2_A_DATA1 GPIO_SPI_B1_03 ALT0
+;    FLEXSPI2_A_DATA2 GPIO_SPI_B1_02 ALT0
+;    FLEXSPI2_A_DATA3 GPIO_SPI_B0_10 ALT0
+;    FLEXSPI2_RESET_PIN GPIO_SPI_B0_13 ALT5
+;
+;   Prerequisites:
+;   SW7[1:4]: 0y0010
+;
+;   Example:
+;
+;   DO ~~/demo/arm/flash/imxrt1064 PREPAREONLY DUALPORT=1
+;
+; @Keywords: ARM, Cortex-M7
+; @Author: JIM
+; @Board: MIMXRT1064-EVK
+; @Chip: IMXRT106?
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imxrt1064.cmm 7577 2019-10-30 15:30:31Z bschroefel $
+
+LOCAL &FLEXSPI_BASE
+&FLEXSPI_BASE=0x402A4000      ;FLEXSPI2 controller base address
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+PRIVATE &param_prepareonly &param_cpu &param_dualport
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CPU=","")
+&param_dualport=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"DUALPORT=","0")
+
+IF SYStem.MODE()<5
+(
+  ; initialize and start the debugger
+  RESet
+  SYStem.RESet
+  SYStem.CPU IMXRT1064
+  SYStem.CONFIG.DEBUGPORTTYPE SWD
+  IF COMBIPROBE()||UTRACE()
+  (
+    SYStem.CONFIG.CONNECTOR MIPI20T
+  )
+  SYStem.Option DUALPORT ON
+  SYStem.MemAccess DAP
+  SYStem.JtagClock 10MHz
+  Trace.DISable
+  SYStem.Up
+)
+
+; ------------------------------------------------------------------------------
+; Setup FLEXSPI2 interface
+GOSUB clockInit
+GOSUB IOMUXconfig
+GOSUB FLEXSPIconfig
+
+GOSUB READ_ID_TEST
+
+; ------------------------------------------------------------------------------
+; Flash declaration
+
+FLASH.RESet
+GOSUB FlashDeclaration "&param_dualport"
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; -------------------------------------------------------------------------------
+; Flash programming example
+
+DIALOG.YESNO "Program flash memory?"
+LOCAL &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram.ALL
+  Data.LOAD.auto *
+  FLASH.ReProgram.off
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+)
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+
+FLEXSPIconfig:
+(
+  //unlock
+  Data.Set A:&FLEXSPI_BASE+0x018 %LE %Long 0x5AF05AF0
+  Data.Set A:&FLEXSPI_BASE+0x01C %LE %Long 2
+
+  //controller init
+  Data.Set A:&FLEXSPI_BASE+0x000 %LE %Long 0xFFFF8000
+  Data.Set A:&FLEXSPI_BASE+0x004 %LE %Long 0xFFFFFFFF
+  Data.Set A:&FLEXSPI_BASE+0x008 %LE %Long 0x200001F7
+  Data.Set A:&FLEXSPI_BASE+0x00C %LE %Long 0x58
+  Data.Set A:&FLEXSPI_BASE+0x020 %LE %Long 0x80000000
+  Data.Set A:&FLEXSPI_BASE+0x024 %LE %Long 0x80000000
+  Data.Set A:&FLEXSPI_BASE+0x028 %LE %Long 0x80000000
+  Data.Set A:&FLEXSPI_BASE+0x060 %LE %Long 0x00200000
+
+  Data.Set A:&FLEXSPI_BASE+0x060 %LE %Long 0x4000 ;  0x4000 * 0x400(KB unit size) = 16MB Flash_A0 size.
+  Data.Set A:&FLEXSPI_BASE+0x064 %LE %Long 0x4000
+  Data.Set A:&FLEXSPI_BASE+0x068 %LE %Long 0x4000
+  Data.Set A:&FLEXSPI_BASE+0x06C %LE %Long 0x4000
+
+  //timing
+  Data.Set A:&FLEXSPI_BASE+0x070 %LE %Long 0x00000063
+  Data.Set A:&FLEXSPI_BASE+0x074 %LE %Long 0x00000063
+  Data.Set A:&FLEXSPI_BASE+0x078 %LE %Long 0x00000063
+  Data.Set A:&FLEXSPI_BASE+0x07C %LE %Long 0x00000063
+
+  Data.Set A:&FLEXSPI_BASE+0x080 %LE %Long 0x00000900
+  Data.Set A:&FLEXSPI_BASE+0x084 %LE %Long 0x00000900
+  Data.Set A:&FLEXSPI_BASE+0x088 %LE %Long 0x00000900
+  Data.Set A:&FLEXSPI_BASE+0x08C %LE %Long 0x00000900
+
+  Data.Set A:&FLEXSPI_BASE+0x0B8 %LE %Long 0x1  ; water marker level 0 , reset assert 0x1
+  Data.Set A:&FLEXSPI_BASE+0x0BC %LE %Long 0x1  ; water marker level 0 , reset assert 0x1
+
+  Data.Set A:&FLEXSPI_BASE+0x0C0 %LE %Long 00100
+  Data.Set A:&FLEXSPI_BASE+0x0C4 %LE %Long 00100
+
+  //LUT0 for read the spi memory data to the AHB
+  //FAST READ Quad I/O
+  ; Data.Set A:&FLEXSPI_BASE+0x200 %LE %Long 0x0A1804EB
+  ; Data.Set A:&FLEXSPI_BASE+0x204 %LE %Long 0x26043206
+  ; Data.Set A:&FLEXSPI_BASE+0x208 %LE %Long 0x00
+  ; Data.Set A:&FLEXSPI_BASE+0x20C %LE %Long 0x00
+  //Normal Read Mode
+   Data.Set A:&FLEXSPI_BASE+0x200 %LE %Long 0x08180403
+   Data.Set A:&FLEXSPI_BASE+0x204 %LE %Long 0x00002404
+   Data.Set A:&FLEXSPI_BASE+0x208 %LE %Long 0x00
+   Data.Set A:&FLEXSPI_BASE+0x20C %LE %Long 0x00
+
+  //AHB update automatically even though the window size is < 1KB
+  Data.Set A:&FLEXSPI_BASE+0x00C %LE %Long Data.Long(A:&FLEXSPI_BASE+0x00C)&~0x20
+
+  RETURN
+)
+
+IOMUXconfig:
+(
+
+//SW_MUX_CTL_PAD_XXXX
+Data.Set SD:0x401F86AC %LE %Long 0x0  ; FLEXSPI2_A_SS0_B, GPIO_SPI_B1_06, ALT0
+Data.Set SD:0x401F867C %LE %Long 0x0  ; FLEXSPI2_A_SCLK, GPIO_SPI_B0_08, ALT0
+Data.Set SD:0x401F8680 %LE %Long 0x0  ; FLEXSPI2_A_DQS, GPIO_SPI_B0_09, ALT0
+Data.Set SD:0x401F8664 %LE %Long 0x0  ; FLEXSPI2_A_DATA0, GPIO_SPI_B0_02, ALT0
+Data.Set SD:0x401F86A0 %LE %Long 0x0  ; FLEXSPI2_A_DATA1, GPIO_SPI_B1_03, ALT0
+Data.Set SD:0x401F869C %LE %Long 0x0  ; FLEXSPI2_A_DATA2, GPIO_SPI_B1_02, ALT0
+Data.Set SD:0x401F8684 %LE %Long 0x0  ; FLEXSPI2_A_DATA3, GPIO_SPI_B0_10, ALT0
+Data.Set SD:0x401F8690 %LE %Long 0x5  ; FLEXSPI2_A_RESET, GPIO_SPI_B0_13, ALT5
+
+//SW_PAD_CTL_PAD_XXXX
+Data.Set SD:0x401F86BC %LE %Long 0xF1    ; FLEXSPI2_A_DATA0, PAD_CTL_GPIO_SPI_B0_02
+Data.Set SD:0x401F86D4 %LE %Long 0xF1    ; FLEXSPI2_A_SCLK, GPIO_SPI_B0_08, ALT0
+Data.Set SD:0x401F86DC %LE %Long 0xF1    ; FLEXSPI2_A_DATA3, GPIO_SPI_B0_10, ALT0
+Data.Set SD:0x401F86F4 %LE %Long 0xF1    ; FLEXSPI2_A_DATA2, GPIO_SPI_B1_02, ALT0
+Data.Set SD:0x401F86F8 %LE %Long 0xF1    ; FLEXSPI2_A_DATA1, GPIO_SPI_B1_03, ALT0
+Data.Set SD:0x401F8704 %LE %Long 0xF1    ;FLEXSPI2_A_SS0_B, GPIO_SPI_B1_06, ALT0
+Data.Set SD:0x401F86D8 %LE %Long 0x10B0  ;FLEXSPI2_A_DQS, GPIO_SPI_B0_09, ALT0
+Data.Set SD:0x401F86E8 %LE %Long 0x10B0  ;FLEXSPI2_A_RESET, GPIO_SPI_B0_13, ALT5
+
+
+  RETURN
+)
+
+clockInit: 
+(
+  // Enable all clocks
+  Data.Set A:0x400FC068 %Long 0xc0c00FFF
+  Data.Set A:0x400FC06C %Long 0xFCFCF000
+  Data.Set A:0x400FC070 %Long 0x0C3FF033
+  Data.Set A:0x400FC074 %Long 0xF00FF300
+  Data.Set A:0x400FC078 %Long 0x0000FFFF
+  Data.Set A:0x400FC07C %Long 0xF3033C33
+  Data.Set A:0x400FC080 %Long 0x00FC33CF    ;CCGR6.CG5[11:10]: FLEXSPI enable clk
+  PER.Set.simple AD:0x400FC084 %Long 0xFFFFFFFF
+
+  Data.Set A:0x400D8000 %Long 0x00012042
+  Data.Set A:0x400D8030 %Long 0x80012042
+  Data.Set A:0x400D8100 %Long 0x58535858
+  Data.Set A:0x400D8010 %Long 0x3000
+  Data.Set A:0x400D8010 %Long 0x80003000
+  Data.Set A:0x400D80F0 %Long 0x4F5A6363
+  Data.Set A:0x400FC010 %Long 0x1            ;CCM_CACRR
+
+  Data.Set A:0x400FC024 %Long 0x06490b03
+  Data.Set A:0x400FC018 %Long 0xF5ae8104     ;FLEXSPI2_PODF_7, FLEXSPI2_CLK_SEL_1
+
+  Data.Set A:0x400FC01C %LE %Long 0x67900001 ;CCM_CSCMR1, FLEXSPI_PODF[25:23]
+  Data.Set A:0x400FC01C %LE %Long 0x67930001
+  Data.Set A:0x400FC024 %LE %Long 0x06490B03
+
+  Data.Set A:0x400D8000 %Long 0x80002042
+  Data.Set A:0x400D8030 %Long 0x80002001     ;CCM_ANALOG_PLL_SYSn
+  Data.Set A:0x400D8010 %Long 0x80003000     ;CCM_ANALOG_PLL_USB1n
+
+  RETURN
+)
+
+READ_ID_TEST:
+(
+  PRINT "READ_ID_TEST..."
+
+  Data.Set ASD:&FLEXSPI_BASE+0x80 %LE %Long 0x80000900 ;FLASHCR2
+
+  Data.Set ASD:&FLEXSPI_BASE+0x14 %LE %Long -1   ;INTR clear
+
+  Data.Set A:&FLEXSPI_BASE+0xB8 %Long 0x1         ;IPRXFCR
+  Data.Set A:&FLEXSPI_BASE+0xBC %Long 0x1         ;IPTXFCR
+
+  Data.Set A:&FLEXSPI_BASE+0x250 %LE %Long 0x2404049F  ;readid with 4 bytes READ data
+  Data.Set A:&FLEXSPI_BASE+0x254 %LE %Long 0x0  ;
+  Data.Set A:&FLEXSPI_BASE+0x258 %LE %Long 0x0  ;
+  Data.Set A:&FLEXSPI_BASE+0x25c %LE %Long 0x0  ;
+
+  Data.Set A:&FLEXSPI_BASE+0x0A4 %LE %Long (5.<<16.)|0x4
+
+  Data.Set A:&FLEXSPI_BASE+0x0B0 %LE %Long 1  ;start
+
+  PRINT "1st 0x"  Data.Long(A:&FLEXSPI_BASE+0x100)&0xFF " (Manufacture)"
+  PRINT "2nd 0x" (Data.Long(A:&FLEXSPI_BASE+0x100)>>8.)&0xFF " (Device ID)"
+  PRINT "3rd 0x" (Data.Long(A:&FLEXSPI_BASE+0x100)>>16.)&0xFF
+  PRINT "4th 0x"  Data.Long(A:&FLEXSPI_BASE+0x100)>>24.
+
+  RETURN
+)
+
+; Flash declaration
+FlashDeclaration:
+(
+  PRIVATE &FlashSize &FlashDriver  &FlashBaseAddr
+  PARAMETERS &DualPort
+
+  &FlashDriver="imxrt1064.bin"
+  &FlashBaseAddr=0x70000000
+  &FlashSize=0x400000
+
+  FLASH.Create   &FlashBaseAddr++(&FlashSize-1)  0x10000 TARGET  Byte
+
+  IF "&DualPort"=="0"
+    FLASH.TARGET 0x20000000 0x20002000 0x4000 ~~/demo/arm/flash/byte/&FlashDriver
+  ELSE
+    FLASH.TARGET 0x20000000 EAHB:0x20002000 0x4000 ~~/demo/arm/flash/byte/&FlashDriver /DualPort
+
+  FLASH.List
+
+  RETURN
+)

@@ -1,0 +1,126 @@
+; --------------------------------------------------------------------------------
+; @Title: IMX6SOLOX General Setup Script 
+; @Description: IMX6SOLOX General Setup 
+; @Keywords: IMX6SOLOX*, IMX6SOLOX-CA9*, Setup,
+; @Author:
+; @Board: COM Board
+; @Chip: IMX6SOLOX
+; @Author: KJM
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx6solox_com_setup.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+PRINT "Initializing Board"
+
+//Clocks_enable
+;enable all clocks
+Data.Set 0x020c4068 %Long 0xffffffff    ; CCM_CGPR
+Data.Set 0x020c406c %Long 0xffffffff    ; CCM_CCGR1
+Data.Set 0x020c4070 %Long 0xffffffff    ; CCM_CCGR2
+Data.Set 0x020c4074 %Long 0xffffffff    ; CCM_CCGR3
+Data.Set 0x020c4078 %Long 0xffffffff    ; CCM_CCGR4
+Data.Set 0x020c407c %Long 0xffffffff    ; CCM_CCGR5
+Data.Set 0x020c4080 %Long 0xffffffff    ; CCM_CCGR6
+Data.Set 0x020c4084 %Long 0xffffffff    ; 
+
+//DDR_init
+;IOMUX 
+;DDR IO TYPE TO DDR3
+Data.Set 0x020e0618 %Long 0x000c0000    ; GRP_DDR_TYPE
+Data.Set 0x020e05fc %Long 0x00000000    ; GRP_DDRPKE
+
+;CLOCK DDR TO 40 OHM
+Data.Set 0x020e032c %Long 0x00000030    ; DRAM_SDCKE1
+
+;ADDRESS 
+;CAS Line to 60 OHM
+Data.Set 0x020e0300 %Long 0x00000020    ; DRAM_CAS_B
+;RAS Line to 60 OHM
+Data.Set 0x020e02fc %Long 0x00000020    ; DRAM_RAS_B
+;Addressbus to 60 OHM
+Data.Set 0x020e05f4 %Long 0x00000020    ; GRP_ADDDS
+
+;CONTROL 
+Data.Set 0x020e0340 %Long 0x00000020    ; DRAM_RESET
+
+Data.Set 0x020e0320 %Long 0x00000000    ; DRAM_SDBA2
+Data.Set 0x020e0310 %Long 0x00000020    ; DRAM_ODT0
+Data.Set 0x020e0314 %Long 0x00000020    ; DRAM_ODT1
+Data.Set 0x020e0614 %Long 0x00000020    ; GRP_CTLDS
+
+;DATA STROBE 
+Data.Set 0x020e05f8 %Long 0x00020000    ; DDRMODE_CTL
+Data.Set 0x020e0330 %Long 0x00000028    ; DRAM_SDQS0_P
+Data.Set 0x020e0334 %Long 0x00000028    ; DRAM_SDQS1_P
+Data.Set 0x020e0338 %Long 0x00000028    ; DRAM_SDQS2_P
+Data.Set 0x020e033c %Long 0x00000028    ; DRAM_SDQS2_P
+
+;DATA 
+Data.Set 0x020e0608 %Long 0x00020000    ; GRP_DDRMODE
+Data.Set 0x020e060c %Long 0x00000028    ; GRP_B0DS
+Data.Set 0x020e0610 %Long 0x00000028    ; GRP_B1DS
+Data.Set 0x020e061c %Long 0x00000028    ; GRP_B2DS
+Data.Set 0x020e0620 %Long 0x00000028    ; GRP_B3DS
+Data.Set 0x020e02ec %Long 0x00000028    ; DRAM_DQM0
+Data.Set 0x020e02f0 %Long 0x00000028    ; DRAM_DQM1
+Data.Set 0x020e02f4 %Long 0x00000028    ; DRAM_DQM2
+Data.Set 0x020e02f8 %Long 0x00000028    ; DRAM_DQM3
+
+;Calibrations 
+;ZQ 
+Data.Set 0x021b0800 %Long 0xa1390003    ; MPZQHWCTRL
+
+;write leveling 
+Data.Set 0x021b080c %Long 0x00270023    ; MPWLDECTRL0
+Data.Set 0x021b0810 %Long 0x00260025    ; MPWLDECTRL1
+
+;DQS Read Gate 
+Data.Set 0x021b083c %Long 0x41480148    ; MPDGCTRL0
+Data.Set 0x021b0840 %Long 0x01340130    ; MPDGCTRL1
+
+;Read/Write Delay 
+Data.Set 0x021b0848 %Long 0x40424248    ; MPRDDLCTL
+Data.Set 0x021b0850 %Long 0x36343a38    ; MPWRDLCTL0
+
+;read data bit delay 
+Data.Set 0x021b081c %Long 0x33333333    ; MPRDDQBY0DL
+Data.Set 0x021b0820 %Long 0x33333333    ; MPRDDQBY1DL
+Data.Set 0x021b0824 %Long 0x33333333    ; MPRDDQBY2DL
+Data.Set 0x021b0828 %Long 0x33333333    ; MPRDDQBY3DL
+
+;Complete calibration by forced measurment 
+Data.Set 0x021b08b8 %Long 0x00000800    ; MPMUR0
+
+;MMDC init 
+;in DDR3, 64-bit mode, only MMDC0 is initiated 
+Data.Set 0x021b0004 %Long 0x0002002d    ; MDPDC
+Data.Set 0x021b0008 %Long 0x00333030    ; MD0TC
+Data.Set 0x021b000c %Long 0x676b52f3    ; MDCFG0
+Data.Set 0x021b0010 %Long 0xb66d8b63    ; MDCFG1
+Data.Set 0x021b0014 %Long 0x01ff00db    ; MDCFG2
+Data.Set 0x021b0018 %Long 0x00011740    ; MDMISC
+Data.Set 0x021b001c %Long 0x00008000    ; MDSCR
+Data.Set 0x021b002c %Long 0x000026d2    ; MDRWD
+Data.Set 0x021b0030 %Long 0x006b1023    ; MDOR
+Data.Set 0x021b0040 %Long 0x0000005f    ; MDASP
+Data.Set 0x021b0000 %Long 0x84190000    ; MDCTL
+
+;Initialize MT41K256M16HA-125 
+;MR2 
+Data.Set 0x021b001c %Long 0x04008032    ; MDSCR
+;MR3 
+Data.Set 0x021b001c %Long 0x00008033    ; MDSCR
+;MR1 
+Data.Set 0x021b001c %Long 0x00048031    ; MDSCR
+;MR0 
+Data.Set 0x021b001c %Long 0x05208030    ; MDSCR
+;DDR device ZQ calibration 
+Data.Set 0x021b001c %Long 0x04008040    ; MDSCR
+
+;final DDR setup
+Data.Set 0x021b0020 %Long 0x00000800    ; MDREF
+Data.Set 0x021b0818 %Long 0x00011117    ;
+Data.Set 0x021b001c %Long 0x00000000    ; MDSCR
+
+PRINT "Board initialized successfully" 

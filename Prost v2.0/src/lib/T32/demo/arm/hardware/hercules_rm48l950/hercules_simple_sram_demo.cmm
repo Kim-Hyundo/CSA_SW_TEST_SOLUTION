@@ -1,0 +1,39 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple SRAM demo for RM48L950 Hercules Board from TI
+; @Description:
+;   Loads the sieve demo into SRAM and sets up a
+;   demo debug scenario.
+; @Keywords: Cortex-R4, CortexR4, RM48*
+; @Author: KJM
+; @Board: Hercules
+; @Chip: RM48L950-ZWT
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: hercules_simple_sram_demo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+  ; initialize debugger
+  print "initializing..."
+  SYStem.CPU RM48L950-ZWT
+  SYStem.Option ResBreak OFF
+  SYStem.Option TRST OFF
+  SYStem.UP
+
+  Data.LOAD.ELF ~~~~/demo.axf /plusvm
+  Register.Set T 1
+  Register.Set E 0
+  Register.Set PC main
+  Register.Set R13 0x08008000
+
+
+; open some windows
+  WinCLEAR
+  WinPOS 0% 0% 100% 50%
+  List.auto
+  WinPOS 0% 50% 50% 50%
+  Frame /Locals /Caller
+  WinPOS 50% 50% 50% 50%
+  Var.Watch
+  Var.AddWatch ast; flags;
+
+  ENDDO

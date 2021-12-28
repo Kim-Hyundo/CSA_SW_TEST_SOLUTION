@@ -1,0 +1,110 @@
+; --------------------------------------------------------------------------------
+; @Title: Example for flash declaration of Analog Devices ADuCM32x internal flash.
+;
+; @Description:
+; DO aduc32x [PREPAREONLY] [CPU=<cpu>]
+;
+;     PREPAREONLY only declares flash but does not execute flash programming
+;             example
+;
+;     CPU=<cpu> selects CPU derivative <cpu>
+;
+; Example:
+;
+;   DO ~~/demo/arm/flash/aducm32x CPU=ADuCM320 PREPAREONLY
+;
+; List of ADuCM32x derivatives and their configuration:
+;
+;   CPU-Type           Flash I      Flash II   Ram size
+;                       (KB)          (KB)        (KB)
+; --------------------------------------------------------------------------------
+;   ADuCM320            128.           128.        32.
+;   ADuCM322            128.           128.        32.
+;
+; Memory location:
+;
+;   Program flash starting at 0x00000000
+;   SRAM starting at          0x20000000
+;
+; @Author: MAM
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; @Chip: ADuCM32*
+; --------------------------------------------------------------------------------
+; $Rev: 7577 $
+; $Id: aducm32x.cmm 7577 2019-10-30 15:30:31Z bschroefel $
+
+  PRIVATE &parameters
+  ENTRY %LINE &parameters
+
+  PRIVATE &param_prepareonly &param_cpu
+  &param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+  &param_cpu=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CPU=","")
+
+  ; ------------------------------------------------------------------------------
+  ; Start debugging
+
+  IF SYStem.MODE()<5
+  (
+    SYStem.RESet
+
+    IF "&param_cpu"!=""
+      SYStem.CPU &param_cpu
+    IF !CPUIS(ADUCM32*)
+    (
+        SYStem.CPU ADUCM320
+    )
+
+    SYStem.Option.ResBreak OFF
+    SYStem.CONFIG.DEBUGPORTTYPE SWD
+
+    SYStem.Up
+
+    ; For the case CPU is in kernel mode because of empty flash. Initialize
+    ; SRAM and disable single bit error interrupt.
+    Data.Set 0x4000202C %Word 0yXXXXxxxxXXXXx101
+  )
+
+
+  ; ------------------------------------------------------------------------------
+  ; Flash declaration
+  PRIVATE &ram_start &flashDriverSize &bufferSize
+  PRIVATE &flash0_start &flash1_start &flash2_start &flashsize &sectrorsize
+
+  &ram_start=0x020000000  ; internal RAM: 0x20000000 (SRAM 32K)
+  &flashDriverSize=0x1000 ; (<flash_algorithm>) + 32 byte
+  &bufferSize=0x1000
+  
+  &flash0_start=0x0000000
+  &flash1_start=0x0020000
+  &flashsize=0x20000 // 128k flash size is the same for all onchip flashes.
+  &sectrorsize=0x800 // 2k sector size 
+
+  FLASH.RESet
+  ; Program flash
+  FLASH.Create 1. &flash0_start++(&flashsize-1) &sectrorsize TARGET Quad
+  FLASH.Create 2. &flash1_start++(&flashsize-1) &sectrorsize TARGET Quad
+
+  FLASH.TARGET &ram_start (&ram_start+&flashDriverSize) &bufferSize ~~/demo/arm/flash/quad/aducm320.bin
+
+  ; Flash script ends here if called with parameter PREPAREONLY
+  IF &param_prepareonly
+    ENDDO PREPAREDONE
+
+  ; ------------------------------------------------------------------------------
+  ; Flash programming example
+
+  DIALOG.YESNO "Program flash memory?"
+  LOCAL &progflash
+  ENTRY &progflash
+  IF &progflash
+  (
+    FLASH.ReProgram.ALL /Erase
+    Data.LOAD.auto *
+    FLASH.ReProgram.off
+
+    ; Reset device
+    SYStem.Down
+    SYStem.Up
+  )
+
+  ENDDO

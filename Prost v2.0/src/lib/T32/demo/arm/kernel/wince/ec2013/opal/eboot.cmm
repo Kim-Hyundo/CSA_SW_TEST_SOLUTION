@@ -1,0 +1,123 @@
+; --------------------------------------------------------------------------------
+; @Title: Startup Script for Debugging Eboot on Opal i.MX53 Board
+; @Description: -
+; @Keywords: awareness, i.MX53
+; @Author: DIE
+; @Board: Opal-i.MX53
+; @Chip: IMX53*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: eboot.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+ LOCAL &winceroot &reldir &eboot &term
+
+ &winceroot="C:\WINCE800"    ; typically C:\WINCE800
+ &reldir="&winceroot\OSDesigns\Opal2013\Opal2013\RelDir\GuruCE_DeviceSolutions_Opal_ARMv7_Shipbuild"
+ &eboot="eboot"
+
+ &term="COM6"
+
+ SCREEN.ALways      ; permanent update for internal terminal window
+ ; screen.on        ; if you use external terminal
+
+ ; reset debugger
+
+ WinCLEAR
+ RESet
+
+ ; setup debugger
+
+ SYStem.CPU IMX53
+ SYStem.Option ResBreak OFF     ; hardware dependent (see manual)
+ SYStem.Option WaitReset 100ms  ; hardware dependent (see manual)
+ SYStem.JtagClock 20MHz
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+
+ ; open serial terminal window
+
+ WinPOS 35. 0. ,,,,, TERM.view
+ TERM.METHOD COM &term 115200.
+ TERM.SIZE 80. 1000.
+ TERM.Mode VT100
+ TERM.SCROLL ON
+ TERM.view
+
+; connect to target
+
+ ; sometimes we need the SYStem.Up twice, don't know why
+ ON ERROR GOTO retry
+retry:
+ SYStem.Up
+ ON ERROR
+
+ SETUP.IMASKASM ON             ; lock interrupts while single stepping
+
+ ; start on-board bootloader to initialize the board
+
+ Go
+ WAIT 1.s
+ Break
+
+ ; disable caches and MMU
+
+ Data.Set C15:1 Data.Long(c15:1)&~0x1005    ; SCTLR: I/C/M; L1 cache and MMU
+ Data.Set C15:101 Data.Long(C15:101)&~2     ; ACTLR: L2EN;  L2 cache
+
+ ; load eboot to physical memory
+
+ ; see platform/Opal/src/bootloader/eboot/eboot.bib:
+
+ ; RAMIMAGE entry specifies virtual load address, here 0x80040000
+ ; physical is usually RAM start plus the offset;
+ ; RAM starts at 0x70000000, so physical load address is 0x70040000
+
+ ; ROMSTART entry specifies the start address, here 0x80040000
+ ; IMPORTANT: do *not* add 4k page to ROMSTART - we need the TOC!
+
+ ; ROMOFFSET adds an offset to RAMIMAGE for flash load addresses,
+ ; here 0x1F5B0400
+ ; then load eboot to <phys. addr.> - (RAMIMAGE+ROMOFFSET)
+
+ Register.RESet
+ Data.LOAD.eXe "&reldir\&eboot.bin" 0x70040000-(0x80040000+0x1F5B0400)
+ Register.Set PC 0x70040000
+
+ ; We'd like to see something, open a code window.
+ WinPOS 0. 0. 77. 22.
+ List.auto
+
+ ; load eboot awareness (eboot.t32) for section detection
+ ; specify physical address of image
+
+ EXTension.CONFIG ~~\demo\arm\kernel\wince\ec2013\eboot.t32 0x70040000
+
+ ; load eboot.exe symbols
+
+ &text=eboot.addr(0)    ; code segment
+ &data=eboot.addr(1)    ; data segment
+
+ Data.LOAD.eXe &reldir\&eboot.exe /NoCODE /NoClear /thumb \
+   /reloc .text at &text /RELOC .data at &data
+
+ ; adapt source paths if necessary (case sensitive!)
+ ;sYmbol.SourcePATH.Translate "c:\wince800" "&winceroot"
+ sYmbol.SourcePATH.Set .    ; add current directory to search path
+
+ ; start eboot
+
+ ; if you want to debug the tiny startup sequence, that is running
+ ; in physical address mode, you have to relocate code symbols to physical:
+
+ ;sYmbol.RELOC P:(0x70040000-0x80040000)
+ ;Go StartUp
+ ;Go KernelStart /Onchip   ; onchip because of cache switches
+
+ ; after switching to virtual address; re-relocate symbols
+
+ ;sYmbol.RELOC P:0x10000000
+
+ ; use onchip because we switch on MMU
+ Go BootloaderMain /Onchip
+
+ENDDO

@@ -1,0 +1,92 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags
+; @Author: TI
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: omap4430_cortexm3_emulation_tests.cmm 8886 2015-11-18 18:06:51Z mobermeir $
+
+ENTRY &menu_type
+
+;GLOBAL &CMM_DIR &PROG_DIR_SIVAL &PROG_DIR_STANDALONE 
+GLOBAL &CMM_DIR &PROG_DIR_SIVAL
+&CMM_DIR="~~~~"
+;&PROG_DIR_SIVAL="Q:\tcomap4430\tc_emu\emulation_plus_board"
+
+MENU.ReProgram
+(
+  ADD
+  MENU
+  (
+    POPUP "CMM"
+    (
+      POPUP "Wake UP"
+      (
+        ;MENUITEM "Cortex register accesses" 
+        ;(
+        ; do &CMM_DIR/omap4430_cortexM3_tests_basic_reg
+        ;)
+        ;MENUITEM "System Reset" 
+        ;(
+        ; do &CMM_DIR/H3G_omap3430_Resets
+        ;)
+        MENUITEM "Load_Asm_program_Internal_RAM1"
+        (
+          DO &CMM_DIR/omap4430_cortexM3_BasicEmulation 0x1
+        )
+        MENUITEM "Basic_Execution_control_Internal_RAM1"
+        (
+          DO &CMM_DIR/omap4430_cortexM3_BasicEmulation 0x2
+        )
+        MENUITEM "Load_Asm_program_Internal_RAM2"
+        (
+          DO &CMM_DIR/omap4430_cortexM3_BasicEmulation 0x3
+        )
+        MENUITEM "Basic_Execution_control_Internal_RAM1"
+        (
+          DO &CMM_DIR/omap4430_cortexM3_BasicEmulation 0x4
+        )
+        MENUITEM "Load_Asm_program_DDR1"
+        (
+          DO &CMM_DIR/omap4430_cortexM3_BasicEmulation 0x5
+        )
+        MENUITEM "Basic_Execution_control_DDR1"
+        (
+          DO &CMM_DIR/omap4430_cortexM3_BasicEmulation 0x6
+        )
+        MENUITEM "Load_Asm_program_DDR2"
+        (
+          DO &CMM_DIR/omap4430_cortexM3_BasicEmulation 0x8
+        )
+        MENUITEM "Basic_Execution_control_DDR2"
+        (
+          DO &CMM_DIR/omap4430_cortexM3_BasicEmulation 0x7
+        )
+      )
+      POPUP "MS6"
+      (
+        MENUITEM "Load Program_DDR_SIVAL"
+        (
+          ;Data.LOAD.Elf &PROG_DIR_SIVAL/cortexm3_rtos_ES2_board_golden/cortexm3_sys_ape_silicon_image.axf /NoCODE /StripPART 7
+          ;sYmbol.SourcePATH.SetBaseDir &PROG_DIR_SIVAL/cortexm3_rtos_golden/cortexM3_rtos_dir
+          List.auto
+        )
+      )      
+      POPUP "MS7"
+      (
+        POPUP "Cross Triggering"
+        (
+          MENUITEM "CortexM3 RTOS"
+          ( 
+            DO &CMM_DIR/omap4430_cortexM3_cross_triggering.cmm 0x0
+          )
+          MENUITEM "CortexM3 SIMCOP"
+          ( 
+            DO &CMM_DIR/omap4430_cortexM3_cross_triggering.cmm 0x0
+          )     
+        )       
+      )
+    )
+  )
+)
+  
+ENDDO

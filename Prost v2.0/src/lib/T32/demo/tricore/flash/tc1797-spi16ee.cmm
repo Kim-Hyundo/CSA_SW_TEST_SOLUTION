@@ -1,0 +1,94 @@
+; --------------------------------------------------------------------------------
+; @Title: Generic Flash script file for TC1797 Serial EEPROM
+; @Description:
+;   Example script for flash declaration and programming of Infineon
+;   TriCore TC1797 Serial EEPROM 16KB(ATMEL, 25128)
+; @Keywords: Flash, Infineon, TriCore
+; @Author: JIM
+; @Chip: TC1797*
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc1797-spi16ee.cmm 5943 2018-08-14 14:56:15Z jjeong $
+; $Rev: 5943 $
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+
+
+; Serial EEPROM 16KB(ATMEL, 25128) is connected to SSC0(P10.4).
+;
+; S(D)RAM: 0xA1000000
+; SPI Controller Tx Addr: 0xF0100120 (SSC0_TB)
+; SPI Controller Rx Addr: 0xF0100124 (SSC0_RB)
+; SPI CS Register       : 0xF0001600  (GPIO PORT10 OUTPUT)
+; SPI CS bit Number     : 4.   ; port number 4
+;
+
+LOCAL &sscReg &spiTx &spiRx &gpioReg &csPortNum
+
+&sscReg=0xF0100100 ; ssc0 base address
+&gpioReg=0xF0001600    ; gpio10 output reg
+&csPortNum=4.          ; port# 4 in the gpio10
+&spiTx=(&sscReg+0x20)
+&spiRx=(&sscReg+0x24)
+
+RESet
+SYStem.CPU TC1797
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; Memory initialzation
+; initialize external bus unit
+  Data.Set 0xF8000004 %Long 0x800000E1    ; EBU_MODCON
+
+; memory assignment
+; /CS0: AMD AM29BL162CB flash
+  Data.Set 0xF8000018 %Long 0xA2000051    ; EBU_ADDRSEL0
+  Data.Set 0xF8000028 %Long 0x00D30040    ; EBU_BUSRCON0
+  Data.Set 0xF800002C %Long 0xFFFFFFFF    ; EBU_BUSRAP0
+  Data.Set 0xF8000030 %Long 0x00D30000    ; EBU_BUSWCON0
+  Data.Set 0xF8000034 %Long 0xFFFFFFFF    ; EBU_BUSWAP0
+; /CS1: SAMSUNG K6R4016V1D-UI10 SRAM
+  Data.Set 0xF800001C %Long 0xA1000071    ; EBU_ADDRSEL1
+  Data.Set 0xF8000038 %Long 0x00D30040    ; EBU_BUSRCON1
+  Data.Set 0xF800003C %Long 0x011F0190    ; EBU_BUSRAP1
+  Data.Set 0xF8000040 %Long 0x00D30000    ; EBU_BUSWCON1
+  Data.Set 0xF8000044 %Long 0x011F0190    ; EBU_BUSWAP1
+
+; pin configruation for ssc0
+  Data.Set D:0xF0001614 %Long 0x20202080   ;pin muxing P10.4 -> gpio output
+  Data.Set D:0xF0001610 %Long 0x90209000   ;pin muxing P10.0 -> MRST0(input), p10.1-> MTSR0(output), p10.3 -> SCLK0
+
+; ssc0 configuration
+  Data.Set &sscReg %Long 0x0       //SSC0_CLC
+  Data.Set &sscReg+0xC %Long 0x43FF    //SSC0_FDR
+  Data.Set &sscReg+0x10 %Long 0xC357    //SSC0_CON Enable
+  Data.Set &sscReg+0x14 %Long 0x0000010 //Baudrate 240KHz
+  Data.Set &sscReg+0x18 %Long 0x100     //SSC0_SSCOC
+  Data.Set &sscReg+0x1C %Long 0xF       //LEAD, TRAIL timing
+
+  FLASHFILE.RESet
+
+//FLASFILE.CONFIG <Tx Reg>   <Rx Reg>    <CS Reg>     <Port Num>
+  FLASHFILE.CONFIG &spiTx    &spiRx       &gpioReg    &csPortNum
+
+//FLASHFILE.TARGET <Code Range>     <Data Range>       <Algorithm File>
+  FLASHFILE.TARGET 0xA1000000++0x1FFF 0xA1002000++0x1FFF  ~~/demo/tricore/flash/byte/spi16ee_tc179x.bin
+
+  FLASHFILE.GETID
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+ENDDO
+
+
+//Fill the data 0xFF to the defined range
+  ;FLASHFILE.ERASE 0x0--0x3FFF  ;
+
+  ;FLASHFILE.LOAD * 0x0
+  ;FLASHFILE.LOAD * 0x0 /ComPare  ; Verify
+
+  FLASHFILE.DUMP 0x0 ; Open EEPROM dump window
+
+ENDDO

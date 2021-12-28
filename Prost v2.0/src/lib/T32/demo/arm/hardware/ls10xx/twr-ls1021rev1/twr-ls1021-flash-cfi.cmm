@@ -1,0 +1,46 @@
+; --------------------------------------------------------------------------------
+; @Title: LS1021A Rev 1 CFI NOR Flash configuration example
+; @Description:
+;   Show how to initialize CFI NOR Flash Programming on TWR-LS1021A board.
+;   Prerequisites:
+;   * connect Debugcable to J12
+;     using the ARM20-MIPI converter LA-3770
+;     OR
+;     connect Combiprobe to J12 directly
+;   * disable MBED debugger SW2[8]=0y1
+;   * set bootsource to NOR SW2[5..1]=0y10001
+; @Keywords: Freescale, Layerscape, CortexA7, QorIQ
+; @Author: AME
+; @Board: TWR-LS1021A
+; @Chip: LS1021A
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: twr-ls1021-flash-cfi.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; board setup
+RESet
+SYStem.RESet
+SYStem.CPU LS1021A
+; check SYStem.Detect.ShowCHAIN - these settings match a REV1 silicon
+; on LS1021A Rev1 the USB-JTAG TAP is hardwired
+SYStem.CONFIG DAPIRPRE 8.
+SYStem.CONFIG DAPDRPRE 1.
+SYStem.Option ResBreak OFF
+CORE.ASSIGN 1.
+SYStem.Up
+
+; some initializations (u-boot started to execute)
+; lock interrupts
+Register.Set I 1
+Register.Set F 1
+; init SCTLR - MMU OFF, I-Cache ON
+Data.Set C15:0x1 %Long 0xC5187A
+
+; use either the Misc->Flash Programming dialog
+; or the CLI
+; the board uses 16Bit bus, start address 0x60000000
+; use the target SRAM "Target based programming" 
+FLASH.CFI 0x60000000 Word /TARGET 0x10000000 0x10001000 0x1000
+FLASH.List
+
+ENDDO

@@ -1,0 +1,42 @@
+; --------------------------------------------------------------------------------
+; @Title: PATCH for TRACE32 OS Awareness in OSE Basic
+; @Description: 
+;   
+;   This version supplies table display and analyzer check. System calls
+;   are not supported yet.
+;   
+;   All used memory locations are computed internally by global
+;   system variables. See below for the changes.
+;   
+;   This script has been tested with following OSARM versions:
+;   
+;   1998-08-19:       Version 2.1.0   Proc: ARM7TDMI
+;   
+; @Keywords: osebasic, RTOS
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: poseb.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+;   History: 19.08.98: Created by Rudi Dienstbeck / Lauterbach GmbH
+
+
+; All further variables are computed internally, no adaption neccessary.
+
+; --------------------------------------------------------------------------------
+; START OS Awareness
+; --------------------------------------------------------------------------------
+
+; task.config:
+; 1st argument is name of configuration file (oseb.t32)
+; 2nd argument is memory location, at which the running process is specified
+; 3rd argument is patch address for suspend call -- not used here!
+; 4th argument is OS Debug Info
+; last argument is system call patch routine
+
+; manual configuration
+;  task.config oseb P_ZZ_CUR_PCB 0 ZZ_OSARM ZZ_PCB_LIST
+
+; automatic configuration
+   TASK.CONFIG oseb
+

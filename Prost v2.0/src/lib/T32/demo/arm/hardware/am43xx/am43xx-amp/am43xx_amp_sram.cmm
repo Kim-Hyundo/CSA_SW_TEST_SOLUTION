@@ -1,0 +1,117 @@
+; --------------------------------------------------------------------------------
+; @Title: Generic AMP-Demo script for an AM4376 board  (AMP, RAM)
+; @Description:
+;   Setup a AMP debug session using a single script approach.
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   Use this script to test the AMP-Debugging.
+; @Keywords: ARM
+; @Author: STK
+; @Board: -
+; @Chip: AM4376
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: am43xx_amp_sram.cmm 15362 2019-12-03 14:50:48Z mschleinkofer $
+
+PRIVATE &currPath &rclPort &remoteCmd
+&currPath=OS.PPD()
+&rclPort=FORMAT.DecimalU(1.,RCL.PORT(0))+"."
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF SYStem.INSTANCE()<1.
+(
+  PRINT %ERROR "TRACE32 is not running in AMP mode! Use .bat/.sh file in this directory."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; enable INTERCOM if not already specified and prepare related variables
+IF (INTERCOM.PORT()==0)
+(
+  InterCom.ENable CORE0
+)
+&remoteCmd="InterCom.execute CM3"
+
+; --------------------------------------------------------------------------------
+; close any existing REMOTE GUI
+INTERCOM.execute OTHERS QUIT
+
+; --------------------------------------------------------------------------------
+; open SLAVE GUI with or without enabled remote API
+IF (RCL.PORT(0)!=0)
+(
+  TargetSystem.NewInstance CM3 /ARCHitecture ARM /ChipIndex 2. /APIPORT &rclPort+1. /ONCE
+)
+ELSE
+(
+  TargetSystem.NewInstance CM3 /ARCHitecture ARM /ChipIndex 2. /ONCE
+)
+
+; --------------------------------------------------------------------------------
+; set titles for SLAVE GUIs
+TITLE "TRACE32 for ARM - AM4376 - MASTER"
+&remoteCmd TITLE "TRACE32 for ARM - AM4376-CM3 - SLAVE1"
+
+; --------------------------------------------------------------------------------
+; common SYStem settings
+RESet
+&remoteCmd RESet
+SYStem.RESet
+&remoteCmd SYStem.RESet
+SYStem.CPU AM4376
+SYStem.CONFIG CORE 1. 1.
+SYStem.CONFIG SLAVE OFF
+
+; Disable ResBreak for boards, that have nReset connected to the
+; Power-On-Reset of the board.
+SYStem.Option ResBreak OFF
+
+&remoteCmd SYStem.CPU AM4376-CM3
+&remoteCmd SYStem.CONFIG CORE 2. 1.
+&remoteCmd SYStem.CONFIG SLAVE ON
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; disable watchdog
+Data.Set ASD:0x44e35048 %Long 0xaaaa
+Data.Set ASD:0x44e35048 %Long 0x5555
+
+; --------------------------------------------------------------------------------
+; attach to slave core and set onchip trigger on reset vector
+&remoteCmd SYStem.Attach
+&remoteCmd TrOnchip.Set CORERESET ON
+
+; --------------------------------------------------------------------------------
+; kick secondary cores, M3 should stop by vector catch
+Data.Set ASD:0x44DF2010 %Long 0x00000000
+&remoteCmd WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; load demo program on all sessions (use internal RAM only)
+Data.LOAD.Elf ~~~~/master/sieve_ram_arm_v7.elf
+&remoteCmd ChDir &currPath
+&remoteCmd Data.LOAD.Elf ./slave1/sieve_ram_thumb_ii_v7m.elf
+&remoteCmd Register.Init
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main\1
+WAIT !STATE.RUN()
+&remoteCmd Go.direct main\1
+&remoteCmd WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+&remoteCmd WinCLEAR
+&remoteCmd Mode.Hll
+&remoteCmd WinPOS 0. 0. 116. 26.
+&remoteCmd List.auto
+
+ENDDO

@@ -1,0 +1,213 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash template for MB9DF125 with chip security (FLASH)
+; @Description:
+;   This template shows how to connect to a device with chip security enabled.
+;   For demonstrations the key 0x55555555 0x55555555 0x55555555 0x55555555 is
+;   used.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe
+; @Keywords: ARM, Cortex-R4, Flash
+; @Author: AME
+; @Board: MB9DF125
+; @Chip: MB9DF125
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mb9df125_flash_unlock_template.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU MB9DF125
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 70.ms
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+; manually force ONCHIP Breakpoints in FLASH (write buffer problem)
+MAP.BOnchip 0x00800000++0x7fffff
+MAP.BOnchip 0x01000000++0x7fffff
+; fix RUNTIME memory accesses in TCM
+IF VERSION.BUILD()<85819.
+(
+  SYStem.Option DAPREMAP 0x0++0x00FFFFFF 0x05000000
+)
+SYStem.Mode Prepare
+
+;                  <KEY0>       <KEY1>       <KEY2>       <KEY3>
+GOSUB UnlockDevice "0x55555555" "0x55555555" "0x55555555" "0x55555555"
+
+; --------------------------------------------------------------------------------
+; connect and handle watchdog
+SYStem.Mode Attach
+Break
+
+&val=Data.Long(AD:0xB0608048)
+IF (&val&0x01000000)==0
+(
+  ; disable watchdog
+  Data.Set AD:0xB0608000 %Long 0xEDACCE55
+  Data.Set AD:0xB0608048 %Long 0x01000000
+)
+ELSE IF (&val&0xb)==(0x1||0x2||0x3)
+(
+  ; watchdog already locked - bug DBGEN not set
+  DIALOG.OK "Watchdog enabled BUT DBGEN not set!"
+  STOP
+)
+ELSE
+(
+  ; retrigger watchdog
+  Data.Set AD:0xB0608010 %Long Data.Long(AD:0xB060802c)
+  Data.Set AD:0xB0608018 %Long Data.Long(AD:0xB0608030)
+)
+
+; --------------------------------------------------------------------------------
+; disable MPU
+Data.Set C15:0x1 %Long Data.Long(C15:0x1)&~0x1
+
+; --------------------------------------------------------------------------------
+; initialize ECC TCM SRAM
+;Data.Set AD:0x0++0x1ffff %Long 0x0
+Data.Set AD:0x0++0xbfff %Long 0x0
+
+; --------------------------------------------------------------------------------
+; Flash programming
+
+; prepare flash programming (declarations)
+DO ~~/demo/arm/flash/mb9df125.cmm PREPAREONLY
+
+; ReProgram Flash
+FLASH.ReProgram ALL
+Data.LOAD.Elf "~~~~/sieve_flash_arm_v7r_le.elf"
+FLASH.ReProgram OFF
+
+; set BDR 0x017FFFE0++0xF
+FLASH.AUTO 0x017FFFE0++0xF /CENSORSHIP
+; example - set start address to AXI FLASH START
+Data.Set 0x017FFFF8 %Long ADDRESS.OFFSET(_start) 0x292D3A7B
+FLASH.AUTO OFF
+; set SDR 0x017F0000++0x7f
+; FLASH.AUTO 0x017F0000++0x7f /CENSORSHIP
+; Data.Set ...
+; Data.LOAD ...
+; FLASH.AUTO OFF
+
+; flash programming end - remove flash kernel
+FLASH.RESet
+
+; --------------------------------------------------------------------------------
+; Reset the target again
+; - connection is WaitReset=70ms after reset -> already in user code
+; <timing critical>
+SYStem.Up
+
+&val=Data.Long(AD:0xB0608048)
+IF (&val&0x01000000)==0
+(
+  ; disable watchdog
+  Data.Set AD:0xB0608000 %Long 0xEDACCE55
+  Data.Set AD:0xB0608048 %Long 0x01000000
+)
+ELSE IF (&val&0xb)==(0x1||0x2||0x3)
+(
+  ; watchdog already locked - bug DBGEN not set
+  DIALOG.OK "Watchdog enabled BUT DBGEN not set!"
+  STOP
+)
+ELSE
+(
+  ; retrigger watchdog
+  Data.Set AD:0xB0608010 %Long Data.Long(AD:0xB060802c)
+  Data.Set AD:0xB0608018 %Long Data.Long(AD:0xB0608030)
+)
+; </timing critical>
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+ENDDO
+
+; --------------------------------------------------------------------------------
+
+UnlockDevice: ;(key0, key1, key2, key3)
+(
+  PARAMETERS &key0 &key1 &key2 &key3
+  PRIVATE &SccfgStat2Addr &SccfgSeckey0Addr &SccfgUnlckAddr &SccfgGpreg1Addr
+  PRIVATE &val &val2 &status
+  &SccfgStat2Addr=0x0000f180
+  &SccfgSeckey0Addr=0x0000f190
+  &SccfgUnlckAddr=0x0000f1a4
+  &SccfgGpreg1Addr=0x0000f1ac
+
+  &val=Data.Long(APB:&SccfgStat2Addr)
+  IF ((&val&0x1)==0x0)
+  (
+    PRINT "Device not secured ...."
+    RETURN
+  )
+  ELSE
+  (
+    Data.Set APB:&SccfgUnlckAddr %Long 0x5ecacce5
+
+    Data.Set APB:&SccfgSeckey0Addr+0x0 %Long &key0
+    Data.Set APB:&SccfgSeckey0Addr+0x4 %Long &key1
+    Data.Set APB:&SccfgSeckey0Addr+0x8 %Long &key2
+    Data.Set APB:&SccfgSeckey0Addr+0xc %Long &key3
+
+    Data.Set APB:&SccfgUnlckAddr %Long 0xa135331a
+  )
+
+  &status=TRUE()
+  ON ERROR GOSUB
+  (
+    &status=FALSE()
+    RETURN
+  )
+  &val=Data.Long(APB:&SccfgStat2Addr)
+  &val2=Data.Long(APB:&SccfgGpreg1Addr)
+  ON ERROR inherit
+
+  IF (!&status)
+  (
+    DIALOG.OK "BusError happened while unlocking device! Aborting ..."
+    ENDDO
+  )
+  ELSE IF ((&val&0xff)==0x3)
+  (
+    DIALOG.OK "Invalid security key entered! Aborting ..."
+    ENDDO
+  )
+  ELSE IF ((&val&0xff)==0x1)
+  (
+    IF ((&val2&0x70000000)==0x50000000)
+    (
+      DIALOG.OK "Invalid Main Security Description Record! Aborting ..."
+      ENDDO
+    )
+    ELSE
+    (
+      PRINT "Correct security key entered ..."
+    )
+  )
+  ELSE
+  (
+    DIALOG.OK "Device still secured! Aborting ..."
+    ENDDO
+  )
+
+  RETURN
+)

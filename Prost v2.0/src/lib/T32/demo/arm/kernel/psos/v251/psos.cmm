@@ -1,0 +1,48 @@
+; --------------------------------------------------------------------------------
+; @Title: pSOS+ Demo for TRACE32 OS Awareness
+; @Description: 
+;   
+;   This batchfile loads all necessary files to demonstrate
+;   the RTOS-Debugger for pSOS+ 2.5.x.
+;   
+; @Keywords: psos, RTOS, v251
+; @Author: DIE
+; @Chip: ARM7TDMI
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: psos.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+;   Created by C. Sontheim, S. Lauterbach, R. Dienstbeck
+;   Lauterbach GmbH at 15.05.01
+
+ PRINT "resetting ..."
+ RESet
+ WinCLEAR
+ AREA.view
+
+ SCREEN.ON 
+
+ IF INTERFACE.SIM()
+ (
+   SYStem.CPU arm7tdmi
+   SYStem.Option DisMode ACCESS
+   SYStem.Up
+ )
+
+ ; load sample application
+ PRINT "loading sample application..."
+ Data.LOAD.auto sample.axf /LPATH /StripPATH
+ 
+ ; initialize mutitasking support
+ PRINT "initializing RTOS support..."
+ TASK.CONFIG psos 
+
+ ;additional psos menu
+ PRINT "initializing psos menu ..."
+ MENU.ReProgram psos
+
+ PRINT "load complete."
+ 
+ List.auto
+ 
+ ENDDO

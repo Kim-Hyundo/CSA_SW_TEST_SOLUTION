@@ -1,0 +1,34 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to connect to the NXHX500 Board
+; @Description:
+;   This script connects to the NXHX500 Board by calling the
+;   netx_common_init.cmm and does some initialization using
+;   Data.Set commands
+; @Keywords: Hilscher, NetX*
+; @Board: NXHX500
+; @Chip: NETX500
+; @Author: Hilscher
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: nxhx500_init.cmm 12065 2018-02-07 12:26:30Z amerkle $
+
+
+DO ~~~~/netx_common_init.cmm
+
+FLASH.RESet
+
+;setup SDRam Timing
+Data.Set ASD:0x100140 %Long 0x0
+Data.Set ASD:0x100144 %Long 0x03C12151
+Data.Set ASD:0x100140 %Long 0x030D0001
+
+Data.Set ASD:0x100100 %Long 0x01010008
+
+FLASH.RESet
+;16MB Flash at 0xc0000000 with a sector size of 128kByte of type S29GL128N
+FLASH.Create 1. ASD:0xC0000000++0x00FFFFFF 0x20000 TARGET Word
+FLASH.TARGET ASD:0x00001000 ASD:0x00002000 0x1000 word/am29lv256.bin
+
+MAP.BOnchip 0xC0000000++0x1FFFFFF
+
+ENDDO

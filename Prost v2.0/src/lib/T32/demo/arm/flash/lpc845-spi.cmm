@@ -1,0 +1,111 @@
+; --------------------------------------------------------------------------------
+; @Title: Serial FLASH Programming Script for LPC845
+; @Description:
+; Serial FLASH (ISSI, IS25WP064A) is connected to P0_22
+;
+;       pin# - SPI Flash
+;       P0_22 -SPI_EN
+;       P0_27 -SPI_MOSI
+;       P0_26 -SPI_MISO
+;       P0_15 -SPI_SCK
+;
+; @Keywords: ARM, Cortex-M0+
+; @Author: JIM
+; @Board:
+; @Chip: LPC845M301JBD64
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: lpc845-spi.cmm 8358 2020-06-02 13:29:57Z jjeong $
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+&SPI_BASE=0x40058000
+
+; ------------------------------------------------------------------------------
+; Setup CPU
+DO ~~/demo/arm/hardware/lpc/lpc845/lpcxpresso845max/lpcxpresso845max_sieve_sram.cmm
+AREA
+
+; ------------------------------------------------------------------------------
+; Flash Power & Clock Enable
+Data.Set SD:0x40048080 %LE %Long 0x301460D7|(0x1<<11.)  ;clk enable
+Data.Set ASD:0x400480B4 %LE %Long 0x1  ;selec main clk around 20 Mhz
+Data.Set SD:0x40048088 %LE %Long -1    ;clear reset for SPI0_RST(11.)
+
+; ------------------------------------------------------------------------------
+; Flash Pin Mux Configuration
+GOSUB PINMUX_CONFIG
+
+; ------------------------------------------------------------------------------
+; Setup SPI Controller
+PER.Set.simple ASD:&SPI_BASE+0x024 %Long 0x1  ;div 1
+PER.Set.simple ASD:&SPI_BASE+0x000 %Long 0x5  ;enable and master, clock polarity high
+PER.Set.simple ASD:&SPI_BASE+0x00C %Long -1   ;enable interrupt
+PER.Set.simple ASD:&SPI_BASE+0x008 %Long -1   ;clear status
+PER.Set.simple ASD:&SPI_BASE+0x020 %Long 0x07100000
+;PER.Set.simple ASD:&SPI_BASE+0x004 %Long 0x11 ;delay post & pre 1cycle of spi clock
+
+GOSUB READ_ID_TEST
+
+; ------------------------------------------------------------------------------
+; Flash declaration
+Break.RESet
+FLASHFILE.RESet
+
+//FLASHFILE.CONFIG   <SPI Base>    <0>     <0>
+FLASHFILE.CONFIG     &SPI_BASE     0x0     0x0
+
+// FLASHFILE.TARGET <code range>          <data range>           <Algorithm file>
+FLASHFILE.TARGET    0x10000000++0x1FFF    E:0x10002000++0x1FFF   ~~/demo/arm/flash/byte/spi64_lpc8xx.bin  /KEEP /DualPort  /STACKSIZE 0x200
+
+FLASHFILE.GETID   ; Read FLASH Manufacture and Device ID
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+  ENDDO
+
+FLASHFILE.DUMP 0x0  ; Read out from the serial flash
+
+//FLASHFILE.ERASE 0x0--0xFFFFF   ; Erase the serial flash 0x0--0xFFFFF
+//FLASHFILE.LOAD uboot.bin 0x0   ; Write uboot.bin to 0x0 on the serial flash
+//FLASHFILE.LOAD uboot.bin 0x0  /ComPare  ; Verify
+
+ENDDO
+
+READ_ID_TEST:
+(
+  PER.Set.simple ASD:&SPI_BASE+0x020 %Long  0x07000000 ;tx cntrl
+
+  PER.Set.simple ASD:&SPI_BASE+0x01C %Long 0x9F  ;txdat
+  PRINT "Read 1st: 0x" Data.Long(A:&SPI_BASE+0x014)&0xFF
+
+  PER.Set.simple ASD:&SPI_BASE+0x01C %Long 0xAA  ;txdat
+  PRINT "Read 2nd: 0x" Data.Long(A:&SPI_BASE+0x014)&0xFF
+
+  PER.Set.simple ASD:&SPI_BASE+0x01C %Long 0x55  ;txdat
+  PRINT "Read 3rd: 0x" Data.Long(A:&SPI_BASE+0x014)&0xFF
+
+  PER.Set.simple ASD:&SPI_BASE+0x01C %Long 0xBB  ;txdat
+  PRINT "Read 4th: 0x" Data.Long(A:&SPI_BASE+0x014)&0xFF
+
+  PER.Set.simple ASD:&SPI_BASE+0x020 %Long  Data.Long(ASD:&SPI_BASE+0x020)|(0x1<<20.)  ;end of trans
+
+  PER.Set.simple ASD:&SPI_BASE+0x01C %Long 0x88  ;txdat
+  PRINT "Read 5th: 0x" Data.Long(A:&SPI_BASE+0x014)&0xFF
+
+  RETURN
+)
+
+PINMUX_CONFIG:
+(
+  ;P0_22 -SPI_EN
+  Data.Set SD:0x4000C00C %LE %Long 0x00FFFFFF|(15.<<24.)
+
+  ;P0_27 -SPI_MOSI
+  ;P0_26 -SPI_MISO
+  ;P0_15 -SPI_SCK
+  Data.Set SD:0x4000C010 %LE %Long (27.)|(26.<<8.)|(22.<<16.)
+
+  RETURN
+)

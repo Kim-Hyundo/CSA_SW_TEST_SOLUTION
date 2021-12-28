@@ -1,0 +1,69 @@
+; --------------------------------------------------------------------------------
+; @Title: Startup Script for Debugging Eboot on NE1-TB (NaviEngine) Board, WinCE 7.0
+; @Description: -
+; @Keywords: awareness, Windows
+; @Author: DIE
+; @Board: NE1-TB-(NaviEngine)
+; @Chip: ARM11MPCORE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: eboot.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+ LOCAL &winceroot &reldir &eboot
+
+ &winceroot=".\WINCE700"    ; typically C:\WINCE700
+ &reldir="&winceroot\OSDesigns\NE1TB\NE1TB\RelDir\NE1TB_ARMV6_Debug"
+ &eboot="eboot"
+
+ ; reset debugger
+
+ RESet
+
+ ; setup debugger
+
+ SYStem.CPU ARM11MPCORESMP4
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ SYStem.JtagClock RTCK          ; hardware dependent (see manual)
+
+ SYStem.Up
+
+ SETUP.IMASKASM ON             ; lock interrupts while single stepping
+
+ ; start on-board bootloader to initialize the board
+
+ Go
+ WAIT 1.s
+ Break
+
+ ; load eboot
+ ; see RAMIMAGE entry in eboot.bib for physical load address
+ ; see ROMOFFSET for offset to flash load address
+ ; then load eboot to <phys. addr.> - <flash addr.>
+
+ Register.RESet
+ Data.LOAD.eXe "&reldir\&eboot.bin" 0x80020000-0x90080000
+ Register.Set PC 0x80020000
+
+ ; load eboot awareness (eboot.t32) for section detection
+ ; specify physical address of image
+
+ EXTension.CONFIG ~~\demo\arm\kernel\wince\ce6\eboot.t32 0x80020000
+
+ ; load eboot.exe symbols
+
+ &text=eboot.addr(0)    ; code segment
+ &data=eboot.addr(1)    ; data segment
+
+ Data.LOAD.eXe &reldir\&eboot.exe /NoCODE /NoClear \
+   /reloc .text at &text /RELOC .data at &data
+
+ ; adapt source paths if necessary (case sensitive!)
+ sYmbol.SourcePATH.Translate "c:\wince700" "&winceroot"
+ sYmbol.SourcePATH.Set .    ; add current directory to search path
+
+ ; start eboot
+
+ Go BootloaderMain
+
+ENDDO

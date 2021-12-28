@@ -1,0 +1,236 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash declaration of ST STM32L5 internal flash
+; @Description:
+; Script arguments:
+;     DO stm32l5 [PREPAREONLY] [CPU=<cpu>]
+;      PREPAREONLY only declares flash but does not execute flash programming
+;      CPU=<cpu> selects CPU derivative <cpu>
+;   Example:
+;     DO ~~/demo/arm/flash/stm32l5 CPU=STM32L4R5ZG PREPAREONLY
+;
+;   List of STM32L5xx derivatives and their configuration:
+;      CPU-Type        Flash size   Page size    SRAM size
+;                        [Byte]      [Byte]        [Byte]
+; --------------------------------------------------------------------------------
+;     STM32L552xC       0x40000                  0x40000  x=C/R/V/Q/Z
+;     STM32L552xE       0x80000                  0x40000  x=C/R/M/V/Q/Z
+;     STM32L562xE       0x80000                  0x80000  x=C/R/M/V/Q/Z
+;
+;   Flash start: 0x08000000  alias at 0x0 (SYSCFG_MEMRMP MEM_MODE==0x0 main flash
+;                            memory)
+;   SRAM  start: 0x20000000
+;
+; @Chip: STM32L5*
+; @Author: PHI
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 8152 $
+; $Id: stm32l5.cmm 8152 2020-04-03 08:06:33Z sphilipp $
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+PRIVATE &param_prepareonly &param_cpu &param_dualport &param_masserase      
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CPU=","")
+&param_dualport=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"DUALPORT=","0")
+&param_masserase=(STRing.SCAN("&parameters","MASSERASE",0)!=-1)
+
+; ------------------------------------------------------------------------------
+; Initialize and start the debugger
+IF !SYStem.Up()||&param_masserase 
+(
+  SYStem.RESet
+
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  IF !CPUIS(STM32L5*)
+    SYStem.CPU STM32L5*
+  IF !(CPUIS(STM32L5*))
+    SYStem.CPU STM32L5*
+
+  IF ("&param_dualport"=="1")
+    SYStem.MemAccess DAP
+
+  IF &param_masserase
+    FLASH.UNSECUREerase
+
+  SYStem.Up
+)
+
+; ------------------------------------------------------------------------------
+; Flash declaration
+FLASH.RESet
+GOSUB FlashDeclaration "&param_dualport"
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; -------------------------------------------------------------------------------
+; Flash programming example
+DIALOG.YESNO "Program flash memory?"
+LOCAL &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram.ALL /Erase
+  Data.LOAD.auto *
+  FLASH.ReProgram.off
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+)
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU
+;
+;   Please do NOT modify the TRACE32 flash declaration.
+;
+;   Modifications can result in unpredictable behavior.
+;   Please contact support@lauterbach.com for any changes.
+FlashDeclaration: ;(param_dualport)
+(
+  PARAMETERS &param_dualport
+  PRIVATE &RamStart &SecureRamStart &FlashStart &SecureFlashStart
+  PRIVATE &FlashSize &FlashDualBank &FlashDriver &SectorSize
+  PRIVATE &tzen &secure_allowed &offset &size
+
+  &FlashDriver="stm32l5.bin"
+  
+  IF CPUIS(STM32L552?C)
+    &FlashSize=0x40000
+  ELSE IF(CPUIS(STM32L5?2?E))
+    &FlashSize=0x80000
+  ELSE
+  (
+    PRINT %ERROR "FLASH size of CPU type is unknown"
+    ENDDO
+  )
+
+  &RamStart=0x20000000
+  &FlashStart=0x08000000
+  &SecureFlashStart=0x0C000000
+  &SecureRamStart=0x30000000
+  &tzen=FALSE()
+  &secure_allowed=FALSE()
+  
+  ON ERROR CONTinue
+  (
+    &tzen=(Data.Long(ZD:0x40022040)&0x80000000)==0x80000000
+    &secure_allowed=(Data.Long(ZD:0x40022040)&0x000000ff)==0x000000aa     ; Check read protection level
+  )
+  ON ERROR DEFault
+
+  IF (&tzen&&!&secure_allowed)
+  (
+    &error=FALSE()
+
+    ; Take initial stackpointer of the vector table as reference for available SRAM
+    &RamStart=(Data.Long(D:(Data.Long(D:0xE000ED08)))-1)&0xFFFFC000
+
+    ON ERROR GOSUB
+    (
+      &error=TRUE()
+      RETURN
+    )
+    Data.Test &RamStart++0x3fff
+    IF FOUND()||(&error)
+    (
+      PRINT %ERROR "Found non-secure SRAM space to small for flash algorithm"
+      ENDDO
+    )
+  )
+
+  IF (((Data.Long(D:0x40022040)&(1.<<22.))==(1.<<22.))||((Data.Long(D:0x40022040)&(1.<<21.))==(1.<<21.)))
+  (
+    &FlashDualBank=TRUE()
+    &SectorSize=0x800
+  )
+  ELSE
+  (
+    &FlashDualBank=FALSE()
+    &SectorSize=0x1000
+  )
+
+  ; Declare whole flash as unsecured flash
+  IF &FlashDualBank==TRUE()
+  (
+    FLASH.Create 1. &FlashStart++((&FlashSize/2.)-1.) &SectorSize TARGET Quad
+    FLASH.Create 2. (&FlashStart+(&FlashSize/2.))++((&FlashSize/2.)-1.) &SectorSize TARGET Quad
+  )
+  ELSE
+    FLASH.Create 1. &FlashStart++(&FlashSize-1.) &SectorSize TARGET Quad
+    
+  FLASH.Create 3. 0x0BFA0000--0x0BFA01FF TARGET Quad /OTP
+
+  IF (&tzen==FALSE())
+  (
+    IF &FlashDualBank==TRUE()
+    (
+      FLASH.CreateAlias &SecureFlashStart++((&FlashSize/2.)-1.) &FlashStart
+      FLASH.CreateAlias (&SecureFlashStart+(&FlashSize/2.))++((&FlashSize/2.)-1.) (&FlashStart+(&FlashSize/2.))
+    )
+    ELSE
+      FLASH.CreateAlias &SecureFlashStart++((&FlashSize)-1.) &FlashStart
+  )
+  ELSE
+  (
+    ;Determine secured region in bank 1
+    GOSUB Secwmr1 "&SectorSize" "1"
+    RETURNVALUES &offset &size
+    IF (&size>0.)
+    (
+      FLASH.Delete (&FlashStart+&offset)++(&size-1.)
+      IF (&secure_allowed)
+        FLASH.Create 1. (&SecureFlashStart+&offset)++(&size-1.) &SectorSize TARGET Quad
+      ELSE
+        FLASH.Create 1. (&SecureFlashStart+&offset)++(&size-1.) &SectorSize NOP Quad
+    )
+    IF &FlashDualBank==TRUE()
+    (
+      ;Determine secured region in bank 2
+      GOSUB Secwmr1 "&SectorSize" "2"
+      RETURNVALUES &offset &size
+      IF (&size>0.)
+      (
+        FLASH.Delete (&FlashStart+(&FlashSize/2.)+&offset)++(&size-1.)
+        FLASH.Create 2. (&SecureFlashStart+(&FlashSize/2.)+&offset)++(&size-1.) &SectorSize TARGET Quad
+      )
+    )
+  )
+
+
+  IF ("&param_dualport"!="1")
+    FLASH.TARGET &RamStart (&RamStart+0x1000) 0x1000 ~~/demo/arm/flash/byte/&FlashDriver
+  ELSE
+   FLASH.TARGET &RamStart E:(&RamStart+0x1000) 0x1000 ~~/demo/arm/flash/byte/&FlashDriver /DualPort
+
+  RETURN
+)
+
+Secwmr1:
+(
+  PARAMETERS &sectorsize &bank
+  PRIVATE &startoffset &size &secwmr1 &firstpage &lastpage
+
+  IF (&bank==1)
+    &secwmr1=Data.LONG(D:0x50022050)
+  ELSE
+    &secwmr1=Data.LONG(D:0x50022060)
+
+  &firstpage=&secwmr1&0x7F
+  &lastpage=(&secwmr1>>16.)&0x7F
+  IF (&lastpage>=&firstpage)
+    &size=&lastpage-&firstpage+0x1
+  ELSE 
+    &size=0x0
+
+  &startoffset=&firstpage*&sectorsize
+  &size=&size*&sectorsize
+
+  RETURN "&startoffset" "&size"
+)

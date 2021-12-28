@@ -1,0 +1,232 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux Demo for TRACE32 OS Awareness on the phyCORE-i.MX350
+; @Description:
+;   This batchfile demonstrates the use of the OS Awareness for Linux
+;   The example is generated for the phyCORE-i.MX350 board using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   Linux is downloaded to the board via ICD;
+;   the root filesystem is taken from Flash
+; @Keywords: awareness, imx3*, Linux, phycore, i.mx3*
+; @Author: DIE
+; @Board: phyCORE-i.MX350
+; @Chip: IMX35
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx35_linux.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; Starting Linux example with TRACE32:
+; - Connect STRAIGHT modem cable to Serial 1 (upper jack)
+;   - 115200 baud, 8/N/1, no(!) handshake
+; - Start TRACE32
+; - Switch on the board
+; - TRACE32: "do linux"
+; - transfer "helloworld" via ftp to /tmp on target
+; - terminal: start "/tmp/helloworld"
+
+LOCAL &ka_path &awareness
+
+
+ SCREEN.ALways      ; permanent update for internal terminal window
+ ; screen.on        ; if you use external terminal
+
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 25. 75. 8. 0. 0. W000
+ AREA.view
+
+ PRINT "resetting..."
+
+ RESet
+
+
+; Initializing Debugger
+
+ PRINT "initializing..."
+ SYStem.RESet
+ SYStem.CPU IMX35
+ SYStem.JtagClock RTCK
+ SYStem.CONFIG.L2CACHE.Base 0x30000000
+ SYStem.Option ResBreak OFF     ; hardware dependent (see manual)
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set UNDEF OFF         ; my be used by Linux for FPU detection
+ SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+
+ SYStem.Up
+
+ SETUP.IMASKASM ON          ; lock interrupts while single stepping
+
+
+; Open serial terminal window on COM1
+
+ DO ~~/demo/etc/terminal/serial/term.cmm COM1 115200.
+
+
+; Target Setup: initialize DRAM controller and peripherals
+
+ ; Either let the boot monitor setup the board
+    Go
+    PRINT "target setup..."
+    WAIT 2.s
+    Break
+ ; or use the debugger to initialize it
+    ;print "target setup..."
+    ;do init_phycore_imx35       ; do basic setup
+
+
+; Load the Linux kernel
+
+ ; If you are using a flashed kernel, or if you're loading
+ ; your kernel via TFTP, use the boot monitor to do so.
+
+ ; Use the next lines (loading the kernel, setting registers
+ ; and boot parameters) only to load the kernel into
+ ; RAM using the debugger.
+
+ ; vmlinux starts physically at RAM start (=0x80000000) + 0x8000
+ ; We have to adjust it from the virtual start address at the label
+ ; "stext" from the System.map ("nm vmlinux | sort")
+ ; i.e.: Data.LOAD.Elf vmlinux <physical start>-<virtual start>
+
+ PRINT "loading Linux kernel..."
+ Data.LOAD.Elf vmlinux 0x80008000-0xc0008000
+
+ ; IMPORTANT!!!
+ ; If an i.MX series CPU goes into WFI mode with JTAG enabled,
+ ; no interrupts are accepted any more. So we have to disable
+ ; the WFI mode. Either remove the WFI call in arch/mm/proc-v6.S
+ ; or patch the WFI call with the debugger:
+
+ Data.Assemble cpu_v6_do_idle+8 nop
+
+ Register.RESet
+
+ ; Set PC on start address of image
+ Register.Set PC 0x80008000
+
+ ; Set machine type in R1; see arch/arm/tools/mach-types
+ Register.Set R1 2072.      ; PCM043
+
+ ; Set parameter tags for linux boot
+ ; It contains the boot command line, too! (see script)
+ DO imx35_atag_list
+
+
+; Loading initial ram disk (initrd)
+
+ ; Use the next lines only, if you want to use an initrd,
+ ; and if you want to download this with the debugger.
+
+ ; Load rom file system image into ram disk
+ ; The load address must be passed as command line option
+ ; (see atag-list.cmm)
+
+ ; In this example, we don't use an initrd (root from Flash)
+ ;print "loading ram disk..."
+ ;Data.LOAD.Binary ramdisk.image.gz 0x80800000 /noclear /nosymbol
+
+
+; Load the Linux kernel symbols into the debugger
+ ; use /strippart to map source paths, if necessary
+
+ PRINT "loading Linux kernel symbols..."
+ Data.LOAD.Elf vmlinux /NoCODE /StripPART 4
+ sYmbol.SourcePATH.Set S:\linux\linux
+
+
+; Open a Code Window -- we like to see something
+
+ WinPOS 0. 0. 75. 20.
+ List.auto
+
+ Go start_kernel /Onchip
+ WAIT !STATE.RUN()
+
+
+; Declare the MMU format to the debugger
+ ; - table format is "LINUX"
+ ; - table base address is at label "swapper_pg_dir"
+ ; - kernel address translation
+ ; Map the virtual kernel symbols to physical addresses to give
+ ; the debugger access to it before CPU MMU is initialized
+
+ PRINT "initializing debugger MMU..."
+ MMU.FORMAT LINUX swapper_pg_dir 0xc0000000--0xc7ffffff 0x80000000
+
+ ; prepare debugger translation
+ TRANSlation.COMMON 0xbf000000--0xffffffff              ; common area for kernel and processes
+ TRANSlation.TableWalk ON       ; debugger uses a table walk to decode virtual addresses
+ TRANSlation.ON                 ; switch on debugger(!) address translation
+
+
+; Initialize Linux Awareness
+
+ ; Note that the Linux awareness needs the kernel symbols to work
+
+ ; check linux major version
+ IF STRing.SCAN(Data.STRing(linux_banner), "Linux version 2.", 0)==0
+ (
+     &ka_path="~~/demo/arm/kernel/linux/linux-2.x"
+     &awareness="linux.t32"
+ )
+ ELSE
+ (
+     &ka_path="~~/demo/arm/kernel/linux/linux-3.x"
+     &awareness="linux3.t32"
+ )
+
+ PRINT "initializing RTOS support..."
+ TASK.CONFIG &ka_path/&awareness               ; loads Linux awareness
+ MENU.ReProgram &ka_path/linux            ; loads Linux menu
+
+
+ ; Group kernel area to be displayed with red bar
+ GROUP.Create "kernel" 0xc0000000--0xffffffff /RED
+
+
+ ; Ok, we're done, let's start Linux
+
+ wintop TERM.view        ; set terminal window to front
+ Go
+ PRINT "starting Linux... (please wait)"
+ WAIT 10.s
+ Break
+
+ PRINT "done."     ; done with loading and starting Linux
+
+
+; --------------------------------------------------------------------------------
+; Application Debugging
+; e.g. "hello"
+; --------------------------------------------------------------------------------
+
+ ; activate autoloader for processes:
+ TASK.sYmbol.Option AutoLoad Process
+
+ PRINT "please log in and start 'helloworld'"
+
+ ; script based
+   ; using the script based application debugging
+   ; gives more control over the single commands
+   ; see file "app_debug.cmm"
+
+   DO ../app_debug helloworld
+
+ ; process watch system
+   ; the process watch system automates the actions
+   ; for application debugging
+
+   ;WINPOS 55. 24. 40. 4.
+   ;TASK.Watch.View "helloworld"
+
+   ;Go
+
+
+ ENDDO
+

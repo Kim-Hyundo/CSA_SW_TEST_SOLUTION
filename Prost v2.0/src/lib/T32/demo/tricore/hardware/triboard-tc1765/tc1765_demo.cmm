@@ -1,0 +1,74 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC1765 A-Step on TriBoard TC1765
+; @Description:
+;   Initializes the TriCore, SRAM and Flash,
+;   and loads the Sieve-Demo into memory.
+;
+;   Use the following boot option:
+;   Left  DIP Switch: SW1=ON,  SW2=OFF, SW3=ON,  SW4=OFF
+;   Right DIP Switch: SW1=ON,  SW2=OFF, SW3=OFF, SW4=ON
+;
+;   Requirements to use OCDS-1:
+;   Set jumper JP501 to position 2-3
+;
+; @Keywords: Infineon, TriCore
+; @Author: MAX
+; @Board: TriBoard-TC1765
+; @Chip: TC1765
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc1765_demo.cmm 7575 2014-08-27 14:47:57Z mobermeir $
+
+
+; --------------------------------------------------------------------------------
+; Performed tests:
+; TriBoard-TC1765.201 TC1765 EES-A11 2005-09-08 MAX
+;
+; Memory mappings:
+; SRAM  (1MB) mapped to 0xA0000000--0xA00FFFFF
+; Flash (2MB) mapped to 0xA4000000--0xA41FFFFF
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+
+RESet
+SYStem.CPU TC1765
+SYStem.Up
+
+; Disable watchdog timer
+Data.Set 0xF0000024 %Long 0x00000008    ; WDTCON1
+
+; --------------------------------------------------------------------------------
+; Memory initialzation
+
+; initialize external bus unit
+Data.Set 0xF0000210 %Long 0x4001FFFF    ; EBU_BCUCON
+Data.Set 0xF0000510 %Long 0x0000FF68    ; EBU_EBUCON
+
+; memory assignment
+; ST M58BW016BB flash
+Data.Set 0xF0000560 %Long 0x68FEF1FF    ; EBU_BUSCON0
+Data.Set 0xF0000520 %Long 0xA4000061    ; EBU_ADDSEL0
+; Samsung K6R4016V1C-TI15 SRAM
+Data.Set 0xF0000564 %Long 0x00020140    ; EBU_BUSCON1
+Data.Set 0xF0000524 %Long 0xA0000071    ; EBU_ADDSEL1
+; unused
+Data.Set 0xF0000528 %Long 0x00000000    ; EBU_ADDSEL2
+Data.Set 0xF000052C %Long 0x00000000    ; EBU_ADDSEL3
+
+; --------------------------------------------------------------------------------
+; load demo program
+Data.LOAD.Elf "~~~~/demo.elf"
+Go.direct main
+
+; open some windows
+WinCLEAR
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame.view /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch
+Var.AddWatch ast flags
+
+ENDDO

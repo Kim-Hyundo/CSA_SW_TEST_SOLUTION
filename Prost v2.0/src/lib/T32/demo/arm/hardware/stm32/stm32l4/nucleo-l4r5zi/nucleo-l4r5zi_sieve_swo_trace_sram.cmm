@@ -1,0 +1,94 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for STM32L4R5ZI on NUCLEO-L4R5ZI with SWV (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The SerialWireViewer is set up to trace some data values using the DWT.
+;   Prerequisites:
+;    * Connect signals of the Debug Cable/CombiProbe/µTrace as follows:
+;         VREF     : CN8 pin 7 (3.3V)
+;         GND      : GND
+;         TMS/SWDIO: CN4 pin 4
+;         TCK/SWDCK: CN4 pin 2
+;         TDO/SWO  : CN5 pin 6
+;         NSRST    : CN5 pin 5
+;    * ensure CN4 jumpers are OPEN
+;    * Close JP2
+;    * Open JP1
+;    * Set JP6 to position 5-6
+;    * keep trace length as short as possible
+;    * ensure proper GND connection
+; @Keywords: ARM, Cortex-M4, ITM, SWV
+; @Author: STK
+; @Board: NUCLEO-L4R5ZI
+; @Chip: STM32L4R5ZI
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: nucleo-l4r5zi_sieve_swo_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+; Prerequisite: check if a Combiprobe/uTrace is connected
+IF !CAnalyzer()
+(
+  DIALOG.OK "Support for SerialWireViewer requires a Combiprobe or uTrace."
+  ENDDO
+)
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU STM32L4R5ZI
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock 10MHz
+Trace.DISable
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; initialize SerialWireViewer (clock is stable now)
+Trace.METHOD CAnalyzer
+Trace.AutoInit ON
+TPIU.PortSize SWV
+ITM.DataTrace ON
+ITM.ON
+; use auto-calibration script to find most suitable TPIU.SWVPrescaler <divider>
+DO ~~/demo/arm/etc/serial_wire_viewer/swv_autocalibration.cmm
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+ITMTrace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO

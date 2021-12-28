@@ -1,0 +1,145 @@
+; --------------------------------------------------------------------------------
+; @Title: Start-up script for i.MX31 ADS Board
+; @Description: Initialization script for i.MX31 ADS board from Freescale
+; @Keywords: Freescale, imx3*, Linux, RTOS
+; @Author: DIE
+; @Board: i.MX31ADS
+; @Chip: IMX31
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx31ads_init.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+; Start-up script for i.MX31 ADS board from Freescale
+
+; J3 Power: 5VDC 5A + ---o)--- -
+; S1 Power Switch -> ON
+; J8 JTAG connector
+; P1 4-16bit Alternate ETM connector - no >16bit support!
+; P4 4-16bit Primary ETM connector - no >16bit support!
+
+; --------------------------------------------------------------------------------
+;    !!!    IMPORTANT    !!!  IMPORTANT    !!!
+; Both ETM connectors deliver 5V on pin 14. This results in
+; sending JTAG-signals with 5V-level, which could damage the cpu.
+; Therefore do not connect JTAG via Mictor connectors. Do it as 
+; mentioned above.
+; Connecting both trace preprocessor and JTAG debug cable cause 
+; signal issues on the JTAG signals. See readme file for recommended
+; board modifications which solve this issue.
+; Tracing is possible with maximum speed if the cpu board runs stand-alone.
+; Limited tracing possible if cpu board is plugged onto the main board.
+; --------------------------------------------------------------------------------
+
+IF (Analyzer())
+(
+  DIALOG.YESNO "STOP! Check pin 14 of the ETM connector (must be not 5V)! Checked?"
+  ENTRY &result
+  IF !&result
+     STOP
+
+  ; ETM pin setup
+  PRINT "Setting ETM pin configuration..."
+  ; lower 8bit alternate
+  Data.Set ASD:0x43FAC060 %Long 0x51515151
+  Data.Set ASD:0x43FAC064 %Long 0x00000050
+  Data.Set ASD:0x43FAC068 %Long 0x51515151
+  Data.Set ASD:0x43FAC06C %Long 0x00000050
+  ; lower 8bit primary
+  Data.Set ASD:0x43FAC040 %Long 0x50000000
+  Data.Set ASD:0x43FAC044 %Long 0x00000050
+  Data.Set ASD:0x43FAC09c %Long 0x51515050
+  Data.Set ASD:0x43FAC0D0 %Long 0x52525002
+  Data.Set ASD:0x43FAC0D4 %Long 0x52525252
+  ; upper 8bit alternat+primary
+  Data.Set ASD:0x43FAC08C %Long 0x50500000
+  Data.Set ASD:0x43FAC090 %Long 0x51515151
+  Data.Set ASD:0x43FAC09c %Long 0x51515050
+
+  ; ETM setup
+  PRINT "ETM setup..."
+  PRINT "IMPORTANT: R163 and R269 must be 0 Ohms!"
+  PRINT "IMPORTANT: Mainboard influences the trace signals -> remove it! "
+  ETM.PortSize 8
+  ETM.PortMode 1/2
+  Trace.AutoInit ON
+
+  ; Test code setup
+  PRINT "Setting up preprocessor ..."
+  Register.Set PC 0x10000000
+  Trace.AutoFocus
+  Trace.TestFocus /KEEP
+)
+
+
+; --------------------------------------------------------------------------------
+; Configure CPLD on CS4 
+; --------------------------------------------------------------------------------
+
+Data.Set 0xb8002040 %Long 0x0000DCF6
+Data.Set 0xb8002044 %Long 0x444A4541
+Data.Set 0xb8002048 %Long 0x44443302
+
+
+; --------------------------------------------------------------------------------
+; Initialization script for 32 bit DDR on Tortola EVB 
+; --------------------------------------------------------------------------------
+
+; SDCLK
+Data.Set 0x43FAC26C %Long 0
+
+; CAS
+Data.Set 0x43FAC270 %Long 0
+
+; RAS
+Data.Set 0x43FAC274 %Long 0
+
+; CS2 (CSD0)
+Data.Set 0x43FAC27C %Long 0x1000
+    
+; DQM3
+Data.Set 0x43FAC284 %Long 0
+
+; DQM2, DQM1, DQM0, SD31-SD0, A25-A0, MA10 (0x288..0x2DC)
+Data.Set 0x43FAC288 %Long 0
+Data.Set 0x43FAC28C %Long 0
+Data.Set 0x43FAC290 %Long 0
+Data.Set 0x43FAC294 %Long 0
+Data.Set 0x43FAC298 %Long 0
+Data.Set 0x43FAC29C %Long 0
+Data.Set 0x43FAC2A0 %Long 0
+Data.Set 0x43FAC2A4 %Long 0
+Data.Set 0x43FAC2A8 %Long 0
+Data.Set 0x43FAC2AC %Long 0
+Data.Set 0x43FAC2B0 %Long 0
+Data.Set 0x43FAC2B4 %Long 0
+Data.Set 0x43FAC2B8 %Long 0
+Data.Set 0x43FAC2BC %Long 0
+Data.Set 0x43FAC2C0 %Long 0
+Data.Set 0x43FAC2C4 %Long 0
+Data.Set 0x43FAC2C8 %Long 0
+Data.Set 0x43FAC2CC %Long 0
+Data.Set 0x43FAC2D0 %Long 0
+Data.Set 0x43FAC2D4 %Long 0
+Data.Set 0x43FAC2D8 %Long 0
+Data.Set 0x43FAC2DC %Long 0
+
+Data.Set 0xB8001010 %Long 0x00000004
+Data.Set 0xB8001004 %Long 0x006ac73a
+Data.Set 0xB8001000 %Long 0x92100000
+Data.Set 0x80000f00 %Long 0x12344321
+Data.Set 0xB8001000 %Long 0xa2100000
+Data.Set 0x80000000 %Long 0x12344321
+Data.Set 0x80000000 %Long 0x12344321
+Data.Set 0xB8001000 %Long 0xb2100000
+Data.Set 0x80000033 %Byte 0xda
+Data.Set 0x81000000 %Byte 0xff
+Data.Set 0xB8001000 %Long 0x82226080
+Data.Set 0x80000000 %Long 0xDEADBEEF
+Data.Set 0xB8001010 %Long 0x0000000c
+
+  ENDDO
+
+
+
+

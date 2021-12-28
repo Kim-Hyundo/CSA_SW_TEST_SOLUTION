@@ -1,0 +1,76 @@
+; --------------------------------------------------------------------------------
+; @Title: osCAN Demo for TRACE32 OS Awareness
+; @Description:
+;   This script loads all necessary files to demonstrate
+;   the RTOS-Debugger for osCAN in stand-alone-mode.
+; @Keywords: Infineon, kernel, oscan, RTOS, TriCore
+; @Author: DIE
+; @Chip: TC1775
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: oscan.cmm 13125 2018-09-11 14:03:01Z rdienstbeck $
+
+
+; Reset
+WinPAGE.RESet
+SYStem.Down
+
+; System Settings
+IF ICE()||FIRE()
+(
+  ; Default mapping
+  MAP.Ram 0a0000000++3fff
+  MAP.Ram 0d0000000++3fff
+  MAP.Intern
+  SYStem.Mode AloneInt
+)
+ELSE
+(
+  SYStem.CPU TC1775
+  SYStem.Up
+)
+
+; load absolute sample application
+PRINT "loading sample application..."
+Data.LOAD.auto tc1775.abs
+Register.Set PC _START
+
+; initialize mutitasking support
+PRINT "initializing RTOS support..."
+SCREEN.OFF
+TASK.ORTI gen.ort
+IF !ICE()&&!FIRE()
+  TASK.STacK.PATtern 0aa
+MENU.ReProgram oscan.men
+
+; open some windows
+WinPOS 0. 0. 85. 2. 0. 1. W008
+TASK.DOS_CONFIGURATION
+
+WinPOS 0. 5. 127. 6. 0. 1. W000
+TASK.DTASK
+
+WinPOS 0. 14.0 130. 2. 0. 1. W004
+TASK.DALARMS
+
+WinPOS 0.0 19. 63. 2. 0. 1. W002
+TASK.DOS
+
+WinPOS 32. 24. 28. 3. 0. 1. W005
+TASK.DEVENTS
+
+WinPOS 0. 24. 28. 2. 0. 1. W006
+TASK.DRESOURCES
+
+WinPOS 0. 30. 55. 7. 0. 1. W007
+TASK.DSTACK
+
+WinPOS 67. 19. 80. 25. 13. 1. W001
+List.auto
+
+; go until first task
+
+PRINT "load complete."
+Go.direct extendedTaskFirstfunc
+
+ENDDO

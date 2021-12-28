@@ -1,0 +1,63 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple sieve demo running from SRAM for MSP432 series
+; @Description: 
+;   This is a small demo how to setup a SWD debug session on Cortex-M4F
+;   for MSP432 series. The sieve demo is loaded on SRAM.
+;   Note: 1. The debug registers are not accessible, while an external reset
+;            is asserted. Depending on the board and the rise time of nReset
+;            the WaitReset time may need to be adjusted.
+;         2. The SRAM is mapped to two regions: 0x01000000 and 0x20000000
+;            Code can only be executed from 0x01000000, while execution on 
+;            0x20000000 will generate an exception.
+; @Keywords: Cortex-M4, debug, TI, MSP432, SWD
+; @Author: STK
+; @Board: Generic MSP432
+; @Chip: MSP432P401R
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: msp432_sieve_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+  ; Basic setup
+  RESet
+  SYStem.RESet
+  SYStem.CPU MSP432P401R
+  SYStem.MemAccess DAP
+  SYStem.JtagClock 5Mhz
+  SYStem.CONFIG.DEBUGPORTTYPE SWD
+  SYStem.Option.DUALPORT ON
+  SYStem.Option.WaitReset 10ms
+
+  ; Bring up the system
+  SYStem.Up
+
+  ; Disable Watchdog
+  Data.Set SD:0x4000480C %Word 0x5A84
+
+; Load demo code on sram
+  Data.LOAD.Elf ~~~~/sieve_ram_thumb_ii_v7.elf
+
+  ; open some windows
+  WinCLEAR
+
+  WinPOS 0% 0% 50% 50%
+  List.auto
+
+  WinPOS 50% 0% 50% 50%
+  Register.view /SpotLight
+
+  WinPOS 0% 50% 50% 30%
+  Var.Frame /Locals /Caller
+
+  WinPOS 0% 80% 50% 20%
+  Var.Watch %E %SpotLight.on flags
+  Var.AddWatch ast
+
+  WinPOS 50% 50% 50% 50%
+  Var.DRAW sinewave
+  
+  Go.direct
+  WAIT 5.s
+  Break.direct
+
+  ENDDO
+  

@@ -1,0 +1,104 @@
+; --------------------------------------------------------------------------------
+; @Title: SDRAM Initialization Script of the OMAP H4 Board
+; @Description: 
+;   This batch file initilizes the 2420's mSDRAM and the GPMC
+;   for the H4.  The mSDRAM is set for x32 mode.  The GPMC NOR
+;   flash is configured in x16 multiplexed mode.
+;   Used with 4.8 release on H4.
+; @Keywords: OMAP24*, omaph4, RTOS, SDRAM
+; @Author: DIE
+; @Board: OMAP-H4
+; @Chip: OMAP2420
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: omap_h4_init_sdr.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+; pin Muxing for SDRC
+Data.Set SD:0x480000A1 %LE %Byte 0x10 ; ball C12, mode 0
+Data.Set SD:0x48000032 %LE %Byte 0x10 ; ball D11, mode 0
+
+; issues software reset of SDRAM interface
+Data.Set SD:0x68009010 %LE %Long 0x00000012
+
+WAIT 200.ms
+
+; remove reset
+Data.Set SD:0x68009010 %LE %Long 0x00000010
+
+; set up sram mux mode for external connection
+Data.Set SD:0x68009044 %LE %Long 0x00000100; Chip-level shared interface management
+                                      ; SDRCTriState: no Tris
+                                      ; CS0MuxCfg: 000 (32-bit SDRAM on D31..0)
+                                      ; CS1MuxCfg: 000 (32-bit SDRAM on D31..0)
+
+; SDRC_CS0 Configuration
+; --------------------------------------------------------------------------------
+
+Data.Set SD:0x68009080 %LE %Long 0x00d04010; CS0 SDRC Memory Configuration,
+                                      ; DDR-SDRAM, External SDRAM is x32bit,
+                                      ; Configure to MUX24: 16Mbx32
+
+
+Data.Set SD:0x6800909c %LE %Long 0x5A59B485
+
+Data.Set SD:0x680090A0 %LE %Long 0x0000000E
+
+Data.Set SD:0x680090A4 %LE %Long 0x0002db03
+
+;Manual Command sequence
+Data.Set SD:0x680090A8 %LE %Long 0x00000000
+Data.Set SD:0x680090A8 %LE %Long 0x00000001
+Data.Set SD:0x680090A8 %LE %Long 0x00000002
+Data.Set SD:0x680090A8 %LE %Long 0x00000002
+
+
+Data.Set SD:0x68009084 %LE %Long 0x00000031; CS0 SDRC Mode Register
+                                      ; Burst length = 2 - SDR memory
+                                      ; Serial mode
+                                      ; CAS latency = 3 
+
+WAIT 100.ms
+
+;
+;  Set up the GPMC bus.
+;
+
+;pin mux for GPMC_IO_DIR
+Data.Set SD:0x4800008C %LE %Long 0x19000000
+
+;GPMC
+; configure GPMC
+; configure CS0, NOR FLASH
+
+Data.Set SD:0x6800A010 %LE %Long 0x00000000
+Data.Set SD:0x6800A01C %LE %Long 0x00000000
+Data.Set SD:0x6800A040 %LE %Long 0x00000001
+Data.Set SD:0x6800A050 %LE %Long 0x00000111
+
+Data.Set SD:0x6800A060 %LE %Long 0x00001203
+Data.Set SD:0x6800A064 %LE %Long 0x000F0F01
+Data.Set SD:0x6800A068 %LE %Long 0x00050502
+Data.Set SD:0x6800A06C %LE %Long 0x0C060C06 
+Data.Set SD:0x6800A070 %LE %Long 0x01131F1F
+Data.Set SD:0x6800A078 %LE %Long 0x00000C44 ; base 0x04000000
+
+
+; configure CS1, Multiport Debug Board
+Data.Set SD:0x6800A090 %LE %Long  0x00011200;        /*Muxed data/address (NOR flash) interface*/
+Data.Set SD:0x6800A094 %LE %Long  0x001F1F00;        /*Set CS for maximum width*/
+Data.Set SD:0x6800A098 %LE %Long  0x00080802;        /*Set ADV for 6 clocks*/
+Data.Set SD:0x6800A09C %LE %Long  0x1C091C09;        /*WE and OE timing are set for mux mode*/
+Data.Set SD:0x6800A0A0 %LE %Long  0x031A1F1F;
+Data.Set SD:0x6800A0A4 %LE %Long  0x000003C2;
+Data.Set SD:0x6800A0A8 %LE %Long  0x00000F48;         //base 0x08000000
+
+
+ENDDO
+
+
+
+
+
+
+

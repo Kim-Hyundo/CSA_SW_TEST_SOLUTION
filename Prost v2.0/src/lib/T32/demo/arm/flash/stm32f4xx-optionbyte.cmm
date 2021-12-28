@@ -1,0 +1,842 @@
+; --------------------------------------------------------------------------------
+; @Title: ST STM32F4xx Flash Dialog to program Option Bytes
+; @Description:
+;   Script arguments
+;
+;   DO ~~/demo/arm/flash/stm32f4xx-optionbyte
+;
+;     Opens the STM32F4xx option byte programming dialog.
+;
+;   DO ~~/demo/arm/flash/stm32f4xx-optionbyte [RDP=0|1]
+;                                             [NRST_STDBY=0|1] [NRST_STOP=0|1]
+;                                             [BOR_LEV=0..3]
+;                                             [BFB2=0|1] [WDG_SW=0|1]
+;                                             [SPRMOD=0|1] [DB1M=0|1]
+;                                             [WRP=<val>] [RESETDEVICE]
+;
+;     Program the STM32F4xx option bytes according to the following parameters:
+;
+;        RDP=0|1 is programming read protection option byte
+;                0: disables flash read out protection
+;                   (RDPRT key = 0x00A5).
+;                1: enables flash read out protection
+;
+;        NRST_STDBY=0|1 is programming nRST_STDBY bit of user option byte
+;                0: Reset generated when entering Standby mode
+;                1: No reset generated
+;
+;        NRST_STOP=0|1 is programming nRST_STOP bit of user option byte
+;                0: Reset generated when entering Stop mode
+;                1: No reset generated.
+;
+;        WDG_SW=0|1 is programming WDG_SW bit of user option byte
+;                0: Hardware watchdog
+;                1: Software watchdog
+;
+;        BDB2=0|1: Dual bank boot (STM32F42xxx and STM32F43xxx only)
+;                0: Boot from Flash memory bank1 or system memory
+;                   depending on boot pin state
+;                1: Boot always from system memory (Dual bank boot mode)
+;
+;        BOR_LEV=0..3: BOR reset level
+;                3: BOR Level3 (VBOR3). Reset threshold level from
+;                   2.70V to 3.60V
+;                2: BOR Level2 (VBOR2). Reset threshold level from
+;                   2.40 to 2.70 V
+;                1: BOR Level1 (VBOR1). Reset threshold level from
+;                   2.10 to 2.40 V
+;                0: BOR Level0 (VBOR0). Reset threshold level from
+;                   1.8 to 2.10 V (Defaut)
+;
+;        SPRMOD=0|1: Selection of protection mode of nWPRi bits
+;                    (STM32F42xxx and STM32F43xxx only)
+;                0: nWPRi bits used for sector i write protection
+;                1: nWPRi bits used for sector i PCROP protection (Sector)
+;
+;        DB1M: Dual bank 1 Mbyte Flash memory devices
+;              (STM32F42xxx and STM32F43xxx only)
+;                0: 1 Mbyte single Flash memory
+;                   (contiguous addresses in bank 1)
+;                1: 1 Mbyte dual bank Flash memory. The Flash memory is
+;                   organized as two banks
+;                   of 512 Kbytes each
+;
+;        WRP=<val> is programming flash memory write protection option
+;                  bytes [23..0]. A bit value 0 activates write protection
+;                  for dedicated pages
+;
+;        RESETDEVICE reset device after option byte programming
+;
+;   Calling the script without argument starts the Option Byte programming
+;   dialog window.
+;
+; @Author: STK
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 7616 $
+; $Id: stm32f4xx-optionbyte.cmm 7616 2019-11-08 07:18:24Z bschroefel $
+
+  LOCAL &parameters
+  ENTRY %LINE &parameters
+
+  ; LOCAL macros used as script global macros
+  LOCAL &Script
+  
+  LOCAL &FlashRegBase          ; Flash controller base address
+  LOCAL &WrpBits               ; Number of Write Protect Bits
+
+  &Script=OS.PPF()
+
+  &FlashRegBase="tbd"
+  &WrpBits=0.
+
+  ; Macros for the Option Bytes
+  LOCAL &OptByte_WORD0
+  LOCAL &OptByte_WORD1
+  LOCAL &OptByte_WORD3
+
+  &OptByte_WORD0=0xAAEF
+  &OptByte_WORD1=0x7FFF
+  &OptByte_WORD3=0x7FFF
+
+  ; Checking CPU selection
+  IF !CPUIS(STM32F4*)
+  (
+    SYStem.RESet
+    SYStem.CPU STM32F4*
+  )
+
+  ; Check system mode
+  IF SYStem.MODE()<5
+    SYStem.Up
+
+  ; Setup configuration for CPU derivative
+  IF CPUIS("STM32F4???B")
+    &WrpBits=5.
+  ELSE IF CPUIS("STM32F4???C")
+    &WrpBits=6.
+  ELSE IF CPUIS("STM32F4???D")
+    &WrpBits=7.
+  ELSE IF CPUIS("STM32F4???E")
+    &WrpBits=8.
+  ELSE IF CPUIS("STM32F4???G")
+    &WrpBits=12.
+  ELSE IF CPUIS("STM32F4???H")
+    &WrpBits=20.
+  ELSE IF CPUIS("STM32F4???I")
+    &WrpBits=24.
+  ELSE
+  (
+    DIALOG.OK SYStem.CPU()+" is not supported by the script"
+    ENDDO
+  )
+
+  &FlashRegBase="D:0x40023C00"
+
+  ; Parse script arguments
+  IF "&parameters"==""
+  (
+    ; Look for any opened STM32F4xx dialog windows and close them
+    IF DIALOG.EXIST("CHK_WRP_0x0")
+      DIALOG.END
+
+    GOSUB OptionByteDialog
+  )
+  ELSE
+  (
+    LOCAL &param_RDP &param_nRST_STDBY &param_nRST_STOP &param_WDG_SW
+    LOCAL &param_WRP &param_resetDevice
+    LOCAL &param_BOR_LEV &param_BFB2 &param_SPRMOD &param_DB1M
+    LOCAL &programFlash
+    LOCAL &cmd
+
+    &param_RDP=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"RDP=","")
+    &param_nRST_STDBY=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"NRST_STDBY=","")
+    &param_nRST_STOP=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"NRST_STOP=","")
+    &param_WDG_SW=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"WDG_SW=","")
+    &param_WRP=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"WRP=","")
+    &param_BOR_LEV=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"BOR_LEV=","")
+    &param_BFB2=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"BFB2=","")
+    &param_SPRMOD=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"SPRMOD=","")
+    &param_DB1M=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"DB1M=","")
+    &param_resetDevice=(STRing.SCAN(STRing.UPpeR("&parameters"),"RESETDEVICE",0)!=-1)
+    
+    &programFlash=FALSE()
+
+    GOSUB ReadOptionBytes
+
+    IF "&param_RDP"!=""
+    (
+      IF "&param_RDP"=="1"
+        &OptByte_WORD0=&OptByte_WORD0&0x00FF
+      ELSE IF  "&param_RDP"=="0"
+      (
+        &OptByte_WORD0=&OptByte_WORD0&0x00FF
+        &OptByte_WORD0=&OptByte_WORD0|0xAA00
+      )
+      &programFlash=TRUE()
+    )
+    
+    IF "&param_nRST_STDBY"!=""
+    (
+      IF "&param_nRST_STDBY"=="1"
+        &OptByte_WORD0=&OptByte_WORD0&0xFF7F
+      ELSE IF  "&param_nRST_STDBY"=="0"
+        &OptByte_WORD0=&OptByte_WORD0|0x0080
+      &programFlash=TRUE()
+    )
+
+    IF "&param_nRST_STOP"!=""
+    (
+      IF "&param_nRST_STOP"=="1"
+        &OptByte_WORD0=&OptByte_WORD0&0xFFBF
+      ELSE IF  "&param_nRST_STOP"=="0"
+        &OptByte_WORD0=&OptByte_WORD0|0x0040
+      &programFlash=TRUE()
+    )
+
+    IF "&param_WDG_SW"!=""
+    (
+      IF "&param_WDG_SW"=="0"
+        &OptByte_WORD0=&OptByte_WORD0&0xFFDF
+      ELSE IF  "&param_WDG_SW"=="1"
+        &OptByte_WORD0=&OptByte_WORD0|0x0020
+      &programFlash=TRUE()
+    )
+    
+    IF "&param_BFB2"!=""
+    (
+      IF (!CPUIS("STM32F42*")&&!CPUIS("STM32F43*")
+      (
+        PRINT %WARINING "BFB2 is not suppoerted by this device! Parameter is ignored!"
+      )
+      ELSE
+      (
+        IF "&param_BFB2"=="0"
+          &OptByte_WORD0=&OptByte_WORD0&0xFFEF
+        ELSE IF  "&param_BFB2"=="1"
+          &OptByte_WORD0=&OptByte_WORD0|0x0010
+        &programFlash=TRUE()
+      )
+    )
+    
+    IF "&param_BOR_LEV"!=""
+    (
+      IF "&param_BOR_LEV"=="3"
+      (
+        &OptByte_WORD0=&OptByte_WORD0&0xFFF3
+        &OptByte_WORD0=&OptByte_WORD0|0x0000
+      )
+      ELSE IF "&param_BOR_LEV"=="2"
+      (
+        &OptByte_WORD0=&OptByte_WORD0&0xFFF3
+        &OptByte_WORD0=&OptByte_WORD0|0x0004
+      )
+      ELSE IF "&param_BOR_LEV"=="1"
+      (
+        &OptByte_WORD0=&OptByte_WORD0&0xFFF3
+        &OptByte_WORD0=&OptByte_WORD0|0x0008
+      )
+      ELSE IF "&param_BOR_LEV"=="0"
+      (
+        &OptByte_WORD0=&OptByte_WORD0&0xFFF3
+        &OptByte_WORD0=&OptByte_WORD0|0x000C
+      )
+      &programFlash=TRUE()
+    )
+    
+    IF "&param_SPRMOD"!=""
+    (
+      IF (!CPUIS("STM32F42*")&&!CPUIS("STM32F43*")
+      (
+        PRINT %WARINING "SPRMOD is not suppoerted by this device! Parameter is ignored!"
+      )
+      ELSE
+      (
+        IF "&param_SPRMOD"=="0"
+          &OptByte_WORD1=&OptByte_WORD0&0x7FFF
+        ELSE IF  "&param_SPRMOD"=="1"
+          &OptByte_WORD1=&OptByte_WORD0|0x8000
+        &programFlash=TRUE()
+      )
+    )
+    
+    IF "&param_DB1M"!=""
+    (
+      IF (!CPUIS("STM32F42*")&&!CPUIS("STM32F43*")
+      (
+        PRINT %WARINING "DB1M is not suppoerted by this device! Parameter is ignored!"
+      )
+      ELSE
+      (
+        IF "&param_DB1M"=="0"
+          &OptByte_WORD1=&OptByte_WORD0&0xBFFF
+        ELSE IF  "&param_DB1M"=="1"
+          &OptByte_WORD1=&OptByte_WORD0|0x4000
+        &programFlash=TRUE()
+      )
+    )
+    
+    IF "&param_WRP"!=""
+    (
+      &OptByte_WORD1=&OptByte_WORD1&0xF000
+      &OptByte_WORD1=&OptByte_WORD1|(&param_WRP&0xFFF)
+      &OptByte_WORD3=&OptByte_WORD3&0xF000
+      &OptByte_WORD3=&OptByte_WORD3|((&param_WRP>>12.)&0xFFF)
+      &programFlash=TRUE()
+    )
+
+    ; Program option bytes into flash
+    IF &programFlash
+    (
+      GOSUB ProgramOptionBytes
+      
+      ; Reset device to activate programmed option bytes
+      IF &param_resetDevice
+        GOSUB ResetDevice
+    )
+    ELSE
+    (
+      ; Special script calls from dialog to refresh the dialog or reset the device.
+      IF (STRing.SCAN(STRing.UPpeR("&parameters"),"REFRESH",0)!=-1)
+      (
+        
+        GOSUB UpdateWindowFromFlashContents
+      )
+      ELSE IF (STRing.SCAN(STRing.UPpeR("&parameters"),"RESET",0)!=-1)
+      (
+        GOSUB ActivateFlashSettings
+      )
+    )
+  )
+
+  ENDDO
+
+
+; --------------------------------------------------------------------------------
+; NVM bit programming dialog window
+
+OptionByteDialog:
+  
+  ; Creating the main dialog. (& afer DIALOG command must be in first column!
+  WinPOS 50. 5. 76. 26.
+  DIALOG.view
+  (&+
+                HEADER SYStem.CPU()+" option bytes"
+
+                POS 1. 0. 74. 9.
+                BOX "Write protected flash pages"
+
+                POS  3. 1. 7. 1.
+                TEXT "Bank 1:" 
+                POS  3. 2. 4. 1.
+CHK_WRP_0x00:   CHECKBOX "0" ""
+                POS  9. 2. 4. 1.
+CHK_WRP_0x01:   CHECKBOX "1" ""
+                POS 15. 2. 4. 1.
+CHK_WRP_0x02:   CHECKBOX "2" ""
+                POS 21. 2. 4. 1.
+CHK_WRP_0x03:   CHECKBOX "3" ""
+                POS 27. 2. 4. 1.
+CHK_WRP_0x04:   CHECKBOX "4" ""
+                POS 33. 2. 4. 1.
+CHK_WRP_0x05:   CHECKBOX "5" ""
+                POS 39. 2. 4. 1.
+CHK_WRP_0x06:   CHECKBOX "6" ""
+                POS 45. 2. 4. 1.
+CHK_WRP_0x07:   CHECKBOX "7" ""
+                POS 51. 2. 4. 1.
+CHK_WRP_0x08:   CHECKBOX "8" ""
+                POS 57. 2. 4. 1.
+CHK_WRP_0x09:   CHECKBOX "9" ""
+                POS 63. 2. 4. 1.
+CHK_WRP_0x0A:   CHECKBOX "10" ""
+                POS 69. 2. 4. 1.
+CHK_WRP_0x0B:   CHECKBOX "11" ""
+
+                POS  3. 4. 7. 1.
+                TEXT "Bank 2:" 
+                POS  3. 5. 4. 1.
+CHK_WRP_0x0C:   CHECKBOX "12" ""
+                POS  9. 5. 4. 1.
+CHK_WRP_0x0D:   CHECKBOX "13" ""
+                POS 15. 5. 4. 1.
+CHK_WRP_0x0E:   CHECKBOX "14" ""
+                POS 21. 5. 4. 1.
+CHK_WRP_0x0F:   CHECKBOX "15" ""
+                POS 27. 5. 4. 1.
+CHK_WRP_0x10:   CHECKBOX "16" ""
+                POS 33. 5. 4. 1.
+CHK_WRP_0x11:   CHECKBOX "17" ""
+                POS 39. 5. 4. 1.
+CHK_WRP_0x12:   CHECKBOX "18" ""
+                POS 45. 5. 4. 1.
+CHK_WRP_0x13:   CHECKBOX "19" ""
+                POS 51. 5. 4. 1.
+CHK_WRP_0x14:   CHECKBOX "20" ""
+                POS 57. 5. 4. 1.
+CHK_WRP_0x15:   CHECKBOX "21" ""
+                POS 63. 5. 4. 1.
+CHK_WRP_0x16:   CHECKBOX "22" ""
+                POS 69. 5. 4. 1.
+CHK_WRP_0x17:   CHECKBOX "23" ""
+
+                POS  3. 7. 9. 1.
+                BUTTON "Select All"
+                (&-
+                  PRIVATE &bitnum &WrpBits
+                  
+                  ; Setup configuration for CPU derivative
+                  IF CPUIS("STM32F4???B")
+                    &WrpBits=5.
+                  ELSE IF CPUIS("STM32F4???C")
+                    &WrpBits=6.
+                  ELSE IF CPUIS("STM32F4???D")
+                    &WrpBits=7.
+                  ELSE IF CPUIS("STM32F4???E")
+                    &WrpBits=8.
+                  ELSE IF CPUIS("STM32F4???G")
+                    &WrpBits=12.
+                  ELSE IF CPUIS("STM32F4???H")
+                    &WrpBits=20.
+                  ELSE IF CPUIS("STM32F4???I")
+                    &WrpBits=24.
+                  ELSE
+                  (
+                    DIALOG.OK SYStem.CPU()+" is not supported by the script"
+                    ENDDO
+                  )
+
+                  &bitnum=0.
+                  WHILE &bitnum<&WrpBits
+                  (
+                    LOCAL &fieldname
+                    &fieldname="CHK_WRP_0x"+FORMAT.HEX(2.,&bitnum)
+                    DIALOG.Set &fieldname ""
+                    &bitnum=&bitnum+1.
+                  )
+                )
+
+                POS 13. 7. 9. 1.
+                BUTTON "Deselect All"
+                (&-
+                  PRIVATE &bitnum &WrpBits
+                  
+                  ; Setup configuration for CPU derivative
+                  IF CPUIS("STM32F4???B")
+                    &WrpBits=5.
+                  ELSE IF CPUIS("STM32F4???C")
+                    &WrpBits=6.
+                  ELSE IF CPUIS("STM32F4???D")
+                    &WrpBits=7.
+                  ELSE IF CPUIS("STM32F4???E")
+                    &WrpBits=8.
+                  ELSE IF CPUIS("STM32F4???G")
+                    &WrpBits=12.
+                  ELSE IF CPUIS("STM32F4???H")
+                    &WrpBits=20.
+                  ELSE IF CPUIS("STM32F4???I")
+                    &WrpBits=24.
+                  ELSE
+                  (
+                    DIALOG.OK SYStem.CPU()+" is not supported by the script"
+                    ENDDO
+                  )
+
+                  &bitnum=0.
+                  WHILE &bitnum<&WrpBits
+                  (
+                    LOCAL &fieldname
+                    &fieldname="CHK_WRP_0x"+FORMAT.HEX(2.,&bitnum)
+                    DIALOG.Set &fieldname " "
+                    &bitnum=&bitnum+1.
+                  )
+                )
+
+
+                POS  1.  9. 74. 4.
+                BOX "Read protection option byte"
+
+                POS  3. 11. 30. 1.
+CHK_RDP:        CHECKBOX "Flash read out protection" ""
+
+
+                POS  1. 13. 74. 11.
+                BOX "User options"
+
+                POS  3. 15. 35. 1.
+CHK_RST_STDBY:  CHECKBOX "Reset generated when entering Standby mode" ""
+                POS  40. 15. 33. 1.
+CHK_RST_STOP:   CHECKBOX "Reset generated when entering Stop mode" ""
+
+
+                POS 3. 17. 20. 1.
+CHSB_WDG.HW:    CHOOSEBOX "Hardware watchdog"   ""
+CHSB_WDG.SW:    CHOOSEBOX "Software watchdog" ""
+
+                POS 25. 17. 20. 1.
+                TEXT "BOR Reset Level:"
+                POS 38. 17. 20. 1.
+COMB_BORLEV:    COMBOBOX "Level 3: 2.7 to 3.6V,Level 2: 2.4 to 2.7V,Level 1: 2.1 to 2.4V,OFF: 1.8 to 2.1V" ""
+
+                POS 3. 20. 18. 1.
+CHSB_BFB2.0:    CHOOSEBOX "Boot fom Flash Bank 1" ""
+CHSB_BFB2.1:    CHOOSEBOX "Dual Bank Boot" ""
+
+                POS 23. 20. 24. 1.
+CHSB_SPR.0:     CHOOSEBOX "WPRi used as Write protection" ""
+CHSB_SPR.1:     CHOOSEBOX "WPRi used as PCROP protection" ""
+
+                POS 48. 20. 25. 1.
+CHSB_DB1M.0:    CHOOSEBOX "1 MByte single Flash memory" ""
+CHSB_DB1M.1:    CHOOSEBOX "1 MByte dual bank Flash memory" ""
+
+                POS 1. 24. 10. 1.5
+                BUTTON "Program flash"
+                (
+                  PRIVATE &progRDP &progRST_STDBY &progRST_STOP &progWDG_SW
+                  PRIVATE &progWRP
+                  PRIVATE &progBOR_LEV &progBFB2 &progSPRMOD &progDB1M
+                  PRIVATE &progcmd
+                  PRIVATE &progWrpBits &progWrpValue
+                  PRIVATE &progindex
+                  
+                  PRIVATE &progfieldname
+                
+                  ; Set default values
+                  &progWRP=0xFFFFFF
+                  
+                  ; Setup configuration for CPU derivative
+                  IF CPUIS("STM32F4???B")
+                    &progWrpBits=5.
+                  ELSE IF CPUIS("STM32F4???C")
+                    &progWrpBits=6.
+                  ELSE IF CPUIS("STM32F4???D")
+                    &progWrpBits=7.
+                  ELSE IF CPUIS("STM32F4???E")
+                    &progWrpBits=8.
+                  ELSE IF CPUIS("STM32F4???G")
+                    &progWrpBits=12.
+                  ELSE IF CPUIS("STM32F4???H")
+                    &progWrpBits=20.
+                  ELSE IF CPUIS("STM32F4???I")
+                    &progWrpBits=24.
+                  ELSE
+                  (
+                    DIALOG.OK SYStem.CPU()+" is not supported by the script"
+                    ENDDO
+                  )
+                  
+                  ; Get settings from dialog
+                  &progindex=0.
+                  WHILE  (&progindex<24.)&&(&progindex<&progWrpBits)
+                  (
+                  	&progfieldname="CHK_WRP_0x"+FORMAT.HEX(2.,&progindex)
+                    IF DIALOG.BOOLEAN("&progfieldname")
+                      &progWRP=&progWRP&(~(1.<<&progindex))
+                      
+                    &progindex=&progindex+1.
+                  )
+                  &progWRP="WRP=0x"+FORMAT.HEX(6.,&progWRP)
+                  
+                  IF DIALOG.BOOLEAN("CHK_RDP")
+                    &progRDP="RDP=1"
+                  ELSE
+                    &progRDP="RDP=0"
+                  
+                  IF DIALOG.BOOLEAN("CHK_RST_STDBY")
+                    &progRST_STDBY="NRST_STDBY=1"
+                  ELSE
+                    &progRST_STDBY="NRST_STDBY=0"
+                  
+                  IF DIALOG.BOOLEAN("CHK_RST_STOP")
+                    &progRST_STOP="NRST_STOP=1"
+                  ELSE
+                    &progRST_STOP="NRST_STOP=0"
+                  
+                  IF DIALOG.BOOLEAN("CHSB_WDG.SW")
+                    &progWDG_SW="WDG_SW=1"
+                  ELSE
+                    &progWDG_SW="WDG_SW=0"
+                  
+                  IF DIALOG.STRING("COMB_BORLEV")=="Level 3: 2.7 to 3.6V"
+                    &progBOR_LEV="BOR_LEV=3"
+                  ELSE IF DIALOG.STRING("COMB_BORLEV")=="Level 2: 2.4 to 2.7V"
+                    &progBOR_LEV="BOR_LEV=2"
+                  ELSE IF DIALOG.STRING("COMB_BORLEV")=="Level 1: 2.1 to 2.4V"
+                    &progBOR_LEV="BOR_LEV=1"
+                  ELSE
+                    &progBOR_LEV="BOR_LEV=0"
+                  
+                  IF CPUIS("STM32F42*")||CPUIS("STM32F43*")
+                  (
+                    IF DIALOG.BOOLEAN("CHSB_BFB2.1")
+                      &progBFB2="BDB2=1"
+                    ELSE
+                      &progBFB2="BFB2=0"
+                    
+                    IF DIALOG.BOOLEAN("CHSB_SPR.1")
+                      &progSPRMOD="SPRMOD=1"
+                    ELSE
+                      &progSPRMOD="SPRMOD=0"
+                    
+                    IF DIALOG.BOOLEAN("CHSB_DB1M.1")
+                      &progDB1M="DB1M=1"
+                    ELSE
+                      &progDB1M="DB1M=0"
+                    
+                    DO "&Script" &progWRP &progRDP &progRST_STDBY &progRST_STOP &progWDG_SW &progBOR_LEV &progBFB2 &progSPRMOD &progDB1M
+                  )
+                  ELSE
+                  (
+                    DO "&Script" &progWRP &progRDP &progRST_STDBY &progRST_STOP &progWDG_SW &progBOR_LEV
+                  )
+                )
+
+                POS 22. 24. 10. 1.5
+                BUTTON "Reset device"
+                (
+                  DO "&Script" RESET
+                )
+
+                POS 43. 24. 10. 1.5
+                BUTTON "Refresh"
+                (
+                  DO "&Script" REFRESH
+                )
+
+                POS 64. 24. 10. 1.5
+                BUTTON "Exit" "DIALOG.END"
+
+                CLOSE "DIALOG.END"
+  )
+
+  ; Disable/Enable the check boxes
+  GOSUB UpdateWindowFromFlashType
+  GOSUB UpdateWindowFromFlashContents
+
+  ENDDO
+
+; --------------------------------------------------------------------------------
+; Lock not available write protection bit fields
+
+UpdateWindowFromFlashType:
+
+  LOCAL &bitnum
+
+  &bitnum=23.,
+  WHILE &bitnum>=&WrpBits
+  (
+    LOCAL &fieldname
+    &fieldname="CHK_WRP_0x"+FORMAT.HEX(2.,&bitnum)
+    DIALOG.Disable &fieldname
+    &bitnum=&bitnum-1.
+  )
+  
+  IF CPUIS("STM32F42*")||CPUIS("STM32F43*")
+  (
+    DIALOG.Enable CHSB_DB1M.0
+    DIALOG.Enable CHSB_DB1M.1
+    DIALOG.Enable CHSB_BFB2.0
+    DIALOG.Enable CHSB_BFB2.1
+    DIALOG.Enable CHSB_SPR.0
+    DIALOG.Enable CHSB_SPR.1
+  )
+  ELSE
+  (
+    DIALOG.Disable CHSB_DB1M.0
+    DIALOG.Disable CHSB_DB1M.1
+    DIALOG.Disable CHSB_BFB2.0
+    DIALOG.Disable CHSB_BFB2.1
+    DIALOG.Disable CHSB_SPR.0
+    DIALOG.Disable CHSB_SPR.1
+  )
+
+  RETURN
+
+
+; --------------------------------------------------------------------------------
+; Read out option bytes and set dialog entries
+
+UpdateWindowFromFlashContents:
+
+  GOSUB ReadOptionBytes
+
+  LOCAL &index
+  &index=0
+  
+  WHILE &index<&WrpBits
+  (
+    LOCAL &label
+    &label="CHK_WRP_0x"+FORMAT.HEX(2.,&index)
+    
+    IF &index<12.
+    (
+      IF (&OptByte_WORD1&(0x1<<&index))==0
+        DIALOG.Set &label ""
+      ELSE
+        DIALOG.Set &label " "
+    )
+    ELSE
+    (
+      IF (&OptByte_WORD3&(0x1<<(&index-12.)))==0
+        DIALOG.Set &label ""
+      ELSE
+        DIALOG.Set &label " "
+    )
+    
+    &index=&index+1
+  )
+  
+  ; Get read protection
+  IF (&OptByte_WORD0&0xFF00)==0xAA00
+    DIALOG.Set CHK_RDP " "
+  ELSE
+    DIALOG.Set CHK_RDP ""
+
+  ; Get user option byte
+  IF (&OptByte_WORD0&0x20)!=0
+    DIALOG.Set CHSB_WDG.SW
+  ELSE
+    DIALOG.Set CHSB_WDG.HW
+
+  IF (&OptByte_WORD0&0x40)!=0
+    DIALOG.Set CHK_RST_STOP " "
+  ELSE
+    DIALOG.Set CHK_RST_STOP ""
+
+  IF (&OptByte_WORD0&0x80)!=0
+    DIALOG.Set CHK_RST_STDBY " "
+  ELSE
+    DIALOG.Set CHK_RST_STDBY ""
+    
+  IF (&OptByte_WORD0&0x0C)==0x0
+    DIALOG.Set COMB_BORLEV "Level 3: 2.7 to 3.6V"
+  ELSE IF (&OptByte_WORD0&0x0C)==0x4
+    DIALOG.Set COMB_BORLEV "Level 2: 2.4 to 2.7V"
+  ELSE IF (&OptByte_WORD0&0x0C)==0x8
+    DIALOG.Set COMB_BORLEV "Level 1: 2.1 to 2.4V"
+  ELSE
+    DIALOG.Set COMB_BORLEV "OFF: 1.8 to 2.1V"
+    
+  IF CPUIS("STM32F42*")||CPUIS("STM32F43*")
+  (
+    IF (&OptByte_WORD0&0x10)!=0
+      DIALOG.Set CHSB_BFB2.1
+    ELSE
+      DIALOG.Set CHSB_BFB2.0
+    
+    IF (&OptByte_WORD1&0x80)!=0
+      DIALOG.Set CHSB_SPR.1
+    ELSE
+      DIALOG.Set CHSB_SPR.0
+    
+    IF (&OptByte_WORD1&0x40)!=0
+      DIALOG.Set CHSB_DB1M.1
+    ELSE
+      DIALOG.Set CHSB_DB1M.0
+  )
+    
+  RETURN
+
+
+
+; --------------------------------------------------------------------------------
+; Activate programmed flash settings by resetting device
+
+ActivateFlashSettings:
+
+  GOSUB ResetDevice
+  GOSUB UpdateWindowFromFlashContents
+
+  RETURN
+
+
+; --------------------------------------------------------------------------------
+; Reset device
+
+ResetDevice:
+
+  SYStem.Down
+  SYStem.Up
+
+  RETURN
+
+
+; --------------------------------------------------------------------------------
+; Read option byte values out of flash
+
+ReadOptionBytes:
+  LOCAL &FLASH_OPTCR &FLASH_OPTCR1
+  
+  &FLASH_OPTCR=Data.Long(&FlashRegBase+0x14)
+  &FLASH_OPTCR1=Data.Long(&FlashRegBase+0x18)
+  
+  &OptByte_WORD0=&FLASH_OPTCR&0xFFFC
+  
+  &OptByte_WORD1=(&FLASH_OPTCR>>16.)&0xFFFF
+  
+  &OptByte_WORD3=(&FLASH_OPTCR1>>16.)&0xFFFF
+  
+  RETURN
+
+
+; --------------------------------------------------------------------------------
+; Program option bytes
+
+ProgramOptionBytes:
+  LOCAL &locked &flash_optcr1_value &flash_optcr_value
+
+  ; Clear All pending flags
+  Data.Set &FlashRegBase+0x0C %Long 0x000001F3              // FLASH->SR = (FLASH_FLAG_RDERR | FLASH_FLAG_PGSERR | FLASH_FLAG_PGPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_WRPERR | FLASH_FLAG_OPERR | FLASH_FLAG_EOP);
+
+  ; Wait for last operation to be completed
+  IF (Data.Long(&FlashRegBase+0x0C)&0x00010000)==0x00010000 // if ((FLASH->SR & FLASH_FLAG_BSY) == FLASH_FLAG_BSY)
+  (
+    PRINT %ERROR "Flash memory interface busy, operation aborted"
+    RETURN
+  )
+  
+  ; Athorize flash programming
+  ; The access to the lock registers may cause a bus error. Then a reset is required to get access again.
+  ON ERROR GOSUB
+  (
+    PRINT %ERROR "Cannot access FLASH_OPTKEY register. Please reset the device!"
+    ENDDO
+  )
+  
+  ; Authorize option byte programming
+  Data.Set &FlashRegBase+0x08 %Long 0x08192A3B              // FLASH->OPTKEYR = FLASH_KEY1;
+  Data.Set &FlashRegBase+0x08 %Long 0x4C5D6E7F              // FLASH->OPTKEYR = FLASH_KEY2;
+  
+  ON ERROR
+  
+  &locked=Data.Long(&FlashRegBase+0x14)&0x00000001          // locked = FLASH->OTPCR & CR_LOCK_Set;
+  IF &locked==0x00000001
+  (
+    PRINT %ERROR "Cannot unlock option byte programming!"
+    RETURN
+  )
+  
+  ; Set new values for the option bytes
+  IF CPUIS("STM32F42*")||CPUIS("STM32F43*")
+  (
+    &flash_optcr1_value=&OptByte_WORD3<<16.
+    Data.Set &FlashRegBase+0x18 %Long &flash_optcr1_value
+  )
+  &flash_optcr_value=(&OptByte_WORD1<<16.)|(&OptByte_WORD0&0xFFFC)
+  Data.Set &FlashRegBase+0x14 %Long &flash_optcr_value
+  
+  ; Start option byte programming
+  &flash_optcr_value=&flash_optcr_value|0x2                    // (FLASH->OTPCR & FLASH_FLAG_OPTSTRT)
+  Data.Set &FlashRegBase+0x14 %Long &flash_optcr_value
+  
+  ; Wait for last operation to be completed */
+  WHILE (Data.Long(&FlashRegBase+0x0C)&0x00010000)==0x00010000 // while ((FLASH->SR & FLASH_FLAG_BSY) == FLASH_FLAG_BSY) 
+  (
+  )
+  
+  ; Lock option byte field again
+  Data.Set &FlashRegBase+0x14 %Long &flash_optcr_value|0x1     // (FLASH->OTPCR & FLASH_FLAG_OPTLOCK)
+  
+  RETURN

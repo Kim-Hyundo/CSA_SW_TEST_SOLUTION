@@ -1,0 +1,7 @@
+OBJECTS = stm_aurix.o simul.o
+COPTS	= -c -O -fPIC
+
+stm_aurix.so.1:	$(OBJECTS)
+	cc -shared -o stm_aurix.so.1 $(OBJECTS)
+
+.c.o: ; cc ${COPTS} $*.c

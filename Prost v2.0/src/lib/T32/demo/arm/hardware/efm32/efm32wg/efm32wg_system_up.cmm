@@ -1,0 +1,28 @@
+; --------------------------------------------------------------------------------
+; @Title: Debug setup demo for EnergyMicro EFM32 Wonder Gecko
+; @Description: 
+;   This is a small demo how to setup a debug session on EnergyMicro 
+;   EFM32 Wonder Gecko.
+;   Prequisite:
+;     The debug mode should be set to In. This mode lets you use TRACE32 as
+;     external debugger instead of embedded J-Link debug. The debug mode could 
+;     be changed using energyAware Commander application.
+;
+; @Keywords: Cortex-M4, SWD, debug
+; @Author: HDA
+; @Board: EFM32WG*
+; @Chip: EFM32WG*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: efm32wg_system_up.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+  Break.RESet
+  SYStem.RESet
+
+  SYStem.CPU EFM32WG*
+  ;SYStem.CPU EFM32WG990F
+  SYStem.CONFIG.DEBUGPORTTYPE SWD
+  SYStem.CONFIG.CONNECTOR MIPI20T
+  SYStem.Option ResBreak OFF
+
+  SYStem.Up

@@ -1,0 +1,74 @@
+; --------------------------------------------------------------------------------
+; @Title: Off-chip trace demo for EnergyMicro EFM32 Wonder Gecko
+; @Description:
+;   Prequisites:
+;     * The trace header is not mounted by default. A 20-pin MIPI header
+;     can be soldered on the back side of the board.
+;     * The debug mode should be set to In. This mode lets you use TRACE32 as
+;     external debugger instead of embedded J-Link debug. The debug mode could
+;     be changed using energyAware Commander application.
+;
+; @Keywords: Cortex-M4, ETM, off-chip, SWD
+; @Author: HDA
+; @Board: EFM32WG-STK3800
+; @Chip: EFM32WG990F
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: efm32wg_offchip_trace.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+  Break.RESet
+  SYStem.RESet
+
+  SYStem.CPU EFM32WG990F
+  SYStem.CONFIG.DEBUGPORTTYPE SWD
+  SYStem.CONFIG.CONNECTOR MIPI20T
+  SYStem.Option ResBreak OFF
+
+  SYStem.Up
+
+; Load the application
+  Data.LOAD.Elf ~~~~/demo_sram.axf
+
+  IF hardware.COMBIPROBE()||hardware.UTRACE()
+  (
+    ; Enable Trace on the board : set pin ETM and SWDP pin multiplexing depending on the board
+    ;Enable low energy clocks (HFCORECLKEN0) (set bit 4)
+    PER.Set.simple SD:0x400C8040 %Long 0yXXXXxxxxXXXXxxxxXXXXxxxxXXX1xxxx
+
+    ;Enable GPIO clock (HFPERCLKEN0)
+    PER.Set.simple SD:0x400C8044 %Long 0yXXXXxxxxXXXXxxxxXX1XxxxxXXXXxxxx
+
+    ; Enable auxhfrco (OSCENCMD) (set bit 4)
+    PER.Set.simple SD:400C8020 %Long 0yXXXXxxxxXXXXxxxxXXXXxxxxXXX1xxxx
+
+    ; Set trace pins to pushpull (GPIO_PD_MODEL) port d location 0
+    PER.Set.simple SD:0x40006070 %Long 0y01000100010001000100XXXXxxxxXXXX
+
+    ; route trace pins - port d location 0
+    PER.Set.simple SD:0x40006120 %Long 0x0001f007
+
+    ETM.ON
+    ETM.PortMode Continuous
+    ETM.PortSize 4.
+    Trace.METHOD CAnalyzer   		; Using CombiProbe or µTrace
+    Trace.OFF               	 	; Enable the trace and turn it off
+  )
+
+  Break.Set T:sYmbol.END(sieve)-1. /Program
+  Go.direct
+  WAIT !STATE.RUN();
+
+  ; open some windows
+  WinCLEAR
+
+  WinPOS 0% 0% 50% 50%
+  List.auto
+
+  WinPOS 50% 0% 50% 50%
+  Register.view /SpotLight
+
+  WinPOS 0% 50% 50% 50%
+  Trace.List ; show trace window
+
+  WinPOS 50% 50% 50% 50%
+  Trace.Chart.sYmbol

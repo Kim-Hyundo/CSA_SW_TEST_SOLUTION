@@ -1,0 +1,23 @@
+; --------------------------------------------------------------------------------
+; @Title: Script for runmode debugging via GDB
+; @Description:
+;   This scripts shows how to attach the TRACE32 GDB Frontend
+;   to a PXROS-HR target over Ethernet using the GDB protocol.
+; @Keywords: Infineon, kernel, pxros, runmode, TriCore, v5
+; @Author: DIE
+; @Chip: TC1796
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: runmode.cmm 6938 2014-04-23 13:23:10Z mobermeir $
+
+
+SYStem.CPU TC1796               ; specify the correct CPU
+SYStem.PORT 10.17.0.217:10400   ; IP address of target and port of new task
+SYStem.Mode Attach              ; attach to new task port
+
+Data.LOAD.Elf app.elf           ; download new task
+
+; go to task entry point
+Go.direct taskmain
+
+ENDDO

@@ -1,0 +1,25 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to connect to the NXSB100 Board
+; @Description:
+;   This script connects to the NXSB100 Board by calling the
+;   netx_common_init.cmm and does some initialization using
+;   Data.Set commands
+; @Keywords: Hilscher, NetX*
+; @Board: NXSB100
+; @Chip: NETX500
+; @Author: Hilscher
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: nxsb100_init.cmm 12065 2018-02-07 12:26:30Z amerkle $
+
+
+DO ~~~~/netx_common_init.cmm
+
+FLASH.RESet
+
+;setup SDRam Timing
+Data.Set ASD:0x100140 %Long 0x0
+Data.Set ASD:0x100144 %Long 0x03C12151
+Data.Set ASD:0x100140 %Long 0x030D0001
+
+ENDDO

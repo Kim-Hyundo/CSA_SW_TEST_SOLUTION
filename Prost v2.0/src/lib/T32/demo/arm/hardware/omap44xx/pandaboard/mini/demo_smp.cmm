@@ -1,0 +1,101 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for OMAP4430 on PandaBoard (SMP, multisieve app)
+; @Description:
+;   Loads the multisieve demo application (multi-core) into SAR-RAM and sets up a
+;   demo debug scenario for SMP debugging.
+; @Keywords: OMAP4430, multi-core, multisieve, PandaBoard
+; @Author: MOA
+; @Board: PandaBoard
+; @Chip: OMAP4430
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo_smp.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.CPU OMAP4430
+CORE.ASSIGN 1. 2. ; assign cores to the SMP system
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; Load elf file, uses internal SAR-RAM only
+CORE 0
+Data.LOAD.ELF ~~~~/smp/demo.axf /plusvm
+Register.Set PC main
+Register.Set CPSR 0x1d3 
+Register.Set R13 0x4a327000
+
+CORE 1
+Register.Set PC background
+Register.Set CPSR 0x1d3 
+Register.Set R13 0x4a327100
+
+CORE 0
+
+; --------------------------------------------------------------------------------
+; off-chip trace port analyzer (preprocessor) is connected to capture program trace
+IF Analyzer()
+(
+  ; configure PAD: EMU[2:19] for 16-bit TPIU (PADx_DPM_EMUx)
+  Data.Set 0x4A1001B0 %Long Data.Long(SD:0x4A1001B0)&0x0000FFFF
+  Data.Set 0x4A1001B4 %Long 0
+  Data.Set 0x4A1001B8 %Long 0
+  Data.Set 0x4A1001BC %Long 0
+  Data.Set 0x4A1001C0 %Long 0
+  Data.Set 0x4A1001C4 %Long 0
+  Data.Set 0x4A1001C8 %Long 0
+  Data.Set 0x4A1001CC %Long 0
+  Data.Set 0x4A1001D0 %Long 0
+  Data.Set 0x4A1001d4 %Long 0
+
+  ETM.PortSize 16a
+  Analyzer.AutoFocus
+
+  WinPOS 50% 50% 50% 50%
+  Analyzer.List
+)
+ELSE IF hardware.COMBIPROBE()||hardware.UTRACE()
+(
+  ; CombiProbe is connected to capture 4-bit system trace (STM)  
+  ; configure STM clock (PDLO_STM_CTL)
+  Data.Set 0x54160030 %Long 0x3f0846
+
+  ; configure PAD: PAD=EMU[15:19] (PADx_DPM_EMUx)
+  Data.Set 0x4A1001CC %Long 0
+  Data.Set 0x4A1001D0 %Long 0
+  Data.Set 0x4A1001d4 %Long 0
+
+  ; initialize CombiProbe for STM
+  SYStem.CONFIG STM STP
+  STM.PortRoute CAnalyzer
+  STM.ON
+  CAnalyzer.THreshold 0.9
+  CAnalyzer.Init
+
+  WinPOS 50% 50% 50% 50%
+  STMCAnalyzer.List
+)
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+WinPOS 0% 0% 33% 33%
+TargetSystem.state
+WinPOS 33% 0% 33% 33%
+List.auto
+WinPOS 66% 0% 33% 33%
+Var.Watch
+WinPOS 0% 33% 33% 33%
+List.auto /CORE 0.
+WinPOS 0% 66% 33% 33%
+Register.view /CORE 0.
+
+WinPOS 33% 33% 33% 33%
+List.auto /CORE 1.
+WinPOS 33% 66% 33% 33%
+Register.view /CORE 1.
+
+Var.AddWatch %Hex flags
+
+ENDDO

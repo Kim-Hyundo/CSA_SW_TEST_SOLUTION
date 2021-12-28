@@ -1,0 +1,153 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for MK82FN256VLL15 on FRDM-K82F with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The Offchip Trace using a Combiprobe/uTrace or PowerTrace is set up.
+;   Use this script for testing the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Combiprobe/uTrace to J19
+;    * Trace signals are found on 16-pin header J1:
+;        - TRACE_CLKOUT  -- Pin  5
+;        - TRACE_D3      -- Pin  3
+;        - TRACE_D2      -- Pin  9
+;        - TRACE_D1      -- Pin 15
+;        - TRACE_D0      -- Pin 13
+; @Keywords: ARM, Cortex-M4, ETM, ITM
+; @Author: BWR
+; @Board: FRDM-K82F
+; @Chip: MK82FN256VLL15
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: frdm-k82f_sieve_offchip_trace_sram.cmm 15977 2020-04-24 15:55:04Z bwright $
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; Initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU MK82FN256VLL15
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF hardware.COMBIPROBE()||hardware.UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; Initialize off-chip trace (ETM ON, ITM ON)
+IF hardware.COMBIPROBE()||hardware.UTRACE()||Analyzer()
+(
+  ; Set PinMux and enable Clocks
+  Data.Set SD:0x40048038 %Long 0x0000FFFF // PORTA_CLK
+  Data.Set SD:0x40048004 %Long 0x00001000 // TRACE_CLK
+  Data.Set SD:0x40049030 %Long 0x00000440 // TRACECLK
+  Data.Set SD:0x40049034 %Long 0x00000440 // TRACED3
+  Data.Set SD:0x40049038 %Long 0x00000440 // TRACED2
+  Data.Set SD:0x4004903C %Long 0x00000440 // TRACED1
+  Data.Set SD:0x40049040 %Long 0x00000440 // TRACED0
+  Data.Set SD:0x40048068 %Long 0x00000000 // Trace Clkdiv 0
+
+  ; optional: setup the DCO here
+  IF FALSE()
+  (
+    ; let the DCO run ~80-90MHz (from K70F120 script; confirmed registers are similar)
+    Data.Set SD:0x40064003 0x75
+    ; Trace/1 (from K70F120 script; NFC bits absent on register)
+    Data.Set SD:0x40048068 %Long 0x00000000
+  )
+
+  TPIU.PortSize 4
+  TPIU.PortMode Continuous
+  ITM.DataTrace CorrelatedData
+  ITM.ON
+  ETM.Trace ON
+  ETM.ON
+)
+IF hardware.COMBIPROBE()||hardware.UTRACE()
+(
+  Trace.METHOD CAnalyzer
+  Trace.AutoInit ON
+  IF VERSION.BUILD.BASE()>=74752.
+  (
+    CAnalyzer.AutoFocus
+  )
+  ELSE
+  (
+    ; for uTrace & Combiprobe use manual calibration
+    ; CAnalyzer.ClockDELAY Large
+  )
+)
+IF Analyzer()
+(
+  Trace.METHOD Analyzer
+  Trace.AutoInit ON
+  Trace.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO
+
+DisableWatchdog:
+(
+  ; disable the Watchdog
+  LOCAL &tmp1 &tmp2
+  &tmp1=Data.Long(ST:0x20000000)
+  &tmp2=Data.Long(ST:0x20000004)
+  Register.SWAP
+
+  ; The watchdog has a restrictive timing. It has to be configured and unlocked within a peripod
+  ; of 20+256 cycles. Therefor the unlock sequence need to be done by a small target program.
+  Data.Assemble ST:0x20000000  strh r1,[r0]  ;SD:0x4005200E = 0xC520   (Key 1)
+  Data.Assemble ,              strh r2,[r0]  ;SD:0x4005200E = 0xD928   (Key 2)
+  Data.Assemble ,              strh r4,[r3]  ;SD:0x40052000 = 0x0000   (Config register)
+  Data.Assemble ,              bkpt #0
+  Register.Set PC 0x20000000
+  Register.Set R0 0x4005200E
+  Register.Set R1 0xC520
+  Register.Set R2 0xD928
+  Register.Set R3 0x40052000
+  Register.Set R4 0x0
+  Go.direct
+  WAIT !STATE.RUN()
+
+  Register.SWAP
+  Data.Set ST:0x20000000 %Long &tmp1
+  Data.Set ST:0x20000004 %Long &tmp2
+
+  RETURN
+)

@@ -1,0 +1,115 @@
+﻿<UserControl x:Class="GraphProject.Views.PieChartView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:GraphProject.Views"
+             xmlns:md ="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
+             xmlns:models="clr-namespace:GraphProject.Models"
+             mc:Ignorable="d" 
+             d:DesignHeight="500" d:DesignWidth="844"
+             d:DataContext="{Binding TestFailListViewModel, Source={StaticResource Locator}}">
+    <Grid Margin="0,10,0,5">
+        <Grid.Effect>
+            <DropShadowEffect BlurRadius="50" Direction="-90" RenderingBias="Quality" Opacity=".5" ShadowDepth="10"/>
+        </Grid.Effect>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="2.3*"/>
+            <RowDefinition Height="6.7*"/>
+            <RowDefinition Height="1*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2.5*"/>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="5.5*"/>
+        </Grid.ColumnDefinitions>
+        <Border Grid.Row="0" Grid.RowSpan="3" Grid.ColumnSpan="2" CornerRadius="5" Background="#2C000000" Margin="5,5,20,5"/>
+        <Border Grid.Row="0" Grid.RowSpan="3" Grid.Column="3" CornerRadius="5" Background="#2C000000" Margin="-15,5,5,5"/>
+        <Border Grid.Row="0" Grid.Column="0" CornerRadius="6" Background="#2CFFFFFF" Panel.ZIndex="3" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0">
+            <StackPanel Orientation="Horizontal"  HorizontalAlignment="Left" VerticalAlignment="Top" >
+                <StackPanel Orientation="Vertical" Margin="30,10,30,5">
+                    <TextBlock Foreground="White" FontSize="14" HorizontalAlignment="Center"  >Pass/Fail Statics</TextBlock>
+                    <TextBlock Foreground="White" FontSize="12" HorizontalAlignment="Center" Margin="0,5,0,10" Text="{Binding passfailpiechartmodel.Date}"></TextBlock>
+                    <!--<TextBlock Foreground="White" FontSize="12" HorizontalAlignment="Center" Text="{Binding memorychartmodel.StartAddress}"></TextBlock>-->
+                </StackPanel>
+            </StackPanel>
+        </Border>
+        <ScrollViewer Grid.Row="0" Grid.Column="2" Grid.RowSpan="2" Margin="0,10,20,0"  VerticalScrollBarVisibility="Auto" CanContentScroll="True" HorizontalAlignment="Right"  VerticalAlignment="Top"  Panel.ZIndex="3" Height="Auto" >
+            <Border Background="Transparent">
+            <StackPanel Orientation="Vertical" HorizontalAlignment="Right"  VerticalAlignment="Top">
+                <StackPanel Orientation="Vertical" Width="440">
+                    <Border CornerRadius="6" Background="#2CFFFFFF">
+                        <StackPanel Orientation="Vertical" Margin="30,10,30,5">
+                                <TextBlock Foreground="White" FontSize="14" HorizontalAlignment="Center" FontFamily="../Fonts/Roboto-Medium.ttf #Roboto">Test Scenario Name</TextBlock>
+                                <TextBlock Foreground="White" FontSize="12" HorizontalAlignment="Center" Margin="0,10,0,0" Text="{Binding passfailpiechartmodel.ScenarioName}"></TextBlock>
+                            <!--<TextBlock Foreground="White" FontSize="12" HorizontalAlignment="Center" Text="{Binding memorychartmodel.StartAddress}"></TextBlock>-->
+                        </StackPanel>
+                    </Border>
+                    <Border CornerRadius="6" Background="#2CFFFFFF" Margin="0,5,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <StackPanel Orientation="Vertical" Margin="40,10,30,10">
+                                    <TextBlock Foreground="White" FontSize="14" HorizontalAlignment="Center" FontFamily="../Fonts/Roboto-Medium.ttf #Roboto">Total Case Count</TextBlock>
+                                    <TextBlock Foreground="White" FontSize="12" HorizontalAlignment="Center" Margin="0,10,0,0" Text="{Binding passfailpiechartmodel.TotalCount}"></TextBlock>
+                                <!--<TextBlock Foreground="White" FontSize="12" HorizontalAlignment="Center" Text="{Binding memorychartmodel.StartAddress}"></TextBlock>-->
+                            </StackPanel>
+                            <StackPanel Orientation="Vertical" Margin="20,10,30,10">
+                                    <TextBlock Foreground="White" FontSize="14" HorizontalAlignment="Center" FontFamily="../Fonts/Roboto-Medium.ttf #Roboto">Pass</TextBlock>
+                                    <TextBlock Foreground="White" FontSize="12" HorizontalAlignment="Center" Margin="0,10,0,0" Text="{Binding passfailpiechartmodel.PassCount}"></TextBlock>
+                                <!--<TextBlock Foreground="White" FontSize="12" HorizontalAlignment="Center" Text="{Binding memorychartmodel.StartAddress}"></TextBlock>-->
+                            </StackPanel>
+                            <StackPanel Orientation="Vertical" Margin="20,10,30,10">
+                                    <TextBlock Foreground="White" FontSize="14" HorizontalAlignment="Center" FontFamily="../Fonts/Roboto-Medium.ttf #Roboto">Fail</TextBlock>
+                                    <TextBlock Foreground="White" FontSize="12" HorizontalAlignment="Center" Margin="0,10,0,0" Text="{Binding passfailpiechartmodel.FailCount}"></TextBlock>
+                                <!--<TextBlock Foreground="White" FontSize="12" HorizontalAlignment="Center" Text="{Binding memorychartmodel.StartAddress}"></TextBlock>-->
+                            </StackPanel>
+                            <StackPanel Orientation="Vertical" Margin="20,10,30,5">
+                                    <TextBlock Foreground="White" FontSize="14" HorizontalAlignment="Center" FontFamily="../Fonts/Roboto-Medium.ttf #Roboto">Unknown</TextBlock>
+                                    <TextBlock Foreground="White" FontSize="12" HorizontalAlignment="Center" Margin="0,10,0,0" Text="{Binding passfailpiechartmodel.NullCount}"></TextBlock>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                    <StackPanel Orientation="Vertical" Margin="30,20,30,5">
+                        <Expander FontWeight="Bold" Header="Pass/Fail Linear Chart" Foreground="White" FontSize="14">
+                            <StackPanel>
+                                <Canvas Panel.ZIndex="3">
+                                    <TextBlock Canvas.Left="30" Canvas.Top="10" FontSize="10">Pass</TextBlock>
+                                    <TextBlock Canvas.Left="30" Canvas.Top="95" FontSize="10">Fail</TextBlock>
+                                </Canvas>
+                                    <lvc:CartesianChart Height="200">
+                                    <lvc:CartesianChart.Series>
+                                            <lvc:StepLineSeries Values="{Binding passfailpiechartmodel.LinearSeriesCollection}" AlternativeStroke="Transparent" Stroke="White"
+                                    PointGeometry="{x:Null}" StrokeThickness="3"/>
+                                    </lvc:CartesianChart.Series>
+                                    <lvc:CartesianChart.AxisY>
+                                        <lvc:Axis Name="Axis">
+                                            <lvc:Axis.Sections>
+                                                <lvc:AxisSection Value=".5" SectionWidth="1" Label="Pass">
+                                                    <lvc:AxisSection.Fill>
+                                                        <SolidColorBrush Color="#FF6BCAB6" Opacity=".4"></SolidColorBrush>
+                                                    </lvc:AxisSection.Fill>
+                                                </lvc:AxisSection>
+                                                <lvc:AxisSection Value="-0.2" SectionWidth="0.7" Label="Fail" >
+                                                    <lvc:AxisSection.Fill>
+                                                        <SolidColorBrush Color="#FFFFFB85" Opacity=".4"></SolidColorBrush>
+                                                    </lvc:AxisSection.Fill>
+                                                </lvc:AxisSection>
+                                            </lvc:Axis.Sections>
+                                        </lvc:Axis>
+                                    </lvc:CartesianChart.AxisY>
+                                </lvc:CartesianChart>
+                            </StackPanel>
+                        </Expander>
+                        <Expander FontWeight="Bold" Header="Test Fail List" Foreground="White" FontSize="14">
+                                <ListBox FontWeight="Normal" Background="Transparent" Foreground="White" ScrollViewer.CanContentScroll="True" ItemsSource="{Binding passfailpiechartmodel.FailList}">
+                                </ListBox>
+                        </Expander>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+            </Border>
+        </ScrollViewer>
+        <lvc:PieChart Grid.Row="1" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" LegendLocation="Bottom" Series="{Binding passfailpiechartmodel.PieSeriesCollection}" Hoverable="True" DataTooltip="{x:Null}" Margin="0,10,0,5" Foreground="White">
+        </lvc:PieChart>
+    </Grid>
+</UserControl>

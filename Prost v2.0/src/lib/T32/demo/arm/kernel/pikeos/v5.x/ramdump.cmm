@@ -1,0 +1,613 @@
+; --------------------------------------------------------------------------------
+; @Title: PikeOS RAM Dump generation Script
+; @Description:
+;   This is a standard PikeOS Awareness Script.
+;   You can use this script to generate a PikeOS RAM Dump.
+;   Edit the settings in the dialog and then hit "STORE".
+;
+; @Keywords: PikeOS RAMDump
+; @Author: kjmal
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: ramdump.cmm 5181 2020-04-06 11:44:28Z rdienstbeck $
+
+PMACRO.EXPLICIT
+
+  LOCAL &trace_file &image &cmm_file &memory_range &logical_start &logical_end &physical_start &physical_end &sym &regcmm
+  LOCAL &store_trace &store_image &tmp &trans_file &trans &corenumber &core
+  LOCAL &awareness &menu
+  LOCAL &year &mounth &day &time &stamp
+  LOCAL &ysym &ycmm &dialog_width
+
+  &year=DATE.YEAR()
+  &mounth=DATE.MONTH()
+  &day=DATE.DAY()
+  &time=DATE.UnixTime()
+
+  &year=STRING.CUT("&year",-1)
+  &mounth=STRING.CUT("&mounth",-1)
+  &day=STRING.CUT("&day",-1)
+  &time=STRING.CUT("&time",-1)
+  &stamp="&year"+"&mounth"+"&day"+"_"+"&time"
+
+  IF STATE.RUN()
+  (
+    &result
+    DIALOG.YESNO "Target running, cannot save RAM Dump!" "Stop the target and continue?"
+    ENTRY &result
+    IF &result
+      Break.direct
+    ELSE
+      ENDDO
+  )
+
+  &awareness=TASK.CONFIGFILE()
+  if ("&awareness"=="")
+  (
+     PRINT %ERROR "Awareness not loaded!"
+     ENDDO
+  )
+  &menu=STRing.CUT("&awareness",-4)+".men"
+
+  &sym=sYmbol.LIST.PROGRAM(1)
+  while ("&sym"!="")&&(STRing.SCAN("&sym","kernel-",0)==-1)
+    &sym=sYmbol.LIST.PROGRAM(0)
+
+  &trans=0
+  &trans_file="trans_"+"&stamp"+".cmm"
+  &trace_file="&stamp"+".ad"
+  &image="&stamp"
+  &cmm_file="restore_"+"&stamp"+".cmm"
+  &store_trace=1
+  &store_image=1
+  &memory_range="AD:<memory_range(s) - multiple ranges ; separated>"
+  &ysym=5.
+  &ycmm=9.
+
+  &dialog_width=65.
+
+  WinPOS ,,,,,, _ramdump_
+  DIALOG.view
+  (&
+        HEADER "RAM Dump"
+
+        POS  1.  1. 15.
+        TEXT "TRACE File Name:"
+        POS 17.  1. &dialog_width-23.
+TNAME:  EDIT "" "gosub set_item TNAME trace_file"
+
+        POS &dialog_width-4  1. 2.
+TBOX:   CHECKBOX "" "gosub set_tbox"
+
+        POS &dialog_width-4  3. 2.
+IBOX:   CHECKBOX "" "gosub set_ibox"
+
+        POS  1.  3. 16.
+        TEXT "Memory Range(s):"
+        POS 17.  3. &dialog_width-29.
+MEMR:   EDIT "" "gosub set_memory_range"
+        POS &dialog_width-11.  3. 5.
+GUESS:  BUTTON "guess" "gosub guess_range"
+
+        POS  1. &ysym 16.
+        TEXT "Kernel Symbol File:"
+        POS 17. &ysym &dialog_width-23.
+SYM:    EDIT "" "gosub set_item SYM sym"
+        POS &dialog_width-4 &ysym 2.
+        BUTTON "..." "gosub browse_sym"
+
+        POS  1.  7. 15.
+        TEXT "Scan Translations to"
+        POS 17.  7. &dialog_width-23.
+TRANS:  EDIT "" "gosub set_item TRANS trans_file"
+        POS &dialog_width-4  7. 2.
+TRBOX:  CHECKBOX "" "gosub set_transbox"
+
+        POS  1. &ycmm 15.
+        TEXT "CMM File:"
+        POS 17. &ycmm &dialog_width-17.-2.
+CMM:    EDIT "" "gosub set_cmm CMM cmm_file"
+
+        POS  0. 0. &dialog_width &ycmm+3
+        BOX ""
+
+        POS &dialog_width-12. &ycmm+1 10. 1.
+START:  BUTTON "STORE" "jumpto startme"
+        CLOSE "jumpto winclose"
+  )
+
+
+  DIALOG.Set TNAME "&trace_file"
+  DIALOG.Set CMM "&cmm_file"
+  DIALOG.SET MEMR "&memory_range"
+  DIALOG.Set SYM "&sym"
+  DIALOG.Set TBOX
+  DIALOG.Set IBOX
+  DIALOG.DISABLE START
+  DIALOG.Set TRANS "&trans_file"
+  IF trace.records()==0||(trace.method()!="ANALYZER"&&trace.method()!="CANALYZER"&&trace.method()!="ONCHIP")
+  (
+        &trace_file=""
+        &store_trace=0
+        DIALOG.Set TNAME ""
+        DIALOG.Disable TNAME
+        DIALOG.Set TBOX 0==1
+        DIALOG.Disable TBOX
+  )
+
+  STOP
+
+winclose:
+  DIALOG.END
+  ENDDO
+
+guess_range:
+    LOCAL &mapcount &mapindex &ls &le &ps &pe
+    &mapcount=sYmbol.List.MAP.COUNT()
+    &ls=sYmbol.List.MAP.BEGIN(1)
+    &le=sYmbol.List.MAP.END(1)
+    &physical_start=ADDRESS.OFFSET(TRANS.PHYSICAL(&ls))
+    &physical_end=ADDRESS.OFFSET(TRANS.PHYSICAL(&le))
+    &mapindex=2
+    while &mapindex<=&mapcount
+    (
+        &ls=sYmbol.List.MAP.BEGIN(&mapindex)
+        &le=sYmbol.List.MAP.END(&mapindex)
+        &ps=ADDRESS.OFFSET(TRANS.PHYSICAL(&ls))
+        &ps=&ps&~0xFFFFF    ; align to 1MB
+        &pe=ADDRESS.OFFSET(TRANS.PHYSICAL(&le))
+        if &ps<&physical_start
+            &physical_start=&ps
+        if &pe>&physical_end
+            &physical_end=&pe
+        &mapindex=&mapindex+1
+    )
+  &physical_start=&physical_start&0xFFFFFFFFFFFF0000
+  &physical_end=(&physical_end&0xFFFFFFFFFFFF0000)|0xFFFF
+  &memory_range="AD:&physical_start--&physical_end"
+  DIALOG.SET MEMR "&memory_range"
+  DIALOG.ENABLE START
+  DIALOG.OK "Please check if the guessed memory range is correct."
+  RETURN
+
+set_item:
+  LOCAL &str &label &item &assignment
+  ENTRY &label &item
+  &str=DIALOG.STRing(&label)
+  &assignment="&"+"&item"+"="+"""&str"""
+  &assignment
+  RETURN
+
+set_transbox:
+  IF !DIALOG.BOOLEAN(TRBOX)
+  (
+      DIALOG.Disable TRANS
+      &trans=0
+  )
+  ELSE
+  (
+      DIALOG.Enable TRANS
+      &trans=1
+  )
+  RETURN
+
+
+browse_sym:
+  LOCAL &str
+  &str=DIALOG.STRing(SYM)
+  &str=OS.FILE.PATH("&str")
+  IF "&str"!=""
+    &str="&str/*.*"
+  DIALOG.File "&str"
+  ENTRY &str
+  IF "&str"==""
+    RETURN
+  &sym="&str"
+  DIALOG.Set SYM "&str"
+RETURN
+
+set_memory_range:
+  LOCAL &str &pos &size
+  &str=DIALOG.STRing(MEMR)
+  &memory_range="&str"
+  IF !STRING.FIND("&str","<")&&!STRING.FIND("&str",">")&&!STRING.FIND("&str"," ")
+  (
+    IF STRING.SCAN("&str","--",0)==-1&&STRING.SCAN("&str","++",0)==-1
+      PRINT %ERROR "Please specify a valid memory range e.g. AD:0x10000000--0x1fffffff"
+    ELSE
+      DIALOG.ENABLE START
+  )
+  IF STRING.SCAN("&str",":",0)==-1
+    &memory_range="AD:"+"&memory_range"
+  &size=ADDRESS.RANGE.SIZE(&memory_range)
+  DIALOG.SET MEMR "&memory_range"
+  &pos=STRING.SCAN("&memory_range","--",0)
+  IF &pos==-1
+    &pos=STRING.SCAN("&memory_range","++",0)
+  &pos=STRING.LEN("&memory_range")-&pos
+  &physical_start=STRING.CUT("&memory_range",-&pos)
+  &physical_end=&physical_start+&size-0x1
+  RETURN
+
+set_cmm:
+  LOCAL &str
+  &str=DIALOG.STRing(CMM)
+  &cmm_file="&str"
+  RETURN
+
+set_tbox:
+  IF !DIALOG.BOOLEAN(TBOX)
+  (
+      DIALOG.Disable TNAME
+      &store_trace=0
+  )
+  ELSE
+  (
+      DIALOG.Enable TNAME
+      &store_trace=1
+  )
+  RETURN
+
+set_ibox:
+  IF !DIALOG.BOOLEAN(IBOX)
+  (
+      DIALOG.Disable MEMR
+      &store_image=0
+  )
+  ELSE
+  (
+      DIALOG.Enable MEMR
+      &store_image=1
+  )
+  RETURN
+
+; --------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
+
+startme:
+  DIALOG.END
+
+  OPEN #1 &cmm_file /Create
+  WRITE #1 "RESet"
+  (
+      WRITE #1 "SYStem.CPU " SYStem.CPU()
+      WRITE #1 "SYStem.Option MMUSPACES ON"
+      IF CORE.NUMBER()<CONFIGNUMBER()
+      (
+        LOCAL &assignment &core
+        &core=1.
+        RePeaT CONFIGNUMBER()
+        (
+          IF CORE.ISASSIGNED(&core)
+            &assignment="&assignment"+" &core"
+          &core=&core+1.
+        )
+        IF "&assignment"!=""
+          WRITE #1 "CORE.ASSIGN &assignment"
+      )
+      WRITE #1 "SYStem.Up"
+  )
+  WRITE #1 ""
+
+  IF &store_trace==1
+  (
+      PRINT "Saving the trace to " "&trace_file" " .."
+      Trace.SAVE &trace_file
+  )
+
+  &regcmm="&stamp"+"_regs"
+
+  GOSUB SaveRegisters
+
+  IF CORE.NUMBER()==1
+    WRITE #1 "DO ~~~~/&regcmm"
+  ELSE
+  (
+    &core=0.
+    RePeat
+    (
+      LOCAL &tmp
+      CORE &core
+      &tmp="&regcmm"+"_core"+"&core"+"cmm"
+      WRITE #1 "CORE &core"
+      WRITE #1 "DO " "~~~~/&tmp"
+      &core=&core+1.
+    )
+    WHILE &core<CORE.NUMBER()
+    //IF (CORENUMBER()>1)
+    //  CORE 0
+    //WRITE #1 "CORE 0"
+  )
+
+  IF &trans==1
+  (
+      MMU.SCAN ALL
+      STOre &trans_file TRANSlation
+  )
+
+  GOSUB GetSpecialRegisters
+
+  IF CORE.NUMBER()>1
+  (
+    CORE 0
+    WRITE #1 "CORE 0"
+    WRITE #1 ""
+  )
+  IF &store_image==1
+  (
+      GOSUB SaveMemoryImage &image &memory_range
+  )
+  IF !OS.FILE(&sym)
+  (
+    WinPOS ,,,,,, filebox normal "Searching kernel symbols"
+    DIALOG.File "*/vmlinux"
+    ENTRY &str
+    IF "&str"==""
+    (
+      PRINT "cannot find kernel symbols"
+      &sym=""
+    )
+    ELSE
+    (
+      &sym="&str"
+    )
+  )
+  ELSE
+  (
+    IF OS.FILE.PATH("&sym")==OS.PWD()
+    &sym="~~~~/zzz"
+  )
+
+  IF "&sym"!=""
+      WRITE #1 "Data.LOAD.Elf " "&sym" " /NOCODE"
+  WRITE #1 ""
+
+  IF &trans==1
+  (
+    IF OS.FILE.PATH("&trans_file")==OS.PWD()
+      WRITE #1 "DO ~~~~/&trans_file"
+    ELSE
+      WRITE #1 "DO &trans_file"
+  )
+
+   IF "&logical_start"==""
+   (
+      IF SOFTWARE.BUILD()>=95143.
+      (
+        &physical_start=ADDRESS.OFFSET(MMU.DEFAULTTRANS.PHYSADDR())
+        &physical_end=&physical_start+ADDRESS.RANGE.SIZE(MMU.DEFAULTTRANS.LOGRANGE())-0x1
+        &logical_start=ADDRESS.OFFSET(ADDRESS.RANGE.BEGIN(MMU.DEFAULTTRANS.LOGRANGE()))
+        &logical_end=ADDRESS.OFFSET(ADDRESS.RANGE.END(MMU.DEFAULTTRANS.LOGRANGE()))
+      )
+      ELSE
+      (
+        IF &trans==0
+         MMU.SCAN KPT
+        &logical_start=TRANS.LOGICAL(&physical_start)
+        &logical_end=ADDRESS.OFFSET(&logical_start)+ADDRESS.OFFSET(&physical_end)-ADDRESS.OFFSET(&physical_start)
+      )
+   )
+
+    (
+        LOCAL &format_addr &mmu_format &default_pt &common_area
+
+        if &logical_end!=0x0
+            &format_addr="&logical_start"+"--"+"&logical_end"+" "+"&physical_start"
+        &mmu_format=MMU.FORMAT()
+        &default_pt=sYmbol.NAME(MMU.DEFAULTPT())
+        IF "&default_pt"==""
+            &default_pt=0x0
+        WRITE #1 "MMU.FORMAT &mmu_format &default_pt " "&format_addr"
+
+        IF CPUIS64BIT()
+        (
+            &common_area="&logical_start"+"--0xffffffffffffffff"
+        )
+        ELSE
+        (
+            IF &logical_start>=0x80000000   ; not 4g-variang
+                &common_area="&logical_start"+"--0xffffffff"
+        )
+        IF (&trans==0)&&("&common_area"!="")
+            WRITE #1 "TRANSlation.COMMON " "&common_area"
+
+        IF CPUFAMILY()=="POWERPC"
+            WRITE #1 "TRANSlation.Create D:0x0:0x0--0x7fffffff 0x0"
+
+        IF TRANS.TABLEWALK()&&(&trans==0)
+            WRITE #1 "TRANSlation.TableWalk ON"
+        IF TRANS.ENABLE()
+            WRITE #1 "TRANSlation.ON"
+        WRITE #1 ""
+    )
+
+  WRITE #1 "TASK.CONFIG    ""&awareness"""
+  WRITE #1 "MENU.ReProgram ""&menu"""
+
+  WRITE #1 ""
+  IF &store_trace==1
+  (
+    IF OS.FILE.PATH("&trace_file")==OS.PWD()
+      WRITE #1 "Trace.LOAD " "~~~~/&trace_file"
+    ELSE
+      WRITE #1 "Trace.LOAD " "&trace_file"
+  )
+  CLOSE #1
+
+
+  ENDDO
+
+; --------------------------------------------------------------------------------
+; Save the CPU registers
+; --------------------------------------------------------------------------------
+SaveRegisters:
+  IF CORE.NUMBER()==1
+  (
+    LOCAL &tmp
+    &tmp="&regcmm"
+    STOre &tmp Register
+    RETURN
+  )
+  LOCAL &core
+  &core=0.
+  RePeat
+  (
+    LOCAL &tmp
+    CORE &core
+    &tmp="&regcmm"+"_core"+"&core"+"cmm"
+    STOre &tmp Register
+    &core=&core+1.
+  )
+  WHILE &core<CORE.NUMBER()
+  IF (CORE.NUMBER()>1)
+    CORE 0
+  RETURN
+
+; --------------------------------------------------------------------------------
+; Get the ARM MMU registers
+; --------------------------------------------------------------------------------
+GetArmMmuRegs:
+  &core=0.
+  RePeaT
+  (
+    LOCAL &CPSR_M
+    IF CORE.NUMBER()>1
+    (
+      CORE &core
+      WRITE #1 "CORE &core"
+    )
+
+    &CPSR_M=Register(M)
+    IF (Register(M)&0x10)==0x10                     ; AArch32
+    (
+      IF CPU.FEATURE(SECURE)
+      (
+        IF (Register(NS)==0.)||(Register(M)==0x16)      ; Secure PL1 or mon?
+        (
+          WRITE #1 "Data.Set C15:0x11 " Data.Long(C15:0x11) ; SCR
+        )
+      )
+      WRITE #1 "Data.Set C15:0x1 " Data.Long(C15:0x1)     ; SCTLR
+      WRITE #1 "Data.Set C15:0x202 " Data.Long(C15:0x202) ; TTBCR
+      IF (Data.Long(C15:0x202)&0x80000000)==0       ; LPAE enabled ?
+      (
+        WRITE #1 "Data.Set C15:0x2 " Data.Long(C15:0x2)     ; TTBR0
+        WRITE #1 "Data.Set C15:0x102 " Data.Long(C15:0x102) ; TTBR1
+        WRITE #1 "Data.Set C15:0x2A " Data.Long(C15:0x2A)   ; PRRR
+        WRITE #1 "Data.Set C15:0x12A " Data.Long(C15:0x12A) ; NMRR
+      )
+      ELSE
+      (
+        WRITE #1 "Data.Set C15:0x10020 " Data.QUAD(C15:0x10020)  ; TTBR0_LPAE
+        WRITE #1 "Data.Set C15:0x11020 " Data.QUAD(C15:0x11020)  ; TTBR1_LPAE
+        WRITE #1 "Data.Set C15:0x2A " Data.Long(C15:0x2A)        ; MAIR0
+        WRITE #1 "Data.Set C15:0x12A " Data.Long(C15:0x12A)      ; MAIR1
+      )
+      IF CPU.FEATURE(HYPERVISOR)
+      (
+        WRITE #1 "Data.Set HC15:0x4001 "  Data.Long(HC15:0x4001)  ; HSCTLR
+        WRITE #1 "Data.Set HC15:0x4011 "  Data.Long(HC15:0x4011)  ; HCR
+        WRITE #1 "Data.Set HC15:0x14020 " Data.QUAD(HC15:0x14020) ; HTTBR
+        WRITE #1 "Data.Set HC15:0x4202 "  Data.Long(HC15:0x4202)  ; HTCR
+        WRITE #1 "Data.Set HC15:0x402A "  Data.Long(HC15:0x402A)  ; HMAIR0
+        WRITE #1 "Data.Set HC15:0x412A "  Data.Long(HC15:0x412A)  ; HMAIR1
+        WRITE #1 "Data.Set HC15:0x16020 " Data.QUAD(HC15:0x16020) ; VTTBR
+        WRITE #1 "Data.Set HC15:0x4212 "  Data.Long(HC15:0x4212)  ; VTCR
+      )
+    )
+    ELSE
+    (
+      IF CPU.FEATURE(SECURE)
+        Register.Set M 0xD
+      ELSE IF CPU.FEATURE(HYPERVISOR)
+        Register.Set M 0x9
+      ELSE
+        Register.Set M 0x5
+      IF CPU.FEATURE(SECURE)
+      (
+        WRITE #1 "Data.Set SPR:0x36100 %Quad " Data.QUAD(SPR:0x36100)  ; TTBR0_LPAE
+        WRITE #1 "Data.Set SPR:0x36202 %Quad " Data.QUAD(SPR:0x36202)  ; TCR_EL3
+        WRITE #1 "Data.Set SPR:0x36200 %Quad " Data.QUAD(SPR:0x36200)  ; TTBR0_EL3
+        WRITE #1 "Data.Set SPR:0x36A20 %Quad " Data.QUAD(SPR:0x36A20)  ; MAIR_EL3
+        WRITE #1 "Data.Set SPR:0x36110 %Quad " Data.QUAD(SPR:0x36110)  ; SCR_EL3
+      )
+      IF CPU.FEATURE(HYPERVISOR)
+      (
+        WRITE #1 "Data.Set SPR:0x34100 %Quad " Data.QUAD(SPR:0x34100)  ; SCTLR_EL2
+        WRITE #1 "Data.Set SPR:0x34202 %Quad " Data.QUAD(SPR:0x34202)  ; TCR_EL2
+        WRITE #1 "Data.Set SPR:0x34200 %Quad " Data.QUAD(SPR:0x34200)  ; TTBR0_EL2
+        WRITE #1 "Data.Set SPR:0x34A20 %Quad " Data.QUAD(SPR:0x34A20)  ; MAIR_EL2
+        WRITE #1 "Data.Set SPR:0x34110 %Quad " Data.QUAD(SPR:0x34110)  ; HCR_EL2
+        WRITE #1 "Data.Set SPR:0x34210 %Quad " Data.QUAD(SPR:0x34210)  ; VTTBR_EL2
+        WRITE #1 "Data.Set SPR:0x34212 %Quad " Data.QUAD(SPR:0x34212)  ; VTCR_EL2
+      )
+      IF (Register(M)&0xC)>=4
+      (
+        WRITE #1 "Data.Set SPR:0x30100 %Quad " Data.QUAD(SPR:0x30100)  ; SCTLR_EL1
+        WRITE #1 "Data.Set SPR:0x30202 %Quad " Data.QUAD(SPR:0x30202)  ; TCR_EL1
+        WRITE #1 "Data.Set SPR:0x30200 %Quad " Data.QUAD(SPR:0x30200)  ; TTBR0_EL1
+        WRITE #1 "Data.Set SPR:0x30201 %Quad " Data.QUAD(SPR:0x30201)  ; TTBR1_EL1
+        WRITE #1 "Data.Set SPR:0x30A20 %Quad " Data.QUAD(SPR:0x30A20)  ; MAIR_EL1
+      )
+    )
+    Register.Set M &CPSR_M
+    WRITE #1 ""
+    &core=&core+1.
+  )
+  WHILE &core<CORE.NUMBER()
+  RETURN
+
+GetSpecialRegisters:
+    IF CPUFAMILY()=="ARM"
+    (
+        GOSUB GetArmMmuRegs
+    )
+    ELSE IF CPUFAMILY()=="X86"
+    (
+        RePeat
+        (
+            IF CORE.NUMBER()>1
+                CORE &core
+            WRITE #1 "Data.Set MSR:0xC000080 %Quad " Data.Quad(MSR:0xC000080)
+            WRITE #1 ""
+            &core=&core+1.
+        )
+        WHILE &core<CORE.NUMBER()
+    )
+  RETURN
+
+; --------------------------------------------------------------------------------
+; Get the ARM MMU registers
+; --------------------------------------------------------------------------------
+SaveMemoryImage:
+  LOCAL &img &ranges &single_range &single_image &pos &memory_class
+  ENTRY &img &ranges
+
+  &pos=STRING.SCAN("&ranges",":",0)
+  IF &pos!=-1
+    &memory_class=STRING.MID("&ranges",0,&pos+1)
+  &ranges=STRING.CUT("&ranges",&pos+1)
+  &pos=0
+
+  RePeat
+  (
+    &pos=STRING.SCAN("&ranges",";",0)
+    IF &pos!=-1
+    (
+      &single_range=STRING.MID("&ranges",0,&pos)
+      &ranges=STRING.CUT("&ranges",&pos+1)
+    )
+    ELSE
+    (
+      &single_range="&ranges"
+    )
+    IF "&single_range"!=""
+    (
+      &single_image="&img"+"_"+"&single_range"+".bin"
+      PRINT "saving memory at &memory_class&single_range to &single_image .."
+      Data.SAVE.Binary &single_image &memory_class&single_range /ZIP
+      WRITE #1 "Data.LOAD.Binary ~~~~/&single_image &memory_class&single_range /UNZIP"
+    )
+  )
+  WHILE &pos!=-1
+  RETURN

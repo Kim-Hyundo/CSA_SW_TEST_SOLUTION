@@ -1,0 +1,123 @@
+; --------------------------------------------------------------------------------
+; @Title: AMP-Demo script for STM32MP157A with Onchip-Trace (AMP, RAM, ETF)
+; @Description:
+;   Setup a AMP debug session using a single script approach.
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Onchip-Trace (ETF).
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to J14
+;    * The demos are tested in Engineering boot mode:
+;      SW1[0..2]=ON,OFF,OFF
+; @Keywords: ARM, ETF, ETM
+; @Author: STK
+; @Board: STM32MP15C-EVAL
+; @Chip: STM32MP157A
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: stm32mp15x-eval_amp_onchip_etf_trace_sram.cmm 14337 2019-04-26 15:41:57Z skrausse $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+; IF VERSION.BUILD()<xxxx.
+; (
+;   PRINT %ERROR "Please use more recent software. Contact support@lauterbach.com."
+;   ENDDO
+; )
+IF SYStem.INSTANCE()!=1.
+(
+  PRINT %ERROR "This script must be called from MASTER GUI!"
+  ENDDO
+)
+
+; store current script path in &ppd
+PRIVATE &ppd
+&ppd=OS.PPD()
+
+; --------------------------------------------------------------------------------
+; [optional] close any existing REMOTE GUIs
+; IC OTHERS QUIT
+
+; --------------------------------------------------------------------------------
+; open all SLAVE GUIs
+IF !INTERCOM.PING(CM4)
+  TargetSystem.NewInstance CM4 /ARCHitecture ARM
+
+; --------------------------------------------------------------------------------
+; set titles for SLAVE GUIs
+TITLE "TRACE32 for ARM - STM32MP157A-CA7 - MASTER"
+InterCom CM4 TITLE "TRACE32 for ARM - STM32MP157A-CM4 - SLAVE1"
+
+; --------------------------------------------------------------------------------
+; common SYStem settings
+InterCom ALL RESet
+InterCom ALL SYStem.RESet
+
+SYStem.CPU STM32MP157A-CA7
+SYStem.CONFIG CORE 1. 1.
+SYStem.CONFIG SLAVE OFF
+
+InterCom CM4 SYStem.CPU STM32MP157A-CM4
+InterCom CM4 SYStem.CONFIG CORE 2. 1.
+InterCom CM4 SYStem.CONFIG SLAVE ON
+
+; disable Trace for connection phase
+InterCom ALL Trace.DISable
+
+SYStem.Up
+
+; In Engineering boot mode all cores are active immediatelly
+InterCom CM4 SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program on all sessions (use internal RAM only)
+CORE.select 0.
+Data.LOAD.Elf &(ppd)/master/sieve_ram_arm_v7.elf
+Register.Set T 0 /CORE 0
+
+InterCom CM4 Data.LOAD.Elf &(ppd)/slave1/sieve_ram_thumb_ii_v7m.elf
+
+Register.Set PC _start_secondary /CORE 1.
+Register.Set T 0 /CORE 1
+
+
+; --------------------------------------------------------------------------------
+; initialize ONCHIP trace (ETF)
+InterCom ALL Trace.METHOD ONCHIP
+InterCom ALL Trace.TraceCONNECT ETF
+
+ETM.TraceID 1.
+InterCom CM4 ETM.TraceID 3.
+
+InterCom ALL ETM.Trace ON
+InterCom ALL ETM.ON
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main\1
+WAIT !STATE.RUN()
+InterCom CM4 Go.direct main\1
+InterCom CM4 WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+InterCom ALL WinCLEAR
+InterCom ALL Mode.Hll
+InterCom ALL WinPOS 0. 0. 116. 26.
+InterCom ALL List.auto
+InterCom ALL WinPOS 0. 32.
+InterCom ALL Trace.List
+
+; --------------------------------------------------------------------------------
+; sync all instances
+InterCom ALL SYnch.ON
+InterCom ALL SYnch.Connect ALL
+InterCom ALL SYnch.MasterBreak ON
+InterCom ALL SYnch.MasterGo    ON
+InterCom ALL SYnch.SlaveBreak  ON
+InterCom ALL SYnch.SlaveGo     ON
+
+ENDDO

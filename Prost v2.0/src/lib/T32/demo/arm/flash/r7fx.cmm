@@ -1,0 +1,268 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash declaration for Renesas and Synergy R7FX internal flash derivativs
+; @Description: 
+;   Script arguments:
+;     DO r7fx [PREPAREONLY] [CPU=<cpu>] [DUALPORT=<0|1>]
+;       PREPAREONLY    only declares flash but does not execute flash programming
+;       CPU=<cpu>      selects CPU derivative <cpu>
+;       DUALPORT=<0|1> use dual port memory access, default 1
+;   Example:
+;     DO ~~/demo/arm/flash/r7fx PREPAREONLY
+;   Note:
+;     This file must NOT be modified.
+;     This file is intended to stay within TRACE32 installation.
+;     Usage examples are available in the ~~/demo/arm/hardware/... subdirectories.
+;
+;   List of R7F* derivatives and their configuration:
+;      CPU-Type       Code Flash  Data Flash  RamSize
+;                        [KB]       [KB]       [KB]
+; --------------------------------------------------------------------------------
+;	R7FS124763A01CFM       64         4         16
+;	R7FS124763A01CNB       64         4         16
+;	R7FS124763A01CFL       64         4         16
+;	R7FS124763A01CNE       64         4         16
+;	R7FS124763A01CNF       64         4         16
+;	R7FS124762A01CLM       64         4         16
+;	R7FS124773A01CFM      128         4         16
+;	R7FS124773A01CNB      128         4         16
+;	R7FS124773A01CFL      128         4         16
+;	R7FS124773A01CNE      128         4         16
+;	R7FS124773A01CNF      128         4         16
+;	R7FS124772A01CLM      128         4         16
+;	R7FA2A1AB3CFM	      256         8         32
+;	R7FA2A1AB3CNE	      256         8         32
+;	R7FA2A1AB3CNF	      256         8         32
+;	R7FA2A1AB2CBT	      256         8         32
+;	R7FA2A1AB3CFJ	      256         8         32
+;	R7FA4M1AB3CFP	      256         8         32
+;	R7FA4M1AB2CLJ	      256         8         32
+;	R7FA4M1AB3CFM	      256         8         32
+;	R7FA4M1AB3CNB	      256         8         32
+;	R7FA4M1AB3CFL	      256         8         32
+;	R7FA4M1AB3CNE	      256         8         32
+;	R7FA4M1AB3CNF	      256         8         32
+;	R7FS3A77C2A01CLK     1000        16        192
+;	R7FS3A77C3A01CFB     1000        16        192
+;	R7FS3A77C2A01CBJ     1000        16        192
+;	R7FS3A77C3A01CFP     1000        16        192
+;	R7FS3A77C2A01CLJ     1000        16        192
+;	R7FS3A77C3A01CFM     1000        16        192
+;	R7FS3A77C3A01CNB     1000        16        192
+;	R7FS5D57A2A01CLK      512        32        384
+;	R7FS5D57A3A01CFB      512        32        384
+;	R7FS5D57A3A01CFP      512        32        384
+;	R7FS5D57C2A01CLK     1000        32        384
+;	R7FS5D57C3A01CFB     1000        32        384
+;	R7FS5D57C3A01CFP     1000        32        384
+;	R7FS5D97C2A01CBG     1000        64        384
+;	R7FS5D97C2A01CLK     1000        64        384
+;	R7FS5D97C3A01CFB     1000        64        384
+;	R7FS5D97C3A01CFC     1000        64        384
+;	R7FS5D97C3A01CFP     1000        64        384
+;	R7FS5D97E2A01CBG     2000        64        384
+;	R7FS5D97E2A01CLK     2000        64        384
+;	R7FS5D97E3A01CFB     2000        64        384
+;	R7FS5D97E3A01CFC     2000        64        384
+;	R7FS5D97E3A01CFP     2000        64        384
+;	R7FA6M1AD2CLJ         512         8        256
+;	R7FA6M1AD3CFM         512         8        256
+;	R7FA6M1AD3CFP         512         8        256
+;	R7FA6M1AD3CNB         512         8        256
+;	R7FA6M2AD2CLK         512        32        384
+;	R7FA6M2AD3CFB         512        32        384
+;	R7FA6M2AD3CFP         512        32        384
+;	R7FA6M2AF2CLK        1000        32        384
+;	R7FA6M2AF3CFB        1000        32        384
+;	R7FA6M2AF3CFP        1000        32        384
+;	R7FA6M3AF2CBG        1000        64        640
+;	R7FA6M3AF3CFC        1000        64        640
+;	R7FA6M3AF2CLK        1000        64        640
+;	R7FA6M3AF3CFB        1000        64        640
+;	R7FA6M3AF3CFP        1000        64        640
+;	R7FA6M3AH2CBG        2000        64        640
+;	R7FA6M3AH3CFC        2000        64        640
+;	R7FA6M3AH2CLK        2000        64        640
+;	R7FA6M3AH3CFB        2000        64        640
+;	R7FA6M3AH3CFP        2000        64        640
+;	R7FS7G27G2A01CBD     3072        64        640
+;	R7FS7G27G2A01CBG     3072        64        640
+;	R7FS7G27G2A01CLK     3072        64        640
+;	R7FS7G27G3A01CFB     3072        64        640
+;	R7FS7G27G3A01CFC     3072        64        640
+;	R7FS7G27G3A01CFP     3072        64        640
+;	R7FS7G27H2A01CBD     4096        64        640
+;	R7FS7G27H2A01CBG     4096        64        640
+;	R7FS7G27H2A01CLK     4096        64        640
+;	R7FS7G27H3A01CFB     4096        64        640
+;	R7FS7G27H3A01CFC     4096        64        640
+;
+; @Chip: R7F*
+; @Author: MAM
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 8054 $
+; $Id: r7fx.cmm 8054 2020-03-10 08:40:18Z cmorgenstern $
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+PRIVATE &param_prepareonly &param_cpu &param_dualport
+&parameters=STRing.UPpeR("&parameters")
+&param_prepareonly=(STRing.SCAN("&parameters","PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract("&parameters","CPU=","")
+&param_dualport=STRing.SCANAndExtract("&parameters","DUALPORT=","1")
+
+; --------------------------------------------------------------------------------
+; Initialize and start the debugger
+IF !SYStem.Up()
+(
+  SYStem.RESet
+
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  IF (!CPUIS(R7F*))
+    SYStem.CPU R7F*
+
+  SYStem.MemAccess DAP
+
+  IF CABLE.TWOWIRE()
+    SYStem.CONFIG DEBUGPORTTYPE SWD
+  ELSE
+    SYStem.CONFIG DEBUGPORTTYPE JTAG
+
+  SYStem.Up
+)
+
+; --------------------------------------------------------------------------------
+; Flash declaration
+FLASH.RESet
+GOSUB FlashDeclaration "&param_dualport"
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; --------------------------------------------------------------------------------
+; Flash programming example
+DIALOG.YESNO "Program flash memory?"
+PRIVATE &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram ALL /Erase
+  Data.LOAD.auto *
+  FLASH.ReProgram OFF
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+)
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+; SUBROUTINES
+
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU
+;
+;   Please do NOT modify the TRACE32 flash declaration.
+;
+;   Modifications can result in unpredictable behavior.
+;   Please contact support@lauterbach.com for any changes.
+FlashDeclaration: ;(param_dualport)
+(
+  PARAMETERS &param_dualport
+  PRIVATE &SRAMAddress &FlashDriver &CodeFlashSize &CodeFlashSize1 &DataFlashSize &CodeSectorSize &CodeSectorSize1 &DataSectorSize
+
+
+
+  IF CPUIS(R7F?1*)||CPUIS(R7F?2*)||CPUIS(R7F?3*)||CPUIS(R7F?4*)
+  (
+    &SRAMAddress=0x20000000
+    &FlashDriver="mf3.bin"
+    &CodeSectorSize=0x800
+    &DataSectorSize=0x400
+    &CodeFlashSize1=0x0 //code flash region has no 8k sectors
+    &CodeSectorSize1=0x0
+  )
+  ELSE IF CPUIS(R7F?5*)||CPUIS(R7F?6*)||CPUIS(R7F?7*)
+  (
+    &SRAMAddress=0x1FFE0000
+    IF CPUIS(R7F?7*)
+      &FlashDriver="rv40f_s7.bin"
+	ELSE
+      &FlashDriver="rv40f.bin"
+
+    &CodeSectorSize=0x8000
+    &DataSectorSize=0x40
+    &CodeFlashSize1=0x10000 //code flash region with 8k sectors
+    &CodeSectorSize1=0x2000
+  )
+  ELSE
+  (
+    PRINT %ERROR " Onchip FLASH of CPU type is not supported by the script"
+    ENDDO
+  )
+
+  IF CPUIS(R7F?????6*)
+    &CodeFlashSize=0x10000
+  ELSE IF CPUIS(R7F?????7*)
+    &CodeFlashSize=0x40000
+  ELSE IF CPUIS(R7F?????B*)
+    &CodeFlashSize=0x40000
+  ELSE IF CPUIS(R7F?????D*)
+    &CodeFlashSize=0x80000
+  ELSE IF CPUIS(R7F?????F*)
+    &CodeFlashSize=0x100000
+  ELSE IF CPUIS(R7F?????G*)
+    &CodeFlashSize=0x300000
+  ELSE IF CPUIS(R7F????AH*)    
+    &CodeFlashSize=0x200000
+  ELSE IF CPUIS(R7F????7H*)    
+    &CodeFlashSize=0x400000
+  ELSE IF CPUIS(R7F?????A*)
+    &CodeFlashSize=0x80000
+  ELSE IF CPUIS(R7F?????C*)
+    &CodeFlashSize=0x100000
+  ELSE IF CPUIS(R7F?????E*)
+    &CodeFlashSize=0x200000
+  ELSE
+  (
+    PRINT %ERROR "Code FLASH size of CPU type is not supported by the script"
+    ENDDO
+  )
+  // Determine Data Flash Size by Group name /number
+  IF CPUIS(R7F???1*)
+    &DataFlashSize=0x2000
+  ELSE IF CPUIS(R7F???4*)
+    &DataFlashSize=0x1000
+  ELSE IF CPUIS(R7F??M2*)||CPUIS(R7F??D5*)
+    &DataFlashSize=0x8000
+  ELSE IF CPUIS(R7F??A7*)
+    &DataFlashSize=0x4000
+  ELSE IF CPUIS(R7F??M3*)||CPUIS(R7F??D9*)||CPUIS(R7F??G2*)
+    &DataFlashSize=0x10000
+  ELSE
+  (
+    PRINT %ERROR "Data FLASH size of CPU type is not supported by the script"
+    ENDDO
+  )
+
+  IF (&CodeFlashSize1!=0)
+  ( 
+    FLASH.Create 1. 0x0++(&CodeFlashSize1-1) &CodeSectorSize1 TARGET LONG
+    FLASH.Create 1. &CodeFlashSize1++(&CodeFlashSize-&CodeFlashSize1-1) &CodeSectorSize TARGET LONG
+  )
+  ELSE
+    FLASH.Create 1. 0x0++(&CodeFlashSize-1) &CodeSectorSize TARGET LONG	
+  
+  FLASH.Create 2. 0x40100000++(&DataFlashSize-1) &DataSectorSize TARGET LONG
+
+  IF (("&param_dualport"!="1")||SYStem.ACCESS.DENIED())
+    FLASH.TARGET &SRAMAddress &SRAMAddress+0x1000 0x1000 ~~/demo/arm/flash/long/&FlashDriver
+  ELSE
+    FLASH.TARGET &SRAMAddress E:&SRAMAddress+0x1000 0x1000 ~~/demo/arm/flash/long/&FlashDriver /DualPort
+
+  RETURN
+)

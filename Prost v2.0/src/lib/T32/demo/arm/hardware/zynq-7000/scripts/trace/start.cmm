@@ -1,0 +1,122 @@
+; --------------------------------------------------------------------------------
+; @Title: Connect and setup an ZYNQ in Cascaded JTAG Mode
+; @Description: 
+;   Example script that shows how to connect to a ZYNQ jumpered in cascaded
+;    JTAG mode. We use the TCL + BIT.BIN file to boot the whole SOC.
+;   In case the XILINX HW_FMC-105-DEBUG card is used TDI and TDO (J5) must be 
+;   shorted.
+;   A design that routes TRACECLK, TRACECTRL and TRACEDATA[15:0] signals has
+;   to be programmend to the FPGA if the XILINX HW_FMC-105-DEBUG Mictor connector
+;   is used. Please note that the TRACECLK on the output must be half the TPIU 
+;   input clock (Clock divider must be part of the FPGA design).
+;   Prerequisites:
+;     * Chip is in cascaded configuration
+;     * JTAG boot is selected
+;     * JTAG is connected to the cascaded jtag port
+;     * TCL & BIT.BIN file (FPGA) design are available
+; @Keywords: ZYNQ
+; @Chip: Zynq-7000
+; @Board: ZC70* ZedBoard
+; @Author: AME
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: start.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+;   Changelog:
+;   * 26.08.2013, Alexander Merkle, Lauterbach - added post_config of target
+
+WinCLEAR
+RESet
+SYStem.RESet
+
+AREA.CLEAR
+WinPOS 0.14286 32.167 80. 25. 0. 0. W002
+AREA.view
+
+PRINT "Please power off/on the target"
+
+ON powerup GOTO start
+STOP
+   
+start:
+ON powerup nothing
+WAIT 2.s
+
+
+
+SYStem.CPU ZYNQ-7000
+ 
+SYStem.CONFIG DAPIRPRE 6.
+SYStem.CONFIG DAPIRPOST 0.
+SYStem.CONFIG DAPDRPRE 1.
+SYStem.CONFIG DAPDRPOST 0.
+
+TrOnchip.Set PABORT OFF
+TrOnchip.Set DABORT OFF
+SYStem.Up
+
+; set core 1 in a loop
+CORE.select 1.
+Register.Set PC 0x1000
+Data.Assemble 0x1000 nop nop nop b 0x1000 
+CORE.select 0.
+
+PRINT "initializing the target"
+DO ~~~~/ps7_init.cmm "~~~~/<ps7_init.tcl>"
+
+PRINT "programming the FPGA design"
+DO ~~/demo/arm/hardware/zynq-7000/scripts/zynq_bitstream "~~~~/<system.bit.bin>" 0x00100000
+
+PRINT "post-configuration of the target"
+DO ~~~~/ps7_init.cmm "~~~~/<ps7_init.tcl>" "POST"
+
+IF Analyzer()
+(
+  ; ETM SETUP
+  ETM.PortSize 16			; Set the trace port width to 16
+  ETM.PortMode Wrapped
+  ETM.ON				; Turn ETM on
+  
+  Analyzer.AutoFocus		; Set threshold and sampling points automatically
+)
+ 
+
+; open some windows
+ WinCLEAR
+ WinPOS 0% 0% 100% 50%
+ List.auto
+ WinPOS 0% 50% 50% 50%
+ Register.view /SpotLight
+
+
+ENDDO
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

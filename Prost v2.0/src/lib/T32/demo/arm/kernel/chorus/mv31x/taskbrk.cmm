@@ -1,0 +1,55 @@
+; --------------------------------------------------------------------------------
+; @Title: Perform a task selective Breakpoint triggering (MTD)
+; @Description: Perform a task selective Breakpoint triggering (MTD)
+; @Keywords: chorus, Emulator, ICE, mv31x
+; @Props: NoWelcome
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: taskbrk.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+  E::
+
+  IF (STATE.RUN())
+    Break
+
+; specify the magic value of the desired task
+&task=0d018
+
+; delete all predefined Alpha breakpoints
+  Break.Delete /Alpha 
+
+; set Alpha Breakpoint on magic address
+  Break.Set task.config(magic)++(task.config(magicsize)-0x1) /Alpha
+
+; set the trigger system to trigger only at analyzer breakpoints
+  trigger.res
+  trigger.s READ  OFF
+  trigger.s WRITE OFF
+  Break.ENable program  OFF
+
+; program the analyzer to trigger only in one specific task
+  Analyzer.ReProgram
+  (
+    DATA.L0  TSK  &task        ; magic value of desired task
+
+    Sample.Enabled IF (AB&&WRITE)       ; record all task switches
+
+    LVL0:
+     GOTO LVL1 if AB&&TSK    ; wait for desired task running
+
+    LVL1:
+     trigger.a IF WB&&WRITE  ; halt if write on write breakpoint
+     trigger.a IF RB&&READ   ; halt if read on read breakpoint
+     trigger.a IF RB&&FETCH  ; halt if fetch on read breakpoint
+     GOTO LVL0 if AB&&!TSK  ; jump back if task is no longer running
+  )
+
+; set the read and write breakpoints
+; b.s xxx /r
+; b.s xxx /w
+ Break.Set threadSemPost
+
+; start the application, it will be stopped on the desired breakpoints
+ Go

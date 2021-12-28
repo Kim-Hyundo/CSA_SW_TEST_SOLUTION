@@ -1,0 +1,139 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux Start-up script for Freescale i.MX535 Quick Start Board
+; @Description: 
+;   The example is generated for the Freescale i.MX535 Quick Start Board
+;   using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+; @Author: MFE
+; @Board: i.MX53 QuickStartBoard
+; @Chip: IMX53*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx53_linux.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+LOCAL &ka_path &awareness
+
+; main windows setup
+  TOOLBAR ON
+  STATUSBAR ON
+  FramePOS 0.125 0.25 157. 50.
+  WinPAGE.RESet
+  SCREEN.ALways      ; permanent update for internal terminal window
+
+  RESet
+  SYStem.CPU IMX535
+  SYStem.Option ResBreak OFF
+  SYStem.Option MMUSPACES ON
+  SYStem.Option DACR ON          ; give Debugger global write permissions
+  TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+  TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+  TrOnchip.Set UNDEF OFF         ; my be used by Linux for FPU detection
+  SYStem.Option MMUSPACES OFF
+
+  SYStem.JtagClock 20.MHz
+  SYStem.Option WaitReset 100ms
+
+  PRINT "Please powerup the board now"
+  ON powerup GOTO start
+  STOP
+start:
+  ON powerup
+  SYStem.Up
+
+; open some windows
+  WinCLEAR
+  WinPOS 0.0 0.0 80. 25. 15. 1. W000
+  List.auto
+
+; set terminal window
+  DO ~~/demo/etc/terminal/serial/term.cmm COM1 115200.
+  WinPOS 70.125 4.1875 80. 25. 0. 0. W001
+  TERM.view
+
+; let the bootloader initialize the board
+  Go.direct
+  WAIT 500.ms
+  Break.direct
+
+; set breakpoint at u-boot exit point
+  Break.Set 0x70008000 /Onchip
+
+; load uImage into Bootloader memory
+  Data.LOAD.Binary uImage 0x70800000
+
+; load vmlinux symbols
+  Data.LOAD.Elf vmlinux 0x70008000-0x80008000 /NoCODE /GNU 
+
+; stop autoboot
+  Go.direct
+  WAIT 500.ms
+  TERM.Out 13.
+
+; send commands to terminal to have linux actually boot
+  TERM.Out "run bootargs_base" 13.
+  WAIT 500.ms
+  TERM.Out "run bootargs_mmc" 13.
+  WAIT 500.ms
+  TERM.Out "bootm" 13.
+
+; reach u-boot exit point
+  WAIT !STATE.RUN()
+
+; reach starting kernel point
+  Go.direct
+  WAIT !STATE.RUN()
+
+  Break.RESet
+
+; update Linux command line to prevent debugger loss of control
+  DO imx53_command_line
+
+  Go.direct start_kernel /Onchip
+  WAIT !STATE.RUN()
+
+  Data.LOAD.Elf vmlinux /NoCODE /GNU 
+
+
+; Open a Code Window -- we like to see something
+  WinPOS 0. 0. 75. 20.
+  List.auto
+  SCREEN.display
+
+
+  Data.LOAD.Elf vmlinux /NoCODE /GNU /StripPART 7.
+
+; create debugger's MMU
+  MMU.FORMAT LINUX swapper_pg_dir 0x80000000--0x87ffffff 0x70000000
+  TRANSlation.Create 080000000--087ffffff 0x70000000 ; map kernel pages at RAM start
+  TRANSlation.COMMON 07f000000--0ffffffff            ; common area for kernel and processes
+  TRANSlation.TableWalk ON
+  TRANSlation.ON
+
+ ; Initialize multitasking support.
+ ; Note that the Linux awareness needs the kernel symbols to work
+ 
+ ; check linux major version
+  IF STRing.SCAN(Data.STRing(linux_banner), "Linux version 2.", 0)==0
+  (
+     &ka_path="~~/demo/arm/kernel/linux/linux-2.x"
+     &awareness="linux.t32"
+  )
+  ELSE
+  (
+     &ka_path="~~/demo/arm/kernel/linux/linux-3.x"
+     &awareness="linux3.t32"  
+  )
+ 
+  PRINT "initializing RTOS support..."
+  TASK.CONFIG &ka_path/&awareness               ; loads Linux awareness 
+  MENU.ReProgram &ka_path/linux            ; loads Linux menu 
+
+; you can test "sudo insmod tcrypt.ko" in target /home/lucid directory
+
+; Group kernel area to be displayed with red bar
+  GROUP.Create "kernel" 0x80000000--0xffffffff /RED
+
+  Go.direct
+
+  ENDDO

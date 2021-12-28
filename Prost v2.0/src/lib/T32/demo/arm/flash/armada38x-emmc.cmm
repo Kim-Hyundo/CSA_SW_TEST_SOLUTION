@@ -1,0 +1,145 @@
+; @Changelog: 2017-08-28 JIM
+; --------------------------------------------------------------------------------
+; @Title: ARMADA38x eMMC FLASH Programming Script
+; @Description:
+;
+; SRAM: 0x40000000
+; eMMC FLASH CONtroller(CPU-specific): 0xD00D8000 , Secure Digital IO(SDIO) 3.0
+;
+; @Author: jjeong
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; @Chip: 88F6820
+; @Keywords: eMMC flash
+; --------------------------------------------------------------------------------
+; $Id: armada38x-emmc.cmm 7605 2019-11-05 16:45:28Z bschroefel $
+
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+
+&MMC_BASE=0xD00D8000
+
+SYStem.RESet
+SYStem.CPU 88F6820
+CORE.ASSIGN 1.
+TrOnchip.Set RESET OFF
+SYStem.Up
+
+Break.direct 0x40000000 /Write
+Go.direct
+WAIT !STATE.RUN()
+Break.RESet
+
+PER.Set.simple C15:0x1 %Long (Data.Long(C15:0x1)&(~0x1004))
+
+//memory map to 0x40000000
+Data.Set A:0xD0020040 %LE %Long  0xf1991
+Data.Set A:0xD0020044 %LE %Long  0x40000000
+Data.Set A:0xD0020048 %LE %Long  0x00000000
+
+//pin mux
+Data.Set A:0xD0018008 %LE %Long 0x00400000
+Data.Set A:0xD001800C %LE %Long 0x00040000
+Data.Set A:0xD0018010 %LE %Long 0x04000000
+
+//configure SD Host controller
+Data.Set A:&MMC_BASE+0x04 %LE %Long 0x0200
+Data.Set A:&MMC_BASE+0x028 %LE %Long 0x0F04   ; SD BUS POWER ON
+Data.Set A:&MMC_BASE+0x02C %LE %Long 0xEFF07  ; 400Khz clk
+Data.Set A:&MMC_BASE+034 %LE %Long 0x307F0033
+Data.Set A:&MMC_BASE+0038 %LE %Long  0x8075003B
+Data.Set A:&MMC_BASE+010C %LE %Long 0x18063FFF
+Data.Set A:&MMC_BASE+0138 %LE %Long 0xE0000
+
+ GOSUB READ_ID_TEST
+
+ Break.RESet
+
+ FLASHFILE.RESet
+
+;FLASHFILE.CONFIG  <eMMC controller> <0x0> <0x0>
+ FLASHFILE.CONFIG  &MMC_BASE        0x0  0x0
+
+;FLASHFILE.TARGET <<code range>>      <<data range>>      <<algorithm file>>
+ FLASHFILE.TARGET 0x40000000++0x1fff  0x40002000++0x1fff  ~~/demo/arm/flash/byte/emmc.bin  /KEEP
+
+Data.Set A:&MMC_BASE+02C %LE %Long 0x0E8007 ; pls, make a slower clk around 400Khz for the initialization of MMC
+ FLASHFILE.GETID
+
+Data.Set A:&MMC_BASE+02C %LE %Long 0x0E0407 ; pls, make a higher clk around 25Mhz
+ FLASHFILE.GETEXTCSD
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+ENDDO
+
+
+//When you access to the other partition on the flash
+; FLASHFILE.SETEXTCSD 179. 0x48  ; access: partition null
+; FLASHFILE.SETEXTCSD 179. 0x49  ; access: partition boot 1
+; FLASHFILE.SETEXTCSD 179. 0x4A  ; access: partition boot 2
+
+ ;FLASHFILE.DUMP 0x0               ; Read eMMC
+ ;FLASHFILE.ERASE 0x0--0xFFFFF     ; Erase eMMC
+ ;FLASHFILE.LOAD * 0x0             ; Write eMMC
+
+ENDDO
+
+
+READ_ID_TEST:
+//MMC interface, not SD(HC)
+//CMD0
+RePeaT 2.
+(
+Data.Set &MMC_BASE+0x30 %Long 0xFFFFFFFF ;clear status
+Data.Set &MMC_BASE+0x8 %Long 0x0  ;arg
+Data.Set &MMC_BASE+0xc %Long 0x0  ;cmd
+WAIT 10.ms
+)
+
+//CMD1
+RePeaT 10.
+(
+Data.Set &MMC_BASE+0x30 %Long 0xFFFFFFFF ;clear status
+Data.Set &MMC_BASE+0x8 %Long 0x40FF8000 ;arg
+Data.Set &MMC_BASE+0xc %Long 0x01020000 ;cmd1
+WAIT 100.ms
+&resp=Data.Long(A:(&MMC_BASE+0x10))
+//print "CMD1 resp: 0x" &resp
+IF (&resp&0x80000000)==0x80000000
+(
+GOTO jump_cmd2
+)
+)
+
+PRINT "CMD1 fail"
+END
+
+jump_cmd2:
+//CMD2
+Data.Set &MMC_BASE+0x30 %Long 0xFFFFFFFF ;clear status
+Data.Set &MMC_BASE+0x8 %Long 0x0     ;arg
+Data.Set &MMC_BASE+0xc %Long 0x02010000 ;cmd2
+WAIT 10.ms
+
+//CMD3
+Data.Set &MMC_BASE+0x30 %Long 0xFFFFFFFF ;clear status
+Data.Set &MMC_BASE+0x8 %Long 0x00010000  ; arg, MMC RCA is (0x0001<<16.)
+Data.Set &MMC_BASE+0xc %Long 0x03020000  ;cmd3
+WAIT 10.ms
+
+//CMD10
+Data.Set &MMC_BASE+0x30 %Long 0xFFFFFFFF ;clear status
+Data.Set &MMC_BASE+0x8 %Long 0x00010000 ; arg, MMC RCA is (0x0001<<16.)
+Data.Set &MMC_BASE+0xc %Long 0x0A010000  ;cmd10
+WAIT 10.ms
+
+//Response2
+PRINT "CID register"
+PRINT "[127:104] 0x" Data.Long(A:(&MMC_BASE+0x1c))
+PRINT "[103:72]  0x" Data.Long(A:(&MMC_BASE+0x18))
+PRINT "[71:40]   0x" Data.Long(A:(&MMC_BASE+0x14))
+PRINT "[39:8]    0x" Data.Long(A:(&MMC_BASE+0x10))
+
+RETURN

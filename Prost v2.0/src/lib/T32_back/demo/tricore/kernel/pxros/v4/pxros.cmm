@@ -1,0 +1,45 @@
+; --------------------------------------------------------------------------------
+; @Title: PXROS (v4) Demo for TRACE32 OS Awareness
+; @Description:
+;   This script loads all necessary files to demonstrate
+;   the OS Awareness for PXROS.
+; @Keywords: awareness, Infineon, kernel, pxros, RTOS, TriCore, v4
+; @Author: DIE
+; @Chip: TC1796
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: pxros.cmm 13125 2018-09-11 14:03:01Z rdienstbeck $
+
+
+ SCREEN.ON
+ WinPAGE.RESet
+ WinPOS 0. 25. 70. 7. 0. 0. W000
+ AREA.view
+
+; debugger reset
+ PRINT "resetting..."
+ RESet
+
+; initialize debugger
+ PRINT "initializing..."
+ SYStem.CPU TC1796
+ SYStem.Up
+
+ SETUP.IMASKASM ON
+
+; load sample application
+ PRINT "loading sample application..."
+ Data.LOAD.Elf sample.elf
+
+; initialize RTOS support
+ PRINT "initializing PXROS support..."
+ TASK.CONFIG pxros.t32      ; load PXROS awareness
+ MENU.ReProgram pxros.men   ; load PXROS menu
+ HELP.FILTER.Add rtospxros  ; add PXROS awareness manual to filtered help
+
+ PRINT "load complete."
+
+; start the application
+ Go.direct Task1_Entry
+
+ ENDDO

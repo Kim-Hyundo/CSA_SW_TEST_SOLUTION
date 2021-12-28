@@ -1,0 +1,30 @@
+# Should be called with
+#
+# make -f Makefile.linux
+
+all: pread_tcp pproto_tcp.so.1
+
+pread_tcp: pread_tcp.o tcpsimple.o mypipe.o
+	gcc -o $@ $^
+
+pproto_tcp.so.1: pproto_tcp.o pipeproto.o tcpsimple.o mypipe.o
+	gcc -shared -o $@ $^
+
+pread_tcp.o: pread_tcp.c tcpsimple.h mypipe.h messages.h
+	gcc -Wall -O2 -DLINUX -c $<
+
+pproto_tcp.o: pproto_tcp.c pipeproto.h tcpsimple.h mypipe.h  messages.h
+	gcc -Wall -O2 -DLINUX -c $<
+
+pipeproto.o: pipeproto.c pipeproto.h
+	gcc -Wall -O2 -c $<
+
+tcpsimple.o: tcpsimple.c tcpsimple.h
+	gcc -Wall -O2 -DLINUX -c $<
+
+mypipe.o: mypipe.c mypipe.h
+	gcc -Wall -O2 -DLINUX -c $<
+
+
+clean:
+	rm -f *.o

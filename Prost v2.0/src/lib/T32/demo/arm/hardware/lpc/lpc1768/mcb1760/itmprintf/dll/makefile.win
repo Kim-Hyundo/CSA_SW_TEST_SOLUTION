@@ -1,0 +1,11 @@
+COPTS = -c -W3 -D_X86_=1 -DWIN32 -DMS_WINDOWS -Z7 -O2 -Gs
+
+all: viewprintf.dll
+
+viewprintf.dll: viewprintf.obj pipeproto.obj pipeproto.h
+	link -dll -out:viewprintf.dll viewprintf.obj pipeproto.obj -def:viewprintf.def
+
+.c.obj: ; cl $(COPTS) $*.c
+
+clean:
+	del /F *.obj *.exp *.ilk *.dll *.pdb

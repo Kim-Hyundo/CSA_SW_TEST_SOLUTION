@@ -1,0 +1,83 @@
+; --------------------------------------------------------------------------------
+; @Title: Coredump Load/Generation example for TI TMS570LS3137
+; @Description:
+;   This script shows how to generate a coredump for belated analysis in the TRACE32
+;   Instruction-Set Simulator.
+;   Usage:
+;     In a debug session call
+;       DO tms570ls31xxx_coredump
+;     . The script will generate multiple files holding the memory content of
+;     RAM/FLASH, registers ....
+;     To reload the generated files run the script with the unix-time prefix e.g.
+;       DO tms570ls31xxx_coredump 1488898327
+;     in the TRACE32 Simulator
+; @Keywords: ARM, Cortex-R4, Template, Coredump, Trace import
+; @Author: AME
+; @Board: TMS570LS31HDK
+; @Chip: TMS570LS31*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tms570ls31xx_coredump.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+ENTRY &param
+
+IF "&param"==""
+(
+  IF INTERFACE.SIM()
+  (
+    DIALOG.OK "This script must be called in a debug session. Aborting..."
+    ENDDO FALSE()
+  )
+  IF !SYStem.Up()||STATE.RUN()
+  (
+    DIALOG.OK "Debugsession must be connected and CPU stopped. Aborting..."
+    ENDDO FALSE()
+  )
+  ; create a coredump
+  PRIVATE &time
+  &time=FORMAT.DECIMAL(1.,CLOCK.UNIX())
+  Data.SAVE.Binary "~~~~/&(time)_FLASH_A_000000000_0003fffff.bin.zip" A:0x00000000--0x002fffff /ZIP
+  Data.SAVE.Binary "~~~~/&(time)_RAM_A_008000000_0200002ff.bin.zip"   A:0x08000000--0x0803ffff /ZIP
+
+  ; store contents of the register window
+  STOre "~~~~/&(time)_Register.cmm" Register
+
+  ; if a trace was recorded, store it
+  IF (Trace.METHOD.Analyzer()||Trace.METHOD.Onchip())
+  (
+    Trace.SAVE "~~~~/&(time)_trace.ad"
+  )
+)
+ELSE
+(
+  IF !INTERFACE.SIM()
+  (
+    DIALOG.OK "This script must be called in a simulator session. Aborting..."
+    ENDDO FALSE()
+  )
+
+  PRIVATE &time
+  ; cleanup parameter
+  &param=STRing.Replace("&param","""","",0.)
+  &time="&param"
+  SYStem.CPU TMS570LS3137-PGE
+  SYStem.Up
+
+  ; restore cpu registers
+  DO "~~~~/&(time)_Register.cmm"
+
+  ; load memory content
+  Data.LOAD.Binary "~~~~/&(time)_FLASH_A_000000000_0003fffff.bin.zip" A:0x00000000 /UNZIP
+  Data.LOAD.Binary "~~~~/&(time)_RAM_A_008000000_0200002ff.bin.zip"   A:0x08000000 /UNZIP
+
+  ; if available - load trace
+  IF OS.FILE("~~~~/&(time)_trace.ad")
+  (
+    Trace.LOAD "~~~~/&(time)_trace.ad"
+  )
+
+  ; last but not least reload debug symbols
+  Data.LOAD.Elf ~~~~/sieve_ram_arm_v7r_be.elf /NoCODE
+)
+
+ENDDO

@@ -1,0 +1,95 @@
+; --------------------------------------------------------------------------------
+; @Title: Off chip ETM trace script for XMC4500 Hexagon board
+; @Description:
+;   This is a small demo how to setup off chip ETM trace on Cortex-M4 for
+;   XMC4500 Hexagon Board
+; @Keywords: chip, Cortex-M4, ETM, off, SWD, trace
+; @Author: HDA
+; @Board: XMC4500 Hexagon
+; @Chip: XMC4500
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: xmc4500_etm_trace.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+  Break.RESet
+  SYStem.RESet
+  SYStem.CPU XMC4500
+  SYStem.Option ResBreak OFF
+  SYStem.CONFIG.DEBUGPORTTYPE SWD
+  SYStem.CONFIG.CONNECTOR MIPI20T
+
+  ; Init CombiProbe if available
+  IF hardware.COMBIPROBE()||hardware.UTRACE()
+  (
+    CAnalyzer.RESet
+    CAnalyzer.THreshold 1.6
+  )
+
+  SYStem.Up
+
+; Init internal SRAM
+  Data.Set 0x20000000++0FFFF %Long 0
+
+;load demo application
+  Data.LOAD.Elf ~~~~/demo.axf
+; load stack pointer and PC from vector table
+  Register.RESet
+  Register.Set PC main
+  Register.Set R13 0x20005000
+
+; Set Pin-Multiplexing for enabling the trace
+  Data.Set E:0x48028274 %Long 0x00401405                           ; Enable ETM Pins P2
+  Data.Set E:0x48028244 %Long Data.Long(E:0x48028244)&0xF00000FF   ; Inclease driver strength P2
+  Data.Set E:0x48028674 %Long 0x00001405                           ; Enable ETM Pins P6
+  Data.Set E:0x48028640 %Long Data.Long(E:0x48028640)&0xF00FF000   ; Inclease driver strength P6
+
+  IF hardware.COMBIPROBE()||hardware.UTRACE()
+  (
+    ; Init CombiProbe
+    Trace.METHOD CAnalyzer
+
+    IF COMBIPROBE()
+    (
+      CAnalyzer.CLOCKDelay MEDium
+    )
+    ELSE IF UTRACE()
+    (
+      CAnalyzer.CLOCKDelay MAXimum
+    )
+    CAnalyzer.Init
+  )
+  ELSE IF Analyzer()
+  (
+    Trace.METHOD Analyzer    ; Using ARM preprocessor
+  )
+
+  Trace.OFF              ; Enable the trace and turn it off
+
+  ETM.PortMode Continuous
+  ETM.PortSize 4.
+
+;Turn on ETM
+
+  ETM.OFF
+  ETM.ON
+
+  ; open some windows
+  WinCLEAR
+
+  WinPOS 0.14286 0.0 81. 43. 12. 1. W002
+  WinTABS 32.
+  Trace.List
+
+  WinPOS 85.714 0.083333 94. 22. 16. 3. W003
+  Trace.Chart.sYmbol
+
+  WinPOS 85.714 28.75 94. 14. 16. 1. W000
+  WinTABS 10. 10. 25. 62.
+  List.auto
+
+  Go.direct
+
+  WAIT 5.s
+  Break.direct
+  ENDDO

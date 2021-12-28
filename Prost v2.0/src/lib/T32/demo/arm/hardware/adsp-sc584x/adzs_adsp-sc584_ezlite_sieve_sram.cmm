@@ -1,0 +1,62 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo script for ADSP-SC584 on ADZS ADSP-SC584 EZLITE (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   Use this script for getting started.
+;   Prerequisites:
+;    * Debug cable/Combiprobe is connected to header P1 using adapter LA-3770
+;        or
+;      Debug cable/Combiprobe is connected to Mictor-38 using preprocessor LA-7992 
+;      or adapter LA-3722 or adapter LA-3862
+;    * Please short pins 12-14 on Mictor-38 (VREF-DEBUG <-> VREF-TRACE)
+;    * Please do not connect PIN9 (TRST) of P1 as this signal is defined as GND
+;      e.g. remove PIN9 or ripup PIN9 on MIPI-10 cable
+;    * Set SW6[1..6]=0y101010, SW7[1..6]=0y101000
+;    * Set BOOT_MODE rotary switch SW1 to 0
+;
+; @Keywords: ARM, Cortex-A5
+; @Author: AME
+; @Board: ADZS ADSP-SC584 EZLITE
+; @Chip: ADSP-SC58*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: adzs_adsp-sc584_ezlite_sieve_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU ADSP-SC584
+SYStem.JtagClock CTCK 10MHz
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_arm_v7.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

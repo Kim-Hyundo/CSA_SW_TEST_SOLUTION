@@ -1,0 +1,214 @@
+; --------------------------------------------------------------------------------
+; @Title: WinCE 6.0 Demo for TRACE32 OS Awareness on i.MX51 EVK Board
+; @Description:
+;
+;   This batchfile demonstrates the use of the OS Awareness for Windows CE 6
+;
+;   The example is generated for an i.MX51 EVK board using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   The Windows CE image is downloaded via the ICD.
+;
+; @Keywords: awareness, Windows
+; @Author: DIE
+; @Board: i.MX51-EVK
+; @Chip: iMX515
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: wince.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; Starting WinCE example with TRACE32:
+; - Start TRACE32
+; - TRACE32: "do wince"
+; - Start "control.exe" on target (Start->Settings->Control Panel)
+
+; IMPORTANT:
+; The standard Freescale iMX51 BSP disables the JTAG clocks.
+; You need to enable JTAG clocks by setting changing
+; platform/iMX51-EVK-PDK1_6/src/OAL/oallib/power.c:
+; #define OAL_JTAG_DEBUG
+
+; In Platfomr builder, set
+; Project -> Properties -> Configuration Properties -> Environment
+; IMGRAM256 = 1
+
+; For debugging with TRACE32 we recommend to disable demand paging
+; by setting bit one of ROMFLAGS in PLATFORM\iMX51-EVK-PDK1_6\FILES\config.bib
+
+; For Bootloader communication:
+; - Terminal on UART: 115200, 8N1N
+
+
+&reldir="C:\WINCE600\OSDesigns\iMX51-EVK-PDK1_6-Mobility\RelDir\Freescale_i_MX51_EVK_ARMV4I_Debug"
+&ebootdir="C:\WINCE600\OSDesigns\iMX51-EVK-PDK1_6-Mobility\RelDir\Freescale_i_MX51_EVK_ARMV4I_Release"
+
+
+ SCREEN.ON
+
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 24. 75. 8.
+ AREA.view
+
+ PRINT "resetting..."
+
+ RESet
+
+
+; setup of ICD
+
+ PRINT "initializing..."
+ SYStem.CPU iMX515
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ SYStem.Option ResBreak OFF     ; hardware dependent (see manual)
+ SYStem.Option EnReset ON       ; hardware dependent (see manual)
+ SYStem.JtagClock 20MHz         ; hardware dependent (see manual)
+ TrOnchip.Set DABORT OFF        ; used by wince for page miss!
+ TrOnchip.Set PABORT OFF        ; used by wince for page miss!
+ TrOnchip.Set UNDEF OFF         ; used to detect not present FPU
+ SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+ SETUP.IMASKASM ON              ; lock interrupts while single stepping
+
+ ; only allow access to DRAM and peripherals
+ MAP.DenyAccess
+ MAP.NoDenyAccess 0x73f00000--0x73ffffff    ; peripherals
+ MAP.NoDenyAccess 0x83f00000--0x83ffffff    ; peripherals
+ MAP.NoDenyAccess 0x90000000--0xafffffff    ; DRAM
+
+ SYStem.Up
+
+
+; Target Setup: initialize DRAM controller and peripherals
+
+ PRINT "target setup..."
+
+ ; Initialize the board
+ ; My bootloader didn't work correctly, so I do it by "hand"
+ DO imx51_to2_ddr2
+ ; Usually you should let the on-board bootloader initialize
+ ; everything (especially IRAM):
+ ; Go
+ ; wait 100.ms
+ ; Break
+
+ ; load boot loader (eboot)
+ Data.LOAD.Binary &ebootdir\eboot.nb0 0x90040000
+ ;Data.LOAD.Binary &ebootdir\eboot_secure.nb0 0x90040000
+ Register.Set PC 0x90040000
+
+ ; let eboot initialize everything
+ Go
+ PRINT "running eboot..."
+ WAIT 1.s
+ Break
+
+
+; Load the Windows CE image
+
+ ; Use the next lines only to load the image into
+ ; RAM using the debugger.
+
+ PRINT "loading Windows CE image..."
+
+ ; Prepare for direct download: disable MMU and L2 Cache!
+ PER.Set.simple C15:0x1   %Long Data.Long(c15:1)&~1        ; switch off MMU
+ PER.Set.simple C15:0x101 %Long Data.Long(c15:0x101)&~2    ; disable L2Cache
+ Register.RESet
+
+ ; download the image to physical address:
+ ; Data.LOAD.EXE nk.bin <physical>-<virtual>
+ ; see config.bib:
+ ; nk.bin is linked to (virtual) ROMSTART=0x80200000
+ ; virtual load address of nk.bin is ROMSTART+ROMOFFSET
+ ; default load address: 0x80200000
+ ; if IMGNAND:           0x9F9F0000
+ ; if IMGSDMMC:          0x9FA60000
+
+ Data.LOAD.eXe &reldir\nk.bin 0x90200000-0x80200000
+ ;Data.LOAD.EXE &reldir\nk.bin 0x90200000-0x9fa60000
+
+ ; set PC to physical start address
+ Register.Set PC 0x90200000
+
+
+; We'd like to see something, open a code window.
+ WinPOS 0. 0. 77. 22.
+ List.auto
+
+
+; Declare the MMU format to the debugger
+
+ ; table format is "WINCE6"
+ ; skip root table (0)
+ ; declare default translation for kernel
+ MMU.FORMAT WINCE6 0 0x80000000--0x9fffffff 0x90000000
+
+ ; ROM DLL, shared heap and kernel addresses are common to all processes
+ TRANSlation.COMMON 0x40000000--0x5fffffff 0x70000000--0xffffffff
+
+ ; debugger uses a table walk to decode virtual addresses
+ TRANSlation.TableWalk ON
+
+ ; switch on debugger(!) address translation
+ TRANSlation.ON
+
+
+; Initialize RTOS Support
+
+ PRINT "initializing Windows CE support..."
+ TASK.CONFIG ../wince6          ; loads WinCE awareness (wince6.t32)
+ MENU.ReProgram ../wince6       ; loads WinCE menu (wince6.men)
+ HELP.FILTER.Add rtoswince      ; add WinCE awareness manual to help
+
+ ; switch on autoloader and add path to symbol files to source path list
+ sYmbol.AutoLoad.CHECKWINCE "do "+OS.PPD()+"/../autoload "
+ sYmbol.SourcePATH.Set &reldir
+ GLOBAL &autoload_loadparams
+ &autoload_loadparams="/strippart ""dublin2-2"" "
+
+
+ ; Group kernel area to be displayed with red bar
+ GROUP.Create "winceos" 0x80000000--0xffffffff /RED
+
+
+; --- HACK --- HACK --- HACK ---
+
+; My BSP tries to use IRAM for the IPU - but this fails terribly.
+; Usually the on-board bootloader should initialize this correctly!
+; Failing my board to have a bootloader, I patch the IPU RAM
+; allocation to use top of DRAM.
+; YOU SHOULD NOT USE THIS HACK IN REAL SYSTEMS!
+
+ TASK.ROM.PA 0x90200000                                 ; physical address of image
+ DO ../loadrom ipuv3_base.dll &reldir/ipuv3_base.dll    ; load symbols of IPUV3 DLL
+ Go BSPGetIPUIRAMStartAddr+0x0c /Onchip                 ; go until IRAM addrss propagating
+ PRINT "patching IPU base..."
+ WAIT !STATE.RUN()
+ Register.Set R3 0xaffe1000                             ; patch IPU start address
+
+; --- HACK END ---
+
+
+; Now let's boot and start Windows CE!
+
+ Go
+ PRINT "booting Windows CE... (please wait)"
+ WAIT 10.s
+ Break
+
+
+ PRINT "done."
+
+
+; --------------------------------------------------------------------------------
+; Application Debugging
+; e.g. "control.exe"
+
+ DO ../app_debug control
+
+ ENDDO
+

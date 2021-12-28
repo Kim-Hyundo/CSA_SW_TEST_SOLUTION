@@ -1,0 +1,66 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for IMX515 on iMX51 EVK with Onchip-Trace (RAM, ETB)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Onchip-Trace (ETB).
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to J15
+;    * set Bootmode S1
+;      e.g. NOR S1[1..10]=0y00111011??
+;           MMC S1[1..10]=0y00000011??
+; @Keywords: ARM, Cortex-A8, ETB, ETM
+; @Author: AME
+; @Board: iMX51 EVK
+; @Chip: IMX515
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx51_evk_sieve_onchip_etb_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU IMX515
+; first connection attempt 3ms after de-asserting nRESET
+; adapt this time if necessary
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 3ms
+SYStem.JtagClock CTCK 10MHz
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_arm_v7.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; initialize ONCHIP trace (ETB)
+Trace.METHOD ONCHIP
+ETM.Trace ON
+ETM.ON
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

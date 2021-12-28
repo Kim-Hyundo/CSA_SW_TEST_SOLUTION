@@ -1,0 +1,45 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple SRAM demo for Embedded Artists eval board with LPC1778
+; @Description:
+;   Loads the sieve demo into SRAM and sets up a
+;   demo debug scenario.
+; @Keywords: NXP
+; @Author: STK
+; @Board: LPC1778
+; @Chip: LPC1778
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: lpc1778_simple_sram_demo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+; Basic setup
+
+  Break.Reset
+  SYStem.RESet
+  SYStem.CPU LPC1778
+  SYStem.Option ResBreak OFF
+  SYStem.Option DUALPORT ON
+  SYStem.CONFIG CONNECTOR MIPI20T
+  SYStem.MemAccess DAP
+  SYStem.Up
+
+  Go
+  Wait 1s
+  Break
+
+  ; Load the demo code into the SRAM
+  Data.LOAD.ELF ~~~~/demo.axf
+  Register.Set PC main
+  Register.Set R13 0x10005000
+
+; open some windows
+  WinCLEAR
+  WinPOS 0% 0% 100% 50%
+  List.auto
+  WinPOS 0% 50% 50% 50%
+  Frame /Locals /Caller
+  WinPOS 50% 50% 50% 50%
+  Var.Watch
+  Var.AddWatch ast; flags;
+
+  ENDDO

@@ -1,0 +1,84 @@
+﻿<UserControl x:Class="GraphProject.Views.TotalTestCoverageView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:GraphProject.Views"
+             mc:Ignorable="d"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             xmlns:md ="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
+             xmlns:cvt ="clr-namespace:GraphProject.Converter"
+             xmlns:models="clr-namespace:GraphProject.Models"
+             
+             xmlns:Etc="clr-namespace:GraphProject.Etc"
+             d:DesignWidth="800"
+             d:DataContext="{Binding TotalTestCoverageViewModel, Source={StaticResource Locator}}">
+    <UserControl.Resources>
+        <Etc:CommonUtil x:Key="CommonUtil"/>
+        <cvt:BrushConverter x:Key="BrushConverter" TrueBrush="#006400" FalseBrush="#7B0000"/>
+        <Style x:Key="SummaryTextBlock" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="11"/>
+        </Style>
+    </UserControl.Resources>
+    <Grid Margin="5">
+        <!--<Border Grid.Row="0" Grid.RowSpan="3" Grid.ColumnSpan="2" CornerRadius="5" Background="#2C000000" Margin="0,475,0,10"/>-->
+        <Border Grid.Row="0" CornerRadius="5" Background="#2C000000" VerticalAlignment="Top" Height="50"/>
+        <Border Grid.Row="0" Grid.RowSpan="3" Grid.ColumnSpan="2" CornerRadius="5" Background="#2C000000" Margin="0,60,0,10" VerticalAlignment="Top" Height="830"/>
+        <!--<Border Grid.Row="0" Grid.RowSpan="3" Grid.ColumnSpan="2" CornerRadius="5" Background="#2C000000" Margin="0,265,0,10" VerticalAlignment="Top" Height="200"/>-->
+        <md:Card UniformCornerRadius="3" VerticalAlignment="Top">
+            <StackPanel>
+                <Grid>
+                    <DockPanel>
+                        <StackPanel Width="450" Margin="10,10,5,5" Orientation="Horizontal"  HorizontalAlignment="Left" VerticalAlignment="Top" Background="#2CFFFFFF">
+                            <StackPanel Orientation="Vertical" Margin="30,10,20,5">
+                                <TextBlock Width="130" Foreground="White" FontSize="14" HorizontalAlignment="Center" Text="{Binding Title}" FontFamily="../Fonts/Roboto-Medium.ttf #Roboto"></TextBlock>
+                                <!--<TextBlock Foreground="White" FontSize="12" HorizontalAlignment="Center" Text="{Binding memorychartmodel.StartAddress}"></TextBlock>-->
+                            </StackPanel>
+                            <Canvas>
+                                <Rectangle Margin="2" Width="200" Height="30" Fill="#5C000000"/>
+                                <Rectangle Margin="3,3,0,0" Width="{Binding PercentBar}" Height="28">
+                                    <Rectangle.Fill>
+                                        <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+                                            <LinearGradientBrush.RelativeTransform>
+                                                <TransformGroup>
+                                                    <ScaleTransform CenterY="0.5" CenterX="0.5"/>
+                                                    <SkewTransform CenterY="0.5" CenterX="0.5"/>
+                                                    <RotateTransform Angle="-166.608" CenterY="0.5" CenterX="0.5"/>
+                                                    <TranslateTransform/>
+                                                </TransformGroup>
+                                            </LinearGradientBrush.RelativeTransform>
+                                            <GradientStop Color="#8C85A242" Offset="0"/>
+                                            <GradientStop Color="#8C93A754" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                            </Canvas>
+                            <TextBlock Margin="210,0,0,0" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="White" TextAlignment="Center" Text="{Binding PercentBarText}" FontWeight="Bold"/>
+                        </StackPanel>
+                    </DockPanel>
+                </Grid>
+
+                <lvc:CartesianChart MinHeight="80" Height="{Binding testCoverageModel.Statement_height}" Series="{Binding testCoverageModel.CoverageSeriesCollection}" LegendLocation="None" Margin="0,20,0,10" Visibility="{Binding Statement_visiblity}" DisableAnimations="True" Hoverable="False" DataTooltip="{x:Null}">
+                    <lvc:CartesianChart.AxisX>
+                        <lvc:Axis Title="Coverage" ShowLabels="True" Foreground="White"  LabelFormatter="{Binding testCoverageModel.Formatter}">
+                            <lvc:Axis.Separator>
+                                <lvc:Separator IsEnabled="False"></lvc:Separator>
+                            </lvc:Axis.Separator>
+                        </lvc:Axis>
+                    </lvc:CartesianChart.AxisX>
+                    <lvc:CartesianChart.AxisY>
+                        <lvc:Axis Title="Fuctions" ShowLabels="True" Foreground="White" Labels="{Binding testCoverageModel.Labels}">
+                            <lvc:Axis.Separator>
+                                <lvc:Separator IsEnabled="False" Step="1"></lvc:Separator>
+                            </lvc:Axis.Separator>
+                        </lvc:Axis>
+                    </lvc:CartesianChart.AxisY>
+
+                </lvc:CartesianChart>
+            </StackPanel>
+        </md:Card>
+    </Grid>
+</UserControl>
+

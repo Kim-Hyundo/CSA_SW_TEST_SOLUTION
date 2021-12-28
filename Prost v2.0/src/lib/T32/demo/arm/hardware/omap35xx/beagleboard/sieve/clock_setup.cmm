@@ -1,0 +1,59 @@
+; --------------------------------------------------------------------------------
+; @Title: Script for increasing the core and trace frequency (500/166) on a OMAP3 device
+; @Description: 
+;   Script for increasing the core and trace frequency (500/166) on a OMAP3 device.
+;   STK 2008.11.21
+; @Keywords: Frequency, OMAP, TI, Trace
+; @Author: STK
+; @Board: BeagleBoard
+; @Chip: OMAP3530
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: clock_setup.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+;
+; STK 2008.11.21
+  
+  ; Setting up clocks
+
+  ; Disable PLL settings  
+    ; Clock Control
+    Data.Set ASD:48004D00 %Long 0x00110015 ; Disable
+    Data.Set ASD:48004D00 %Long 0x00110015 ; Disable
+    ; MPU
+    Data.Set ASD:48004904 %Long 0x00000015 ; Disable
+    ; EMU
+    Data.Set ASD:48005140 %Long 0x02030A50
+
+  ; Setup PLL's
+    ; Clock control registers
+    Data.Set ANSD:0x48004D40 %Long 0x094C0C00
+    Data.Set ANSD:0x48004D44 %LONG 0x0001B00C
+    Data.Set ANSD:0x48004D48 %LONG 0x00000009 
+    Data.Set ANSD:0x48004D00 %LONG 0x00310035 
+      
+    ; WKUP
+    Data.Set ANSD:0x48004C40 %LONG 0x00000015 
+      
+    ; Core
+    Data.Set ANSD:0x48004A10 %LONG 0x00000042 
+    Data.Set ANSD:0x48004A40 %LONG 0x0000020A 
+      
+    ; MPU
+    Data.Set ANSD:0x48004940 %LONG 0x0011F40C 
+    Data.Set ANSD:0x48004904 %LONG 0x00000035
+      
+  ; Enable PLL's
+    ; Clock control registers
+    Data.Set ANSD:0x48004D00 %LONG 0x00370037
+      
+    ; MPU
+    Data.Set ANSD:0x48004904 %LONG 0x00000037
+  
+  ; Increase trace clock.
+  Data.Set ASD:0x48005140 %Long 0x03020A55
+  
+  
+  ENDDO
+ 

@@ -1,0 +1,189 @@
+<General Information>
+Test_Code_Path,C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW
+SW_Version,3.3
+CPU_Clock,3000000
+Test_SW_Version,
+Test_Code_List,"['.\\MANDO_FailSafe_Integration.c', 'prost_cstart.c', 'prost_cstart_tc1.c', 'prost_cstart_tc2.c', 'prost_cstart_tc3.c', 'prost_cstart_tc4.c', 'prost_cstart_tc5.c', 'prost_main.c', 'prost_stubs.c', 'SWC_Failsafe.c', 'FS_BatteryVoltage.c', 'FS_CANBusOff.c', 'FS_CANTimeout.c', 'FS_HWFailure.c', 'FS_InvalidSignal.c', 'FS_SWFailure.c', 'Rte_SWC_Diag.c', 'Stub.c', 'cinit.c', 'trapass.c', 'trapcont.c', 'trapmmu.c', 'trapprot.c', 'trapbus.c', 'trapinst.c', 'trapnmi.c', 'trapsys.c', 'memset.c', 'memcpy.c', '_Exit.c', 'cinit_tc1.c', 'cinit_tc2.c', 'cinit_tc3.c', 'cinit_tc4.c', 'cinit_tc5.c']"
+Test_CPU,tc39x
+Test_Project,MANDO_FailSafe_Integration
+HeaderFile_Path,
+Pcache,0
+Test_CompilerType,TASKING
+Comment,TRACE32_20_02
+Dcache,0
+Tester,
+Test_Component,MANDO_FailSafe_Integration
+CompilerVersion,6.2
+ 
+<Summary of Test Result>
+Test Sample Count,7
+Pass Count,7
+Pass Rate,100.0%
+Fail Count,0
+Fail Rate,0.0%
+ 
+<Summary of SW Execution Time(us)>
+Max Execution Time(FS_MasterLoop()),268.86
+Min Execution Time(FS_MasterLoop()),252.94
+ 
+<Stack Usage>
+Stack End Address,0x50004000
+Stack Pointer,0x50003FD0
+Stack Start Address,0x50000000
+ 
+<Total Memory Usage(Bytes)>
+Memory,Code,Data,Reserved,Free,Total,Usage
+dflash0,0,0,1048576,0,1048576,0.0%
+dflash0_cfs,0,0,65536,0,65536,0.0%
+dflash0_ucb,0,0,24576,0,24576,0.0%
+dflash1,0,0,131072,0,131072,0.0%
+pflash0,15738,10357,0,3119633,3145728,0.102%
+pflash1,0,0,0,3145728,3145728,0.0%
+pflash2,0,0,0,3145728,3145728,0.0%
+pflash3,0,0,0,3145728,3145728,0.0%
+pflash4,0,0,0,3145728,3145728,0.0%
+pflash5,0,0,0,1048576,1048576,0.0%
+brom,0,0,32768,0,32768,0.0%
+lmuram0,0,1464,133,260547,262144,0.006%
+lmuram1,0,0,262144,0,262144,0.0%
+lmuram2,0,0,262144,0,262144,0.0%
+lmuram3,0,0,262144,0,262144,0.0%
+dspr0,0,0,21508,76796,98304,0.0%
+dspr1,0,0,21504,76800,98304,0.0%
+dspr2,0,0,21504,76800,98304,0.0%
+dspr3,0,0,21504,76800,98304,0.0%
+dspr4,0,0,21504,76800,98304,0.0%
+dspr5,0,0,21504,76800,98304,0.0%
+pspr0,0,0,0,65536,65536,0.0%
+pspr1,0,0,0,65536,65536,0.0%
+pspr2,0,0,0,65536,65536,0.0%
+pspr3,0,0,0,65536,65536,0.0%
+pspr4,0,0,0,65536,65536,0.0%
+pspr5,0,0,0,65536,65536,0.0%
+mcs00,0,0,0,12288,12288,0.0%
+mcs01,0,0,0,12288,12288,0.0%
+mcs02,0,0,0,12288,12288,0.0%
+mcs03,0,0,0,12288,12288,0.0%
+mcs04,0,0,0,12288,12288,0.0%
+mcs05,0,0,0,12288,12288,0.0%
+mcs06,0,0,0,12288,12288,0.0%
+mcs07,0,0,0,12288,12288,0.0%
+mcs08,0,0,0,12288,12288,0.0%
+mcs09,0,0,0,12288,12288,0.0%
+Total,15738,11821,7075977,18389968,25493504,0.108%
+ 
+<Data/Code Usage for Target SW(Bytes)>
+prost_cstart,Total,806
+ ,ROM Code,802
+ ,ROM Data,0
+ ,RAM Code,0
+ ,RAM Data,4
+ 
+_Exit,Total,4
+ ,ROM Code,4
+ ,ROM Data,0
+ ,RAM Code,0
+ ,RAM Data,0
+ 
+SWC_Failsafe,Total,1714
+ ,ROM Code,1534
+ ,ROM Data,0
+ ,RAM Code,0
+ ,RAM Data,180
+ 
+FS_BatteryVoltage,Total,402
+ ,ROM Code,402
+ ,ROM Data,0
+ ,RAM Code,0
+ ,RAM Data,0
+ 
+FS_CANBusOff,Total,266
+ ,ROM Code,258
+ ,ROM Data,0
+ ,RAM Code,0
+ ,RAM Data,8
+ 
+FS_CANTimeout,Total,3040
+ ,ROM Code,2420
+ ,ROM Data,0
+ ,RAM Code,0
+ ,RAM Data,620
+ 
+FS_HWFailure,Total,196
+ ,ROM Code,196
+ ,ROM Data,0
+ ,RAM Code,0
+ ,RAM Data,0
+ 
+FS_InvalidSignal,Total,6101
+ ,ROM Code,5842
+ ,ROM Data,0
+ ,RAM Code,0
+ ,RAM Data,259
+ 
+FS_SWFailure,Total,381
+ ,ROM Code,380
+ ,ROM Data,0
+ ,RAM Code,0
+ ,RAM Data,1
+ 
+memcpy,Total,100
+ ,ROM Code,100
+ ,ROM Data,0
+ ,RAM Code,0
+ ,RAM Data,0
+ 
+memset,Total,86
+ ,ROM Code,86
+ ,ROM Data,0
+ ,RAM Code,0
+ ,RAM Data,0
+ 
+prost_cstart_tc1,Total,402
+ ,ROM Code,402
+ ,ROM Data,0
+ ,RAM Code,0
+ ,RAM Data,0
+ 
+prost_cstart_tc2,Total,402
+ ,ROM Code,402
+ ,ROM Data,0
+ ,RAM Code,0
+ ,RAM Data,0
+ 
+prost_cstart_tc3,Total,406
+ ,ROM Code,406
+ ,ROM Data,0
+ ,RAM Code,0
+ ,RAM Data,0
+ 
+prost_cstart_tc4,Total,406
+ ,ROM Code,406
+ ,ROM Data,0
+ ,RAM Code,0
+ ,RAM Data,0
+ 
+prost_main,Total,325
+ ,ROM Code,324
+ ,ROM Data,0
+ ,RAM Code,0
+ ,RAM Data,1
+ 
+prost_cstart_tc5,Total,406
+ ,ROM Code,406
+ ,ROM Data,0
+ ,RAM Code,0
+ ,RAM Data,0
+ 
+prost_stubs,Total,48
+ ,ROM Code,48
+ ,ROM Data,0
+ ,RAM Code,0
+ ,RAM Data,0
+ 
+Stub,Total,482
+ ,ROM Code,0
+ ,ROM Data,0
+ ,RAM Code,0
+ ,RAM Data,482
+ 

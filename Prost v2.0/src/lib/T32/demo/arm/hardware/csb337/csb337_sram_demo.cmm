@@ -1,0 +1,44 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple SRAM demo for the Cogent CSB337 (sieve)
+; @Description:
+;   Loads the sieve demo into SRAM and sets up a demo
+;   debug scenario. Use this script for getting started.
+; @Keywords: Cogent, sieve
+; @Author: KJM
+; @Board: CSB337 CSB637
+; @Chip: AT91RM9200
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: csb337_sram_demo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+ SYStem.Down
+ SYStem.CPU AT91RM9200
+ SYStem.Option ResBreak OFF
+ SYStem.Option WaitReset ON
+ SYStem.Option BigEndian OFF
+ SYStem.Up
+
+ DO ~~~~/csb337_init
+
+ Data.LOAD.Elf ~~~~/thumble.axf 0x20000000
+
+ ;relink
+ Data.Set main+0x15c %Long func3+1
+ Data.Set main+0x160 %Long DEFault
+ Data.Set main+0x168 %Long ast
+ Data.Set sieve+0x50 %Long flags
+
+ WinPOS 0% 0% 100% 50%
+ List.auto
+ WinPOS 0% 50% 50% 50%
+ Frame /Locals /Caller
+ WinPOS 50% 50% 50% 50%
+ Var.Watch flags ast
+
+ Register.Set cpsr 0x33
+ Register.Set PC main
+ Register.Set r13 0x20001000
+
+ ENDDO
+

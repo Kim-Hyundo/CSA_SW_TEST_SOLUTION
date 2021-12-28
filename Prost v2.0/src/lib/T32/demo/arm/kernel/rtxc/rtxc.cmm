@@ -1,0 +1,62 @@
+; --------------------------------------------------------------------------------
+; @Title: RTXC Demo for TRACE32 OS Awareness
+; @Description: -
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: rtxc.cmm 15227 2019-11-06 11:57:41Z bschroefel $
+
+
+; Emulator reset
+ PRINT "resetting..."
+ RESet
+ WinPAGE.RESet
+
+ PRINT "initializing..."
+
+; mappings to fit the example which is based on the ADS860 BSP
+
+ IF hardware.FIRE()
+ (
+  MAP.Ram 0--1ffff
+  MAP.Intern
+
+; Stand alone internal mode
+  SYStem.Mode AloneInt
+ )
+ IF INTERFACE.SIM()
+ (
+  SYStem.Up
+ )
+ IF hardware.ICD()
+ (
+  SYStem.Up
+  Data.Test 0--0ff
+  IF FOUND()
+  (
+   Go
+   WAIT 1.0s
+   Break
+  )
+ )
+
+; now load OS and sample application
+ PRINT "loading sample application..."
+ Data.LOAD.Elf exam.axf
+ Data.Assemble 8 mov pc,r14
+
+ PRINT "loading RTXC extension..."
+ TASK.CONFIG rtxc
+
+ PRINT "loading additional menu items..."
+ MENU.ReProgram rtxc
+
+ List.auto
+
+ PRINT "load complete."
+
+ ENDDO
+
+
+
+

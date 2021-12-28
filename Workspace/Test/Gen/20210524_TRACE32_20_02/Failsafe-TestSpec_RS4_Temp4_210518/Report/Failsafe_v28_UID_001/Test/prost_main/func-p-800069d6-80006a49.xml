@@ -1,0 +1,849 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="t32transform.xsl"?>
+<TRACE32 file="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Gen\20210524_TRACE32_20_02\Failsafe-TestSpec_RS4_Temp4_210518\Report\Failsafe_v28_UID_001\Test\prost_main\func-p-800069d6-80006a49.xml">
+	<coverage>
+		<COVerage.EXPORT.ListLine ts="1621823169" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE" metric="object">
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\Rte_SWC_Diag</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>-</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>0</never>
+				<bytes>638</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\FS_HWFailure</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>16</never>
+				<bytes>236</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\SWC_Failsafe</tree>
+				<cov>partial</cov>
+				<exec metric="object">0.600%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>16</never>
+				<bytes>1666</bytes>
+				<bytesok>10</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80002DEA</addrFrom>
+				<addrTo>P:80002F83</addrTo>
+				<tree>\\Test\FS_BatteryVoltage</tree>
+				<cov>partial</cov>
+				<exec metric="object">59.512%</exec>
+				<branches>52.000%</branches>
+				<ok>8</ok>
+				<taken>3</taken>
+				<nottaken>7</nottaken>
+				<never>7</never>
+				<bytes>410</bytes>
+				<bytesok>244</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80002F84</addrFrom>
+				<addrTo>P:800030BB</addrTo>
+				<tree>\\Test\FS_CANBusOff</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>17</never>
+				<bytes>312</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\FS_CANTimeout</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>350</never>
+				<bytes>2458</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\FS_InvalidSignal</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>350</never>
+				<bytes>6758</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\FS_SWFailure</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>17</never>
+				<bytes>304</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_cstart</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>5</never>
+				<bytes>806</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_cstart_tc1</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>402</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_cstart_tc2</tree>
+				<cov>partial</cov>
+				<exec metric="object">81.094%</exec>
+				<branches>87.500%</branches>
+				<ok>3</ok>
+				<taken>0</taken>
+				<nottaken>1</nottaken>
+				<never>0</never>
+				<bytes>402</bytes>
+				<bytesok>326</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_cstart_tc3</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_main</tree>
+				<cov>partial</cov>
+				<exec metric="object">27.835%</exec>
+				<branches>31.818%</branches>
+				<ok>1</ok>
+				<taken>4</taken>
+				<nottaken>1</nottaken>
+				<never>5</never>
+				<bytes>388</bytes>
+				<bytesok>108</bytesok>
+				<function>
+					<addrFrom>P:800069D6</addrFrom>
+					<addrTo>P:80006A49</addrTo>
+					<tree uid="p-800069d6-80006a49">\\Test\prost_main\main_core2</tree>
+					<cov>partial</cov>
+					<exec metric="object">58.620%</exec>
+					<branches>50.000%</branches>
+					<ok>0</ok>
+					<taken>4</taken>
+					<nottaken>1</nottaken>
+					<never>0</never>
+					<bytes>116</bytes>
+					<bytesok>68</bytesok>
+					<line>
+						<addrFrom>P:800069D6</addrFrom>
+						<addrTo>P:800069D7</addrTo>
+						<tree>prost_main.c \164--168</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800069DE</addrFrom>
+						<addrTo>P:800069E7</addrTo>
+						<tree>prost_main.c \169--170</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>10</bytes>
+						<bytesok>10</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800069D8</addrFrom>
+						<addrTo>P:800069DD</addrTo>
+						<tree>prost_main.c \171--171</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>6</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80006A46</addrFrom>
+						<addrTo>P:80006A49</addrTo>
+						<tree>prost_main.c \172--175</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80006A00</addrFrom>
+						<addrTo>P:80006A03</addrTo>
+						<tree>prost_main.c \176--178</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80006A04</addrFrom>
+						<addrTo>P:80006A05</addrTo>
+						<tree>prost_main.c \179--181</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>prost_main.c \182--182</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">85.714%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<bytes>14</bytes>
+						<bytesok>12</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80006A0A</addrFrom>
+						<addrTo>P:80006A0D</addrTo>
+						<tree>prost_main.c \183--183</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80006A0E</addrFrom>
+						<addrTo>P:80006A0F</addrTo>
+						<tree>prost_main.c \184--184</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80006A10</addrFrom>
+						<addrTo>P:80006A11</addrTo>
+						<tree>prost_main.c \185--185</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>prost_main.c \186--190</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>partial</cov>
+						<exec metric="object">88.888%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>16</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80006A14</addrFrom>
+						<addrTo>P:80006A17</addrTo>
+						<tree>prost_main.c \191--191</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>not taken</cov>
+						<exec metric="object">50.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>1</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80006A18</addrFrom>
+						<addrTo>P:80006A1B</addrTo>
+						<tree>prost_main.c \192--192</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80006A1C</addrFrom>
+						<addrTo>P:80006A1F</addrTo>
+						<tree>prost_main.c \193--193</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80006A20</addrFrom>
+						<addrTo>P:80006A21</addrTo>
+						<tree>prost_main.c \194--194</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>prost_main.c \195--199</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>6</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80006A24</addrFrom>
+						<addrTo>P:80006A27</addrTo>
+						<tree>prost_main.c \200--200</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">50.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80006A28</addrFrom>
+						<addrTo>P:80006A2B</addrTo>
+						<tree>prost_main.c \201--201</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80006A2C</addrFrom>
+						<addrTo>P:80006A2D</addrTo>
+						<tree>prost_main.c \202--202</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80006A2E</addrFrom>
+						<addrTo>P:80006A2F</addrTo>
+						<tree>prost_main.c \203--203</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>prost_main.c \204--208</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>partial</cov>
+						<exec metric="object">66.666%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80006A32</addrFrom>
+						<addrTo>P:80006A35</addrTo>
+						<tree>prost_main.c \209--209</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">50.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80006A36</addrFrom>
+						<addrTo>P:80006A39</addrTo>
+						<tree>prost_main.c \210--210</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80006A3A</addrFrom>
+						<addrTo>P:80006A3B</addrTo>
+						<tree>prost_main.c \211--211</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80006A3C</addrFrom>
+						<addrTo>P:80006A3D</addrTo>
+						<tree>prost_main.c \212--212</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80006A3E</addrFrom>
+						<addrTo>P:80006A3F</addrTo>
+						<tree>prost_main.c \213--215</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80006A40</addrFrom>
+						<addrTo>P:80006A45</addrTo>
+						<tree>prost_main.c \216--216</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">33.333%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80006A46</addrFrom>
+						<addrTo>P:80006A49</addrTo>
+						<tree>prost_main.c \217--217</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<total>
+						<cov>partial</cov>
+						<exec metric="object">60.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>4</taken>
+						<nottaken>1</nottaken>
+						<bytes>130</bytes>
+						<bytesok>78</bytesok>
+					</total>
+				</function>
+				<total>
+					<cov>partial</cov>
+					<exec metric="object">58.620%</exec>
+					<branches>50.000%</branches>
+					<ok>0</ok>
+					<taken>4</taken>
+					<nottaken>1</nottaken>
+					<never>0</never>
+					<bytes>116</bytes>
+					<bytesok>68</bytesok>
+				</total>
+			</module>
+			<module>
+				<addrFrom>P:800065B6</addrFrom>
+				<addrTo>P:8000674B</addrTo>
+				<tree>\\Test\prost_cstart_tc4</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:8000674C</addrFrom>
+				<addrTo>P:800068E1</addrTo>
+				<tree>\\Test\prost_cstart_tc5</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80006A62</addrFrom>
+				<addrTo>P:80006A91</addrTo>
+				<tree>\\Test\prost_stubs</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>2</never>
+				<bytes>48</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<total>
+				<cov>partial</cov>
+				<exec metric="object">4.287%</exec>
+				<branches>2.412%</branches>
+				<ok>12</ok>
+				<taken>7</taken>
+				<nottaken>9</nottaken>
+				<never>801</never>
+				<bytes>16046</bytes>
+				<bytesok>688</bytesok>
+			</total>
+		</COVerage.EXPORT.ListLine>
+	</coverage>
+	<marker>
+		<BookMark.EXPORT ts="1621823169" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE">
+		</BookMark.EXPORT>
+	</marker>
+	<listing>
+		<List.EXPORT ts="1621823169" t32ver="R.2020.09.000128638" t32pv="TRICORE" order="source">
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c">
+				<hll><line>164</line><src></src></hll>
+				<hll><line>165</line><src>    }</src></hll>
+				<hll><line>166</line><src>}</src></hll>
+				<hll><line>167</line><src></src></hll>
+				<hll><cov>ok</cov><line>168</line><src>void main_core2(void)</src></hll>
+				<asm><cov>ok</cov><addr>P:800069D6</addr><code>0820</code><label>main_core2:                                                                                                                                                                                                                                                     </label><mnemonic>sub16.a   a10,#0x8</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c">
+				<hll><line>169</line><src>{</src></hll>
+				<hll><cov>ok</cov><line>170</line><src>    int loop_cnt = 1;</src></hll>
+				<asm><cov>ok</cov><addr>P:800069DE</addr><code>1982</code><mnemonic>mov16     d9,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800069E0</addr><code>C9004091</code><mnemonic>movh.a    a12,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800069E4</addr><code>707CCCD9</code><mnemonic>lea       a12,[a12]0x5FC</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c">
+				<hll><cov>ok</cov><line>171</line><src>    Stack2_Fill();</src></hll>
+				<asm><cov>ok</cov><addr>P:800069D8</addr><code>1882</code><mnemonic>mov16     d8,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800069DA</addr><code>FFAAFF6D</code><mnemonic>call      0x8000692E</mnemonic><comment>Stack2_Fill</comment></asm>
+			</mixed>
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c">
+				<hll><line>172</line><src></src></hll>
+				<hll><line>173</line><src></src></hll>
+				<hll><line>174</line><src></src></hll>
+				<hll><cov>never</cov><line>175</line><src>    while(1)</src></hll>
+				<asm><cov>never</cov><addr>P:80006A46</addr><code>1882</code><mnemonic>mov16     d8,#0x1</mnemonic><comment>loop_cnt,#1</comment></asm>
+				<asm><cov>never</cov><addr>P:80006A48</addr><code>DC3C</code><mnemonic>j16       0x80006A00</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c">
+				<hll><line>176</line><src>    {</src></hll>
+				<hll><line>177</line><src></src></hll>
+				<hll><cov>ok</cov><line>178</line><src>        Check_Point();</src></hll>
+				<asm><cov>ok</cov><addr>P:80006A00</addr><code>FA37FF6D</code><mnemonic>call      0x80005E6E</mnemonic><comment>Check_Point</comment></asm>
+			</mixed>
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c">
+				<hll><line>179</line><src>        if(loop_cnt % 1 == 0) </src></hll>
+				<hll><line>180</line><src>        {</src></hll>
+				<hll><cov>never</cov><line>181</line><src>            __T15_RUNNABLE_FLAGS[0] = 1;</src></hll>
+				<asm><cov>never</cov><addr>P:80006A04</addr><code>F934</code><mnemonic>st16.b    [a15],d9</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c" type="multiple">
+				<hll><cov>ok</cov><line>182</line><src>            if((run_func_flag &amp; BIT(FS_UpdateInfo_CANBusOff_flag))==BIT(FS_UpdateInfo_CANBusOff_flag))</src></hll>
+				<asm><cov>ok</cov><addr>P:800069DE</addr><code>1982</code><mnemonic>mov16     d9,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800069E0</addr><code>C9004091</code><mnemonic>movh.a    a12,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800069E4</addr><code>707CCCD9</code><mnemonic>lea       a12,[a12]0x5FC</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80006A06</addr><code>CF54</code><mnemonic>ld16.w    d15,[a12]</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80006A08</addr><code>032E</code><mnemonic>jz16.t    d15,#0x0,0x80006A0E</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c">
+				<hll><cov>never</cov><line>183</line><src>                FS_UpdateInfo_CANBusOff(); </src></hll>
+				<asm><cov>never</cov><addr>P:80006A0A</addr><code>E2F2FF6D</code><mnemonic>call      0x80002FEE</mnemonic><comment>FS_UpdateInfo_CANBusOff</comment></asm>
+			</mixed>
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c">
+				<hll><cov>never</cov><line>184</line><src>            __T15_RUNNABLE_FLAGS[0] = 0;</src></hll>
+				<asm><cov>never</cov><addr>P:80006A0E</addr><code>FA34</code><mnemonic>st16.b    [a15],d10</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c">
+				<hll><cov>never</cov><line>185</line><src>            __asm(&quot;nop&quot;);</src></hll>
+				<asm><cov>never</cov><addr>P:80006A10</addr><code>0000</code><mnemonic>nop16     </mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c" type="multiple">
+				<hll><line>186</line><src>        }</src></hll>
+				<hll><line>187</line><src></src></hll>
+				<hll><line>188</line><src>        if(loop_cnt % 1 == 0) </src></hll>
+				<hll><line>189</line><src>        {</src></hll>
+				<hll><cov>ok</cov><line>190</line><src>            __T15_RUNNABLE_FLAGS[1] = 1;</src></hll>
+				<asm><cov>ok</cov><addr>P:800069E8</addr><code>0A82</code><mnemonic>mov16     d10,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800069EA</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800069EE</addr><code>705EFFD9</code><mnemonic>lea       a15,[a15]0x5DE</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800069F2</addr><code>0A01F249</code><mnemonic>lea       a2,[a15]0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800069F6</addr><code>A2F4</code><mnemonic>st16.a    [a10],a2</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80006A12</addr><code>1928</code><mnemonic>st16.b    [a15]0x1,d9</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c">
+				<hll><did>not</did><dec>taken</dec><cov>taken</cov><line>191</line><src>            if((run_func_flag &amp; BIT(FS_UpdateInfo_BatteryVoltage_flag))==BIT(FS_UpdateInfo_BatteryVoltage_flag))</src></hll>
+				<asm><cov>ok</cov><addr>P:80006A14</addr><code>CF54</code><mnemonic>ld16.w    d15,[a12]</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:80006A16</addr><code>132E</code><mnemonic>jz16.t    d15,#0x1,0x80006A1C</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c">
+				<hll><cov>ok</cov><line>192</line><src>                FS_UpdateInfo_BatteryVoltage(); </src></hll>
+				<asm><cov>ok</cov><addr>P:80006A18</addr><code>E22EFF6D</code><mnemonic>call      0x80002E74</mnemonic><comment>FS_UpdateInfo_BatteryVoltage</comment></asm>
+			</mixed>
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c">
+				<hll><cov>never</cov><line>193</line><src>            __T15_RUNNABLE_FLAGS[1] = 0;</src></hll>
+				<asm><cov>never</cov><addr>P:80006A1C</addr><code>A2D4</code><mnemonic>ld16.a    a2,[a10]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80006A1E</addr><code>2A34</code><mnemonic>st16.b    [a2],d10</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c">
+				<hll><cov>ok</cov><line>194</line><src>            __asm(&quot;nop&quot;);</src></hll>
+				<asm><cov>ok</cov><addr>P:80006A20</addr><code>0000</code><mnemonic>nop16     </mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c" type="multiple">
+				<hll><line>195</line><src>        }</src></hll>
+				<hll><line>196</line><src></src></hll>
+				<hll><line>197</line><src>        if(loop_cnt % 1 == 0) </src></hll>
+				<hll><line>198</line><src>        {</src></hll>
+				<hll><cov>ok</cov><line>199</line><src>            __T15_RUNNABLE_FLAGS[2] = 1;</src></hll>
+				<asm><cov>ok</cov><addr>P:800069F8</addr><code>0A02FD49</code><mnemonic>lea       a13,[a15]0x2</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80006A22</addr><code>D934</code><mnemonic>st16.b    [a13],d9</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c">
+				<hll><cov>taken</cov><line>200</line><src>            if((run_func_flag &amp; BIT(FS_UpdateInfo_CANTimeout_flag))==BIT(FS_UpdateInfo_CANTimeout_flag))</src></hll>
+				<asm><cov>ok</cov><addr>P:80006A24</addr><code>CF54</code><mnemonic>ld16.w    d15,[a12]</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80006A26</addr><code>232E</code><mnemonic>jz16.t    d15,#0x2,0x80006A2C</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c">
+				<hll><cov>never</cov><line>201</line><src>                FS_UpdateInfo_CANTimeout(); </src></hll>
+				<asm><cov>never</cov><addr>P:80006A28</addr><code>E5EAFF6D</code><mnemonic>call      0x800035FC</mnemonic><comment>FS_UpdateInfo_CANTimeout</comment></asm>
+			</mixed>
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c">
+				<hll><cov>never</cov><line>202</line><src>            __T15_RUNNABLE_FLAGS[2] = 0;</src></hll>
+				<asm><cov>never</cov><addr>P:80006A2C</addr><code>DA34</code><mnemonic>st16.b    [a13],d10</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c">
+				<hll><cov>never</cov><line>203</line><src>            __asm(&quot;nop&quot;);</src></hll>
+				<asm><cov>never</cov><addr>P:80006A2E</addr><code>0000</code><mnemonic>nop16     </mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c" type="multiple">
+				<hll><line>204</line><src>        }</src></hll>
+				<hll><line>205</line><src></src></hll>
+				<hll><line>206</line><src>        if(loop_cnt % 1 == 0) </src></hll>
+				<hll><line>207</line><src>        {</src></hll>
+				<hll><cov>ok</cov><line>208</line><src>            __T15_RUNNABLE_FLAGS[3] = 1;</src></hll>
+				<asm><cov>ok</cov><addr>P:800069FC</addr><code>0A03FE49</code><mnemonic>lea       a14,[a15]0x3</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80006A30</addr><code>E934</code><mnemonic>st16.b    [a14],d9</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c">
+				<hll><cov>taken</cov><line>209</line><src>            if((run_func_flag &amp; BIT(FS_UpdateInfo_InvalidSignal_flag))==BIT(FS_UpdateInfo_InvalidSignal_flag))</src></hll>
+				<asm><cov>ok</cov><addr>P:80006A32</addr><code>CF54</code><mnemonic>ld16.w    d15,[a12]</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80006A34</addr><code>332E</code><mnemonic>jz16.t    d15,#0x3,0x80006A3A</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c">
+				<hll><cov>never</cov><line>210</line><src>                FS_UpdateInfo_InvalidSignal(); </src></hll>
+				<asm><cov>never</cov><addr>P:80006A36</addr><code>EDABFF6D</code><mnemonic>call      0x8000458C</mnemonic><comment>FS_UpdateInfo_InvalidSignal</comment></asm>
+			</mixed>
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c">
+				<hll><cov>never</cov><line>211</line><src>            __T15_RUNNABLE_FLAGS[3] = 0;</src></hll>
+				<asm><cov>never</cov><addr>P:80006A3A</addr><code>EA34</code><mnemonic>st16.b    [a14],d10</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c">
+				<hll><cov>ok</cov><line>212</line><src>            __asm(&quot;nop&quot;);</src></hll>
+				<asm><cov>ok</cov><addr>P:80006A3C</addr><code>0000</code><mnemonic>nop16     </mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c">
+				<hll><line>213</line><src>        }</src></hll>
+				<hll><line>214</line><src></src></hll>
+				<hll><cov>ok</cov><line>215</line><src>        loop_cnt++;</src></hll>
+				<asm><cov>ok</cov><addr>P:80006A3E</addr><code>18C2</code><mnemonic>add16     d8,#0x1</mnemonic><comment>loop_cnt,#1</comment></asm>
+			</mixed>
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c">
+				<hll><cov>taken</cov><line>216</line><src>        if(loop_cnt &gt; 100)</src></hll>
+				<asm><cov>ok</cov><addr>P:80006A40</addr><code>64DA</code><mnemonic>mov16     d15,#0x64</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80006A42</addr><code>7FDF8F7F</code><mnemonic>jge       d15,d8,0x80006A00</mnemonic><comment>d15,loop_cnt,0x80006A00</comment></asm>
+			</mixed>
+			<mixed module="\\Test\prost_main" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\prost_main.c">
+				<hll><cov>never</cov><line>217</line><src>            loop_cnt  = 1;</src></hll>
+				<asm><cov>never</cov><addr>P:80006A46</addr><code>1882</code><mnemonic>mov16     d8,#0x1</mnemonic><comment>loop_cnt,#1</comment></asm>
+				<asm><cov>never</cov><addr>P:80006A48</addr><code>DC3C</code><mnemonic>j16       0x80006A00</mnemonic></asm>
+			</mixed>
+		</List.EXPORT>
+	</listing>
+</TRACE32>

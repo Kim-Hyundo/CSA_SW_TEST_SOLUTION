@@ -1,0 +1,16 @@
+//변수 확인
+B::
+ENTRY &para1
+ON ERROR JUMPTO errorhandler
+
+&result=var.Value(&para1)
+print %decimal &result
+
+ON ERROR
+ENDDO &result
+
+
+errorhandler:
+PRINT %ERROR "ERROR5"
+ON ERROR
+ENDDO ERROR

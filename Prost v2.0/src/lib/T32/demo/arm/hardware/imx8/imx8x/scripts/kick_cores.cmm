@@ -1,0 +1,210 @@
+; --------------------------------------------------------------------------------
+; @Title: Kick secondary cores on i.MX8X
+; @Description:
+;   This script assists in starting the secondary cores on a i.MX8X platform.
+;   The scripts are tested in a bare metal environment only.
+;   Parameters:
+;     A35_234    - kick secondary A35 cores @0x80000000
+;     M4_0       - kick first M4 core
+;     M4_1       - kick second M4 core
+;     NOBOOTLOOP - don't assemble a bootloop into TCM/DDR
+;     CSGPR      - try to use the CS-GPR instead of the IPC interface
+;   Usage:
+;     DO kick_cores "A35_234"
+;     DO kick_cores "M4_0"
+;
+; @Keywords: ARM, i.MX8X, IPC, GPR
+; @Author: AME
+; @Board: -
+; @Chip: IMX8?X*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: kick_cores.cmm 15970 2020-04-22 13:09:39Z bschroefel $
+
+PRIVATE &params
+ENTRY %LINE &params
+
+PRIVATE &bA35_1 &bA35_234 &bM4_0 &bM4_1 &bNoBootloop &bCsGpr
+&params=STRing.UPpeR("&params")
+&bA35_1=STRing.SCAN("&params","A35_1",0.)>=0.
+&bA35_234=STRing.SCAN("&params","A35_234",0.)>=0.
+&bM4_0=STRing.SCAN("&params","M4_0",0.)>=0.
+&bM4_1=STRing.SCAN("&params","M4_1",0.)>=0.
+&bNoBootloop=STRing.SCAN("&params","NOBOOTLOOP",0.)>=0.
+&bCsGpr=STRing.SCAN("&params","CSGPR",0.)>=0.     ; Use Granular Power Requestor?
+&sRevision=STRing.SCANAndExtract("&params","REVISION=","B0")
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF VERSION.BUILD()<93512.
+(
+  PRINT %ERROR "Please use more recent software."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+
+IF !(&bCsGpr)
+(
+  PRIVATE &ipcBase
+  &ipcBase=0x5D1C0000
+  IF "&sRevision"=="B0"
+    &ipcBase=0x5D1B0000
+
+  GOSUB IpcInit "&ipcBase"
+
+  IF (&bA35_234)
+  (
+    ;Data.Set AD:0x52090000 %Long 0xc
+    ;Data.Set AD:0x52090008 %Long 0x1
+
+    IF (!&bNoBootloop)
+    (
+      Data.Set AD:0x80000000 %Long 0xea000000 // AArch64: "ands x0,x0,x0"; AArch32: "B $+0x8"
+      Data.Set AD:0x80000004 %Long 0x14000000 // AArch64: "b $+0x0"
+      Data.Set AD:0x80000008 %Long 0xeafffffe // AArch32: "b $+0x0"
+    )
+  )
+
+  IF (&bA35_234)
+  (
+    ; SC_R_A35_1, SC_PM_PW_MODE_ON
+    GOSUB SetResourcePowerMode "&ipcBase" "509." "0x3"
+    GOSUB CpuStart "&ipcBase" "509." "0x1" "0x80000000"
+
+    ; SC_R_A35_2, SC_PM_PW_MODE_ON
+    GOSUB SetResourcePowerMode "&ipcBase" "510." "0x3"
+    GOSUB CpuStart "&ipcBase" "510." "0x1" "0x80000000"
+
+    ; SC_R_A35_3, SC_PM_PW_MODE_ON
+    GOSUB SetResourcePowerMode "&ipcBase" "511." "0x3"
+    GOSUB CpuStart "&ipcBase" "511." "0x1" "0x80000000"
+
+    ; Enable snoop and dvm msg requests for a53 port on CCI slave interface 3
+    ;Data.Set AD:0x52094000 %Long 0x2|0x1
+    ;WAIT (Data.Long(AD:0x5209000c)&0x1)==0
+  )
+
+  IF (&bM4_0)
+  (
+    ; SC_R_M4_0_PID0, SC_PM_PW_MODE_ON
+    GOSUB SetResourcePowerMode "&ipcBase" "0x116" "0x3"
+    ; SC_R_M4_0_MU_1A, SC_PM_PW_MODE_ON
+    GOSUB SetResourcePowerMode "&ipcBase" "0x129" "0x3"
+    Data.Set AD:0x34FE0000++0x3ff %Long 0x441
+    Data.Set AD:0x34FE0000 %Long 0x8000 0x440|0x1
+    Data.Set AD:0x34FE0440 %Long 0xe7fee7fe
+    GOSUB CpuStart "&ipcBase" "0x116" "0x1" "0x34FE0000"
+  )
+
+  IF (&bM4_1)
+  (
+    ; SC_R_M4_1_PID0, SC_PM_PW_MODE_ON
+    GOSUB SetResourcePowerMode "&ipcBase" "0x12a" "0x3"
+    ; SC_R_M4_1_MU_1A, SC_PM_PW_MODE_ON
+    GOSUB SetResourcePowerMode "&ipcBase" "0x13d" "0x3"
+    Data.Set AD:0x38FE0000++0x3ff %Long 0x441
+    Data.Set AD:0x38FE0000 %Long 0x8000 0x440|0x1
+    Data.Set AD:0x38FE0440 %Long 0xe7fee7fe
+    ; SC_R_M4_1_PID0, ENABLE, TCM-Addr
+    GOSUB CpuStart "&ipcBase" "0x12a" "0x1" "0x38FE0000"
+  )
+)
+ELSE
+(
+  ; Use the CoreSight Granular Power Requestor (CS-GPR)
+  PRIVATE &nPwrMask
+  &nPwrMask=0.
+
+  ; Assemble power mask for cores to be checked and powered
+  IF (&bA35_1)
+  (
+    &nPwrMask=(1<<5.)
+  )
+
+  IF (&bM4_0)
+  (
+    &nPwrMask=(1<<6.)
+  )
+
+  IF (&bA35_234)
+  (
+    PRINT %ERROR "Not supported!"
+    ENDDO "FALSE()"
+  )
+
+  IF (&nPwrMask!=0x0)
+  (
+    IF (Data.Long(EAPB:0x80070004)&(&nPwrMask))==0x0                              ; Check CPWRUPACK[6] for Cortex-M4, CPWRUPACK[5] for Cortex-A35
+    (
+      Data.Set EAPB:0x80070000 %LE %Long Data.Long(EAPB:0x80070000)|&nPwrMask     ; CPWRUPREQ[6] = 1 for CM4 power request, CPWRUPREQ[5] = 1 for CA35 power request
+      WAIT (Data.Long(EAPB:0x80070004)&(&nPwrMask))!=0x0 1.s                      ; Wait for power request acknowledge
+      IF (Data.Long(EAPB:0x80070004)&(&nPwrMask))==0x0
+      (
+        PRINT %ERROR "CS-GPR: Power Request Timeout"
+        ENDDO "FALSE()"
+      )
+    )
+  )
+)
+
+ENDDO "TRUE()"
+
+; --------------------------------------------------------------------------------
+; SUBROUTINES
+; --------------------------------------------------------------------------------
+
+IpcInit: ;(ipc)
+(
+  PARAMETERS &ipc
+  ; clear GIEn, RIEn, TIEn, GIRn, Fn bits
+  Data.Set AD:&ipc+0x24 %Long Data.Long(AD:&ipc+0x24)&~(0xffff0007)
+  RETURN
+)
+
+SetResourcePowerMode: ;(ipc, resource, mode)
+(
+  PARAMETERS &ipc &resource &mode
+  ; FUNC=PM_FUNC_SET_RESOURCE_POWER_MODE, SVC=SC_RPC_SVC_PM, SIZE=2, VERSION=1
+  WAIT (Data.Long(AD:&ipc+0x20)&((0x1<<23.)>>0.))!=0
+  Data.Set AD:&ipc+0x0 %Long (0x3<<24.)|(0x2<<16.)|(0x2<<8.)|(0x1<<0.)
+  WAIT (Data.Long(AD:&ipc+0x20)&((0x1<<23.)>>1.))!=0
+  Data.Set AD:&ipc+0x4 %Long (&mode<<16.)|(&resource<<0.)
+
+  PRIVATE &val
+  WAIT (Data.Long(AD:&ipc+0x20)&((0x1<<27.)>>0.))!=0
+  &val=Data.Long(AD:&ipc+0x10)
+  IF (&val&0xff00ff00)!=0x00000100
+  (
+    PRINT %Error "Error in sequence..."
+    ENDDO "FALSE()"
+  )
+
+  RETURN
+)
+
+CpuStart: ;(ipc, resource, enable, address)
+(
+  PARAMETERS &ipc &resource &enable &address
+
+  ; FUNC=PM_FUNC_CPU_START, SVC=SC_RPC_SVC_PM, SIZE=4, VERSION=1
+  WAIT (Data.Long(AD:&ipc+0x20)&((0x1<<23.)>>0.))!=0
+  Data.Set AD:&ipc+0x0 %Long (0xb<<24.)|(0x2<<16.)|(0x4<<8.)|(0x1<<0.)
+  WAIT (Data.Long(AD:&ipc+0x20)&((0x1<<23.)>>1.))!=0
+  Data.Set AD:&ipc+0x4 %Long &address>>32.
+  WAIT (Data.Long(AD:&ipc+0x20)&((0x1<<23.)>>2.))!=0
+  Data.Set AD:&ipc+0x8 %Long &address&0xffffffff
+  WAIT (Data.Long(AD:&ipc+0x20)&((0x1<<23.)>>3.))!=0
+  Data.Set AD:&ipc+0xc %Long (&enable<<16.)|(&resource<<0.)
+
+  PRIVATE &val
+  WAIT (Data.Long(AD:&ipc+0x20)&((0x1<<27.)>>0.))!=0
+  &val=Data.Long(AD:&ipc+0x10)
+  IF (&val&0xff00ff00)!=0x00000100
+  (
+    PRINT %Error "Error in sequence..."
+    ENDDO "FALSE()"
+  )
+
+  RETURN
+)

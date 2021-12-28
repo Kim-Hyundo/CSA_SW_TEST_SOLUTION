@@ -1,0 +1,71 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo script for STM32WB55RG-CM4 on P-Nucleo-WB55 (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   Use this script for getting started.
+;   Prerequisites:
+;    * Both USB dongle and Nucleo-Board do not have standard debug header,
+;      so the debug dignals need to be connected via pin rows
+;    * On the USB dongle connect debug signals to CN1:
+;         SWDIO  -> PA13 (CN1 pin 3)
+;         SWDCLK -> PA14 (CN1 pin 4)
+;         SWO    -> PB3  (CN1 pin 5)
+;         nReset -> nRST (CN1 pin 2)
+;         VREF   -> 3V3  (CN1 pin 6)
+;    * On Nucleo board remove jumper on JP5 and connect
+;         SWDIO  -> PA13 (JP5 pin 5)
+;         SWDCLK -> PA14 (JP5 pin 7)
+;         SWO    -> PB3  (JP5 pin 9)
+;         nReset -> nRST (JP5 pin 3)
+;         VREF   -> 3V3  (JP5 pin 11)
+; @Keywords: ARM, Cortex-M4
+; @Author: STK
+; @Board: P-Nucleo-WB55
+; @Chip: STM32WB55RG-CM4
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: p-nucleo-wb55_sieve_sram.cmm 15516 2020-01-13 16:43:47Z skrausse $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU STM32WB55RG-CM4
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

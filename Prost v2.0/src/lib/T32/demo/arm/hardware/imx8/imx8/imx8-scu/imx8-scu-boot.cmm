@@ -1,0 +1,102 @@
+; --------------------------------------------------------------------------------
+; @Title: Start & debug the SCU of i.MX8QM
+; @Description:
+;   This scripts loads the SC_FW from the NXP BSP into the SCU-TCM and starts the
+;   SCU. This script may be used to debug the SCU.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe
+;   Notes:
+;    * the scfw_tcm.elf provided with this package was created using the
+;      sc_fw-porting-kit Version 0.4
+;      make B=none qm
+; @Keywords: ARM, Cortex-M4
+; @Author: AME
+; @Board: -
+; @Chip: IMX8Q* IMX8D*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx8-scu-boot.cmm 15576 2020-01-27 10:11:09Z alintner $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU IMX8QM-SCU
+SYStem.Option SYSRESETREQ OFF
+SYStem.Option VECTRESET OFF
+SYStem.Option EnRESET ON
+SYStem.Option ResBreak ON
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; cleanup SCU status
+; Disable MPU (enabled by SCU ROM)
+Data.Set AD:0xE000ED94 %Long 0x0
+; clear all SCU regions
+PER.Set.SaveIndex ASD:0xE000ED98 %Long 0x0 AD:0xE000EDA0 %Long 0x0
+PER.Set.SaveIndex ASD:0xE000ED98 %Long 0x1 AD:0xE000EDA0 %Long 0x0
+PER.Set.SaveIndex ASD:0xE000ED98 %Long 0x2 AD:0xE000EDA0 %Long 0x0
+PER.Set.SaveIndex ASD:0xE000ED98 %Long 0x3 AD:0xE000EDA0 %Long 0x0
+PER.Set.SaveIndex ASD:0xE000ED98 %Long 0x4 AD:0xE000EDA0 %Long 0x0
+PER.Set.SaveIndex ASD:0xE000ED98 %Long 0x5 AD:0xE000EDA0 %Long 0x0
+PER.Set.SaveIndex ASD:0xE000ED98 %Long 0x6 AD:0xE000EDA0 %Long 0x0
+PER.Set.SaveIndex ASD:0xE000ED98 %Long 0x7 AD:0xE000EDA0 %Long 0x0
+
+; Set flag indicating SCU ROM has executed and configured subsystems required for SD boot
+Data.Set AD:0x41820504 %Long 0x80000000
+
+; Disable SYSTICK
+Data.Set AD:0xE000E010 %Long 0x0
+
+; initialize the complete SCU TCM
+Data.Set 0x1ffe0000--0x2001ffff %Long 0x0
+
+; --------------------------------------------------------------------------------
+; load SCU firmware
+Data.LOAD.Elf ~~~~/scfw_tcm.elf
+; clear out the boot_info struct - may contain boot information
+Data.Set boot_info++(Var.SIZEOF(boot_info)-1.) %Byte 0
+
+; initialize PC & SP using the VTOR-Table
+Data.Set AD:0xE000ED08 %Long 0x1ffe0000
+Register.Init
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+
+; --------------------------------------------------------------------------------
+; optional semihosting patch
+IF FALSE()
+(
+  ; super simple semihosting on write routine => we see the terminal output in the AREA window
+  Break.Set write /CMD "Var.PRINT %STRing buf" /RESUME
+)
+ELSE IF TRUE()
+(
+  ; a bit more straight forward - use ARMSWI 0x4 WRITE0 call
+  ; patch this handling into the write routine
+  ; write() - r0 = file handle, r1 = buffer, r2 = len - return value = number of bytes written
+  ; semihosting call WRITE0 - r0 = 0x4, r1 = pointer to string
+  Data.Assemble write     mov r0,#0x0  strb r0,[r1,r2]
+  Data.Assemble ,         mov r0,#0x4  bkpt #0xab
+  Data.Assemble ,         mov r2,r0    bx   r14
+  TERM.RESet
+  TERM.METHOD ARMSWI
+  TERM.MODE STRING
+  TERM
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+; Break.Set board_early_cpu
+; Break.Set board_config_sc
+; Go
+
+ENDDO

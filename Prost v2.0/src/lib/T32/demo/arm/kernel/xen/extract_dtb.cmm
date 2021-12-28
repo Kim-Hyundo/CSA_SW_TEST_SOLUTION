@@ -1,0 +1,120 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to extract the device tree blob to a file
+; @Description:
+;   This is a standard Xen Awareness Script.
+;   This script extracts the device tree blob to a file
+;   Usage: DO extract_dtb <filename> [<address>]
+;          DO extract_dtb /DIALOG
+;
+; @Keywords: Xen dtb dts blob devicetree
+; @Author: KJM, YDA
+; @Copyright: (C) 1989-2016 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: extract_dtb.cmm 1916 2017-01-03 17:20:49Z ydaoud $
+  
+  LOCAL &para1 &para2 &para3
+  LOCAL &filename &address
+  ENTRY &para1 &para2
+  
+  
+  IF STATE.RUN()
+    Break
+  
+  ; Check parameters
+  IF "&para1"==""
+   (
+      ; no parameter given -> print usage
+      PRINT "Usage: ""DO extract_dtb <filename> [<address>]"""
+      PRINT "       ""DO extract_dtb /DIALOG"""
+      ENDDO
+  )
+  IF STRing.LoWeR("&para1")=="/dialog"
+  (
+    &filename="devicetree.dtb"
+    GOSUB GetAddress
+    ENTRY &address
+    DIALOG.view
+    (
+        HEADER "Extract Blob To File..."
+        POS 0. 0. 24. 5.
+        BOX "file name"
+        POS 1. 1. 22. 1.
+file:   DEFHOTEDIT "" 
+        (
+            IF DIALOG.STRing(file)!=""
+                DIALOG.Enable bok
+            ELSE
+                DIALOG.Disable bok
+        )
+        POS 0. 2. 24. 0.
+        BOX "address"
+        POS 1. 3. 22. 1.
+addr:   EDIT "" ""
+        POS 2. 5. 8.
+bok:    DEFBUTTON "Ok"
+        (
+            LOCAL &file &addr
+            &addr=DIALOG.STRing(addr)
+            &file=DIALOG.STRing(file)
+            GOSUB start "&file" "&addr"
+            DIALOG.END
+            ENDDO
+        )
+        POS 14. 5. 8.
+        BUTTON "Cancel"
+        (
+            DIALOG.END
+            ENDDO
+        )
+   )
+   DIALOG.Set file "&filename"
+   DIALOG.Set addr "&address"
+   STOP
+  )
+  ELSE
+  (
+    &filename="&para1"
+    &address="&para2"
+    IF "&address"==""
+    (
+      GOSUB GetAddress
+      ENTRY &address
+    )
+    IF &address==0xffffffff
+    (
+        PRINT "ERROR: Cannot detect start of device tree blob!"
+        ENDDO
+     )
+     GOSUB start "&filename" "&address"
+     ENDDO
+  )
+
+start:
+  LOCAL &file &addr
+  ENTRY &file &addr
+  &addr=&addr
+  
+  IF Data.Long(D:&addr)!=0xEDFE0DD0
+  (
+     PRINT "ERROR: cannot detect device tree blob at &addr"
+     ENDDO
+  )
+  
+  &size=Data.Long.BigEndian(D:&addr+4)
+  
+  &end=&addr+&size-1
+
+  Data.SAVE.Binary &file &addr--&end
+  RETURN
+  
+GetAddress:
+  LOCAL &addr
+  IF !sYmbol.EXIST(device_tree_flattened)
+  (
+    &addr=0xffffffff
+  )
+  ELSE
+  (
+    &addr=Var.Value(device_tree_flattened)
+  )
+  RETURN &addr

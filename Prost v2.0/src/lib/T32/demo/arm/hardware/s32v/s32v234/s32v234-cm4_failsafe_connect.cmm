@@ -1,0 +1,131 @@
+; --------------------------------------------------------------------------------
+; @Title: Failsafe connect and startup script for S32V234 CM4
+; @Description:
+;   Try to connect to the CM4 on S32V234. If the CM4 is not running it's started
+;   using the MC_ME unit via Runtime/Dualport memory accesses via the AHB module.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to the board
+;   Tested on S32V234-EVB and MicroSys Mirac-S32V
+; @Keywords: ARM, Cortex-M4
+; @Author: AME
+; @Board: -
+; @Chip: S32V234
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: s32v234-cm4_failsafe_connect.cmm 15576 2020-01-27 10:11:09Z alintner $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU S32V234-CM4
+SYStem.Option AHBHPROT 0x3
+SYStem.Option WaitReset 400ms
+SYStem.JtagClock CTCK 10MHz
+; disable Trace infrastructure for the moment - TPIU may be unclocked!
+ETM.OFF
+Trace.DISable
+SYStem.Mode Prepare
+
+GOSUB DisableWatchdog
+GOSUB ReKickM4
+GOSUB StopA53
+
+SYStem.Mode.Attach
+IF STATE.RUN()
+  Break.direct
+
+GOSUB InitEcc
+GOSUB ClockInit
+
+ENDDO
+
+DisableWatchdog:
+(
+  ; use the AHB access port to disable the WDOG before the actual connection
+  Data.Set EAHB:0x40086010 %Long 0xc520
+  Data.Set EAHB:0x40086010 %Long 0xd928
+  Data.Set EAHB:0x40086000 %Long Data.Long(EAHB:0x40086000)&~0x1
+  Data.Set EAHB:0x40086000 %Long Data.Long(EAHB:0x40086000)|0x40
+  RETURN
+)
+
+InitEcc:
+(
+  ; ECC init of SRAM with use eDMA TCD1
+  Data.Set EAHB:0x40003020 %Long 0x6230
+  Data.Set EAHB:0x40003024 %Long 0x03030000
+  Data.Set EAHB:0x40003028 %Long 0x00400000
+  Data.Set EAHB:0x40003030 %Long 0x3e800000
+  Data.Set EAHB:0x40003034 %Long 0x00010008
+  Data.Set EAHB:0x4000303C %Long 0x00010001
+  WAIT (Data.Word(EAHB:0x4000303C)&0x0080)==0x0080
+  RETURN
+)
+
+ReKickM4:
+(
+  ; ensure the M4 is started and A53s are stopped
+  ; use RUN0 in the following section
+
+  ; MC_ME
+  Data.Set EAHB:0x4004A008 %Word 0x00ff     ; enable all modes
+  Data.Set EAHB:0x4004A080 %Word 0x00ff     ; enable all peripherals to be active during all modes except of RESET
+  Data.Set EAHB:0x4004A030 %Long 0yXXXX1000 ; use and enable FIRC
+  Data.Set EAHB:0x4004A004 %Long 0x40005AF0             ; Mode & Key
+  Data.Set EAHB:0x4004A004 %Long 0x4000A50F             ; Mode & Key
+  WAIT ((DATA.LONG(EAHB:0x4004A000))&0x08000000)==0x00000000
+  WAIT 0.7s
+
+  ; ECC init of M4-TCM first 16 bytes with use eDMA TCD1
+  Data.Set EAHB:0x40003020 %Long 0x6230
+  Data.Set EAHB:0x40003024 %Long 0x03030000
+  Data.Set EAHB:0x40003028 %Long 0x10
+  Data.Set EAHB:0x40003030 %Long 0x3e000000
+  Data.Set EAHB:0x40003034 %Long 0x00010008
+  Data.Set EAHB:0x4000303C %Long 0x00010001
+  WAIT (Data.Word(EAHB:0x4000303C)&0x0080)==0x0080
+  ; put a endless loop for CortexM into the M4-TCM
+  Data.Set EAHB:0x3e000000 %Long 0xE7FEE7FE
+
+  ; MC_ME
+  ; disable A53s in all modes
+  Data.Set EAHB:0x4004A1C4 %Word 0x0
+  Data.Set EAHB:0x4004A1C8 %Word 0x0
+  Data.Set EAHB:0x4004A1CA %Word 0x0
+  Data.Set EAHB:0x4004A1CE %Word 0x0
+  ; enable M4 in all modes
+  Data.Set EAHB:0x4004A1C6 %Word 0xffff
+  IF ((Data.Long(EAHB:0x4004A1C0)&0x1)==0x0)
+  (
+    ; set boot address with RESET for M4
+    Data.Set EAHB:0x4004A1E0 %Long 0x3e000000|0x1
+  )
+
+  Data.Set EAHB:0x4004A004 %Long 0x40005AF0             ; Mode & Key
+  Data.Set EAHB:0x4004A004 %Long 0x4000A50F             ; Mode & Key
+  WAIT ((DATA.LONG(EAHB:0x4004A000))&0x08000000)==0x00000000
+  WAIT 0.7s
+  RETURN
+)
+
+StopA53:
+(
+  ; use S32V234 specific MDM to stop all A53s
+  Data.Set EDBG:0x40000504 %LE %Long 0xF0000
+  RETURN
+)
+
+ClockInit:
+(
+  ; switch to FIRC - always working ;-)
+  Data.Set EAHB:0x4004A270 %Long 0x00000000
+  Data.Set EAHB:0x4004A004 %Long 0x40005AF0             ; Mode & Key
+  Data.Set EAHB:0x4004A004 %Long 0x4000A50F             ; Mode & Key
+  WAIT ((DATA.LONG(EAHB:0x4004A000))&0x08000000)==0x00000000
+  WAIT 0.7s
+  RETURN
+)

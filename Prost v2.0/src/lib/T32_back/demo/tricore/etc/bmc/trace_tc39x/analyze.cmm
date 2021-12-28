@@ -1,0 +1,77 @@
+; --------------------------------------------------------------------------------
+; @Title: Helper script for BMC trace demo
+; @Description:
+;   Runs the analysis.
+;
+; @Props: NoWelcome, NoIndex
+; @Author: MEI
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: analyze.cmm 16216 2020-06-23 15:01:12Z meick $
+
+PARAMETERS &elf &profile
+
+PRIVATE &counterConf
+
+Onchip.DISable
+MCDS.RESet
+BMC.RESet
+
+SYStem.Up
+Data.LOAD.ELF &elf /SingleLineAdjacent
+
+; Go.direct TC1_main
+IF "&profile"=="core1-overview"
+(
+  Go.direct TC1_computeSensorMetrics
+  MCDS.SOURCE.Set CpuMux0.Core None
+  MCDS.SOURCE.Set CpuMux1.Core TriCore1
+  MCDS.SOURCE.Set CpuMux1.PTMode FlowTrace
+  MCDS.SOURCE.Set.CpuMux1.Program ON
+  
+  BMC.PMN0.EVENT CM1_STALL 
+  BMC.PMN0.TRIGMODE TRACEOVERFLOW   
+  
+  &counterConf="PMN0: STALL"
+)
+ELSE IF "&profile"=="core1-detail"
+(
+  Go.direct TC1_computeSensorMetrics
+  MCDS.SOURCE.Set CpuMux0.Core None
+  MCDS.SOURCE.Set CpuMux1.Core TriCore1
+  MCDS.SOURCE.Set CpuMux1.PTMode SyncTrace
+  MCDS.SOURCE.Set.CpuMux1.Program ON
+  MCDS.SOURCE.Set.CpuMux1.ReadAddr ON
+  
+  BMC.PMN0.EVENT CM1_STALL 
+  BMC.PMN0.TRIGMODE TRACEOVERFLOW 
+  BMC.PMN1.EVENT CM1_BRMISS
+  BMC.PMN1.TRIGMODE TRACEOVERFLOW 
+  BMC.PMN2.EVENT CM1_ICMISS
+  BMC.PMN2.TRIGMODE TRACEOVERFLOW 
+  BMC.PMN4.EVENT CM1_DCMISS
+  BMC.PMN4.TRIGMODE TRACEOVERFLOW 
+  
+  &counterConf="PMN0: STALL,PMN1: BRMISS,PMN2: ICMISS,PMN4: DCMISS"
+)
+  
+MCDS.TimeStamp ON
+CLOCK.ON
+
+Trace.METHOD Onchip
+
+; Break.Set TC1_computeSensorCorrelations /TraceON
+; Break.Set sYmbol.EXIT(TC1_computeSensorCorrelations) /TraceOFF
+
+IF "&profile"=="core1-detail"
+(
+  Go sYmbol.EXIT(TC1_computeSensorMetrics)
+)
+ELSE
+(
+  Trace.Mode Leash
+  Go
+)
+WAIT !STATE.RUN() 1.s
+
+ENDDO "&counterConf"

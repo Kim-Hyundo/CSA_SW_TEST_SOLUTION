@@ -1,0 +1,114 @@
+; --------------------------------------------------------------------------------
+; @Title: Template script for IMX515 with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Offchip-Trace. Pinmuxing and Clock
+;   setup is handled in the script.
+;   Use this script to test the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe
+;    * Connect AutoFocus Preprocessor
+;    * set Bootmode e.g. to NOR or MMC
+; @Keywords: ARM, Cortex-A8, ETM
+; @Props: Template
+; @Author: AME
+; @Board: -
+; @Chip: IMX515
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx51_offchip_trace.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU IMX515
+; first connection attempt 3ms after de-asserting nRESET
+; adapt this time if necessary
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 3ms
+SYStem.JtagClock CTCK 10MHz
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+DO ~~/demo/arm/compiler/gnu-pic/demo_sieve 0x1ffe0000
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace if Analyzer is plugged (ETM)
+IF Analyzer()
+(
+  ; set PinMux and enable Clocks
+  ; i.MX51 pad register configurations
+  Data.Set AD:0x73FA801C %Long (Data.Long(AD:0x73FA801C)&~0x1)|0x1  ; SW_MUX_CTL_PAD_EIM_DA0_TRACE[16]:tpiu
+  Data.Set AD:0x73FA8020 %Long (Data.Long(AD:0x73FA8020)&~0x1)|0x1  ; SW_MUX_CTL_PAD_EIM_DA1_TRACE[17]:tpiu
+  Data.Set AD:0x73FA8024 %Long (Data.Long(AD:0x73FA8024)&~0x1)|0x1  ; SW_MUX_CTL_PAD_EIM_DA2_TRACE[18]:tpiu
+  Data.Set AD:0x73FA8028 %Long (Data.Long(AD:0x73FA8028)&~0x1)|0x1  ; SW_MUX_CTL_PAD_EIM_DA3_TRACE[19]:tpiu
+  Data.Set AD:0x73FA802C %Long (Data.Long(AD:0x73FA802C)&~0x1)|0x1  ; SW_MUX_CTL_PAD_EIM_DA4_TRACE[20]:tpiu
+  Data.Set AD:0x73FA8030 %Long (Data.Long(AD:0x73FA8030)&~0x1)|0x1  ; SW_MUX_CTL_PAD_EIM_DA5_TRACE[21]:tpiu
+  Data.Set AD:0x73FA8034 %Long (Data.Long(AD:0x73FA8034)&~0x1)|0x1  ; SW_MUX_CTL_PAD_EIM_DA6_TRACE[22]:tpiu
+  Data.Set AD:0x73FA8038 %Long (Data.Long(AD:0x73FA8038)&~0x1)|0x1  ; SW_MUX_CTL_PAD_EIM_DA7_TRACE[23]:tpiu
+  Data.Set AD:0x73FA803C %Long (Data.Long(AD:0x73FA803C)&~0x1)|0x1  ; SW_MUX_CTL_PAD_EIM_DA8_TRACE[24]:tpiu
+  Data.Set AD:0x73FA8040 %Long (Data.Long(AD:0x73FA8040)&~0x1)|0x1  ; SW_MUX_CTL_PAD_EIM_DA9_TRACE[25]:tpiu
+  Data.Set AD:0x73FA8044 %Long (Data.Long(AD:0x73FA8044)&~0x1)|0x1  ; SW_MUX_CTL_PAD_EIM_DA10_TRACE[26]:tpiu
+  Data.Set AD:0x73FA8048 %Long (Data.Long(AD:0x73FA8048)&~0x1)|0x1  ; SW_MUX_CTL_PAD_EIM_DA11_TRACE[27]:tpiu
+  Data.Set AD:0x73FA804C %Long (Data.Long(AD:0x73FA804C)&~0x1)|0x1  ; SW_MUX_CTL_PAD_EIM_DA12_TRACE[28]:tpiu
+  Data.Set AD:0x73FA8050 %Long (Data.Long(AD:0x73FA8050)&~0x1)|0x1  ; SW_MUX_CTL_PAD_EIM_DA13_TRACE[29]:tpiu
+  Data.Set AD:0x73FA8054 %Long (Data.Long(AD:0x73FA8054)&~0x1)|0x1  ; SW_MUX_CTL_PAD_EIM_DA14_TRACE[30]:tpiu
+  Data.Set AD:0x73FA8058 %Long (Data.Long(AD:0x73FA8058)&~0x1)|0x1  ; SW_MUX_CTL_PAD_EIM_DA15_TRACE[31]:tpiu
+  Data.Set AD:0x73FA805C %Long (Data.Long(AD:0x73FA805C)&~0x7)|0x6  ; SW_MUX_CTL_PAD_EIM_D16_TRACE[0]:tpiu
+  Data.Set AD:0x73FA8060 %Long (Data.Long(AD:0x73FA8060)&~0x7)|0x6  ; SW_MUX_CTL_PAD_EIM_D17_TRACE[1]:tpiu
+  Data.Set AD:0x73FA8064 %Long (Data.Long(AD:0x73FA8064)&~0x7)|0x6  ; SW_MUX_CTL_PAD_EIM_D18_TRACE[2]:tpiu
+  Data.Set AD:0x73FA8068 %Long (Data.Long(AD:0x73FA8068)&~0x7)|0x6  ; SW_MUX_CTL_PAD_EIM_D19_TRACE[3]:tpiu
+  Data.Set AD:0x73FA806C %Long (Data.Long(AD:0x73FA806C)&~0x7)|0x6  ; SW_MUX_CTL_PAD_EIM_D20_TRACE[4]:tpiu
+  Data.Set AD:0x73FA8070 %Long (Data.Long(AD:0x73FA8070)&~0x7)|0x6  ; SW_MUX_CTL_PAD_EIM_D21_TRACE[5]:tpiu
+  Data.Set AD:0x73FA8074 %Long (Data.Long(AD:0x73FA8074)&~0x7)|0x6  ; SW_MUX_CTL_PAD_EIM_D22_TRACE[6]:tpiu
+  Data.Set AD:0x73FA8078 %Long (Data.Long(AD:0x73FA8078)&~0x7)|0x6  ; SW_MUX_CTL_PAD_EIM_D23_TRACE[7]:tpiu
+  Data.Set AD:0x73FA807C %Long (Data.Long(AD:0x73FA807C)&~0x7)|0x6  ; SW_MUX_CTL_PAD_EIM_D24_TRACE[8]:tpiu
+  Data.Set AD:0x73FA8080 %Long (Data.Long(AD:0x73FA8080)&~0x7)|0x6  ; SW_MUX_CTL_PAD_EIM_D25_TRACE[9]:tpiu
+  Data.Set AD:0x73FA8084 %Long (Data.Long(AD:0x73FA8084)&~0x7)|0x6  ; SW_MUX_CTL_PAD_EIM_D26_TRACE[10]:tpiu
+  Data.Set AD:0x73FA8088 %Long (Data.Long(AD:0x73FA8088)&~0x7)|0x6  ; SW_MUX_CTL_PAD_EIM_D27_TRACE[11]:tpiu
+  Data.Set AD:0x73FA808C %Long (Data.Long(AD:0x73FA808C)&~0x7)|0x6  ; SW_MUX_CTL_PAD_EIM_D28_TRACE[12]:tpiu
+  Data.Set AD:0x73FA8090 %Long (Data.Long(AD:0x73FA8090)&~0x7)|0x6  ; SW_MUX_CTL_PAD_EIM_D29_TRACE[13]:tpiu
+  Data.Set AD:0x73FA8094 %Long (Data.Long(AD:0x73FA8094)&~0x7)|0x6  ; SW_MUX_CTL_PAD_EIM_D30_TRACE[14]:tpiu
+  Data.Set AD:0x73FA8098 %Long (Data.Long(AD:0x73FA8098)&~0x7)|0x6  ; SW_MUX_CTL_PAD_EIM_D31_TRACE[15]:tpiu
+  Data.Set AD:0x73FA80D8 %Long (Data.Long(AD:0x73FA80D8)&~0x7)|0x2  ; SW_MUX_CTL_PAD_EIM_EB2_TRCTL:tpiu
+  Data.Set AD:0x73FA80D4 %Long (Data.Long(AD:0x73FA80D4)&~0x7)|0x2  ; SW_MUX_CTL_PAD_EIM_EB3_TRCLK:tpiu
+
+  Trace.Method Analyzer
+  TPIU.PortSize 16
+  TPIU.PortMode Continuous
+  ETM.Trace ON
+  ETM.ON
+  ; use Autofocus based calibration
+  Analyzer.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO
+
+

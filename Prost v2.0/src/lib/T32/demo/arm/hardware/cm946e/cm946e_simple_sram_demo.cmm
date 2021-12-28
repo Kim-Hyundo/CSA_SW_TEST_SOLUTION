@@ -1,0 +1,91 @@
+; --------------------------------------------------------------------------------
+; @Title: Sieve Demo Script for the ARM Core Module 946E
+; @Description:
+;
+;   Setup for ARM Core Module 946E. Setup board and auto-detect if ETM
+;   is available. If it is set that up as well.
+;   Finally, open some useful windows.
+;
+;
+; @Author: RIC
+; @Board: ARM Core Module 946E
+; @Chip: ARM946E-S
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: cm946e_simple_sram_demo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+;   Created by rico - 29-10-2002
+
+;Open the area window for diagnostics
+AREA.view
+
+; initialize system
+SYStem.RESet
+
+; select clock
+SYStem.JtagClock RTCK
+
+;Set resbreak to off or the board won't let you attach
+SYStem.Option ResBreak OFF
+
+; select CPU type
+SYStem.CPU ARM946E
+
+; start debugger
+SYStem.Up
+
+;Unlock Registers
+Data.Set SD:0x10000014 %LE %Long 0a05f
+
+;Set target frequency 100MHz
+Data.Set SD:0x10000008 %LE %Long 62
+
+;Set target frequency
+Data.Set SD:0x10000008 %LE %Long 48
+
+; set endianism according to the selection
+; (data set command for 920T and 940T only)
+ SYStem.Option BigEndian OFF
+
+; load example program
+Data.LOAD.Elf ~~/demo/arm/compiler/arm/armle.axf /StripPATH /LPATH
+
+; set program counter at program start
+Register.Set PC main
+
+; initialize stack pointer
+Register.Set R13 0x1000
+
+IF Analyzer()
+(
+	Analyzer.AutoInit ON
+	; Set ETM Threshold to 1.65 - unit I have doesn't autodetect
+ 	Analyzer.THreshold 1.65
+ 	ETM.PortSize 16
+ )
+
+ ; open some windows
+ WinCLEAR
+ WinPOS 0% 0% 100% 50%
+ List.auto
+ WinPOS 0% 50% 50% 50%
+ Frame /Locals /Caller
+ WinPOS 50% 50% 50% 50%
+ Var.Watch
+ Var.AddWatch ast; flags;
+
+ ENDDO
+
+
+
+
+
+
+
+
+
+
+
+
+
+

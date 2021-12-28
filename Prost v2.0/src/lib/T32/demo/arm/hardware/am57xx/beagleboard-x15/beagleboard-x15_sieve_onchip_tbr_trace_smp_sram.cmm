@@ -1,0 +1,63 @@
+; --------------------------------------------------------------------------------
+; @Title: SMP-Demo script for AM572X with Onchip-Trace (RAM, SMP, TBR)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Onchip-Trace (TBR).
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to P4 using Adapter LA-3780
+;    * in order to properly hold the core on RESET activate the Wait-In-Reset
+;      (WIR) feature by connecting EMU0 with GND on LA-3780
+;      Note: the SoC will not boot independently as long as the adapter is
+;            connected
+; @Keywords: ARM, Cortex-A15, SMP
+; @Author: AME
+; @Board: BeagleBoard-X15
+; @Chip: AM572X
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: beagleboard-x15_sieve_onchip_tbr_trace_smp_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU AM572X
+SYStem.JtagClock CTCK 10MHz
+SYStem.Option ResBreak OFF
+CORE.ASSIGN 1. 2.
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+CORE.select 0.
+Data.LOAD.Elf "~~~~/sieve_ram_arm_v7.elf"
+; Set PC for all secondary cores
+Register.Set T 0 /CORE 1.
+Register.Set PC _start /CORE 1.
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

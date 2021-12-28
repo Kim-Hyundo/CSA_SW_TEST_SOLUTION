@@ -1,0 +1,88 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for STM32MP157A-CA7 with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Offchip-Trace. Pinmuxing and Clock
+;   setup is handled in the script.
+;   Use this script to test the Offchip-Trace.
+;   Prerequisites:
+;    * Connect AutoFocus Preprocessor to U10 using Mictor38 cable
+;    * Connect Debug Cable/Combiprobe to AutoFocus Preprocessor
+;    * The demos are tested in Engineering boot mode:
+;      SW1[0..2]=ON,OFF,OFF
+; @Keywords: ARM, Cortex-A7, ETM
+; @Author: STK
+; @Board: STM32MP15X-EVAL
+; @Chip: STM32MP157A-CA7
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: stm32mp15x-eval_sieve_offchip_trace_sram.cmm 14337 2019-04-26 15:41:57Z skrausse $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU STM32MP157A-CA7
+SYStem.JtagClock 10MHz
+CORE.ASSIGN 1.
+Trace.DISable
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_arm_v7.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace if Analyzer is plugged (ETM)
+IF Analyzer()
+(
+  ; Enable Clocks
+  Data.Set AD:0x5000080C %Long 0yXXXXxxxxXXXXxxxxXXXXxx1xXXXXxxxx ; Enable trace clock
+  Data.Set AD:0x50000AA8 %Long 0yXXXXxxxxXXXXxxxxXXXXx111XXXXxxxx ; Enable GPIO I/J/K
+  
+  ; Set PinMux
+  Data.Set AD:0x5000A000 %Long 0yXX101010XXXXxxxxXXXXxxxxXXXXxxxx
+  Data.Set AD:0x5000A024 %Long 0yXXXX000000000000XXXXxxxxXXXXxxxx
+
+  Data.Set AD:0x5000B000 %Long 0yXXXXxxxxXXXX10101010101010101010
+  Data.Set AD:0x5000B020 %Long 0y00000000000000000000000000000000
+  Data.Set AD:0x5000B024 %Long 0yXXXXxxxxXXXXxxxxXXXXxxxx00000000
+
+  Data.Set AD:0x5000C000 %Long 0yXXXXxxxxXXXXxxxxXX1010xxXX1010xx
+  Data.Set AD:0x5000B020 %Long 0yXXXX00000000xxxxXXXX00000000xxxx
+  
+  Trace.METHOD Analyzer
+  TPIU.PortSize 16
+  TPIU.PortMode Continuous
+  ETM.Trace ON
+  ETM.ON
+  ; use Autofocus based calibration
+  Analyzer.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

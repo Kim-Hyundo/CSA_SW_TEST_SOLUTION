@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="t32transform.xsl"?>
+<TRACE32 file="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Gen\20210531_TRACE32_20_02\Failsafe-TestSpec_RS4_0104\Report\Total\MANDO_FailSafe_Integration\FS_InvalidSignal\func-p-80003a3c-80003a47.xml">
+	<coverage>
+		<COVerage.EXPORT.ListLine ts="1622419852" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE" metric="object">
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\Rte_SWC_Diag</tree>
+				<cov>partial</cov>
+				<exec metric="object">50.847%</exec>
+				<branches>-</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>0</never>
+				<bytes>590</bytes>
+				<bytesok>300</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_HWFailure</tree>
+				<cov>partial</cov>
+				<exec metric="object">16.831%</exec>
+				<branches>10.000%</branches>
+				<ok>0</ok>
+				<taken>1</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>202</bytes>
+				<bytesok>34</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\SWC_Failsafe</tree>
+				<cov>partial</cov>
+				<exec metric="object">67.441%</exec>
+				<branches>-</branches>
+				<ok>4</ok>
+				<taken>11</taken>
+				<nottaken>21</nottaken>
+				<bytes>1548</bytes>
+				<bytesok>1044</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80002C38</addrFrom>
+				<addrTo>P:80002DC9</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\FS_BatteryVoltage</tree>
+				<cov>partial</cov>
+				<exec metric="object">83.582%</exec>
+				<branches>68.750%</branches>
+				<ok>12</ok>
+				<taken>3</taken>
+				<nottaken>6</nottaken>
+				<never>3</never>
+				<bytes>402</bytes>
+				<bytesok>336</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_CANBusOff</tree>
+				<cov>partial</cov>
+				<exec metric="object">45.736%</exec>
+				<branches>1.215%</branches>
+				<ok>0</ok>
+				<taken>6</taken>
+				<nottaken>2</nottaken>
+				<never>321</never>
+				<bytes>258</bytes>
+				<bytesok>118</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_CANTimeout</tree>
+				<cov>partial</cov>
+				<exec metric="object">37.582%</exec>
+				<branches>16.413%</branches>
+				<ok>8</ok>
+				<taken>82</taken>
+				<nottaken>10</nottaken>
+				<never>229</never>
+				<bytes>2432</bytes>
+				<bytesok>914</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_InvalidSignal</tree>
+				<cov>partial</cov>
+				<exec metric="object">54.381%</exec>
+				<branches>34.650%</branches>
+				<ok>3</ok>
+				<taken>130</taken>
+				<nottaken>92</nottaken>
+				<never>104</never>
+				<bytes>5866</bytes>
+				<bytesok>3190</bytesok>
+				<function>
+					<addrFrom>P:80003A3C</addrFrom>
+					<addrTo>P:80003A47</addrTo>
+					<tree uid="p-80003a3c-80003a47">\\MANDO_FailSafe_Integration\FS_InvalidSignal\.cocofun_58</tree>
+					<cov>ok</cov>
+					<exec metric="object">100.000%</exec>
+					<branches>-</branches>
+					<ok>0</ok>
+					<taken>0</taken>
+					<nottaken>0</nottaken>
+					<never>0</never>
+					<bytes>12</bytes>
+					<bytesok>12</bytesok>
+					<line>
+						<addrFrom>P:80003A40</addrFrom>
+						<addrTo>P:80003A43</addrTo>
+						<tree>FS_InvalidSignal.c \571--572</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003A3C</addrFrom>
+						<addrTo>P:80003A3F</addrTo>
+						<tree>FS_InvalidSignal.c \588--588</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003A44</addrFrom>
+						<addrTo>P:80003A47</addrTo>
+						<tree>SWC_Failsafe.h \709--724</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.h</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<total>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>12</bytesok>
+					</total>
+				</function>
+				<total>
+					<cov>ok</cov>
+					<exec metric="object">100.000%</exec>
+					<branches>-</branches>
+					<ok>0</ok>
+					<taken>0</taken>
+					<nottaken>0</nottaken>
+					<never>0</never>
+					<bytes>12</bytes>
+					<bytesok>12</bytesok>
+				</total>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_SWFailure</tree>
+				<cov>partial</cov>
+				<exec metric="object">36.224%</exec>
+				<branches>1.215%</branches>
+				<ok>0</ok>
+				<taken>7</taken>
+				<nottaken>1</nottaken>
+				<never>321</never>
+				<bytes>392</bytes>
+				<bytesok>142</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>5</never>
+				<bytes>806</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80005B2A</addrFrom>
+				<addrTo>P:80005CBB</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc1</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>402</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80005CBC</addrFrom>
+				<addrTo>P:80005E4D</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc2</tree>
+				<cov>partial</cov>
+				<exec metric="object">81.094%</exec>
+				<branches>87.500%</branches>
+				<ok>3</ok>
+				<taken>0</taken>
+				<nottaken>1</nottaken>
+				<never>0</never>
+				<bytes>402</bytes>
+				<bytesok>326</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc3</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc4</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_main</tree>
+				<cov>partial</cov>
+				<exec metric="object">24.691%</exec>
+				<branches>25.000%</branches>
+				<ok>1</ok>
+				<taken>1</taken>
+				<nottaken>1</nottaken>
+				<never>5</never>
+				<bytes>324</bytes>
+				<bytesok>80</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80006180</addrFrom>
+				<addrTo>P:80006315</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc5</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80006456</addrFrom>
+				<addrTo>P:80006485</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_stubs</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>2</never>
+				<bytes>48</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<total>
+				<cov>partial</cov>
+				<exec metric="object">43.546%</exec>
+				<branches>15.776%</branches>
+				<ok>31</ok>
+				<taken>241</taken>
+				<nottaken>134</nottaken>
+				<never>979</never>
+				<bytes>14890</bytes>
+				<bytesok>6484</bytesok>
+			</total>
+		</COVerage.EXPORT.ListLine>
+	</coverage>
+	<marker>
+		<BookMark.EXPORT ts="1622419852" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE">
+		</BookMark.EXPORT>
+	</marker>
+	<listing>
+		<List.EXPORT ts="1622419852" t32ver="R.2020.09.000128638" t32pv="TRICORE" order="source">
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>571</line><src></src></hll>
+				<hll><cov>ok</cov><line>572</line><src>    if (!is_timeout(CHASSIS_0, ESC_01_10ms_POS) &amp;&amp; !is_timeout(CHASSIS_0, ESC_03_20ms_POS) &amp;&amp; !is_timeout(CHASSIS_0, WHL_01_10ms_POS)) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003A40</addr><code>0100003B</code><mnemonic>mov       d0,#0x1000</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>ok</cov><line>588</line><src>                    is_updated(CHASSIS_0, ESC_03_20ms_POS) &amp;&amp; FCA_EquipSta == 1 &amp;&amp; FCA_AvlblSta == 0,</src></hll>
+				<asm><cov>ok</cov><addr>P:80003A3C</addr><code>000C0061</code><label>.cocofun_58:                                                                                                                                                                                                                                                    </label><mnemonic>fcall     0x80003A54</mnemonic><comment>.cocofun_60</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.h">
+				<hll><line>709</line><src>}</src></hll>
+				<hll><line>710</line><src></src></hll>
+				<hll><line>711</line><src>static inline boolean internal_error_occurred(void)</src></hll>
+				<hll><line>712</line><src>{</src></hll>
+				<hll><line>713</line><src>    return !!(int_err_info.hw_err_cnt &gt; ERR_CNT_THR || int_err_info.sw_err_cnt &gt; ERR_CNT_THR);</src></hll>
+				<hll><line>714</line><src>}</src></hll>
+				<hll><line>715</line><src></src></hll>
+				<hll><line>716</line><src></src></hll>
+				<hll><line>717</line><src>/* SWC_ISR */</src></hll>
+				<hll><line>718</line><src>extern volatile uint32 e2e_err_flags[MSG_GRP_NUM];</src></hll>
+				<hll><line>719</line><src>extern volatile uint32 msg_received_flags[MSG_GRP_NUM]; </src></hll>
+				<hll><line>720</line><src>extern volatile uint32 msg_received_bus[MSG_GRP_NUM];</src></hll>
+				<hll><line>721</line><src></src></hll>
+				<hll><line>722</line><src>static inline boolean is_updated(uint8 msg_grp, uint8 pos)</src></hll>
+				<hll><line>723</line><src>{</src></hll>
+				<hll><cov>ok</cov><line>724</line><src>    return !!(msg_received_flags[msg_grp] &amp; BIT(pos));</src></hll>
+				<asm><cov>ok</cov><addr>P:80003A44</addr><code>0F26</code><mnemonic>and16     d15,d0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003A46</addr><code>7000</code><mnemonic>fret16    </mnemonic></asm>
+			</mixed>
+		</List.EXPORT>
+	</listing>
+</TRACE32>

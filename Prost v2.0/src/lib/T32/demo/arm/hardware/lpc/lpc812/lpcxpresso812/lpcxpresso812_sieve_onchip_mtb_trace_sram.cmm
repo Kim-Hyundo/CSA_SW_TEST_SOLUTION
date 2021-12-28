@@ -1,0 +1,63 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for LPC812M101FD20 on LPCXpresso812 with MTB-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the MTB.
+;   Prerequisites:
+;    * Connect Debug Cable to J5 using Adapter LA-3770
+;      or
+;      Connect Combiprobe/uTrace to J5
+;    * Solder a brigde on R29 to provide a reference voltage on J5
+;    * Remove R23, R24, R25, R26, R28 and R30 to disconnect onboard debugger
+; @Keywords: ARM, Cortex-M0+, MTB
+; @Author: STK
+; @Board: LPCXpresso812
+; @Chip: LPC812M101FD20
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: lpcxpresso812_sieve_onchip_mtb_trace_sram.cmm 16020 2020-05-06 09:05:20Z skrausse $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.CPU LPC812M101FD20
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/midi_ram_thumb_v6m.elf"
+
+; --------------------------------------------------------------------------------
+; initialize ONCHIP trace (MTB)
+Trace.METHOD Onchip
+Trace.TBADDRESS ADDRESS.OFFSET(sYmbol.SECADDRESS(.mtb))
+Trace.SIZE 64.
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

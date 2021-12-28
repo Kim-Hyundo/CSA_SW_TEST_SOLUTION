@@ -1,0 +1,111 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for MKE18F512VLL16 on TWR-KE18F with SWV (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The SerialWireViewer is set up to trace some data values using the DWT.
+;   Prerequisites:
+;    * Connect Combiprobe/uTrace to J10
+;    * Remove jumper J11, J12 and J13 to disable onboard OpenSDA
+; @Keywords: ARM, Cortex-M4, ITM, SWV
+; @Author: STK
+; @Board: TWR-KE18F
+; @Chip: MKE18F512VLL16
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: twr-ke18f_sieve_swo_trace_sram.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; Prerequisite: check if a Combiprobe/uTrace is connected
+IF !CAnalyzer()
+(
+  DIALOG.OK "Support for SerialWireViewer requires a Combiprobe or uTrace."
+  ENDDO
+)
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU MKE18F512VLL16
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; initialize SerialWireViewer (clock is stable now)
+Trace.METHOD CAnalyzer
+Trace.AutoInit ON
+TPIU.PortSize SWV
+ITM.DataTrace ON
+ITM.ON
+; use auto-calibration script to find most suitable TPIU.SWVPrescaler <divider>
+DO ~~/demo/arm/etc/serial_wire_viewer/swv_autocalibration.cmm
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+ITMTrace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO
+
+DisableWatchdog:
+(
+  Frame.SWAP
+  Data.Set VM:0x20000000++0x2F %Long 0
+  Data.Assemble VMT:0x20000000 adr     r0,0x20000014
+  Data.Assemble ,              ldm     r0,{r0-r4}
+  Data.Assemble ,              str  r1, [r0, #4]
+  Data.Assemble ,              str  r2, [r0, #8]
+  Data.Assemble ,              ldr  r5, [r0, #0]
+  Data.Assemble ,              bics r5, r3
+  Data.Assemble ,              str  r5, [r0, #0]
+  Data.Assemble ,              bkpt    #0x0
+  Data.Set VM:0x20000014 %Long 0x40052000
+  Data.Set VM:0x20000018 %Long 0xD928C520
+  Data.Set VM:0x2000001C %Long 0xffff
+  Data.Set VM:0x20000020 %Long 0x80
+  Data.COPY SD:0x20000000++0x2F VM:0x20000030
+  Data.COPY VM:0x20000000++0x2F SD:0x20000000
+  Register.Set PC 0x20000000
+  Go.direct
+  WAIT !STATE.RUN()
+  Data.COPY VM:0x20000030++0x2F SD:0x20000000
+  Frame.SWAP
+  RETURN
+)

@@ -1,0 +1,144 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux Demo for TRACE32 OS Awareness on the SabreLite i.MX6 Board Quad
+; @Description: 
+;   This batchfile demonstrates the use of the OS Awareness for Linux
+;   The example is generated for the i.MX6 SABER LITE board using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   Linux is downloaded to the board via ICD.
+; @Keywords: awareness, Freescale, imx6*, i.MX6*
+; @Author: KJM
+; @Board: SabreLite
+; @Chip: IMX6QUAD*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx6quad_linux.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+ LOCAL &ka_path &awareness
+ SCREEN.ON
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 25. 75. 9. 0. 0. W000
+ AREA.view
+ 
+ PRINT "resetting..."
+
+; reset chip, connect to core #0 only
+ RESet 
+ SYStem.CPU IMX6QUAD
+ ; SYStem.CPU IMX6QUADLITE
+ CORE.ASSIGN 1
+ SYStem.Option ResBreak OFF
+ SYStem.Option WaitReset 1.3s 
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set UNDEF OFF         ; my be used by Linux for FPU detection
+ SYStem.Option MMUSPACES ON           ; enable space ids to virtual addresses
+  
+ Trace.METHOD Onchip
+ SYStem.Up
+  
+ DO ~~/demo/etc/terminal/serial/term.cmm COM1 115200.
+   
+   
+ SETUP.IMASKASM ON          ; lock interrupts while single stepping
+   
+ ; Target Setup: initialize DRAM controller and peripherals
+   
+   ; Let the boot monitor setup the board
+      Go
+      PRINT "target setup..."
+      WAIT 2.s
+      Break
+      
+ ; Load the Linux kernel
+  
+ ; If you are using a flashed kernel, or if you're 
+ ; loading your kernel via TFTP, use the boot monitor
+ ; to do so.
+   
+ ; Use the next lines only to load the kernel into
+ ; RAM using the debugger.
+  
+  
+ PRINT "loading Linux image..."
+   
+ ; vmlinux starts physically at RAM start (=0x80000000) + 0x8000 
+ ; We have to adjust it from the virtual start address at the label
+ ; "stext" from the System.map ("nm vmlinux | sort")
+ ; i.e.: Data.LOAD.Elf vmlinux <physical start>-<virtual start>
+ 
+  Data.LOAD.Elf vmlinux ASD:0x10008000-0x80008000 /gnu /NosYmbol /noreg 
+  
+  Register.RESet
+ 
+  ; Set PC on start address of image
+  Register.Set PC 0x10008000
+ 
+  ; Set machine type in R1; see arch/arm/tools/mach-types
+  Register.Set R1 3769. ; 
+  
+  DO imx6_atag_list.cmm 
+  
+ ; Loading RAM disk
+ 
+  PRINT "loading ram disk..."
+  
+  Data.LOAD.Binary ramdisk.image.gz 0x11600000 /NoClear /NosYmbol
+  
+ ; Load the Linux kernel symbols into the debugger
+  
+  PRINT "loading Linux kernel symbols..."
+ 
+  Data.LOAD.Elf vmlinux /gnu /NoCODE /StripPART "imx6"
+ 
+ ; Open a Code Window -- we like to see something
+ 
+  WinPOS 0. 0. 75. 20.
+  List.auto
+  SCREEN.display
+ 
+ 
+ ; Map the virtual kernel symbols to physical addresses
+ ; to give the debugger access to it before CPU MMU is
+ ; initialized
+ 
+  PRINT "initializing debugger MMU..."
+  MMU.FORMAT LINUX swapper_pg_dir 0x80000000--0xdfffffff 0x10000000
+  TRANSlation.COMMON 07f000000--0ffffffff         ; common area for kernel and processes
+  TRANSlation.TableWalk ON   ; debugger uses a table walk to decode virtual addresses
+  TRANSlation.ON
+  
+  Go
+  
+  WAIT 5.s
+  
+  
+  SYStem.Down
+  CORE.ASSIGN 1 2 3 4
+  SYStem.Mode Attach
+  
+  Break
+ 
+ ; check linux major version
+ IF STRing.SCAN(Data.STRing(linux_banner), "Linux version 2.", 0)==0
+ (
+     &ka_path="~~/demo/arm/kernel/linux/linux-2.x"
+     &awareness="linux.t32"
+ )
+ ELSE
+ (
+     &ka_path="~~/demo/arm/kernel/linux/linux-3.x"
+     &awareness="linux3.t32"  
+ )
+ 
+ PRINT "initializing RTOS support..."
+ TASK.CONFIG &ka_path/&awareness               ; loads Linux awareness 
+ MENU.ReProgram &ka_path/linux            ; loads Linux menu 
+  
+  ENDDO

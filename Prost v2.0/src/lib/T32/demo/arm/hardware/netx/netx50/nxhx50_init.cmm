@@ -1,0 +1,38 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to connect to the COMX-CCLS Board
+; @Description:
+;   This script connects to the COMX-CCLS Board by calling the
+;   netx_common_init.cmm and does some initialization using
+;   Data.Set commands
+; @Keywords: Hilscher, NetX*
+; @Board: COMX-CCLS
+; @Chip: NETX50
+; @Author: Hilscher
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: nxhx50_init.cmm 12065 2018-02-07 12:26:30Z amerkle $
+
+
+DO ~~~~/netx_common_init.cmm
+
+;setup non-paired Intel StrataFlash
+&FLASH_PROGRAMMING_METHOD="TRACE32 Tool Based"
+FLASH.RESet
+;16MB Flash at 0xc0000000 with a sector size of 128kByte of type intel28FXXXJ3
+FLASH.Create 1. ASD:0xC0000000++0x0FFFFFF 0x20000 TARGET Word
+FLASH.TARGET ASD:0x10000000 ASD:0x10001000 0x1000 word/i28f200j3.bin
+MAP.BOnchip 0xC0000000++0x0FFFFFF
+
+;Setup Flash controller for Intel Strata 16Bit on CS0 @0xc0000000
+Data.Set ASD:0x1C000100 %Long 0x01010007
+
+;setup SDRam Timing
+Data.Set ASD:0x1C000140 %Long 0x0
+;data.set ASD:0x1C000144 %LONG 0x03C12151
+;data.set ASD:0x1C000144 %LONG 0x00A12151
+Data.Set ASD:0x1C000148 %Long 0x00000023
+Data.Set ASD:0x1C000144 %Long 0x00A22151
+Data.Set ASD:0x1C000140 %Long 0x030D0001
+
+
+ENDDO

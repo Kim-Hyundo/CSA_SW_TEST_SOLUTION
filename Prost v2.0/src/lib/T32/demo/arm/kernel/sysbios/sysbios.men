@@ -1,0 +1,378 @@
+; --------------------------------------------------------------------------------
+; @Title: SYS/BIOS specific menu
+; @Description: -
+; @Author: DIE
+; @Copyright: (c) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: sysbios.men 4982 2020-01-21 09:56:46Z rdienstbeck $
+
+add
+menu
+(
+  popup "&SYS/BIOS"
+  (
+    default
+    menuitem "Display &Tasks"       "TASK.TaSK"
+    menuitem "Display &Clocks"      "TASK.CLocK"
+    menuitem "Display &Events"      "TASK.EVenT"
+    menuitem "Display &Mailboxes"   "TASK.MailBoX"
+    //menuitem "Display &Queues"      "TASK.QUEue"
+    menuitem "Display &Semaphores"  "TASK.SEMaphore"
+    menuitem "Display &SWIs"        "TASK.SWI"
+    menuitem "Display &HWIs"        "TASK.HWI"
+    //menuitem "Display &Timers"      "TASK.TIMer"
+    //menuitem "Display &Gates"       "TASK.GATe"
+    //menuitem "Display &Log"         "TASK.LOG"
+    menuitem "Display &HeapMems"    "TASK.HeapMem"
+    popup "Display Module"
+    (
+        //menuitem "BIOS"     "TASK.MODule.TaSK"
+        menuitem "Task"     "TASK.MODule.TaSK"
+        menuitem "Clock"    "TASK.MODule.CLocK"
+        //menuitem "Idle"     "TASK.MODule.IDLe"
+        menuitem "SWI"      "TASK.MODule.SWI"
+        //menuitem "HWI"      "TASK.MODule.HWI"
+        //menuitem "Timer"    "TASK.MODule.TIMer"
+        //menuitem "Cache"    "TASK.MODule.CAChe"
+        //menuitem "Agent"    "TASK.MODule.AGEnt"
+        //menuitem "Load"     "TASK.MODule.LOAd"
+    )
+    separator
+    popup "&Stack Coverage"
+    (
+      menuitem "&List Stacks"    "TASK.STacK.view"
+      menuitem "Add Task"        "TASK.STacK.ADD"
+      menuitem "Remove Task"     "TASK.STacK.ReMove"
+      menuitem "Reset Coverage"
+      (
+        if icd()||simulator()
+        (
+          dialog.yesno "Overwrite unused stack space" "with stack fill pattern?"
+          entry &yes
+          if !&yes
+            enddo
+        )
+        TASK.STacK.Init
+      )
+    )
+  )
+  popup "Trace"
+  (
+    popup "[:alist]List"
+    (
+      separator
+      menuitem "&Task Switches"     "Trace.List List.TASK"
+      menuitem "&Default and Tasks" "Trace.List List.TASK DEFault"
+    )
+  )
+  popup "Perf"
+  (
+    separator
+    popup "&Task Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+        )
+        if ice()&&!trace.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak&&Write
+          )
+          Break.Delete /Alpha
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+        )
+        if fire()&&!trace.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak
+          )
+          Break.Delete /Alpha
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha /Write
+        )
+        if trace.flow()
+        (
+          Break.Delete /TraceEnable
+          Break.Set task.config(magic) /Write /TraceEnable
+        )
+        Trace.Init
+      )
+      menuitem "[:perf]Show &Numerical"   "Trace.STATistic.TASK"
+      menuitem "[:achart]Show as &Timing" "Trace.CHART.TASK"
+      menuitem "[:achart]Tracking with Trace &List"
+      (
+        Trace.List List.TASK DEFault /Track
+        Trace.CHART.TASK /Track
+      )
+    )
+    popup "Task &Function Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+          Analyzer.STATistic.PreFetch on
+        )
+        if ice()&&!trace.flow()
+        (
+          if a.config.hac()
+          (
+            Analyzer.ReProgram
+            (
+              Sample.Enable if AlphaBreak
+              Sample.Enable if BetaBreak
+              Mark.A        if AlphaBreak
+              Mark.B        if BetaBreak
+            )
+          )
+          else
+          (
+            Analyzer.ReProgram
+            (
+              Sample.Enable if AlphaBreak||BetaBreak
+              Mark.A if AlphaBreak
+              Mark.B if BetaBreak
+              Mark.C if CharlyBreak
+            )
+          )
+          Break.Delete /Alpha /Beta /Charly
+          Break.SetFunc
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+        )
+        if fire()&&!trace.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak||BetaBreak||CharlyBreak
+            Mark.A if AlphaBreak
+            Mark.B if BetaBreak
+            Mark.C if CharlyBreak
+          )
+          Break.Delete /Alpha /Beta /Charly
+          Break.SetFunc
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha /Write
+        )
+        if trace.flow()
+        (
+          Break.Delete /TraceData
+          Break.Set task.config(magic) /Write /TraceData
+        )
+        Trace.Init
+      )
+      menuitem "[:perf]Show &Numerical"     "Trace.STATistic.TASKFUNC"
+      menuitem "[:perf]Show as &Tree"       "Trace.STATistic.TASKTREE"
+      menuitem "[:perf]Show &Detailed Tree" "Trace.STATistic.TASKTREE ALL"
+      menuitem "[:achart]Show as &Timing"   "Trace.CHART.TASKFUNC"
+      menuitem "[:alist]Show N&esting"      "Trace.List List.TASK FUNC TI.FUNC"
+    )
+  )
+  popup "&Help"
+  (
+    menuitem "SYS/BIOS RTOS Debugger Manual" "HELP __RTOS_SYSBIOS_"
+  )
+)
+
+
+menu "task.tsk"
+(
+  menuitem "Display Detailed"
+  (
+    LOCAL &magic
+    &magic=address.offset(track.address())
+    TASK.TaSK &magic
+  )
+  menuitem "Display Task Object"
+  (
+    LOCAL &address
+    &address=track.address()
+    Var.View %Open (ti_sysbios_knl_Task_Object*)(&address)
+  )
+  separator
+  menuitem "Display Stack Frame"
+  (
+    LOCAL &magic
+    &magic=address.offset(track.address())
+    Var.Frame /Locals /Caller /Task &magic
+  )
+  menuitem "Display Registers"
+  (
+    LOCAL &magic
+    &magic=address.offset(track.address())
+    Register /Task &magic
+  )
+  menuitem "Switch Context"       "Register.TASK address.offset(track.address())"
+  separator
+  menuitem "Add to Stack Cov"  "TASK.STK.ADD address.offset(track.address())"
+  menuitem "Rm from Stack Cov" "TASK.STK.RM  address.offset(track.address())"
+  separator
+  menuitem "Dump Task Object"
+  (
+    LOCAL &address
+    &address=track.address()
+    Data.dump &address
+  )
+)
+
+
+menu "task.clk"
+(
+  menuitem "Display Detailed"
+  (
+    LOCAL &magic
+    &magic=address.offset(track.address())
+    TASK.CloCK &magic
+  )
+  menuitem "Display Clock Object"
+  (
+    LOCAL &address
+    &address=track.address()
+    Var.View %Open (ti_sysbios_knl_Clock_Object*)(&address)
+  )
+  menuitem "Dump Clock Object"
+  (
+    LOCAL &address
+    &address=track.address()
+    Data.dump &address
+  )
+)
+
+menu "task.evt"
+(
+  menuitem "Display Detailed"
+  (
+    LOCAL &magic
+    &magic=address.offset(track.address())
+    TASK.EVenT &magic
+  )
+  menuitem "Display Event Object"
+  (
+    LOCAL &address
+    &address=track.address()
+    Var.View %Open (ti_sysbios_knl_Event_Instance_State*)(&address)
+  )
+  menuitem "Dump Event Object"
+  (
+    LOCAL &address
+    &address=track.address()
+    Data.dump &address
+  )
+)
+
+menu "task.mbx"
+(
+  menuitem "Display Detailed"
+  (
+    LOCAL &magic
+    &magic=address.offset(track.address())
+    TASK.MailBoX &magic
+  )
+  menuitem "Display Mailbox Object"
+  (
+    LOCAL &address
+    &address=track.address()
+    Var.View %Open (ti_sysbios_knl_Mailbox_Instance_State*)(&address)
+  )
+  menuitem "Dump Mailbox Object"
+  (
+    LOCAL &address
+    &address=track.address()
+    Data.dump &address
+  )
+)
+
+menu "task.sem"
+(
+  menuitem "Display Detailed"
+  (
+    LOCAL &magic
+    &magic=address.offset(track.address())
+    TASK.SEMaphore &magic
+  )
+  menuitem "Display Semaphore Object"
+  (
+    LOCAL &address
+    &address=track.address()
+    IF (var.exist(ti_sysbios_knl_Semaphore_Instance_State))
+        Var.View %Open (ti_sysbios_knl_Semaphore_Instance_State*)(&address)
+    ELSE
+        Var.View %Open (ti_sysbios_knl_Semaphore_Object__*)(&address)
+  )
+  menuitem "Dump Semaphore Object"
+  (
+    LOCAL &address
+    &address=track.address()
+    Data.dump &address
+  )
+)
+
+menu "task.swi"
+(
+  menuitem "Display Detailed"
+  (
+    LOCAL &magic
+    &magic=address.offset(track.address())
+    TASK.SWI &magic
+  )
+  menuitem "Display SWI Object"
+  (
+    LOCAL &address
+    &address=track.address()
+    Var.View %Open (ti_sysbios_knl_Swi_Object*)(&address)
+  )
+  menuitem "Dump SWI Object"
+  (
+    LOCAL &address
+    &address=track.address()
+    Data.dump &address
+  )
+)
+
+menu "task.hwi"
+(
+  menuitem "Display Detailed"
+  (
+    LOCAL &magic
+    &magic=address.offset(track.address())
+    TASK.HWI &magic
+  )
+  menuitem "Display HWI Object"
+  (
+    LOCAL &address &struct
+    &address=track.address()
+    &struct=task.struct(hwi)
+    Var.View %Open (&struct*)(&address)
+  )
+  menuitem "Dump HWI Object"
+  (
+    LOCAL &address
+    &address=track.address()
+    Data.dump &address
+  )
+)
+
+menu "task.hm"
+(
+  menuitem "Display Detailed"
+  (
+    LOCAL &magic
+    &magic=address.offset(track.address())
+    TASK.HeapMem &magic
+  )
+  menuitem "Display HeapMem Object"
+  (
+    LOCAL &address
+    &address=track.address()
+    Var.View %Open (ti_sysbios_heaps_HeapMem_Object*)(&address)
+  )
+  menuitem "Dump HeapMem Object"
+  (
+    LOCAL &address
+    &address=track.address()
+    Data.dump &address
+  )
+)

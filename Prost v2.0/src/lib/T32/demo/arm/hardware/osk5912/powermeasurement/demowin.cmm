@@ -1,0 +1,39 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demowin.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+// dir Thu Jan 18 14:25:25 2007
+
+ B::
+
+ TOOLBAR ON
+ STATUSBAR ON
+ WinPAGE.RESet
+
+ WinCLEAR
+ WinPOS 44.625 7.5625 99. 47. 0. 0. W006 ICONIC
+ PEDIT ~~~~/pwm_demo_code.cmm
+
+ WinPOS 0.0 41.188 76. 9. 16. 2. W001
+ Integrator.DRAW i.v0a i.v1a i.v2a i.v3a /ZoomTrack
+
+ WinPOS 0.0 27.063 76. 10. 16. 2. W009
+ Integrator.DRAW i.i0a i.i1a i.i2a /ZoomTrack
+
+ WinPOS 79.125 29.188 77. 21. 25. 2. W002
+ Analyzer.Chart.sYmbol /ZoomTrack
+
+ WinPOS 0.0 0.0 76. 23. 13. 1. W000
+ WinTABS 16. 10. 25. 62.
+ List.auto
+
+ WinPOS 86.625 1.5625 64. 17. 0. 0. W003
+ Analyzer.state
+
+ WinPAGE.select P000
+
+ ENDDO
+

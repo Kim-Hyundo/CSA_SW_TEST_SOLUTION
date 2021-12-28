@@ -1,0 +1,91 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash declaration of NXP Semiconductor QN908x internal flash.
+; @Description:
+; Board info: Tested on QN9080 DK-V1.2 evaluation board
+; Flash info: Internal Flash
+; Script arguments: [PREPAREONLY] Only declares flash but does not execute flash
+;                                 programming
+;                   CPU=<cpu> selects CPU derivative <cpu>
+; @Keywords:
+; @Author: mmauser
+; @Board: QN9080 DK-V1.2
+; @Chip: QN9080DHN QN9083DUK
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: qn908x.cmm 7602 2019-11-05 15:02:25Z bschroefel $
+
+PRIVATE &parameters &param_prepareonly &param_cpu
+ENTRY %LINE &parameters
+
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CPU=","")
+
+PRIVATE &ram_start &flashDriverSize &bufferSize
+PRIVATE &flash0_start &flash1_start &flash2_start &flashsize &pagesize
+
+; ------------------------------------------------------------------------------
+; Setup CPU
+IF !SYStem.Up()
+(
+  SYStem.RESet
+  if "&param_cpu"==""
+    if !CPUIS(QN908*)
+      &param_cpu="QN9080DHN"
+  SYStem.CPU &param_cpu
+  SYStem.CONFIG.DEBUGPORTTYPE SWD
+  SYStem.Up
+)
+; ------------------------------------------------------------------------------
+; Setup flash configuration
+&ram_start=0x04000000  ; internal RAM: 0x04000000 (SRAM 128K)
+&flashDriverSize=0x1000 ; (<flash_algorithm>) + 32 byte
+&bufferSize=0x1000
+
+&flash0_start=0x01000000
+&flash1_start=0x01040000
+
+&flashsize=0x40000 // 256k flash size is the same for all onchip flashes.
+&sectrorsize=0x800 // 2k sector size
+
+; ------------------------------------------------------------------------------
+; Flash declaration
+
+FlashDeclaration:
+
+FLASH.RESet
+
+FLASH.Create 1. &flash0_start++(&flashsize-1) &sectrorsize TARGET Long /CENSORSHIP 0x1000020--0x1000023 ; in principle offset 0x110 should also be protected with /censorship but currently only one /censorship range per section is posible. On the other hand 0x110 is not as critical as 0x20 because the "dangerous" value is b1010101.... instead of 0x00000000 or 0xffffff
+FLASH.Create 2. &flash1_start++(&flashsize-1) &sectrorsize TARGET Long /CENSORSHIP 0x107F800--0x107F823 /KEEP 0x107F824--0x107FBFF /KEEP 0x107FC00--0x107FFFF
+
+FLASH.CreateALIAS 0x21000000--0x2107FFFF 0x1000000
+FLASH.CreateALIAS 0x31000000--0x3107FFFF 0x1000000
+
+FLASH.TARGET &ram_start (&ram_start+&flashDriverSize) &bufferSize  ~~/demo/arm/flash/long/qn9080.bin /DualPort
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; ------------------------------------------------------------------------------
+; Flash programming example
+
+DIALOG.YESNO "Program flash memory?"
+LOCAL &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.Erase.ALL
+  FLASH.ReProgram.ALL
+  Data.LOAD.auto * /Long
+  ; write legacy header information
+  Data.SUM 0x01000000--0x0100001B /Long  ; Calculate checksum of all (other) vectors
+  Data.Set 0x0100001C %Long -Data.SUM()  ; Write the 2's complement in reserved vector's spot
+
+  FLASH.ReProgram.off
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+)
+
+ENDDO

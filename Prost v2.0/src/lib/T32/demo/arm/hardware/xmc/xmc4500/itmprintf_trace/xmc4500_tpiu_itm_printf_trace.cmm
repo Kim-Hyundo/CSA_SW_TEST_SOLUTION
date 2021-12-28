@@ -1,0 +1,66 @@
+; --------------------------------------------------------------------------------
+; @Title: ITM printf demo for XMC4500 Hexagon board
+; @Description:
+;   This is a very simple demo to show how to display ascii encoded itm trace
+;   into a text message. Printf traces are exported on TPIU.
+; @Keywords: Cortex-M4, DLL, ITM, printf, SWD
+; @Author: HDA
+; @Board: XMC4500 Hexagon
+; @Chip: XMC4500
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: xmc4500_tpiu_itm_printf_trace.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+  Break.RESet
+  SYStem.RESet
+  SYStem.CPU XMC4500
+  SYStem.Option ResBreak OFF
+  SYStem.CONFIG.DEBUGPORTTYPE SWD
+  SYStem.CONFIG.CONNECTOR MIPI20T
+
+  SYStem.Up
+
+; Init internal SRAM
+  Data.Set 0x20000000++0FFFF %Long 0
+
+;load demo application
+  Data.LOAD.Elf ~~~~/demo.axf
+; load stack pointer and PC from vector table
+  Register.RESet
+  Register.Set PC main
+  Register.Set R13 0x20005000
+
+; Set Pin-Multiplexing for enabling the trace
+  Data.Set E:0x48028274 %Long 0x00401405                           ; Enable ETM Pins P2
+  Data.Set E:0x48028244 %Long Data.Long(E:0x48028244)&0xF00000FF   ; Inclease driver strength P2
+  Data.Set E:0x48028674 %Long 0x00001405                           ; Enable ETM Pins P6
+  Data.Set E:0x48028640 %Long Data.Long(E:0x48028640)&0xF00FF000   ; Inclease driver strength P6
+
+  ITM.PortMode Continuous
+  ITM.PortSize 4.
+
+  IF hardware.COMBIPROBE()||hardware.UTRACE()
+  (
+    CAnalyzer.RESet
+    CAnalyzer.THreshold 1.6
+    CAnalyzer.Init
+    Trace.METHOD CAnalyzer   ; Using CombiProbe
+    CAnalyzer.CLOCKDelay MED
+  )
+  ELSE IF Analyzer()
+  (
+    Trace.METHOD Analyzer    ; Using ARM preprocessor
+  )
+
+;Turn on ITM and ETM
+  ETM.OFF
+  ITM.CLEAR
+
+  Go.direct
+  WAIT 4.s
+
+  Break.direct
+
+  PrintfTrace.List MESSAGE List.NoDummy
+
+  ENDDO

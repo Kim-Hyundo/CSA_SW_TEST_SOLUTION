@@ -1,0 +1,97 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC264D on TriBoard-TC2x4 (AMP, waveform app) over XCP
+; @Description:
+;   Shows how a AMP session over XCP can be configured / started.
+;
+;   Loads the waveform generation demo application (multi-core) into RAM and
+;   sets up a demo debug scenario for AMP debugging. Further information is
+;   available in in the Tricore Processor Architecture Manual
+;   (pdf/debugger_tricore.pdf), chapter "SMP Debugging - Quick Start". More
+;   information about the demo application can be found in "waveform.c".
+; @Keywords: AURIX, Infineon, multi-core, TriCore, waveform, ETAS, ETK, XETK, FETK,
+;            Vector Informatik, VX1000, XCP
+; @Author: MEI
+; @Board: TriBoard-TC2x4
+; @Chip: TC264D
+; @Copyright: (C) 1989-2018 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc264d_amp_demo_waveform.cmm 15740 2020-02-27 14:04:17Z meick $
+
+
+; script-local macros:
+LOCAL &elfFile &xcpSlaveAddr &xcpSlaveMode
+
+; --------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
+; Please adopt to your system
+&xcpSlaveAddr="192.168.40.16"
+; &xcpSlaveMode=2                      ; uncomment for Vector Informatik VX1000
+; --------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------
+
+; --------------------------------------------------------------------------------
+; enable Inter-GUI communication
+IC.ENable TC0
+
+; open second GUI
+TargetSystem.NewInstance TC1
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+IC ALL RESet
+IC ALL SYStem.CONFIG DEBUGPORT XCP0
+SYStem.CONFIG XCP.SLAVE &xcpSlaveAddr
+IF "&xcpSlaveMode"!=""
+  SYStem.CONFIG XCP.SLAVEMode &xcpSlaveMode
+
+IC ALL SYStem.CPU TC264D
+
+; mount all cores into the same chip:
+IC TC0 SYStem.CONFIG.CORE 1. 1.
+IC TC1 SYStem.CONFIG.CORE 2. 1.
+IC TC0 SYStem.Up
+IC TC1 SYStem.Mode Attach
+
+; optional settings:
+IC ALL SYStem.Option DUALPORT ON
+IC ALL SETUP.Var %SpotLight
+IC ALL MAP.BOnchip 0x0--0xffffffff // force onchip-breakpoints
+; IC ALL DO ~~/demo/practice/intercom/toolbar_quit_all.cmm
+
+; --------------------------------------------------------------------------------
+; load elf file (uses internal RAM only)
+&elfFile=OS.PPD()+"/triboard-tc26x_waveform_intmem.elf" // including the full path
+IC TC0 Data.LOAD.Elf "&elfFile" /SingleLineAdjacent
+IC TC1 Data.LOAD.Elf "&elfFile" /SingleLineAdjacent /NoCODE /NoRegister
+
+; --------------------------------------------------------------------------------
+; arrange GUIs and open some windows
+IC TC0 FramePOS 0% 0% 50% 75% Auto
+IC TC1 FramePOS 50% 0% 50% 75% Auto
+
+IC ALL WinCLEAR
+IC ALL WinPOS 0% 0% 100% 35%
+IC ALL List.auto
+IC ALL WinPOS 0% 35% 100% 25%
+IC ALL Var.Watch
+IC ALL WinPOS 0% 60% 100% 40%
+IC ALL Var.DRAW inputA inputB mixed 10000.0 -1500000.0
+IC TC0 TargetSystem.state DEFault Title SYnch.All InterComPort /Global
+
+IC ALL Var.AddWatch inputA inputB
+IC ALL Var.AddWatch %Decimal %Bin.OFF mixed
+IC ALL Var.AddWatch %Bin %Decimal.OFF nFlagsUncached
+IC ALL Var.AddWatch %Decimal %Bin.OFF nAbsSmall nAbsAverage nAbsLarge nPos nNeg
+
+; set up synchronization between GUIs:
+IC ALL SYnch.Connect OTHERS
+; required when setting breakpoints on slave GUIs:
+IC TC0 SYnch.MasterGo ON
+IC TC1 SYnch.SlaveGo ON
+; optional:
+IC ALL SYnch.MasterBreak ON
+IC ALL SYnch.SlaveBreak ON
+
+; demo script ends here
+ENDDO
+

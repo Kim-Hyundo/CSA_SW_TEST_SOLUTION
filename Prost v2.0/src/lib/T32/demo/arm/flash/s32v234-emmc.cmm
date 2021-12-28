@@ -1,0 +1,245 @@
+; --------------------------------------------------------------------------------
+; @Title: eMMC FLASH Programming template for the S32V234 (TREERUNNER)
+; @Description:
+; The MTFC32GJWEF (Micron) is connected to the uSDHC controller.
+;
+; SRAM: 0x3E000000
+; eMMC (controller) Base: 0x4005D000
+; Prerequisites:
+; set Bootmode to eMMC
+; J36 : 1&2 short for eMMC or SD Card
+; J37 : 2&3 short for eMMC, 1&2 for SD
+; BOOT_CFG1[7:6]: 11 ; BOOT from eMMC/SD
+;
+; @Chip: S32V234
+; @Board: S32V234-EVB, miriac SBC-S32V
+; @Author: JIM
+; @Keywords: eMMC Micron
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: s32v234-emmc.cmm 7602 2019-11-05 15:02:25Z bschroefel $
+
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+
+LOCAL &CA5_start_addr
+LOCAL &MMC_BASE
+LOCAL &SIUL2_BASE
+
+&MMC_BASE=0x4005D000
+&SIUL2_BASE=0x4006C000
+
+RESet
+SYStem.RESet
+SYStem.CPU S32V234-CM4
+SYStem.CONFIG.DEBUGPORTTYPE JTAG
+SYStem.Option.ResBreak OFF
+SYStem.Option.WaitReset 200.ms
+SYStem.JtagClock CTCK 10Mhz
+Trace.DISable
+ETM.OFF
+ITM.OFF
+HTM.OFF
+SYStem.Up
+
+GOSUB XOSC_setup
+GOSUB ENET_PLL
+
+//To clear the soft lock bit (SWT_CR[SLK]), the value 0xC520 followed by 0xD928 is written to the WSC field
+IF (Data.Long(A:0x40086000)&0x1)==0x1
+(
+  Data.Set  A:0x40086010 %Long 0xC520
+  Data.Set  A:0x40086010 %Long 0xD928
+  Data.Set  A:0x40086000 %Long 0xff00010a  ; or 0xff00010a  disable Watchdog SWT4_CR (Cortex-M4)
+)
+
+GOSUB uSDHC_PinMux_CLKEnable
+
+GOSUB READ_ID_TEST
+
+; Init SRAM (32KB) for the flash algorithm
+Data.Set AD:0x3E000000++0x7FFF %Long 0x0
+
+  Break.RESet
+
+  FLASHFILE.RESet
+
+;FLASHFILE.CONFIG  <eMMC controller> <0x0>  <0x0>
+ FLASHFILE.CONFIG  &MMC_BASE         0x0  0x0
+
+//FLASHFILE.TARGET <Code_range>        <Data_range>          <Algorithm file>
+  FLASHFILE.TARGET 0x3E000000++0x1FFF  EAHB:0x3E002000++0x1FFF    ~~/demo/arm/flash/byte/emmc_imx6.bin  /KEEP  /DUALPORT
+
+Data.Set &MMC_BASE+0x2C %LE %Long 0x008E10F8 ; 400KHz clk
+  FLASHFILE.GETID
+
+Data.Set &MMC_BASE+0x2C %LE %Long 0x008E0408  ; 25Mhz clk
+  FLASHFILE.GETEXTCSD
+
+  //End of the test prepareonly
+  IF "&arg1"=="PREPAREONLY"
+  ENDDO
+
+  FLASHFILE.DUMP 0x0              ; Read NAND
+ ;FLASHFILE.ERASE 0x0--0xFFFFF    ; Erase NAND
+ ;FLASHFILE.LOAD * 0x0            ; Write NAND
+
+ENDDO
+
+
+ENDDO
+
+XOSC_setup:
+(
+  Data.Set AD:0x4004a008 %Long 0x80ff
+  Data.Set AD:0x4004a080 %Long 0xFE
+
+  Data.Set AD:0x4003C280  %Long 0x018020F0
+  Data.Set AD:0x4004A02C  %Long 0x00100031
+  Data.Set AD:0x4004A004  %Long 0x30005af0
+  Data.Set AD:0x4004A004  %Long 0x3000A50F
+
+  Data.Set AD:0x4004A02C  %Long 0x00100031
+  Data.Set AD:0x4004A260  %Long 0x10
+  Data.Set AD:0x4004A260  %Long 0x0110
+  Data.Set AD:0x4004A260  %Long 0x1110
+  Data.Set AD:0x4004A004  %Long 0x30005af0
+  Data.Set AD:0x4004A004  %Long 0x3000A50F
+  RETURN
+)
+
+ENET_PLL:
+(
+  Data.Set AD:0x4007C100 %Long  0x58000000
+  Data.Set AD:0x4003C128 %Long  0x02021019
+  Data.Set AD:0x4003C130 %Long  0x70000000
+  Data.Set AD:0x4003C140 %Long  0x5445
+  Data.Set AD:0x4003C144 %Long  0x0
+  Data.Set AD:0x4003C15C %Long  0x02DB
+  Data.Set AD:0x4003C160 %Long  0x02DB
+  Data.Set AD:0x4003C164 %Long  0x0320
+  Data.Set AD:0x4003C168 %Long  0x04CE
+  Data.Set AD:0x4003C158 %Long  0x0
+  Data.Set AD:0x4003C154 %Long  0x0
+  Data.Set AD:0x4004A02C %Long  0x001001F2
+  Data.Set AD:0x4004A004 %Long  0x30005AF0
+  Data.Set AD:0x4004A004 %Long  0x3000A50F
+
+  RETURN
+)
+
+
+uSDHC_PinMux_CLKEnable:
+(
+  Data.Set AD:0x4003C9E0 %Long 0x01000000 // MC_CGM_0_AC15_SC = FXOSC
+  Data.Set AD:0x4003C9E8 %Long 0x80000000 // MC_CGM_0_AC15_DC0 = Enable auxiliary clock 15 divider 0
+
+  ; --------------------------------------------------------------------------------
+  ; IO Mux for SDHC
+  ; --------------------------------------------------------------------------------
+
+  ; Switch ExtMux to MMC
+  Data.Set AD:&SIUL2_BASE+0x25C  %Long 0x200700   ; MSCR[7].OBE=1, DSE=7, MUX_MODE=3
+  Data.Set AD:&SIUL2_BASE+0x1304 %Long 0x00000001      ; GPDO[1].PDO_4n3 = 1
+
+  ; Pinmuxer for SDMMC
+  Data.Set AD:0x4006C498 %Long 0x29F702  ; PK6(150) uSDHC clk OutBuf ena, InBuf ena, Pull/Keep enable, HF slew rate, PullUp ena, PullUp 100k, max. drive strength, MUX_MODE 0010
+  Data.Set AD:0x4006D058 %Long 0x3       ; PK6(902) (SIUL2_IMCR390) -> PK6, CLK!
+  Data.Set AD:0x4006C49C %Long 0x29F701  ; PK7(151) uSDHC CMD OutBuf ena, InBuf ena, Pull/Keep enable, HF slew rate, PullUp ena, PullUp 100k, max. drive strength, MUX_MODE 0001
+  Data.Set AD:0x4006D054 %Long 0x3       ; PK7(901) (SIUL2_IMCR389) -> PK7, CMD!
+  Data.Set AD:0x4006C4A0 %Long 0x29F702  ; PK8(152) uSDHC DAT0 OutBuf ena, InBuf ena, Pull/Keep enable, HF slew rate, PullUp ena, PullUp 100k, max. drive strength, MUX_MODE 0010
+  Data.Set AD:0x4006D05C %Long 0x3       ; PK8(903) (SIUL2_IMCR391) -> PK8, DAT0
+  Data.Set AD:0x4006C4A4 %Long 0x29F702  ; PK9(153) uSDHC DAT1 OutBuf ena, InBuf ena, Pull/Keep enable, HF slew rate, PullUp ena, PullUp 100k, max. drive strength, MUX_MODE 0010
+  Data.Set AD:0x4006D060 %Long 0x3       ; PK9(904) (SIUL2_IMCR392) -> PK9, DAT1
+  Data.Set AD:0x4006C4A8 %Long 0x29F702  ; PK10(154) uSDHC DAT2 OutBuf ena, InBuf ena, Pull/Keep enable, HF slew rate, PullUp ena, PullUp 100k, max. drive strength, MUX_MODE 0010
+  Data.Set AD:0x4006D064 %Long 0x3       ; PK10(905) (SIUL2_IMCR393) -> PK10, DAT2
+  Data.Set AD:0x4006C4AC %Long 0x29F702  ; PK11(155) uSDHC DAT3 OutBuf ena, InBuf ena, Pull/Keep enable, HF slew rate, PullUp ena, PullUp 100k, max. drive strength, MUX_MODE 0010
+  Data.Set AD:0x4006D068 %Long 0x3       ; PK11(906) (SIUL2_IMCR394) -> PK11, DAT3
+  Data.Set AD:0x4006C4BC %Long 0x29F703  ; PK15(159) uSDHC DAT4 OutBuf ena, InBuf ena, Pull/Keep enable, HF slew rate, PullUp ena, PullUp 100k, max. drive strength, MUX_MODE 0011
+  Data.Set AD:0x4006D06C %Long 0x3       ; PK15(907) (SIUL2_IMCR395) -> PK15, DAT4
+  Data.Set AD:0x4006C4C0 %Long 0x29F703  ; PL0(160) uSDHC DAT5 OutBuf ena, InBuf ena, Pull/Keep enable, HF slew rate, PullUp ena, PullUp 100k, max. drive strength, MUX_MODE 0011
+  Data.Set AD:0x4006D070 %Long 0x3       ; PL0(908) (SIUL2_IMCR396) -> PL0, DAT5
+  Data.Set AD:0x4006C4C4 %Long 0x29F703  ; PL1(161) uSDHC DAT6 OutBuf ena, InBuf ena, Pull/Keep enable, HF slew rate, PullUp ena, PullUp 100k, max. drive strength, MUX_MODE 0011
+  Data.Set AD:0x4006D074 %Long 0x3       ; PL1(909) (SIUL2_IMCR397) -> PL1, DAT6
+  Data.Set AD:0x4006C4C8 %Long 0x29F703  ; PL2(162) uSDHC DAT7 OutBuf ena, InBuf ena, Pull/Keep enable, HF slew rate, PullUp ena, PullUp 100k, max. drive strength, MUX_MODE 0011
+  Data.Set AD:0x4006D078 %Long 0x3       ; PL2(910) (SIUL2_IMCR398) -> PL2, DAT7
+
+  ; --------------------------------------------------------------------------------
+  ; Config SDHC controller
+  ; --------------------------------------------------------------------------------
+
+  Data.Set AD:&MMC_BASE+0x04 %LE %Long 0x00010200  ; blk size (512 bytes),cnt (1 byte)
+  Data.Set AD:&MMC_BASE+0x28 %LE %Long 0x08800020  ; burst length enabled (INCR1), little endian
+  Data.Set AD:&MMC_BASE+0x2C %LE %Long 0x008E0408  ; clk
+  Data.Set AD:&MMC_BASE+0x34 %LE %Long 0x007F0037  ; BRR,BWR, TCI, CCI interrupt enable
+  Data.Set AD:&MMC_BASE+0x38 %LE %Long 0x007F0037  ; BRR,BWR, TCI, CCI interrupt enable
+  Data.Set AD:&MMC_BASE+0x44 %LE %Long 0x00100010  ;read/write fifo threshold level 64bytes
+
+  RETURN
+)
+
+
+READ_ID_TEST:
+(
+  //CMD0
+  RePeaT 2.
+  (
+    Data.Set &MMC_BASE+0x30 %Long 0xFFFFFFFF ;clear status
+    Data.Set &MMC_BASE+0x8 %Long 0x0  ;arg
+    Data.Set &MMC_BASE+0xc %Long 0x0  ;cmd
+    WAIT 10.ms
+  )
+
+  //CMD1
+  RePeaT 10.
+  (
+    Data.Set &MMC_BASE+0x30 %Long 0xFFFFFFFF ;clear status
+    Data.Set &MMC_BASE+0x8 %Long 0x40FF8000 ;arg
+    Data.Set &MMC_BASE+0xc %Long 0x01020000 ;cmd1
+    WAIT 100.ms
+    &resp=Data.Long(A:(&MMC_BASE+0x10))
+    //print "CMD1 resp: 0x" &resp
+    IF (&resp&0x80000000)==0x80000000
+    (
+      GOTO jump_cmd2
+    )
+  )
+
+  PRINT "CMD1 fail"
+  END
+
+jump_cmd2:
+  //CMD2
+  Data.Set &MMC_BASE+0x30 %Long 0xFFFFFFFF ;clear status
+  Data.Set &MMC_BASE+0x8 %Long 0x0     ;arg
+  Data.Set &MMC_BASE+0xc %Long 0x02010000 ;cmd2
+  WAIT 10.ms
+
+  //CMD3
+  Data.Set &MMC_BASE+0x30 %Long 0xFFFFFFFF ;clear status
+  Data.Set &MMC_BASE+0x8 %Long 0x00010000  ; arg, MMC RCA is (0x0001<<16.)
+  Data.Set &MMC_BASE+0xc %Long 0x03020000  ;cmd3
+  WAIT 10.ms
+
+  //CMD10
+  Data.Set &MMC_BASE+0x30 %Long 0xFFFFFFFF ;clear status
+  Data.Set &MMC_BASE+0x8 %Long 0x00010000 ; arg, MMC RCA is (0x0001<<16.)
+  Data.Set &MMC_BASE+0xc %Long 0x0A010000  ;cmd10
+  WAIT 10.ms
+
+  //Response2
+  PRINT "CID register"
+  PRINT "[127:104] 0x" Data.Long(A:(&MMC_BASE+0x1c))
+  PRINT "[103:72]  0x" Data.Long(A:(&MMC_BASE+0x18))
+  PRINT "[71:40]   0x" Data.Long(A:(&MMC_BASE+0x14))
+  PRINT "[39:8]    0x" Data.Long(A:(&MMC_BASE+0x10))
+
+  RETURN
+)
+
+SDRAM_INIT:
+(
+  RETURN
+)

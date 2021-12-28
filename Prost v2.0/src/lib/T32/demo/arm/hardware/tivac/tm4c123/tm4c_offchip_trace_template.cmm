@@ -1,0 +1,98 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple sieve demo running in RAM
+; @Description:
+;   Run a simple sieve demo in onchip SRAM and demonstrate Offchip trace.
+;   Tested with Combiprobe, uTrace and PowerTrace.
+;   Prerequisites:
+;     -   Connect uTrace or Combiprobe with MIPI20 cable 
+;       or
+;         Connect AutoFocus II Preprocessor with Mictor cable or 
+;         using LA-3809 Mictor->Mipi20 adapter
+;
+; @Keywords: Cortex-M4 TPIU Offchip ETM ITM
+; @Author: AME
+; @Board: -
+; @Chip: TM4C123*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tm4c_offchip_trace_template.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; connect
+RESet
+SYStem.RESet
+SYStem.CPU TM4C123*
+SYStem.CONFIG.CONNECTOR MIPI20T
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF VERSION.BUILD.BASE()<58225.
+( 
+  SYStem.Option ResBreak OFF
+  SYStem.Option WaitReset 50.0ms
+)
+SYStem.Up
+
+; Load Demo
+Data.LOAD.Elf ~~~~/sieve_ram_thumb_ii_v7.elf
+; execute startcode
+Go main
+WAIT !STATE.RUN()
+
+; Prevent error during power saving states and stop peripherals in debug mode
+Data.Set A:0xE0042004 %Long 0yXXXXxxxxXXX11111XXXXxxxx111Xx111  ; DBGMCU_CR
+
+IF hardware.COMBIPROBE()||hardware.UTRACE()||Analyzer()
+(
+  ; some TM4C devices support only 2 Bit trace
+  GOSUB InitGpio2Bit
+  TPIU.PortSize 2
+  ; uncomment the following block for 4 Bit trace
+  ; GOSUB InitGpio4Bit
+  ; TPIU.PortSize 4
+
+  TPIU.PortMode Continuous
+  ETM.Trace ON
+  ETM.ON
+)
+IF hardware.COMBIPROBE()||hardware.UTRACE()
+(
+  Trace.METHOD CAnalyzer
+  CAnalyzer.ClockDelay Large ; or None/Small/MEDium/MAXimum
+  Trace.Init
+)
+ELSE IF Analyzer()
+(
+  Trace.METHOD Analyzer
+  Analyzer.AutoFocus
+  Trace.Init
+)
+
+ENDDO
+
+InitGpio4Bit:
+  ; Trace is connected to Port F.3 F.2 F.1 + F.0 F.4
+  ; Setup GPIO clock 
+  Data.Set A:0x400FE608 %Long Data.Long(A:0x400FE608)|(1.<<5.)             ; RCGC_GPIO_Register
+  ; Unlock - Write Commit - Lock
+  Data.Set A:0x40025520 %Long 0x4C4F434B                                   ; GPIOLOCK 
+  Data.Set A:0x40025524 %Long Data.Long(A:0x40025524)|0x1f                 ; GPIOCR - 2Bit Trace
+  Data.Set A:0x40025520 %Long 0x0                                          ; LOCK
+  
+  ; Setup pin multiplexing for using the 4 bit trace
+  Data.Set A:0x4002551C %Long Data.Long(A:0x4002551C)|0x1f                 ; GPIODEN
+  Data.Set A:0x40025420 %Long Data.Long(A:0x40025420)|0x1f                 ; GPIOAFSEL (Pin 0-4 controlled by GPIO-Reg)
+  Data.Set A:0x4002552C %Long (Data.Long(A:0x4002552C)&0xfff00000)|0xeeeee ; GPIOPCTL (MODE 14=0xe=Trace)
+  RETURN
+  
+InitGpio2Bit:
+  ; Trace is connected to Port F.3 F.2 F.1
+  ; Setup GPIO clock 
+  Data.Set A:0x400FE608 %Long Data.Long(A:0x400FE608)|(1.<<5.)             ; RCGC_GPIO_Register
+  ; Unlock - Write Commit - Lock
+  Data.Set A:0x40025520 %Long 0x4C4F434B                                   ; GPIOLOCK 
+  Data.Set A:0x40025524 %Long Data.Long(A:0x40025524)|0x0e                 ; GPIOCR - 2Bit Trace
+  Data.Set A:0x40025520 %Long 0x0                                          ; LOCK
+  
+  ; Setup pin multiplexing for using the 2 bit trace
+  Data.Set A:0x4002551C %Long Data.Long(A:0x4002551C)|0x0e                 ; GPIODEN
+  Data.Set A:0x40025420 %Long Data.Long(A:0x40025420)|0x0e                 ; GPIOAFSEL (Pin 0-4 controlled by GPIO-Reg)
+  Data.Set A:0x4002552C %Long (Data.Long(A:0x4002552C)&0xffff000f)|0x0eee0 ; GPIOPCTL (MODE 14=0xe=Trace)
+  RETURN

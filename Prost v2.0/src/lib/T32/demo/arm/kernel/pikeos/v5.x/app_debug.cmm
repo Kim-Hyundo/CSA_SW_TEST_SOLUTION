@@ -1,0 +1,369 @@
+; --------------------------------------------------------------------------------
+; @Title: PikeOS Application Debugging Script
+; @Description:
+;  This script waits for an application to be started,
+;  loads the symbols and halts the application at its entry point
+;  NOTE: PikeOS and the PikeOS awareness must be up.
+;  Start this script with the process name as argument to
+;  run the script as command line version or use /dialog
+;  to run the script in a dialog. A second parameter may
+;  specify the file name, if it differs from the process name.
+;  A third parameter may specify the entry point, if it differs
+;  from the standard main declarations.
+;  Examples:
+;   do app_debug /dialog    ; opens a dialog window
+;   do app_debug hello      ; waits for task "hello" to be started
+;   do app_debug hello filehello
+;       ; waits for "hello" and loads "filehello" as symbol file
+;   do app_debug hello filehello mymain
+;       ; waits for "hello" and halts at "mymain()" when started
+;  Prerequisites:
+;  - PikeOS must be booted
+;  - PikeOS awareness must be configured
+;  - Symbol Autoloader must be configured
+; @Keywords: awareness pikeos v3.3
+; @Author: DIE
+; @Copyright: (c) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: app_debug.cmm 5210 2020-04-16 08:02:04Z rdienstbeck $
+
+
+; Define local macros
+ LOCAL  &para1 &para2 &para3
+ LOCAL  &process &filename &entry &dialog
+ GLOBAL &breakaddr
+ &breakaddr=0
+
+
+; Get the script parameters ("<name>" or "/dialog")
+ ENTRY &para1 &para2 &para3
+
+
+; Check parameters
+ IF "&para1"==""
+ (
+    ; no parameter given -> print usage
+    PRINT "Usage: ""do app_debug <taskname>"" or ""do app_debug /dialog"""
+    ENDDO 1.
+ )
+ IF STRing.LoWeR("&para1")=="/dialog"
+ (
+    ; /dialog -> open a dialog to select process
+    &dialog=true()
+    &process=""
+ )
+ ELSE
+ (
+    ; parameter contains process name
+    &dialog=false()
+    &process="&para1"
+    &filename="&para2"
+    &entry="&para3"
+ )
+
+
+; Ensure windows update
+ SCREEN.ALways
+
+
+; Dialog or Command line version?
+
+ IF &dialog
+   GOTO dialog
+
+
+; --------------------------------------------------------------------------------
+; Command line interface
+
+ ; Add taskname to filename translation if specified
+
+ IF "&filename"!=""
+    TASK.TaskFile.ADD "&process" "&filename"
+
+ ; Check if the process already exists in the process list.
+
+ LOCAL &existed &main
+
+ GOSUB checkexisting &process
+ ENTRY &existed
+ IF &existed
+   ENDDO 2.
+
+ ; Wait for process to be loaded.
+
+ PRINT "Waiting for task &process..."
+ GOSUB waitforstart &process
+
+ ; Yep! The process is loaded and we found it.
+ ; Now load the process symbols.
+
+ PRINT "task &process started, loading symbols..."
+ GOSUB loadsymbols &process
+ ENTRY &main
+ IF "&main"==""
+    ENDDO 1.
+
+ ; We got the main entry point of the process.
+ ; We let the system run until it reaches main().
+
+ PRINT "waiting for reaching main..."
+ GOSUB waitformain &process &main
+
+ // That's it, we halted at main()!
+
+ PRINT "done."
+
+ ENDDO 0.
+
+
+; --------------------------------------------------------------------------------
+; Dialog interface
+
+dialog:
+ DIALOG.view
+ (
+        HEADER "Debug Task on main"
+        POS 0. 0. 24. 3.
+        BOX "task name"
+        POS 1. 1. 22. 1.
+proc:   DEFHOTEDIT ""
+        (
+            IF DIALOG.STRing(proc)!=""
+                DIALOG.Enable bok
+            ELSE
+                DIALOG.Disable bok
+        )
+        POS 2. 3. 8.
+bok:    DEFBUTTON "Ok"
+        (
+            LOCAL &process &existed &main
+            DIALOG.Disable bok
+            DIALOG.Disable proc
+            &process=DIALOG.STRing(proc)
+            DIALOG.Set mess "Checking task &process..."
+
+            GOSUB checkexisting &process
+            ENTRY &existed
+            IF &existed
+                JUMPTO close_window
+
+            DIALOG.Set mess "Please start task &process"
+
+            GOSUB waitforstart &process
+
+            DIALOG.Set mess "Task &process started. Loading symbols..."
+
+            GOSUB loadsymbols &process
+            ENTRY &main
+            IF "&main"==""
+                JUMPTO close_window
+
+            DIALOG.Set mess "Waiting for reaching main..."
+
+            GOSUB waitformain &process &main
+
+            JUMPTO close_window
+        )
+        POS 14. 3. 8.
+        BUTTON "Cancel" "JUMPTO close_window"
+        POS 0. 4.5 24. 1.
+mess:   EDIT "Please enter task name" ""
+        CLOSE "JUMPTO close_window"
+ )
+
+ DIALOG.Disable bok
+ DIALOG.Disable mess
+
+ STOP
+
+close_window:
+
+ IF &breakaddr!=0
+ (
+    IF STATE.RUN()
+        Break
+    Break.Delete &breakaddr
+    ON PBREAKAT &breakaddr
+    &breakaddr=0
+ )
+
+ DIALOG.END
+ ENDDO 0.
+
+
+; --------------------------------------------------------------------------------
+; Subroutine: Check if process already exists
+
+checkexisting:
+ ENTRY &process
+
+ IF STATE.RUN()
+    Break
+
+ IF task.task.name2id("&process")!=0xFFFFFFFF
+ (
+    sYmbol.AutoLOAD.CLEAR "&process"
+    sYmbol.AutoLOAD.CHECK
+    sYmbol.AutoLOAD.TOUCH "&process"
+    IF sYmbol.EXIST(\\&process)
+        GOSUB message "Task &process already running." "Symbols loaded."
+    ELSE
+        GOSUB message "Task &process already running." "No symbol file found."
+    RETURN true()
+ )
+
+; Delete possibly existing breakpoints of previous process runs
+
+ IF sYmbol.EXIST("\\&process")
+   Break.Delete sYmbol.SECRANGE(\\&process\.text)
+
+ RETURN false()
+
+
+; --------------------------------------------------------------------------------
+; Subroutine: Wait for start of process
+
+waitforstart:
+ ENTRY &process
+
+; Wait for process to be loaded.
+
+ // We cannot load process symbols as long as we don't
+ // know the task id.
+
+ ; sys_task_start() is called for every process to start -
+ ; the conditional breakpoint halts only, if the desired
+ ; process is found in the task table.
+
+ &breakaddr=ADDRESS.OFFSET(sys_task_start)
+ Break.Delete &breakaddr                ; delete previous set breakpoints
+
+ IF CPUFAMILY()=="POWERPC"
+    Break.Set &breakaddr /CONDition task.task.name2id("&process")==Register(R3)
+ ELSE IF CPUFAMILY()=="ARM"
+    Break.Set &breakaddr /CONDition task.task.name2id("&process")==Register(R0)
+ ELSE
+    Break.Set &breakaddr /CONDition task.task.name2id("&process")!=0xFFFFFFFF
+
+ ON PBREAKAT &breakaddr GOTO continue1  ; if breakpoint reached: continue
+ Go         ; let the target run and load the process
+ STOP       ; halt script until breakpoint reached
+
+ ; breakpoint hit, continue script
+continue1:
+
+ Break.Delete &breakaddr    // delete breakpoint
+ &breakaddr=0
+ ON PBREAKAT &breakaddr     // delete script action
+
+ RETURN
+
+
+; --------------------------------------------------------------------------------
+; Subroutine: Load symbols of process
+
+loadsymbols:
+ LOCAL &process &main
+ ENTRY &process
+
+; Yep! The process is loaded and we found it.
+
+; Now load the process symbols to the space id of the task
+
+ sYmbol.AutoLOAD.CLEAR "&process"   ; clear possibly previous set
+ sYmbol.AutoLOAD.CHECK              ; force new autoloader list
+ sYmbol.AutoLOAD.TOUCH "&process"   ; force loading of process symbols
+
+
+// Now set a breakpoint at it's main entry point.
+
+ // There may be more "main" symbols in the system,
+ // we're searching for the right one.
+
+ &main=""
+
+ IF "&entry"!=""
+ (
+    IF sYmbol.COUNT(\\&process\*\&entry)==0
+    (
+      GOSUB message "Entry point &entry not found!"
+      RETURN     ; return with empty return parameter
+    )
+    ; may have various entry symbols - do not use "Global"
+    sYmbol.ForEach "gosub checkfunction *" \\&process\*\&entry
+    &main=EVAL.STRing()
+ )
+ ELSE IF sYmbol.COUNT(\\&process\*\p4_main)!=0
+ (
+   sYmbol.ForEach "eval ""*""" \\&process\*\p4_main
+   &main=EVAL.STRing()
+ )
+ ELSE IF sYmbol.COUNT(\\&process\*\main)>1
+ (
+   ; may have various mains - do not use "Global"
+   sYmbol.ForEach "gosub checkfunction *" \\&process\*\main
+   &main=EVAL.STRing()
+
+ )
+ ELSE IF sYmbol.COUNT(\\&process\*\main)!=0
+ (
+   sYmbol.ForEach "eval ""*""" \\&process\*\main
+   &main=EVAL.STRing()
+ )
+ ELSE IF sYmbol.COUNT(\\&process\*\_p4_entry)!=0
+ (
+   sYmbol.ForEach "eval ""*""" \\&process\*\_p4_entry
+   &main=EVAL.STRing()
+ )
+
+ IF "&main"==""
+ (
+   GOSUB message "Entry point of task not found!"
+   RETURN     ; return with empty return parameter
+ )
+
+ RETURN &main
+
+checkfunction:
+ ENTRY &symbol
+ IF sYmbol.TYPE(&symbol)==2     ; function
+    EVAL "&symbol"
+ RETURN
+
+
+; --------------------------------------------------------------------------------
+; Subroutine: Wait for reaching main
+
+waitformain:
+ LOCAL &process &main &breakaddr
+ ENTRY &process &main
+
+ &breakaddr="&main"
+ Break.Set &breakaddr
+
+ ; if breakpoint reached: continue
+ ON PBREAKAT ADDRESS.OFFSET(&breakaddr) GOTO wfm_continue
+ Go         ; let the target run and start the process
+ STOP       ; halt script until breakpoint reached
+
+ ; breakpoint hit, continue script
+wfm_continue:
+
+ Break.Delete &breakaddr    // delete breakpoint
+ &breakaddr=0
+ ON PBREAKAT &breakaddr     // delete script action
+
+ RETURN
+
+
+; --------------------------------------------------------------------------------
+; Subroutine: print message in dialog box or command line
+
+message:
+ LOCAL &msg1 &msg2
+ ENTRY &msg1 &msg2
+ IF &dialog
+    DIALOG.OK &msg1 &msg2
+ ELSE
+    PRINT &msg1 " " &msg2
+ RETURN

@@ -1,0 +1,54 @@
+; --------------------------------------------------------------------------------
+; @Title: embOS Demo for TRACE32 OS Awareness
+; @Description:
+;
+;   This batchfile loads all necessary files to demonstrate
+;   the RTOS Debugger for embOS.
+;
+; @Keywords: awareness, RTOS
+; @Author: DIE
+; @Chip: ARM7TDMI
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: embos.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+;   Created by Rudolf Dienstbeck / Lauterbach GmbH at 30.10.2001
+
+
+; Debugger reset
+ PRINT "resetting..."
+ SYStem.RESet
+ MAP.RESet
+ WinPAGE.RESet
+ WinPOS 0 24. 70. 8. 0. 0. W000
+ AREA.view
+
+ PRINT "initializing..."
+
+; Debugger initializations
+ IF INTERFACE.SIM()
+   SYStem.CPU ARM7TDMI
+ SYStem.Up
+
+; load sample application
+ PRINT "loading sample application..."
+ Data.LOAD.auto start.axf
+
+; initialize RTOS support
+ PRINT "initializing embOS support..."
+ TASK.CONFIG ~~/demo/arm/kernel/embos/embos.t32     ; load embOS awareness
+ MENU.ReProgram ~~/demo/arm/kernel/embos/embos.men  ; load embOS specific menu
+ HELP.FILTER.Add rtosembos      ; add embOS awareness manual to help filter
+
+ PRINT "load complete."
+
+; open some windows
+ WinPOS 0 0 60. 6. 0. 1. W001
+ TASK.TaskList
+ WinPOS 50. 6. 70. 21. 11. 1. W002
+ List.auto
+
+; start application
+ Go C_Entry
+
+ ENDDO

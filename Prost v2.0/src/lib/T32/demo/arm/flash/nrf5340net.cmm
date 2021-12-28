@@ -1,0 +1,120 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash declaration for Nordic Semiconductor NRF5340QKAA-NET internal flash
+; @Description:
+;   Script arguments:
+;     DO nrf5340net [PREPAREONLY] [CPU=<cpu>] [DUALPORT=<0|1>]
+;       PREPAREONLY    only declares flash but does not execute flash programming
+;       CPU=<cpu>      selects CPU derivative <cpu>
+;       DUALPORT=<0|1> use dual port memory access, default 1
+;       MASSERASE      forces mass erase of device before establishing debug
+;                      connection
+;                      Mass erase erases code flash and UICR registers
+;   Example:
+;     DO ~~/demo/arm/flash/nrf5340net PREPAREONLY
+;   Note:
+;     This file must NOT be modified.
+;     This file is intended to stay within TRACE32 installation.
+;     Usage examples are available in the ~~/demo/arm/hardware/... subdirectories.
+;
+;      CPU-Type         Flash     Addr     RamSize     Addr
+; --------------------------------------------------------------------------------
+;     NRF5340QKAA-NET  256 KB  0x01000000    64 KB  0x21000000
+;
+; @Chip: NRF5340QKAA-NET
+; @Author: PHI, BWR
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 8631 $
+; $Id: nrf5340net.cmm 8631 2020-08-28 17:48:56Z bwright $
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+PRIVATE &param_prepareonly &param_cpu &param_dualport
+&parameters=STRing.UPpeR("&parameters")
+&param_prepareonly=(STRing.SCAN("&parameters","PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract("&parameters","CPU=","")
+&param_dualport=STRing.SCANAndExtract("&parameters","DUALPORT=","1")
+&param_masserase=(STRing.SCAN("&parameters","MASSERASE",0)!=-1)
+
+; --------------------------------------------------------------------------------
+; Initialize and start the debugger
+IF !SYStem.Up()||&param_masserase
+(
+  SYStem.RESet
+
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  IF !CPUIS(NRF5340QKAA-NET)
+    SYStem.CPU NRF5340QKAA-NET
+
+  SYStem.MemAccess DAP
+
+  IF &param_masserase
+    FLASH.UNSECUREerase
+
+  SYStem.Up
+)
+
+; --------------------------------------------------------------------------------
+; disable MPU
+Data.Set ZSD:0xE000ED94 %Long (Data.Long(ZSD:0xE000ED94)&(~0x1)) ; disable MPU
+
+
+; --------------------------------------------------------------------------------
+; Flash declaration
+FLASH.RESet
+GOSUB FlashDeclaration "&param_dualport"
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; --------------------------------------------------------------------------------
+; Flash programming example
+DIALOG.YESNO "Program flash memory?"
+PRIVATE &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram ALL /Erase
+  Data.LOAD.auto *
+  FLASH.ReProgram OFF
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+)
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+; SUBROUTINES
+
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU
+;
+;   Please do NOT modify the TRACE32 flash declaration.
+;
+;   Modifications can result in unpredictable behavior.
+;   Please contact support@lauterbach.com for any changes.
+FlashDeclaration: ;(param_dualport)
+(
+  PARAMETERS &param_dualport
+
+  ; Declare flash and UICR regions
+  FLASH.Create 1. 0x01000000++(0x40000-0x1) 0x0800 TARGET long
+
+  FLASH.Create 1. 0x01FF8000++0x3 0x4 NOP Long  /info "UICR : APROTECT"
+  FLASH.Create 1. 0x01FF8004++0x3 0x4 NOP Long  /info "UICR : ERASEPROTECT"
+  FLASH.Create 1. 0x01FF8200++(32.*4.-1.) NOP Long  /info "UICR : NRFFW"
+  FLASH.Create 1. 0x01FF8300++(32.*4.-1.) TARGET Long  /info "UICR : CUSTOMER"
+
+  IF (("&param_dualport"!="1")||SYStem.ACCESS.DENIED())
+    FLASH.TARGET 0x21000000 0x21001000 0x1000 ~~/demo/arm/flash/long/nrf5340net.bin
+  ELSE
+    FLASH.TARGET 0x21000000 E:0x21001000 0x1000 ~~/demo/arm/flash/long/nrf5340net.bin /DualPort
+  RETURN
+
+  RETURN
+)

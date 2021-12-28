@@ -1,0 +1,274 @@
+; --------------------------------------------------------------------------------
+; @Title: PIN Multiplexing Configuration Script for the PandaBoard
+; @Description: Configure the PIN Multiplexing the PandaBoard
+; @Keywords: EMIF, Linux, multiplexing, OMAP4*, Panda*, RTOS, TI
+; @Author: KJM
+; @Board: PandaBoard
+; @Chip: OMAP4430
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: panda_muxconf_regs.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+&CtrlBase="ANSD:0x4a100000"
+&WkupCtrlBase="ANSD:0x4A31E000"
+
+Data.Set &CtrlBase+0x40 %LE %Word 0x0119         ; GPMC_AD0                sdmmc2_dat0
+Data.Set &CtrlBase+0x42 %LE %Word 0x0119         ; GPMC_AD1                sdmmc2_dat1
+Data.Set &CtrlBase+0x44 %LE %Word 0x0119         ; GPMC_AD2                sdmmc2_dat2
+Data.Set &CtrlBase+0x46 %LE %Word 0x0119         ; GPMC_AD3                sdmmc2_dat3
+Data.Set &CtrlBase+0x48 %LE %Word 0x0119         ; GPMC_AD4                sdmmc2_dat4
+Data.Set &CtrlBase+0x4A %LE %Word 0x0119         ; GPMC_AD5                sdmmc2_dat5
+Data.Set &CtrlBase+0x4C %LE %Word 0x0119         ; GPMC_AD6                sdmmc2_dat6
+Data.Set &CtrlBase+0x4E %LE %Word 0x0119         ; GPMC_AD7                sdmmc2_dat7
+
+
+Data.Set &CtrlBase+0x50 %LE %Word 0x011B         ; GPMC_AD8                gpio_32
+Data.Set &CtrlBase+0x52 %LE %Word 0x011B         ; GPMC_AD9                gpio_33
+Data.Set &CtrlBase+0x54 %LE %Word 0x011B         ; GPMC_AD10                gpio_34
+Data.Set &CtrlBase+0x56 %LE %Word 0x011B         ; GPMC_AD11                gpio_35
+Data.Set &CtrlBase+0x58 %LE %Word 0x011B         ; GPMC_AD12                gpio_36
+Data.Set &CtrlBase+0x5A %LE %Word 0x000B         ; GPMC_AD13                gpio_37
+Data.Set &CtrlBase+0x5C %LE %Word 0x000B         ; GPMC_AD14                gpio_38
+Data.Set &CtrlBase+0x5E %LE %Word 0x000B         ; GPMC_AD15                gpio_39
+        
+Data.Set &CtrlBase+0x60 %LE %Word 0x0003         ; GPMC_A16                gpio_40
+Data.Set &CtrlBase+0x62 %LE %Word 0x000B         ; GPMC_A17                gpio_41
+Data.Set &CtrlBase+0x64 %LE %Word 0x0119        ; GPMC_A18                kpd_row6
+Data.Set &CtrlBase+0x66 %LE %Word 0x0119         ; GPMC_A19                kpd_row7
+Data.Set &CtrlBase+0x68 %LE %Word 0x0103         ; GPMC_A20                gpio_44
+Data.Set &CtrlBase+0x6A %LE %Word 0x0003         ; GPMC_A21                gpio_45
+Data.Set &CtrlBase+0x6C %LE %Word 0x0003         ; GPMC_A22                gpio_46
+Data.Set &CtrlBase+0x6E %LE %Word 0x0001         ; GPMC_A23                kpd_col7        
+        
+Data.Set &CtrlBase+0x70 %LE %Word 0x000B        ; GPMC_A24                gpio_48
+Data.Set &CtrlBase+0x72 %LE %Word 0x000B        ; GPMC_A25                gpio_49        
+Data.Set &CtrlBase+0x74 %LE %Word 0x0003        ; GPMC_NCS0                gpio_50
+Data.Set &CtrlBase+0x76 %LE %Word 0x0103        ; GPMC_NCS1                gpio_52
+Data.Set &CtrlBase+0x78 %LE %Word 0x0103        ; GPMC_NCS2                gpio_52
+Data.Set &CtrlBase+0x7A %LE %Word 0x0103        ; GPMC_NCS3                gpio_53
+Data.Set &CtrlBase+0x7C %LE %Word 0x0003        ; GPMC_NWP                gpio_54
+Data.Set &CtrlBase+0x7E %LE %Word 0x000B        ; GPMC_CLK                gpio_55
+
+Data.Set &CtrlBase+0x80 %LE %Word 0x0003        ; GPMC_NADV_ALE                gpio_56
+Data.Set &CtrlBase+0x82 %LE %Word 0x0119        ; GPMC_NOE                sdmmc2_clk
+Data.Set &CtrlBase+0x84 %LE %Word 0x0119        ; GPMC_NWE                sdmmc2_cmd
+Data.Set &CtrlBase+0x86 %LE %Word 0x0003        ; GPMC_NBE0_CLE                gpio_59
+Data.Set &CtrlBase+0x88 %LE %Word 0x000B        ; GPMC_NBE1                gpio_60        
+Data.Set &CtrlBase+0x8A %LE %Word 0x011B        ; GPMC_WAIT0                gpio_61
+Data.Set &CtrlBase+0x8C %LE %Word 0x000B        ; GPMC_WAIT1                gpio_62
+Data.Set &CtrlBase+0x8E %LE %Word 0x000B        ; C2C_DATA11                gpio_100
+
+Data.Set &CtrlBase+0x90 %LE %Word 0x010B        ; C2C_DATA12                gpio_101
+Data.Set &CtrlBase+0x92 %LE %Word 0x000B        ; C2C_DATA13                gpio_102
+Data.Set &CtrlBase+0x94 %LE %Word 0x0001        ; C2C_DATA14                dsi2_te0
+Data.Set &CtrlBase+0x96 %LE %Word 0x000B        ; HDMI_HPD                hdmi_hpd
+Data.Set &CtrlBase+0x98 %LE %Word 0x0000        ; HDMI_CEC                hdmi_cec
+Data.Set &CtrlBase+0x9A %LE %Word 0x0000        ; HDMI_DDC_SCL                hdmi_ddc_scl
+Data.Set &CtrlBase+0x9C %LE %Word 0x0018        ; HDMI_DDC_SDA                hdmi_ddc_sda
+Data.Set &CtrlBase+0x9E %LE %Word 0x0018        ; CSI21_DX0                csi21_dx0
+
+Data.Set &CtrlBase+0xA0 %LE %Word 0x0100        ; CSI21_DY0                csi21_dy0
+Data.Set &CtrlBase+0xA2 %LE %Word 0x0100        ; CSI21_DX1                csi21_dx1
+Data.Set &CtrlBase+0xA4 %LE %Word 0x0100        ; CSI21_DY1                csi21_dy1
+Data.Set &CtrlBase+0xA6 %LE %Word 0x0100        ; CSI21_DX2                csi21_dx2
+Data.Set &CtrlBase+0xA8 %LE %Word 0x0100        ; CSI21_DY2                csi21_dy2
+Data.Set &CtrlBase+0xAA %LE %Word 0x0100        ; CSI21_DX3                csi21_dx3
+Data.Set &CtrlBase+0xAC %LE %Word 0x000F        ; CSI21_DY3                csi21_dy3
+Data.Set &CtrlBase+0xAE %LE %Word 0x000F        ; CSI21_DX4                csi21_dx4
+
+Data.Set &CtrlBase+0xB0 %LE %Word 0x000F        ; CSI21_DY4                csi21_dy4
+Data.Set &CtrlBase+0xB2 %LE %Word 0x000F        ; CSI22_DX0                csi22_dx0
+Data.Set &CtrlBase+0xB4 %LE %Word 0x0100        ; CSI22_DY0                csi22_dy0
+Data.Set &CtrlBase+0xB6 %LE %Word 0x0100        ; CSI22_DX1                csi22_dx1
+Data.Set &CtrlBase+0xB8 %LE %Word 0x0100        ; CSI22_DY1                csi22_dy1
+Data.Set &CtrlBase+0xBA %LE %Word 0x0100        ; CAM_SHUTTER                cam_shutter
+Data.Set &CtrlBase+0xBC %LE %Word 0x0000        ; CAM_STROBE                cam_strobe
+Data.Set &CtrlBase+0xBE %LE %Word 0x0000
+
+Data.Set &CtrlBase+0xC0 %LE %Word 0x000B        ; CAM_GLOBALRESET        gpio_83
+Data.Set &CtrlBase+0xC2 %LE %Word 0x010C        ; USBB1_ULPITLL_CLK        usbb1_ulpiphy_clk
+Data.Set &CtrlBase+0xC4 %LE %Word 0x0004        ; USBB1_ULPITLL_STP        usbb1_ulpiphy_stp
+Data.Set &CtrlBase+0xC6 %LE %Word 0x0104        ; USBB1_ULPITLL_DIR        usbb1_ulpiphy_dir
+Data.Set &CtrlBase+0xC8 %LE %Word 0x0104        ; USBB1_ULPITLL_NXT        usbb1_ulpiphy_nxt
+Data.Set &CtrlBase+0xCA %LE %Word 0x0104        ; USBB1_ULPITLL_DAT0        usbb1_ulpiphy_dat0
+Data.Set &CtrlBase+0xCC %LE %Word 0x0104        ; USBB1_ULPITLL_DAT1        usbb1_ulpiphy_dat1
+Data.Set &CtrlBase+0xCE %LE %Word 0x0104        ; USBB1_ULPITLL_DAT2        usbb1_ulpiphy_dat2
+
+Data.Set &CtrlBase+0xD0 %LE %Word 0x0104        ; USBB1_ULPITLL_DAT3        usbb1_ulpiphy_dat3
+Data.Set &CtrlBase+0xD2 %LE %Word 0x0104        ; USBB1_ULPITLL_DAT4        usbb1_ulpiphy_dat4
+Data.Set &CtrlBase+0xD4 %LE %Word 0x0104        ; USBB1_ULPITLL_DAT5        usbb1_ulpiphy_dat5
+Data.Set &CtrlBase+0xD6 %LE %Word 0x0104        ; USBB1_ULPITLL_DAT6        usbb1_ulpiphy_dat6
+Data.Set &CtrlBase+0xD8 %LE %Word 0x0104        ; USBB1_ULPITLL_DAT7        usbb1_ulpiphy_dat7
+Data.Set &CtrlBase+0xDA %LE %Word 0x0000        ; USBB1_HSIC_DATA        usbb1_hsic_data
+Data.Set &CtrlBase+0xDC %LE %Word 0x0000        ; USBB1_HSIC_STROBE        usbb1_hsic_strobe
+Data.Set &CtrlBase+0xDE %LE %Word 0x0100        ; USBC1_ICUSB_DP        usbc1_icusb_dp
+
+Data.Set &CtrlBase+0xE0 %LE %Word 0x0100        ; USBC1_ICUSB_DM        usbc1_icusb_dm
+Data.Set &CtrlBase+0xE2 %LE %Word 0x0018        ; SDMMC1_CLK                sdmmc1_clk
+Data.Set &CtrlBase+0xE4 %LE %Word 0x0118        ; SDMMC1_CMD                sdmmc1_cmd
+Data.Set &CtrlBase+0xE6 %LE %Word 0x0118        ; SDMMC1_DAT0                sdmmc1_dat0
+Data.Set &CtrlBase+0xE8 %LE %Word 0x0118        ; SDMMC1_DAT1                sdmmc1_dat1
+Data.Set &CtrlBase+0xEA %LE %Word 0x0118        ; SDMMC1_DAT2                sdmmc1_dat2
+Data.Set &CtrlBase+0xEC %LE %Word 0x0118        ; SDMMC1_DAT3                sdmmc1_dat3
+Data.Set &CtrlBase+0xEE %LE %Word 0x0118        ; SDMMC1_DAT4                sdmmc1_dat4
+
+Data.Set &CtrlBase+0xF0 %LE %Word 0x0118        ; SDMMC1_DAT5                sdmmc1_dat5
+Data.Set &CtrlBase+0xF2 %LE %Word 0x0118        ; SDMMC1_DAT6                sdmmc1_dat6
+Data.Set &CtrlBase+0xF4 %LE %Word 0x0118        ; SDMMC1_DAT7                sdmmc1_dat7
+Data.Set &CtrlBase+0xF6 %LE %Word 0x0100        ; ABE_MCBSP2_CLKX        abe_mcbsp2_clkx
+Data.Set &CtrlBase+0xF8 %LE %Word 0x0100        ; ABE_MCBSP2_DR                abe_mcbsp2_dr
+Data.Set &CtrlBase+0xFA %LE %Word 0x0000        ; ABE_MCBSP2_DX                abe_mcbsp2_dx
+Data.Set &CtrlBase+0xFC %LE %Word 0x0100        ; ABE_MCBSP2_FSX        abe_mcbsp2_fsx
+Data.Set &CtrlBase+0xFE %LE %Word 0x0101        ; ABE_MCBSP1_CLKX        abe_slimbus1_clock
+
+Data.Set &CtrlBase+0x100 %LE %Word 0x0101        ; ABE_MCBSP1_DR                abe_slimbus1_data
+Data.Set &CtrlBase+0x102 %LE %Word 0x0000        ; ABE_MCBSP1_DX                abe_mcbsp1_dx
+Data.Set &CtrlBase+0x104 %LE %Word 0x0100        ; ABE_MCBSP1_FSX        abe_mcbsp1_fsx
+Data.Set &CtrlBase+0x106 %LE %Word 0x0108        ; ABE_PDM_UL_DATA        abe_pdm_ul_data
+Data.Set &CtrlBase+0x108 %LE %Word 0x0108        ; ABE_PDM_DL_DATA        abe_pdm_dl_data
+Data.Set &CtrlBase+0x10A %LE %Word 0x0108        ; ABE_PDM_FRAME                abe_pdm_frame
+Data.Set &CtrlBase+0x10C %LE %Word 0x0108        ; ABE_PDM_LB_CLK        abe_pdm_lb_clk
+Data.Set &CtrlBase+0x10E %LE %Word 0x0108        ; ABE_CLKS                abe_clks
+
+Data.Set &CtrlBase+0x110 %LE %Word 0x0000        ; ABE_DMIC_CLK1                abe_dmic_clk1
+Data.Set &CtrlBase+0x112 %LE %Word 0x0100        ; ABE_DMIC_DIN1                abe_dmic_din1
+Data.Set &CtrlBase+0x114 %LE %Word 0x0100        ; ABE_DMIC_DIN2                abe_dmic_din2
+Data.Set &CtrlBase+0x116 %LE %Word 0x0100        ; ABE_DMIC_DIN3                abe_dmic_din3
+Data.Set &CtrlBase+0x118 %LE %Word 0x0118        ; UART2_CTS                uart2_cts
+Data.Set &CtrlBase+0x11A %LE %Word 0x0000        ; UART2_RTS                uart2_rts
+Data.Set &CtrlBase+0x11C %LE %Word 0x0118        ; UART2_RX                uart2_rx
+Data.Set &CtrlBase+0x11E %LE %Word 0x0000        ; UART2_TX                uart2_tx
+
+Data.Set &CtrlBase+0x120 %LE %Word 0x0003        ; HDQ_SIO                gpio_127
+Data.Set &CtrlBase+0x122 %LE %Word 0x0118        ; I2C1_SCL                i2c1_scl
+Data.Set &CtrlBase+0x124 %LE %Word 0x0118        ; I2C1_SDA                i2c1_sda
+Data.Set &CtrlBase+0x126 %LE %Word 0x0118        ; I2C2_SCL                i2c2_scl
+Data.Set &CtrlBase+0x128 %LE %Word 0x0118        ; I2C2_SDA                i2c2_sda
+Data.Set &CtrlBase+0x12A %LE %Word 0x0118        ; I2C3_SCL                i2c3_scl
+Data.Set &CtrlBase+0x12C %LE %Word 0x0118        ; I2C3_SDA                i2c3_sda
+Data.Set &CtrlBase+0x12E %LE %Word 0x0118        ; I2C4_SCL                i2c4_scl
+
+Data.Set &CtrlBase+0x130 %LE %Word 0x0118        ; I2C4_SDA                i2c4_sda
+Data.Set &CtrlBase+0x132 %LE %Word 0x0100        ; MCSPI1_CLK                mcspi1_clk
+Data.Set &CtrlBase+0x134 %LE %Word 0x0100        ; MCSPI1_SOMI                mcspi1_somi
+Data.Set &CtrlBase+0x136 %LE %Word 0x0100        ; MCSPI1_SIMO                mcspi1_simo
+Data.Set &CtrlBase+0x138 %LE %Word 0x0108        ; MCSPI1_CS0                mcspi1_cs0
+Data.Set &CtrlBase+0x13A %LE %Word 0x010B        ; MCSPI1_CS1                mcspi1_cs1
+Data.Set &CtrlBase+0x13C %LE %Word 0x001B        ; MCSPI1_CS2                gpio_139
+Data.Set &CtrlBase+0x13E %LE %Word 0x011B        ; MCSPI1_CS3                gpio_140
+
+Data.Set &CtrlBase+0x140 %LE %Word 0x0118        ; UART3_CTS_RCTX        uart3_tx
+Data.Set &CtrlBase+0x142 %LE %Word 0x0000        ; UART3_RTS_SD                uart3_rts_sd
+Data.Set &CtrlBase+0x144 %LE %Word 0x0100        ; UART3_RX_IRRX                uart3_rx
+Data.Set &CtrlBase+0x146 %LE %Word 0x0000        ; UART3_TX_IRTX                uart3_tx
+Data.Set &CtrlBase+0x148 %LE %Word 0x0118
+Data.Set &CtrlBase+0x14A %LE %Word 0x0118
+Data.Set &CtrlBase+0x14C %LE %Word 0x0118
+Data.Set &CtrlBase+0x14E %LE %Word 0x0118
+
+Data.Set &CtrlBase+0x150 %LE %Word 0x0118
+Data.Set &CtrlBase+0x152 %LE %Word 0x0118
+Data.Set &CtrlBase+0x154 %LE %Word 0x0100
+Data.Set &CtrlBase+0x156 %LE %Word 0x0100
+Data.Set &CtrlBase+0x158 %LE %Word 0x0100
+Data.Set &CtrlBase+0x15A %LE %Word 0x0108
+Data.Set &CtrlBase+0x15C %LE %Word 0x0100
+Data.Set &CtrlBase+0x15E %LE %Word 0x0000
+
+Data.Set &CtrlBase+0x160 %LE %Word 0x0103
+Data.Set &CtrlBase+0x162 %LE %Word 0x0105
+Data.Set &CtrlBase+0x164 %LE %Word 0x0105
+Data.Set &CtrlBase+0x166 %LE %Word 0x0105
+Data.Set &CtrlBase+0x168 %LE %Word 0x0105
+Data.Set &CtrlBase+0x16A %LE %Word 0x0105
+Data.Set &CtrlBase+0x16C %LE %Word 0x0105
+Data.Set &CtrlBase+0x16E %LE %Word 0x0105
+
+Data.Set &CtrlBase+0x170 %LE %Word 0x0105
+Data.Set &CtrlBase+0x172 %LE %Word 0x0105
+Data.Set &CtrlBase+0x174 %LE %Word 0x0105
+Data.Set &CtrlBase+0x176 %LE %Word 0x0105
+Data.Set &CtrlBase+0x178 %LE %Word 0x0003
+Data.Set &CtrlBase+0x17A %LE %Word 0x0003
+Data.Set &CtrlBase+0x17C %LE %Word 0x010B
+Data.Set &CtrlBase+0x17E %LE %Word 0x0001
+
+Data.Set &CtrlBase+0x180 %LE %Word 0x0001
+Data.Set &CtrlBase+0x182 %LE %Word 0x0001
+Data.Set &CtrlBase+0x184 %LE %Word 0x011B
+Data.Set &CtrlBase+0x186 %LE %Word 0x011B
+Data.Set &CtrlBase+0x188 %LE %Word 0x0119
+Data.Set &CtrlBase+0x18A %LE %Word 0x0119
+Data.Set &CtrlBase+0x18C %LE %Word 0x0119
+Data.Set &CtrlBase+0x18E %LE %Word 0x0119
+
+Data.Set &CtrlBase+0x190 %LE %Word 0x0119
+Data.Set &CtrlBase+0x192 %LE %Word 0x0119
+Data.Set &CtrlBase+0x194 %LE %Word 0x0008
+Data.Set &CtrlBase+0x196 %LE %Word 0x0000
+Data.Set &CtrlBase+0x198 %LE %Word 0x0000
+Data.Set &CtrlBase+0x19A %LE %Word 0x0000
+Data.Set &CtrlBase+0x19C %LE %Word 0x010B
+Data.Set &CtrlBase+0x19E %LE %Word 0x0118
+
+Data.Set &CtrlBase+0x1A0 %LE %Word 0x0118
+Data.Set &CtrlBase+0x1A2 %LE %Word 0x011B
+Data.Set &CtrlBase+0x1A4 %LE %Word 0x0003
+Data.Set &CtrlBase+0x1A6 %LE %Word 0x010B
+Data.Set &CtrlBase+0x1A8 %LE %Word 0x0003
+Data.Set &CtrlBase+0x1AA %LE %Word 0x0003
+Data.Set &CtrlBase+0x1AC %LE %Word 0x010B
+Data.Set &CtrlBase+0x1AE %LE %Word 0x0100
+
+Data.Set &CtrlBase+0x1B0 %LE %Word 0x0100
+Data.Set &CtrlBase+0x1B2 %LE %Word 0x0100
+Data.Set &CtrlBase+0x1B4 %LE %Word 0x0105
+Data.Set &CtrlBase+0x1B6 %LE %Word 0x0105
+Data.Set &CtrlBase+0x1B8 %LE %Word 0x0105
+Data.Set &CtrlBase+0x1BA %LE %Word 0x0105
+Data.Set &CtrlBase+0x1BC %LE %Word 0x0105
+Data.Set &CtrlBase+0x1BE %LE %Word 0x0105
+
+Data.Set &CtrlBase+0x1C0 %LE %Word 0x0105
+Data.Set &CtrlBase+0x1C2 %LE %Word 0x0105
+Data.Set &CtrlBase+0x1C4 %LE %Word 0x0105
+Data.Set &CtrlBase+0x1C6 %LE %Word 0x0105
+Data.Set &CtrlBase+0x1C8 %LE %Word 0x0105
+Data.Set &CtrlBase+0x1CA %LE %Word 0x0105
+Data.Set &CtrlBase+0x1CC %LE %Word 0x0105
+Data.Set &CtrlBase+0x1CE %LE %Word 0x0003
+
+Data.Set &CtrlBase+0x1D0 %LE %Word 0x0105
+Data.Set &CtrlBase+0x1D2 %LE %Word 0x0105
+Data.Set &CtrlBase+0x1D4 %LE %Word 0x0105
+
+Data.Set &WkupCtrlBase+0x40 %LE %Word 0x0000
+Data.Set &WkupCtrlBase+0x42 %LE %Word 0x0000
+Data.Set &WkupCtrlBase+0x44 %LE %Word 0x0000
+Data.Set &WkupCtrlBase+0x46 %LE %Word 0x0118
+Data.Set &WkupCtrlBase+0x48 %LE %Word 0x0000
+Data.Set &WkupCtrlBase+0x4A %LE %Word 0x0118
+Data.Set &WkupCtrlBase+0x4C %LE %Word 0x0118
+Data.Set &WkupCtrlBase+0x4E %LE %Word 0x0000
+
+Data.Set &WkupCtrlBase+0x50 %LE %Word 0x0000
+Data.Set &WkupCtrlBase+0x52 %LE %Word 0x0000
+Data.Set &WkupCtrlBase+0x54 %LE %Word 0x0002
+Data.Set &WkupCtrlBase+0x56 %LE %Word 0x0118
+Data.Set &WkupCtrlBase+0x58 %LE %Word 0x0000
+Data.Set &WkupCtrlBase+0x5A %LE %Word 0x0118
+Data.Set &WkupCtrlBase+0x5C %LE %Word 0x0000
+Data.Set &WkupCtrlBase+0x5E %LE %Word 0x0100
+
+Data.Set &WkupCtrlBase+0x60 %LE %Word 0x0000
+Data.Set &WkupCtrlBase+0x62 %LE %Word 0x0000
+Data.Set &WkupCtrlBase+0x64 %LE %Word 0x0018
+Data.Set &WkupCtrlBase+0x66 %LE %Word 0x0003
+Data.Set &WkupCtrlBase+0x68 %LE %Word 0x0103
+Data.Set &WkupCtrlBase+0x6A %LE %Word 0x0103
+         
+Data.Set &WkupCtrlBase+0x56 %LE %Word 0x0003
+Data.Set &WkupCtrlBase+0x5A %LE %Word 0x0003
+Data.Set &WkupCtrlBase+0x5C %LE %Word 0x0003
+

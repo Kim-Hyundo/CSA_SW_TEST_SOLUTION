@@ -1,0 +1,83 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to switch to run mode debugging using DCC
+; @Description:
+;  This script configures the TRACE32 to switch to run mode debugging. 
+;  The debugger communicates over the Debug Communication Channel (DCC) 
+;  with the t32server started on the target side.
+;  The source code of the t32server can be found under demo/arm/etc/t32server.
+; @Author: KJM
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: runmode_arm_dcc.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+  LOCAL &spaceid
+
+  IF !SYSTEM.UP()
+  (
+      ; We are not connected to the target so try to connect. 
+      SYStem.CPU *
+      SYStem.Mode Attach
+  )
+  
+  SYStem.Option MMUSPACES ON
+  
+  IF !STATE.RUN()
+    Go
+  
+  WinCLEAR
+  
+  ; Open a terminal window
+  WinPOS 0% 50% 50% 50%
+  DO ~~/demo/etc/terminal/serial/term.cmm COM3 115200.
+  ; Start the t32server
+  TERM.Out "t32server" 10.
+  
+  WAIT 1.s
+  
+  ; Enable the GDB monitor mode in TRACE32
+  SYStem.MemAccess GdbMON
+  SYStem.PORT DCC
+  
+  ; Switch to run mode
+  Go.MONitor
+  
+  ; If you are using Linux-3.x, the you need to enable SYStem.Option STEPSOFT
+  SYStem.Option STEPSOFT ON
+  
+  
+  ; Open a TASK.LIST
+  WinPOS 50% 0% 50% 100%
+  TASK.List
+  
+  ; Open a List window
+  WinPOS 0% 0% 49% 48%
+  List.auto
+  
+; --------------------------------------------------------------------------------
+  ; Start a first process for debugging
+  PRINT "Starting process hello"
+  TASK.RUN /bin/hello
+  WAIT 1.s
+  &spaceid=TASK.SPACEID("hello")
+  ; Load the debug symbols of process "hello" if not already done by the autoloader
+  IF !sYmbol.EXIST(main)||ADDRESS.SEGMENT(main)!=&spaceid
+  (
+    Data.LOAD.Elf hello &spaceid:0 /NoCODE /NoClear
+  )
+  ; Go to the main function of process hello
+  Go main
+
+; -------------------------------------------------------------------------------- 
+  ; Attach to the running process "sieve"
+  PRINT "Attaching to process sieve"
+  &spaceid=TASK.SPACEID("sieve")
+  TASK.Attach &spaceid
+  ; Load the debug symbols of process "sieve" if not already done by the autoloader
+  IF !sYmbol.EXIST(main)||ADDRESS.SEGMENT(main)!=&spaceid
+  (
+    Data.LOAD.Elf sieve &spaceid:0 /NoCODE /NoClear
+  )
+  Go main
+  
+  PRINT ""
+  ENDDO

@@ -1,0 +1,30 @@
+; --------------------------------------------------------------------------------
+; @Title: Example for flash declaration of Samsung S3F445HX internal flash 
+;
+; @Description:
+; preliminary
+;
+; 512 kBytes internal Flash organized in 1024 sectors, 512 Byte each.
+; Flash start address is 0x0 or 0x1f00000. Select your setting with
+; LOCAL variable flashbase as required.
+;
+; S3F445HX has 16 kByte internal RAM from 0x1ff0000--0x1ff3fff.
+;
+; Processor is working in big endian mode.
+;
+; @Author: WRD
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 7602 $
+; $Id: s3f445h.cmm 7602 2019-11-05 15:02:25Z bschroefel $
+
+  LOCAL &flashbase
+
+  &flashbase=0x0
+  ; &flashbase=0x1f00000
+
+  FLASH.RESet
+  FLASH.TARGET 0x1ff0000 0x1ff0800 0x1000 ~~/demo/arm/flash/long_be/s3f445hx.bin
+  FLASH.Create 1. &flashbase++0x7ffff 0x200 TARGET Long
+
+  ENDDO

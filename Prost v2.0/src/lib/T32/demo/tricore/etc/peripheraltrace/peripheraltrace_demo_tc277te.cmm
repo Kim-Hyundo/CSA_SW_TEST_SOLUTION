@@ -1,0 +1,89 @@
+; --------------------------------------------------------------------------------
+; @Title: Peripheral Trace example for DMA for TC277TE (not A-step)
+; @Description:
+;   Script file for loading a simple application using the DMA to a TC277TE and
+;   configure the DMA channel to provide status information to the OTGB. Setup
+;   MCDS for tracing the OTGB signals ans displaying them as timinig diagram.
+;   The information of multiple signals can be evaluated and displayed as high-
+;   level information, e.g. engine- and channel number.
+;   This demo requires a TC27x Emulation Device, minimum step is B-step.
+; @Keywords: AURIX, Infineon, TriCore, peripheral trace, DMA trace, OTGB
+; @Author: rsagerer
+; @Board: TriBoard-TC2x7
+; @Chip: TC277TE
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: peripheraltrace_demo_tc277te.cmm 15769 2020-03-05 14:28:46Z rsagerer $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; sanity checks
+IF CPUFAMILY()!="TRICORE"
+(
+  DIALOG.OK "Please run this script on the TriCore GUI."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; prepare and initialize the debugger
+RESet
+SYStem.CPU TC277TE
+SYStem.Up
+
+SCREEN.display ; refresh windows
+
+; --------------------------------------------------------------------------------
+; Load and start application
+Data.LOAD.Elf "~~~~/sieve.elf"
+Mode.Hll
+Go.direct main
+WAIT !STATE.RUN() 2.s
+
+; --------------------------------------------------------------------------------
+; MCDS and trace configuration
+Trace.Method Onchip
+
+; configure OTGM as only trace source
+MCDS.SOURCE.NONE
+MCDS.SOURCE CpuMux1.Core OTGM
+
+; enable timestamp messages and setup trace clock
+MCDS.TimeStamp ON
+CLOCK.OSCillator 20.MHz ; board default
+CLOCK.ON
+
+; --------------------------------------------------------------------------------
+; configure DMA controller to provide information to OTGB
+PER.Set.simple D:0xF0011200 %Long 0x1 ; set TGS bits in DMA_OTSS register
+
+; --------------------------------------------------------------------------------
+; display information
+SETUP.Var %SpotLight ; highlight variables that have recently changed
+
+; DMA controller registers
+WinPOS 50% 60% 50% 40%
+PER.view , "DMA (Direct Memory Access Controller),DMA"
+
+; show all recorded signals as timing diagram
+WinPOS 0% 0% 100% 40%
+Trace.Timing ALL /ZoomTrack
+
+; rename the signals that indicate which DMA Engine was active
+NAME.Set n.OTGB0_7 Engine0
+NAME.Set n.OTGB0_15 Engine1
+
+; group the signals that contain the DNMA Channel number as a word
+NAME.Word ChEngine0 n.OTGB0_0 n.OTGB0_1 n.OTGB0_2 n.OTGB0_3 n.OTGB0_4 n.OTGB0_5 n.OTGB0_6
+NAME.Word ChEngine1 n.OTGB0_8 n.OTGB0_9 n.OTGB0_10 n.OTGB0_11 n.OTGB0_12 n.OTGB0_13 n.OTGB0_14
+
+; summarize the results
+; show which DMA Engine and which DMA Channel was active
+WinPOS 0% 40% 100% 20%
+Trace.Timing  w.ChEngine0 n.Engine0 w.ChEngine1 n.Engine1 /ZoomTrack
+
+WinPOS 0% 60% 50% 40%
+Data.List
+
+ENDDO

@@ -1,0 +1,44 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to connect to the NXHX50 Board
+; @Description:
+;   This script connects to the NXHX50 Board by calling the
+;   netx_common_init.cmm and does some initialization using
+;   Data.Set commands
+; @Keywords: Hilscher, NetX*
+; @Board: NXHX50
+; @Chip: NETX50
+; @Author: Hilscher
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: comx_ca_ccs_init.cmm 12065 2018-02-07 12:26:30Z amerkle $
+
+
+DO ~~~~/netx_common_init.cmm
+
+; setup for Spansion S29AL032D 4 MByte Flash at 0xc0000000
+; Code AM29M100 (16 Bit mode) AM29M100B (8 Bit mode)
+; 2Mx16 Bit, 64 64Kbyte sectors
+
+PRINT "Setup"
+&FLASH_PROGRAMMING_METHOD="TRACE32 Tool Based"
+FLASH.RESet
+FLASH.Create 1. 0xC0000000++0x03FFFFF 0x10000 TARGET Word
+FLASH.TARGET 0x08000000 0x08001000 0x1000 ~~/demo/arm/flash/word/am29m100.bin
+MAP.BOnchip 0xC0000000++0x03FFFFF
+
+;16MB Flash at 0xc0000000 with a sector size of 128kByte of type intel28FXXXJ3
+;FLASH.Create 1. ASD:0xC0000000++0x0FFFFFF 0x20000 TARGET Word
+;FLASH.target ASD:0x10000000 ASD:0x10001000 0x1000 word/i28f200j3.bin
+
+;Setup Flash controller for flash on CS0 @0xc0000000
+Data.Set ASD:0x1C000100 %Long 0x0103030F
+
+;disable SDRam Controller (no SDRAM present)
+Data.Set ASD:0x1C000140 %Long 0x0
+;data.set ASD:0x1C000144 %LONG 0x03C12151
+;data.set ASD:0x1C000144 %LONG 0x00A12151
+;data.set ASD:0x1C000148 %LONG 0x00000023
+;data.set ASD:0x1C000144 %LONG 0x00A22151
+;data.set ASD:0x1C000140 %LONG 0x030D0001
+
+ENDDO

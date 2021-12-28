@@ -1,0 +1,82 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple sieve demo for the IAR LPC-1768 Development Kit board
+; @Description: 
+;   
+;   Loads the sieve demo into SRAM and sets up a
+;   demo debug and trace scenario.
+;   Power From USB - set PWR_SEL - 5&6
+;   DBG_E populated to enable JTAG debugging
+;   NOTE:
+;   Need to add 0Ohm resistors at R53 and R150 - see IAR docs
+;   Use MIPI20T connector - make sure it's the right way around
+;   as the connector is not keyed.
+;   
+;   Assumes use of CombiProbe with Cortex-M & ETM licenses
+;   
+;   
+;   LPC-1768 has an onchip ROM boot monitor which can cause problems
+;   with some versions of TRACE32.
+;      SYStem.Up fails
+;      No JTAG clock appears to be present
+;   Upgrading to TRACE32 Build 26778 or later fixes the problem
+;   
+; @Author: RIC
+; @Board: IAR LPC-1760
+; @Chip: LPC1768
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: lpc_1768_sieve_demo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+  RESet
+  SYStem.RESet
+  SYStem.Option DisMode THUMB
+  SYStem.CONFIG SWDP ON
+  SYStem.CONFIG.CONNECTOR MIPI20T
+  SYStem.CPU LPC1768
+  SYStem.Option ENRESET OFF
+  SYStem.Option RESBREAK OFF
+  SYStem.Option WAITRESET ON
+  SYStem.Option TRST OFF
+  
+  ;next two options required for E: memory class & dual port access
+  SYStem.Option DUALPORT ON
+  SYStem.MemAccess DAP
+  
+  SYStem.Up
+  
+  Register.RESet
+
+  IF hardware.COMBIPROBE()||hardware.UTRACE()
+  (
+    ;These lines re-mux GPIO 2:2 - 2:6 for ETM trace
+    Data.Set ASD:0x4002c010 %Long 0x3FF0	 ;- pinsel function
+    Data.Set ASD:0x4002c028 %Long 0x08	         ;- TPIU enable
+
+    ITM.OFF
+    ETM.ON
+    Trace.METHOD CAnalyzer
+  )
+  Data.LOAD.Elf ~~~~/gettingstarted.out
+
+  Go.direct main
+  Mode.Hll
+
+  WinCLEAR
+  WinPOS 0.0 0.0 80. 25. 13. 1. W001
+  WinTABS 10. 10. 25. 62.
+  List.auto
+ 
+  WinPOS 0.0 49.846 80. 9. 0. 0. W000
+  AREA.view
+ 
+  WinPOS 0.0 30.692 80. 15. 0. 0. W002
+  Var.Local
+ 
+  ENDDO
+
+
+
+
+
+

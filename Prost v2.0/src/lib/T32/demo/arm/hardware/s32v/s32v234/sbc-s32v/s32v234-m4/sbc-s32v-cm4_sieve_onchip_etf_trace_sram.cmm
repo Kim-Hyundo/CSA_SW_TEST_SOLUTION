@@ -1,0 +1,90 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for S32V234-CM4 on SBC-S32V with Onchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Onchip-Trace.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to header JTAG using adapter LA-3770
+;    * set Bootmode to SD-Card, switch BOOT[1]=OFF
+;    * remove SD-Card (M4 will stop in BootROM)
+; @Keywords: ARM, Cortex-M4, ETF, ETM
+; @Author: AME
+; @Board: miriac SBC-S32V
+; @Chip: S32V234
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: sbc-s32v-cm4_sieve_onchip_etf_trace_sram.cmm 15576 2020-01-27 10:11:09Z alintner $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU S32V234-CM4
+SYStem.CONFIG.DEBUGPORTTYPE JTAG
+IF hardware.COMBIPROBE()||hardware.UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option AHBHPROT 0x3
+SYStem.Option DUALPORT ON
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 200ms
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+; disable Trace infrastructure for the moment - TPIU may be unclocked!
+ETM.OFF
+Trace.DISable
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; init ECC SRAM
+Data.Set AD:0x3e000000++0x7fff %Long 0x0
+
+; --------------------------------------------------------------------------------
+; initialize offchip-trace (ETM ON, ITM OFF)
+Trace.METHOD Onchip
+Trace.AutoInit ON
+ETM.Trace ON
+ETM.ON
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO
+
+DisableWatchdog:
+(
+  Data.Set AD:0x40086010 %Long 0xc520
+  Data.Set AD:0x40086010 %Long 0xd928
+  Data.Set AD:0x40086000 %Long Data.Long(AD:0x40086000)&~0x1
+  Data.Set AD:0x40086000 %Long Data.Long(AD:0x40086000)|0x40
+  RETURN
+)

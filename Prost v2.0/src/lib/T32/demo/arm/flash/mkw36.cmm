@@ -1,0 +1,252 @@
+; --------------------------------------------------------------------------------
+; @Title: Generic script for NXP MKW35/MKW36 internal flash
+; @Description:
+;   Flash declaration of NXP MKW35/MKW36 internal flash.
+;   Script arguments:
+;     DO mkw36 [PREPAREONLY] [CPU=<cpu>] [MASSERASE]
+;       PREPAREONLY    only declares flash but does not execute flash programming
+;       CPU=<cpu>      selects CPU derivative <cpu>
+;       DUALPORT=<0|1> use dual port memory access, default 1
+;       MASSERASE      forces mass erase of device before establishing debug
+;                      connection
+;   Example:
+;     DO ~~/demo/arm/flash/mkw36 CPU=MKW30Z160VHM4 PREPAREONLY
+;   Note:
+;     This file must NOT be modified.
+;     This file is intended to stay within TRACE32 installation.
+;     Usage examples are available in the ~~/demo/arm/hardware/... subdirectories.
+;
+;   List of MKW35/MKW36 derivatives and their configuration:
+;      CPU-Type              ProgFlash   FlexNVM   EEPROM   RamSize
+;                             [Byte]     [Byte]    [Byte]   [Byte]
+; --------------------------------------------------------------------------------
+;     MKW35A/MKW36A
+;      MKW35A512VFP4          512KB         -        -       64KB
+;      MKW36A512VFP4          256KB       256KB      -       64KB
+;      MKW35A512VFP4          256KB       256KB      -       64KB
+;     MKW35Z/MKW36Z
+;      MKW35Z512VHT4          512KB         -        -       64KB
+;      MKW36Z512VHT4          256KB       256KB      -       64KB
+;      MKW36Z512VFP4          256KB       256KB      -       64KB
+;
+;   The range 0x400--0x40F is guarded against modification.
+;     Address-Range          Description
+; --------------------------------------------------------------------------------
+;     0x400--0x0407     8    Backdoor Comparison Key.
+;     0x0408--0x040B    4    Program flash protection bytes (FPROT0-3).
+;     0x040F            1    Program flash only devices: Reserved
+;                            FlexNVM devices: Data flash protection byte
+;                            (FDPROT).
+;     0x040E            1    Program flash only devices: Reserved
+;                            FlexNVM devices: EEPROM protection byte
+;                            (FEPROT).
+;     0x040D            1    Flash nonvolatile option byte (FOPT).
+;     0x040C            1    Flash security byte (FSEC).
+;
+;   Modifications can be done using the FLASH.AUTO command with /CENSORSHIP option.
+;
+; @Author: PHI
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 7036 $
+; $Id: mkw36.cmm 7036 2019-06-06 07:35:49Z amerkle $
+;
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+PRIVATE &param_cpu &param_prepareonly &param_masserase &param_dualport
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+&param_masserase=(STRing.SCAN(STRing.UPpeR("&parameters"),"MASSERASE",0)!=-1)
+&param_cpu=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CPU=","")
+&param_dualport=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"DUALPORT=","1")
+
+; --------------------------------------------------------------------------------
+; Initialize and start the debugger
+IF !SYStem.Up()||&param_masserase
+(
+  SYStem.RESet
+
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  IF !CPUIS(MKW3?Z*)
+    SYStem.CPU MKW3?Z*
+
+  SYStem.MemAccess DAP
+  SYStem.CONFIG.DEBUGPORTTYPE SWD
+
+  IF &param_masserase
+    GOSUB MassErase
+
+  ON.ERROR GOSUB Unsecure
+  SYStem.Up
+  ON.ERROR
+
+  ; Unsecure device
+  IF (Data.Long(EDBG:0x40000100)&0x04)==0x04
+    GOSUB Unsecure
+
+  ON.ERROR GOSUB Unsecure
+  GOSUB DisableWatchdog
+  ON.ERROR
+)
+
+; ------------------------------------------------------------------------------
+; Flash declaration
+
+FLASH.RESet
+GOSUB FlashDeclaration "&param_dualport"
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; ------------------------------------------------------------------------------
+; Flash programming
+
+DIALOG.YESNO "Program flash memory?"
+PRIVATE &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram.ALL /Erase
+  Data.LOAD.auto *
+  FLASH.ReProgram.off
+
+  ; Example to modify Censorship range
+  ; FLASH.AUTO 0x400--0x40F /CENSORSHIP
+  ; Data.Set 0x400--0x40F %Byte <value>
+  ; Data.LOAD.auto <file> 0x400--0x40F
+  ; FLASH.AUTO OFF
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+
+  ; Disable watchdog
+  GOSUB DisableWatchdog
+)
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+; SUBROUTINES
+
+
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU
+;
+;   Please do NOT modify the TRACE32 flash declaration.
+;
+;   Modifications can result in unpredictable behavior.
+;   Please contact support@lauterbach.com for any changes.
+
+FlashDeclaration: ;(param_dualport)
+(
+  PARAMETERS &param_dualport
+  PRIVATE &PFlashSize &PSectorSize &FlexNVMSize &FlexNVMSectorSize
+  PRIVATE &flashdriver &RamAdress
+
+  &PSectorSize=0x800
+  &PFlashSize=0x80000
+  &FlexNVMSize=0x0
+  &FlexNVMSectorSize=0x0
+  &RamAdress=0x14000000
+  &flashdriver="ftfe_2k2k.bin"
+
+  IF CPUIS("MKW35A*")||CPUIS("MKW35Z*")
+  (
+    &PFlashSize=0x80000
+    FLASH.Create 1. 0x00000000++(&PSectorSize-0x1) &PSectorSize TARGET Quad /CENSORSHIP 0x400--0x40F /INFO "0x0-0x3FF is Program FLASH 0 IFR"
+    FLASH.Create 1. (0x00000000+&PSectorSize)++(&PFlashSize-&PSectorSize-0x1) &PSectorSize TARGET Quad
+    FLASH.Create 2. 0x00040000++0x3FFFF &PSectorSize TARGET Quad
+  )
+  ELSE IF CPUIS("MKW36A*")||CPUIS("MKW36Z*")
+  (
+    &PFlashSize=0x40000
+    &FlexNVMSize=0x40000
+    &FlexNVMSectorSize=0x800
+    FLASH.Create 1. 0x00000000++(&PSectorSize-0x1) &PSectorSize TARGET Quad /CENSORSHIP 0x400--0x40F /INFO "0x0-0x3FF is Program FLASH 0 IFR"
+    FLASH.Create 1. (0x00000000+&PSectorSize)++(&PFlashSize-&PSectorSize-0x1) &PSectorSize TARGET Quad
+    FLASH.CreateALIAS 0x00040000++0x3FFFF 0x10000000
+    FLASH.Create 2. 0x10000000++(&FlexNVMSectorSize-0x1) &FlexNVMSectorSize TARGET Quad /INFO "0x0-0x3FF is DATA FLASH 0 IFR"
+    FLASH.Create 2. (0x10000000+&FlexNVMSectorSize)++(&FlexNVMSize-&FlexNVMSectorSize-0x1) &FlexNVMSectorSize TARGET Quad
+  )
+  ELSE
+  (
+    PRINT %ERROR "FLASH size of CPU type is not supported by the script"
+    ENDDO
+  )
+
+  IF "&param_dualport"=="0"
+    FLASH.TARGET 0x1FFFF000 0x20000000 &PSectorSize ~~/demo/arm/flash/quad/&flashdriver
+  ELSE
+    FLASH.TARGET 0x1FFFF000 E:0x20000000 &PSectorSize ~~/demo/arm/flash/quad/&flashdriver /DualPort
+
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Disable watchdog
+
+DisableWatchdog:
+(
+  Data.Set AD:0x40048100 %Long 0  ; this register can only be accessed once after reset.
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Try to unsecure a secured device
+
+Unsecure:
+(
+  ; Print security state information
+  SYStem.Mode.Prepare
+  PRINT "MDM-AP Status Register is 0x" Data.Long(EDBG:0x40000100)
+
+  DIALOG.YESNO "Execute mass erase to unsecure chip?"
+  PRIVATE &masserase
+  ENTRY &masserase
+  IF &masserase
+  (
+    ON.ERROR DEFault
+
+    ; Unsecure device
+    SYStem.Down
+    FLASH.UNSECUREerase
+    SYStem.Mode.Prepare
+    IF (Data.Long(EDBG:0x40000100)&0x04)==0x04
+    (
+      PRINT %ERROR "Unsecure failed, MDM-AP Status Register is 0x" Data.Long(EDBG:0x40000100)
+      SYStem.Down
+      ENDDO
+    )
+  )
+  ELSE
+    ENDDO
+
+  SYStem.Up
+
+  ; Disable watchdog
+  GOSUB DisableWatchdog
+
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Try to mass erase the device
+
+MassErase:
+(
+  ; Mass erase device by unsecure command
+  SYStem.Down
+  FLASH.UNSECUREerase
+  SYStem.Mode.Prepare
+  IF (Data.Long(EDBG:0x40000100)&0x24)!=0x20
+  (
+      PRINT %ERROR "Mass erase failed, MDM-AP Status Register is 0x" Data.Long(EDBG:0x40000100)
+      SYStem.Down
+      ENDDO
+  )
+  RETURN
+)

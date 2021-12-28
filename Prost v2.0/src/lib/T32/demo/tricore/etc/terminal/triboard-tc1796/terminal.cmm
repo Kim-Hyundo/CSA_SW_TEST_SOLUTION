@@ -1,0 +1,63 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for terminal demo TC1796 on TriBoard TC1796
+; @Description:
+;   Terminal demo.
+;
+;   performed tests
+;   Dip Switch S301:      SW1=ON,  SW2=OFF, SW3=ON,  SW4=ON,
+;                         SW5=ON,  SW6=ON,  SW7=OFF, SW8=OFF
+;   TriBoard TC1796.300 TC1796 EES-BC 2005-09-02 MAX
+;
+;   Memory mappings:
+;   flash is not declared
+;   external SRAM                    mapped to 0xA1000000--0xA10FFFFF    1 MB
+;   external Flash                   mapped to 0xA2000000--0xA23FFFFF    4 MB
+;   processor internal program flash mapped to 0xA0000000--0xA01FFFFF    2 MB
+;   processor internal data flash    mapped to 0xAFE00000--0xAFE1FFFF  128 KB
+;
+; @Keywords: Infineon, terminal, TriCore
+; @Author: MAX
+; @Board: TriBoard-TC1796
+; @Chip: TC1796
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: terminal.cmm 7485 2014-07-29 08:14:56Z mobermeir $
+
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+
+RESet
+SYStem.CPU TC1796
+//SYStem.Option WDTFIX ON   ; only required for A-step devices
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; Memory initialzation
+; initialize external bus unit
+Data.Set 0xF8000010 %Long 0x00F9FF68    ; EBU_CON
+Data.Set 0xF8000020 %Long 0x001001D0    ; EBU_BFCON
+
+; memory assignment
+; AMD AM29BL162CB flash
+Data.Set 0xF8000080 %Long 0xA2000051    ; EBU_ADDR_SEL0
+Data.Set 0xF80000C0 %Long 0x00820000    ; EBU_BUSCON0
+Data.Set 0xF8000100 %Long 0x23FF0100    ; EBU_BUSAP0
+; ALLIANCE SRAM
+Data.Set 0xF8000088 %Long 0xA1000071    ; EBU_ADDR_SEL1
+Data.Set 0xF80000C8 %Long 0x00820000    ; EBU_BUSCON1
+Data.Set 0xF8000108 %Long 0x00D80000    ; EBU_BUSAP1
+
+; --------------------------------------------------------------------------------
+; load terminal application
+Data.LOAD.Elf ~~~~/terminal.elf
+
+; configure terminal
+TERM.RESet
+TERM.METHOD BufferE
+TERM.GATE OutBuffer InBuffer
+
+; start demo
+Go
+
+ENDDO

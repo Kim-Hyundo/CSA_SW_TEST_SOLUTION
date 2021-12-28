@@ -1,0 +1,113 @@
+; --------------------------------------------------------------------------------
+; @Title: SPI FLASH Programming script for DA1469x
+; @Description:
+; SPI FLASH(Micronix, MX25U3235) is connected QSPIC
+;
+; pin connection
+; QSPIC     -  SPI_Flash
+; QSPIF_D0  -  MOSI
+; QSPIF_D1  -  MISO
+; QSPIF_CLK -  SCLK
+; QSPIF_CS  -  SS0
+;
+; Internal SRAM : 0x20000000
+; Tx Register   : 0x38000018
+; Rx Register   : 0x3800001C
+; Base Register : 0x38000000
+;
+; @Chip: DA14697-CM33
+; @Board:
+; @Author: JIM
+; @Keywords:  ARM, Cortex-M33 MX25U
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: da1469x-spi.cmm 8116 2020-03-24 13:38:37Z jjeong $
+
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+&QSPI_BASE=0x38000000
+
+;WinCLEAR
+; --------------------------------------------------------------------------------
+; system up procedure
+IF SYStem.MODE()<5
+(
+RESet
+SYStem.RESet
+SYStem.CPU DA14697-CM33
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option.DUALPORT ON
+SYStem.Option.ResBreak off
+SYStem.Option.WaitIDCODE ON
+SYStem.MemAccess DAP
+SYStem.JtagClock 10MHz
+Trace.DISable
+SYStem.Up
+)
+
+; --------------------------------------------------------------------------------
+; Watchdog disable
+Data.Set A:0x50000704 %LE %Long 0x1<<2.
+Data.Set A:0x50040300 %LE %Long 0x1<<3.   ; Watchdog timer is frozen.
+
+; --------------------------------------------------------------------------------
+; Read flash id by a direct access
+GOSUB READ_ID_TEST
+
+; --------------------------------------------------------------------------------
+; FLASHFILE Configuration
+ Break.RESet
+
+ FLASHFILE.RESet
+
+//FLASFILE.CONFIG   <Tx Reg>          <Rx Reg>          <BASE Reg>
+ FLASHFILE.CONFIG (&QSPI_BASE+0x18)  (&QSPI_BASE+0x1C)  &QSPI_BASE
+
+// FLASHFILE.TARGET <code range>        <data range>           <Algorithm file>
+ FLASHFILE.TARGET 0x20000000++0x1FFF   E:0x20002000++0x1FFF   ~~/demo/arm/flash/byte/spi64_da1469x.bin   /KEEP  /DualPort
+
+ FLASHFILE.GETID
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+ENDDO
+
+  FLASHFILE.DUMP 0x0
+
+//Erase Serial FLASH
+  ;FLASHFILE.ERASE 0x0--0xFFFFF
+
+//Write
+  ;FLASHFILE.LOAD   * 0x0
+  ;FLASHFILE.LOAD   * 0x0  /ComPare   ;verify
+
+ENDDO
+
+READ_ID_TEST:
+
+Data.Set &QSPI_BASE %Long 0x08  ; enable_CS
+WAIT 100.ms
+Data.Set &QSPI_BASE %Long 0x10  ; disable_CS
+WAIT 100.ms
+
+Data.Set &QSPI_BASE %Long 0x08  ; EN_CS
+
+Data.Set &QSPI_BASE+0x18 %Byte 0x9F  ; write command byte  , it comes write/read together.
+
+&temp=Data.Long(A:&QSPI_BASE+0x1C)
+
+PRINT "read 1st: 0x" &temp&0xFF        " (manufacture ID)"
+PRINT "read 2nd: 0x" (&temp>>8.)&0xFF  " (device ID)"
+PRINT "read 3rd: 0x" (&temp>>16.)&0xFF
+PRINT "read 4th: 0x" (&temp>>24.)&0xFF
+
+Data.Set &QSPI_BASE %Long 0x10  ; Disable_CS
+
+RETURN
+

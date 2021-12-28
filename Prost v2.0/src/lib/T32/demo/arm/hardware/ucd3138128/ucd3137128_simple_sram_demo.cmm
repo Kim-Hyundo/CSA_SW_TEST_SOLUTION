@@ -1,0 +1,38 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo for TI UCD3138128
+; @Description:
+;   Loads the sieve demo into SRAM and sets up a demo debug scenario.
+;   Note: The Open Loop EVB uses an TI-14 debug header without a reset signal
+; @Keywords: TI, ARM7TDMI-S
+; @Author: STK
+; @Board: UCD3138A64 Open Loop EVB
+; @Chip: UCD3138128
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: ucd3137128_simple_sram_demo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; System settings
+  RESet
+  SYStem.CPU UCD3138128
+  SYStem.JtagClock 5Mhz
+  SYStem.Up
+
+; Download demo application
+  Register.Init
+  Data.LOAD.Elf ~~/demo/arm/compiler/gnu-pic/midi_arm.elf 0x0006A000 /RelPATH
+
+; Open some windows
+  WinPOS 0% 0% 100% 50%
+  List.auto
+  WinPOS 0% 50% 50% 50%
+  Var.Frame /Locals /Caller
+  WinPOS 50% 50% 50% 50%
+  Var.Watch flags ast
+
+  ENDDO
+
+
+
+
+
+

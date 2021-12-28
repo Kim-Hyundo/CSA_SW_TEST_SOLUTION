@@ -1,0 +1,78 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux Start-up script for Freescale i.MX535 Quick Start Board
+; @Description: 
+;   This script is supposed to attach to a running Linux on 
+;   i.MX535 Quick Start board. 
+;   The Task Awareness + Debugger Address Translation are prepared as for the 
+;   GSRD. After execution of this script the debugger is ready for Process, 
+;   Kernel, optional Module and optional Library debugging.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+; @Board: i.MX53 QuickStartBoard
+; @Chip: IMX53*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx53_linux_attach.cmm 16133 2020-06-01 11:09:18Z mcharfi $
+
+LOCAL &ka_path &awareness
+
+; main windows setup
+  TOOLBAR ON
+  STATUSBAR ON
+  FramePOS 0.125 0.25 157. 50.
+  WinPAGE.RESet
+  SCREEN.ALways      ; permanent update for internal terminal window
+
+  RESet
+  SYStem.CPU IMX535
+  SYStem.Option ResBreak OFF
+  SYStem.Option MMUSPACES ON
+  SYStem.Option DACR ON          ; give Debugger global write permissions
+  TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+  TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+  TrOnchip.Set UNDEF OFF         ; my be used by Linux for FPU detection
+  SYStem.Option MMUSPACES OFF
+  SYStem.JtagClock 20.MHz
+
+  SYStem.Attach
+  Break.direct
+  WAIT !STATE.RUN()
+
+; set terminal window
+  DO ~~/demo/etc/terminal/serial/term.cmm COM1 115200.
+  WinPOS 70.125 4.1875 80. 25. 0. 0. W001
+  TERM.view
+
+; load vmlinux symbols
+  Data.LOAD.Elf vmlinux /NoCODE /GNU 
+
+
+; Open a Code Window -- we like to see something
+  WinPOS 0. 0. 75. 20.
+  List.auto
+  SCREEN.display
+
+; create debugger's MMU
+  MMU.FORMAT LINUX swapper_pg_dir 0x80000000--0x87ffffff 0x70000000
+  TRANSlation.Create 080000000--087ffffff 0x70000000 ; map kernel pages at RAM start
+  TRANSlation.COMMON 07f000000--0ffffffff            ; common area for kernel and processes
+  TRANSlation.TableWalk ON
+  TRANSlation.ON
+
+; Initialize Linux Awareness
+  ; Note that the Linux awareness needs the kernel symbols to work 
+  PRINT "initializing RTOS support..."
+  ; Choose the correct Linux major version below
+  ;TASK.CONFIG ~~/demo/arm/kernel/linux/linux-2.x/linux.t32     ; loads Linux awareness for linux-2.x
+  ;MENU.ReProgram ~~/demo/arm/kernel/linux/linux-2.x/linux.men  ; loads Linux menu  for linux-2.x
+  TASK.CONFIG ~~/demo/arm/kernel/linux/linux-3.x/linux3.t32     ; loads Linux awareness for linux-3.x
+  MENU.ReProgram ~~/demo/arm/kernel/linux/linux-3.x/linux.men  ; loads Linux menu  for linux-3.x
+  
+; Group kernel area to be displayed with red bar
+  GROUP.Create "kernel" 0xc0000000--0xffffffff /RED
+
+  Go.direct
+
+  Mode.Hll
+
+  ENDDO

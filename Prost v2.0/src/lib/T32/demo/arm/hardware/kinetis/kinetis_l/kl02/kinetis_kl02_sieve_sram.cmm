@@ -1,0 +1,55 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple sieve demo running from SRAM for Kinetis-L series
+; @Description: 
+;   This is a small demo how to setup a SWD debug session on Cortex-M0
+;   for Kinetis-L series. The sieve demo is loaded on SRAM.
+;
+; @Keywords: Cortex-M0, debug, Freescale, KL0, Kinetis, SWD
+; @Author: HDA
+; @Board:  Freedom-KL02Z
+; @Chip: MKL0*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: kinetis_kl02_sieve_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; Basic setup
+  RESet
+  SYStem.RESet
+  SYStem.CPU MKL02Z32VFM4
+  ;SYStem.CPU MKL0*
+  SYStem.CONFIG.CONNECTOR MIPI20T 
+  SYStem.CONFIG.DEBUGPORTTYPE SWD
+  SYStem.MemAccess DAP
+  SYStem.Option DUALPORT ON
+  SYStem.Up
+
+; Disable watchdog
+  Data.Set SD:0x40048100 %Long 0x00000000 ; this register can only be accessed once after reset.
+
+; Load demo code on sram
+  Data.LOAD.Elf ~~~~/demo_sram.axf
+  Register.Set PC main
+  Register.Set R13 0x20000C00
+
+  Go.direct
+  
+  ; open some windows
+  WinCLEAR
+
+  WinPOS 0% 0% 50% 50%
+  List.auto
+
+  WinPOS 50% 0% 50% 50%
+  Register.view /SpotLight
+
+  WinPOS 0% 50% 50% 30%
+  Frame /Locals /Caller
+
+  WinPOS 0% 80% 50% 20%
+  Var.Watch %E %SpotLight.on flags
+  Var.AddWatch ast
+
+  WinPOS 50% 50% 50% 50%
+  Var.DRAW sinewave
+
+  ENDDO

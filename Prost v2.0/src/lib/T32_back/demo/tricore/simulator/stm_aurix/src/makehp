@@ -1,0 +1,7 @@
+OBJECTS = stm_aurix.o simul.o
+COPTS	= +e +z -c -O 
+
+stm_aurix.so.1:	$(OBJECTS)
+	ld -b -o stm_aurix.sl $(OBJECTS)
+
+.c.o: ; c89 ${COPTS} $*.c

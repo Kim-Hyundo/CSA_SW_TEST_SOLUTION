@@ -1,0 +1,53 @@
+; --------------------------------------------------------------------------------
+; @Title: pSOS+ Demo for TRACE32 OS Awareness
+; @Description: 
+;   
+;   This batchfile loads all necessary files to demonstrate
+;   the RTOS-Debugger for pSOS+ in stand-alone-mode.
+;   
+; @Keywords: psos, RTOS, v21x
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: psos.cmm 15227 2019-11-06 11:57:41Z bschroefel $
+
+;   Created by Stephan Lauterbach / Lauterbach GmbH at 28.06.99
+
+GLOBAL &base
+
+ SCREEN.ON
+            
+; Emulator reset
+ PRINT "resetting..."
+ RESet
+ WinPAGE.RESet
+
+ PRINT "initializing..."
+
+; Stand alone internal mode
+ IF hardware.ICD()
+ (
+  SYStem.Up
+  Go
+  WAIT 1.0s
+  Break
+ )
+ 
+; load sample application
+ PRINT "loading sample application..."
+ Data.LOAD.AIF ram.axf /StripPATH
+
+ Register.Set PC 0x40000
+
+; initialize mutitasking support
+ PRINT "initializing RTOS support..."
+ SCREEN.OFF
+ DO ppsos
+ MENU.ReProgram psos
+
+ PRINT "load complete."
+
+ List.auto
+
+ ENDDO
+

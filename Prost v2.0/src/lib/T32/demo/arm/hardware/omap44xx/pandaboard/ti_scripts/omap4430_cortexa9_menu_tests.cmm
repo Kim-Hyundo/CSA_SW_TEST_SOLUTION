@@ -1,0 +1,90 @@
+; --------------------------------------------------------------------------------
+; @Title: Menu entry point Script for PandaBoard CortexA9
+; @Description: 
+;   This script add CMM menu that link to CortexA9 ti-script. 
+;   For description please take a look at (omap4430_lauterbach_startup_guide.doc)
+; @Keywords: OMAP4430 PandaBoard
+; @Author: TI
+; @Board: PandaBoard
+; @Chip: OMAP4430
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: omap4430_cortexa9_menu_tests.cmm 9251 2016-04-13 15:59:56Z msamet $
+
+ENTRY &menu_type
+
+GLOBAL &CMM_DIR
+&CMM_DIR="~~~~"
+
+MENU.ReProgram
+(
+  ADD
+  MENU
+  (
+    POPUP "CMM"
+    (
+      MENUITEM "SetFirewallsToPublic"
+      (
+        DO  &CMM_DIR/omap4430_set_firewalls_to_public
+      )
+      MENUITEM "FDIF_SW_change_EFUSE"
+      (
+        DO  &CMM_DIR/FDIF_SW_change_EFUSE
+      )
+      ;POPUP "PSRAM configuration"
+      ;(
+      ; MENUITEM "PSRAM CS2 settings"
+      ; (
+      ;   do &CMM_DIR/H3G_omap3430_psramCS2
+      ; )
+      ;)
+      POPUP "DDR_SDRAM configuration"
+      (
+        MENUITEM "Configure_zebu_SDRC"
+        (
+          DO  &CMM_DIR/omap4430_ddr 0x0
+        )
+                    
+        MENUITEM "Configure_elpida_SDRC"
+        (
+          DO  &CMM_DIR/omap4430_ddr 0x1
+        )
+        MENUITEM "Configure_micron_SDRC"
+        (
+          DO  &CMM_DIR/omap4430_ddr 0x2
+        )
+      )
+      ;MENUITEM "enter_non_secure_mode"
+      ;(
+        ; do  &CMM_DIR/omap4430_enter_non_secure_mode
+      ;)
+        
+      MENUITEM "release Cortexa9 CPU1 from WIR mode"
+      (
+        DO  &CMM_DIR/omap4430_cortexa9_reset 0x5
+      )
+      MENUITEM "release CORTEXM3 RTOS"
+      (
+        DO  &CMM_DIR/omap4430_cortexa9_reset 0x0
+      )
+      MENUITEM "release CORTEXM3 SIMCOP"
+      (
+        DO  &CMM_DIR/omap4430_cortexa9_reset 0x1
+      )
+      MENUITEM "release TESLA C64"
+      (
+        DO  &CMM_DIR/omap4430_cortexa9_reset 0x2
+      )
+      MENUITEM "release IVAHD iCont1"
+      (
+        DO  &CMM_DIR/omap4430_cortexa9_reset 0x3
+      )
+      MENUITEM "release IVAHD iCont2"
+      (
+        DO  &CMM_DIR/omap4430_cortexa9_reset 0x4
+      )
+    )
+  )
+)
+
+ENDDO

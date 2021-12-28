@@ -1,0 +1,1312 @@
+; --------------------------------------------------------------------------------
+; @Title: Coverage Report Utility (hierarchic)
+; @Description:
+;   Generation of a hierarchic code coverage report in multiple files.
+;
+;   Before executing this script ensure that you have performed a
+;   code coverage analysis in TRACE32 (See command COVerage.state)
+;   Read more about "Trace-based code coverage" in general_ref_c.pdf
+;
+;   Viewing a report should work with any browser supporting CSS, JavaScript
+;   and an XSLT 1.0 processor:
+;   The following browsers have been tested successfully:
+;   - Microsoft Internet Explorer 8/9/10/11 (IE8 discouraged)
+;   - Mozilla Firefox v43/v44 (recommended)
+;   - Google Chrome v48
+;   - Apple Safari v5.1
+;   - Opera v12, v35
+;
+;   To read a report in Internet Explorer without being asked to
+;   execute JavaScript use the following setting (or use a webserver):
+;    Internet Options -> Advanced -> Security ->
+;    -> "Allow active content to run in files on My Computer" -> true
+; @Keywords: coverage export xml report
+; @Author: CSA HLG
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: create_report.cmm 14910 2019-09-10 09:37:21Z csax $
+
+; Usage:
+;   DO create_report.cmm "<output_folder>" "<filter>" "[<whitelist>]" "[<options>]"
+; 
+; Parameters:
+;   <output_folder>:  Directory to create files and subdirectories for report
+;   <filter>:  Whitelist type that is used to filter the report 
+;     Possible values:
+;       SYMBOL:  Names in whitelist represent symbol names with wildcards 
+;       SOURCE:  Names in whitelist represent source file names with wildcards
+;       ADDRESS: Name in whitelist represents an address or an address range
+;       PRESET:  Use preset filter instead of whitelist
+;   [<whitelist>]:  Whitelist to restrict the number of items in the report
+;     All items are included in the report if the whitelist is empty. Wildcards are
+;     supported for symbols and source files.
+;   [<options>]:  List of options
+;     Options must be white space separated.
+;     Possible options:
+;       EXISTING=REPLACE|BACKUP|CANCEL|ASK  (default is ASK)
+;       COMPRESSION=<level>  (default is 3)
+;       METRIC=OBJECTCODE|STATEMENT|DECISION|CONDITION|MCDC|FUNCTION|CALL
+;                (default is OBJECTCODE)
+;       ORDER=SORDER|TORDER  (default is SORDER)
+;       FORMAT=SINGLE|MULTI|DO178.OBJECTCODE|STATEMENT|DECISION|CONDITION|MCDC|FUNCTION|CALL
+;                (default is SINGLE)
+;       DATA=YES|NO  (default is YES)
+;       DIALOG=YES|NO  (default is NO)
+;         Possible compression level:
+;         4 : XML files, HTML generated on-the-fly by the browser,
+;             xslt/js/css only once in top folder (xslt stubs in subfolders)
+;             Violates Firefox's same-origin policy for file-URIs.
+;             To read this report with Firefox configure the browser as follows:
+;              about:config -> security.fileuri.strict_origin_policy -> false
+;              (or use a webserver)
+;             To read this report with Google Chrome or Opera (>=15) use
+;              start option "--allow-file-access-from-files" (or use a webserver)
+;         3 : XML files, HTML generated on-the-fly by the browser,
+;             xslt/js/css in every folder
+;             To read this report with Google Chrome or Opera (>=15) use
+;              start option "--allow-file-access-from-files" (or use a webserver)
+;         2 : HTML files, js/css in every folder.
+;             Requires command line XSLT processor when creating the report.
+;             Ensure to have XALAN, XSLTPROC or MSXSL in your PATH evironment.
+;             Generating a report with HTML files takes significant more time.
+;         1 : HTML files with embedded js/css
+;             Requires command line XSLT processor when creating the report.
+;             Reports with embedded js/css. Requires significant more disc space.
+;             (UglifyJS and UglifyCSS compressors are additionally used, if they are
+;             in your PATH to compress js/css before embedding to the HTML files.)
+;             (Javascript and CSS get compressed via UglifyJS and UglifyCSS before
+;             embedded to the HTML files, if these tools are in your PATH)
+;
+;  Make sure to revert any changes to your browser's configuration after use.
+
+
+
+PRIVATE &min
+&min=112213.
+IF VERSION.BUILD()<&min
+(
+  DIALOG.OK "Sorry, the script" """"+OS.PPF()+"""" "requires at least TRACE32 build "+FORMAT.Decimal(1,&min)+"."
+  ENDDO "1."
+)
+PMACRO.EXPLICIT
+
+; --------------------------------------------------------------------------------
+; Get and check input parameters
+; --------------------------------------------------------------------------------
+PARAMETERS &base_folder &filter &whitelist &options
+&base_folder=STRing.TRIM("&base_folder")
+&filter=STRing.TRIM("&filter")
+&whitelist=STRing.TRIM("&whitelist")
+
+IF "&filter"==""
+(
+  &filter="SYMBOL"
+)
+ELSE IF !("&filter"=="SYMBOL"||"&filter"=="SOURCE"||"&filter"=="ADDRESS")
+(
+  PRINT %ERROR "Invalid filter type for whitelist"
+  ENDDO "2."
+)
+
+///Prost Customize///
+GLOBAL &prost_module_cnt
+var.newglobal char[200][100] \prost_module_array
+
+GOSUB EXCEPT_MODULE_REGIST
+///Prost Customize///
+
+LOCAL &existing &compression &metric &show_dialog &order &format &show_data
+LOCAL &countdown
+&options=STRing.UPpeR("&options")
+&existing=STRing.SCANAndExtract("&options","EXISTING=","")   // REPLACE|BACKUP|CANCEL|ASK
+IF STRing.SCAN("|REPLACE|BACKUP|CANCEL|ASK|","|&existing|",0)<0
+  &existing="ASK"
+&metric=STRing.SCANAndExtract("&options","METRIC=","OBJECTCODE")    // OBJECTCODE|STATEMENT|DECISION|CONDITION|MCDC|FUNCTION|CALL
+&show_dialog=STRing.SCANAndExtract("&options","DIALOG=","NO")       // YES|NO
+&show_data=STRing.SCANAndExtract("&options","DATA=","YES")          // YES|NO
+&countdown=STRing.SCANAndExtract("&options","COUNTDOWN=","0.")
+&order=STRing.SCANAndExtract("&options","ORDER=","SORDER")          // SORDER|TORDER
+&compression=STRing.SCANAndExtract("&options","COMPRESSION=","3.")  // 1..4
+GOSUB extract_format "&options"
+RETURNVALUES &format
+
+
+
+
+ON ERROR CONTinue
+IF (&compression<1)||(&compression>4)
+  &compression=3
+ON ERROR inherit
+&compression=FORMAT.Decimal(0,&compression)+"."
+
+; --------------------------------------------------------------------------------
+; Improve and check address range, symbol list or wildcard names
+; --------------------------------------------------------------------------------
+IF (STRing.FIND("&whitelist","("))&&(!STRing.FIND("&whitelist"," "))
+(
+  ON ERROR CONTinue
+  &whitelist=&whitelist  // resolve PRACTICE functions
+)
+
+IF "&filter"=="ADDRESS"
+(
+  ON ERROR GOTO
+  (
+    PRINT %ERROR "Invalid address or address range"
+    ENDDO "2."
+  )
+  Eval &whitelist
+  ON ERROR inherit
+  IF (EVAL.TYPE()==0x080)||(EVAL.TYPE()==0x200)
+  (
+    // Addressrange
+    IF EVAL.TYPE()!=0x200
+      &whitelist="P:&whitelist"
+  )
+  ELSE IF (EVAL.TYPE()<0x010)||(EVAL.TYPE()==0x020)||((EVAL.TYPE()==0x100)&&(STRing.FIND("&whitelist",":")))
+  (
+    // Single address (not assigned via a symbol)
+    IF EVAL.TYPE()!=0x100
+    (
+      &whitelist="P:&whitelist"
+    )
+  )
+)
+
+&whitelist=STRing.Replace("&whitelist",","," ",0)  // replace commas by spaces
+WHILE STRing.SCAN("&whitelist","  ",0)>=0
+(
+  &whitelist=STRing.Replace("&whitelist","  "," ",0)  // collapse spaces
+)
+ON ERROR inherit
+
+; --------------------------------------------------------------------------------
+; Include data sections
+; --------------------------------------------------------------------------------
+IF "&show_data"=="YES"
+(
+  &show_data=TRUE()
+)
+ELSE
+(
+  &show_data=FALSE()
+)
+
+; --------------------------------------------------------------------------------
+; Show configuration dialog
+; --------------------------------------------------------------------------------
+IF ("&base_folder"=="")||("&show_dialog"=="YES")
+(
+  GOSUB showDialog "&base_folder" "&filter" "&whitelist" "&existing" "&compression" "&metric" "&order" "&format" "&show_data"
+  ENDDO "9."
+)
+ELSE IF "&base_folder"=="*"
+(
+  DIALOG.DIR *
+  ENTRY %LINE &base_folder
+)
+
+; --------------------------------------------------------------------------------
+; Prepare output folder
+; --------------------------------------------------------------------------------
+IF OS.DIR("&base_folder")
+(
+  IF "&existing"=="ASK"
+  (
+    PRIVATE &continue
+    ;DIALOG.YESNO "Folder ""&base_folder"" already exists." "Backup existing folder and create new report?" "(""No"" will abort the creation of a report.)"
+    ;ENTRY &continue
+    ;IF &continue
+      &existing="BACKUP"
+    ;ELSE
+    ;  &existing="CANCEL"
+  )
+  IF "&existing"=="CANCEL"
+  (
+    PRINT %ERROR "Folder ""&base_folder"" already exists! No report created"
+    ENDDO "5."
+  )
+  ELSE IF "&existing"=="REPLACE"
+  (
+    GOSUB clean_folder "&base_folder"
+    IF OS.DIR(&base_folder)
+    (
+      PRINT %ERROR "Failed to delete folder ""&base_folder""! No report created"
+      ENDDO "6."
+    )
+  )
+  ELSE // BACKUP
+  (
+    PRIVATE &backup
+    &backup="&base_folder."+FORMAT.UnixTime("Ymdb",DATE.UnixTime(),0)+".bak"
+    ON ERROR GOTO
+    (
+      PRINT %ERROR "Failed to rename ""&base_folder""! No report created"
+      ENDDO "7."
+    )
+    MV "&base_folder" "&backup"
+    ON ERROR inherit
+    IF !OS.DIR(&backup)
+    (
+      PRINT %ERROR "Failed to create backup of ""&base_folder""! No report created"
+      ENDDO "8."
+    )
+  )
+)
+ON ERROR GOTO
+(
+  PRINT %ERROR "Failed to create ""&base_folder""! No report created"
+  ENDDO "4."
+)
+MKDIR "&base_folder"
+ON ERROR inherit
+
+
+; --------------------------------------------------------------------------------
+; Search for local XSLT processor
+; --------------------------------------------------------------------------------
+LOCAL &xalan &xsltproc &msxsl &saxon
+&xalan=FALSE()
+&xsltproc=FALSE()
+&msxsl=FALSE()
+&saxon=FALSE()
+IF &compression<3
+(
+  PRIVATE &which
+  &which="which"
+  IF OS.VERSION(0)<=0x10
+    &which="where"
+
+  OS.Hidden &which xalan
+  &xalan=OS.RETURN()==0
+  OS.Hidden &which xsltproc
+  &xsltproc=OS.RETURN()==0
+  OS.Hidden &which msxsl
+  &msxsl=OS.RETURN()==0
+  OS.Hidden &which transform
+  &saxon=OS.RETURN()==0
+
+  IF !(&xalan||&xsltproc||&msxsl||&saxon)
+  (
+    PRINT %ERROR "Can't find neither ""xalan"" nor ""xsltproc"" nor ""msxsl"" in your PATH !"
+    PRINT " You require on of these XSLT processors to convert XML to HTML files."
+    PRINT " Please check your PATH environment variable and restart TRACE32"
+    PRINT " Download ""xalan-c""  from http://xalan.apache.org/xalan-c"
+    PRINT " Download ""xsltproc"" from http://xmlsoft.org/xslt"
+    PRINT " Download ""msxsl"" from http://www.microsoft.com"
+    &compression=3  // Generate just XML files
+  )
+)
+
+; --------------------------------------------------------------------------------
+; Create XSLT stylesheet for embedded CSS/JS in HTML
+; --------------------------------------------------------------------------------
+PRIVATE &stylesheet &resources
+&resources="~~~~/resources"
+&stylesheet="&resources/t32transform.xsl"
+IF &compression<=1
+(
+  PRIVATE &which &file &cssFile &jsFile &url
+  &which="which"
+  IF OS.VERSION(0)<=0x10
+    &which="where"
+
+  &jsFile="&resources/t32report.js"
+  OS.Hidden &which uglifyjs
+  IF OS.RETURN()==0
+  (
+    // Compress Javascript
+    PRIVATE &in &out
+    GOSUB fix_path_for_os "&jsFile"
+    &in=PRACTICE.ARG(0)
+    &out=OS.TMPFILE()
+    IF OS.FILE("&out") // should not yet exist, but let's be sure
+      RM "&out"
+    OS.Hidden uglifyjs --mangle-toplevel --inline-script --output "&out" "&in"
+    IF OS.FILE("&out")
+      &jsFile="&out"
+  )
+  &cssFile="&resources/t32report.css"
+  OS.Hidden &which uglifycss
+  IF OS.RETURN()==0
+  (
+    // Compress CSS
+    PRIVATE &in &out
+    GOSUB fix_path_for_os "&cssFile"
+    &in=PRACTICE.ARG(0)
+    &out=OS.TMPFILE()
+    IF OS.FILE("&out") // should not yet exist, but let's be sure
+      RM "&out"
+    OS.Command uglifycss "&in" > "&out"
+    WAIT OS.FILE("&out") 2.s
+    IF OS.FILE("&out")
+      &cssFile="&out"
+  )
+
+  &file=OS.TMPFILE()
+  IF OS.FILE("&file") // should not yet exist, but let's be sure
+    RM "&file"
+  &url=OS.FILE.PATH("&stylesheet")+"/"+OS.FILE.NAME("&stylesheet") // get full path to master-stylesheet
+  IF OS.VERSION(0)<=0x10  // MS Windows ?
+    &url="/"+STRing.Replace("&url","\","/",0)
+  &url=STRing.Replace("&url","%","%25",0)
+  &url=STRing.Replace("&url","+","%2B",0)
+  &url=STRing.Replace("&url"," ","%20",0)
+
+  APPEND "&file" "<?xml version='1.0' encoding='ISO-8859-1'?>"
+  APPEND "&file" "<xsl:stylesheet version='1.0' xmlns:xsl='http://www.w3.org/1999/XSL/Transform'>"
+  APPEND "&file" "<xsl:import href='file://&url'/>"
+  APPEND "&file" "<xsl:output encoding='ISO-8859-1' />"   // IE wants this, maybe others too
+
+  APPEND "&file" "<xsl:variable name='style'>"
+  GOSUB append_file2file "&cssFile" "&file"
+  APPEND "&file" "</xsl:variable>"
+
+  APPEND "&file" "<xsl:variable name='jquery'><![CDATA["
+  GOSUB append_file2file "&resources/jquery.min.js" "&file"
+  APPEND "&file" "]]></xsl:variable>"
+
+  APPEND "&file" "<xsl:variable name='jaction'><![CDATA["
+  GOSUB append_file2file "&jsFile" "&file"
+  APPEND "&file" "]]></xsl:variable>"
+
+  APPEND "&file" "</xsl:stylesheet>"
+  &stylesheet="&file"
+)
+
+; --------------------------------------------------------------------------------
+; Set source code metric
+; --------------------------------------------------------------------------------
+IF "&metric"=="STATEMENT"
+(
+  COVerage.Option.SourceMetric Statement
+)
+ELSE IF "&metric"=="DECISION"
+(
+  COVerage.Option.SourceMetric Decision
+)
+ELSE IF "&metric"=="CONDITION"
+(
+  COVerage.Option.SourceMetric Condition
+)
+ELSE IF "&metric"=="MCDC"
+(
+  COVerage.Option.SourceMetric MCDC
+)
+ELSE IF "&metric"=="FUNCTION"
+(
+  COVerage.Option.SourceMetric Function
+)
+ELSE IF "&metric"=="CALL"
+(
+  COVerage.Option.SourceMetric Call
+)
+ELSE
+(
+  COVerage.Option.SourceMetric ObjectCode
+)
+
+; --------------------------------------------------------------------------------
+; Export general overview for all modules
+; --------------------------------------------------------------------------------
+PRIVATE &file
+SETUP.XSLTSTYLESHEET "t32transform.xsl"
+&file="&base_folder/Coverage_Report.xml"
+IF "&format"!=""
+(
+  &format="%"+"&format"
+)
+
+IF "&filter"=="SYMBOL"
+(
+  COVerage.EXPORT.ListModule.sYmbol "&file" &format &whitelist
+  BookMark.EXPORT.sYmbol "&file" &whitelist /Append
+)
+ELSE IF "&filter"=="SOURCE"
+(
+  COVerage.EXPORT.ListModule.SOURCE "&file" &format &whitelist
+  BookMark.EXPORT.SOURCE "&file" &whitelist /Append
+)
+ELSE IF "&filter"=="ADDRESS"
+(
+  COVerage.EXPORT.ListModule.ADDRESS "&file" &format &whitelist
+  BookMark.EXPORT.ADDRESS "&file" &whitelist /Append
+)
+ELSE
+(
+  COVerage.EXPORT.ListModule "&file" &format
+  BookMark.EXPORT "&file" /Append
+)
+
+IF  &compression<3
+(
+  GOSUB xml2html "&file" "&stylesheet"
+)
+ELSE
+(
+  COPY "&resources/t32transform.xsl"    "&base_folder/t32transform.xsl"
+  COPY "&resources/index_redirect.html" "&base_folder/Coverage_Report.html"
+)
+IF &compression>1
+(
+  COPY "&resources/t32report.css"  "&base_folder/t32report.css"
+  COPY "&resources/t32report.js"   "&base_folder/t32report.js"
+  COPY "&resources/jquery.min.js"  "&base_folder/jquery.min.js"
+)
+
+; --------------------------------------------------------------------------------
+; Export specific information for all modules and organize it in subfolders
+; --------------------------------------------------------------------------------
+PRIVATE &node &moduleFolder &moduleName &hasFunction &lastNode &lastNodeType
+LOCAL &toggle &lastDialogUpdate
+&toggle=TRUE()
+&lastDialogUpdate=OS.TIMER()
+&lastNodeType="Line"
+&hasFunction=FALSE()
+
+IF &compression==4
+(
+  SETUP.XSLTSTYLESHEET "../../t32transform.xsl"
+)
+
+IF "&filter"=="SYMBOL"
+(
+  COVerage.TreeWalkSETUP.sYmbol &whitelist
+)
+ELSE IF "&filter"=="SOURCE"
+(
+  COVerage.TreeWalkSETUP.SOURCE &whitelist
+)
+ELSE IF "&filter"=="ADDRESS"
+(
+  COVerage.TreeWalkSETUP.ADDRESS &whitelist
+)
+ELSE
+(
+  COVerage.TreeWalkSETUP.ADDRESS
+)
+
+&node=COVerage.TreeWalk("Init")
+
+WHILE "&node"!=""
+(
+
+  IF STRing.SCAN("&node","--",0.)>-1.
+  (
+    // "Line"
+    &lastNodeType="Line"
+  )
+  ELSE IF STRing.COUNT("&node","\")==3.
+  (
+    // "Module"
+    PRIVATE &module &prog &progFolder &acc
+    IF "&lastNodeType"=="Module"
+    (
+      // Export module overview and lines of the previous assembly-only module
+      GOSUB export_asm_module "&moduleFolder" "&lastNode" "&format" "&compression" "&stylesheet"
+    )
+    ELSE IF &hasFunction==TRUE()
+    (
+      // Export overview of all functions of the previous module
+      GOSUB export_module "&moduleFolder" "" "&format" "&compression" "&stylesheet"
+    )
+    &prog=STRing.SPLIT("&node","\",2)
+    &module=STRing.SPLIT("&node","\",3)
+	
+	//print "&module"
+	LOCAL &cnt &tmp
+	&cnt=0.
+	repeat &prost_module_cnt
+	(
+		&tmp=var.string(\prost_module_array[&cnt])
+		if "&module"!="&tmp"
+		(
+			GOSUB fix_filename "&prog"
+			&progFolder="&base_folder/"+PRACTICE.ARG(0)
+			IF !OS.DIR("&progFolder")
+			(
+                          MKDIR "&progFolder"
+			)
+		
+			GOSUB fix_filename "&module"
+			&moduleFolder="&progFolder/"+PRACTICE.ARG(0)
+			IF !OS.DIR("&moduleFolder")
+			(
+                          MKDIR "&moduleFolder"
+			)
+		
+			// Check if only some functions of the module will be exported
+			&moduleName="&node"
+			&hasFunction=FALSE()
+			&lastNodeType="Module"
+		
+			// We cannto be sure whether filter exists or not
+			ON ERROR CONTinue
+			sYmbol.FILTER.Delete F001
+			ON ERROR inherit
+		)
+
+		&cnt=&cnt+1.
+	)
+
+    //GOSUB fix_filename "&prog"
+    //&progFolder="&base_folder/"+PRACTICE.ARG(0)
+    //IF !OS.DIR("&progFolder")
+    //  MKDIR "&progFolder"
+	//
+    //GOSUB fix_filename "&module"
+    //&moduleFolder="&progFolder/"+PRACTICE.ARG(0)
+    //MKDIR "&moduleFolder"
+	//
+    //// Check if only some functions of the module will be exported
+    //&moduleName="&node"
+    //&hasFunction=FALSE()
+    //&lastNodeType="Module"
+	//
+    //// We cannto be sure whether filter exists or not
+    //ON ERROR CONTinue
+    //sYmbol.FILTER.Delete F001
+    //ON ERROR inherit
+  )
+  ELSE
+  (
+    // "Function"
+    PRIVATE &file &func &idx &range &uid
+    &func=STRing.SPLIT("&node","\",4)
+    &hasFunction=TRUE()
+    &range=COVerage.TreeWalk("ADDRESS")
+    IF STRing.SCAN("&range","--",0.)!=-1
+    (
+     GOSUB create_uid_from_address "&range"
+     RETURNVALUES &uid
+     &file="&moduleFolder/func-"+"&uid"+".xml"
+
+     GOSUB export_function "&file" "&range" "&metric" "&format"
+    )
+
+    IF &compression<3
+      GOSUB xml2html "&file" "&stylesheet"
+
+    &lastNodeType="Function"
+
+    // Add function to preset filter
+    sYmbol.FILTER.ADD.sYmbol F001 &node
+  )
+  &lastNode="&node"
+  &node=COVerage.TreeWalk("Recurse")
+  GOSUB updateDialog
+)
+
+IF "&lastNodeType"=="Module"
+(
+  // Export module overview and lines of the previous assembly-only module
+  GOSUB export_asm_module "&moduleFolder" "&lastNode" "&format" "&compression" "&stylesheet"
+)
+ELSE IF &hasFunction==TRUE()
+(
+  // Export overview of all functions of the last module
+  
+  GOSUB export_module "&moduleFolder" "" "&format" "&compression" "&stylesheet"
+)
+
+SETUP.XSLTSTYLESHEET // reset to default XSLT stylesheet
+IF &compression<=1
+(
+  RM "&stylesheet" // remove temporary XSLT stylesheet
+)
+
+IF "&whitelist"==""
+(
+  PRINT %COLOR.GREEN "Code coverage report created at ""&base_folder"""
+)
+ELSE
+(
+  PRINT %COLOR.GREEN "Code coverage report created for ""&whitelist"" at ""&base_folder"""
+)
+ENDDO "0."
+; --------------------------------------------------------------------------------
+
+
+export_module:
+  PARAMETERS &module_folder &selection &format &compression &stylesheet
+
+  PRIVATE &file
+  &file="&module_folder/Coverage_Report.xml"
+  IF "&selection"==""
+  (
+    COVerage.EXPORT.ListFunc.preset "&file" &format F001
+  )
+  ELSE
+  (
+    COVerage.EXPORT.ListFunc.sYmbol "&file" &format &selection
+  )
+
+  GOSUB export_bookmarks "&file" "SYMBOL" "&selection"
+  
+  IF  &compression<3
+    GOSUB xml2html "&file" "&stylesheet"
+  IF &compression==3
+  (
+    // Copy XSLT stylesheet to the subfolder to fulfill Firefox's same-origin policy for file-URIs.
+    PRIVATE &xslFile
+    &xslFile="&module_folder/"+OS.FILE.NAME("&stylesheet")
+    COPY "&stylesheet" "&xslFile"
+  )
+  RETURN
+
+
+export_asm_module:
+  PARAMETERS &module_folder &symbols &format &compression &stylesheet
+  PRIVATE &file &option_nodata &option_sorder
+
+  if "&symbols"=="\\User\Global"
+	RETURN
+  &file="&module_folder/Coverage_Report.xml"
+  COVerage.EXPORT.ListModule.sYmbol "&file" &format &symbols
+  GOSUB export_bookmarks "&file" "SYMBOL" "&symbols"
+
+  IF !&show_data
+  (
+    &option_nodata="/NoData"
+  )
+  IF "&order"=="SORDER"
+  (
+    &option_sorder="/SOrder"
+  )
+  List.EXPORT.Mix "&file" &symbols /COVerage /Append &option_sorder &option_nodata
+
+  IF  &compression<3
+    GOSUB xml2html "&file" "&stylesheet"
+  IF &compression==3
+  (
+    // Copy XSLT stylesheet to the subfolder to fulfill Firefox's same-origin policy for file-URIs.
+    PRIVATE &xslFile
+    &xslFile="&module_folder/"+OS.FILE.NAME("&stylesheet")
+    COPY "&stylesheet" "&xslFile"
+  )
+  RETURN
+
+
+export_function:
+  PARAMETERS &file &range &metric &format
+  PRIVATE &option_nodata &option_sorder
+	
+  IF "&order"=="SORDER"
+  (
+    &option_sorder="/SOrder"
+  )
+
+  IF "&metric"=="FUNCTION"||"&metric"=="CALL"
+  (
+    COVerage.Option.SourceMetric Statement
+  )
+  COVerage.EXPORT.ListLine.ADDRESS "&file" &format &range &option_sorder
+
+  IF "&metric"=="FUNCTION"
+  (
+    COVerage.Option.SourceMetric Function
+  )
+  ELSE IF "&metric"=="CALL"
+  (
+    COVerage.Option.SourceMetric Call
+  )
+
+  GOSUB export_bookmarks "&file" "ADDRESS" "&range"
+
+  IF !&show_data
+  (
+    &option_nodata="/NoData"
+  )
+  List.EXPORT.Mix "&file" &range /COVerage /Append &option_sorder &option_nodata
+  RETURN
+
+
+create_uid_from_address:
+  PARAMETERS &address
+  PRIVATE &uid &access
+
+  &uid=STRing.LoWeR(STRing.TRIM("&address"))
+  &uid=STRing.Replace("&uid","0x","",0.)
+  &uid=STRing.Replace("&uid","--","-",0.)
+  &uid=STRing.Replace("&uid",":","-",0.)
+  RETURN "&uid"
+
+
+clean_folder:
+  PARAMETERS &folder
+
+  GOSUB fix_path_for_os "&folder"
+  &folder=PRACTICE.ARG(0)
+
+  IF OS.VERSION(0)<=0x10
+  (
+    // MS Windows
+    OS.Hidden rmdir "&folder" /s /q
+  )
+  ELSE
+  (
+    // Linux / Mac OS X / Solaris
+    OS.Hidden rm -rf "&folder"
+  )
+  RETURN
+
+
+xml2html:
+  PARAMETERS &xmlfile &stylesheet
+  PRIVATE    &htmlfile
+
+  GOSUB fix_path_for_os "&xmlfile"
+  &xmlfile=PRACTICE.ARG(0)
+  &htmlfile=STRing.Replace("&xmlfile",OS.FILE.EXTENSION("&xmlfile"),".html",-1)
+
+  GOSUB fix_path_for_os "&stylesheet"
+  &stylesheet=PRACTICE.ARG(0)
+
+  IF &xalan
+  (
+    IF "&stylesheet"==""
+      OS.Hidden xalan -a -o "&htmlfile" "&xmlfile"
+    ELSE
+      OS.Hidden xalan -o "&htmlfile" "&xmlfile" "&stylesheet"
+  )
+  ELSE IF &xsltproc
+  (
+
+    IF "&stylesheet"==""
+      OS.Hidden xsltproc --output "&htmlfile" "&xmlfile"
+    ELSE
+      OS.Hidden xsltproc --output "&htmlfile" "&stylesheet" "&xmlfile"
+  )
+  ELSE IF &msxsl
+  (
+    IF "&stylesheet"==""
+      OS.Hidden msxsl "&xmlfile" -pi -o "&htmlfile"
+    ELSE
+      OS.Hidden msxsl "&xmlfile" "&stylesheet" -o "&htmlfile"
+  )
+  ELSE IF &saxon
+  (
+    IF "&stylesheet"==""
+      OS.Hidden transform -versionmsg:off -o:"&htmlfile" -a:on "&xmlfile"
+    ELSE
+      OS.Hidden transform -versionmsg:off -o:"&htmlfile" -xsl:"&stylesheet" "&xmlfile"
+  )
+
+  IF OS.FILE("&htmlfile")
+  (
+    RM "&xmlfile"
+  )
+  ELSE
+  (
+    PRINT %ERROR "Failed to create ""&htmlfile"""
+  )
+  RETURN
+
+append_file2file:
+  PARAMETERS &src &dst
+  PRIVATE    &htmlfile
+
+  GOSUB fix_path_for_os "&src"
+  &src=PRACTICE.ARG(0)
+  GOSUB fix_path_for_os "&dst"
+  &dst=PRACTICE.ARG(0)
+
+  IF OS.VERSION(0)<=0x10
+  (
+    // MS Windows
+    OS.Hidden copy /b &dst + &src  &dst
+  )
+  ELSE
+  (
+    // Linux / Mac OS X / Solaris
+    OS.Hidden cat &src >> &dst
+  )
+  RETURN
+
+
+fix_path_for_os:
+  PARAMETERS &path
+  // Make full path and replace any tildes
+  &path=OS.FILE.PATH("&path")+"/"+OS.FILE.NAME("&path")
+  IF OS.VERSION(0)<=0x10  // MS Windows ?
+    &path=STRing.Replace("&path","/","\",0)
+  RETURN "&path"
+
+
+export_bookmarks:
+  PARAMETERS &file &filter &selection
+
+  IF "&filter"=="SYMBOL"
+  (
+    IF "&selection"==""
+    (
+      BookMark.EXPORT.preset "&file" F001 /Append
+    )
+    ELSE
+    (
+      BookMark.EXPORT.sYmbol "&file" &selection /Append
+    )
+  )
+  ELSE IF "&filter"=="SOURCE"
+  (
+    BookMark.EXPORT.SOURCE "&file" &selection /Append
+  )
+  ELSE IF "&filter"=="ADDRESS"
+  (
+    BookMark.EXPORT.ADDRESS "&file" &selection /Append
+  )
+  ELSE
+  (
+    BookMark.EXPORT "&file" /Append
+  )
+  RETURN
+
+
+updateDialog:
+  IF !DIALOG.EXIST(PROGRESS_ICON)||!DIALOG.EXIST(PROGRESS_TEXT)
+    RETURN
+  IF OS.TIMER()>&lastDialogUpdate+150
+  (
+    IF &toggle
+      DIALOG.Set PROGRESS_ICON "[:colorlime]"
+    ELSE
+      DIALOG.Set PROGRESS_ICON "[:colornone]"
+    &toggle=!&toggle
+    &lastDialogUpdate=OS.TIMER()
+  )
+  IF &countdown>0
+    DIALOG.Set PROGRESS_TEXT "working... ("+FORMAT.Decimal(1,&countdown)+")"
+  SCREEN.display
+  &countdown=&countdown-1.
+  RETURN
+
+
+showDialog:
+  PARAMETERS  &base_folder &filter &whitelist &existing &compression &metric &order &format &show_data
+  PRIVATE &t1 &t2 &t3 &t4
+  &t1="JS/CSS embedded in HTML. Requires XSLT processor (e.g XALAN, MSXSL)"
+  &t2="XML converted to HTML. Requires XSLT processor (e.g. XALAN, MSXSL)"
+  &t3="XML viewable via browser. Some browser need opt. '--allow-file-access-from-files'"
+  &t4="XML viewable via browser with just a single XSL file. Tricky with some browsers."
+  (
+    PRIVATE &base_folder &filter &whitelist &existing &compression &metric &order &format &show_data
+    PRIVATE &countdown &have_wildcards
+    PRIVATE &ppf &info_text &whitelist_label1_default &whitelist_label2_default
+    PRIVATE &version_text &version_major &version_minor &version_patch &version_build
+
+    &version_major="6"
+    &version_minor="1"
+    &version_patch="0"
+    &version_build=STRing.CUT(STRing.CUT("$Revision: 14910 $",11.),-2.)
+    &version_text="&version_major.&version_minor.&version_patch+r&version_build"
+
+    &info_text="Before executing this script ensure that you have performed a code coverage analysis in TRACE32. (See command COVerage.state) Read more about ""Trace-based code coverage"" in general_ref_c.pdf."+CONVert.CHAR(10.)+CONVert.CHAR(10.)
+    &info_text="&info_text"+"Please refer to the script header for additional information about the configuration of your browser."+CONVert.CHAR(10.)+CONVert.CHAR(10.)+CONVert.CHAR(10.)
+    &info_text="&info_text"+"Usage:"+CONVert.CHAR(10.)
+    &info_text="&info_text"+CONVert.CHAR(9)+"DO create_report.cmm ""<output_folder>"" ""<filter>"" ""[<whitelist>]"" ""[<options>]"""+CONVert.CHAR(10.)+CONVert.CHAR(10.)
+    &info_text="&info_text"+"Example:"+CONVert.CHAR(10.)
+    &info_text="&info_text"+CONVert.CHAR(9)+"DO create_report.cmm ""new_report"" ""SYMBOL"" """" "" EXISTING=ASK  METRIC=STATEMENT "" "+CONVert.CHAR(10.)+CONVert.CHAR(10.)
+    &info_text="&info_text"+"Parameters:"+CONVert.CHAR(10.)
+    &info_text="&info_text"+CONVert.CHAR(9)+"output_folder:  Directory to create files and subdirectories for report"+CONVert.CHAR(10.)
+    &info_text="&info_text"+CONVert.CHAR(9)+"filter:  Whitelist type that is used to filter the report"+CONVert.CHAR(10.)
+    &info_text="&info_text"+CONVert.CHAR(9)+"  SYMBOL:  Symbol names with wildcards"+CONVert.CHAR(10.)
+    &info_text="&info_text"+CONVert.CHAR(9)+"  SOURCE:  Source file names with wildcards"+CONVert.CHAR(10.)
+    &info_text="&info_text"+CONVert.CHAR(9)+"  ADDRESS: Address or an address range"+CONVert.CHAR(10.)
+    &info_text="&info_text"+CONVert.CHAR(9)+"  PRESET: Use preset whitelist"+CONVert.CHAR(10.)
+    &info_text="&info_text"+CONVert.CHAR(9)+"whitelist:  Whitelist to restrict the number of items in the report"+CONVert.CHAR(10.)+CONVert.CHAR(10.)
+    &info_text="&info_text"+"Options:"+CONVert.CHAR(10.)
+    &info_text="&info_text"+CONVert.CHAR(9)+"METRIC=OBJECTCODE | STATEMENT | DECISION | CONDITION | MCDC | FUNCTION | CALL (default is OBJECTCODE)"+CONVert.CHAR(10.)
+    &info_text="&info_text"+CONVert.CHAR(9)+"EXISTING=REPLACE | BACKUP | CANCEL | ASK  (default is ASK)"+CONVert.CHAR(10.)
+    &info_text="&info_text"+CONVert.CHAR(9)+"COMPRESSION=<1..4>  (default is 3)"+CONVert.CHAR(10.)
+    &info_text="&info_text"+CONVert.CHAR(9)+"ORDER=SORDER | TORDER  (default is SORDER)"+CONVert.CHAR(10.)
+    &info_text="&info_text"+CONVert.CHAR(9)+"FORMAT=SINGLE|MULTI|DO178.OBJECTCODE|STATEMENT|DECISION|CONDITION|MCDC|FUNCTION|CALL (default is SINGLE)"+CONVert.CHAR(10.)
+    &info_text="&info_text"+CONVert.CHAR(9)+"DATA=YES | NO  (default is YES)"+CONVert.CHAR(10.)
+    &info_text="&info_text"+CONVert.CHAR(9)+"DIALOG=YES | NO  (default is NO)"
+
+    &whitelist_label1_default="Adress range"
+    &whitelist_label2_default="or list of symbols"
+
+    &existing="&"+"existing"
+    &compression="&"+"compression"
+    &base_folder="&"+"base_folder"
+    &filter="&"+"filter"
+    &whitelist="&"+"whitelist"
+    &metric="&"+"metric"
+    &countdown="&"+"countdown"
+    &order="&"+"order"
+    &format="&"+"format"
+    &show_data="&"+"show_data"
+    &have_wildcards="&"+"have_wildcards"
+    &ppf=OS.PPF()
+    DIALOG.view
+    (&+
+      ICON "[:report]"
+      HEADER "Coverage Report Utility  &version_text"
+
+      POS 1. 0.5 68.5 1.
+      LTEXT "Hierarchic code coverage report split over multiple files"
+
+      POS 1. 2. 15. 1.
+      LTEXT "Options:"
+
+      POS 1.5 3.5 10. 1.
+    METRIC: PULLDOWN "OBJECTCODE,STATEMENT,DECISION,CONDITION,MCDC,FUNCTION,CALL" ""
+      POS 12.5 3.5 57.5 1.
+      TEXT "Source Code Metric: What code coverage criteria should be used for HLL lines?"
+
+      POS 1.5 5. 10. 1.
+    EXISTING: PULLDOWN "REPLACE,BACKUP,CANCEL,ASK" ""
+      POS 12.5 5. 57.5 1.
+      TEXT "Existing: What should happen, if the output-folder already exists?"
+
+      POS 6.5 6.5 5. 1.
+    COMPRESSION: PULLDOWN "1.,2.,3.,4."
+      (
+        PRIVATE &compression
+        &compression=DIALOG.STRing(COMPRESSION)
+        Var.NEWLOCAL char[5][100] \text
+        Var.Assign \text[1] = "&t1"
+        Var.Assign \text[2] = "&t2"
+        Var.Assign \text[3] = "&t3"
+        Var.Assign \text[4] = "&t4"
+        DIALOG.Set COMPR_TEXT Var.STRing(\text[&compression])
+      )
+      POS 12.5 6.5 57.5 1.
+      TEXT "Compression Level"
+
+      POS 12.5 7.5 57.5 1.
+    COMPR_TEXT: DYNTEXT ""
+
+      POS 1.5 8.5 10. 1.
+    ORDER: PULLDOWN "SORDER,TORDER" ""
+      POS 12.5 8.5 57.5 1.
+      TEXT "Order: In what order should source code lines be displayed?"
+
+      POS 1.5 10. 10. 1.
+    FORMAT_PRIMARY: PULLDOWN "SINGLE,MULTI,DO178"
+      (
+        IF DIALOG.STRing(FORMAT_PRIMARY)=="SINGLE"
+        (
+          DIALOG.Disable FORMAT_SECONDARY
+        )
+        ELSE IF DIALOG.STRing(FORMAT_PRIMARY)=="MULTI"
+        (
+          DIALOG.Enable FORMAT_SECONDARY
+          DIALOG.Set FORMAT_SECONDARY "OBJECTCODE" "OBJECTCODE,STATEMENT,DECISION,CONDITION,MCDC,FUNCTION,CALL"
+        )
+        ELSE
+        (
+          DIALOG.Enable FORMAT_SECONDARY
+          DIALOG.Set FORMAT_SECONDARY "OBJECTCODE" "OBJECTCODE,STATEMENT,DECISION,MCDC" 
+        )
+      )
+      POSX 0.5 1. 1.
+      TEXT "."
+
+      POSX 0.5 10. 1.
+    FORMAT_SECONDARY: DYNPULLDOWN "OBJECTCODE,STATEMENT,DECISION,CONDITION,MCDC,FUNCTION,CALL" ""
+      POSX 0.5 48. 1.
+      TEXT "Format: What format should be used to display the code coverage?"
+
+      POS 1.5 11.5
+    DATA: CHECKBOX "Data: Include data sections" ""
+
+      POS 1. 13.5 15. 1.
+      LTEXT "Parameters:"
+
+      POS 1. 15.5 48. 1.
+    OUTPUTFOLDER: EDIT "" ""
+      POSX 1.5 4. 1.
+      BUTTON "[:folder]" "DIALOG.SetDIR OUTPUTFOLDER OS.PWD()/*"
+      POSX 1. 15.5 1.
+      TEXT "Output Folder"
+
+      POS 1. 17.5 10. 1.
+   FILTER: PULLDOWN "SYMBOL,SOURCE,ADDRESS,PRESET"
+     (
+       IF DIALOG.STRing(FILTER)=="SYMBOL"
+       (
+         DIALOG.Set WHITELIST_LABEL1 "&whitelist_label1_default"
+         DIALOG.Set WHITELIST_LABEL2 "&whitelist_label2_default"
+       )
+       ELSE IF DIALOG.STRing(FILTER)=="SOURCE"
+       (
+         DIALOG.Set WHITELIST_LABEL1 "List of source"
+         DIALOG.Set WHITELIST_LABEL2 "filenames"
+       )
+       ELSE IF DIALOG.STRing(FILTER)=="ADDRESS"
+       (
+         DIALOG.Set WHITELIST_LABEL1 "Address or"
+         DIALOG.Set WHITELIST_LABEL2 "address range"
+       )
+       ELSE
+       (
+         DIALOG.Set WHITELIST_LABEL1 "Use preset"
+         DIALOG.Set WHITELIST_LABEL2 "whitelist"
+         DIALOG.Disable WHITELIST
+         DIALOG.Disable WHITELIST_SELECTOR
+       )
+     )
+      POS 12.5 17.5 57.5 1.
+      TEXT "Filter: What do the items in the whitelist represent?"
+
+      POS 1. 19. 48. 3.
+    WHITELIST: MEDIT ""
+      (
+        DIALOG.Set PROGRESS_ICON "[:empty]"
+        DIALOG.Set PROGRESS_TEXT ""
+      )
+      POSX 1.5 4. 1.
+    WHITELIST_SELECTOR: BUTTON "[:symbols]"
+      (
+        WinPOS ,,,,,,SymbolBrowse
+        PRIVATE &cmd
+        IF DIALOG.STRing(FILTER)=="SYMBOL"
+        (
+          sYmbol.Browse.Module * /Click "DIALOG.Set WHITELIST STRing.TRIM(DIALOG.STRing(WHITELIST)+"" *"")"
+        )
+        ELSE IF DIALOG.STRing(FILTER)=="SOURCE"
+        (
+          sYmbol.Browse.SOURCE * /Click "DIALOG.Set WHITELIST STRing.TRIM(DIALOG.STRing(WHITELIST)+"" ""+sYmbol.SOURCEFILE(*))"
+        )
+        ELSE
+        (
+          sYmbol.Browse.Module * /Click "DIALOG.Set WHITELIST ADDRESS.STRACCESS(*)+""0x""+FORMAT.HEX(1.,ADDRESS.OFFSET(sYmbol.BEGIN(*)))+""--0x""+FORMAT.HEX(1.,ADDRESS.OFFSET(sYmbol.END(*)))"
+        )
+      )
+      POSX 1. 12. 1.
+    WHITELIST_LABEL1: DYNTEXT "Address range"
+    WHITELIST_LABEL2: DYNTEXT "or list of symbols"
+
+      POS 1. 23. 15. 2.
+    CREATEREPORT: BUTTON "[:btntry] Create Report"
+      (
+        PRIVATE &base_folder &filter &whitelist &existing &compression &metric &order &format &show_data &countdown &have_wildcards
+        WinCLEAR SymbolBrowse
+        &existing=STRing.TRIM(DIALOG.STRing(EXISTING))
+        &compression=STRing.TRIM(DIALOG.STRing(COMPRESSION))
+        &base_folder=STRing.TRIM(DIALOG.STRing(OUTPUTFOLDER))
+        &filter=STRing.TRIM(DIALOG.STRing(FILTER))
+        &whitelist=STRing.TRIM(STRing.Replace(DIALOG.STRing(WHITELIST),""+CONVert.CHAR(10.)," ",0.))
+        &metric=STRing.TRIM(DIALOG.STRing(METRIC))
+        &order=STRing.TRIM(DIALOG.STRing(ORDER))
+        &format=STRing.TRIM(DIALOG.STRing(FORMAT_PRIMARY))
+        IF DIALOG.STRing(FORMAT_PRIMARY)!="SINGLE"&&DIALOG.STRing(FORMAT_SECONDARY)!=""
+        (
+          &format="&format"+"."+STRing.TRIM(DIALOG.STRing(FORMAT_SECONDARY))
+        )
+        IF DIALOG.BOOLEAN(DATA)
+        (
+          &show_data="YES"
+        )
+        ELSE
+        (
+          &show_data="FALSE"
+        )
+
+        ON ERROR GOTO
+        (
+          DIALOG.Set PROGRESS_ICON "[:stop]"
+          DIALOG.Set PROGRESS_TEXT "Invalid input for address-range!"
+          ENDDO
+        )
+
+        IF "&filter"=="SYMBOL"
+        (
+          COVerage.TreeWalkSETUP.sYmbol &whitelist
+        )
+        ELSE IF "&filter"=="SOURCE"
+        (
+          COVerage.TreeWalkSETUP.SOURCE &whitelist
+        )
+        ELSE
+        (
+          COVerage.TreeWalkSETUP.ADDRESS &whitelist
+        )
+        ON ERROR inherit
+        IF COVerage.TreeWalk("Init")==""
+          ENDDO
+
+        &countdown=0.
+        &countdown=COVerage.TreeWalk("SIZE")
+
+        DIALOG.Set PROGRESS_TEXT ""
+        DIALOG.Set PROGRESS_ICON "[:colornone]"
+        DIALOG.Disable CREATEREPORT
+        DO "&ppf" "&base_folder" "&filter" "&whitelist" "EXISTING=&existing COMPRESSION=&compression METRIC=&metric ORDER=&order FORMAT=&format COUNTDOWN=&countdown DATA=&show_data"
+        DIALOG.Enable CREATEREPORT
+        DIALOG.Set PROGRESS_ICON "[:empty]"
+        DIALOG.Set PROGRESS_TEXT ""
+        IF (DIALOG.BOOLEAN(OPENBROWSER))&&(PRACTICE.ARG(0)=="0.")
+        (
+          PRIVATE &url
+          &url=OS.FILE.PATH("&base_folder")+"/"+OS.FILE.NAME("&base_folder")+"/Coverage_Report.html"
+          &url=STRing.Replace("&url","\","/",0)
+          &url=STRing.Replace("&url","%","%25",0)
+          &url=STRing.Replace("&url","+","%2B",0)
+          &url=STRing.Replace("&url"," ","%20",0)
+          ; Open in default browser
+          OS.OPEN "file:///&url"
+        )
+        ENDDO
+      )
+
+      POS 18. 24. 2. 1.
+    PROGRESS_ICON: DYNAMIC "[:empty]"
+      POSX 0.5 20. 1.
+    PROGRESS_TEXT: DYNTEXT ""
+      POS 18.5 23. 30. 1.
+    OPENBROWSER: CHECKBOX "Open report in browser when finished" ""
+
+      POSX 2. 4. 1.
+      BUTTON "[:helpw]"
+      (
+        DIALOG.view
+        (
+          ICON "[:helpw]"
+          HEADER "Help"
+
+          POS 1. 0. 75. 1.
+          LTEXT "Create hierarchic code coverage report split over multiple files"
+
+          POS 1.5 1.5 95. 25.
+          INFOTEXT "&info_text" GRay NoBorder 1.
+        )
+      )
+      POSX 1. 12. 1.
+      TEXT "Help"
+      CLOSE
+      (
+        WinCLEAR SymbolBrowse
+        DIALOG.END
+      )
+    )
+  )
+  PRIVATE &text
+  IF "&base_folder"==""
+    &base_folder=STRing.Replace(OS.PWD(),"\","/",0)+"/report_"+FORMAT.UnixTime("Y-m-d",DATE.UnixTime(),DATE.utcOffset())
+  DIALOG.SET DATA &show_data
+  DIALOG.Set ORDER "&order"
+  DIALOG.Set COMPRESSION "&compression"
+  DIALOG.Set EXISTING "&existing"
+  DIALOG.Set FILTER "&filter"
+  DIALOG.Set WHITELIST "&whitelist"
+  DIALOG.Set OUTPUTFOLDER "&base_folder"
+  DIALOG.Set METRIC STRing.UPpeR(COVerage.SourceMetric())
+  IF OS.VERSION(0)<=0x10  // Windows NT
+    DIALOG.Set OPENBROWSER
+  ELSE
+    DIALOG.Disable OPENBROWSER
+  DIALOG.Set FORMAT_PRIMARY STRing.SPLIT("&format",".",-2.)
+  DIALOG.Set FORMAT_SECONDARY STRing.SPLIT("&format",".",-1.)
+  IF DIALOG.STRing(FORMAT_PRIMARY)==""
+  (
+   DIALOG.Set FORMAT_PRIMARY "SINGLE"
+  )
+
+  IF DIALOG.STRing(FORMAT_PRIMARY)=="SINGLE"
+  (
+    DIALOG.Disable FORMAT_SECONDARY
+  )
+  ELSE
+  (
+    DIALOG.Enable FORMAT_SECONDARY
+  )
+
+  &text="&t"+FORMAT.Decimal(0,&compression)
+  &&text="&text"
+  DIALOG.Set COMPR_TEXT "&text"
+  RETURN
+
+
+fix_filename:
+  PARAMETERS &name
+  Var.NEWLOCAL char[32] \c = ",/<>:|?*\"\\ "
+  Var.NEWLOCAL int \i = 0
+  Var.WHILE \c[\i]!=0
+  (
+    &name=STRing.Replace("&name",""+CONVert.CHAR(Var.VALUE(\c[\i++])),"_",0)
+  )
+  RETURN "&name"
+
+extract_format:
+  PARAMETERS &options
+  PRIVATE &format &start &end &offset &primary
+ 
+  &start=STRing.SCAN("&options","FORMAT=",0.)
+  IF &start==-1.
+  (
+    RETURN ""
+  )
+
+  &end=STRing.SCAN("&options"," ",&start)
+  IF &end==-1.
+  (
+    &end=STRing.LENgth("&options")
+  )
+  &offset=&start+7.
+  &format=STRing.MID("&options",&offset,&end-&offset)
+
+  &primary=STRing.UPpeR("&format")
+  IF STRing.FIND("&format",".")
+  (
+    PRIVATE &secondary
+
+    &secondary=STRing.SPLIT("&format",".",-1)
+    IF !(STRing.ComPare("&secondary","OBJECTCODE")||STRing.ComPare("&secondary","STATEMENT")||STRing.ComPare("&secondary","DECISION")||STRing.ComPare("&secondary","CONDITION")||STRing.ComPare("&secondary","MCDC")||STRing.ComPare("&secondary","FUNCTION")||STRing.ComPare("&secondary","CALL"))
+    (
+      PRINT %ERROR "Format option is invalid"
+      ENDDO "2."
+    )
+    &primary=STRing.SPLIT("&format",".",-2)
+  )
+
+  IF !(STRing.ComPare("&primary","SINGLE")||STRing.ComPare("&primary","MULTI")||STRing.ComPare("&primary","DO178"))
+  (
+   PRINT %ERROR "Format option is invalid"
+   ENDDO "2."
+  )
+  RETURN "&format"
+
+
+EXCEPT_MODULE_REGIST:
+(
+	var.set \prost_module_array[0.]="cint"
+	var.set \prost_module_array[1.]="cint_tc1"
+	var.set \prost_module_array[2.]="cint_tc2"
+	var.set \prost_module_array[3.]="cint_tc3"
+	var.set \prost_module_array[4.]="cint_tc4"
+	var.set \prost_module_array[5.]="cint_tc5"
+	var.set \prost_module_array[6.]="Global"
+	var.set \prost_module_array[7.]="memcpy"
+	var.set \prost_module_array[8.]="memset"
+	var.set \prost_module_array[9.]="prost_cstart"
+	var.set \prost_module_array[10.]="prost_cstart_tc1"
+	var.set \prost_module_array[11.]="prost_cstart_tc2"
+	var.set \prost_module_array[12.]="prost_cstart_tc3"
+	var.set \prost_module_array[13.]="prost_cstart_tc4"
+	var.set \prost_module_array[14.]="prost_cstart_tc5"
+	var.set \prost_module_array[15.]="prost_main"
+	var.set \prost_module_array[16.]="prost_stubs"
+	var.set \prost_module_array[17.]="Stub"
+	var.set \prost_module_array[18.]="trapass"
+	var.set \prost_module_array[19.]="trapbus"
+	var.set \prost_module_array[20.]="trapcont"
+	var.set \prost_module_array[21.]="trapinst"
+	var.set \prost_module_array[22.]="trapmmu"
+	var.set \prost_module_array[23.]="trapnmi"
+	var.set \prost_module_array[24.]="trapprot"
+	var.set \prost_module_array[25.]="trapsys"
+	
+	&prost_module_cnt=26.
+	LOCAL &cnt &tmp
+	&cnt=0.
+	repeat &prost_module_cnt
+	(
+		&tmp=var.string(\prost_module_array[&cnt])
+		print "&tmp"
+		&cnt=&cnt+1.
+		//STOP
+	)
+	RETURN
+)

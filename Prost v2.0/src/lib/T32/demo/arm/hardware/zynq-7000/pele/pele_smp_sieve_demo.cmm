@@ -1,0 +1,71 @@
+; --------------------------------------------------------------------------------
+; @Title: SMP demo script for the Zynq-7000 PELE board
+; @Description:
+;   Load the sieve demo into RAM, set the Program Counter of the first
+;   core at the function main and set the second core in a loop. If a trace
+;   hardware is connected, 32 bit off-chip trace is configured. Otherwhise
+;   on-chip trace is selected
+; @Keywords: Cortex-A9, sieve, Trace, Xilinx, Zynq, Zynq7000
+; @Author: KJM
+; @Board: PELE
+; @Chip: Zynq-7000
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: pele_smp_sieve_demo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+; Basic setup
+  RESet
+  SYStem.RESet
+  SYStem.CPU ZYNQ-7000
+
+  SYStem.Mode Up
+
+; Loading the demo application
+  CORE 1.
+  Register.RESet
+  Register.Set R1 0x100
+  Register.Set PC 0x100
+  Data.Assemble SR:100 nop nop nop add r0,r0,#1 nop nop nop bx r1
+
+  CORE 0.
+  Register.RESet
+  Data.LOAD.Elf ~~~~/armle.axf
+  Register.Set PC  main
+  Register.Set R13 10000.
+
+  IF Analyzer()
+  (
+    ETM.PortSize 32
+    Trace.METHOD Analyzer
+    Trace.AutoFocus
+  )
+  ELSE
+  (
+    Trace.METHOD Onchip
+  )
+
+  List.auto
+
+  ENDDO
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

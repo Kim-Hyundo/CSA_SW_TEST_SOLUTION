@@ -1,0 +1,128 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags
+; @Author: TI
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: omap4430_set_firewalls_to_public.cmm 8886 2015-11-18 18:06:51Z mobermeir $
+
+ENTRY
+  GOSUB set_firewalls_public
+ENDDO
+
+set_firewalls_public:
+(
+  ENTRY
+  LOCAL &control_l4_hw_fw_exported_values_conf_register_value &control_l3_hw_fw_exported_values_conf_register_value
+
+  IF (&DEBUG_INFO==1)
+  (
+    AREA.Select results
+    PRINT " ENTER SET FIREWALLS TO PUBLIC ..."
+  )
+
+  //&control_l4_hw_fw_exported_values_conf_register_value=V.VALUE(*(0x4A002114))
+  //&control_l4_hw_fw_exported_values_conf_register_value=data.long(ahb:0x4A002114)
+  &control_l4_hw_fw_exported_values_conf_register_value=Data.Long(ahb:0x4A002114)
+
+  //&control_l3_hw_fw_exported_values_conf_register_value=V.VALUE(*(0x4A002110))
+  //&control_l3_hw_fw_exported_values_conf_register_value=data.long(ahb:0x4A002110)
+  &control_l3_hw_fw_exported_values_conf_register_value=Data.Long(ahb:0x4A002110)
+
+  &control_l3_hw_fw_exported_values_conf_register_value=&control_l3_hw_fw_exported_values_conf_register_value&0xFFFF120A
+  //data.set ahb:0x4A002110 %long &control_l3_hw_fw_exported_values_conf_register_value
+  Data.Set ahb:0x4A002110 %Long &control_l3_hw_fw_exported_values_conf_register_value
+
+  ;data.set ahb:0x4A206040 %long 0x1
+  ;data.set ahb:0x4A20C040 %long 0x1
+  ;data.set ahb:0x4A214040 %long 0x1
+  ;data.set ahb:0x4A216040 %long 0x1
+  ;data.set ahb:0x4A218040 %long 0x1
+  ;data.set ahb:0x4A21C040 %long 0x1
+  ;data.set ahb:0x4A21E040 %long 0x1
+  ;data.set ahb:0x4A220040 %long 0x1
+  ;data.set ahb:0x4A228040 %long 0x1
+
+  ;data.set ahb:0x4A206040 %long 0x3
+  ;data.set ahb:0x4A20C040 %long 0x3
+  ;data.set ahb:0x4A214040 %long 0x3
+  ;data.set ahb:0x4A216040 %long 0x3
+  ;data.set ahb:0x4A218040 %long 0x3
+  ;data.set ahb:0x4A21C040 %long 0x3
+  ;data.set ahb:0x4A21E040 %long 0x3
+  ;data.set ahb:0x4A220040 %long 0x3
+  ;data.set ahb:0x4A228040 %long 0x3
+
+  ;data.set ahb:0x4A206040 %long 0x0
+  ;data.set ahb:0x4A20C040 %long 0x0
+  ;data.set ahb:0x4A214040 %long 0x0
+  ;data.set ahb:0x4A216040 %long 0x0
+  ;data.set ahb:0x4A218040 %long 0x0
+  ;data.set ahb:0x4A21C040 %long 0x0
+  ;data.set ahb:0x4A21E040 %long 0x0
+  ;data.set ahb:0x4A220040 %long 0x0
+  ;data.set ahb:0x4A228040 %long 0x0
+
+  ;data.set ahb:0x4A210040 %long 0x1
+  ;data.set ahb:0x4A210040 %long 0x3
+  ;data.set ahb:0x4A210040 %long 0x0
+
+  Data.Set ahb:0x4A206040 %Long 0x1
+  Data.Set ahb:0x4A20C040 %Long 0x1
+  Data.Set ahb:0x4A214040 %Long 0x1
+  Data.Set ahb:0x4A216040 %Long 0x1
+  Data.Set ahb:0x4A218040 %Long 0x1
+  Data.Set ahb:0x4A21C040 %Long 0x1
+  Data.Set ahb:0x4A21E040 %Long 0x1
+  Data.Set ahb:0x4A220040 %Long 0x1
+  Data.Set ahb:0x4A228040 %Long 0x1
+
+  Data.Set ahb:0x4A206040 %Long 0x3
+  Data.Set ahb:0x4A20C040 %Long 0x3
+  Data.Set ahb:0x4A214040 %Long 0x3
+  Data.Set ahb:0x4A216040 %Long 0x3
+  Data.Set ahb:0x4A218040 %Long 0x3
+  Data.Set ahb:0x4A21C040 %Long 0x3
+  Data.Set ahb:0x4A21E040 %Long 0x3
+  Data.Set ahb:0x4A220040 %Long 0x3
+  Data.Set ahb:0x4A228040 %Long 0x3
+
+  Data.Set ahb:0x4A206040 %Long 0x0
+  Data.Set ahb:0x4A20C040 %Long 0x0
+  Data.Set ahb:0x4A214040 %Long 0x0
+  Data.Set ahb:0x4A216040 %Long 0x0
+  Data.Set ahb:0x4A218040 %Long 0x0
+  Data.Set ahb:0x4A21C040 %Long 0x0
+  Data.Set ahb:0x4A21E040 %Long 0x0
+  Data.Set ahb:0x4A220040 %Long 0x0
+  Data.Set ahb:0x4A228040 %Long 0x0
+
+  Data.Set ahb:0x4A210040 %Long 0x1
+  Data.Set ahb:0x4A210040 %Long 0x3
+  Data.Set ahb:0x4A210040 %Long 0x0
+
+  Data.Set ahb:0x4A212040 %Long 0x1
+  Data.Set ahb:0x4A212090 %Long 0x0
+  Data.Set ahb:0x4A212094 %Long 0xB001
+
+  Data.Set ahb:0x4A212040 %Long 0x0
+
+  &control_l4_hw_fw_exported_values_conf_register_value=&control_l4_hw_fw_exported_values_conf_register_value&~(1<<6)
+  ;data.set ahb:0x4A002114 %long &control_l4_hw_fw_exported_values_conf_register_value
+  Data.Set ahb:0x4A002114 %Long &control_l4_hw_fw_exported_values_conf_register_value
+
+  ;data.set ahb:0x4A002118 %long 0x4
+  Data.Set ahb:0x4A002118 %Long 0x4
+
+  IF (&SILICON_TYPE!=0x0)
+  (
+    //Allow access to ETB by STM
+    Data.Set ahb:0x4A226088 %Long 0xffffffff
+  )
+
+  IF (&DEBUG_INFO==1)
+  (
+    PRINT " EXITING SET FIREWALLS TO PUBLIC ..."
+  )
+
+  RETURN
+)

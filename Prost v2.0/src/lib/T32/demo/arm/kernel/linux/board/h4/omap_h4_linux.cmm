@@ -1,0 +1,277 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux Demo for TRACE32 OS Awareness for the OMAP H4 Board
+; @Description: 
+;   The example is generated for a TI OMAP H4 board using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   Linux is downloaded to the board via ICD. The target is initialized
+;   using the script omap_h4_int.cmm
+;   Attn for ETM: my board boots only, if started with ETM disconnected.
+;   Connect ETM after board started.
+;   Attn for demo: this demo uses 115200 baud for bootloader but 38400
+;   baud for Linux console. You have to switch after Linux booted.
+; @Keywords: awareness, OMAP24*, omaph4
+; @Author: DIE
+; @Board: OMAP-H4
+; @Chip: OMAP2420
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: omap_h4_linux.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; Starting Linux example with TRACE32:
+; - Connect NULL modem cable to J9/serial connector on debug board
+; - Open terminal: 115200 baud, 8/N/1, no(!) handshake
+; - Start TRACE32
+; - Power on H4 board
+; - TRACE32: do omap_h4_linux
+; - Terminal (U-Boot): bootm 80300000
+; - login as root and start "hello"
+
+
+LOCAL &ka_path &awareness
+
+ SCREEN.ON
+
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 26. 75. 8. 0. 0. W000
+ AREA.view
+ 
+ PRINT "resetting..."
+
+ SYStem.Down
+ TASK.RESet
+ Break.Delete
+ MAP.RESet
+ sYmbol.RESet
+ TRANSlation.RESet
+
+
+; Initializing Debugger
+ 
+ PRINT "initializing..."
+ SYStem.CPU OMAP2420
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set UNDEF OFF         ; used by Linux for detecting not existent units
+ SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+ SYStem.Option ResBreak OFF
+ SYStem.Option EnReset OFF
+ SYStem.JtagClock RTCK 20MHz    ; use adaptive clocking for most speed
+ SETUP.IMASKASM ON              ; lock interrupts while single stepping
+
+; declare read-only memory
+ MAP.BOnchip 0x00000000--0x401fffff
+
+ SYStem.Up
+; wait until reset is complete
+ WAIT (Data.Long(SD:0x48022014)&1)!=0
+
+; disable watchdog timer
+ Data.Set ASD:0x48022048 %Long 0x0000aaaa
+ WAIT (Data.Long(ASD:0x48022034)&0x10)==0
+ Data.Set ASD:0x48022048 %Long 0x00005555
+ WAIT (Data.Long(ASD:0x48022034)&0x10)==0
+ 
+
+; Target Setup: initialize DRAM controller and peripherals
+ PRINT "target setup..."
+ DO omap_h4_init
+ 
+; HACK: My board doesn't init correctly at first startup.
+; Check memory access, if it fails repower target.
+ Data.Set c:0x80000000 %Long 0x12345678
+ IF Data.Long(c:0x80000000)!=0x12345678
+ (
+    Data.dump 80000000   ; show faulty data
+    PRINT "memory failure: please switch off/on target"
+    WAIT !STATE.POWER()
+    WAIT STATE.POWER()
+    PRINT "restarting..."
+    WAIT 1.s
+    RUN linux       ; restart this script
+    ENDDO
+ )
+ 
+; initialize ETM, if available
+ IF etm()
+ (
+    PRINT "initializing ETM"
+    DO omap_h4_etm
+ )
+
+
+; Load the Linux kernel
+
+ ; If you are using a flashed kernel, or if you're loading 
+ ; your kernel via TFTP, use the boot monitor to do so.
+ 
+ ; Here we download u-boot as bootloader, then we download
+ ; the linux image and initrd into memory and let it boot
+ ; with u-boot.
+ 
+ ; Load das U-Boot and let it initialize the board
+ 
+ PRINT "loading U-Boot..."
+ Data.LOAD.Elf u-boot
+ Go
+ PRINT "booting U-Boot..."
+ WAIT 2.s
+ Break
+
+ ; Use the next lines only to load the kernel into
+ ; RAM using the debugger.
+
+ PRINT "loading Linux image..."
+ 
+ ; when loading and running vmlinux with ICD (bypassing bootloader):
+ (
+   ; vmlinux starts physically at RAM start (=0x80000000) + 0x8000 
+   ; (see arch/arm/kernel/head-armv.S)
+   ; We have to adjust it from the virtual start address at the label
+   ; "stext" from the System.map ("nm vmlinux | sort")
+   ; i.e.: Data.LOAD.Elf vmlinux <physical start>-<virtual start>
+
+   ; use Turbo mode only, if target RAM is fast enough
+
+   ;SYStem.Option TURBO ON
+   ;Data.LOAD.Elf vmlinux 0x80008000-0xC0008000 /gnu /nosymbol
+   ;SYStem.Option TURBO OFF
+
+   ; Set PC on start address of image, if not started with bootloader
+   ;Register.RESet
+   ;Register.Set PC 0x80008000
+ )
+ 
+ ; when loading image with ICD, but running it with bootloader:
+ (
+   ; load the compressed image to a place, where u-boot accepts it 
+   ; use Turbo mode only, if target RAM is fast enough
+
+   SYStem.Option TURBO ON
+   Data.LOAD.Binary uImage 0x80300000 /NosYmbol
+   SYStem.Option TURBO OFF
+ )
+ 
+
+; Loading initial ram disk (initrd)
+
+ ; Use the next lines only, if you want to use an initrd,
+ ; and if you want to download this with the debugger.
+
+ ; Load ram file system image into ram disk
+ ; use Turbo mode only, if target RAM is fast enough
+
+ PRINT "loading ram disk"
+ SYStem.Option TURBO ON
+ Data.LOAD.Binary ramdisk.img.gz 0x80600000 /NoClear /NosYmbol
+ SYStem.Option TURBO OFF
+ 
+
+; Load the Linux kernel symbols into the debugger
+ ; use /strippart and /path to map source paths, if necessary
+ 
+ PRINT "loading Linux kernel symbols..."
+ Data.LOAD.Elf vmlinux /gnu /NoCODE
+ 
+
+; Open a Code Window -- we like to see something
+
+ WinPOS 0. 0. 75. 20.
+ List.auto
+ SCREEN.display
+ 
+ 
+; Declare the MMU format to the debugger
+ ; - table format is "LINUX"
+ ; - table base address is at label "swapper_pg_dir"
+ ; - kernel address translation
+ ; Map the virtual kernel symbols to physical addresses to give 
+ ; the debugger access to it before CPU MMU is initialized
+
+ PRINT "initializing debugger MMU..."
+ MMU.FORMAT LINUX swapper_pg_dir 0xc0000000--0xc3ffffff 0x80000000
+ TRNASlation.COMMON 0xc0000000--0xffffffff            ; common area for kernel and processes
+ TRNASlation.TableWalk ON   ; debugger uses a table walk to decode virtual addresses
+ TRNASlation.ON             ; switch on debugger(!) address translation 
+ 
+ 
+ Go start_kernel /Onchip
+ WAIT !STATE.RUN()
+
+; Initialize Linux Awareness
+
+ ; Note that the Linux awareness needs the kernel symbols to work
+ 
+ PRINT "initializing Linux support..."
+ 
+ ; check linux major version
+ IF STRing.SCAN(Data.STRing(linux_banner), "Linux version 2.", 0)==0
+ (
+     &ka_path="~~/demo/arm/kernel/linux/linux-2.x"
+     &awareness="linux.t32"
+ )
+ ELSE
+ (
+     &ka_path="~~/demo/arm/kernel/linux/linux-3.x"
+     &awareness="linux3.t32"  
+ )
+ 
+ PRINT "initializing RTOS support..."
+ TASK.CONFIG &ka_path/&awareness               ; loads Linux awareness 
+ MENU.ReProgram &ka_path/linux            ; loads Linux menu 
+  
+ ; Group kernel area to be displayed with red bar
+ GROUP.Create "kernel" 0xc0000000--0xffffffff /RED
+
+; set data trace to selectively trace task switches only
+
+ IF etm()
+   Break.Set task.config(magic)++3 /TraceDATA
+   
+
+; Ok, we're done, let's start Linux
+ 
+ Go
+ ; if booting without bootloader:
+   ;print "starting Linux..."
+ ; if booting with u-boot:
+   PRINT "execute 'bootm 80300000' in terminal"
+
+ STOP
+ 
+ 
+; --------------------------------------------------------------------------------
+; Application Debugging 
+; e.g. "hello"
+; --------------------------------------------------------------------------------
+
+ ; activate autoloader for processes:
+ TASK.sYmbol.Option AutoLoad Process
+
+ PRINT "please log in and start 'hello'"
+
+ ; script based
+   ; using the script based application debugging
+   ; gives more control over the single commands
+   ; see file "app_debug.cmm"
+   
+   ;LOCAL &extdir
+   ;&extdir=TASK.GETDIR()
+   ;DO &extdir/app_debug hello
+   
+ ; process watch system
+   ; the process watch system automates the actions
+   ; for application debugging
+   
+   WinPOS 55. 25. 40. 4.
+   TASK.Watch.View "hello"
+
+   Go
+
+ ENDDO

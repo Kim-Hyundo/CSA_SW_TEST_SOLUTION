@@ -1,0 +1,76 @@
+; --------------------------------------------------------------------------------
+; @Title: optee specific menu
+; @Description: -
+; @Keywords: optee menu awareness
+; @Author: KJM
+; @Copyright: (c) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: optee.men 4821 2019-11-22 17:09:36Z amerkle $
+
+ADD
+MENU
+(
+  POPUP "&optee"
+  (
+    DEFAULT
+    MENUITEM "[:objects]Display Trusted Applications"        "TASK.TA"
+    MENUITEM "[:objects]Display Pseudo Trusted Applications" "TASK.PseudoTA"
+    MENUITEM "[:objects]Display Early Trusted Applications"  "TASK.EarlyTA"
+    MENUITEM "Debug Trusted Application From Entry"
+    (
+      DO "~~/demo/arm64/kernel/op-tee/ta_debug"
+    )
+    POPUP "[:symbols]Symbol &Autoloader"
+    (
+      MENUITEM "[:symbols]List Components"  "sYmbol.AutoLoad.List"
+      MENUITEM "[:init]Check Now!"          "sYmbol.AutoLoad.CHECK"
+    )
+    SEPARATOR
+    MENUITEM "[:objects]Display Sessions"                    "TASK.SESSION"
+  )
+)
+MENU "task.ta"
+(
+  DEFAULT
+  MENUITEM "[:objects]Display detailed"
+  (
+     &address=address.offset(track.address())
+     TASK.TA &address
+  )
+  MENUITEM "[:var]Display ta struct"
+  (
+    &address=track.address()
+    Var.View %Open %String (struct user_ta_ctx*)(&address)
+  )
+  SEPARATOR
+  MENUITEM "[:varframe]Display Stack Frame"
+  (
+     &address=address.offset(track.address())
+     Frame /Locals /Caller /Task &address /MODule
+  )
+  MENUITEM "[:reg]Display Registers"
+  (
+     &address=address.offset(track.address())
+     Register /Task &address
+  )
+  MENUITEM "[:correlate]Switch Context"
+  (
+     &address=address.offset(track.address())
+     Register.TASK &address
+  )
+)
+
+MENU "task.eta"
+(
+  DEFAULT
+  MENUITEM "[:var]Display early_ta struct"
+  (
+     &address=address.offset(track.address())
+     Var.View %Open %Hex (struct early_ta)(&address)
+  )
+  MENUITEM "[:dump]Dump early_ta"
+  (
+     &address=address.offset(track.address())
+     Data Var.ADDRESS(((struct early_ta)(&address)).ta)++Var.Value(((struct early_ta)(&address)).size)
+  )
+)

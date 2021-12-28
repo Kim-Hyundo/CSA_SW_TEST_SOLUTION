@@ -1,0 +1,70 @@
+; --------------------------------------------------------------------------------
+; @Title: ARRIA10SOC Linux Attach debugging
+; @Description:
+;   This script is supposed to attach to a running Linux on ARRIA10SOC. 
+;   The Task Awareness + Debugger Address Translation are prepared as for the 
+;   GSRD. After execution of this script the debugger is ready for Process, 
+;   Kernel, optional Module and optional Library debugging.
+;   Prerequisites:
+;   * Target booted already Linux (after smp_init finished)
+;   * connect Debugcable or Combiprobe to HPS Trace connector
+;     and make sure nothing is connected to J24
+;     OR
+;     connect Debugcable or Combiprobe to J24 header
+;     using LA-3863 (ARM->NIOS converter)
+;   * set FPGA->HPS JTAG DaisyChain configuration
+;     SW3[1..8]=0b01111111 (M5A Jtag Enable)
+;   * VMLINUX kernel symbols match the target code
+; @Keywords: ALTERA, Cortex-A9, Arria10, GSRD
+; @Props: Template
+; @Author: AME
+; @Board: ARRIA10SOC
+; @Chip: ARRIA10SOC
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: arria10soc-linux-attach.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+; board setup
+RESet
+SYStem.RESet
+SYStem.CPU ARRIA10SOC
+; settings for FPGA-HPS scanchain - see prerequisites
+; can be discovered by SYStem.DETECT.ShowCHAIN
+SYStem.CONFIG.DAPIRPOST 10.
+SYStem.CONFIG.DAPDRPOST 1.
+; linux specific settings
+TrOnchip.Set DABORT OFF
+TrOnchip.Set PABORT OFF
+TrOnchip.Set UNDEF OFF
+SYStem.Option DACR ON
+SYStem.Option MMUSPACES ON
+; start with the first core only
+CORE.ASSIGN 1.,2.              ; "1" = first core, "2" = second core, "1 2" = both cores (SMP)
+SYStem.Mode.Attach
+
+; load kernel symbols to virtual addresses
+Data.LOAD.Elf <path to>/vmlinux /NoCODE
+
+; setup debugger address translation
+; Kernel Virtual Memory 0x80000000++0x3fffffff (1GByte)
+; Kernel Physical Base  0x0
+; Common Section        KERNEL + Modules -> 0x7f000000--0xffffffff
+; activate debugger address translation
+MMU.FORMAT LINUXSWAP3 swapper_pg_dir 0x80000000++0x3fffffff 0x0
+TRANSlation.COMMON 0x80000000--0xffffffff
+TRANSlation.TableWalk ON
+TRANSlation.ON
+
+; load Awareness LINUX3
+TASK.CONFIG ~~/demo/arm/kernel/linux/linux-3.x/linux3.t32
+MENU.ReProgram ~~/demo/arm/kernel/linux/linux-3.x/linux.men
+
+; for now activate PROCESS debugging only
+TASK.sYmbol.Option AutoLoad PROCESS
+;TASK.sYmbol.Option AutoLoad MODULE
+;TASK.sYmbol.Option AutoLoad LIBRARY
+
+; check for new symbols after each GO
+sYmbol.AutoLOAD.CHECK ONGO
+
+ENDDO

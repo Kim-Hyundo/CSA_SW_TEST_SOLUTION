@@ -1,0 +1,61 @@
+; --------------------------------------------------------------------------------
+; @Title: ThreadX Demo for TRACE32 OS Awareness
+; @Description: 
+;   
+;   This batchfile loads all necessary files to demonstrate
+;   the OS Awareness for ThreadX.
+;   
+; @Keywords: RTOS, threadx
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: threadx.cmm 15227 2019-11-06 11:57:41Z bschroefel $
+   
+;   Created by Rudolf Dienstbeck / Lauterbach GmbH at 10.11.2000
+
+ SCREEN.ON                    ; all messages are displayed
+ AREA.RESet
+ WinPAGE.RESet
+ WinPOS 0 24. 70. 8. 0. 0. W000
+ AREA.view
+
+; currently this demo runs only on the ARM Simulator
+; on ICD the demo needs memory at address 0 to 22000
+
+ IF (!INTERFACE.SIM()&&!hardware.ICD())
+ (
+   PRINT "Demo runs only on ARM Simulator or ICD!"
+   ENDDO
+ )
+
+; Debugger reset
+ PRINT "resetting..."         ; send to message line
+ RESet                        ; reset Instrument
+   
+; Debugger initializations
+ PRINT "initializing..."      ; send to message line
+ SYStem.Option BigEndian ON   ; demo is in big endian mde
+ SYStem.Mode Up
+ 
+; print "loading application..."
+ Data.LOAD.Elf demo.out
+
+; initialize RTOS support
+ PRINT "initializing ThreadX support..."
+ TASK.CONFIG ~~/demo/arm/kernel/threadx/threadx.t32     ; load ThreadX Awareness
+ MENU.ReProgram ~~/demo/arm/kernel/threadx/threadx.men  ; load ThreadX Menu
+ HELP.FILTER.Add rtosthreadx
+
+ PRINT "load complete."      ; send to Message Line
+
+; open some windows
+ WinPOS 0. 0. 70. 21.
+ List.auto
+ WinPOS 40. 10. 55. 11. 0. 1. W001
+ TASK.THread
+
+; init ThreadX
+ Go thread_0_entry         ; first thread to run
+
+ ENDDO
+

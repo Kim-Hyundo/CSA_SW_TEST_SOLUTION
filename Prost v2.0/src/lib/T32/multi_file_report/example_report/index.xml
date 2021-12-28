@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="t32transform.xsl"?>
+<TRACE32 file="D:\svn\demo\demo\coverage\multi_file_report\example_report\index.xml">
+	<coverage>
+		<COVerage.EXPORT.ListModule ts="1539005269" t32ver="S.2018.10.000101728" t32pv="ARM">
+			<module>
+				<addrFrom>P:0x400</addrFrom>
+				<addrTo>P:0x45F</addrTo>
+				<tree>\\sieve\crt0</tree>
+				<cov>never</cov>
+				<exec>0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>96</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:0x460</addrFrom>
+				<addrTo>P:0x4AF</addrTo>
+				<tree>\\sieve\isr</tree>
+				<cov>never</cov>
+				<exec>0.000%</exec>
+				<branches>-</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>-</never>
+				<bytes>80</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:0x4B0</addrFrom>
+				<addrTo>P:0x167B</addrTo>
+				<tree>\\sieve\sieve</tree>
+				<cov>partial</cov>
+				<exec>75.109%</exec>
+				<branches>78.125%</branches>
+				<ok>47</ok>
+				<taken>4</taken>
+				<nottaken>2</nottaken>
+				<never>11</never>
+				<bytes>4556</bytes>
+				<bytesok>3422</bytesok>
+			</module>
+		<total>
+			<cov>partial</cov>
+			<exec>72.316%</exec>
+			<branches>73.529%</branches>
+			<ok>47</ok>
+			<taken>4</taken>
+			<nottaken>2</nottaken>
+			<never>15</never>
+			<bytes>4732</bytes>
+			<bytesok>3422</bytesok>
+		</total>
+		</COVerage.EXPORT.ListModule>
+	</coverage>
+	<marker>
+		<BookMark.EXPORT ts="1539005269" t32ver="S.2018.10.000101728" t32pv="ARM">
+			<bookmark><name>1</name><addr>C:000013D2</addr><sym func-uid="p-126c-15df">\\sieve\sieve\main\47</sym><src>\\sieve\".\src\sieve.c"\sieve.c</src><line>733</line><remark>j is never 0, seems to be useless code</remark></bookmark>
+			<bookmark><name>nop1</name><addr>C:0000077A</addr><remark>padding NOP</remark></bookmark>
+			<bookmark><name>bad1</name><addr>C:00001638</addr><sym func-uid="p-1638-167b">\\sieve\sieve\background</sym><src>\\sieve\".\src\sieve.c"\sieve.c</src><line>819</line><remark>never called =&gt; dead code</remark></bookmark>
+			<bookmark><name>bad2</name><addr>C:00000ED8</addr><sym func-uid="p-ed8-f17">\\sieve\sieve\func27</sym><src>\\sieve\".\src\sieve.c"\sieve.c</src><line>555</line><remark>never called =&gt; dead code</remark></bookmark>
+		</BookMark.EXPORT>
+	</marker>
+</TRACE32>

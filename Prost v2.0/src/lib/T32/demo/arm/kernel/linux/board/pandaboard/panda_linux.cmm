@@ -1,0 +1,203 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux Demo for TRACE32 OS Awareness on the PandaBoard
+; @Description: 
+;   This batchfile demonstrates the use of the OS Awareness for Linux
+;   The example is generated for the PandaBoard using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   Linux is downloaded to the board via ICD.
+;   This script initializes the target by the debugger.
+;   Neither X-Loader nor u-boot are used.
+; @Keywords: awareness, OMAP4*, Panda*, RTOS, TI
+; @Author: KJM
+; @Board: PandaBoard
+; @Chip: OMAP4430
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: panda_linux.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; Starting Linux example with TRACE32:
+; - Connect STRAIGHT modem cable to RS232
+;   - 115200 baud, 8/N/1, no(!) handshake
+; - Start TRACE32
+; - Switch on the board
+; - TRACE32: "do linux"
+; - Terminal: start "hello"
+
+LOCAL &ka_path &awareness
+
+ SCREEN.ALways      ; permanent update for internal terminal window
+ ; screen.on        ; if you use external terminal
+
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 21. 70. 9. 0. 0. W000
+ AREA.view
+ 
+ PRINT "resetting..."
+
+ RESet
+
+ DIALOG.OK "Please reset the target and continue"
+
+
+; Initializing Debugger
+
+ PRINT "initializing..."
+ SYStem.CPU OMAP4430
+ SYStem.JtagClock RTCK
+ SYStem.Option ResBreak OFF     ; hardware dependent (see manual)
+ SYStem.Option WaitReset ON     ; hardware dependent (see manual)
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set UNDEF OFF         ; my be used by Linux for FPU detection
+ SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+ 
+ SYStem.Up
+ 
+ SETUP.IMASKASM ON             ; lock interrupts while single stepping
+ 
+ MAP.DenyAccess 0xC0000000--0xDFFFFFFF  ; disable access to non-existent memory
+ 
+ 
+; Open a Code Window -- we like to see something
+
+ WinPOS 0. 0. 75. 20.
+ List.auto
+ SCREEN.display
+ 
+ 
+ Go 
+ Wait 1.s 
+ Break
+; Open serial terminal window on COM1
+ 
+ DO ~~/demo/etc/terminal/serial/term.cmm COM1 115200.
+ 
+
+; Target Setup
+
+ ; if you want to let the bootloader initialize the board:
+     ; start u-boot to initialize the board
+     ;Go
+     ;print "target setup..."
+     ;wait 5.s
+     ;Break
+ ; else setup the board with the debugger:
+     PRINT "target setup..."
+     DO panda_setup_1.cmm
+     DO panda_setup_2.cmm
+
+
+; Load the Linux kernel
+   
+ ; vmlinux starts physically at RAM start (=0x80000000) + 0x8000 
+ ; We have to adjust it from the virtual start address at the label
+ ; "stext" from the System.map ("nm vmlinux | sort")
+ ; i.e.: Data.LOAD.Elf vmlinux <physical start>-<virtual start>
+ ; Limit the loading to the RAM area (0x80000000--0x8fffffff)
+
+ PRINT "loading Linux kernel..."
+ Data.LOAD.Elf vmlinux 0x80008000-0xc0008000 0x80000000--0x8fffffff /NosYmbol /noreg
+
+ Register.RESet
+
+ ; Set PC on start address of image
+ Register.Set PC 0x80008000
+
+ ; Set machine type in R1; see arch/arm/tools/mach-types
+ Register.Set R1 2791.      ; omap4_panda
+ 
+ ; Set parameter tags for linux boot
+ DO panda_atag_list
+
+
+; Loading initial ram disk (initrd)
+
+ ; Use the next lines only, if you want to use an initrd,
+ ; and if you want to download this with the debugger.
+
+ ; The load address is either hardcoded in arch/arm/<board>/arch.c,
+ ; or must be passed by a boot parameter, or as command line option
+
+ PRINT "loading initial ram disk..."
+ Data.LOAD.Binary ramdisk.image.gz 0x81600000 /NoClear /NosYmbol   
+
+
+; Load the Linux kernel symbols into the debugger
+
+ PRINT "loading Linux kernel symbols..."
+ Data.LOAD.Elf vmlinux /NoCODE /StripPART 3
+ 
+
+; Configure ETM or STM trace probe
+ PRINT "configuring trace probe..."
+ DO panda_trace.cmm
+ 
+
+; Startup Linux boot
+  Go start_kernel /Onchip
+  PRINT "startup Linux kernel..."
+  WAIT !STATE.RUN()
+
+
+; Declare the MMU format to the debugger
+ ; - table format is "LINUX"
+ ; - table base address is at label "swapper_pg_dir"
+ ; - kernel address translation
+
+ PRINT "initializing debugger MMU..."
+ MMU.FORMAT LINUX swapper_pg_dir 0xc0000000--0xdfffffff 0x80000000
+ TRANSlation.COMMON 0xbf000000--0xffffffff      ; common area for kernel and processes
+ TRANSlation.TableWalk ON   ; debugger uses a table walk to decode virtual addresses
+ TRANSlation.ON             ; switch on debugger(!) address translation 
+ 
+
+; Initialize Linux Support
+
+ ; Note that the Linux awareness needs the kernel symbols to work
+ 
+ ; check linux major version
+ IF STRing.SCAN(Data.STRing(linux_banner), "Linux version 2.", 0)==0
+ (
+     &ka_path="~~/demo/arm/kernel/linux/linux-2.x"
+     &awareness="linux.t32"
+ )
+ ELSE
+ (
+     &ka_path="~~/demo/arm/kernel/linux/linux-3.x"
+     &awareness="linux3.t32"  
+ )
+ 
+ PRINT "initializing RTOS support..."
+ TASK.CONFIG &ka_path/&awareness               ; loads Linux awareness 
+ MENU.ReProgram &ka_path/linux            ; loads Linux menu 
+  
+ ; Group kernel area to be displayed with red bar
+ GROUP.Create "kernel" 0xc0000000--0xffffffff /RED
+
+
+; Ok, we're done, let's continue
+
+ Go
+ PRINT "still starting Linux... (please wait)"
+ WAIT 6.s
+
+
+ PRINT "done."     ; done with loading and starting Linux
+ 
+
+; --------------------------------------------------------------------------------
+; Application Debugging 
+; e.g. "sieve"
+; --------------------------------------------------------------------------------
+
+ DO &ka_path/app_debug hello
+
+ ENDDO
+ 

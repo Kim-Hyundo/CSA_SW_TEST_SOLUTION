@@ -1,0 +1,59 @@
+; --------------------------------------------------------------------------------
+; @Title: Activate Flash-Protection of an S6J3xx
+; @Description:
+;   This script demonstrates how to LOCK and activate Flash-Protection of an
+;   S6J311AHAA. For demonstration reasons a small assembly loop serving the wdog
+;   is assembled at the flash entry point.
+;   Flash Protection is activated by writing MK_SER & DDR_DSM words in the flash
+;   header. Compare the FLASH.AUTO /CENSORSHIP section.
+;   Please see ~~~~/s6j311_unlock
+;   Prerequisites:
+;     * JTAG is connected to 20PIN JTAG or Mictor38
+;     * the SRST line is disconnected from the Chip and wired to
+;       RSTX on the board [S6J311EJAA only]
+;     * the device/flash-protection is not activated!
+;   Note: This script does require a board modification for S6J311EJAA!
+; @Chip: S6J311????
+; @Board: SK-Leo, SK-Amber
+; @Author: AME
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: s6j311ahaa-lock.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+RESet
+SYStem.RESet
+SYStem.CPU S6J311AHAA
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 100us
+SYStem.Up
+
+DO ~~/demo/arm/flash/s6j3 PREPAREONLY
+
+; assemble a simple watchdog handling loop into flash-entry point
+; erase non-erased flash-sections
+FLASH.ReProgram ALL /Erase
+Data.Assemble R:0xa00000    cpsid if
+Data.Assemble ,             movw r14,#0x0020
+Data.Assemble ,             movt r14,#0x00a0
+Data.Assemble ,             mov  r0,#0x0
+Data.Assemble ,             movw r1,#0xc010
+Data.Assemble ,             movt r1,#0xb060
+Data.Assemble ,             movw r2,#0xc018
+Data.Assemble ,             movt r2,#0xb060
+Data.Assemble ,             str  r0,[r1]
+Data.Assemble ,             str  r0,[r2]
+Data.Assemble ,             bx r14
+FLASH.ReProgram OFF
+
+; Program the flash-header. Guarded by the /CENSORSHIP option
+; erase CENSORSHIP section - then activate Security with Debug Enable
+FLASH.AUTO 0x19f0000--0x19f014f /CENSORSHIP
+Data.Set 0x19f0000--0x19f014f %Long 0xffffffff
+; DDR_DSM=DEBUG_ENABLE
+Data.Set 0x19f0088 %Long 0x59f71234
+; MK_SER=FLASH PROTECTION
+Data.Set 0x19f0000 %Long 0x1
+; Debug Key is now 0xffffffff 0xffffffff 0xffffffff 0xffffffff
+FLASH.AUTO OFF
+
+PRINT "Debug Key is *0xffffffff 0xffffffff 0xffffffff 0xffffffff*. Please Re-Power the board!"

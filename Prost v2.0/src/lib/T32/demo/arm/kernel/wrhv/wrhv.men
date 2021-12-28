@@ -1,0 +1,284 @@
+; --------------------------------------------------------------------------------
+; @Title: Wind River Hyperviser 2.x specific menu
+; @Description: -
+; @Author: DIE
+; @Copyright: (c) 1989-2015 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: wrhv.men 3620 2018-09-04 14:23:50Z rweiss $
+
+
+add
+menu
+(
+
+  
+  popup "&Hypervisor"
+
+  (
+    default
+    menuitem "Display &Threads"         "TASK.ThrList"
+    menuitem "Display Virtual Boards"   "TASK.VirtBoard"
+    menuitem "Display System Info"      "TASK.SysInfo"
+    menuitem "Display Config Vector"    "TASK.ConfigVec"
+    menuitem "Display Registry"         "TASK.REGistry"
+    menuitem "Display Core States"      "TASK.CoreState"
+    separator
+    popup "&Stack Coverage"
+    (
+      menuitem "&List Stacks"    "TASK.STacK.view"
+      menuitem "Add Task"        "TASK.STacK.ADD"
+      menuitem "Remove Task"     "TASK.STacK.RM"
+      menuitem "Reset Coverage"
+      (
+        if icd()||simulator()
+        (
+          dialog.yesno "Overwrite unused stack space" "with stack fill pattern?"
+          entry &yes
+          if !&yes
+            enddo
+        )
+        TASK.STacK.Init
+      )
+    )
+    separator
+    popup "Symbol &Autoloader"
+    (
+        menuitem "List Components"  "sYmbol.AutoLoad.List"
+        menuitem "Check Now!"       "sYmbol.AutoLoad.CHECK"
+        menuitem "Set Loader Script"
+        (
+            dialog
+            (
+                header "sYmbol.AutoLoad.CHECKComManD"
+                pos 0. 0. 40. 3.
+                box "autoload batch script"
+                pos 1. 1. 30. 1
+cmmfile:        edit "autoload.cmm" ""
+                pos 32. 1. 7. 1.
+                button "Browse..."
+                (
+                    dialog.file "*.cmm"
+                    entry %line &file
+                    dialog.set cmmfile "&file"
+                )
+                pos 1. 3. 16. 1.
+checkon:        checkbox "automatic check" ""
+                pos 10. 4.5 8.
+                defbutton "Ok"
+                (
+                    local &log &cmm
+                    &cmm=dialog.string(cmmfile)
+                    sYmbol.AutoLoad.CHECKComManD "do &cmm "
+                    sYmbol.AutoLoad.CHECK       ; trigger check manually
+                    if dialog.boolean(checkon)
+                        sYmbol.AutoLoad.CHECK ON    ; automatic check enabled
+                    else
+                        sYmbol.AutoLoad.CHECK OFF   ; automatic check disabled
+                    dialog.end
+                )
+                pos 22. 4.5 8.
+                button "Cancel" "dialog.end"
+            )
+        )
+    )
+    separator
+    MENUITEM "Display Task Tree"        "TASK.List.TREE"
+    MENUITEM "Display Core Activity"    "CORE.List"
+  )
+  popup "Trace"
+  (
+    popup "[:alist]List"
+    (
+      separator
+      menuitem "&Task Switches"     "Trace.List List.TASK"
+      menuitem "&Default and Tasks" "Trace.List List.TASK DEFault"
+    )
+  )
+  popup "Perf"
+  (
+    separator
+    popup "&Task Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+        )
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak&&Write
+          )
+          Break.Delete /Alpha
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+        )
+        if a.mode.flow()
+        (
+          Break.Delete /TraceEnable
+          Break.Set task.config(magic) /TraceEnable
+        )
+      )
+      menuitem "[:perf]Show &Numerical"   "Trace.STATistic.TASK"
+      menuitem "[:achart]Show as &Timing" "Trace.CHART.TASK"
+      menuitem "[:achart]Tracking with Trace &List"
+      (
+        Trace.List List.TASK DEFault /Track
+        Trace.CHART.TASK /Track
+      )
+    )
+    popup "Task &Function Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+          Analyzer.STATistic.PreFetch on
+        )
+
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          if a.config.hac()
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak
+               Sample.Enable if BetaBreak
+               Mark.A        if AlphaBreak
+               Mark.B        if BetaBreak
+             )
+          )
+          else
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak||BetaBreak
+               Mark.A if AlphaBreak
+               Mark.B if BetaBreak
+             )
+          )
+          Break.Delete /Alpha /Beta /Charly
+          Break.SetFunc
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+        )
+        if a.mode.flow()
+        (
+          Break.Delete /TraceData
+          Break.Set task.config(magic) /TraceData
+        )
+      )
+      menuitem "[:perf]Show &Numerical"     "Trace.STATistic.TASKFUNC"
+      menuitem "[:perf]Show as &Tree"       "Trace.STATistic.TASKTREE"
+      menuitem "[:perf]Show &Detailed Tree" "Trace.STATistic.TASKTREE ALL"
+      menuitem "[:achart]Show as &Timing"   "Trace.CHART.TASKFUNC"
+      menuitem "[:alist]Show N&esting"      "Trace.List List.TASK FUNC TI.FUNC"
+    )
+  )
+  popup "&Help"
+  (
+    MENUITEM "[:manual]OS Awareness Manual Hypervisor" "HELP __HV_WINDRIVER_" 
+  )
+)
+
+
+menu "task.tl"
+(
+  default
+  menuitem "Display detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.ThrList &address
+  )
+  menuitem "Display context struct"
+  (
+    &address=track.address()
+    Var.View %Open %String (ctx_t*)(&address)
+  )
+  separator
+  menuitem "Display Stack Frame"
+  (
+    &address=address.offset(track.address())
+    Var.Frame /Locals /Caller /Task &address
+  )
+  menuitem "Display Registers"
+  (
+    &address=address.offset(track.address())
+    Register /Task &address
+  )
+  menuitem "Switch Context"       "Register.TASK address.offset(track.address())"
+  separator
+  menuitem "Add to Stack Cov"  "TASK.STK.ADD address.offset(track.address())"
+  menuitem "Rm from Stack Cov" "TASK.STK.RM  address.offset(track.address())"
+  separator
+  menuitem "Dump thread entry"
+  (
+    &address=track.address()
+    Data.dump &address /Long /DIALOG
+  )
+)
+
+
+menu "task.bb"
+(
+  default
+  menuitem "Display detailed"
+  (
+    PRIVATE &address
+    &address=address.offset(track.address())
+    TASK.BootBoard &address
+  )
+  menuitem "Display boot board struct"
+  (
+    PRIVATE &address
+    &address=track.address()
+    Var.View %Open %String (VBB_CONFIG*)(&address)
+  )
+  menuitem "Dump boot board entry"
+  (
+    PRIVATE &address
+    &address=track.address()
+    Data.dump &address /Long /DIALOG
+  )
+)
+
+menu "task.rb"
+(
+  default
+  menuitem "Display detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.RunBoard &address
+  )
+  menuitem "Display runboard struct"
+  (
+    &address=track.address()
+    Var.View %Open %String (struct vbConfig*)(&address)
+  )
+  menuitem "Dump runboard entry"
+  (
+    &address=track.address()
+    Data.dump &address /Long /DIALOG
+  )
+)
+
+menu "task.vb"
+(
+  default
+  menuitem "Display detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.VirtBoard &address
+  )
+  menuitem "Display virt board struct"
+  (
+    &address=track.address()
+    Var.View %Open %String (board_t*)(&address)
+  )
+  menuitem "Dump virt board entry"
+  (
+    &address=track.address()
+    Data.dump &address /Long /DIALOG
+  )
+)

@@ -1,0 +1,2744 @@
+; --------------------------------------------------------------------------------
+; @Title: Target configuration script for the TI TDA2x device.
+; @Description:
+;   This script contains functions to configure the TDA2x PCRM module.
+;   It is generated out of a CodeComposer GEL file.
+;   Calling the script by
+;
+;     DO tda2x_prcm_config.cmm
+;
+;   will add a menu for all functions of this script toTRACE32.
+;   Alternatively you can allall these functions directly by:
+;
+;     DO tda2x_prcm_config.cmm <function>
+;
+; @Keywords: ARM
+; @Author: STK
+; @Board: VAYU-EVM
+; @Chip: TDA2x
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tda2x_prcm_config.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+LOCAL &function &args
+ENTRY &function %LINE &args
+
+IF "&function"!=""
+(
+	;	ON ERROR GOSUB
+	;	(
+		;	PRINT %ERROR HELP.MESSAGE()
+		;		RETURN
+		;	)
+	GOSUB &function &args
+	;	ON ERROR inherit
+)
+ELSE
+(
+	GOSUB __GeL_MeNu_CrEaTe
+)
+
+ENDDO
+
+prcm_set_dss_mode:
+(
+	ENTRY &__VF0 &__VF1 &__VF2
+	
+	VAR.NEW unsigned int \module_base
+	VAR.ASSIGN \module_base=&__VF0
+	
+	VAR.NEW unsigned int \module_offset
+	VAR.ASSIGN \module_offset=&__VF1
+	
+	VAR.NEW unsigned int \mode
+	VAR.ASSIGN \mode=&__VF2
+	
+	VAR.NEW unsigned int \reg_val
+	VAR.NEW unsigned int \timeout
+	V.ASSIGN (\timeout)=(0x12C)
+	V.IF (0x0)
+	(
+		AREA.SELECT 
+		PRINT "module_base:   " %HEX V.VALUE(\module_base) ""
+		PRINT ""
+		&__V0=0
+		AREA.SELECT 
+		PRINT "module_offset: " %HEX V.VALUE(\module_offset) ""
+		PRINT ""
+		&__V1=0
+	)
+	V.ASSIGN (((*(((unsigned int *)(((0x4A002000)+(0x558)))))))=(((unsigned int)((((*(((unsigned int *)(((0x4A002000)+(0x558)))))))|(0x1))))))
+	V.ASSIGN ((\reg_val)=((*(((unsigned int *)(((\module_base)+(\module_offset))))))))
+	V.ASSIGN ((\reg_val)=(((((((\reg_val)&((~(0x3)))))|(0x00003F00)))|(\mode))))
+	V.ASSIGN (((*(((unsigned int *)(((\module_base)+(\module_offset)))))))=(((unsigned int)(\reg_val))))
+	V.IF (0x0)
+	(
+		PRINT " Waiting for DSS module IDLE status...."
+		PRINT ""
+		&__V2=0
+	)
+	&__V3=V.VALUE((((((((*(((unsigned int *)(((\module_base)+(\module_offset)))))))&(0x00030000)))!=(0x0)))&&(((\timeout)>(0x0)))))
+	WHILE &__V3!=0
+	(
+		&__V4=V.VALUE(\timeout)
+		V.ASSIGN (\timeout)=(\timeout)-1
+		&__V3=V.VALUE((((((((*(((unsigned int *)(((\module_base)+(\module_offset)))))))&(0x00030000)))!=(0x0)))&&(((\timeout)>(0x0)))))
+	)
+	V.IF (0x0)
+	(
+		V.IF (((\timeout)==(0x0)))
+		(
+			AREA.SELECT 
+			PRINT "module_base:   " %HEX V.VALUE(\module_base) ""
+			PRINT ""
+			&__V5=0
+			AREA.SELECT 
+			PRINT "module_offset: " %HEX V.VALUE(\module_offset) ""
+			PRINT ""
+			&__V6=0
+			PRINT " TIMEOUT"
+			PRINT ""
+			&__V7=0
+		)
+		ELSE
+		(
+			PRINT " DONE"
+			PRINT ""
+			&__V8=0
+		)
+	)
+	RETURN
+)
+
+prcm_set_proc_mode:
+(
+	ENTRY &__VF0 &__VF1 &__VF2
+	
+	VAR.NEW unsigned int \module_base
+	VAR.ASSIGN \module_base=&__VF0
+	
+	VAR.NEW unsigned int \module_offset
+	VAR.ASSIGN \module_offset=&__VF1
+	
+	VAR.NEW unsigned int \mode
+	VAR.ASSIGN \mode=&__VF2
+	
+	VAR.NEW unsigned int \reg_val
+	VAR.NEW unsigned int \timeout
+	V.ASSIGN (\timeout)=(0x12C)
+	V.IF (0x0)
+	(
+		AREA.SELECT 
+		PRINT "module_base:   " %HEX V.VALUE(\module_base) ""
+		PRINT ""
+		&__V9=0
+		AREA.SELECT 
+		PRINT "module_offset: " %HEX V.VALUE(\module_offset) ""
+		PRINT ""
+		&__V10=0
+	)
+	V.ASSIGN ((\reg_val)=((*(((unsigned int *)(((\module_base)+(\module_offset))))))))
+	V.ASSIGN ((\reg_val)=(((((\reg_val)&((~(0x3)))))|(\mode))))
+	V.ASSIGN (((*(((unsigned int *)(((\module_base)+(\module_offset)))))))=(((unsigned int)(\reg_val))))
+	V.IF (0x0)
+	(
+		PRINT " Waiting for IPU2 module IDLE status...."
+		PRINT ""
+		&__V11=0
+	)
+	&__V12=V.VALUE((((((((*(((unsigned int *)(((\module_base)+(\module_offset)))))))&(0x00030000)))==(0x00030000)))&&(((\timeout)>(0x0)))))
+	WHILE &__V12!=0
+	(
+		&__V13=V.VALUE(\timeout)
+		V.ASSIGN (\timeout)=(\timeout)-1
+		&__V12=V.VALUE((((((((*(((unsigned int *)(((\module_base)+(\module_offset)))))))&(0x00030000)))==(0x00030000)))&&(((\timeout)>(0x0)))))
+	)
+	V.IF (0x0)
+	(
+		V.IF (((\timeout)==(0x0)))
+		(
+			AREA.SELECT 
+			PRINT "module_base:   " %HEX V.VALUE(\module_base) ""
+			PRINT ""
+			&__V14=0
+			AREA.SELECT 
+			PRINT "module_offset: " %HEX V.VALUE(\module_offset) ""
+			PRINT ""
+			&__V15=0
+			PRINT " TIMEOUT"
+			PRINT ""
+			&__V16=0
+		)
+		PRINT " DONE"
+		PRINT ""
+		&__V17=0
+	)
+	RETURN
+)
+
+prcm_set_ipu1_mode:
+(
+	ENTRY &__VF0 &__VF1 &__VF2
+	
+	VAR.NEW unsigned int \module_base
+	VAR.ASSIGN \module_base=&__VF0
+	
+	VAR.NEW unsigned int \module_offset
+	VAR.ASSIGN \module_offset=&__VF1
+	
+	VAR.NEW unsigned int \mode
+	VAR.ASSIGN \mode=&__VF2
+	
+	VAR.NEW unsigned int \reg_val
+	VAR.NEW unsigned int \timeout
+	V.ASSIGN (\timeout)=(0x12C)
+	V.IF (0x0)
+	(
+		AREA.SELECT 
+		PRINT "module_base:   " %HEX V.VALUE(\module_base) ""
+		PRINT ""
+		&__V18=0
+		AREA.SELECT 
+		PRINT "module_offset: " %HEX V.VALUE(\module_offset) ""
+		PRINT ""
+		&__V19=0
+	)
+	V.ASSIGN ((\reg_val)=((*(((unsigned int *)(((\module_base)+(\module_offset))))))))
+	V.ASSIGN ((\reg_val)=(((((((\reg_val)&((~(0x3)))))|(0x01000000)))|(\mode))))
+	V.ASSIGN (((*(((unsigned int *)(((\module_base)+(\module_offset)))))))=(((unsigned int)(\reg_val))))
+	V.IF (0x0)
+	(
+		PRINT " Waiting for IPU1 module IDLE status...."
+		PRINT ""
+		&__V20=0
+	)
+	&__V21=V.VALUE((((((((*(((unsigned int *)(((\module_base)+(\module_offset)))))))&(0x00030000)))==(0x00030000)))&&(((\timeout)>(0x0)))))
+	WHILE &__V21!=0
+	(
+		&__V22=V.VALUE(\timeout)
+		V.ASSIGN (\timeout)=(\timeout)-1
+		&__V21=V.VALUE((((((((*(((unsigned int *)(((\module_base)+(\module_offset)))))))&(0x00030000)))==(0x00030000)))&&(((\timeout)>(0x0)))))
+	)
+	V.IF (0x0)
+	(
+		V.IF (((\timeout)==(0x0)))
+		(
+			AREA.SELECT 
+			PRINT "module_base:   " %HEX V.VALUE(\module_base) ""
+			PRINT ""
+			&__V23=0
+			AREA.SELECT 
+			PRINT "module_offset: " %HEX V.VALUE(\module_offset) ""
+			PRINT ""
+			&__V24=0
+			PRINT " TIMEOUT"
+			PRINT ""
+			&__V25=0
+		)
+		PRINT " DONE"
+		PRINT ""
+		&__V26=0
+	)
+	RETURN
+)
+
+prcm_set_module_mode:
+(
+	ENTRY &__VF0 &__VF1 &__VF2 &__VF3 &__VF4
+	
+	VAR.NEW unsigned int \module_base
+	VAR.ASSIGN \module_base=&__VF0
+	
+	VAR.NEW unsigned int \module_offset
+	VAR.ASSIGN \module_offset=&__VF1
+	
+	VAR.NEW unsigned int \mode
+	VAR.ASSIGN \mode=&__VF2
+	
+	VAR.NEW unsigned int \extrabits
+	VAR.ASSIGN \extrabits=&__VF3
+	
+	VAR.NEW unsigned int \extrabitsMask
+	VAR.ASSIGN \extrabitsMask=&__VF4
+	
+	VAR.NEW unsigned int \reg_val
+	VAR.NEW unsigned int \timeout
+	V.ASSIGN (\timeout)=(0x12C)
+	V.IF (0x0)
+	(
+		(
+			AREA.SELECT 
+			PRINT "module_base:   " %HEX V.VALUE(\module_base) ""
+			PRINT ""
+			&__V27=0
+			AREA.SELECT 
+			PRINT "module_offset: " %HEX V.VALUE(\module_offset) ""
+			PRINT ""
+			&__V28=0
+		)
+	)
+	V.ASSIGN ((\reg_val)=((((*(((unsigned int *)(((\module_base)+(\module_offset)))))))&((~(((\extrabitsMask)|(0x00000003))))))))
+	V.ASSIGN (((*(((unsigned int *)(((\module_base)+(\module_offset)))))))=(((unsigned int)(((((\reg_val)|(((\extrabits)&(\extrabitsMask)))))|(((\mode)&(0x3))))))))
+	V.IF (0x0)
+	(
+		(
+			PRINT " Waiting for module IDLE status...."
+			PRINT ""
+			&__V29=0
+		)
+	)
+	&__V30=V.VALUE((((((((*(((unsigned int *)(((\module_base)+(\module_offset)))))))&(0x00030000)))!=(0x0)))&&(((\timeout)>(0x0)))))
+	WHILE &__V30!=0
+	(
+		&__V31=V.VALUE(\timeout)
+		V.ASSIGN (\timeout)=(\timeout)-1
+		&__V30=V.VALUE((((((((*(((unsigned int *)(((\module_base)+(\module_offset)))))))&(0x00030000)))!=(0x0)))&&(((\timeout)>(0x0)))))
+	)
+	V.IF (0x0)
+	(
+		V.IF (((\timeout)==(0x0)))
+		(
+			AREA.SELECT 
+			PRINT "module_base:   " %HEX V.VALUE(\module_base) ""
+			PRINT ""
+			&__V32=0
+			AREA.SELECT 
+			PRINT "module_offset: " %HEX V.VALUE(\module_offset) ""
+			PRINT ""
+			&__V33=0
+			PRINT " TIMEOUT"
+			PRINT ""
+			&__V34=0
+		)
+		ELSE
+		(
+			PRINT " DONE"
+			PRINT ""
+			&__V35=0
+		)
+	)
+	RETURN
+)
+
+prcm_set_clkdomain_state:
+(
+	ENTRY &__VF0 &__VF1 &__VF2
+	
+	VAR.NEW unsigned int \module_base
+	VAR.ASSIGN \module_base=&__VF0
+	
+	VAR.NEW unsigned int \module_offset
+	VAR.ASSIGN \module_offset=&__VF1
+	
+	VAR.NEW unsigned int \state
+	VAR.ASSIGN \state=&__VF2
+	
+	(
+		VAR.NEW unsigned int \reg_val
+		VAR.NEW unsigned int \timeout
+		V.ASSIGN (\timeout)=(0x12C)
+		V.IF (0x0)
+		(
+			(
+				AREA.SELECT 
+				PRINT "module_base:   " %HEX V.VALUE(\module_base) ""
+				PRINT ""
+				&__V36=0
+				AREA.SELECT 
+				PRINT "module_offset: " %HEX V.VALUE(\module_offset) ""
+				PRINT ""
+				&__V37=0
+			)
+		)
+		V.ASSIGN ((\reg_val)=((*(((unsigned int *)(((\module_base)+(\module_offset))))))))
+		V.ASSIGN (((*(((unsigned int *)(((\module_base)+(\module_offset)))))))=(((unsigned int)(((((\reg_val)&((~(0x3)))))|(((\state)&(0x3))))))))
+	)
+	RETURN
+)
+
+TDA2x_PRCM_Clock_Config_API:
+(
+	ENTRY &__VF0 &__VF1
+	
+	VAR.NEW unsigned int \OPP
+	VAR.ASSIGN \OPP=&__VF0
+	
+	VAR.NEW unsigned int \DEVICE_TYPE
+	VAR.ASSIGN \DEVICE_TYPE=&__VF1
+	
+	(
+		PRINT "--->>> PRCM Clock Configuration for OPPNOM in progress... <<<---"
+		PRINT ""
+		&__V38=0
+		V.IF (((0x0)!=(\OPP)))
+		(
+			(
+				AREA.SELECT 
+				PRINT " !!!Only DPLL configuration is done!!!"
+				PRINT " !!!Voltage changes for non-NOMinal OPP needs to be done externally!!!"
+				PRINT ""
+				&__V39=0
+			)
+		)
+		&__VC40=V.VALUE(\OPP)
+		&__VC41=V.VALUE(\DEVICE_TYPE)
+		GOSUB dpll_a15_opp_config &__VC40 &__VC41
+		ENTRY &__V42
+		&__VC43=V.VALUE(\OPP)
+		&__VC44=V.VALUE(\DEVICE_TYPE)
+		GOSUB dpll_iva_opp_config &__VC43 &__VC44
+		ENTRY &__V45
+		&__VC46=V.VALUE(\OPP)
+		&__VC47=V.VALUE(\DEVICE_TYPE)
+		GOSUB dpll_per_opp_config &__VC46 &__VC47
+		ENTRY &__V48
+		&__VC49=V.VALUE(\OPP)
+		&__VC50=V.VALUE(\DEVICE_TYPE)
+		GOSUB dpll_core_opp_config &__VC49 &__VC50
+		ENTRY &__V51
+		&__VC52=V.VALUE(\OPP)
+		&__VC53=V.VALUE(\DEVICE_TYPE)
+		GOSUB dpll_abe_opp_config &__VC52 &__VC53
+		ENTRY &__V54
+		&__VC55=V.VALUE(\OPP)
+		&__VC56=V.VALUE(\DEVICE_TYPE)
+		GOSUB dpll_gmac_config &__VC55 &__VC56
+		ENTRY &__V57
+		&__VC58=V.VALUE(\OPP)
+		&__VC59=V.VALUE(\DEVICE_TYPE)
+		GOSUB dpll_gpu_config &__VC58 &__VC59
+		ENTRY &__V60
+		&__VC61=V.VALUE(\OPP)
+		&__VC62=V.VALUE(\DEVICE_TYPE)
+		GOSUB dpll_dsp_config &__VC61 &__VC62
+		ENTRY &__V63
+		&__VC64=V.VALUE(\OPP)
+		&__VC65=V.VALUE(\DEVICE_TYPE)
+		GOSUB dpll_eve_config &__VC64 &__VC65
+		ENTRY &__V66
+		&__VC67=V.VALUE(\OPP)
+		&__VC68=V.VALUE(\DEVICE_TYPE)
+		GOSUB dpll_pcie_config &__VC67 &__VC68
+		ENTRY &__V69
+		AREA.SELECT 
+		PRINT "--->>> PRCM Clock Configuration for OPP " %DECIMAL V.VALUE(0x0) " is DONE! <<<---"
+		PRINT ""
+		&__V70=0
+	)
+	RETURN
+)
+
+dpll_a15_opp_config:
+(
+	ENTRY &__VF0 &__VF1
+	
+	VAR.NEW unsigned int \OPP
+	VAR.ASSIGN \OPP=&__VF0
+	
+	VAR.NEW unsigned int \DEVICE_TYPE
+	VAR.ASSIGN \DEVICE_TYPE=&__VF1
+	
+	(
+		VAR.NEW unsigned int \dpll_m
+		VAR.NEW unsigned int \dpll_n
+		VAR.NEW unsigned int \divm2
+		VAR.NEW unsigned int \dcc_en
+		V.ASSIGN ((\dcc_en)=(0x0))
+		AREA.SELECT 
+		PRINT " Cortex A15 DPLL OPP " %DECIMAL V.VALUE(\OPP) " clock config is in progress..."
+		PRINT ""
+		&__V71=0
+		V.IF (((0x4)==(\DEVICE_TYPE)))
+		(
+			(
+				V.ASSIGN ((\dpll_m)=(0x1F4))
+				V.ASSIGN ((\dpll_n)=(0x9))
+				V.ASSIGN ((\divm2)=(0x1))
+			)
+		)
+		ELSE
+		(
+			V.IF (((0x3)==(\DEVICE_TYPE)))
+			(
+				(
+					V.IF (((0x2)==(\OPP)))
+					(
+						(
+							V.ASSIGN ((\dpll_m)=(0x258))
+							V.ASSIGN ((\dpll_n)=(0x7))
+							V.ASSIGN ((\divm2)=(0x1))
+							V.ASSIGN ((\dcc_en)=(0x1))
+						)
+					)
+					ELSE
+					(
+						V.IF (((0x1)==(\OPP)))
+						(
+							(
+								V.ASSIGN ((\dpll_m)=(0x126))
+								V.ASSIGN ((\dpll_n)=(0x4))
+								V.ASSIGN ((\divm2)=(0x1))
+							)
+						)
+						ELSE
+						(
+							(
+								V.ASSIGN ((\dpll_m)=(0x1F4))
+								V.ASSIGN ((\dpll_n)=(0x9))
+								V.ASSIGN ((\divm2)=(0x1))
+							)
+						)
+					)
+				)
+			)
+			ELSE
+			(
+				V.IF (((0x2)==(\DEVICE_TYPE)))
+				(
+					(
+						V.IF (((0x1)==(\OPP)))
+						(
+							(
+								V.ASSIGN ((\dpll_m)=(0x126))
+								V.ASSIGN ((\dpll_n)=(0x4))
+								V.ASSIGN ((\divm2)=(0x1))
+							)
+						)
+						ELSE
+						(
+							(
+								V.ASSIGN ((\dpll_m)=(0x1F4))
+								V.ASSIGN ((\dpll_n)=(0x9))
+								V.ASSIGN ((\divm2)=(0x1))
+							)
+						)
+					)
+				)
+				ELSE
+				(
+					V.IF (((0x1)==(\DEVICE_TYPE)))
+					(
+						(
+							V.ASSIGN ((\dpll_m)=(0x1F4))
+							V.ASSIGN ((\dpll_n)=(0x9))
+							V.ASSIGN ((\divm2)=(0x1))
+						)
+					)
+					ELSE
+					(
+						(
+							V.ASSIGN ((\dpll_m)=(0x177))
+							V.ASSIGN ((\dpll_n)=(0x9))
+							V.ASSIGN ((\divm2)=(0x1))
+						)
+					)
+				)
+			)
+		)
+		V.IF ((((*(((unsigned int *)(((((0x4A005100)+(0x060)))+(0x04)))))))&(0x1)))
+		(
+			(
+				PRINT " Cortex A15 DPLL is already locked, now unlocking...  "
+				PRINT ""
+				&__V72=0
+				&__VC73=V.VALUE(((0x4A005100)+(0x060)))
+				GOSUB dpll_unlock_sequence &__VC73
+				ENTRY &__V74
+			)
+		)
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x060)))+(0x0C)))))))=(((((((\dpll_m)<<(0x8)))|(\dpll_n)))|(((\dcc_en)<<(0x16))))))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x060)))+(0x10)))))))=(\divm2))
+		&__VC75=V.VALUE(((0x4A005100)+(0x060)))
+		GOSUB dpll_lock_sequence &__VC75
+		ENTRY &__V76
+		AREA.SELECT 
+		PRINT " Cortex A15 DPLL OPP " %DECIMAL V.VALUE(\OPP) " is DONE!"
+		PRINT ""
+		&__V77=0
+	)
+	RETURN
+)
+
+dpll_per_opp_config:
+(
+	ENTRY &__VF0 &__VF1
+	
+	VAR.NEW unsigned int \OPP
+	VAR.ASSIGN \OPP=&__VF0
+	
+	VAR.NEW unsigned int \DEVICE_TYPE
+	VAR.ASSIGN \DEVICE_TYPE=&__VF1
+	
+	(
+		AREA.SELECT 
+		PRINT " PER DPLL OPP " %DECIMAL V.VALUE(\OPP) " clock config in progress..."
+		PRINT ""
+		&__V78=0
+		V.IF ((((*(((unsigned int *)(((((0x4A008100)+(0x040)))+(0x04)))))))&(0x1)))
+		(
+			(
+				PRINT " PER DPLL already locked, now unlocking  "
+				PRINT ""
+				&__V79=0
+				&__VC80=V.VALUE(((0x4A008100)+(0x040)))
+				GOSUB dpll_unlock_sequence &__VC80
+				ENTRY &__V81
+			)
+		)
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A008100)+(0x040)))+(0x0C)))))))=(0x6004))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A008100)+(0x040)))+(0x10)))))))=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A008100)+(0x040)))+(0x14)))))))=(0x1))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A008100)+(0x040)))+(0x18)))))))=(0x3))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A008100)+(0x040)))+(0x1C)))))))=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A008100)+(0x040)))+(0x20)))))))=(0x04))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A008100)+(0x040)))+(0x24)))))))=(0x2))
+		&__VC82=V.VALUE(((0x4A008100)+(0x040)))
+		GOSUB dpll_lock_sequence &__VC82
+		ENTRY &__V83
+		AREA.SELECT 
+		PRINT " PER DPLL OPP " %DECIMAL V.VALUE(\OPP) " is DONE!"
+		PRINT ""
+		&__V84=0
+	)
+	RETURN
+)
+
+dpll_core_opp_config:
+(
+	ENTRY &__VF0 &__VF1
+	
+	VAR.NEW unsigned int \OPP
+	VAR.ASSIGN \OPP=&__VF0
+	
+	VAR.NEW unsigned int \DEVICE_TYPE
+	VAR.ASSIGN \DEVICE_TYPE=&__VF1
+	
+	(
+		AREA.SELECT 
+		PRINT " CORE DPLL OPP " %DECIMAL V.VALUE(\OPP) " clock config is in progress..."
+		PRINT ""
+		&__V85=0
+		V.IF ((((*(((unsigned int *)(((((0x4A005100)+(0x020)))+(0x04)))))))&(0x1)))
+		(
+			(
+				PRINT " CORE DPLL OPP  already locked, now unlocking....  "
+				PRINT ""
+				&__V86=0
+				&__VC87=V.VALUE(((0x4A005100)+(0x020)))
+				GOSUB dpll_unlock_sequence &__VC87
+				ENTRY &__V88
+			)
+		)
+		V.ASSIGN (((*(((unsigned int *)(((0x4A005100)+(0x000)))))))=(((unsigned int)(0x110))))
+		V.ASSIGN (((*(((unsigned int *)(((0x4A005100)+(0x010)))))))=(((unsigned int)(0x00000000))))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x020)))+(0x0C)))))))=(0x10A04))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x020)))+(0x10)))))))=(0x2))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x020)))+(0x14)))))))=(0x1))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x020)))+(0x1C)))))))=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x020)))+(0x20)))))))=(0x3E))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x020)))+(0x24)))))))=(0x5))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x020)))+(0x34)))))))=(0x5))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x020)))+(0x38)))))))=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x020)))+(0x3C)))))))=(0x6))
+		&__VC89=V.VALUE(((0x4A005100)+(0x020)))
+		GOSUB dpll_lock_sequence &__VC89
+		ENTRY &__V90
+		AREA.SELECT 
+		PRINT " CORE DPLL OPP " %DECIMAL V.VALUE(\OPP) " is DONE!"
+		PRINT ""
+		&__V91=0
+	)
+	RETURN
+)
+
+dpll_abe_opp_config:
+(
+	ENTRY &__VF0 &__VF1
+	
+	VAR.NEW unsigned int \OPP
+	VAR.ASSIGN \OPP=&__VF0
+	
+	VAR.NEW unsigned int \DEVICE_TYPE
+	VAR.ASSIGN \DEVICE_TYPE=&__VF1
+	
+	(
+		AREA.SELECT 
+		PRINT " ABE DPLL OPP " %DECIMAL V.VALUE(\OPP) " clock config in progress..."
+		PRINT ""
+		&__V92=0
+		V.IF ((((*(((unsigned int *)(((((0x4A005100)+(0x0E0)))+(0x04)))))))&(0x1)))
+		(
+			(
+				PRINT " ABE DPLL OPP is already locked, now unlocking...."
+				PRINT ""
+				&__V93=0
+				&__VC94=V.VALUE(((0x4A005100)+(0x0E0)))
+				GOSUB dpll_unlock_sequence &__VC94
+				ENTRY &__V95
+			)
+		)
+		V.ASSIGN (((*(((unsigned int *)(0x4AE0610C)))))=(((unsigned int)(0x00000000))))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x0E0)))+(0x0C)))))))=(0x1301))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x0E0)))+(0x10)))))))=(0x1))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x0E0)))+(0x14)))))))=(0x1))
+		&__VC96=V.VALUE(((0x4A005100)+(0x0E0)))
+		GOSUB dpll_lock_sequence &__VC96
+		ENTRY &__V97
+		AREA.SELECT 
+		PRINT " ABE DPLL OPP " %DECIMAL V.VALUE(\OPP) " is DONE!"
+		PRINT ""
+		&__V98=0
+	)
+	RETURN
+)
+
+dpll_iva_opp_config:
+(
+	ENTRY &__VF0 &__VF1
+	
+	VAR.NEW unsigned int \OPP
+	VAR.ASSIGN \OPP=&__VF0
+	
+	VAR.NEW unsigned int \DEVICE_TYPE
+	VAR.ASSIGN \DEVICE_TYPE=&__VF1
+	
+	(
+		VAR.NEW unsigned int \dpll_m
+		VAR.NEW unsigned int \dpll_n
+		VAR.NEW unsigned int \divm2
+		AREA.SELECT 
+		PRINT " IVA DPLL OPP " %DECIMAL V.VALUE(\OPP) " clock config is in progress..."
+		PRINT ""
+		&__V99=0
+		V.IF (((0x2)==(\OPP)))
+		(
+			(
+				V.ASSIGN ((\dpll_m)=(0x10A))
+				V.ASSIGN ((\dpll_n)=(0x4))
+				V.ASSIGN ((\divm2)=(0x2))
+			)
+		)
+		ELSE
+		(
+			V.IF (((0x1)==(\OPP)))
+			(
+				(
+					V.ASSIGN ((\dpll_m)=(0xAC))
+					V.ASSIGN ((\dpll_n)=(0x3))
+					V.ASSIGN ((\divm2)=(0x2))
+				)
+			)
+			ELSE
+			(
+				(
+					V.ASSIGN ((\dpll_m)=(0xE9))
+					V.ASSIGN ((\dpll_n)=(0x3))
+					V.ASSIGN ((\divm2)=(0x3))
+				)
+			)
+		)
+		V.IF ((((*(((unsigned int *)(((((0x4A005100)+(0x0A0)))+(0x04)))))))&(0x1)))
+		(
+			(
+				PRINT " IVA DPLL already locked, now unlocking..."
+				PRINT ""
+				&__V100=0
+				&__VC101=V.VALUE(((0x4A005100)+(0x0A0)))
+				GOSUB dpll_unlock_sequence &__VC101
+				ENTRY &__V102
+			)
+		)
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x0A0)))+(0x0C)))))))=(((((\dpll_m)<<(0x8)))|(\dpll_n))))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x0A0)))+(0x10)))))))=(\divm2))
+		&__VC103=V.VALUE(((0x4A005100)+(0x0A0)))
+		GOSUB dpll_lock_sequence &__VC103
+		ENTRY &__V104
+		AREA.SELECT 
+		PRINT " IVA DPLL OPP " %DECIMAL V.VALUE(\OPP) " is DONE!"
+		PRINT ""
+		&__V105=0
+	)
+	RETURN
+)
+
+dpll_gmac_config:
+(
+	ENTRY &__VF0 &__VF1
+	
+	VAR.NEW unsigned int \OPP
+	VAR.ASSIGN \OPP=&__VF0
+	
+	VAR.NEW unsigned int \DEVICE_TYPE
+	VAR.ASSIGN \DEVICE_TYPE=&__VF1
+	
+	(
+		AREA.SELECT 
+		PRINT " GMAC DPLL OPP " %DECIMAL V.VALUE(\OPP) " clock config is in progress..."
+		PRINT ""
+		&__V106=0
+		V.IF ((((*(((unsigned int *)(((((0x4A005100)+(0x1A8)))+(0x04)))))))&(0x1)))
+		(
+			(
+				PRINT " GMAC DPLL already locked, now unlocking...."
+				PRINT ""
+				&__V107=0
+				&__VC108=V.VALUE(((0x4A005100)+(0x1A8)))
+				GOSUB dpll_unlock_sequence &__VC108
+				ENTRY &__V109
+			)
+		)
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x1A8)))+(0x0C)))))))=(0xFA04))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x1A8)))+(0x10)))))))=(0x4))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x1A8)))+(0x14)))))))=(0xA))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x1A8)))+(0x18)))))))=(0x28))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x1A8)))+(0x1C)))))))=(0x8))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x1A8)))+(0x20)))))))=(0xA))
+		&__VC110=V.VALUE(((0x4A005100)+(0x1A8)))
+		GOSUB dpll_lock_sequence &__VC110
+		ENTRY &__V111
+		AREA.SELECT 
+		PRINT " GMAC DPLL OPP " %DECIMAL V.VALUE(\OPP) " is DONE!"
+		PRINT ""
+		&__V112=0
+	)
+	RETURN
+)
+
+dpll_pcie_config:
+(
+	ENTRY &__VF0 &__VF1
+	
+	VAR.NEW unsigned int \OPP
+	VAR.ASSIGN \OPP=&__VF0
+	
+	VAR.NEW unsigned int \DEVICE_TYPE
+	VAR.ASSIGN \DEVICE_TYPE=&__VF1
+	
+	(
+		VAR.NEW unsigned int \dpll_m
+		VAR.NEW unsigned int \dpll_n
+		VAR.NEW unsigned int \divm2
+		AREA.SELECT 
+		PRINT " PCIE_REF DPLL OPP " %DECIMAL V.VALUE(\OPP) " clock config is in progress..."
+		PRINT ""
+		&__V113=0
+		V.IF ((((*(((unsigned int *)(((((0x4A008100)+(0x100)))+(0x04)))))))&(0x1)))
+		(
+			(
+				PRINT " PCIE_REF DPLL already locked, now unlocking...."
+				PRINT ""
+				&__V114=0
+				&__VC115=V.VALUE(((0x4A008100)+(0x100)))
+				GOSUB dpll_unlock_sequence &__VC115
+				ENTRY &__V116
+			)
+		)
+		V.ASSIGN ((\dpll_m)=(0x2EE))
+		V.ASSIGN ((\dpll_n)=(0x9))
+		V.ASSIGN ((\divm2)=(0xF))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A008100)+(0x100)))+(0x0C)))))))=(((((\dpll_m)<<(0x8)))|(\dpll_n))))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A008100)+(0x100)))+(0x10)))))))=(\divm2))
+		&__VC117=V.VALUE(((0x4A008100)+(0x100)))
+		GOSUB dpll_lock_sequence &__VC117
+		ENTRY &__V118
+		AREA.SELECT 
+		PRINT " PCIE_REF DPLL OPP " %DECIMAL V.VALUE(\OPP) " is DONE!"
+		PRINT ""
+		&__V119=0
+	)
+	RETURN
+)
+
+dpll_ddr_config:
+(
+	ENTRY &__VF0
+	
+	VAR.NEW unsigned int \DDR_FREQ
+	VAR.ASSIGN \DDR_FREQ=&__VF0
+	
+	(
+		V.IF (((0x214)==(\DDR_FREQ)))
+		(
+			(
+				AREA.SELECT 
+				PRINT " DDR DPLL clock config for " %DECIMAL V.VALUE(\DDR_FREQ) "MHz is in progress..."
+				PRINT ""
+				&__V120=0
+				V.IF ((((*(((unsigned int *)(((((0x4A005100)+(0x110)))+(0x04)))))))&(0x1)))
+				(
+					(
+						PRINT " DDR DPLL already locked, now unlocking...."
+						PRINT ""
+						&__V121=0
+						&__VC122=V.VALUE(((0x4A005100)+(0x110)))
+						GOSUB dpll_unlock_sequence &__VC122
+						ENTRY &__V123
+					)
+				)
+				V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x110)))+(0x0C)))))))=(0x10A04))
+				V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x110)))+(0x10)))))))=(0x2))
+				V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x110)))+(0x14)))))))=(0x1))
+				V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x110)))+(0x18)))))))=(0x8))
+				&__VC124=V.VALUE(((0x4A005100)+(0x110)))
+				GOSUB dpll_lock_sequence &__VC124
+				ENTRY &__V125
+				AREA.SELECT 
+				PRINT " DDR DPLL clock config for " %DECIMAL V.VALUE(\DDR_FREQ) "MHz is in DONE!"
+				PRINT ""
+				&__V126=0
+			)
+		)
+		ELSE
+		(
+			V.IF (((0x190)==(\DDR_FREQ)))
+			(
+				(
+					AREA.SELECT 
+					PRINT " DDR DPLL clock config for " %DECIMAL V.VALUE(\DDR_FREQ) "MHz is in progress..."
+					PRINT ""
+					&__V127=0
+					V.IF ((((*(((unsigned int *)(((((0x4A005100)+(0x110)))+(0x04)))))))&(0x1)))
+					(
+						(
+							PRINT " DDR DPLL already locked, now unlocking...."
+							PRINT ""
+							&__V128=0
+							&__VC129=V.VALUE(((0x4A005100)+(0x110)))
+							GOSUB dpll_unlock_sequence &__VC129
+							ENTRY &__V130
+						)
+					)
+					V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x110)))+(0x0C)))))))=(0xC804))
+					V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x110)))+(0x10)))))))=(0x2))
+					V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x110)))+(0x14)))))))=(0x1))
+					V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x110)))+(0x18)))))))=(0x4))
+					&__VC131=V.VALUE(((0x4A005100)+(0x110)))
+					GOSUB dpll_lock_sequence &__VC131
+					ENTRY &__V132
+					AREA.SELECT 
+					PRINT " DDR DPLL clock config for " %DECIMAL V.VALUE(\DDR_FREQ) "MHz is in DONE!"
+					PRINT ""
+					&__V133=0
+				)
+			)
+			ELSE
+			(
+				(
+					AREA.SELECT 
+					PRINT " DDR DPLL frequency " %DECIMAL V.VALUE(\DDR_FREQ) "MHz not supported, nothing done."
+					PRINT ""
+					&__V134=0
+				)
+			)
+		)
+	)
+	RETURN
+)
+
+dpll_gpu_config:
+(
+	ENTRY &__VF0 &__VF1
+	
+	VAR.NEW unsigned int \OPP
+	VAR.ASSIGN \OPP=&__VF0
+	
+	VAR.NEW unsigned int \DEVICE_TYPE
+	VAR.ASSIGN \DEVICE_TYPE=&__VF1
+	
+	(
+		VAR.NEW unsigned int \dpll_m
+		VAR.NEW unsigned int \dpll_n
+		VAR.NEW unsigned int \divm2
+		AREA.SELECT 
+		PRINT " GPU DPLL OPP " %DECIMAL V.VALUE(\OPP) " clock config is in progress..."
+		PRINT ""
+		&__V135=0
+		V.IF (((((((((0x1)==(\DEVICE_TYPE)))||(((0x2)==(\DEVICE_TYPE)))))||(((0x3)==(\DEVICE_TYPE)))))||(((0x4)==(\DEVICE_TYPE)))))
+		(
+			(
+				V.IF (((0x1)==(\OPP)))
+				(
+					(
+						V.ASSIGN ((\dpll_m)=(0xC8))
+						V.ASSIGN ((\dpll_n)=(0x3))
+						V.ASSIGN ((\divm2)=(0x2))
+					)
+				)
+				ELSE
+				(
+					(
+						V.ASSIGN ((\dpll_m)=(0xAA))
+						V.ASSIGN ((\dpll_n)=(0x3))
+						V.ASSIGN ((\divm2)=(0x2))
+					)
+				)
+			)
+		)
+		ELSE
+		(
+			(
+				V.IF (((0x2)==(\OPP)))
+				(
+					(
+						V.ASSIGN ((\dpll_m)=(0x10A))
+						V.ASSIGN ((\dpll_n)=(0x4))
+						V.ASSIGN ((\divm2)=(0x2))
+					)
+				)
+				ELSE
+				(
+					V.IF (((0x1)==(\OPP)))
+					(
+						(
+							V.ASSIGN ((\dpll_m)=(0xC8))
+							V.ASSIGN ((\dpll_n)=(0x3))
+							V.ASSIGN ((\divm2)=(0x2))
+						)
+					)
+					ELSE
+					(
+						(
+							V.ASSIGN ((\dpll_m)=(0xAA))
+							V.ASSIGN ((\dpll_n)=(0x3))
+							V.ASSIGN ((\divm2)=(0x2))
+						)
+					)
+				)
+			)
+		)
+		V.IF ((((*(((unsigned int *)(((((0x4A005100)+(0x1D8)))+(0x04)))))))&(0x1)))
+		(
+			(
+				PRINT " GPU DPLL already locked, now unlocking..."
+				PRINT ""
+				&__V136=0
+				&__VC137=V.VALUE(((0x4A005100)+(0x1D8)))
+				GOSUB dpll_unlock_sequence &__VC137
+				ENTRY &__V138
+			)
+		)
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x1D8)))+(0x0C)))))))=(((((\dpll_m)<<(0x8)))|(\dpll_n))))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x1D8)))+(0x10)))))))=(\divm2))
+		&__VC139=V.VALUE(((0x4A005100)+(0x1D8)))
+		GOSUB dpll_lock_sequence &__VC139
+		ENTRY &__V140
+		AREA.SELECT 
+		PRINT " GPU DPLL OPP " %DECIMAL V.VALUE(\OPP) " is DONE!"
+		PRINT ""
+		&__V141=0
+	)
+	RETURN
+)
+
+dpll_dsp_config:
+(
+	ENTRY &__VF0 &__VF1
+	
+	VAR.NEW unsigned int \OPP
+	VAR.ASSIGN \OPP=&__VF0
+	
+	VAR.NEW unsigned int \DEVICE_TYPE
+	VAR.ASSIGN \DEVICE_TYPE=&__VF1
+	
+	(
+		VAR.NEW unsigned int \dpll_m
+		VAR.NEW unsigned int \dpll_n
+		VAR.NEW unsigned int \divm2
+		AREA.SELECT 
+		PRINT " DSP DPLL OPP " %DECIMAL V.VALUE(\OPP) " clock config is in progress..."
+		PRINT ""
+		&__V142=0
+		V.IF (((((((((0x1)==(\DEVICE_TYPE)))||(((0x2)==(\DEVICE_TYPE)))))||(((0x3)==(\DEVICE_TYPE)))))||(((0x4)==(\DEVICE_TYPE)))))
+		(
+			(
+				V.IF (((0x1)==(\OPP)))
+				(
+					(
+						V.ASSIGN ((\dpll_m)=(0xAF))
+						V.ASSIGN ((\dpll_n)=(0x4))
+						V.ASSIGN ((\divm2)=(0x1))
+					)
+				)
+				ELSE
+				(
+					(
+						V.ASSIGN ((\dpll_m)=(0x96))
+						V.ASSIGN ((\dpll_n)=(0x4))
+						V.ASSIGN ((\divm2)=(0x1))
+					)
+				)
+			)
+		)
+		ELSE
+		(
+			(
+				V.IF (((0x2)==(\OPP)))
+				(
+					(
+						V.ASSIGN ((\dpll_m)=(0x96))
+						V.ASSIGN ((\dpll_n)=(0x3))
+						V.ASSIGN ((\divm2)=(0x1))
+					)
+				)
+				ELSE
+				(
+					V.IF (((0x1)==(\OPP)))
+					(
+						(
+							V.ASSIGN ((\dpll_m)=(0x82))
+							V.ASSIGN ((\dpll_n)=(0x3))
+							V.ASSIGN ((\divm2)=(0x1))
+						)
+					)
+					ELSE
+					(
+						(
+							V.ASSIGN ((\dpll_m)=(0x96))
+							V.ASSIGN ((\dpll_n)=(0x4))
+							V.ASSIGN ((\divm2)=(0x1))
+						)
+					)
+				)
+			)
+		)
+		V.IF ((((*(((unsigned int *)(((((0x4A005100)+(0x134)))+(0x04)))))))&(0x1)))
+		(
+			(
+				PRINT " DSP DPLL already locked, now unlocking...."
+				PRINT ""
+				&__V143=0
+				&__VC144=V.VALUE(((0x4A005100)+(0x134)))
+				GOSUB dpll_unlock_sequence &__VC144
+				ENTRY &__V145
+			)
+		)
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x134)))+(0x0C)))))))=(((((\dpll_m)<<(0x8)))|(\dpll_n))))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x134)))+(0x10)))))))=(\divm2))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x134)))+(0x14)))))))=(0x3))
+		&__VC146=V.VALUE(((0x4A005100)+(0x134)))
+		GOSUB dpll_lock_sequence &__VC146
+		ENTRY &__V147
+		AREA.SELECT 
+		PRINT " DSP DPLL OPP " %DECIMAL V.VALUE(\OPP) " is DONE!"
+		PRINT ""
+		&__V148=0
+	)
+	RETURN
+)
+
+dpll_eve_config:
+(
+	ENTRY &__VF0 &__VF1
+	
+	VAR.NEW unsigned int \OPP
+	VAR.ASSIGN \OPP=&__VF0
+	
+	VAR.NEW unsigned int \DEVICE_TYPE
+	VAR.ASSIGN \DEVICE_TYPE=&__VF1
+	
+	(
+		VAR.NEW unsigned int \dpll_m
+		VAR.NEW unsigned int \dpll_n
+		VAR.NEW unsigned int \divm2
+		AREA.SELECT 
+		PRINT " EVE DPLL OPP " %DECIMAL V.VALUE(\OPP) " clock config is in progress..."
+		PRINT ""
+		&__V149=0
+		V.IF (((((((((0x1)==(\DEVICE_TYPE)))||(((0x2)==(\DEVICE_TYPE)))))||(((0x3)==(\DEVICE_TYPE)))))||(((0x4)==(\DEVICE_TYPE)))))
+		(
+			(
+				V.IF (((0x1)==(\OPP)))
+				(
+					(
+						V.ASSIGN ((\dpll_m)=(0xFA))
+						V.ASSIGN ((\dpll_n)=(0x3))
+						V.ASSIGN ((\divm2)=(0x2))
+					)
+				)
+				ELSE
+				(
+					(
+						V.ASSIGN ((\dpll_m)=(0xD6))
+						V.ASSIGN ((\dpll_n)=(0x3))
+						V.ASSIGN ((\divm2)=(0x2))
+					)
+				)
+			)
+		)
+		ELSE
+		(
+			(
+				V.IF (((0x2)==(\OPP)))
+				(
+					(
+						V.ASSIGN ((\dpll_m)=(0x104))
+						V.ASSIGN ((\dpll_n)=(0x3))
+						V.ASSIGN ((\divm2)=(0x2))
+					)
+				)
+				ELSE
+				(
+					V.IF (((0x1)==(\OPP)))
+					(
+						(
+							V.ASSIGN ((\dpll_m)=(0xF0))
+							V.ASSIGN ((\dpll_n)=(0x3))
+							V.ASSIGN ((\divm2)=(0x2))
+						)
+					)
+					ELSE
+					(
+						(
+							V.ASSIGN ((\dpll_m)=(0xD6))
+							V.ASSIGN ((\dpll_n)=(0x3))
+							V.ASSIGN ((\divm2)=(0x2))
+						)
+					)
+				)
+			)
+		)
+		V.IF ((((*(((unsigned int *)(((((0x4A005100)+(0x184)))+(0x04)))))))&(0x1)))
+		(
+			(
+				PRINT " EVE DPLL already locked, now unlocking...."
+				PRINT ""
+				&__V150=0
+				&__VC151=V.VALUE(((0x4A005100)+(0x184)))
+				GOSUB dpll_unlock_sequence &__VC151
+				ENTRY &__V152
+			)
+		)
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x184)))+(0x0C)))))))=(((((\dpll_m)<<(0x8)))|(\dpll_n))))
+		V.ASSIGN (((*(((unsigned int *)(((((0x4A005100)+(0x184)))+(0x10)))))))=(\divm2))
+		&__VC153=V.VALUE(((0x4A005100)+(0x184)))
+		GOSUB dpll_lock_sequence &__VC153
+		ENTRY &__V154
+		AREA.SELECT 
+		PRINT " EVE DPLL OPP " %DECIMAL V.VALUE(\OPP) " is DONE!"
+		PRINT ""
+		&__V155=0
+	)
+	RETURN
+)
+
+dpll_bypass:
+(
+	ENTRY &__VF0
+	
+	VAR.NEW unsigned int \base_address
+	VAR.ASSIGN \base_address=&__VF0
+	
+	VAR.NEW unsigned int \timer
+	V.ASSIGN (\timer)=(0x5)
+	VAR.NEW unsigned int \clken_pll_value
+	V.ASSIGN ((\clken_pll_value)=((*(((unsigned int *)(\base_address))))))
+	V.ASSIGN ((\clken_pll_value)&=((~(((0x7)<<(0x0))))))
+	V.ASSIGN ((\clken_pll_value)|=(((0x4)<<(0x0))))
+	V.ASSIGN (((*(((unsigned int *)(\base_address)))))=(\clken_pll_value))
+	&__V157=V.VALUE(\timer)
+	V.ASSIGN (\timer)=(\timer)-1
+	&__V156=V.VALUE((((((((*(((unsigned int *)(((\base_address)+(0x04)))))))&(0x1)))==(0x1)))&&(&__V157)))
+	WHILE &__V156!=0
+	(
+		&__V158=V.VALUE(\timer)
+		V.ASSIGN (\timer)=(\timer)-1
+		&__V156=V.VALUE((((((((*(((unsigned int *)(((\base_address)+(0x04)))))))&(0x1)))==(0x1)))&&(&__V158)))
+	)
+	V.IF (((\timer)>(0x0)))
+	(
+		&__FUNCTION_RETURN_VALUE=V.VALUE((-(0x1)))
+		RETURN &__FUNCTION_RETURN_VALUE
+	)
+	ELSE
+	(
+		&__FUNCTION_RETURN_VALUE=V.VALUE(0x0)
+		RETURN &__FUNCTION_RETURN_VALUE
+	)
+	RETURN
+)
+
+dpll_lock_sequence:
+(
+	ENTRY &__VF0
+	
+	VAR.NEW unsigned int \base_address
+	VAR.ASSIGN \base_address=&__VF0
+	
+	VAR.NEW unsigned int \timer
+	V.ASSIGN (\timer)=(0x5)
+	V.ASSIGN (((*(((unsigned int *)(\base_address)))))=(0x7))
+	&__V160=V.VALUE(\timer)
+	V.ASSIGN (\timer)=(\timer)-1
+	&__V159=V.VALUE((((((((*(((unsigned int *)(((\base_address)+(0x04)))))))&(0x1)))!=(0x1)))&&(&__V160)))
+	WHILE &__V159!=0
+	(
+		&__V161=V.VALUE(\timer)
+		V.ASSIGN (\timer)=(\timer)-1
+		&__V159=V.VALUE((((((((*(((unsigned int *)(((\base_address)+(0x04)))))))&(0x1)))!=(0x1)))&&(&__V161)))
+	)
+	V.IF (((\timer)<=(0x0)))
+	(
+		PRINT " ERROR: timeout while locking DPLL "
+		PRINT ""
+		&__V162=0
+	)
+	RETURN
+)
+
+dpll_unlock_sequence:
+(
+	ENTRY &__VF0
+	
+	VAR.NEW unsigned int \base_address
+	VAR.ASSIGN \base_address=&__VF0
+	
+	(
+		V.ASSIGN (((*(((unsigned int *)(\base_address)))))&=((~(0x1))))
+	)
+	RETURN
+)
+
+dpll_get_clkout_speed:
+(
+	ENTRY &__VF0 &__VF1 &__VF2
+	
+	VAR.NEW unsigned int \base_address
+	VAR.ASSIGN \base_address=&__VF0
+	
+	VAR.NEW unsigned int \return_clk
+	VAR.ASSIGN \return_clk=&__VF1
+	
+	VAR.NEW unsigned int \print_enable
+	VAR.ASSIGN \print_enable=&__VF2
+	
+	(
+		VAR.NEW unsigned int \temp
+		VAR.NEW unsigned int \dpll_div_n
+		VAR.NEW unsigned int \dpll_div_m
+		VAR.NEW unsigned int \dpll_div_m2
+		VAR.NEW unsigned int \f_dpll
+		VAR.NEW unsigned int \clkst_clkout_M2
+		VAR.NEW unsigned int \clkst_clkoutX2_M2
+		VAR.NEW unsigned int \clkout_M2
+		VAR.NEW unsigned int \clkoutX2_M2
+		VAR.NEW unsigned int \dpll_div_m3
+		VAR.NEW unsigned int \clkst_clkoutX2_M3
+		VAR.NEW unsigned int \clkoutX2_M3
+		V.ASSIGN ((\temp)=((*(((unsigned int *)(((\base_address)+(0x0C))))))))
+		V.ASSIGN ((\dpll_div_n)=(((\temp)&(0x7F))))
+		V.ASSIGN ((\dpll_div_m)=(((((\temp)>>(0x8)))&(0x7FF))))
+		V.ASSIGN ((\f_dpll)=(((((0x14)*(\dpll_div_m)))/(((\dpll_div_n)+(0x1))))))
+		V.ASSIGN ((\temp)=((*(((unsigned int *)(((\base_address)+(0x10))))))))
+		V.ASSIGN ((\dpll_div_m2)=(((\temp)&(0x1F))))
+		V.ASSIGN ((\clkst_clkout_M2)=(((((\temp)>>(0x9)))&(0x1))))
+		V.ASSIGN ((\clkst_clkoutX2_M2)=(((((\temp)>>(0xB)))&(0x1))))
+		V.ASSIGN ((\temp)=((*(((unsigned int *)(((\base_address)+(0x14))))))))
+		V.ASSIGN ((\dpll_div_m3)=(((\temp)&(0x1F))))
+		V.ASSIGN ((\clkst_clkoutX2_M3)=(((((\temp)>>(0x9)))&(0x1))))
+		V.ASSIGN ((\f_dpll)=(((((((0x2)*(0x14)))*(\dpll_div_m)))/(((\dpll_div_n)+(0x1))))))
+		V.IF (((((0x4A005100)+(0x0E0)))==(\base_address)))
+		(
+			(
+				V.ASSIGN ((\temp)=((*(((unsigned int *)(((0x4A005100)+(0x0E0))))))))
+				V.ASSIGN ((\temp)=(((((\temp)>>(0xB)))&(0x1))))
+				V.IF (\temp)
+				(
+					(
+						V.ASSIGN ((\f_dpll)=(((\f_dpll)*(0x4))))
+					)
+				)
+			)
+		)
+		V.IF (((((0x4A005100)+(0x060)))==(\base_address)))
+		(
+			(
+				V.ASSIGN ((\temp)=((*(((unsigned int *)(((((0x4A005100)+(0x060)))+(0x0C))))))))
+				V.ASSIGN ((\temp)=(((((\temp)>>(0x16)))&(0x1))))
+				V.IF (\temp)
+				(
+					(
+						V.ASSIGN ((\f_dpll)=(((\f_dpll)/(0x2))))
+					)
+				)
+			)
+		)
+		V.ASSIGN ((\clkout_M2)=(((\f_dpll)/(((\dpll_div_m2)*(0x2))))))
+		V.IF (((((0x4A005100)+(0x060)))==(\base_address)))
+		(
+			(
+				V.ASSIGN ((\temp)=((*(((unsigned int *)(((((0x4A005100)+(0x060)))+(0x0C))))))))
+				V.ASSIGN ((\temp)=(((((\temp)>>(0x16)))&(0x1))))
+				V.IF (\temp)
+				(
+					(
+						V.ASSIGN ((\clkout_M2)=(((\f_dpll)/(\dpll_div_m2))))
+					)
+				)
+			)
+		)
+		V.ASSIGN ((\clkoutX2_M2)=(((\f_dpll)/(\dpll_div_m2))))
+		V.IF (((0x0)==(\dpll_div_m3)))
+		(
+			(
+				V.ASSIGN ((\clkoutX2_M3)=(0x0))
+			)
+		)
+		ELSE
+		(
+			(
+				V.ASSIGN ((\clkoutX2_M3)=(((\f_dpll)/(\dpll_div_m3))))
+			)
+		)
+		V.ASSIGN ((\temp)=((*(((unsigned int *)(\base_address))))))
+		V.ASSIGN ((\temp)=(((\temp)&(0x7))))
+		V.IF (((0x5)==(\temp)))
+		(
+			(
+				AREA.SELECT 
+				PRINT "  DPLL in IDLE_BYPASS_LOW_POWER mode"
+				PRINT ""
+				&__V163=0
+			)
+		)
+		V.IF (((0x6)==(\temp)))
+		(
+			(
+				AREA.SELECT 
+				PRINT "  DPLL in IDLE_BYPASS_FAST_RELOCK mode"
+				PRINT ""
+				&__V164=0
+			)
+		)
+		V.IF (((0x7)==(\temp)))
+		(
+			(
+				AREA.SELECT 
+				PRINT "  DPLL in LOCK_MODE mode"
+				PRINT ""
+				&__V165=0
+			)
+		)
+		V.IF (\print_enable)
+		(
+			(
+				AREA.SELECT 
+				PRINT "  DPLL CLKOUT_M2 speed is " %DECIMAL V.VALUE(\clkout_M2) " MHz"
+				PRINT ""
+				&__V166=0
+				V.IF (((0x0)==(\clkst_clkout_M2)))
+				(
+					(
+						AREA.SELECT 
+						PRINT "  DPLL CLKOUT_M2 is GATED"
+						PRINT ""
+						PRINT ""
+						&__V167=0
+						V.ASSIGN ((\clkout_M2)=(0x0))
+					)
+				)
+				ELSE
+				(
+					(
+						AREA.SELECT 
+						PRINT "  DPLL CLKOUT_M2 is ACTIVE"
+						PRINT ""
+						PRINT ""
+						&__V168=0
+					)
+				)
+				V.IF (((0x0)==(\clkst_clkoutX2_M2)))
+				(
+					(
+						V.ASSIGN ((\clkoutX2_M2)=(0x0))
+					)
+				)
+				ELSE
+				(
+				)
+				V.IF (((0x0)==(\clkst_clkoutX2_M3)))
+				(
+					(
+						V.ASSIGN ((\clkoutX2_M3)=(0x0))
+					)
+				)
+				ELSE
+				(
+				)
+			)
+		)
+		V.IF (((0x1003)==(\return_clk)))
+		(
+			(
+				&__FUNCTION_RETURN_VALUE=V.VALUE(\clkoutX2_M3)
+				RETURN &__FUNCTION_RETURN_VALUE
+			)
+		)
+		ELSE
+		(
+			V.IF (((0x1002)==(\return_clk)))
+			(
+				(
+					&__FUNCTION_RETURN_VALUE=V.VALUE(\clkoutX2_M2)
+					RETURN &__FUNCTION_RETURN_VALUE
+				)
+			)
+			ELSE
+			(
+				V.IF (((0x1001)==(\return_clk)))
+				(
+					(
+						&__FUNCTION_RETURN_VALUE=V.VALUE(\clkout_M2)
+						RETURN &__FUNCTION_RETURN_VALUE
+					)
+				)
+				ELSE
+				(
+					(
+						&__FUNCTION_RETURN_VALUE=V.VALUE(\f_dpll)
+						RETURN &__FUNCTION_RETURN_VALUE
+					)
+				)
+			)
+		)
+	)
+	RETURN
+)
+
+dpll_get_clkout_speed_hsdiv:
+(
+	ENTRY &__VF0 &__VF1
+	
+	VAR.NEW unsigned int \base_address
+	VAR.ASSIGN \base_address=&__VF0
+	
+	VAR.NEW unsigned int \divider_val
+	VAR.ASSIGN \divider_val=&__VF1
+	
+	(
+		VAR.NEW unsigned int \divhs
+		VAR.NEW unsigned int \clkst
+		VAR.NEW unsigned int \f_dpll
+		VAR.NEW unsigned int \f_divhs
+		&__VC169=V.VALUE(\base_address)
+		&__VC170=V.VALUE(0x1000)
+		&__VC171=V.VALUE(0x0)
+		GOSUB dpll_get_clkout_speed &__VC169 &__VC170 &__VC171
+		ENTRY &__V172
+		V.ASSIGN ((\f_dpll)=(&__V172))
+		V.ASSIGN ((\divhs)=(((\divider_val)&(0x3F))))
+		V.ASSIGN ((\clkst)=(((((\divider_val)>>(0x9)))&(0x1))))
+		V.IF (\clkst)
+		(
+			(
+				V.ASSIGN ((\f_divhs)=(((\f_dpll)/(\divhs))))
+			)
+		)
+		ELSE
+		(
+			(
+				V.ASSIGN ((\f_divhs)=(0x0))
+			)
+		)
+		&__FUNCTION_RETURN_VALUE=V.VALUE(\f_divhs)
+		RETURN &__FUNCTION_RETURN_VALUE
+	)
+	RETURN
+)
+
+__GeL_MeNu_CrEaTe:
+(
+	PRIVATE &__FILENAME
+	&__FILENAME=OS.PPF()
+	MENU.REPROGRAM
+	(&+
+		ADD
+		MENU
+		(
+			POPUP "GEL"
+			(
+				POPUP "TDA2x PRCM MODULE Configuration"
+				(
+					MENUITEM "TDA2x_PRCM_Module_AllEnable_Config" "DO &__FILENAME TDA2x_PRCM_Module_AllEnable_Config"
+				)
+				POPUP "TDA2x PRCM CLOCK Configuration - ADAS"
+				(
+					MENUITEM "TDA2x_PRCM_Clock_Config_OPPNOM_ADAS"  "DO &__FILENAME TDA2x_PRCM_Clock_Config_OPPNOM_ADAS"
+					MENUITEM "TDA2x_PRCM_Clock_Config_OPPOD_ADAS"   "DO &__FILENAME TDA2x_PRCM_Clock_Config_OPPOD_ADAS"
+					MENUITEM "TDA2x_PRCM_Clock_Config_OPPHIGH_ADAS" "DO &__FILENAME TDA2x_PRCM_Clock_Config_OPPHIGH_ADAS"
+				)
+				POPUP "TDA2x PRCM CLOCK Configuration - DRA744-754"
+				(
+					MENUITEM "TDA2x_PRCM_Clock_Config_OPPNOM_DRA744754"  "DO &__FILENAME TDA2x_PRCM_Clock_Config_OPPNOM_DRA744754"
+					MENUITEM "TDA2x_PRCM_Clock_Config_OPPOD_DRA744754"   "DO &__FILENAME TDA2x_PRCM_Clock_Config_OPPOD_DRA744754"
+					MENUITEM "TDA2x_PRCM_Clock_Config_OPPHIGH_DRA744754" "DO &__FILENAME TDA2x_PRCM_Clock_Config_OPPHIGH_DRA744754"
+				)
+				POPUP "TDA2x PRCM CLOCK Configuration - DRA745-755"
+				(
+					MENUITEM "TDA2x_PRCM_Clock_Config_OPPNOM_DRA745755"  "DO &__FILENAME TDA2x_PRCM_Clock_Config_OPPNOM_DRA745755"
+					MENUITEM "TDA2x_PRCM_Clock_Config_OPPOD_DRA745755"   "DO &__FILENAME TDA2x_PRCM_Clock_Config_OPPOD_DRA745755"
+					MENUITEM "TDA2x_PRCM_Clock_Config_OPPHIGH_DRA745755" "DO &__FILENAME TDA2x_PRCM_Clock_Config_OPPHIGH_DRA745755"
+				)
+				POPUP "TDA2x PRCM CLOCK Configuration - DRA746-756"
+				(
+					MENUITEM "TDA2x_PRCM_Clock_Config_OPPNOM_DRA746756"  "DO &__FILENAME TDA2x_PRCM_Clock_Config_OPPNOM_DRA746756"
+					MENUITEM "TDA2x_PRCM_Clock_Config_OPPOD_DRA746756"   "DO &__FILENAME TDA2x_PRCM_Clock_Config_OPPOD_DRA746756"
+					MENUITEM "TDA2x_PRCM_Clock_Config_OPPHIGH_DRA746756" "DO &__FILENAME TDA2x_PRCM_Clock_Config_OPPHIGH_DRA746756"
+				)
+				POPUP "TDA2x PRCM CLOCK Configuration - DRA7x_GENERIC"
+				(
+					MENUITEM "TDA2x_PRCM_Clock_Config_OPPNOM_DRA7x_GENERIC" "DO &__FILENAME TDA2x_PRCM_Clock_Config_OPPNOM_DRA7x_GENERIC"
+				)
+				POPUP "TDA2x PRCM CLOCK Configuration - Common"
+				(
+					MENUITEM "dpll_ddr_config_532"         "DO &__FILENAME dpll_ddr_config_532"
+					MENUITEM "dpll_ddr_config_400"         "DO &__FILENAME dpll_ddr_config_400"
+					MENUITEM "TDA2x_PRCM_Clock_GetConfig" "DO &__FILENAME TDA2x_PRCM_Clock_GetConfig"
+				)
+			)
+		)
+	)
+	RETURN
+)
+
+TDA2x_PRCM_Module_AllEnable_Config:
+(
+	ENTRY
+	(
+		PRINT "--->>> PRCM Configuration for all modules in progress... <<<---"
+		PRINT ""
+		&__V173=0
+		&__VC174=V.VALUE(0x4A009000)
+		&__VC175=V.VALUE(0x00)
+		&__VC176=V.VALUE(0x2)
+		GOSUB prcm_set_clkdomain_state &__VC174 &__VC175 &__VC176
+		ENTRY &__V177
+		&__VC178=V.VALUE(0x4A009700)
+		&__VC179=V.VALUE(0x000)
+		&__VC180=V.VALUE(0x2)
+		GOSUB prcm_set_clkdomain_state &__VC178 &__VC179 &__VC180
+		ENTRY &__V181
+		&__VC182=V.VALUE(0x4A009700)
+		&__VC183=V.VALUE(0x1FC)
+		&__VC184=V.VALUE(0x2)
+		GOSUB prcm_set_clkdomain_state &__VC182 &__VC183 &__VC184
+		ENTRY &__V185
+		&__VC186=V.VALUE(0x4A009700)
+		&__VC187=V.VALUE(0x210)
+		&__VC188=V.VALUE(0x2)
+		GOSUB prcm_set_clkdomain_state &__VC186 &__VC187 &__VC188
+		ENTRY &__V189
+		&__VC190=V.VALUE(0x4A009300)
+		&__VC191=V.VALUE(0x00)
+		&__VC192=V.VALUE(0x2)
+		GOSUB prcm_set_clkdomain_state &__VC190 &__VC191 &__VC192
+		ENTRY &__V193
+		&__VC194=V.VALUE(0x4A009300)
+		&__VC195=V.VALUE(0xC0)
+		&__VC196=V.VALUE(0x2)
+		GOSUB prcm_set_clkdomain_state &__VC194 &__VC195 &__VC196
+		ENTRY &__V197
+		&__VC198=V.VALUE(0x4A008700)
+		&__VC199=V.VALUE(0x400)
+		&__VC200=V.VALUE(0x2)
+		GOSUB prcm_set_clkdomain_state &__VC198 &__VC199 &__VC200
+		ENTRY &__V201
+		&__VC202=V.VALUE(0x4A008700)
+		&__VC203=V.VALUE(0x600)
+		&__VC204=V.VALUE(0x2)
+		GOSUB prcm_set_clkdomain_state &__VC202 &__VC203 &__VC204
+		ENTRY &__V205
+		&__VC206=V.VALUE(0x4A008700)
+		&__VC207=V.VALUE(0x300)
+		&__VC208=V.VALUE(0x2)
+		GOSUB prcm_set_clkdomain_state &__VC206 &__VC207 &__VC208
+		ENTRY &__V209
+		&__VC210=V.VALUE(0x4A008700)
+		&__VC211=V.VALUE(0x000)
+		&__VC212=V.VALUE(0x2)
+		GOSUB prcm_set_clkdomain_state &__VC210 &__VC211 &__VC212
+		ENTRY &__V213
+		&__VC214=V.VALUE(0x4A008700)
+		&__VC215=V.VALUE(0x200)
+		&__VC216=V.VALUE(0x2)
+		GOSUB prcm_set_clkdomain_state &__VC214 &__VC215 &__VC216
+		ENTRY &__V217
+		&__VC218=V.VALUE(0x4A008600)
+		&__VC219=V.VALUE(0x00)
+		&__VC220=V.VALUE(0x2)
+		GOSUB prcm_set_clkdomain_state &__VC218 &__VC219 &__VC220
+		ENTRY &__V221
+		&__VC222=V.VALUE(0x4A009100)
+		&__VC223=V.VALUE(0x00)
+		&__VC224=V.VALUE(0x2)
+		GOSUB prcm_set_clkdomain_state &__VC222 &__VC223 &__VC224
+		ENTRY &__V225
+		&__VC226=V.VALUE(0x4A005500)
+		&__VC227=V.VALUE(0x00)
+		&__VC228=V.VALUE(0x2)
+		GOSUB prcm_set_clkdomain_state &__VC226 &__VC227 &__VC228
+		ENTRY &__V229
+		&__VC230=V.VALUE(0x4A005500)
+		&__VC231=V.VALUE(0x40)
+		&__VC232=V.VALUE(0x2)
+		GOSUB prcm_set_clkdomain_state &__VC230 &__VC231 &__VC232
+		ENTRY &__V233
+		&__VC234=V.VALUE(0x4A005740)
+		&__VC235=V.VALUE(0x00)
+		&__VC236=V.VALUE(0x2)
+		GOSUB prcm_set_clkdomain_state &__VC234 &__VC235 &__VC236
+		ENTRY &__V237
+		&__VC238=V.VALUE(0x4A005760)
+		&__VC239=V.VALUE(0x00)
+		&__VC240=V.VALUE(0x2)
+		GOSUB prcm_set_clkdomain_state &__VC238 &__VC239 &__VC240
+		ENTRY &__V241
+		&__VC242=V.VALUE(0x4AE07800)
+		&__VC243=V.VALUE(0x00)
+		&__VC244=V.VALUE(0x2)
+		GOSUB prcm_set_clkdomain_state &__VC242 &__VC243 &__VC244
+		ENTRY &__V245
+		&__VC246=V.VALUE(0x4A005300)
+		&__VC247=V.VALUE(0x00)
+		&__VC248=V.VALUE(0x2)
+		GOSUB prcm_set_clkdomain_state &__VC246 &__VC247 &__VC248
+		ENTRY &__V249
+		&__VC250=V.VALUE(0x4A005400)
+		&__VC251=V.VALUE(0x00)
+		&__VC252=V.VALUE(0x2)
+		GOSUB prcm_set_clkdomain_state &__VC250 &__VC251 &__VC252
+		ENTRY &__V253
+		&__VC254=V.VALUE(0x4A005600)
+		&__VC255=V.VALUE(0x00)
+		&__VC256=V.VALUE(0x2)
+		GOSUB prcm_set_clkdomain_state &__VC254 &__VC255 &__VC256
+		ENTRY &__V257
+		&__VC258=V.VALUE(0x4A005640)
+		&__VC259=V.VALUE(0x00)
+		&__VC260=V.VALUE(0x2)
+		GOSUB prcm_set_clkdomain_state &__VC258 &__VC259 &__VC260
+		ENTRY &__V261
+		&__VC262=V.VALUE(0x4A005680)
+		&__VC263=V.VALUE(0x00)
+		&__VC264=V.VALUE(0x2)
+		GOSUB prcm_set_clkdomain_state &__VC262 &__VC263 &__VC264
+		ENTRY &__V265
+		&__VC266=V.VALUE(0x4A0056C0)
+		&__VC267=V.VALUE(0x00)
+		&__VC268=V.VALUE(0x2)
+		GOSUB prcm_set_clkdomain_state &__VC266 &__VC267 &__VC268
+		ENTRY &__V269
+		&__VC270=V.VALUE(0x4A005700)
+		&__VC271=V.VALUE(0x00)
+		&__VC272=V.VALUE(0x2)
+		GOSUB prcm_set_clkdomain_state &__VC270 &__VC271 &__VC272
+		ENTRY &__V273
+		&__VC274=V.VALUE(0x4A008F00)
+		&__VC275=V.VALUE(0x00)
+		&__VC276=V.VALUE(0x2)
+		GOSUB prcm_set_clkdomain_state &__VC274 &__VC275 &__VC276
+		ENTRY &__V277
+		&__VC278=V.VALUE(0x4A009000)
+		&__VC279=V.VALUE(0x020)
+		&__VC280=V.VALUE(0x1)
+		&__VC281=V.VALUE(0x00000000)
+		&__VC282=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC278 &__VC279 &__VC280 &__VC281 &__VC282
+		ENTRY &__V283
+		&__VC284=V.VALUE(0x4A009000)
+		&__VC285=V.VALUE(0x028)
+		&__VC286=V.VALUE(0x1)
+		&__VC287=V.VALUE(0x00000000)
+		&__VC288=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC284 &__VC285 &__VC286 &__VC287 &__VC288
+		ENTRY &__V289
+		&__VC290=V.VALUE(0x4A009000)
+		&__VC291=V.VALUE(0x030)
+		&__VC292=V.VALUE(0x1)
+		&__VC293=V.VALUE(0x00000000)
+		&__VC294=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC290 &__VC291 &__VC292 &__VC293 &__VC294
+		ENTRY &__V295
+		&__VC296=V.VALUE(0x4A008700)
+		&__VC297=V.VALUE(0x320)
+		&__VC298=V.VALUE(0x1)
+		&__VC299=V.VALUE(0x00000000)
+		&__VC300=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC296 &__VC297 &__VC298 &__VC299 &__VC300
+		ENTRY &__V301
+		&__VC302=V.VALUE(0x4A008700)
+		&__VC303=V.VALUE(0x420)
+		&__VC304=V.VALUE(0x1)
+		&__VC305=V.VALUE(0x00000000)
+		&__VC306=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC302 &__VC303 &__VC304 &__VC305 &__VC306
+		ENTRY &__V307
+		&__VC308=V.VALUE(0x4A008700)
+		&__VC309=V.VALUE(0x430)
+		&__VC310=V.VALUE(0x1)
+		&__VC311=V.VALUE(0x00000000)
+		&__VC312=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC308 &__VC309 &__VC310 &__VC311 &__VC312
+		ENTRY &__V313
+		&__VC314=V.VALUE(0x4A008700)
+		&__VC315=V.VALUE(0x438)
+		&__VC316=V.VALUE(0x1)
+		&__VC317=V.VALUE(0x00000000)
+		&__VC318=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC314 &__VC315 &__VC316 &__VC317 &__VC318
+		ENTRY &__V319
+		&__VC320=V.VALUE(0x4A008700)
+		&__VC321=V.VALUE(0x428)
+		&__VC322=V.VALUE(0x1)
+		&__VC323=V.VALUE(0x00000000)
+		&__VC324=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC320 &__VC321 &__VC322 &__VC323 &__VC324
+		ENTRY &__V325
+		&__VC326=V.VALUE(0x4A008700)
+		&__VC327=V.VALUE(0x720)
+		&__VC328=V.VALUE(0x1)
+		&__VC329=V.VALUE(0x00000000)
+		&__VC330=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC326 &__VC327 &__VC328 &__VC329 &__VC330
+		ENTRY &__V331
+		&__VC332=V.VALUE(0x4A008700)
+		&__VC333=V.VALUE(0x028)
+		&__VC334=V.VALUE(0x1)
+		&__VC335=V.VALUE(0x00000000)
+		&__VC336=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC332 &__VC333 &__VC334 &__VC335 &__VC336
+		ENTRY &__V337
+		&__VC338=V.VALUE(0x4A008700)
+		&__VC339=V.VALUE(0x020)
+		&__VC340=V.VALUE(0x1)
+		&__VC341=V.VALUE(0x00000000)
+		&__VC342=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC338 &__VC339 &__VC340 &__VC341 &__VC342
+		ENTRY &__V343
+		&__VC344=V.VALUE(0x4A008700)
+		&__VC345=V.VALUE(0x030)
+		&__VC346=V.VALUE(0x1)
+		&__VC347=V.VALUE(0x00000000)
+		&__VC348=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC344 &__VC345 &__VC346 &__VC347 &__VC348
+		ENTRY &__V349
+		&__VC350=V.VALUE(0x4A008700)
+		&__VC351=V.VALUE(0x048)
+		&__VC352=V.VALUE(0x1)
+		&__VC353=V.VALUE(0x00000000)
+		&__VC354=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC350 &__VC351 &__VC352 &__VC353 &__VC354
+		ENTRY &__V355
+		&__VC356=V.VALUE(0x4A008700)
+		&__VC357=V.VALUE(0x050)
+		&__VC358=V.VALUE(0x1)
+		&__VC359=V.VALUE(0x00000000)
+		&__VC360=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC356 &__VC357 &__VC358 &__VC359 &__VC360
+		ENTRY &__V361
+		&__VC362=V.VALUE(0x4A008700)
+		&__VC363=V.VALUE(0x058)
+		&__VC364=V.VALUE(0x1)
+		&__VC365=V.VALUE(0x00000000)
+		&__VC366=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC362 &__VC363 &__VC364 &__VC365 &__VC366
+		ENTRY &__V367
+		&__VC368=V.VALUE(0x4A008700)
+		&__VC369=V.VALUE(0x060)
+		&__VC370=V.VALUE(0x1)
+		&__VC371=V.VALUE(0x00000000)
+		&__VC372=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC368 &__VC369 &__VC370 &__VC371 &__VC372
+		ENTRY &__V373
+		&__VC374=V.VALUE(0x4A008700)
+		&__VC375=V.VALUE(0x068)
+		&__VC376=V.VALUE(0x1)
+		&__VC377=V.VALUE(0x00000000)
+		&__VC378=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC374 &__VC375 &__VC376 &__VC377 &__VC378
+		ENTRY &__V379
+		&__VC380=V.VALUE(0x4A008700)
+		&__VC381=V.VALUE(0x070)
+		&__VC382=V.VALUE(0x1)
+		&__VC383=V.VALUE(0x00000000)
+		&__VC384=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC380 &__VC381 &__VC382 &__VC383 &__VC384
+		ENTRY &__V385
+		&__VC386=V.VALUE(0x4A008700)
+		&__VC387=V.VALUE(0x078)
+		&__VC388=V.VALUE(0x1)
+		&__VC389=V.VALUE(0x00000000)
+		&__VC390=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC386 &__VC387 &__VC388 &__VC389 &__VC390
+		ENTRY &__V391
+		&__VC392=V.VALUE(0x4A008700)
+		&__VC393=V.VALUE(0x080)
+		&__VC394=V.VALUE(0x1)
+		&__VC395=V.VALUE(0x00000000)
+		&__VC396=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC392 &__VC393 &__VC394 &__VC395 &__VC396
+		ENTRY &__V397
+		&__VC398=V.VALUE(0x4A008700)
+		&__VC399=V.VALUE(0x088)
+		&__VC400=V.VALUE(0x2)
+		&__VC401=V.VALUE(0x00000000)
+		&__VC402=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC398 &__VC399 &__VC400 &__VC401 &__VC402
+		ENTRY &__V403
+		&__VC404=V.VALUE(0x4A008700)
+		&__VC405=V.VALUE(0x090)
+		&__VC406=V.VALUE(0x2)
+		&__VC407=V.VALUE(0x00000000)
+		&__VC408=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC404 &__VC405 &__VC406 &__VC407 &__VC408
+		ENTRY &__V409
+		&__VC410=V.VALUE(0x4A008700)
+		&__VC411=V.VALUE(0x620)
+		&__VC412=V.VALUE(0x1)
+		&__VC413=V.VALUE(0x00000000)
+		&__VC414=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC410 &__VC411 &__VC412 &__VC413 &__VC414
+		ENTRY &__V415
+		&__VC416=V.VALUE(0x4A008700)
+		&__VC417=V.VALUE(0x630)
+		&__VC418=V.VALUE(0x1)
+		&__VC419=V.VALUE(0x00000000)
+		&__VC420=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC416 &__VC417 &__VC418 &__VC419 &__VC420
+		ENTRY &__V421
+		&__VC422=V.VALUE(0x4A008700)
+		&__VC423=V.VALUE(0x688)
+		&__VC424=V.VALUE(0x1)
+		&__VC425=V.VALUE(0x00000000)
+		&__VC426=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC422 &__VC423 &__VC424 &__VC425 &__VC426
+		ENTRY &__V427
+		&__VC428=V.VALUE(0x4A008700)
+		&__VC429=V.VALUE(0x690)
+		&__VC430=V.VALUE(0x1)
+		&__VC431=V.VALUE(0x00000000)
+		&__VC432=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC428 &__VC429 &__VC430 &__VC431 &__VC432
+		ENTRY &__V433
+		&__VC434=V.VALUE(0x4A008700)
+		&__VC435=V.VALUE(0x698)
+		&__VC436=V.VALUE(0x1)
+		&__VC437=V.VALUE(0x00000000)
+		&__VC438=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC434 &__VC435 &__VC436 &__VC437 &__VC438
+		ENTRY &__V439
+		&__VC440=V.VALUE(0x4A008700)
+		&__VC441=V.VALUE(0x6A0)
+		&__VC442=V.VALUE(0x1)
+		&__VC443=V.VALUE(0x00000000)
+		&__VC444=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC440 &__VC441 &__VC442 &__VC443 &__VC444
+		ENTRY &__V445
+		&__VC446=V.VALUE(0x4A008700)
+		&__VC447=V.VALUE(0x648)
+		&__VC448=V.VALUE(0x1)
+		&__VC449=V.VALUE(0x00000000)
+		&__VC450=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC446 &__VC447 &__VC448 &__VC449 &__VC450
+		ENTRY &__V451
+		&__VC452=V.VALUE(0x4A008700)
+		&__VC453=V.VALUE(0x650)
+		&__VC454=V.VALUE(0x1)
+		&__VC455=V.VALUE(0x00000000)
+		&__VC456=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC452 &__VC453 &__VC454 &__VC455 &__VC456
+		ENTRY &__V457
+		&__VC458=V.VALUE(0x4A008700)
+		&__VC459=V.VALUE(0x658)
+		&__VC460=V.VALUE(0x1)
+		&__VC461=V.VALUE(0x00000000)
+		&__VC462=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC458 &__VC459 &__VC460 &__VC461 &__VC462
+		ENTRY &__V463
+		&__VC464=V.VALUE(0x4A008700)
+		&__VC465=V.VALUE(0x660)
+		&__VC466=V.VALUE(0x1)
+		&__VC467=V.VALUE(0x00000000)
+		&__VC468=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC464 &__VC465 &__VC466 &__VC467 &__VC468
+		ENTRY &__V469
+		&__VC470=V.VALUE(0x4A008700)
+		&__VC471=V.VALUE(0x668)
+		&__VC472=V.VALUE(0x1)
+		&__VC473=V.VALUE(0x00000000)
+		&__VC474=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC470 &__VC471 &__VC472 &__VC473 &__VC474
+		ENTRY &__V475
+		&__VC476=V.VALUE(0x4A008700)
+		&__VC477=V.VALUE(0x670)
+		&__VC478=V.VALUE(0x1)
+		&__VC479=V.VALUE(0x00000000)
+		&__VC480=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC476 &__VC477 &__VC478 &__VC479 &__VC480
+		ENTRY &__V481
+		&__VC482=V.VALUE(0x4A008700)
+		&__VC483=V.VALUE(0x678)
+		&__VC484=V.VALUE(0x1)
+		&__VC485=V.VALUE(0x00000000)
+		&__VC486=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC482 &__VC483 &__VC484 &__VC485 &__VC486
+		ENTRY &__V487
+		&__VC488=V.VALUE(0x4A008700)
+		&__VC489=V.VALUE(0x680)
+		&__VC490=V.VALUE(0x1)
+		&__VC491=V.VALUE(0x00000000)
+		&__VC492=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC488 &__VC489 &__VC490 &__VC491 &__VC492
+		ENTRY &__V493
+		&__VC494=V.VALUE(0x4A008700)
+		&__VC495=V.VALUE(0x628)
+		&__VC496=V.VALUE(0x1)
+		&__VC497=V.VALUE(0x00000000)
+		&__VC498=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC494 &__VC495 &__VC496 &__VC497 &__VC498
+		ENTRY &__V499
+		&__VC500=V.VALUE(0x4A005500)
+		&__VC501=V.VALUE(0x058)
+		&__VC502=V.VALUE(0x2)
+		&__VC503=V.VALUE(0x00000000)
+		&__VC504=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC500 &__VC501 &__VC502 &__VC503 &__VC504
+		ENTRY &__V505
+		&__VC506=V.VALUE(0x4A005500)
+		&__VC507=V.VALUE(0x060)
+		&__VC508=V.VALUE(0x2)
+		&__VC509=V.VALUE(0x00000000)
+		&__VC510=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC506 &__VC507 &__VC508 &__VC509 &__VC510
+		ENTRY &__V511
+		&__VC512=V.VALUE(0x4A005500)
+		&__VC513=V.VALUE(0x068)
+		&__VC514=V.VALUE(0x2)
+		&__VC515=V.VALUE(0x00000000)
+		&__VC516=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC512 &__VC513 &__VC514 &__VC515 &__VC516
+		ENTRY &__V517
+		&__VC518=V.VALUE(0x4A005500)
+		&__VC519=V.VALUE(0x070)
+		&__VC520=V.VALUE(0x2)
+		&__VC521=V.VALUE(0x00000000)
+		&__VC522=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC518 &__VC519 &__VC520 &__VC521 &__VC522
+		ENTRY &__V523
+		&__VC524=V.VALUE(0x4A009300)
+		&__VC525=V.VALUE(0x028)
+		&__VC526=V.VALUE(0x2)
+		&__VC527=V.VALUE(0x00000000)
+		&__VC528=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC524 &__VC525 &__VC526 &__VC527 &__VC528
+		ENTRY &__V529
+		&__VC530=V.VALUE(0x4A009300)
+		&__VC531=V.VALUE(0x030)
+		&__VC532=V.VALUE(0x2)
+		&__VC533=V.VALUE(0x00000000)
+		&__VC534=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC530 &__VC531 &__VC532 &__VC533 &__VC534
+		ENTRY &__V535
+		&__VC536=V.VALUE(0x4A009300)
+		&__VC537=V.VALUE(0x0D0)
+		&__VC538=V.VALUE(0x2)
+		&__VC539=V.VALUE(0x00000000)
+		&__VC540=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC536 &__VC537 &__VC538 &__VC539 &__VC540
+		ENTRY &__V541
+		&__VC542=V.VALUE(0x4A009700)
+		&__VC543=V.VALUE(0x00C)
+		&__VC544=V.VALUE(0x1)
+		&__VC545=V.VALUE(0x00000000)
+		&__VC546=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC542 &__VC543 &__VC544 &__VC545 &__VC546
+		ENTRY &__V547
+		&__VC548=V.VALUE(0x4A009700)
+		&__VC549=V.VALUE(0x014)
+		&__VC550=V.VALUE(0x1)
+		&__VC551=V.VALUE(0x00000000)
+		&__VC552=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC548 &__VC549 &__VC550 &__VC551 &__VC552
+		ENTRY &__V553
+		&__VC554=V.VALUE(0x4A009700)
+		&__VC555=V.VALUE(0x0C8)
+		&__VC556=V.VALUE(0x2)
+		&__VC557=V.VALUE(0x02000000)
+		&__VC558=V.VALUE(0x0F000000)
+		GOSUB prcm_set_module_mode &__VC554 &__VC555 &__VC556 &__VC557 &__VC558
+		ENTRY &__V559
+		&__VC560=V.VALUE(0x4A009700)
+		&__VC561=V.VALUE(0x0D0)
+		&__VC562=V.VALUE(0x2)
+		&__VC563=V.VALUE(0x02000000)
+		&__VC564=V.VALUE(0x0F000000)
+		GOSUB prcm_set_module_mode &__VC560 &__VC561 &__VC562 &__VC563 &__VC564
+		ENTRY &__V565
+		&__VC566=V.VALUE(0x4A009700)
+		&__VC567=V.VALUE(0x0D8)
+		&__VC568=V.VALUE(0x2)
+		&__VC569=V.VALUE(0x02000000)
+		&__VC570=V.VALUE(0x0F000000)
+		GOSUB prcm_set_module_mode &__VC566 &__VC567 &__VC568 &__VC569 &__VC570
+		ENTRY &__V571
+		&__VC572=V.VALUE(0x4A009700)
+		&__VC573=V.VALUE(0x130)
+		&__VC574=V.VALUE(0x2)
+		&__VC575=V.VALUE(0x02000000)
+		&__VC576=V.VALUE(0x0F000000)
+		GOSUB prcm_set_module_mode &__VC572 &__VC573 &__VC574 &__VC575 &__VC576
+		ENTRY &__V577
+		&__VC578=V.VALUE(0x4A009700)
+		&__VC579=V.VALUE(0x060)
+		&__VC580=V.VALUE(0x1)
+		&__VC581=V.VALUE(0x00000000)
+		&__VC582=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC578 &__VC579 &__VC580 &__VC581 &__VC582
+		ENTRY &__V583
+		&__VC584=V.VALUE(0x4A009700)
+		&__VC585=V.VALUE(0x068)
+		&__VC586=V.VALUE(0x1)
+		&__VC587=V.VALUE(0x00000000)
+		&__VC588=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC584 &__VC585 &__VC586 &__VC587 &__VC588
+		ENTRY &__V589
+		&__VC590=V.VALUE(0x4A009700)
+		&__VC591=V.VALUE(0x070)
+		&__VC592=V.VALUE(0x1)
+		&__VC593=V.VALUE(0x00000000)
+		&__VC594=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC590 &__VC591 &__VC592 &__VC593 &__VC594
+		ENTRY &__V595
+		&__VC596=V.VALUE(0x4A009700)
+		&__VC597=V.VALUE(0x078)
+		&__VC598=V.VALUE(0x1)
+		&__VC599=V.VALUE(0x00000000)
+		&__VC600=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC596 &__VC597 &__VC598 &__VC599 &__VC600
+		ENTRY &__V601
+		&__VC602=V.VALUE(0x4A009700)
+		&__VC603=V.VALUE(0x080)
+		&__VC604=V.VALUE(0x1)
+		&__VC605=V.VALUE(0x00000000)
+		&__VC606=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC602 &__VC603 &__VC604 &__VC605 &__VC606
+		ENTRY &__V607
+		&__VC608=V.VALUE(0x4A009700)
+		&__VC609=V.VALUE(0x110)
+		&__VC610=V.VALUE(0x1)
+		&__VC611=V.VALUE(0x00000000)
+		&__VC612=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC608 &__VC609 &__VC610 &__VC611 &__VC612
+		ENTRY &__V613
+		&__VC614=V.VALUE(0x4A009700)
+		&__VC615=V.VALUE(0x118)
+		&__VC616=V.VALUE(0x1)
+		&__VC617=V.VALUE(0x00000000)
+		&__VC618=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC614 &__VC615 &__VC616 &__VC617 &__VC618
+		ENTRY &__V619
+		&__VC620=V.VALUE(0x4A009700)
+		&__VC621=V.VALUE(0x0A0)
+		&__VC622=V.VALUE(0x2)
+		&__VC623=V.VALUE(0x00000000)
+		&__VC624=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC620 &__VC621 &__VC622 &__VC623 &__VC624
+		ENTRY &__V625
+		&__VC626=V.VALUE(0x4A009700)
+		&__VC627=V.VALUE(0x0A8)
+		&__VC628=V.VALUE(0x2)
+		&__VC629=V.VALUE(0x00000000)
+		&__VC630=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC626 &__VC627 &__VC628 &__VC629 &__VC630
+		ENTRY &__V631
+		&__VC632=V.VALUE(0x4A009700)
+		&__VC633=V.VALUE(0x0B0)
+		&__VC634=V.VALUE(0x2)
+		&__VC635=V.VALUE(0x00000000)
+		&__VC636=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC632 &__VC633 &__VC634 &__VC635 &__VC636
+		ENTRY &__V637
+		&__VC638=V.VALUE(0x4A009700)
+		&__VC639=V.VALUE(0x0B8)
+		&__VC640=V.VALUE(0x2)
+		&__VC641=V.VALUE(0x00000000)
+		&__VC642=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC638 &__VC639 &__VC640 &__VC641 &__VC642
+		ENTRY &__V643
+		&__VC644=V.VALUE(0x4A009700)
+		&__VC645=V.VALUE(0x0C0)
+		&__VC646=V.VALUE(0x1)
+		&__VC647=V.VALUE(0x00000000)
+		&__VC648=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC644 &__VC645 &__VC646 &__VC647 &__VC648
+		ENTRY &__V649
+		&__VC650=V.VALUE(0x4A009700)
+		&__VC651=V.VALUE(0x0F0)
+		&__VC652=V.VALUE(0x2)
+		&__VC653=V.VALUE(0x00000000)
+		&__VC654=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC650 &__VC651 &__VC652 &__VC653 &__VC654
+		ENTRY &__V655
+		&__VC656=V.VALUE(0x4A009700)
+		&__VC657=V.VALUE(0x120)
+		&__VC658=V.VALUE(0x2)
+		&__VC659=V.VALUE(0x00000000)
+		&__VC660=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC656 &__VC657 &__VC658 &__VC659 &__VC660
+		ENTRY &__V661
+		&__VC662=V.VALUE(0x4A009700)
+		&__VC663=V.VALUE(0x128)
+		&__VC664=V.VALUE(0x2)
+		&__VC665=V.VALUE(0x00000000)
+		&__VC666=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC662 &__VC663 &__VC664 &__VC665 &__VC666
+		ENTRY &__V667
+		&__VC668=V.VALUE(0x4A009700)
+		&__VC669=V.VALUE(0x028)
+		&__VC670=V.VALUE(0x2)
+		&__VC671=V.VALUE(0x00000000)
+		&__VC672=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC668 &__VC669 &__VC670 &__VC671 &__VC672
+		ENTRY &__V673
+		&__VC674=V.VALUE(0x4A009700)
+		&__VC675=V.VALUE(0x030)
+		&__VC676=V.VALUE(0x2)
+		&__VC677=V.VALUE(0x00000000)
+		&__VC678=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC674 &__VC675 &__VC676 &__VC677 &__VC678
+		ENTRY &__V679
+		&__VC680=V.VALUE(0x4A009700)
+		&__VC681=V.VALUE(0x038)
+		&__VC682=V.VALUE(0x2)
+		&__VC683=V.VALUE(0x00000000)
+		&__VC684=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC680 &__VC681 &__VC682 &__VC683 &__VC684
+		ENTRY &__V685
+		&__VC686=V.VALUE(0x4A009700)
+		&__VC687=V.VALUE(0x040)
+		&__VC688=V.VALUE(0x2)
+		&__VC689=V.VALUE(0x00000000)
+		&__VC690=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC686 &__VC687 &__VC688 &__VC689 &__VC690
+		ENTRY &__V691
+		&__VC692=V.VALUE(0x4A009700)
+		&__VC693=V.VALUE(0x048)
+		&__VC694=V.VALUE(0x2)
+		&__VC695=V.VALUE(0x00000000)
+		&__VC696=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC692 &__VC693 &__VC694 &__VC695 &__VC696
+		ENTRY &__V697
+		&__VC698=V.VALUE(0x4A009700)
+		&__VC699=V.VALUE(0x050)
+		&__VC700=V.VALUE(0x2)
+		&__VC701=V.VALUE(0x00000000)
+		&__VC702=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC698 &__VC699 &__VC700 &__VC701 &__VC702
+		ENTRY &__V703
+		&__VC704=V.VALUE(0x4A009700)
+		&__VC705=V.VALUE(0x138)
+		&__VC706=V.VALUE(0x2)
+		&__VC707=V.VALUE(0x05000000)
+		&__VC708=V.VALUE(0x07000000)
+		GOSUB prcm_set_module_mode &__VC704 &__VC705 &__VC706 &__VC707 &__VC708
+		ENTRY &__V709
+		&__VC710=V.VALUE(0x4A009700)
+		&__VC711=V.VALUE(0x140)
+		&__VC712=V.VALUE(0x2)
+		&__VC713=V.VALUE(0x00000000)
+		&__VC714=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC710 &__VC711 &__VC712 &__VC713 &__VC714
+		ENTRY &__V715
+		&__VC716=V.VALUE(0x4A005300)
+		&__VC717=V.VALUE(0x020)
+		&__VC718=V.VALUE(0x2)
+		&__VC719=V.VALUE(0x00000000)
+		&__VC720=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC716 &__VC717 &__VC718 &__VC719 &__VC720
+		ENTRY &__V721
+		&__VC722=V.VALUE(0x4A005760)
+		&__VC723=V.VALUE(0x004)
+		&__VC724=V.VALUE(0x1)
+		&__VC725=V.VALUE(0x00000000)
+		&__VC726=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC722 &__VC723 &__VC724 &__VC725 &__VC726
+		ENTRY &__V727
+		&__VC728=V.VALUE(0x4AE07800)
+		&__VC729=V.VALUE(0x038)
+		&__VC730=V.VALUE(0x1)
+		&__VC731=V.VALUE(0x00000000)
+		&__VC732=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC728 &__VC729 &__VC730 &__VC731 &__VC732
+		ENTRY &__V733
+		&__VC734=V.VALUE(0x4AE07800)
+		&__VC735=V.VALUE(0x040)
+		&__VC736=V.VALUE(0x2)
+		&__VC737=V.VALUE(0x00000000)
+		&__VC738=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC734 &__VC735 &__VC736 &__VC737 &__VC738
+		ENTRY &__V739
+		&__VC740=V.VALUE(0x4AE07800)
+		&__VC741=V.VALUE(0x048)
+		&__VC742=V.VALUE(0x2)
+		&__VC743=V.VALUE(0x00000000)
+		&__VC744=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC740 &__VC741 &__VC742 &__VC743 &__VC744
+		ENTRY &__V745
+		&__VC746=V.VALUE(0x4AE07800)
+		&__VC747=V.VALUE(0x028)
+		&__VC748=V.VALUE(0x2)
+		&__VC749=V.VALUE(0x00000000)
+		&__VC750=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC746 &__VC747 &__VC748 &__VC749 &__VC750
+		ENTRY &__V751
+		&__VC752=V.VALUE(0x4AE07800)
+		&__VC753=V.VALUE(0x030)
+		&__VC754=V.VALUE(0x2)
+		&__VC755=V.VALUE(0x00000000)
+		&__VC756=V.VALUE(0x00000000)
+		GOSUB prcm_set_module_mode &__VC752 &__VC753 &__VC754 &__VC755 &__VC756
+		ENTRY &__V757
+		&__VC758=V.VALUE(0x4A008F00)
+		&__VC759=V.VALUE(0x028)
+		&__VC760=V.VALUE(0x1)
+		GOSUB prcm_set_proc_mode &__VC758 &__VC759 &__VC760
+		ENTRY &__V761
+		&__VC762=V.VALUE(0x4A008F00)
+		&__VC763=V.VALUE(0x020)
+		&__VC764=V.VALUE(0x1)
+		GOSUB prcm_set_proc_mode &__VC762 &__VC763 &__VC764
+		ENTRY &__V765
+		&__VC766=V.VALUE(0x4A008700)
+		&__VC767=V.VALUE(0x220)
+		&__VC768=V.VALUE(0x1)
+		GOSUB prcm_set_proc_mode &__VC766 &__VC767 &__VC768
+		ENTRY &__V769
+		&__VC770=V.VALUE(0x4A009100)
+		&__VC771=V.VALUE(0x020)
+		&__VC772=V.VALUE(0x2)
+		GOSUB prcm_set_dss_mode &__VC770 &__VC771 &__VC772
+		ENTRY &__V773
+		&__VC774=V.VALUE(0x4A005500)
+		&__VC775=V.VALUE(0x020)
+		&__VC776=V.VALUE(0x1)
+		GOSUB prcm_set_ipu1_mode &__VC774 &__VC775 &__VC776
+		ENTRY &__V777
+		PRINT "--->>> PRCM Configuration for all modules is DONE! <<<---"
+		PRINT ""
+		&__V778=0
+	)
+	RETURN
+)
+
+TDA2x_PRCM_Clock_Config_OPPNOM_ADAS:
+(
+	ENTRY
+	(
+		&__VC779=V.VALUE(0x0)
+		&__VC780=V.VALUE(0x0)
+		GOSUB TDA2x_PRCM_Clock_Config_API &__VC779 &__VC780
+		ENTRY &__V781
+	)
+	RETURN
+)
+
+TDA2x_PRCM_Clock_Config_OPPOD_ADAS:
+(
+	ENTRY
+	(
+		&__VC782=V.VALUE(0x1)
+		&__VC783=V.VALUE(0x0)
+		GOSUB TDA2x_PRCM_Clock_Config_API &__VC782 &__VC783
+		ENTRY &__V784
+	)
+	RETURN
+)
+
+TDA2x_PRCM_Clock_Config_OPPHIGH_ADAS:
+(
+	ENTRY
+	(
+		&__VC785=V.VALUE(0x2)
+		&__VC786=V.VALUE(0x0)
+		GOSUB TDA2x_PRCM_Clock_Config_API &__VC785 &__VC786
+		ENTRY &__V787
+	)
+	RETURN
+)
+
+TDA2x_PRCM_Clock_Config_OPPNOM_DRA744754:
+(
+	ENTRY
+	(
+		&__VC788=V.VALUE(0x0)
+		&__VC789=V.VALUE(0x1)
+		GOSUB TDA2x_PRCM_Clock_Config_API &__VC788 &__VC789
+		ENTRY &__V790
+	)
+	RETURN
+)
+
+TDA2x_PRCM_Clock_Config_OPPOD_DRA744754:
+(
+	ENTRY
+	(
+		&__VC791=V.VALUE(0x1)
+		&__VC792=V.VALUE(0x1)
+		GOSUB TDA2x_PRCM_Clock_Config_API &__VC791 &__VC792
+		ENTRY &__V793
+	)
+	RETURN
+)
+
+TDA2x_PRCM_Clock_Config_OPPHIGH_DRA744754:
+(
+	ENTRY
+	(
+		&__VC794=V.VALUE(0x2)
+		&__VC795=V.VALUE(0x1)
+		GOSUB TDA2x_PRCM_Clock_Config_API &__VC794 &__VC795
+		ENTRY &__V796
+	)
+	RETURN
+)
+
+TDA2x_PRCM_Clock_Config_OPPNOM_DRA745755:
+(
+	ENTRY
+	(
+		&__VC797=V.VALUE(0x0)
+		&__VC798=V.VALUE(0x2)
+		GOSUB TDA2x_PRCM_Clock_Config_API &__VC797 &__VC798
+		ENTRY &__V799
+	)
+	RETURN
+)
+
+TDA2x_PRCM_Clock_Config_OPPOD_DRA745755:
+(
+	ENTRY
+	(
+		&__VC800=V.VALUE(0x1)
+		&__VC801=V.VALUE(0x2)
+		GOSUB TDA2x_PRCM_Clock_Config_API &__VC800 &__VC801
+		ENTRY &__V802
+	)
+	RETURN
+)
+
+TDA2x_PRCM_Clock_Config_OPPHIGH_DRA745755:
+(
+	ENTRY
+	(
+		&__VC803=V.VALUE(0x2)
+		&__VC804=V.VALUE(0x2)
+		GOSUB TDA2x_PRCM_Clock_Config_API &__VC803 &__VC804
+		ENTRY &__V805
+	)
+	RETURN
+)
+
+TDA2x_PRCM_Clock_Config_OPPNOM_DRA746756:
+(
+	ENTRY
+	(
+		&__VC806=V.VALUE(0x0)
+		&__VC807=V.VALUE(0x3)
+		GOSUB TDA2x_PRCM_Clock_Config_API &__VC806 &__VC807
+		ENTRY &__V808
+	)
+	RETURN
+)
+
+TDA2x_PRCM_Clock_Config_OPPOD_DRA746756:
+(
+	ENTRY
+	(
+		&__VC809=V.VALUE(0x1)
+		&__VC810=V.VALUE(0x3)
+		GOSUB TDA2x_PRCM_Clock_Config_API &__VC809 &__VC810
+		ENTRY &__V811
+	)
+	RETURN
+)
+
+TDA2x_PRCM_Clock_Config_OPPHIGH_DRA746756:
+(
+	GOSUB TDA2x_PRCM_Clock_Config_API 0x2 0x3
+	RETURN
+)
+
+TDA2x_PRCM_Clock_Config_OPPNOM_DRA7x_GENERIC:
+(
+	GOSUB TDA2x_PRCM_Clock_Config_API 0x0 0x4
+	RETURN
+)
+
+dpll_ddr_config_532:
+(
+	ENTRY
+	(
+		&__VC818=V.VALUE(0x214)
+		GOSUB dpll_ddr_config &__VC818
+		ENTRY &__V819
+	)
+	RETURN
+)
+
+dpll_ddr_config_400:
+(
+	ENTRY
+	(
+		&__VC820=V.VALUE(0x190)
+		GOSUB dpll_ddr_config &__VC820
+		ENTRY &__V821
+	)
+	RETURN
+)
+
+TDA2x_PRCM_Clock_GetConfig:
+(
+	ENTRY
+	(
+		VAR.NEW unsigned int \temp
+		VAR.NEW unsigned int \ipu_clksel
+		VAR.NEW unsigned int \divhs
+		VAR.NEW unsigned int \clkst
+		VAR.NEW unsigned int \core_fdpll
+		VAR.NEW unsigned int \ipu1_clk
+		VAR.NEW unsigned int \ipu2_clk
+		VAR.NEW unsigned int \gpu_core_clk
+		VAR.NEW unsigned int \gpu_hyd_clk
+		PRINT "--->>> Reading DPLL configurations...<<<---"
+		PRINT ""
+		&__V822=0
+		PRINT "       Frequency values are as per M/N/etc..."
+		PRINT ""
+		&__V823=0
+		PRINT " MPU:"
+		PRINT ""
+		&__V824=0
+		&__VC825=V.VALUE(((0x4A005100)+(0x060)))
+		&__VC826=V.VALUE(0x1000)
+		&__VC827=V.VALUE(0x1)
+		GOSUB dpll_get_clkout_speed &__VC825 &__VC826 &__VC827
+		ENTRY &__V828
+		PRINT " CORE:"
+		PRINT ""
+		&__V829=0
+		&__VC830=V.VALUE(((0x4A005100)+(0x020)))
+		&__VC831=V.VALUE(0x1000)
+		&__VC832=V.VALUE(0x1)
+		GOSUB dpll_get_clkout_speed &__VC830 &__VC831 &__VC832
+		ENTRY &__V833
+		V.ASSIGN ((\core_fdpll)=(&__V833))
+		PRINT " ABE:"
+		PRINT ""
+		&__V834=0
+		&__VC835=V.VALUE(((0x4A005100)+(0x0E0)))
+		&__VC836=V.VALUE(0x1000)
+		&__VC837=V.VALUE(0x1)
+		GOSUB dpll_get_clkout_speed &__VC835 &__VC836 &__VC837
+		ENTRY &__V838
+		PRINT " IVA:"
+		PRINT ""
+		&__V839=0
+		&__VC840=V.VALUE(((0x4A005100)+(0x0A0)))
+		&__VC841=V.VALUE(0x1000)
+		&__VC842=V.VALUE(0x1)
+		GOSUB dpll_get_clkout_speed &__VC840 &__VC841 &__VC842
+		ENTRY &__V843
+		PRINT " DDR:"
+		PRINT ""
+		&__V844=0
+		&__VC845=V.VALUE(((0x4A005100)+(0x110)))
+		&__VC846=V.VALUE(0x1000)
+		&__VC847=V.VALUE(0x1)
+		GOSUB dpll_get_clkout_speed &__VC845 &__VC846 &__VC847
+		ENTRY &__V848
+		PRINT " DSP:"
+		PRINT ""
+		&__V849=0
+		&__VC850=V.VALUE(((0x4A005100)+(0x134)))
+		&__VC851=V.VALUE(0x1000)
+		&__VC852=V.VALUE(0x1)
+		GOSUB dpll_get_clkout_speed &__VC850 &__VC851 &__VC852
+		ENTRY &__V853
+		PRINT " EVE:"
+		PRINT ""
+		&__V854=0
+		&__VC855=V.VALUE(((0x4A005100)+(0x184)))
+		&__VC856=V.VALUE(0x1000)
+		&__VC857=V.VALUE(0x1)
+		GOSUB dpll_get_clkout_speed &__VC855 &__VC856 &__VC857
+		ENTRY &__V858
+		PRINT " GMAC:"
+		PRINT ""
+		&__V859=0
+		&__VC860=V.VALUE(((0x4A005100)+(0x1A8)))
+		&__VC861=V.VALUE(0x1000)
+		&__VC862=V.VALUE(0x1)
+		GOSUB dpll_get_clkout_speed &__VC860 &__VC861 &__VC862
+		ENTRY &__V863
+		PRINT " GPU:"
+		PRINT ""
+		&__V864=0
+		&__VC865=V.VALUE(((0x4A005100)+(0x1D8)))
+		&__VC866=V.VALUE(0x1000)
+		&__VC867=V.VALUE(0x1)
+		GOSUB dpll_get_clkout_speed &__VC865 &__VC866 &__VC867
+		ENTRY &__V868
+		V.ASSIGN ((\gpu_core_clk)=(&__V868))
+		&__VC869=V.VALUE(((0x4A005100)+(0x1D8)))
+		&__VC870=V.VALUE(0x1000)
+		&__VC871=V.VALUE(0x0)
+		GOSUB dpll_get_clkout_speed &__VC869 &__VC870 &__VC871
+		ENTRY &__V872
+		V.ASSIGN ((\gpu_hyd_clk)=(&__V872))
+		PRINT " PER:"
+		PRINT ""
+		&__V873=0
+		&__VC874=V.VALUE(((0x4A008100)+(0x040)))
+		&__VC875=V.VALUE(0x1000)
+		&__VC876=V.VALUE(0x1)
+		GOSUB dpll_get_clkout_speed &__VC874 &__VC875 &__VC876
+		ENTRY &__V877
+		PRINT " PCIE:"
+		PRINT ""
+		&__V878=0
+		&__VC879=V.VALUE(((0x4A008100)+(0x100)))
+		&__VC880=V.VALUE(0x1000)
+		&__VC881=V.VALUE(0x1)
+		GOSUB dpll_get_clkout_speed &__VC879 &__VC880 &__VC881
+		ENTRY &__V882
+		PRINT " Clock inputs to different modules:"
+		PRINT ""
+		&__V883=0
+		V.ASSIGN ((\temp)=((*(((unsigned int *)(((0x4A005500)+(0x020))))))))
+		V.ASSIGN ((\ipu_clksel)=(((((\temp)>>(0x18)))&(0x1))))
+		V.IF (((\ipu_clksel)==(0x0)))
+		(
+			(
+				&__VC884=V.VALUE(((0x4A005100)+(0x0E0)))
+				&__VC885=V.VALUE(0x1002)
+				&__VC886=V.VALUE(0x1)
+				GOSUB dpll_get_clkout_speed &__VC884 &__VC885 &__VC886
+				ENTRY &__V887
+				V.ASSIGN ((\ipu1_clk)=(&__V887))
+				PRINT "  IPU1 functional clock is CLKOUTX2_M2 from ABE DPLL."
+				PRINT ""
+				&__V888=0
+			)
+		)
+		ELSE
+		(
+			(
+				PRINT "  IPU1 functional clock is from CORE DPLL (CLKOUTX2_H22)."
+				PRINT ""
+				&__V889=0
+				&__VC890=V.VALUE(((0x4A005100)+(0x020)))
+				&__VC891=V.VALUE((*(((unsigned int *)(((((0x4A005100)+(0x020)))+(0x34)))))))
+				GOSUB dpll_get_clkout_speed_hsdiv &__VC890 &__VC891
+				ENTRY &__V892
+				V.ASSIGN ((\ipu1_clk)=(&__V892))
+			)
+		)
+		AREA.SELECT 
+		PRINT "  IPU1 CPU speed is " %DECIMAL V.VALUE(((\ipu1_clk)/(0x2))) " MHz"
+		PRINT ""
+		PRINT ""
+		&__V893=0
+		PRINT "  IPU2 functional clock is from CORE DPLL (CLKOUTX2_H22)."
+		PRINT ""
+		&__V894=0
+		&__VC895=V.VALUE(((0x4A005100)+(0x020)))
+		&__VC896=V.VALUE((*(((unsigned int *)(((((0x4A005100)+(0x020)))+(0x34)))))))
+		GOSUB dpll_get_clkout_speed_hsdiv &__VC895 &__VC896
+		ENTRY &__V897
+		V.ASSIGN ((\ipu2_clk)=(&__V897))
+		AREA.SELECT 
+		PRINT "  IPU2 CPU speed is " %DECIMAL V.VALUE(((\ipu2_clk)/(0x2))) " MHz"
+		PRINT ""
+		PRINT ""
+		&__V898=0
+		V.IF (((0x00000000)==((((*(((unsigned int *)(((0x4A009200)+(0x020)))))))&(0x03000000)))))
+		(
+			(
+				&__VC899=V.VALUE(((0x4A005100)+(0x020)))
+				&__VC900=V.VALUE((*(((unsigned int *)(((((0x4A005100)+(0x020)))+(0x24)))))))
+				GOSUB dpll_get_clkout_speed_hsdiv &__VC899 &__VC900
+				ENTRY &__V901
+				V.ASSIGN ((\gpu_core_clk)=(&__V901))
+				PRINT "  GPU CORE clock is from CORE DPLL (CLKOUTX2_H14)."
+				PRINT ""
+				&__V902=0
+			)
+		)
+		V.IF (((0x01000000)==((((*(((unsigned int *)(((0x4A009200)+(0x020)))))))&(0x03000000)))))
+		(
+			(
+				&__VC903=V.VALUE(((0x4A008100)+(0x040)))
+				&__VC904=V.VALUE((*(((unsigned int *)(((((0x4A008100)+(0x040)))+(0x24)))))))
+				GOSUB dpll_get_clkout_speed_hsdiv &__VC903 &__VC904
+				ENTRY &__V905
+				V.ASSIGN ((\gpu_core_clk)=(&__V905))
+				PRINT "  GPU CORE clock is from PER DPLL (CLKOUTX2_H14)."
+				PRINT ""
+				&__V906=0
+			)
+		)
+		V.IF (((0x02000000)==((((*(((unsigned int *)(((0x4A009200)+(0x020)))))))&(0x03000000)))))
+		(
+			(
+				PRINT "  GPU CORE clock is from GPU DPLL."
+				PRINT ""
+				&__V907=0
+			)
+		)
+		AREA.SELECT 
+		PRINT "  GPU CORE clock speed is " %DECIMAL V.VALUE(\gpu_core_clk) " MHz"
+		PRINT ""
+		&__V908=0
+		V.IF (((0x00000000)==((((*(((unsigned int *)(((0x4A009200)+(0x020)))))))&(0x0C000000)))))
+		(
+			(
+				&__VC909=V.VALUE(((0x4A005100)+(0x020)))
+				&__VC910=V.VALUE((*(((unsigned int *)(((((0x4A005100)+(0x020)))+(0x24)))))))
+				GOSUB dpll_get_clkout_speed_hsdiv &__VC909 &__VC910
+				ENTRY &__V911
+				V.ASSIGN ((\gpu_hyd_clk)=(&__V911))
+				PRINT "  GPU HYD clock is from CORE DPLL (CLKOUTX2_H14)."
+				PRINT ""
+				&__V912=0
+			)
+		)
+		V.IF (((0x04000000)==((((*(((unsigned int *)(((0x4A009200)+(0x020)))))))&(0x0C000000)))))
+		(
+			(
+				&__VC913=V.VALUE(((0x4A008100)+(0x040)))
+				&__VC914=V.VALUE((*(((unsigned int *)(((((0x4A008100)+(0x040)))+(0x24)))))))
+				GOSUB dpll_get_clkout_speed_hsdiv &__VC913 &__VC914
+				ENTRY &__V915
+				V.ASSIGN ((\gpu_hyd_clk)=(&__V915))
+				PRINT "  GPU HYD clock is from PER DPLL (CLKOUTX2_H14)."
+				PRINT ""
+				&__V916=0
+			)
+		)
+		V.IF (((0x08000000)==((((*(((unsigned int *)(((0x4A009200)+(0x020)))))))&(0x0C000000)))))
+		(
+			(
+				PRINT "  GPU HYD clock is from GPU DPLL."
+				PRINT ""
+				&__V917=0
+			)
+		)
+		AREA.SELECT 
+		PRINT "  GPU HYD clock speed is " %DECIMAL V.VALUE(\gpu_hyd_clk) " MHz"
+		PRINT ""
+		&__V918=0
+		PRINT "--->>> Reading DPLL configurations...done<<<---"
+		PRINT ""
+		&__V919=0
+	)
+	RETURN
+)

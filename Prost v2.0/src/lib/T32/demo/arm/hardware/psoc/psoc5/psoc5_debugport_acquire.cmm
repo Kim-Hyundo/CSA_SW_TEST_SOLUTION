@@ -1,0 +1,58 @@
+; --------------------------------------------------------------------------------
+; @Title: Connection sequence for CY8C5xxx series with Debugport ACQUIRE
+; @Description:
+;   The Cypress PSOC5LP series allows to reuse the SWD pins as GPIOs. While RESET
+;   a external debugprobe can acquire the debugport for in field debugging/flash
+;   programming using the SWD or the USB pins.
+;   This script demonstrates the connection sequence.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe/uTrace to
+;        the SWD
+;      or
+;        the USB
+;      pins.
+;    * reset line must be connected
+; @Keywords: ARM, Cortex-M3, Acquire, USB
+; @Author: AME
+; @Board: -
+; @Chip: CY8C5*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: psoc5_debugport_acquire.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF VERSION.BUILD.BASE()<92506.
+(
+  PRINT %ERROR "Please use more recent Software! Contact support@lauterbach.com."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU CY8C5868AXI-LP035
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF hardware.COMBIPROBE()||hardware.UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option PSOCswdACQuire ON
+SYStem.Option ResBreak OFF
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; Flash programming
+
+; prepare flash programming (declarations)
+DO ~~/demo/arm/flash/psoc5lp.cmm PREPAREONLY
+
+
+ENDDO

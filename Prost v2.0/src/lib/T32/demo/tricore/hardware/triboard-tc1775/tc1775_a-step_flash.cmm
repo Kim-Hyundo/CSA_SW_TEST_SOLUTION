@@ -1,0 +1,111 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC1775 (AUDO-1) A-Step on TriBoard TC1775 (Flash)
+; @Description:
+;   Flash programming demo.
+;
+;   Use the following boot option:
+;   Dip Switch S301: SW1=ON,  SW2=OFF, SW3=ON,  SW4=OFF,
+;                    SW5=OFF, SW6=ON,  SW7=OFF, SW8=ON
+;
+;   Please note: Stepping into function sieve() causes a jump to exit
+;   because of AUDO-1 bug.
+;
+;   Requirements to use OCDS-1:
+;   Set jumper JP501 to position 2-3
+;
+;   Requirements to use OCDS-2:
+;   Bug of AUDO-1: ClkOUT weakness; CPU clock should be <= 1MHz;
+;   use e.g 1MHz oscillator and switch No.1 OFF position (PLL bypass).
+;
+;   A-Step and B-Step have dIFferent peripheral files and TriBoards dIFfer
+;   in external flash devices.
+;
+; @Keywords: Flash, Infineon, TriCore
+; @Author: MAX
+; @Board: TriBoard-TC1775
+; @Chip: TC1775
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc1775_a-step_flash.cmm 7576 2014-08-27 14:49:47Z mobermeir $
+
+
+; --------------------------------------------------------------------------------
+; Performed tests:
+; TriBoard A1.101 TC1775 EES-A13 2005-02-04 MAX
+;
+; Memory mappings:
+; SRAM  (1MB) mapped to 0xA0000000--0xA00FFFFF
+; Flash (4MB) mapped to 0xA4000000--0xA43FFFFF
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+
+RESet
+WinCLEAR
+SYStem.CPU TC1775
+; Slow JTAG clock is required for 1MHz crystal
+; SYStem.JtagClock 500000.
+SYStem.Up
+
+; Disable watchdog timer
+; disabling of Watchdog needed for target based flash algorithms
+Data.Set 0xF0000024 %Long 0x00000008    ; WDTCON1
+
+; Enable trace port (OCDS-2; works up to 1MHz crystal)
+; TriCore and PCP trace can not be used concurrently.
+; Bit14 = CLOCKOUTDIS = 0;
+Data.Set 0xF0000050 %Long 0x00F00031    ; Bit0: ETEN = 1   -> TC trace
+;Data.Set 0xF0000050 %Long 0x00F00033    ; Bit1: ETSEL = 1; -> PCP trace
+
+; --------------------------------------------------------------------------------
+; Memory initialzation
+
+; initialize external bus unit
+Data.Set 0xF0000210 %Long 0x4001FFFF    ; EBU_BCUCON
+Data.Set 0xF0000510 %Long 0x0000FF68    ; EBU_EBUCON
+
+; memory assignment
+; Intel DT28F160 Flash
+Data.Set 0xF0000520 %Long 0xA4000051    ; EBU_ADDSEL0
+Data.Set 0xF0000560 %Long 0x00420A7C    ; EBU_BUSCON0
+; Samsung KM616V4002BT-12 SRAM
+Data.Set 0xF0000524 %Long 0xA0000071    ; EBU_ADDSEL1
+Data.Set 0xF0000564 %Long 0x00020140    ; EBU_BUSCON1
+; unused
+Data.Set 0xF0000528 %Long 0xA0000071    ; EBU_ADDSEL1
+Data.Set 0xF0000568 %Long 0x00020140    ; EBU_BUSCON1
+
+; --------------------------------------------------------------------------------
+; flash programming
+FLASH.RESet
+
+; flash declaration for uncached address segments
+FLASH.Create 1. 0xA4000000--0xA43DFFFF 0x20000 TARGET Long
+FLASH.Create 1. 0xA43e0000--0xA43FFFFF 0x4000  TARGET Long
+FLASH.TARGET 0xA0002000 0xA0003000 0x1000 ~~/demo/tricore/flash/long/i28f200b.bin
+
+; flash declaration for cached address segments
+FLASH.CreateALIAS 0x80000000--0x8FFFFFFF 0xA0000000
+
+; --------------------------------------------------------------------------------
+; show flash declaration
+WinPOS 0% 0%
+FLASH.List
+
+; --------------------------------------------------------------------------------
+; program flash
+DIALOG.YESNO "Program all external flash memory?"
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram ALL /Erase
+  Data.LOAD.auto *
+  FLASH.AUTO off
+)
+
+; --------------------------------------------------------------------------------
+; open some window
+WinPOS 0% 50%
+List.auto
+
+ENDDO

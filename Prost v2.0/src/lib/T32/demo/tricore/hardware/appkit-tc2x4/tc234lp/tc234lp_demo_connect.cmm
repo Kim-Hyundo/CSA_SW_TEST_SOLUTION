@@ -1,0 +1,41 @@
+; --------------------------------------------------------------------------------
+; @Title: Debugger connect demo for Infineon Application-Kit-TC2x4
+; @Description:
+;   Initialisation script to switch off TLF35584 watchdog and connect 
+;   to the target.
+; @Keywords: Infineon, TriCore
+; @Author: SBL
+; @Board: Application-Kit-TC2x4
+; @Chip: TC234LP
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc234lp_demo_connect.cmm 16679 2020-10-20 09:19:20Z sltaief $
+
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.CPU TC234LP
+; The Application-Kit-TC2x4 comes with a TLF35584 power supply
+; This power supply has integrated watchdog functionality which will cut all
+; power if not served correctly. By default this demo will disable this
+; watchdog functionality. This includes configuring the QSPI controller as
+; well as writing data to the QSPI.
+
+; disable the external watchdog
+DO disable_tlf35584.cmm
+
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame.view /Locals /Caller
+WinPOS 50% 50% 50% 50%
+TargetSystem.state
+
+ENDDO
+

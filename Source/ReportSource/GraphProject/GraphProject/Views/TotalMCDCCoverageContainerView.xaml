@@ -1,0 +1,30 @@
+﻿<UserControl x:Class="GraphProject.Views.TotalMCDCCoverageContainerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:GraphProject.Views"
+             mc:Ignorable="d" 
+             xmlns:ViewModels="clr-namespace:GraphProject.ViewModel"
+             xmlns:md ="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             d:DesignHeight="884" d:DesignWidth="844"
+             d:DataContext="{Binding TotalMCDCCoverageContainerViewModel, Source={StaticResource Locator}}"
+             >
+    <Grid Background="Transparent">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="0.8*"/>
+                <RowDefinition Height="9.2*"/>
+            </Grid.RowDefinitions>
+            <Border Grid.Row="0" CornerRadius="6" Background="#000000" Margin="5">
+                <StackPanel Orientation="Vertical" Margin="30,10,30,5" Height="50">
+                    <TextBlock Foreground="White" FontSize="30" VerticalAlignment="Stretch" HorizontalAlignment="Center"  FontFamily="../Fonts/Roboto-Medium.ttf #Roboto">Total MCDC Coverage Report</TextBlock>
+                    <!--<TextBlock Foreground="White" FontSize="12" HorizontalAlignment="Center" Text="{Binding memorychartmodel.StartAddress}"></TextBlock>-->
+                </StackPanel>
+            </Border>
+            <ContentControl Grid.Row="1" Padding="30" Content="{Binding StateCoverageView}"/>
+        </Grid>
+    </Grid>
+</UserControl>
+

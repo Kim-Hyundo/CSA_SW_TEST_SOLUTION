@@ -1,0 +1,71 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo of using printf via ITM, TERM Window and CombiProbe PIPE mode.
+; @Description:
+;   This script sets up a demo of how to:
+;   - output data via printf via ITM
+;   - receiving this data via CombiProbe with PIPE mode
+;   - displaying the printf strings via the TERM window
+; @Keywords: Cortex-M4, Freescale, k60, Kinetis, TERM, ITM
+; @Props: NoIndex, NoWelcome, NoFullText
+; @Author: ING
+; @Board: TWR-K60N512
+; @Chip: MK60DN512VMD10*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: start_itm_term.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+  LOCAL &srtsize
+  &srtsize=400.
+
+// create settings for setup script
+  OPEN #1 "sboard_settings.txt" /Create
+  WRITE #1 "MK60DN512VMD10"   // Device Type
+  WRITE #1 "0x1"              // Turn On Serial Wire Debug
+  WRITE #1 "75Mhz"            // Set clock to 75Mhz
+  WRITE #1 "printfk60.elf"    // ELF file
+  WRITE #1 "0x1"              // go to main
+  WRITE #1 ""                 // do not turn on external ram
+  WRITE #1 ""                 // do not turn on extrnal flash
+  WRITE #1 "0x0"              // do not use cJTAG
+  WRITE #1 "0x0"              // use 1st whisker
+  WRITE #1 "0x0"              // do not use SWV
+  CLOSE #1
+
+// start board, load elf, go to main
+  DO ~~~~/../setup start_board_no_gui
+
+// we want a faster clock to read out data faster
+  SYStem.JtagClock CTCK 25Mhz
+
+
+  WinCLEAR
+  TERM.SIZE 80. 58.
+  TERM.Mode STRING
+  TERM.METHOD2 ITM 0  // receive TERM data via ITM, Channel 0
+  WinPOS 0. 0. 85. 60.
+  TERM.
+
+  WinPOS 90. 0. 80. 24.
+  List.auto
+
+  WinPOS 90. 32.
+  CAnalyzer.
+
+  ITM.PortSize 4
+  ITM.PortMode CONTINUOUS
+
+  ITM.OFF
+  ETM.OFF
+  ITM.ON
+  CAnalyzer.Mode FIFO
+
+  // to use SerialWireViewer, uncomment the following lines
+  // ITM.PortSize SWV
+  // ITM.PortMode NRZ/2
+  // CAnalyzer.AutoFocus
+
+  CAnalyzer.Init
+  CAnalyzer.Mode PIPE
+
+  // to get faster output, uncomment the following line
+  // Var.set timerReload = 399.

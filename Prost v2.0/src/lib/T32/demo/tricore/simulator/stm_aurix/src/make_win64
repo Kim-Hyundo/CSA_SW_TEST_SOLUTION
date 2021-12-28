@@ -1,0 +1,9 @@
+COPTS = -c -W3 -D_X64_=1 -DWIN64 -Z7 -Od -Gs
+
+all: stm_aurix_64bit.dll
+
+stm_aurix_64bit.dll: stm_aurix.obj simul.obj
+	link -machine:x64 -dll -debug -debugtype:cv -out:stm_aurix_64bit.dll stm_aurix.obj simul.obj -def:stm_aurix.def
+
+.c.obj: ; cl $(COPTS) $*.c
+

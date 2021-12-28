@@ -1,0 +1,17 @@
+; --------------------------------------------------------------------------------
+; @Title: Infineon TC1775 GPTU initialization script
+; @Description: initialize GPTU
+; @Keywords: gptu, Infineon, simulator, TriCore
+; @Author: MOB
+; @Chip: TC1775
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: gptu_tc1775.cmm 7337 2014-07-04 08:08:18Z mobermeir $
+
+
+SIM.UNLOAD gptu_tc1775.dll
+
+; load gptu module with default settings
+SIM.LOAD gptu_tc1775.dll "gptu"
+
+ENDDO

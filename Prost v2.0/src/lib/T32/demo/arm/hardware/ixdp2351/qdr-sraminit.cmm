@@ -1,0 +1,51 @@
+; --------------------------------------------------------------------------------
+; @Title: Example QDR SRAM initialization for IXP2350
+; @Description: 
+;   Script to initialize the QDR SRAM using Data.Set commands.
+;   We assume here that the debugger is already in Up mode.
+; @Keywords: XSCALE
+; @Author: WRD
+; @Board: IXDP2351
+; @Chip: IXP2350
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: qdr-sraminit.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+; 
+
+
+Data.Set ASD:1:0xCC000228 %Long 0x00000004
+Data.Set ASD:1:0xCC000244 %Long 0x0000000F
+Data.Set ASD:1:0xCC00030C %Long 0x00F9EF9E
+Data.Set ASD:1:0xCC000310 %Long 0x00F9EF9E
+Data.Set ASD:1:0xCC000314 %Long 0xCCCCCCCC
+Data.Set ASD:1:0xCC00033C %Long 0x00F9EF9E
+Data.Set ASD:1:0xCC0003C0 %Long 0x00F9EF9E
+Data.Set ASD:1:0xCC0003C4 %Long 0x00F9EF9E
+Data.Set ASD:1:0xCC000240 %Long 0x00000000
+Data.In  ASD:1:0xCC000240 /Long ; 00000000
+Data.Set ASD:1:0xCC000108 %Long 0x00000002
+Data.Set ASD:1:0xCC000300 %Long 0x0000F2E7
+Data.Set ASD:1:0xCC000000 %Long 0x00020080
+Data.Set ASD:1:0xCC000240 %Long 0x00000004
+Data.In  ASD:1:0xCC000240 /Long ; 00000004
+Data.Set ASD:1:0xCC000240 %Long 0x00000000
+Data.In  ASD:1:0xCC000240 /Long ; 00000000
+Data.Set ASD:1:0xCC000000 %Long 0x00020100
+Data.Set ASD:1:0xCC000240 %Long 0x00000004
+Data.In  ASD:1:0xCC000240 /Long ; 00000004
+Data.Set ASD:1:0xCC000240 %Long 0x00000000
+Data.In  ASD:1:0xCC000240 /Long ; 00000000
+Data.Set ASD:1:0xCC000000 %Long 0x00020180
+Data.Set ASD:1:0xCC000240 %Long 0x00000004
+Data.In  ASD:1:0xCC000240 /Long ; 00000004
+Data.Set ASD:1:0xCC000240 %Long 0x00000000
+Data.In  ASD:1:0xCC000240 /Long ; 00000000
+Data.Set ASD:1:0xCC000000 %Long 0x00020200
+Data.Set ASD:1:0xCC000240 %Long 0x00000004
+Data.In  ASD:1:0xCC000240 /Long ; 00000004
+Data.Set ASD:1:0xCC000240 %Long 0x00000000
+Data.In  ASD:1:0xCC000240 /Long ; 00000000
+
+ENDDO

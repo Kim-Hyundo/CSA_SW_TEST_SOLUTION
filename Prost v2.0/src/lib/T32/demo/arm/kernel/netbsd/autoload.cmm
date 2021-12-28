@@ -1,0 +1,65 @@
+; --------------------------------------------------------------------------------
+; @Title: NetBSD Symbol Autoloader Script
+; @Description: Autoload script, called by TRACE32 if symbols are to be loaded
+; @Keywords: netbsd
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: autoload.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+// define local macros
+ LOCAL &filename &basename &progname &symfilename &filepath &code &data &space
+
+// get filename and relocation information
+ // these parameters are passed from TRACE32 when calling this skript
+ 
+ ENTRY &filename &type &code &data &space
+ 
+ //print "autoload: " &filename " " &type " " &code " " &data " " &space
+ 
+ // &filename:      name of process/file
+ // &type:          type of file: 1=process, 2=library
+ // &code:          text segment address
+ // &data:          data segment address
+ // &space:         space id of process
+ 
+// get symbol file name and program name
+ &basename=STRing.CUT(&filename,-STRing.LENgth(OS.FILE.EXTENSION(&filename)))
+ IF (&type==1)
+   &symfilename="&basename"
+ &progname=OS.FILE.NAME("&basename")
+
+// delete program if it already exists or other code is already there
+ IF sYmbol.EXIST("\\&progname")
+   sYmbol.Delete \\&progname
+ GROUP.Delete "&progname"
+
+// search file in source search path and open dialog when not there
+ &filepath=sYmbol.SEARCHFILE("&symfilename")
+ IF !OS.FILE("&filepath")
+ (
+   LOCAL &file
+   &file=OS.FILE.NAME("&symfilename")
+   WinPOS ,,,,,, filebox normal "Searching symbols for &filename"
+   DIALOG.File "*\&file"
+   ENTRY %LINE &filepath
+   IF "&filepath"==""
+     ENDDO
+ )
+
+// load symbol file (options for sourcepath, e.g. /STRIPPART may need to be added when required)
+
+ IF (&type==1)  // processes
+ (
+   Data.LOAD.Elf "&filepath" &space:0 /NoCODE /NoClear
+   GROUP.Create "&progname" &space:0x0--0xffffffff /GREEN
+ )
+ 
+ IF ((&type&0xffff)==2) // libraries
+ (
+   Data.LOAD.Elf "&filepath" &space:&code /NoCODE /NoClear
+ )
+ 
+ ENDDO
+

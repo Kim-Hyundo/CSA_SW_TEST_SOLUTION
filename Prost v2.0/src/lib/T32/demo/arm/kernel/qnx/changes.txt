@@ -1,0 +1,60 @@
+
+Change Log QNX Awareness
+
+2017-08-16
+- Support for QNX Hypervisor
+
+2017-01-10
+- Support for QNX 7.0
+- 64bit Support for x64
+
+2016-03-15
+- Menu, help filter and symbol autoloader configured with TASK.CONFIG
+- 64bit Support for ARM64
+
+2014-11-28
+- TASK.Process shows memory usage; added TASK.PIDIN PMEM/MEM
+
+2014-02-05
+- Support for QNX 6.6
+
+2013-03-25
+- Added option "/Open" to TASK.Process
+
+2012-09-10
+- Extended support for x86 architecture
+
+2012-05-31
+- dead threads are ignored
+
+2011-10-07
+- PIE libraries supported
+
+2011-03-16
+- Added TASK.TLOGger
+
+2011-01-28
+- Thread name is taken from thread struct, if available
+- TASK.thread shows thread name
+- Context for ARM extended
+
+2010-12-22
+- Added function task.proc.threads()
+- Thread name equals to process name, if thread #1
+
+2010-10-07
+- Added TASK.Option THRCTX
+- QNX 6.5.0 supported
+
+2010-05-25
+- ARM MMU v6 supported
+- Added functions task.proc.name() and task.current()
+
+2009-04-09
+- QNX 6.4 supported
+
+2008-11-18
+- Added and activated symbol autoloader
+
+2008-07-01
+- Added SMP support

@@ -1,0 +1,192 @@
+; --------------------------------------------------------------------------------
+; @Title: Load the Position Independent STM stimulus code
+; @Description:
+;
+;   Load the position independent STM stimulus code into RAM.
+;   The base address of the RAM is required. The instruction set supported by
+;   the CPU is automatically detected by the CORENAME().
+;   This script may be used to test the functionality of the STM.
+;   Prerequisites:
+;    * System is connected
+;    * RAM is accessible Read/Write/Execute
+;    * 12k of RAM required
+;    * A valid trace-sink (Analyzer/Onchip/CAnalyzer) is already configured
+;
+;   Usage:
+;          DO <path_to>/demo_stm <offset> STIMULUSBASE=0x<stimulus_base>
+;     e.g. DO ~~/demo/arm/compiler/gnu-pic/demo_stm 0x1000 STIMULUSBASE=0xfff00000
+;
+; @Author: AME
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo_stm.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+PRIVATE &arm &armbe &thumbv4 &thumbv6m &thumb_ii_v7
+PRIVATE &param &offset &stimulusbase
+ENTRY %LINE &param
+
+IF INTERFACE.SIM()
+(
+  PRINT %ERROR "This script is not supported by the SIMULATOR."
+  ENDDO FALSE()
+)
+
+GOSUB ParseParameters &param
+RETURNVALUES &offset &stimulusbase
+
+GOSUB GetCpuModes
+RETURNVALUES &arm &armbe &thumbv4 &thumbv6m &thumb_ii_v7
+
+; --------------------------------------------------------------------------------
+; load the code depending on coretype
+IF CORE.NUMBER()>1.
+  CORE.select 0.
+
+IF &arm
+  Data.LOAD.Elf ~~~~/stm_stimulus_arm.elf          &offset /RelPATH /Verify
+ELSE IF &armbe
+  Data.LOAD.Elf ~~~~/stm_stimulus_armbe.elf        &offset /RelPATH /Verify
+ELSE IF &thumbv4
+  Data.LOAD.Elf ~~~~/stm_stimulus_thumb_v4.elf     &offset /RelPATH /Verify
+ELSE IF &thumbv6m
+  Data.LOAD.Elf ~~~~/stm_stimulus_thumb_v6m.elf    &offset /RelPATH /Verify
+ELSE IF &thumb_ii_v7
+  Data.LOAD.Elf ~~~~/stm_stimulus_thumb_ii_v7m.elf &offset /RelPATH /Verify
+ELSE
+(
+  PRINT %ERROR "Error: Coretype not supported by this script."
+  ENDDO FALSE()
+)
+
+; --------------------------------------------------------------------------------
+; handle secondary SMP cores
+PRIVATE &core
+&core=1.
+WHILE &core<CORE.NUMBER()
+(
+  Register.Set PC _start_secondary /CORE &core
+  &core=&core+1.
+)
+
+; --------------------------------------------------------------------------------
+; boot code
+Go.direct main\1
+WAIT !STATE.RUN()
+
+; write pSTIMPORT variable
+Var.Assign pStimulusBase=&stimulusbase
+
+; --------------------------------------------------------------------------------
+; initialize STM trace
+IF Trace.METHOD.Analyzer()
+(
+  STMTrace.METHOD Analyzer
+  SystemTrace.METHOD Analyzer
+)
+ELSE IF Trace.METHOD.CAnalyzer()
+(
+  STMTrace.METHOD CAnalyzer
+  SystemTrace.METHOD CAnalyzer
+)
+ELSE IF Trace.METHOD.ONCHIP()
+(
+  STMTrace.METHOD Onchip
+  SystemTrace.METHOD Onchip
+)
+ELSE
+(
+  PRINT %ERROR "Unsupported Trace-Source selected."
+  ENDDO FALSE()
+)
+
+; for simplicity switch off Instruction Trace
+ETM.Trace OFF
+; configure STM
+STMTrace.AutoArm  ON
+STMTrace.AutoInit OFF
+STM.TimeStamps ON
+STM.ON
+
+; enable STM Trace Sinks: 0
+; check also STM.Register -> STMSPER (Stimulus Port Enable Register)
+&stmbase=COMPonent.BASE("STM1",0)
+&stmbase="E&(stmbase)"
+&stmbase=STRing.Replace("&stmbase","EE","E",0.)
+Data.Set &stmbase+0xe00 %Long 0x1
+
+; --------------------------------------------------------------------------------
+; activate Stimulus for Byte/Word/Long and open some windows
+Var.Assign bByteStimulusEnable = 1
+Var.Assign bWordStimulusEnable = 1
+Var.Assign bLongStimulusEnable = 1
+Var.Assign bAlternateStimulusEnable = 1
+
+STMTrace.Init
+STMTrace.List
+
+ENDDO TRUE()
+
+; --------------------------------------------------------------------------------
+; SUBROUTINES
+
+ParseParameters: ;(param)
+(
+  PRIVATE &param &offset &stimulusbase
+  ENTRY %LINE &param
+  &offset=STRing.SCANAndExtract("&param","0x","")
+  &stimulusbase=STRing.SCANAndExtract("&param","STIMULUSBASE=0x","")
+  IF "&offset"==""||"&stimulusbase"==""
+  (
+    PRINT %ERROR "Error: Missing Argument - Usage DO demo_stm.cmm 0x<offset> STIMULUSBASE=0x<stimulus_base>"
+    ENDDO FALSE()
+  )
+  ; ensure parameter is HEX and round down to the nearest LONG
+  &offset="0x&offset"
+  &offset=(&offset)&~0x3
+  &stimulusbase="0x&stimulusbase"
+
+  IF !SYStem.Up()
+  (
+    PRINT %ERROR "Error: Not connected to target. - Please use SYStem.Up before."
+    ENDDO FALSE()
+  )
+
+  RETURN "&offset" "&stimulusbase"
+)
+
+GetCpuModes: ;()
+(
+  PRIVATE &arm &armbe &thumbv4 &thumbv6m &thumb_ii_v7
+
+  &arm=FALSE()
+  &armbe=FALSE()
+  &thumbv4=FALSE()
+  &thumbv6m=FALSE()
+  &thumb_ii_v7=FALSE()
+
+  &arm=&arm||(STRing.SCAN(CORENAME(),"CORTEXA",0)>=0)
+  &arm=&arm||(STRing.SCAN(CORENAME(),"CORTEXR",0)>=0)
+  &arm=&arm||(STRing.SCAN(CORENAME(),"ARM7",0)>=0)
+  &arm=&arm||(STRing.SCAN(CORENAME(),"ARM9",0)>=0)
+  &arm=&arm||(STRing.SCAN(CORENAME(),"ARM11",0)>=0)
+  if (&arm&&(STRing.SCAN(CORENAME(),"CORTEXR",0)>=0))
+  (
+    IF ((Data.Long(C15:0x1)&0x80000000)!=0x0)
+    (
+      &armbe=TRUE()
+      &arm=FALSE()
+    )
+  )
+
+  &thumbv6m=&thumbv6m||(STRing.SCAN(CORENAME(),"CORTEXM0",0)>=0)
+  &thumbv6m=&thumbv6m||(STRing.SCAN(CORENAME(),"CORTEXM1",0)>=0)
+  &thumbv6m=&thumbv6m||(STRing.SCAN(CORENAME(),"CORTEXM23",0)>=0)
+
+  &thumb_ii_v7=&thumb_ii_v7||(STRing.SCAN(CORENAME(),"CORTEXM3",0)>=0)
+  &thumb_ii_v7=&thumb_ii_v7||(STRing.SCAN(CORENAME(),"CORTEXM4",0)>=0)
+  &thumb_ii_v7=&thumb_ii_v7||(STRing.SCAN(CORENAME(),"CORTEXM7",0)>=0)
+  &thumb_ii_v7=&thumb_ii_v7||(STRing.SCAN(CORENAME(),"CORTEXM33",0)>=0)
+
+  RETURN "&arm" "&armbe" "&thumbv4" "&thumbv6m" "&thumb_ii_v7"
+)

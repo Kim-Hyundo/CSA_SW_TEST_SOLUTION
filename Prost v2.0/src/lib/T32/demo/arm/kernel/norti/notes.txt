@@ -1,0 +1,10 @@
+
+Note on Stack Coverage:
+- Stack coverage is only available, if the kernel is 
+  compiled with "ERC" defined
+- the stack fill pattern needs to be changed in the
+  stack initialization in noknl4.c: v4_cre_tsk()
+  at the end of the function, right before:
+      do { *p++ = ptn; } while (--stksz != 0);
+  add the line:
+      ptn=0x00;   /* TRACE32 default stack check pattern */

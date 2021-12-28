@@ -1,0 +1,62 @@
+; --------------------------------------------------------------------------------
+; @Title: ITM benchmark counters for MK60N512VMD10 on TWR-K60N512 board
+; @Description: 
+;   This script sets up a small demo showing how to use the ITM benchmark
+;   counters on TWR-K60N512 board from Freescale Semiconductor.
+;   First load the "sort/sort.elf" program via the "setup.cmm" script.
+;   Select a CPU frequency of 75Mhz.
+;   Then execute this script via "do sort/groups_bmc.cmm"
+;   Then run the sorting demo via "Go"
+;   The sort demo should stop after a few seconds.
+;   The "BMC.ProfileChart.GROUP" window should show the distribution of load and
+;   stores to memory
+; @Keywords: BMC, Cortex-M4, Freescale, ITM, k60, Kinetis
+; @Props: NoIndex, NoWelcome, NoFullText
+; @Author: ING
+; @Board: TWR-K60N512
+; @Chip: MK60DN512VMD10*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: groups_bmc.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+; Create groups to group the different functions
+  GROUP.RESet
+  GROUP.Create "hsort" \\sort\sort\heapsort    /RED
+  GROUP.Create "isort" \\sort\sort\is_h        /GREEN
+  GROUP.Create "isort" \\sort\sort\isort       /GREEN
+  GROUP.Create "qsort" \\sort\sort\qs_h        /OLIVE
+  GROUP.Create "qsort" \\sort\sort\quicksort   /OLIVE
+  GROUP.Create "shell" \\sort\sort\shell_h     /PURPLE
+  GROUP.Create "shell" \\sort\sort\shellsort   /PURPLE
+  GROUP.Create "merge" \\sort\sort\merge_sort  /YELLOW
+  GROUP.Create "mrg2"  \\sort\sort\merge_sort2 /GREY 
+  GROUP.Create "buble" \\sort\sort\bubblesort  /AQUA 
+  GROUP.Create "rdx"   \\sort\sort\rdxsort     /FUCHSIA
+  GROUP.Create "rdx2"  \\sort\sort\rdxsort2_h  /TEAL
+  GROUP.Create "rdx2"  \\sort\sort\rdxsort2    /TEAL 
+  GROUP.Create "sel"   \\sort\sort\selsort     /SILVER
+
+
+; This demo does not need the ETM
+  ETM.OFF
+
+; Turn on ITM benchmark counter trace
+  ITM.ProfilingTrace ON
+  ITM.DataTrace OFF
+; Sample PC to be able to correlate benchmark 
+; counters to code regions.
+  ITM.PCSampler 1/128
+
+; Setup Benchmark Counter Display
+  BMC.CLOCK 75Mhz
+  BMC.Init
+; Select to display Load/Stores 
+  BMC.SELect LSU
+
+; Open window showing distribution via GROUPs 
+  BMC.ProfileChart.GROUP
+
+; Set breakpoint after return of main()
+  Break.Delete
+  Break.Set 0x1FFFC01E

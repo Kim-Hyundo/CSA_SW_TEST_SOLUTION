@@ -1,0 +1,23 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags NoIndex
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: ppsos.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+; --------------------------------------------------------------------------------
+; START OS Awareness
+; --------------------------------------------------------------------------------
+
+; task.config:
+; 1st argument is name of configuration file (psos.t32)
+; 2nd argument is memory location, at which the running process is specified
+; 3rd argument is patch address for suspend call -- not used here!
+; 4th argument is node anchor address
+; last argument is system call patch routine
+
+; manual configuration
+;  task.config psos 0 0 anchor
+; automatic configuration
+   TASK.CONFIG psos 0x0 0x0
+
+  ENDDO 

@@ -1,0 +1,93 @@
+; --------------------------------------------------------------------------------
+; @Title: Start-Up Script for the NXP LPC2468
+; @Description:
+;   Accessing the Fast IO registers of the LPC23xx/24xx family in debug mode
+;   causes a toggling of their bits. Enabling register access of these
+;   registers, the user access is required. Therefor a binary is temporary
+;   loaded and executed to access these registers. After finishing, the original
+;   RAM content is restored.
+;   Prerequisites:
+;    * Connect Debug Cable to 20 pin ARM debug header on the board
+;    * Optionally connect AutoFocus preprocessor to the Mictor 38 header
+;    * Make sure that the "Enable JTAG" jumper is set
+;    * If tracing is used, make sure that the "Enable ETM" jumper is set
+;
+; @Keywords: ARM, ARM7TDMI-S
+; @Author: STK
+; @Chip: LPC2468
+; @Board: LPC2468-16-OEM-Board
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo.cmm 15271 2019-11-13 12:30:49Z bschroefel $
+
+
+WinCLEAR
+AREA.CLEAR
+SYStem.RESet
+SYStem.CPU LPC2468
+SYStem.JtagClock RTCK
+SYStem.Option BigEndian OFF
+SYStem.Option IMASKASM  ON
+SYStem.Option IMASKHLL  ON
+SYStem.Option INTDIS    ON
+SYStem.Up
+
+// load demo application
+Data.LOAD.Elf "~~~~/demo.axf" /RelPATH /PlusVM /NODEBUGFRAME
+
+// Seting up user access class (USR)
+//             address rang         BINARY of monitor prog.
+Data.USRACCESS 0x40007000++0xfff ,, "~~/demo/arm/etc/usraccess/usraccess.gnu.bin"
+
+// Configure Trace
+IF Analyzer()
+(
+	Trace.RESet
+	ETM.RESet
+	ETM.PortSize 4.
+	ETM.HalfRate ON
+	ETM.DataTrace OFF
+	Trace.METHOD Analyzer
+	Trace.ACCESS AutoVM
+	Trace.AutoArm ON
+	Trace.AutoInit ON
+	Trace.THreshold  1.65
+	Trace.TERMination ON
+	IF AUTOFOCUS()
+	(
+		Trace.TestFocus // test trace port
+		IF FOUND() // if trace port test failed...
+		(
+			PRINT "Performing AutoFocus..."
+			Trace.AutoFocus
+		)
+	)
+	Trace.CLOCK 2.MHz
+	Trace.TraceCLOCK 2.MHz
+)
+Mode.Hll
+Go.direct main
+
+// open some windows
+WinPOS 0% 0% 100% 48%
+List.auto
+
+WinPOS 64% 50% 36% 48%
+Var.Watch
+Var.AddWatch mcount; flags; ast;
+
+IF (Analyzer.STATE()<5)&&(!INTERFACE.SIM())
+(
+  WinPOS 0% 50% 64% 48%
+  Trace.List List.ADDRESS DEFault
+)
+ELSE
+(
+  WinPOS 0% 50% 36% 48%
+  Var.Ref %Hex %Decimal
+
+  WinPOS 36% 50% 28% 48% ,, 5.
+  Frame.view /Args /Locals
+)
+
+ENDDO

@@ -1,0 +1,263 @@
+; --------------------------------------------------------------------------------
+; @Title: CMX specific menu
+; @Description: -
+; @Author: DIE
+; @Copyright: (c) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: cmxrtx.men 10497 2017-02-24 07:49:44Z rdienstbeck $
+
+; CMX specific menu
+
+add
+menu
+(
+  popup "&CMX"
+  (
+    if y.exist(T32OUT)
+    (
+      enable !icd()
+      menuitem "&CMXBug Terminal" "TERM T32OUT T32IN"
+      enable !icd()
+      menuitem "&Break to CMXBug" "d.s e:T32IN '+'"
+      separator
+    )
+    default
+    menuitem "Display &Tasks"         "TASK.DTask"
+    menuitem "Display &Resources"     "TASK.DRes"
+    menuitem "Display &Cyclic Timers" "TASK.DCyclic"
+    menuitem "Display &Queues"        "TASK.DQueue"
+    menuitem "Display &Mailboxes"     "TASK.DMailbox"
+    menuitem "Display &Semaphores"    "TASK.DSema"
+    separator
+    popup "&Stack Coverage"
+    (
+      menuitem "&List Task Stack"
+      (
+        dialog
+        (
+          header "Open Stack Coverage"
+          pos 0. 0. 30. 4.
+          box "Specify a task magic and the size of it's stack"
+          pos 1. 1. 8. 1.
+          text "task magic:"
+          pos 10. 1.
+magic:    defedit "" ""
+          pos 1. 2. 8. 1.
+          text "stack size:"
+          pos 10. 2.
+size:     edit "" ""
+          pos 3. 4. 7.
+          defbutton "OK"
+          (
+            local &magic &size &bottom
+            &magic=dialog.string(magic)
+            &size=dialog.string(size)
+            &bottom=task.stack(bottom,&magic)
+            task.stack &magic (&bottom-&size)--(&bottom-1)
+            dialog.end
+          )
+          pos 12. 4. 7.
+          button "Cancel" "dialog.end"
+          pos 21. 4. 7.
+          button "Help" "HELP __EMCMX__EXT_T_S"
+        )
+      )
+      menuitem "Add Task"
+      (
+        dialog
+        (
+          header "Add Task to Stack Coverage"
+          pos 0. 0. 30. 4.
+          box "Specify a task magic and the size of it's stack"
+          pos 1. 1. 8. 1.
+          text "task magic:"
+          pos 10. 1.
+magic:    defedit "" ""
+          pos 1. 2. 8. 1.
+          text "stack size:"
+          pos 10. 2.
+size:     edit "" ""
+          pos 3. 4. 7.
+          defbutton "OK"
+          (
+            local &magic &size &bottom
+            &magic=dialog.string(magic)
+            &size=dialog.string(size)
+            &bottom=task.stack(bottom,&magic)
+            task.stack.add &magic (&bottom-&size)--(&bottom-1)
+            dialog.end
+          )
+          pos 12. 4. 7.
+          button "Cancel" "dialog.end"
+          pos 21. 4. 7.
+          button "Help" "HELP __EMCMX__EXT_T_S"
+        )
+      )
+      menuitem "Remove Task" "TASK.STacK.REMove"
+      enable ice()
+      menuitem "&Reset Coverage" "TASK.STK.RES"
+    )
+  )
+  popup "Trace"
+  (
+    popup "[:alist]List"
+    (
+      separator
+      menuitem "Task Switches"     "TRace.List List.TASK"
+      menuitem "Default and Tasks" "TRace.List List.TASK DEFault"
+    )
+  )
+  popup "Perf"
+  (
+    separator
+    popup "&Task Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if tr.method.analyzer()
+        (
+          Analyzer.AutoInit on
+        )
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak&&Write
+          )
+        )
+	    Break.Delete /Alpha
+	    Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+      )
+      menuitem "[:perf]Show &Numerical"   "TRace.STATistic.TASK"
+      menuitem "[:achart]Show as &Timing" "TRace.CHART.TASK"
+      menuitem "[:achart]Tracking with Trace &List"
+      (
+        TRace.List List.TASK DEFault /Track
+        TRace.CHART.TASK /Track
+      )
+    )
+    popup "Task &Function Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if tr.method.analyzer()
+        (
+          Analyzer.AutoInit on
+          Analyzer.STATistic.PreFetch on
+        )
+
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          if a.config.hac()
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak
+               Sample.Enable if BetaBreak
+               Mark.A        if AlphaBreak
+               Mark.B        if BetaBreak
+             )
+          )
+          else
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak||BetaBreak
+               Mark.A if AlphaBreak
+               Mark.B if BetaBreak
+             )
+          )
+	    )
+
+        Break.Delete /Alpha /Beta /Charly
+        Break.SetFunc
+	    Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+      )
+      menuitem "[:perf]Show &Numerical"     "TRace.STATistic.TASKFUNC"
+      menuitem "[:perf]Show as &Tree"       "TRace.STATistic.TASKTREE"
+      menuitem "[:perf]Show &Detailed Tree" "TRace.STATistic.TASKTREE ALL"
+      menuitem "[:achart]Show as &Timing"   "TRace.CHART.TASKFUNC"
+      menuitem "[:alist]Show N&esting"      "TRace.List List.TASK FUNC TI.FUNC"
+    )
+    popup "Task &Status"
+    (
+      menuitem "&Prepare"
+      (
+        if tr.method.analyzer()
+        (
+          Analyzer.AutoInit on
+        )
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak&&Write
+          )
+        )
+	    Break.Delete /Alpha
+	    Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+	    TASK.TASKState
+      )
+      menuitem "[:perf]Show &Numerical"   "TRace.STATistic.TASKSTATE"
+      menuitem "[:achart]Show as &Timing" "TRace.CHART.TASKSTATE"
+      menuitem "[:achart]Tracking with Trace &List"
+      (
+        TRace.List List.TASK DEFault /Track
+        TRace.CHART.TASKSTATE /Track
+      )
+    )
+  )
+  popup "&Help"
+  (
+    menuitem "CMX Awareness Manual" "HELP __RTOS_CMX_"
+  )
+)
+
+
+menu "task.dt"
+(
+  default
+  ;menuitem "Display Detailed"  "TASK.DTask track.address()"
+  menuitem "Display TCB"
+  (
+    &address=address.offset(track.address())
+    Var.View %m (struct _tcb *)&address
+  )
+  ;menuitem "Display Stack Frame"
+  ;(
+  ;  &address=address.offset(track.address())
+  ;  Var.Frame /Locals /Caller /Task &address
+  ;)
+  ;menuitem "Switch Context"       "Register.TASK address.offset(track.address())"
+  separator
+  menuitem "Add to Stack Cov"
+  (
+    dialog
+    (
+      header "Add Task to Stack Coverage"
+      pos 0. 0. 30. 3.
+      box "Specify the stack size"
+      pos 1. 1. 8. 1.
+      text "stack size:"
+      pos 10. 1.
+size: defedit "" ""
+      pos 3. 3. 7.
+      defbutton "OK"
+      (
+        local &magic &size &bottom
+        &magic=address.offset(track.address())
+        &size=dialog.string(size)
+        &bottom=task.stack(bottom,&magic)
+        task.stack.add &magic (&bottom-&size)--(&bottom-1)
+        dialog.end
+      )
+      pos 12. 3. 7.
+      button "Cancel" "dialog.end"
+      pos 21. 3. 7.
+      button "Help" "HELP __EMCMX__EXT_T_S"
+    )
+  )
+  menuitem "Rm from Stack Cov"  "TASK.STK.RM  address.offset(track.address())"
+  separator
+  menuitem "Dump TCB"          "Data.dump track.address()"
+)

@@ -1,0 +1,146 @@
+B::
+LOCAL &call_path &prev_func &prev_line
+LOCAL &file
+ENTRY &folder &pattern
+
+
+//parameter for test
+//&folder="D:\Call_Path\trace_ad\"
+//&pattern="trace*.ad"
+
+&call_path=""
+&prev_func=""
+
+
+cd "&folder"
+&mod_folder="&folder"+"modify"
+if !os.dir("&mod_folder")
+   mkdir "./modify"
+
+cd "&mod_folder"
+
+;get the first file name matching
+&file=OS.FIRSTFILE("&folder&pattern")
+
+WHILE "&file"!=""
+(
+  GOSUB CALL_PATH "&folder&file"
+  &file=OS.NEXTFILE() ;get next file name matching
+)
+ENDDO
+
+
+
+CALL_PATH:
+
+ENTRY &trace_path
+
+if simulator()
+(
+  //Trace Data Load
+  Trace.Res
+  Trace.Method Analyzer
+  Trace.Load "&trace_path"
+)  
+
+
+&trace_ascii=os.file.name(&trace_path)
+&trace_ascii=string.split("&trace_ascii",".",0)
+
+//Text WinPrint
+printer.open "&trace_ascii.txt" asciie
+WinPrint.Trace.ListNesting
+printer.close
+
+
+OPEN #1 "&trace_ascii.txt" /read
+READ #1 %line &read_line
+READ #1 %line &read_line
+
+OPEN #2 "&trace_ascii.modify.txt" /create
+
+while 1.==1.
+(
+start_while1:
+  READ #1 %line &read_line
+  if EOF()
+    goto end_while1
+
+  //Valid Check
+  
+  
+  
+  &valid_line_check=string.trim(string.split("&read_line","|",0))
+  if ("&valid_line_check")==""||(string.scan("&valid_line_check","**",0)!=-1)
+  (
+    &valid_line_check=string.trim(string.split("&read_line","|",1))
+    if string.scan("&valid_line_check"," trap",0)!=-1
+       WRITE #2 "**** Trap ****"
+    else if string.scan("&valid_line_check"," interrupt",0)!=-1
+       WRITE #2 "**** Interrupt ****"
+    goto start_while1
+  )
+  &valid_line_check=string.trim(string.split("&read_line","|",-1))
+  if "&valid_line_check"==""
+    goto start_while1
+
+
+  &data=string.split("&read_line","    ",1)
+
+  &tree_level=string.split("&data","-",0)
+  &tree_level=string.count("&tree_level","|")
+
+  &tmp=string.split("&data","-",1)
+  if "&tmp"==""
+  (
+    if string.scan(string.split("&data","|",-1),"(!)",0)!=-1
+    (
+      //Ex) ||||||||TerminateTask (!)---
+      &data=string.split("&data"," ",0)
+      &data=string.split("&data","|",-1)
+      &data="&data (!)"
+    )
+    else
+    (
+       //Ex) ||||+OP:800460C0---
+       &data=string.split("&data","+",1)
+       &data=string.split("&data","-",0)
+    )
+  )
+  //Normal case
+  else
+    &data="&tmp"
+
+  //&time=string.split("&read_line","    ",4)
+  //&time=string.split("&time"," ",0)
+
+  //Tree Level Indent
+  Repeat &tree_level+1
+  (
+     &data="  "+"&data"
+  )
+
+    //Start
+  if string.scan("&data","+",0)==-1
+  (
+      //Ex) TerminateTask(!)
+      if string.scan("&data","(!)",0)!=-1
+        &data="[*] &data"
+      else
+        &data="[S] &data"
+  )
+  //End
+  else
+  (
+      &data=string.split("&data","+",0)
+      &data="[E] &data"
+  )
+
+  WRITE #2 "&data"
+)
+
+
+end_while1:
+CLOSE #1
+
+RETURN

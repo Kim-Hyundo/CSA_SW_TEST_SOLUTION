@@ -1,0 +1,43 @@
+; --------------------------------------------------------------------------------
+; @Title: Template script for using TRACE32 with ATSAMD series controllers
+; @Description:
+;   Template shows how to setup an debugsession with FLASH Programming for
+;   ATSAMDx series controllers.
+;   Prerequisites:
+;     * SWD Debug lines are connected
+;     * Replace the SYStem.CPU setting
+; @Keywords: Atmel, ATSAM*
+; @Props: Template
+; @Author: AME
+; @Board: -
+; @Chip: ATSAMD*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: atsamd2x-flash-template.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+RESet
+SYStem.RESet
+SYStem.CPU ATSAMD*
+SYStem.CONFIG DEBUGPORTTYPE SWD
+SYStem.Option.ResBreak OFF
+SYStem.Up
+
+; prepare flash programming
+DO ~~/demo/arm/flash/atsamd PREPAREONLY
+
+; load Symbol File 
+FLASH.ReProgram ALL
+Data.LOAD.auto <your-file>.<elf/bin>
+FLASH.ReProgram OFF 
+
+; Reset CPU after Flash Programming
+SYStem.Up
+; Errata 13134: set MANW to prevent FLASH corruption by SW-Breakpoints
+Data.Set ED:0x41004004 %Long Data.Long(ED:0x41004004)|0x8
+
+; open some windows
+Mode.Hll
+List.auto
+
+ENDDO

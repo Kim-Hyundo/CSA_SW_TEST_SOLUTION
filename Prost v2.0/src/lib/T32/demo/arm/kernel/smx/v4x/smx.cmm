@@ -1,0 +1,81 @@
+; --------------------------------------------------------------------------------
+; @Title: SMX Demo for TRACE32 OS Awareness
+; @Description:
+;   This batchfile loads all necessary files to demonstrate
+;   the OS Awareness for SMX.
+; @Keywords: awareness
+; @Author: DIE
+; @Chip: AT91SAM9M10
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: smx.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+ SCREEN.ON
+ AREA.RESet
+ WinPAGE.RESet
+ WinCLEAR
+ WinPOS 0. 28. 70. 7.
+ AREA.view
+
+; Debugger reset
+ PRINT "resetting..."
+ RESet
+
+; Debugger initializations
+ PRINT "initializing..."
+ SYStem.CPU AT91SAM9M10
+ SYStem.Mode Up
+
+; load Demo application
+ PRINT "loading application..."
+ Data.LOAD.auto AppDbg.out
+ sYmbol.CLEANUP.sYmbols
+
+; patch some peripheral locations on Simulator
+ IF INTERFACE.SIM()
+ (
+   Data.Assemble R:Loop1+0x08 nop       ; wait for osc
+   Data.Assemble R:Loop2+0x08 nop       ; wait for osc
+   Data.Assemble R:Loop4+0x08 nop       ; wait for osc
+ )
+
+; on Simulator reroute output to TRACE32 terminal emulation
+ IF INTERFACE.SIM()
+ (
+   ; patch serial ouput to output on memory
+   Data.Assemble R:UartDbgPutChar mov r1,pc
+   Data.Assemble ,                ldrb r2,[r1,#0x10]
+   Data.Assemble ,                cmp  r2,#0x00
+   Data.Assemble ,                bne  $-8
+   Data.Assemble ,                strb r0,[r1,#0x10]
+   Data.Assemble ,                bx   r14
+
+   ; initialize and open TRACE32 terminal window
+   sYmbol.NEW.Label T32OUT UartDbgPutChar+0x18
+   Data.Set T32OUT 0
+   TERM.Protocol SingleE
+   WinPOS 0 0 80. 25.
+   TERM.Mode VT100
+   TERM.SIZE 80. 25.
+   TERM.view T32OUT 0
+ )
+
+; initialize RTOS support
+ PRINT "initializing SMX support..."
+ TASK.CONFIG smx.t32        ; load SMX awareness
+ MENU.ReProgram smx.men     ; load SMX specific menu
+ TASK.STacK.PATtern 11      ; stack fill pattern
+
+ PRINT "load complete."
+
+; open some windows
+ WinPOS 52. 2. 75. 25.
+ List.auto
+ WinPOS 45. 18. 78. 14.
+ TASK.TASK
+
+; start application
+ Go sademo_init
+
+ ENDDO

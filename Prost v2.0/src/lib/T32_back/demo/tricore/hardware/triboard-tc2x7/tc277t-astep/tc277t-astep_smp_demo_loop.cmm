@@ -1,0 +1,70 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC277T-Astep on TriBoard-TC2x7 (SMP, mini loop)
+; @Description:
+;   Assembles a simple endless loop into RAM and sets up a demo debug scenario
+;   for SMP debugging.
+; @Keywords: AURIX, Infineon, multi-core, TriCore
+; @Author: MOB
+; @Board: TriBoard-TC2x7
+; @Chip: TC277T
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc277t-astep_smp_demo_loop.cmm 15579 2020-01-27 15:08:53Z sltaief $
+
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.CPU TC277T-Astep
+CORE.ASSIGN 1. 2. 3. // assign cores to the SMP system
+SYStem.Up
+
+; optional settings:
+SYStem.Option DUALPORT ON
+SETUP.Var %SpotLight
+MAP.BOnchip 0x0--0xffffffff // force onchip-breakpoints
+
+; --------------------------------------------------------------------------------
+; Assemble an endless loop into internal memory
+Data.Assemble 0x70100000 nop nop nop addi D0,D0,0x1 j 0x70100000
+Register.Set PC 0x70100000 /CORE 0.
+IF (CORENUMBER()>1.)
+(
+  Data.Assemble 0x60100000 nop nop nop addi D1,D1,0x1 nop j 0x60100000
+  Register.Set PC 0x60100000 /CORE 1.
+  IF (CORENUMBER()>2.)
+  (
+    Data.Assemble 0x50100000 nop nop nop addi D2,D2,0x1 nop nop j 0x50100000
+    Register.Set PC 0x50100000 /CORE 2.
+  )
+)
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+WinPOS 0% 0% 33% 33%
+TargetSystem.state
+WinPOS 33% 0% 33% 33%
+List.auto
+WinPOS 66% 0% 33% 33%
+Break.List
+WinPOS 0% 33% 33% 33%
+List.auto /CORE 0.
+WinPOS 0% 66% 33% 33%
+Register.view /CORE 0.
+IF (CORENUMBER()>1.)
+(
+  WinPOS 33% 33% 33% 33%
+  List.auto /CORE 1.
+  WinPOS 33% 66% 33% 33%
+  Register.view /CORE 1.
+  IF (CORENUMBER()>2.)
+  (
+    WinPOS 66% 33% 33% 33%
+    List.auto /CORE 2.
+    WinPOS 66% 66% 33% 33%
+    Register.view /CORE 2.
+  )
+)
+
+ENDDO

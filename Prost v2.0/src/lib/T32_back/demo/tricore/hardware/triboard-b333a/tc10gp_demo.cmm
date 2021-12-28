@@ -1,0 +1,75 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC10GP on TriBoard
+; @Description:
+;   Initializes the TriCore, SRAM and Flash,
+;   and loads the Sieve-Demo into memory.
+;
+;   Use the following boot option:
+;   OFF OFF ON ON OFF OFF ON ON
+;
+;   Requirements to use OCDS-1:
+;   Set jumper JP501 to position 2-3
+;
+; @Keywords: Infineon, TriCore
+; @Author: MAX
+; @Board: TriBoard-b333a
+; @Chip: TC10GP
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc10gp_demo.cmm 7573 2014-08-27 14:37:31Z mobermeir $
+
+
+; --------------------------------------------------------------------------------
+; Performed tests:
+; TriBoard-B333A.101 TC11GP 2006-06-06 MAX
+;
+; Memory mappings:
+; SRAM  (4MB) mapped to 0xA0000000--0xA03FFFFF
+; Flash (2MB) mapped to 0xA4000000--0xA41FFFFF
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.CPU TC10GP
+SYStem.Up
+
+; Disable watchdog timer
+Data.Set 0xF0000024 %Long 0x00000008    ; WDTCON1
+
+; --------------------------------------------------------------------------------
+; Memory initialzation
+
+; initialize external bus unit
+Data.Set 0xF0000210 %Long 0x4001FFFF    ; EBU_BCUCON - Starvation protection off (bug fix for TC10GP)
+Data.Set 0xF0000510 %Long 0x0000FF68    ; EBU_EBUCON
+
+; memory assignment
+; AMD AM29LV800BB flash, demux, 32 bit, CS
+Data.Set 0xF0000560 %Long 0x000203C1    ; EBU_BUSCON0
+Data.Set 0xF0000520 %Long 0xA4000061    ; EBU_ADDSEL0
+; Siemens HYB39S16160-CT-6 SDRAM (1Mx16, 166 MHz, 32 bit, DQM Mode) or SEC KM416S1020CT
+Data.Set 0xF0000564 %Long 0x01023000    ; EBU_BUSCON1
+Data.Set 0xF0000524 %Long 0xA0000051    ; EBU_ADDSEL1
+; unused
+Data.Set 0xF0000528 %Long 0x00000000    ; EBU_ADDSEL2
+Data.Set 0xF000052C %Long 0x00000000    ; EBU_ADDSEL3
+
+Data.Set 0xF0000518 %Long 0x00000023    ; DRMCON1 (set this before DRMCON0)
+Data.Set 0xF0000514 %Long 0x12000030    ; DRMCON0
+
+; --------------------------------------------------------------------------------
+; load demo program
+Data.LOAD.Ieee "~~~~/demo.abs" /MSECtion
+Go.direct main
+
+; open some windows
+WinCLEAR
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame.view /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch
+Var.AddWatch ast flags
+
+ENDDO

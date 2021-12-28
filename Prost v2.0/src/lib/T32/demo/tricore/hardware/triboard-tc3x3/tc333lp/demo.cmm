@@ -1,0 +1,50 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC333LP on TriBoard-TC3x3 (sieve app)
+; @Description:
+;   Loads the sieve demo application (single-core) into RAM and sets up a demo
+;   debug scenario. Use this script for getting started.
+; @Keywords: AURIX2G, Infineon, TriCore
+; @Author: MOB
+; @Board: TriBoard-TC3x3
+; @Chip: TC333LP
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo.cmm 16307 2020-07-16 15:25:36Z sltaief $
+
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.CPU TC333LP
+; The TriBoard-TC3x3 comes with a TLF35584 power supply
+; This power supply has integrated watchdog functionality which will cut all
+; power if not served correctly. By default this demo will disable this
+; watchdog functionality. This includes configuring the QSPI controller as
+; well as writing data to the QSPI.
+
+IF !STATE.POWER()
+(
+  DO ~~~~/disable_tlf35584.cmm
+)
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/tc33x_sieve_intmem.elf" /SingleLineAdjacent
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame.view /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch
+Var.AddWatch ast flags
+
+ENDDO

@@ -1,0 +1,116 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for CY8C5868AXI-LP035 with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The Offchip Trace using a Combiprobe/uTrace or PowerTrace is set up.
+;   Use this script for testing the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Combiprobe/uTrace to SWCLK/SWDIO + TRACECLK/TRACEDATA[0..3]
+;      or
+;      Connect AutoFocus Preprocessor to TRACECLK/TRACEDATA[0..3]
+;      and connect DebugCable to SWCLK/SWDIO
+; @Keywords: ARM, Cortex-M3, ETM, ITM
+; @Author: AME
+; @Board: -
+; @Chip: CY8C5868AXI-LP035
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: psoc5_sieve_offchip_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU CY8C5868AXI-LP035
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF hardware.COMBIPROBE()||hardware.UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option ResBreak OFF
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; initialize offchip-trace (ETM ON, ITM ON)
+IF hardware.COMBIPROBE()||hardware.UTRACE()||Analyzer()
+(
+  ; set PinMux and enable Clocks
+  ; based on http://www.cypress.com/knowledge-base-article/using-embedded-trace-macrocell-etm-kba90952
+
+  ; PRT_PC[3..7] - set drive strength
+  Data.Set AD:0x40005010+0x3 %Byte 0x0C ; P2[3] = TRACECLK
+  Data.Set AD:0x40005010+0x4 %Byte 0x0C ; P2[4] = TRACEDATA[0]
+  Data.Set AD:0x40005010+0x5 %Byte 0x0C ; P2[5] = TRACEDATA[1]
+  Data.Set AD:0x40005010+0x6 %Byte 0x0C ; P2[6] = TRACEDATA[2]
+  Data.Set AD:0x40005010+0x7 %Byte 0x0C ; P2[7] = TRACEDATA[3]
+
+  ; MFGCFG_MLOGIC_DEBUG: set SWV_CLK_SEL, clear SWV_CLK_EN
+  Data.Set AD:0x400046E8 %Byte (Data.Byte(AD:0x400046E8)&~0xc)|0x8
+  ; set PANTHER_TRACE_CFG.TRACEMODE
+  Data.Set AD:0x40080008 %Long 0x02
+
+  TPIU.PortSize 4
+  TPIU.PortMode Continuous
+  ITM.DataTrace CorrelatedData
+  ITM.ON
+  ETM.Trace ON
+  ETM.ON
+)
+IF hardware.COMBIPROBE()||hardware.UTRACE()
+(
+  Trace.METHOD CAnalyzer
+  Trace.AutoInit ON
+  IF VERSION.BUILD.BASE()>=74752.
+  (
+    CAnalyzer.AutoFocus
+  )
+  ELSE
+  (
+    ; for uTrace & Combiprobe use manual calibration
+    ; CAnalyzer.ClockDELAY Large
+  )
+)
+IF Analyzer()
+(
+  Trace.METHOD Analyzer
+  Trace.AutoInit ON
+  Trace.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch %SpotLight
+Var.AddWatch ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO

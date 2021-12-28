@@ -1,0 +1,176 @@
+; --------------------------------------------------------------------------------
+; @Title: VxWorks Demo for TRACE32 OS Awareness on ZC702 Board
+; @Description: 
+;   
+;   This batchfile loads all necessary files to demonstrate
+;   the OS Awareness for VxWorks on the Zynq-7000 ZX702 board.
+;   Use this version for MMU enabled VxWorks systems.
+;   
+; @Keywords: Awareness, RTOS, VxWorks
+; @Author: DIE
+; @Chip: ZYNQ-7000
+; @Board: ZC702
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: vxworks.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; set terminal connection
+
+&term="COM4"
+
+
+; Reset debugger
+
+RESet
+WinPAGE.RESet
+SCREEN.ALways
+
+
+; Open Area window
+  
+WinPOS 0. 32. 80. 17.
+AREA.view
+PRINT
+PRINT "=== VxWorks 7 Demo on ZC702 ==="
+PRINT "resetting debugger..."
+
+
+; Open serial terminal window
+  
+SCREEN.ALways
+PRINT "starting terminal on &term"
+TERM.METHOD COM &term 115200.
+TERM.SIZE 80. 1000.
+TERM.Mode VT100
+TERM.SCROLL ON
+WinPOS 91. 0. 80. 25.  
+TERM.view
+
+
+; Repower target
+
+IF STATE.POWER()
+(
+    PRINT "please switch off power!"
+    WAIT !STATE.POWER()
+)
+PRINT "please switch on power!"
+WAIT STATE.POWER()
+
+
+; Initialize Target
+
+; let bootloader initialize everything
+PRINT "booting target..."
+WAIT 8.s
+ 
+
+; Configure debugger
+
+PRINT "initializing debugger..."
+
+SYStem.CPU ZYNQ-7000
+
+SYStem.CONFIG.DAPIRPRE 6.
+SYStem.CONFIG.DAPIRPOST 0.
+SYStem.CONFIG.DAPDRPRE 1.
+SYStem.CONFIG.DAPDRPOST 0.
+ 
+SYStem.Option DACR ON          ; give Debugger global write permissions
+SYStem.Option MMUSPACES ON     ; enable space ids for RTPs
+TrOnchip.Set DABORT OFF        ; used by VxWorks!
+TrOnchip.Set PABORT OFF        ; used by VxWorks!
+TrOnchip.Set UNDEF OFF         ; may be used by VxWorks
+
+SYStem.Option.IMASKASM ON   ; disable insterrupts for assembler single steps
+
+MAP.DenyAccess 0x80000000--0x9fffffff  ; prevent bus error
+
+
+; Connect and reset target
+
+SYStem.Up
+
+Register.RESet
+CORE.select 0
+Register.RESet
+
+
+; initialize the FPGA for offchip trace, if available
+
+IF Analyzer()
+(
+    DO init_etm.cmm
+)
+
+
+; Open List window -- we like to see something
+
+WinPOS 0. 0. 86. 26.
+List.auto
+
+
+; Download VxWorks image
+
+PRINT "downloading VxWorks image..."
+Data.LOAD.Elf C:\WindRiver\workspace\ZC702VIP\default\vxWorks
+  
+
+; Initialize kernel
+
+Go usrRoot
+PRINT "starting VxWorks..."
+WAIT !STATE.RUN()
+
+
+; Load VxWorks support
+
+PRINT "loading VxWorks Support..." 
+TASK.CONFIG ~~/demo/arm/kernel/vxworks/vxworks.t32      ; load VxWorks awareness
+TASK.Option THRCTX ON       ; enable task context id, if kernel is patched
+  
+
+; Open task list window
+
+WinPOS 86. 28. 85. 23.
+TASK.TaskInfo
+
+
+; Start application
+    
+Go usrAppInit
+PRINT "starting application..."
+WAIT !STATE.RUN()
+
+
+; Declare MMU format to the debugger
+
+ ; necessary to debug RTPs:
+ ; - table format is "STD" (standard)
+ ; - table base address is TTB of kernel
+ ; - kernel range is fixed (KERNEL_SYS_MEM_RGN_BASE/SIZE, adrSpaceArchLibP.h)
+ ; - kernel physical address is physical RAM start address (see DTS file)
+ ; MMU.FORMAT <format> <kernel TTB> <kernel range> <phys. addr>
+
+ ; MMU will be initialized in usrRoot->usrMmuInit,
+ ; so run until usrAppInit to have kernel MMU pages available
+
+PRINT "initializing debugger translation..."
+MMU.FORMAT STD task.rtp.ttb(0) 0x0--0x1fffffff 0x0
+TRANSlation.COMMON 0x0--0x1fffffff  ; kernel area is common for all RTPs
+TRANSlation.TableWalk ON
+TRANSlation.ON
+
+
+; Start demo
+
+PRINT "starting demo..."
+Go usrDemo
+
+
+; That's it
+
+PRINT "done."
+
+ENDDO

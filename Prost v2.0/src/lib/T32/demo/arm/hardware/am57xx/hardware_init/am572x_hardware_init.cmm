@@ -1,0 +1,231 @@
+; --------------------------------------------------------------------------------
+; @Title: Setup Script for AM572x
+; @Description:
+;   DDR3 initialization sequence for AM572x GP and IDK EVM using Data.Set commands.
+;   During intitialization, the following scripts will be called:
+;    - AM572x_emif_macros.cmm
+;    - AM572x_pad_config.cmm
+;    - AM572x_prcm_config.cmm
+;    - AM572x_ddr_config.cmm
+;   These scripts were developed using gel scripts.
+; @Keywords: AM57xx
+; @Author: YDA
+; @Board: AM572x EVM
+; @Chip: AM572x
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: am572x_hardware_init.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU AM572X
+SYStem.JtagClock CTCK 10MHz
+SYStem.Option ResBreak OFF
+CORE.ASSIGN 1. 2.
+SYStem.Up
+
+;-------------------------------------------------------
+//Instance Base Addresses
+&L4PER_CM_CORE=0x4A009700
+
+&CM_L4PER_I2C1_CLKCTRL=Data.Long(A:&L4PER_CM_CORE+0x00A0)
+&CM_CLKSEL_CLKOUT2=Data.Long(A:0x4AE06160)
+
+//I2C Definitions
+&I2C_1_BASE=0x48070000
+
+//PMIC Definitions
+&PMIC_PR_SLAVE_ADDR=0x58    ;PMIC Slave Address
+&PMIC_DEV_CTRL=0xA0
+&SMPS6_VOLTAGE=0x2F
+&SMPS7_VOLTAGE=0x33
+
+&DEBUG_PRINT=1.
+;------------------------------------------------------
+
+;EVM=0 => "AM572x GP EVM" / EVM=1 => " AM572x IDK EVM"
+&EVM=0
+GOSUB AM57xx_EVM_Initialization &EVM
+ENDDO
+
+
+AM57xx_EVM_Initialization:
+(
+ ENTRY &EVM
+  do ~~~~/am572x_emif_macros.cmm
+  IF (&EVM==0.)
+    PRINT " AM572x GP EVM"
+  ELSE
+    PRINT " AM572x IDK EVM"
+
+  PRINT " AM572x Target Connect Sequence Begins ..."
+;     AVS core setting
+;     AVS Class 0 voltage value
+;     STD_FUSE_OPP_VMIN_CORE_NOM @ 0x4A0025F4
+;     For Example IF STD_FUSE_OPP_VMIN_CORE_2 = 0x3CA (Decimal 970mA)
+;     PMIC VSEL = 26+(970-700)/10 = 53
+  &avs_voltage=Data.Long(A:0x4A0025F4)&0xFFF
+  &smps_vsel=(26.+((&avs_voltage-700.)/10.))&0x7F
+  IF (&EVM==0) ;//GP EVM
+  (
+    //PMIC DEV_CTRL.DEV_ON should be set to 1 to prevent the PMIC shuts off in 8 seconds for AM572x GP EVM
+    GOSUB Configure_I2C_Controller_Module
+    GOSUB Set_PMIC_Value &PMIC_DEV_CTRL 0x01
+    GOSUB Set_PMIC_Value &SMPS6_VOLTAGE &smps_vsel
+  )
+  ELSE IF (&EVM==1) ;//IDK EVM
+  (
+    GOSUB Set_PMIC_Value &SMPS7_VOLTAGE &smps_vsel
+  )
+  Do ~~~~/am572x_pad_config.cmm ;Workaround for PG1.1 Silicon Errata MMC2 PU/PD Contention after Reset
+  GOSUB AM572x_target_connect_sequence
+  do  ~~~~/am572x_prcm_config.cmm "AM572x_PRCM_Clock_Config_OPPNOM"
+  do  ~~~~/am572x_prcm_config.cmm "AM572x_PRCM_Module_AllEnable_Config"
+  do ~~~~/am572x_ddr_config.cmm
+  PRINT " AM572x Target intitialization Sequence DONE !"
+
+ENDDO
+)
+
+
+AM572x_target_connect_sequence:
+(
+  GOSUB AM572x_show_device_info
+  //Disable Watchdog timer WDT2
+  GOSUB Watchdog_disable 1.
+RETURN
+)
+
+AM572x_show_device_info:
+(
+  &silicon_type=(Data.Long(A:0x4AE0C204)&0xF0000000)>>28.
+  &device_type=(Data.Long(A:0x4A002134)&0x1C0)>>6.
+  IF (&silicon_type==1.)
+  (
+    &silicon_rev_major= 1.
+    &silicon_rev_minor= 1.
+  )
+  ELSE IF (&silicon_type==2.)
+  (
+   &silicon_rev_major=2.
+   &silicon_rev_minor=0.
+  )
+  ELSE
+  (
+    PRINT " WARNING: UNKNOWN DEVICE ID &silicon_type , PLEASE UPDATE GEL FILES"
+  )
+  IF (&device_type==0x3)
+  (
+    PRINT " AM572x PG &silicon_rev_major. &silicon_rev_minor GP device"
+  )
+  ELSE
+  (
+    PRINT " ERROR!!! UNKNOWN device type"
+  )
+RETURN
+)
+
+Watchdog_disable:
+(
+ENTRY &PRINT_off
+  IF (&PRINT_off==0)
+  (
+    IF (&DEBUG_PRINT!=0)
+    (
+    PRINT" Start WDT2 Watchdog Timer is disabled"
+    )
+  )
+  //Enable clock
+  PRINT " Enable clock "
+  Data.Set 0x4AE07830 %LE %Long 0x02
+  //Check that module is Idle
+  WHILE ((Data.Long(A:0x4AE07830)&0x20000)!=0)
+  (
+  )
+  //Disable  watchdog 2
+  //Wait until reset complete
+  WHILE ((Data.Long(A:0x4AE14014)&0x01)==0)
+  (
+  )
+  //Disable watchdog timer
+  Data.Set 0x4AE14048 %LE %Long 0x0000AAAA
+  WHILE ((Data.Long(A:0x4AE14034)&0x10)!=0)
+  (
+  )
+  //Disable 32Khz watchdog timer
+  PRINT " Disable 32khzwatchdog timer"
+  Data.Set 0x4AE14048 %LE %Long 0x00005555
+  WHILE ((Data.Long(A:0x4AE14034)&0x10)!=0)
+  (
+  )
+  IF (&PRINT_off==0)
+  (
+    IF (&DEBUG_PRINT==1)
+    (
+      PRINT " End WDT2 Watchdog Timer is disabled"
+    )
+  )
+RETURN
+)
+
+;Set the processor to ARM mode and Supervisor mode after a file is loaded, on a
+;restart or on a reset
+;This will facilitate code loading and debug by putting the processor in a known
+;state
+
+;this subroutine changes certain states of the processor to
+;allow proper access from CCS.  May not be needed in all situations
+
+AM57xxStartState:
+(
+  Register.set(CPSR)=R(CPSR)&~0x20;           ;     //set to ARM mode
+  Register.set(CPSR) =(R(CPSR)&~0x1F)|0x13 ;  //set to privledged mode
+  &REG_CTXA15_CP15_C1_SCTLR &=~0x1         ; //disable MMU
+RETURN
+)
+
+; ----------------------------------------------------------------------------
+;    Configure_I2C_Controller_Module : Init the I2C Controller Module
+; ----------------------------------------------------------------------------
+Configure_I2C_Controller_Module:
+(
+  IF (&DEBUG_PRINT==1)
+    PRINT " I2C Init"
+  //I2C clock management
+  Data.Set (A:0x0010+&I2C_1_BASE) %LE %Long 0x0003                 ;I2C Soft Reset
+  Data.Set (A:0x4AE06160) %LE %Long 0x0007                         ;Enabling clock into I2C Master Controller
+  Data.Set (A:&L4PER_CM_CORE+0x00A0) %LE %Long 0x0002
+  //Setting bit rates
+  Data.Set (A:0x00B0+&I2C_1_BASE) %LE %Long 0x0009                 ;Maximum Fast Mode (400 kbps)
+  Data.Set (A:0x00B4+&I2C_1_BASE) %LE %Long 0x0007
+  Data.Set (A:0x00B8+&I2C_1_BASE) %LE %Long 0x0005
+  //I2C configuration
+  Data.Set (A:0x00A8+&I2C_1_BASE) %LE %Long 0x00AA                 ;Setting I2C own address
+  Data.Set (A:0x0010+&I2C_1_BASE) %LE %Long 0x030C
+  Data.Set (A:0x00A4+&I2C_1_BASE) %LE %Long (Data.long(A:0x00A4+&I2C_1_BASE)|0x8000)     ;I2C module out of reset
+  Data.Set (A:0x00BC+&I2C_1_BASE) %LE %Long (Data.long(A:0x00BC+&I2C_1_BASE)|0x4000)     ;Set clock to free running
+  Data.Set (A:0x00A4+&I2C_1_BASE) %LE %Long 0x8600                 ;Set to master transmitter
+RETURN
+)
+
+; ----------------------------------------------------------------------------
+;   Set_PMIC_Value: Send the desired power outcome of PMIC
+; ----------------------------------------------------------------------------
+Set_PMIC_Value:
+(
+ENTRY &reg &Val
+  Data.Set (A:0x00AC+&I2C_1_BASE) %LE %Long &PMIC_PR_SLAVE_ADDR      ;Set to specIFic address to set power rails
+  Data.Set (A:0x0098+&I2C_1_BASE) %LE %Long 0x0002                   ;Set the Buffer Length
+  Data.Set (A:0x0028+&I2C_1_BASE) %LE %Long 0xFFFF                   ;Clear Current Interrupts
+  Data.Set (A:0x00A4+&I2C_1_BASE) %LE %Long 0x8601                   ;Send START bit
+  Data.Set (A:0x009C+&I2C_1_BASE) %LE %Long &reg                     ;Send PMIC register value for DEV_CTRL.DEV_ON
+  Data.Set (A:0x0028+&I2C_1_BASE) %LE %Long 0x0010
+  Data.Set (A:0x00A4+&I2C_1_BASE) %LE %Long 0x8601
+  Data.Set (A:0x009C+&I2C_1_BASE) %LE %Long &Val                     ;Send PMIC output voltage (conversion table in PMIC reg. table)
+
+RETURN
+)

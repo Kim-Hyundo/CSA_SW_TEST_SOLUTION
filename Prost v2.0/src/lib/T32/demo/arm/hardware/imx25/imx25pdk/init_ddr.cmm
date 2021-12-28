@@ -1,0 +1,129 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags, NoIndex
+; @Author: MSA
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: init_ddr.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+; Target Setup: initialize DRAM controller and peripherals
+print "target setup..."
+
+;AIPS settings
+Data.Set sd:0x43f00040 %le %long 0x00000000
+Data.Set sd:0x43f00044 %le %long 0x00000000
+Data.Set sd:0x43f00048 %le %long 0x00000000
+Data.Set sd:0x43f0004C %le %long 0x00000000
+Data.Set sd:0x43f00050 %le %long 0x00000000
+
+Data.Set sd:0x43f00000 %le %long 0x77777777
+Data.Set sd:0x43f00004 %le %long 0x77777777
+
+Data.Set sd:0x53f00040 %le %long 0x00000000
+Data.Set sd:0x53f00044 %le %long 0x00000000
+Data.Set sd:0x53f00048 %le %long 0x00000000
+Data.Set sd:0x53f0004C %le %long 0x00000000
+Data.Set sd:0x53f00050 %le %long 0x00000000
+
+Data.Set sd:0x53f00000 %le %long 0x77777777
+Data.Set sd:0x53f00004 %le %long 0x77777777
+
+;cs0
+Data.Set sd:0xB8002008 %le %long 0x00010000
+Data.Set sd:0xB8002004 %le %long 0x00210511
+Data.Set sd:0xB8002000 %le %long 0x00000200
+
+;cs5
+Data.Set sd:0xB8002054 %le %long 0x00000001
+Data.Set sd:0xB8002050 %le %long 0x00000200
+
+;cs1
+Data.Set sd:0xB8002018 %le %long 0x00010000
+Data.Set sd:0xB8002010 %le %long 0x00000200
+Data.Set sd:0xB8002014 %le %long 0x00210511
+
+Data.Set sd:0x53f80008 %le %long 0x2003C000
+Data.Set sd:0x43fac454 %le %long 0x1000
+
+;cs4
+Data.Set sd:0xB8002040 %le %long 0x0000DCF6 
+Data.Set sd:0xB8002044 %le %long 0x444A4541 
+Data.Set sd:0xB8002048 %le %long 0x44443302 
+
+; Set ODT %le %long  0
+Data.Set sd:0xB400000C %le %long 0x0400
+
+;Data.Set sd:0xB8002008 %le %long 0x0
+;Data.Set sd:0xB8002004 %le %long 0x00200501
+;Data.Set sd:0xB8002000 %le %long 0x00000800
+
+Data.Set sd:0xd8002000 %le %long 0x0000CC03
+Data.Set sd:0xd8002004 %le %long 0xa0330D01
+Data.Set sd:0xd8002008 %le %long 0x00220800
+
+;DDR2 initial begin
+;Data.Set sd:0xB8001004 %le %long 0x007ffcff
+Data.Set sd:0xB8001004 %le %long 0x0076E83a
+ 
+;  ESD_MISC 
+;Data.Set sd:0xB8001010 %le %long 0x0000020C
+; Data.Set sd:0xB8001018 %le %long 0x0000004C
+Data.Set sd:0xB8001010 %le %long 0x00000204
+ 
+;  ESD_ESDCTL0  SDE_SMODE_SP_ROW_00_COL_00_DSIZ_SREFR_0_PWDT_0_FP_BL_0__PRCT
+;  ESD_ESDCTL0 32'b1_001__0__010_00__01_00___00___000_0___00_0__0__0_0_00000
+;  enable CS0 precharge command 
+Data.Set sd:0xB8001000 %le %long 0x92210000
+ 
+;  precharge all dummy write only address matter
+Data.Set sd:0x80000f00 %le %long 0x12344321
+
+; ESD_ESDCTL0 : select Load-Mode-Register mode
+Data.Set sd:0xB8001000 %le %long 0xB2210000
+; DDR2 : Load reg EMR2
+Data.Set sd:0x82000000 %le %byte 0xda
+; DDR2 : Load reg EMR3
+Data.Set sd:0x83000000 %le %byte 0xda
+; DDR2 : Load reg EMR1 -- enable DLL
+Data.Set sd:0x81000400 %le %byte 0xda
+; DDR2 : Load reg MR -- reset DLL
+Data.Set sd:0x80000333 %le %byte 0xda
+; ESD_ESDCTL0 : select Prechare-All mode
+Data.Set sd:0xB8001000 %le %long 0x92210000
+; DDR2 : Prechare-All
+Data.Set sd:0x80000400 %le %byte 0x12345678
+
+; ESD_ESDCTL0 : select Manual-Refresh mode
+Data.Set sd:0xB8001000 %le %long 0xA2210000
+; DDR2 : Manual-Refresh 2 times
+Data.Set sd:0x80000000 %le %long 0x87654321
+Data.Set sd:0x80000000 %le %long 0x87654321
+
+; ESD_ESDCTL0 : select Load-Mode-Register mode
+Data.Set sd:0xB8001000 %le %long 0xB2210000
+; DDR2 : Load reg MR -- CL=3, BL=8, end DLL reset
+Data.Set sd:0x80000233 %le %byte 0xda
+; DDR2 : Load reg EMR1 -- OCD default
+Data.Set sd:0x81000780 %le %byte 0xda
+; DDR2 : Load reg EMR1 -- OCD exit
+Data.Set sd:0x81000400 %le %byte 0xda
+
+;  ESD_ESDCTL0  SDE_SMODE_SP_ROW_00_COL_00_DSIZ_SREFR_0_PWDT_0_FP_BL_0__PRCT
+;  ESD_ESDCTL0 32'b1_000__0__010_00__10_00___10___011_0___00_0__0__0_0_000000
+;  @; normal mode row=010//col=10//dzize=10//self ref=011//PWDT %le %long 00//BL %le %long 0//prct %le %long 000000
+ 
+Data.Set sd:0xB8001000 %le %long 0x82216080
+
+
+; Init IOMUXC_SW_PAD_CTL_GRP_DDRTYPE_GRP(1-5)
+
+Data.Set sd:0x43FAC454 %le %long 0x00001000
+
+;comment clock gating open
+Data.Set sd:0x53F8000C %le %long 0xffffffff  
+Data.Set sd:0x53F80010 %le %long 0xffffffff
+Data.Set sd:0x53F80014 %le %long 0xffffffff
+
+; Initialisation done !
+enddo
+

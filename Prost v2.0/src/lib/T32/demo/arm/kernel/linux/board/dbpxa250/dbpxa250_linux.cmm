@@ -1,0 +1,224 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux Demo for TRACE32 OS Awareness for the DBPXA250 Board
+; @Description: 
+;   The example is generated for an Intel DBPXA250 board using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   Linux is downloaded to the board via ICD.
+; @Keywords: awareness, RTOS
+; @Author: DIE
+; @Board: DBPXA250
+; @Chip: PXA250
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: dbpxa250_linux.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+; Starting Linux example with TRACE32:
+; - Connect a keyboard to the DBPXA250 board
+; - Set S15 to no dot position
+; - Start TRACE32
+; - (T32) do linux
+; - login as root and start "hello"
+
+LOCAL &ka_path &awareness
+
+ SCREEN.ON
+
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 26. 75. 7. 0. 0. W000
+ AREA.view
+ 
+ PRINT "resetting..."
+
+ SYStem.Down
+ TASK.RESet
+ Break.Delete
+ MAP.RESet
+ sYmbol.RESet
+ TRANSlation.RESet
+
+
+; Initializing Debugger
+ 
+ PRINT "initializing..."
+ SYStem.CPU PXA250
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ SYStem.Option DynVector ON     ; Linux reprograms vector table
+ TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set UNDEF OFF         ; used by Linux for (non-)FPU detection!
+ SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+ SYStem.JtagClock 10.0MHz       ; 25.0MHz may cause troubles
+ SYStem.Up
+ SETUP.IMASKASM ON          ; lock interrupts while single stepping
+
+
+; Target Setup: initialize DRAM controller and peripherals
+ 
+  DO dbpxa250_init
+ 
+
+; Load the Linux kernel
+
+ ; If you are using a flashed kernel, or if you're loading 
+ ; your kernel via TFTP, use the boot monitor to do so.
+ 
+ ; Use the next lines (loading the kernel, setting registers
+ ; and boot parameters) only to load the kernel into
+ ; RAM using the debugger.
+
+ ; vmlinux starts physically at RAM start (=0xa0000000) + 0x8000 
+ ; (see arch/arm/kernel/head-armv.S)
+ ; We have to adjust it from the virtual start address at the label
+ ; "stext" from the System.map ("nm vmlinux | sort")
+ ; i.e.: Data.LOAD.Elf vmlinux <physical start>-<virtual start>
+
+ ; use Turbo mode only, if target RAM is fast enough
+
+ PRINT "loading Linux image..."
+ SYStem.Option TURBO ON
+ Data.LOAD.Elf vmlinux 0xa0008000-0xc0008000 /gnu /NosYmbol
+ SYStem.Option TURBO OFF
+
+ Register.RESet
+
+ ; Set PC on start address of image
+ Register.Set PC 0xa0008000
+ 
+ ; Set machine type in R1; see arch/arm/tools/mach-types
+ Register.Set R1 89.
+
+ ; Enable the Floating Point Coprocessor
+ Data.Set C15:1f 01
+
+
+; Loading initial ram disk (initrd)
+
+ ; Use the next lines only, if you want to use an initrd,
+ ; and if you want to download this with the debugger.
+
+ ; Load rom file system image into ram disk
+ ; The load address is hardcoded in arch/arm/mach-pxa/lubbock.c
+ 
+ ; use Turbo mode only, if target RAM is fast enough
+
+ PRINT "loading ram disk"
+ SYStem.Option TURBO ON
+ Data.LOAD.Binary romfs.img 0xa1000000 /NoClear /NosYmbol
+ SYStem.Option TURBO OFF
+ 
+
+; Load the Linux kernel symbols into the debugger
+ ; use /strippart and /path to map source paths, if necessary
+ 
+ PRINT "loading Linux kernel symbols..."
+ Data.LOAD.Elf vmlinux /gnu /NoCODE
+ 
+
+; Open a Code Window -- we like to see something
+
+ WinPOS 0. 0. 75. 20.
+ List.auto
+ SCREEN.display
+ 
+
+; Run over MMU & Interrupt initialization
+
+ ; use onchip, because we're passing MMU initialization
+ Break.Set __init_end /Onchip 
+ 
+ ; and wait until it's done
+ Go.direct
+ PRINT "running Linux initialization..."
+ WAIT !STATE.RUN()
+ Break.Delete __init_end
+ 
+ ; Vector table is initialized, speed up interrupt behaviour
+ SYStem.Option DynVector OFF
+
+
+; Declare the MMU format to the debugger
+ ; - table format is "LINUX"
+ ; - table base address is at label "swapper_pg_dir"
+ ; - kernel address translation
+ ; Map the virtual kernel symbols to physical addresses to give 
+ ; the debugger access to it before CPU MMU is initialized
+
+ PRINT "initializing debugger MMU..."
+ MMU.FORMAT LINUX swapper_pg_dir 0xc0000000--0xc3ffffff 0xa0000000
+ TRNASlation.COMMON 0xc0000000--0xffffffff            ; common area for kernel and processes
+ TRNASlation.TableWalk ON   ; debugger uses a table walk to decode virtual addresses
+ TRNASlation.ON             ; switch on debugger(!) address translation 
+
+
+; Initialize Linux Awareness
+
+ ; Note that the Linux awareness needs the kernel symbols to work
+ 
+ PRINT "initializing Linux support..."
+ 
+ ; check linux major version
+ IF STRing.SCAN(Data.STRing(linux_banner), "Linux version 2.", 0)==0
+ (
+     &ka_path="~~/demo/arm/kernel/linux/linux-2.x"
+     &awareness="linux.t32"
+ )
+ ELSE
+ (
+     &ka_path="~~/demo/arm/kernel/linux/linux-3.x"
+     &awareness="linux3.t32"  
+ )
+ 
+ PRINT "initializing RTOS support..."
+ TASK.CONFIG &ka_path/&awareness               ; loads Linux awareness 
+ MENU.ReProgram &ka_path/linux            ; loads Linux menu 
+  
+ ; Group kernel area to be displayed with red bar
+ GROUP.Create "kernel" 0xc0000000--0xffffffff /RED
+
+
+; Ok, we're done, let's start Linux
+ 
+ Go.direct
+ PRINT "starting Linux... (please wait)"
+ WAIT 4.s
+ Break.direct
+ 
+ PRINT "done."
+ 
+ 
+; --------------------------------------------------------------------------------
+; Application Debugging 
+; e.g. "hello"
+; --------------------------------------------------------------------------------
+
+ ; activate autoloader for processes:
+ TASK.sYmbol.Option AutoLoad Process
+
+ PRINT "please log in and start 'hello'"
+
+ ; script based
+   ; using the script based application debugging
+   ; gives more control over the single commands
+   ; see file "app_debug.cmm"
+   
+   ;LOCAL &extdir
+   ;&extdir=TASK.GETDIR()
+   ;DO &extdir/app_debug hello
+   
+ ; process watch system
+   ; the process watch system automates the actions
+   ; for application debugging
+   
+   WinPOS 55. 25. 40. 4.
+   TASK.Watch.View "hello"
+
+   Go.direct
+
+ ENDDO
+ 

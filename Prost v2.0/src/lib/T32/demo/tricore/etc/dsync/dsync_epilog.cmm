@@ -1,0 +1,43 @@
+; @Title: Configures "dsync" epilog for AURIX devices
+; @Description:
+;   Configure Data.EPILOG to execute a dsync instruction at each stop.
+;   This makes sures the "store buffers" are cleared.
+;   Target RAM Requirements:
+;     Code: 24 Bytes
+;     Data: 64 Bytes
+;   Usage:
+;     ~~/demo/tricore/etc/dsync/dsync_epilog.cmm CODE=0x70100000 DATA=0x70000000
+; @Keywords: AURIX, Infineon, TriCore, dsync
+; @Author: MEI
+; @Chip: TC2*, TC3*
+; @Copyright: (C) 1989-2015 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: dsync_epilog.cmm 14992 2019-09-26 13:00:02Z meick $
+
+PRIVATE &parameters &codeBase &dataBase
+ENTRY %LINE &parameters 
+
+&codeBase=STRing.SCANAndExtract("&parameters","CODE=","")
+&dataBase=STRing.SCANAndExtract("&parameters","DATA=","")
+
+IF "&codeBase"==""
+(
+  PRINT %ERROR "'CODE' parameter missing"
+  ENDDO
+)
+IF "&dataBase"==""
+(
+  PRINT %ERROR "'CODE' parameter missing"
+  ENDDO
+)
+
+Data.ReProgram &codeBase
+(
+    nop
+    dsync
+)
+
+Data.EPILOG.TARGET P:&codeBase++0x17 D:&dataBase++0x3f
+Data.EPILOG.ON
+
+ENDDO

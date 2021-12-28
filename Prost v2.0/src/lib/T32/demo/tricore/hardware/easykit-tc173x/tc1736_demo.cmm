@@ -1,0 +1,67 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC1736 on Easy-Kit TC173X
+; @Description:
+;   Initializes the TriCore and loads the Sieve-Demo into memory.
+; @Keywords: Infineon, internal, intmem, memory, sieve, TriCore
+; @Author: MAX
+; @Board: Easy-Kit-TC173?
+; @Chip: TC1736
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc1736_demo.cmm 7572 2014-08-27 14:24:37Z mobermeir $
+
+
+; --------------------------------------------------------------------------------
+; Performed tests:
+; none, no evaluation platform available
+;
+; Memory mappings:
+; processor internal program memory mapped to 0xD4000000--0xD4001FFF    8 KB
+; processor internal data memory    mapped to 0xD0000000--0xD0008FFF   36 KB
+; processor internal program flash  mapped to 0xA0000000--0xA00FFFFF    1 MB
+; processor internal data flash     mapped to 0xAFE00000--0xAFE03FFF   16 KB
+;                                             0xAFE10000--0xAFE13FFF   16 KB
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+
+RESet
+SYStem.CPU TC1736
+
+IF DAP.Available()
+(
+  ; Bi-Directional Debug Cable detected
+  SYStem.CONFIG.DEBUGPORTTYPE DAP2    ; instead of JTAG
+)
+ELSE
+(
+  ; Uni-Directional Debug Cable
+  SYStem.CONFIG.DEBUGPORTTYPE JTAG
+)
+
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; bugfixes and workarounds
+
+; DMA_TC.013
+; DMA-LMB-Master Access to Reserved Address Location
+; prevent the debugger from accessing certain target memory
+MAP.DenyAccess 0xC8000000++0x07FFFFFF
+
+; --------------------------------------------------------------------------------
+; load demo program
+Data.LOAD.Elf "~~~~/easykit-tc1736_sieve_intmem.elf"
+Go.direct main
+
+; open some windows
+WinCLEAR
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame.view /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch
+Var.AddWatch ast flags
+
+ENDDO

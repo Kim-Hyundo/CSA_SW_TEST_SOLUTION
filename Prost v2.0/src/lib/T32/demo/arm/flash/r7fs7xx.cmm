@@ -1,0 +1,31 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash declaration for Renesas R7FS7 internal flash
+; @Description: This file is obsolet and only kept for backward compatibility!
+;   Script arguments:
+;     DO r7fs7xx [PREPAREONLY] [CPU=<cpu>] [DUALPORT=<0|1>]
+;       PREPAREONLY    only declares flash but does not execute flash programming
+;       CPU=<cpu>      selects CPU derivative <cpu>
+;       DUALPORT=<0|1> use dual port memory access, default 1
+;   Example:
+;     DO ~~/demo/arm/flash/r7fs7xx PREPAREONLY
+;   Note:
+;     This file must NOT be modified.
+;     This file is intended to stay within TRACE32 installation.
+;     Usage examples are available in the ~~/demo/arm/hardware/... subdirectories.
+;
+;   List of R7FS5 derivatives and their configuration:
+;      CPU-Type       Code Flash  Data Flash  RamSize
+;                        [KB]       [KB]       [KB]
+; --------------------------------------------------------------------------------
+;	
+;
+; @Chip: R7FS7*
+; @Author: MAM
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 8054 $
+; $Id: r7fs7xx.cmm 8054 2020-03-10 08:40:18Z cmorgenstern $
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+do ~~~~/r7fx.cmm &parameters

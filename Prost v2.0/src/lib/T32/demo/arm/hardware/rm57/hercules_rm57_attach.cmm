@@ -1,0 +1,103 @@
+; --------------------------------------------------------------------------------
+; @Title: Attach example script for RM57L843-ZWT on HERCULES RM57
+; @Description:
+;   This script shows how to connect to a running RM57 derivative without
+;   stopping the CPU. This script can be used as referce how to attach and to
+;   initialize the CTI connection to freeze peripherals like RTIx, SCIx, aso.
+;   Prerequisites:
+;    * Debug Cable or Combiprobe is connected to J4
+; @Keywords: ARM, Cortex-R5
+; @Author: AME
+; @Board: HERCULES RM57
+; @Chip: RM57L843-ZWT
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: hercules_rm57_attach.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF VERSION.BUILD.BASE()<76594.
+(
+  PRINT %ERROR "Please use more recent Software! Contact support@lauterbach.com."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU RM57L843-ZWT
+; these settings stop the CPU at the RESET Vector
+SYStem.Option EnReset OFF
+SYStem.Option ICEPICK SystemReset.ON
+SYStem.Option ICEPICK WaitInReset.ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+SYStem.Mode.Attach
+
+; --------------------------------------------------------------------------------
+; Setup CTI to freeze peripherals while debugging
+GOSUB CtiSetup
+
+; --------------------------------------------------------------------------------
+; load debug symbols only
+Data.LOAD.Elf "~~~~/sieve_ram_arm_v7r_le.elf" /NoCODE
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+ENDDO
+
+; --------------------------------------------------------------------------------
+
+CtiSetup: ;()
+(
+  &CoreCtiBase=COMPonent.BASE("CTI",0.)
+  &CoreCtiBase=CONVert.ADDRESSTODUALPORT(&CoreCtiBase)
+  &PeriphCtiBase=EDAP:0x8000a000
+
+  ; <do not change>
+  ; MAP CR5-"Core-Stopped" (CTITRIGIN7) to CTM Channel 2
+  Data.Set &CoreCtiBase+0x3c %Long 0x4
+  ; ensure CTM2 is not GATED
+  Data.Set &CoreCtiBase+0x40 %Long Data.Long(&CoreCtiBase+0x40)|0x4
+  ; enable CR5-CTI
+  Data.Set &CoreCtiBase+0x00 %Long 0x1
+  ; </do not change>
+
+  ; <user config>
+  ; the following Data.Set's connect "Core-Stopped" signal to the
+  ; listed peripherals
+  ; L2FMC, CCMR5, CRCx, and SYS modules
+  Data.Set &PeriphCtiBase+0xa0 %Long 0x4
+  ; DMA, RTIx, AWMx, HTUx, SCIx, LINx, I2Cx, EMAC, EQEP, ECAP, DMM and DCCx modules
+  Data.Set &PeriphCtiBase+0xa4 %Long 0x4
+  ; DCANx
+  Data.Set &PeriphCtiBase+0xa8 %Long 0x4
+  ; ETPWMx
+  Data.Set &PeriphCtiBase+0xac %Long 0x4
+  ; </user config>
+  ; <do not change>
+  ; ensure CTM2 is not GATED
+  Data.Set &PeriphCtiBase+0x40 %Long Data.Long(&CoreCtiBase+0x40)|0x4
+  ; enable PERIPH-CTI
+  Data.Set &PeriphCtiBase+0x00 %Long 0x1
+  ; </do not change>
+
+  RETURN
+)

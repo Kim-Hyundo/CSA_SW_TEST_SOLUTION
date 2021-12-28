@@ -1,0 +1,24 @@
+; --------------------------------------------------------------------------------
+; @Title: Initialize the TSGEN on i.MX8MMini SoCs to generate ETM timestamps
+; @Description:
+;   Initialize the TSGEN on i.MX8MMini SoCs to generate ETM timestamps.
+;   Performs a auto-calibration of the timer speed.
+; @Props: NoMetaTags
+; @Author: AME
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: init_etm_timestamps.cmm 15158 2019-10-24 09:05:23Z amerkle $
+
+PRIVATE &tmp
+; start the timer
+Data.Set DAP:0x80c01000 %Long 0x1
+; let the timer run for 1 second
+&tmp=Data.QUAD(DAP:0x80c01008)
+WAIT 1.s
+&tmp=Data.QUAD(DAP:0x80c01008)-&tmp
+&tmp=&tmp*1.
+; set ETM.TimeStampCLOCK
+ETM.TimeStampCLOCK &tmp
+ETM.TimeStamps ON
+
+ENDDO

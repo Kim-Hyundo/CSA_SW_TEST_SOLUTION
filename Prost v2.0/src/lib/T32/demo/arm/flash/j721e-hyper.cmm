@@ -1,0 +1,375 @@
+; --------------------------------------------------------------------------------
+; @Title: HyperFlash Program script for the j721e-evm (AM752X, DRA829, TDA4X)
+; @Description:
+; S71KS512SC0BHV000 HyperFlash (Cypress) connected to the HyperBus Memory Controller (HPB0)
+;
+; SRAM:
+; HyperFlash(controller) Base: 0x47034000
+; HyperFlash memory mapped ADDRESS: 0x50000000
+;
+; Prerequisites: Switch Settings: CONFIG_SW[1] = ON (SW3.1 on common board)
+;
+; @Chip: AM752X, DRA829, TDA4*
+; @Board:
+; @Author: CMO
+; @Keywords: HyperFlash TD4*, HyperFlash DRA829, HyperFlash AM752X
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: j721e-hyper.cmm 8578 2020-08-05 13:40:50Z cmorgenstern $
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+PRIVATE &param_prepareonly &param_dualport
+&parameters=STRing.UPpeR("&parameters")
+&param_prepareonly=(STRing.SCAN("&parameters","PREPAREONLY",0)!=-1)
+&param_dualport=STRing.SCANAndExtract("&parameters","DUALPORT=","1")
+
+
+; --------------------------------------------------------------------------------
+LOCAL &HYPERCTRL_BASE &HYPERCSTS_BASE &HYPERMEMORY_BASE
+&HYPERCTRL_BASE=0x47034000
+&HYPERCSTS_BASE=0x47030000
+&HYPERMEMORY_BASE=0x50000000
+
+WinCLEAR
+
+
+; --------------------------------------------------------------------------------
+; Version Check
+IF VERSION.BUILD()<118743.
+(
+  DIALOG.OK "Please use more recent software!"
+  ENDDO
+)
+
+
+; --------------------------------------------------------------------------------
+; Open the master core(CM3) to configure system
+
+; Basic attach via CortexM3
+RESet
+SYStem.RESet
+
+; Close leftover GUIs
+InterCom OTHERS QUIT
+
+; Open all SLAVE GUIs
+IF !INTERCOM.PING(CM3)
+	TargetSystem.NewInstance CM3 /ARCHitecture ARM
+
+InterCom CM3 System.CPU AM752X-CM3
+InterCom CM3 SYStem.Option RESBREAK OFF
+InterCom CM3 SYStem.Option EnReset OFF
+InterCom CM3 SYStem.CONFIG SLAVE OFF
+InterCom CM3 SYSTEM.JTAGCLOCK CTCK 10MHz
+
+IF COMBIPROBE()||UTRACE()
+(
+	InterCom CM3 SYStem.CONFIG.CONNECTOR MIPI34 ; because of converter LA-3782
+)
+
+
+; --------------------------------------------------------------------------------
+; Use Power-AP to signal initial states
+InterCom CM3 SYStem.Mode PREPARE
+InterCom CM3 Data.Set EDBG:0x400003f0 %Long 0x00190000    ; Ensure Power-AP unlocked
+InterCom CM3 Data.Set EDBG:0x400003f0 %Long 0yxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1    ; Soft reset system
+WAIT 500.ms                                               ; Wait some time for the system to stabilize
+InterCom CM3 Data.Set EDBG:0x400003f0 %Long 0x00190000    ; Ensure Power-AP unlocked
+InterCom CM3 Data.Set EDBG:0x40000344 %Long 0x00102098    ; J721e: Force M3 Power & Clock to active
+InterCom CM3 Data.Set EDBG:0x40000320 %Long 0x00224003    ; c7-wir
+InterCom CM3 Data.Set EDBG:0x40000334 %Long 0x00224003    ; c66.1-wir
+InterCom CM3 Data.Set EDBG:0x40000338 %Long 0x00224003    ; c66-2-wir
+InterCom CM3 Data.Set EDBG:0x40000364 %Long 0x00224003    ; dmpac-wir
+InterCom CM3 Data.Set EDBG:0x40000368 %Long 0x00224003    ; vmpac-wir
+
+InterCom CM3 SYStem.Up
+
+; --------------------------------------------------------------------------------
+; work around LVCMOS IOdelay Issue
+InterCom CM3 Data.Set EZAXI:0x43005008 %LE %Long 0x68EF3490
+InterCom CM3 Data.Set EZAXI:0x4300500C %LE %Long 0xD172BC5A
+InterCom CM3 Data.Set EZAXI:0x430060c0 %LE %Long 0xd
+InterCom CM3 Data.Set EZAXI:0x430060d0 %LE %Long 0xd
+
+; Enable GTC for debug timestamps, 0x3=freeze in debug halt
+InterCom CM3 Data.Set EZAXI:0x00A90000 %LE %Long 0x1
+
+
+; --------------------------------------------------------------------------------
+; Basic board setup via CortexM3
+
+; Disbale CR5-MCU lockstep
+InterCom CM3 Data.Set EZAXI:0x45A50040 %Long 0x00000000
+
+
+; Enable necessary clock domains
+InterCom CM3 Do ~~/demo/arm64/hardware/j721e/scripts/configure_psc 0. 0. 4. 0x1 0x3 ; LPSC_WKUPMCU2MAIN
+InterCom.WAIT CM3
+
+; Configure PLLs
+InterCom CM3 Do ~~/demo/arm64/hardware/j721e/scripts/configure_pll MAIN
+InterCom.WAIT CM3
+InterCom CM3 Do ~~/demo/arm64/hardware/j721e/scripts/configure_pll DEBUG
+InterCom.WAIT CM3
+InterCom CM3 Do ~~/demo/arm64/hardware/j721e/scripts/configure_pll MCU0
+InterCom.WAIT CM3
+InterCom CM3 Do ~~/demo/arm64/hardware/j721e/scripts/configure_pll MCU1
+InterCom.WAIT CM3
+InterCom CM3 Do ~~/demo/arm64/hardware/j721e/scripts/configure_pll MCU2
+InterCom.WAIT CM3
+
+; Enable Power
+InterCom CM3 Do ~~/demo/arm64/hardware/j721e/scripts/configure_psc 0. 0.  0. 0x1 0x3 ; LPSC_WKUP_ALWAYSON
+InterCom.WAIT CM3
+InterCom CM3 Do ~~/demo/arm64/hardware/j721e/scripts/configure_psc 0. 0.  1. 0x1 0x3 ; LPSC_DMSC
+InterCom.WAIT CM3
+InterCom CM3 Do ~~/demo/arm64/hardware/j721e/scripts/configure_psc 0. 0.  2. 0x1 0x3 ; LPSC_DEBUG2DMSC
+InterCom.WAIT CM3
+InterCom CM3 Do ~~/demo/arm64/hardware/j721e/scripts/configure_psc 0. 0.  7. 0x1 0x3 ; LPSC_MCU_DEBUG
+InterCom.WAIT CM3
+
+
+; --------------------------------------------------------------------------------
+; HyperFlash specific setup
+GOSUB PIN_MUX_INTERCOM
+GOSUB CLK_INIT_INTERCOM
+InterCom CM3 Do ~~/demo/arm64/hardware/j721e/scripts/configure_psc 0. 0. 12. 0x1 0x3 ; LPSC_MCU_HYPERBUS
+InterCom.WAIT CM3
+
+; Close CM3 GUI
+InterCom OTHERS QUIT
+
+
+; --------------------------------------------------------------------------------
+; Connect to MCU-CR5 to program flash
+
+; The following CPU selections are equivalent:
+; AM752X-CR5-MCU
+; DRA829-CR5-MCU
+; TDA4X-CR5-MCU
+SYStem.CPU AM752X-CR5-MCU
+SYStem.CONFIG CORE 3. 1.
+CORE.ASSIGN 1.
+SYStem.Option RB off
+SYStem.Option EnReset OFF
+SYStem.MemAccess DAP    ;Enable to use the dualport
+
+SYStem.Option TRST OFF
+SYStem.Attach
+Break
+
+GOSUB CACHE_MMU_INIT
+
+GOSUB HYPERFLASH_INIT
+
+Break.RESet
+
+; Setup FLASH
+IF ("&param_dualport"!="1")
+	FLASH.CFI &HYPERMEMORY_BASE Word /TARGET 0x41C00000 0x41C01000 0x1000
+ELSE
+	FLASH.CFI &HYPERMEMORY_BASE Word /TARGET 0x41C00000 0x41C01000 0x1000 /DUALPORT
+
+; Re-enable I cache
+Data.Set C15:0x1 %long (Data.Long(C15:0x1)|(0x1<<12.))  ; enable I cache
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+	ENDDO PREPAREDONE
+
+
+; --------------------------------------------------------------------------------
+; Flash programming example
+DIALOG.YESNO "Program flash memory?"
+LOCAL &progflash
+ENTRY &progflash
+IF &progflash
+(
+	FLASH.ReProgram.ALL /Erase
+	Data.LOAD.auto *
+	FLASH.ReProgram.off
+
+	; Reset device
+	SYStem.Down
+	SYStem.Up
+)
+
+ENDDO
+
+
+HYPERFLASH_INIT:
+(
+	PRIVATE &tmpReg
+
+	; Select HyperBus interface path:
+	Data.Set EZAXI:47000004 %Long 0x2 ;
+
+	; Check FIFO RAM auto-initialization status (MCU_FSS0_HPB0_SS_RAM_STAT_REG[0])
+	WHILE (Data.Long(EZAXI:(&HYPERCSTS_BASE+0x8))&0x1)!=0x1
+	(
+	)
+
+	; Generate strobes for DLL training
+	PRIVATE &i 
+	&i=300.
+	WHILE &i>0.
+	(
+	   &tmpReg=Data.Long(AD:(&HYPERMEMORY_BASE+0x4*&i))
+	   &tmpReg=Data.Long(AD:(&HYPERMEMORY_BASE+0x4*&i))
+	   Data.Set AD:(&HYPERMEMORY_BASE+0x4*&i) %Long &tmpReg
+	   Data.Set AD:(&HYPERMEMORY_BASE+0x4*&i) %Long &tmpReg
+	   wait 1.ms
+	   &i=&i-1.
+	)
+
+	; Check MDLL and SDL lock values for (MCU_FSS0_HPB_SS_CFG[0] and MCU_FSS0_HPB_SS_CFG[1])
+	; -- Might not yet be the case at this stage --
+	;IF (Data.Long(EZAXI:(&HYPERCSTS_BASE+0x4))&0x3)!=0x3
+	;(
+	;	PRINT %ERROR "MCU_FSS0_HPB_SS_CFG: MDLL and/or SDL not locked (pre training)"
+	;	ENDDO
+	;)
+
+	; Set MCU_FSS0_HPB0_MC_MCR_y with y=0
+	&tmpReg=Data.Long(EZAXI:(&HYPERCTRL_BASE+0x20))
+	&tmpReg=(&tmpReg&(~(0x3<<0.)))|(0x0<<0.)      ; WRAPSIZE
+	&tmpReg=(&tmpReg&(~(0x1<<4.)))|(0x0<<4.)      ; DEVTYPE
+	&tmpReg=(&tmpReg&(~(0x1<<5.)))|(0x1<<5.)      ; CRT
+	&tmpReg=(&tmpReg&(~(0x1<<16.)))|(0x0<<16.)    ; ACS
+	&tmpReg=(&tmpReg&(~(0x1<<17.)))|(0x1<<17.)    ; TCMO
+	&tmpReg=(&tmpReg&(~(0x1ff<<18.)))|(0x1F<<18.) ; MAXLEN
+	&tmpReg=(&tmpReg&(~(0x1<<31.)))|(0x1<<31.)    ; MAXEN
+	Data.Set EZAXI:(&HYPERCTRL_BASE+0x20) %Long &tmpReg
+
+	; Set MCU_FSS0_HPB0_MC_MBAR_y with y=0
+	Data.Set EZAXI:(&HYPERCTRL_BASE+0x10) %Long 0x0
+
+	; Set MCU_FSS0_HPB0_MC_MTR_y with y=0
+	&tmpReg=Data.Long(EZAXI:(&HYPERCTRL_BASE+0x30))
+	&tmpReg=(&tmpReg&(~(0xf<<20.)))|(0x1<<20.)      ; RCSS
+	Data.Set EZAXI:(&HYPERCTRL_BASE+0x30) %Long &tmpReg
+
+	WHILE (Data.Long(EZAXI:&HYPERCSTS_BASE)&0x400)==0x400
+	(
+	)
+
+	; Set MCU_FSS0_HPB0_MC_MCR_y[CRT] with y=0
+	&tmpReg=Data.Long(EZAXI:(&HYPERCTRL_BASE+0x20))
+	&tmpReg=(&tmpReg&(~(0x1<<5.)))|(0x0<<5.)      ; CRT
+	Data.Set EZAXI:(&HYPERCTRL_BASE+0x20) %Long &tmpReg
+
+	WHILE (Data.Long(EZAXI:&HYPERCSTS_BASE)&0x400)==0x400
+	(
+	)
+
+	; Generate strobes for DLL training
+	PRIVATE &i 
+	&i=300.
+	WHILE &i>0.
+	(
+	   &tmpReg=Data.Long(AD:(&HYPERMEMORY_BASE+0x4*&i))
+	   &tmpReg=Data.Long(AD:(&HYPERMEMORY_BASE+0x4*&i))
+	   Data.Set AD:(&HYPERMEMORY_BASE+0x4*&i) %Long &tmpReg
+	   Data.Set AD:(&HYPERMEMORY_BASE+0x4*&i) %Long &tmpReg
+	   wait 1.ms
+	   &i=&i-1.
+	)
+
+	; Check MDLL and SDL lock values for (MCU_FSS0_HPB_SS_CFG[0] and MCU_FSS0_HPB_SS_CFG[1])
+	; -- Check might still fail even though connection seems to be stable --
+	;IF (Data.Long(EZAXI:(&HYPERCSTS_BASE+0x4))&0x3)!=0x3
+	;(
+	;	PRINT %ERROR "MCU_FSS0_HPB_SS_CFG: MDLL and/or SDL not locked (post training)"
+	;	ENDDO
+	;)
+
+	RETURN
+)
+
+
+PIN_MUX_INTERCOM:
+(
+	;MMR_unlock
+	InterCom CM3 Data.Set EZAXI:0x4301D008 %Long 0x68EF3490    ; CTRLMMR_WKUP_LOCK7_KICK0
+	InterCom CM3 Data.Set EZAXI:0x4301D00C %Long 0xD172BC5A
+
+	InterCom CM3 Data.Set EZAXI:0x4301C000 %Long 0x00000001    ; CTRLMMR_WKUP_PADCONFIG0  (MCU_HYPERBUS0_CK)
+	InterCom CM3 Data.Set EZAXI:0x4301C004 %Long 0x00010001    ; CTRLMMR_WKUP_PADCONFIG1  (MCU_HYPERBUS0_CKn)
+	InterCom CM3 Data.Set EZAXI:0x4301C008 %Long 0x00040001    ; CTRLMMR_WKUP_PADCONFIG2  (MCU_HYPERBUS0_RWDS)
+	InterCom CM3 Data.Set EZAXI:0x4301C00C %Long 0x00040001    ; CTRLMMR_WKUP_PADCONFIG3  (MCU_HYPERBUS0_DQ0)
+	InterCom CM3 Data.Set EZAXI:0x4301C010 %Long 0x00040001    ; CTRLMMR_WKUP_PADCONFIG4  (MCU_HYPERBUS0_DQ1)
+	InterCom CM3 Data.Set EZAXI:0x4301C014 %Long 0x00040001    ; CTRLMMR_WKUP_PADCONFIG5  (MCU_HYPERBUS0_DQ2)
+	InterCom CM3 Data.Set EZAXI:0x4301C018 %Long 0x00040001    ; CTRLMMR_WKUP_PADCONFIG6  (MCU_HYPERBUS0_DQ3)
+	InterCom CM3 Data.Set EZAXI:0x4301C01C %Long 0x00040001    ; CTRLMMR_WKUP_PADCONFIG7  (MCU_HYPERBUS0_DQ4)
+	InterCom CM3 Data.Set EZAXI:0x4301C020 %Long 0x00040001    ; CTRLMMR_WKUP_PADCONFIG8  (MCU_HYPERBUS0_DQ5)
+	InterCom CM3 Data.Set EZAXI:0x4301C024 %Long 0x00040001    ; CTRLMMR_WKUP_PADCONFIG9  (MCU_HYPERBUS0_DQ6)
+	InterCom CM3 Data.Set EZAXI:0x4301C028 %Long 0x00040001    ; CTRLMMR_WKUP_PADCONFIG10 (MCU_HYPERBUS0_DQ7)
+	InterCom CM3 Data.Set EZAXI:0x4301C02C %Long 0x00000001    ; CTRLMMR_WKUP_PADCONFIG11 (MCU_HYPERBUS0_CSn0)
+
+	; Not used in this device
+	;InterCom CM3 Data.Set EZAXI:0x4301C030 %Long 0x00040001    ; CTRLMMR_WKUP_PADCONFIG12 (MCU_HYPERBUS0_RESETn)
+	;InterCom CM3 Data.Set EZAXI:0x4301C038 %Long 0x00040002    ; CTRLMMR_WKUP_PADCONFIG14 (MCU_HYPERBUS0_RESETOn)
+	;InterCom CM3 Data.Set EZAXI:0x4301C03C %Long 0x00040002    ; CTRLMMR_WKUP_PADCONFIG15 (MCU_HYPERBUS0_INTn)
+	;InterCom CM3 Data.Set EZAXI:0x4301C054 %Long 0x00040003    ; CTRLMMR_WKUP_PADCONFIG21 (MCU_HYPERBUS0_CSn1)
+
+	RETURN
+)
+
+
+CLK_INIT_INTERCOM:
+(
+	; Target freq: 166 Mhz
+
+	; Set clock source
+	InterCom CM3 Data.Set EZAXI:0x40F09008 %Long 0x68EF3490  ; CTRLMMR_MCU_LOCK2_KICK0
+	InterCom CM3 Data.Set EZAXI:0x40F0900C %Long 0xD172BC5A
+
+	; Adjust PLL for MCU_PLL2_HSDIV4_CLKOUT
+	InterCom CM3 Do ~~/demo/arm64/hardware/j721e/scripts/configure_pll _CFG_ BYPASS MCU 2.
+	InterCom.WAIT CM3
+	InterCom CM3 Do ~~/demo/arm64/hardware/j721e/scripts/configure_pll _CFG_ DIV    MCU 2. 0x2 0x1 0x1 0x68 0x2AAAAB
+	InterCom.WAIT CM3
+	InterCom CM3 Do ~~/demo/arm64/hardware/j721e/scripts/configure_pll _CFG_ HSDIV  MCU 2. 4. 0x5
+	InterCom.WAIT CM3
+	InterCom CM3 Do ~~/demo/arm64/hardware/j721e/scripts/configure_pll _CFG_ ENABLE MCU 2.
+	InterCom.WAIT CM3
+
+	RETURN
+)
+
+
+CACHE_MMU_INIT:
+(
+	PRIVATE &i &tmpReg
+
+	; Enable MPU and disable I and D caches
+	&tmpReg=Data.Long(C15:0x1)
+	&tmpReg=&tmpReg|0x1             ; enable MPU
+	&tmpReg=(&tmpReg&(~(0x1<<2.)))  ; disable D cache
+	&tmpReg=(&tmpReg&(~(0x1<<12.))) ; disable I cache
+	Data.Set C15:0x1 %long &tmpReg
+
+	; Configure small region setup for flash programming
+	PER.Set.SaveIndex C15:0x026 %Long 0x0 C15:0x016 %Long 0x00000000 ; set default
+	PER.Set.SaveIndex C15:0x026 %Long 0x0 C15:0x216 %Long 0x0000003F
+	PER.Set.SaveIndex C15:0x026 %Long 0x0 C15:0x416 %Long 0x00001310
+	PER.Set.SaveIndex C15:0x026 %Long 0x1 C15:0x016 %Long 0x50000000 ; setup flash window
+	PER.Set.SaveIndex C15:0x026 %Long 0x1 C15:0x216 %Long 0x00000035
+	PER.Set.SaveIndex C15:0x026 %Long 0x1 C15:0x416 %Long 0x00001301
+	PER.Set.SaveIndex C15:0x026 %Long 0x2 C15:0x016 %Long 0x41C00000 ; setup buffer space
+	PER.Set.SaveIndex C15:0x026 %Long 0x2 C15:0x216 %Long 0x00000027
+	PER.Set.SaveIndex C15:0x026 %Long 0x2 C15:0x416 %Long 0x0000030C
+	; Reset all other MPU regions
+	&i=3.
+	while &i<16.
+	(
+		PER.Set.SaveIndex C15:0x026 %Long &i C15:0x016 %Long 0x0
+		PER.Set.SaveIndex C15:0x026 %Long &i C15:0x216 %Long 0x0
+		PER.Set.SaveIndex C15:0x026 %Long &i C15:0x416 %Long 0x0
+		&i=&i+1.
+	)
+
+	RETURN
+)

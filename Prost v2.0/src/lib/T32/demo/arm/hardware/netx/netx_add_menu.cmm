@@ -1,0 +1,16 @@
+; --------------------------------------------------------------------------------
+; @Title: Load netX specific menu
+; @Description: 
+;   Load a netX specific menu into TRACE32. Using this menu, you can call the
+;   different scripts for netX10, netX50 and netX500
+; @Keywords: NetX*
+; @Board: NetX
+; @Chip: ARM966E-S, NETX100, NETX500
+; @Author: Hilscher
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: netx_add_menu.cmm 6797 2014-04-11 11:03:55Z kjmal $
+
+
+ MENU.ReProgram netx.men
+ ENDDO

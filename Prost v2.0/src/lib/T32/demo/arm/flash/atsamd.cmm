@@ -1,0 +1,232 @@
+; --------------------------------------------------------------------------------
+; @Title: Example for flash declaration of Atmel ATSAMD internal flash
+; @Description:
+;   Script arguments:
+;
+;    DO atsamd [PREPAREONLY] [CPU=<cpu>]
+;
+;      PREPAREONLY only declares flash but does not execute flash programming
+;
+;      CPU=<cpu> selects CPU derivative <cpu>
+;
+;   Example:
+;
+;   DO ~~/demo/arm/flash/atsamd CPU=ATSAMD21J18A PREPAREONLY
+;
+;   List of ATSAMD* derivatives and their configuration:
+;
+;     CPU-Type        Flash size   Page size   Sector Size[Byte] SRAM size
+;                        [Byte]      [Byte]       [Byte]
+;     ATSAMD09C13        0x2000       0x40                         0x1000
+;     ATSAMD09D14        0x4000       0x40                         0x1000
+;     ATSAMD10C13        0x2000       0x40                         0x1000
+;     ATSAMD10C14        0x4000       0x40                         0x1000
+;     ATSAMD10D13        0x2000       0x40                         0x1000
+;     ATSAMD10D14        0x4000       0x40                         0x1000
+;     ATSAMD11C14        0x4000       0x40                         0x1000
+;     ATSAMD11D14        0x4000       0x40                         0x1000
+;     ATSAMD20E14        0x4000       0x40                          0x800
+;     ATSAMD20E15        0x8000       0x40                         0x1000
+;     ATSAMD20E16       0x10000       0x40                         0x2000
+;     ATSAMD20E17       0x20000       0x40                         0x4000
+;     ATSAMD20E18       0x40000       0x40                         0x8000
+;     ATSAMD20G14        0x4000       0x40                          0x800
+;     ATSAMD20G15        0x8000       0x40                         0x1000
+;     ATSAMD20G16       0x10000       0x40                         0x2000
+;     ATSAMD20G17       0x20000       0x40                         0x4000
+;     ATSAMD20G18       0x40000       0x40                         0x8000
+;     ATSAMD20J14        0x4000       0x40                          0x800
+;     ATSAMD20J15        0x8000       0x40                         0x1000
+;     ATSAMD20J16       0x10000       0x40                         0x2000
+;     ATSAMD20J17       0x20000       0x40                         0x4000
+;     ATSAMD20J18       0x40000       0x40                         0x8000
+;     ATSAMD21E15        0x8000       0x40                         0x1000
+;     ATSAMD21E15L       0x8000       0x40                         0x1000
+;     ATSAMD21E16       0x10000       0x40                         0x2000
+;     ATSAMD21E16L      0x10000       0x40                         0x2000
+;     ATSAMD21E17       0x20000       0x40                         0x4000
+;     ATSAMD21E18       0x40000       0x40                         0x8000
+;     ATSAMD21G15        0x8000       0x40                         0x1000
+;     ATSAMD21G16       0x10000       0x40                         0x2000
+;     ATSAMD21G16L      0x10000       0x40                         0x2000
+;     ATSAMD21G17       0x20000       0x40                         0x4000
+;     ATSAMD21G18       0x40000       0x40                         0x8000
+;     ATSAMD21J15        0x8000       0x40                         0x1000
+;     ATSAMD21J16       0x10000       0x40                         0x2000
+;     ATSAMD21J17       0x20000       0x40                         0x4000
+;     ATSAMD21J18       0x40000       0x40                         0x8000
+;     ATSAMDA1E14A       0x4000       0x40                         0x1000
+;     ATSAMDA1E15A       0x8000       0x40                         0x1000
+;     ATSAMDA1E16A      0x10000       0x40                         0x2000
+;     ATSAMDA1G14A       0x4000       0x40                         0x1000
+;     ATSAMDA1G15A       0x8000       0x40                         0x1000
+;     ATSAMDA1G16A      0x10000       0x40                         0x2000
+;     ATSAMDA1J14A       0x4000       0x40                         0x1000
+;     ATSAMDA1J15A       0x8000       0x40                         0x1000
+;     ATSAMDA1J16A      0x10000       0x40                         0x2000
+;     ATSAMD5xx18*      0x40000       0x200        0x2000         0x40000
+;     ATSAMD5xx19*      0x80000       0x200        0x2000         0x40000
+;     ATSAMD5xx20*     0x100000       0x200        0x2000         0x40000
+; @Author: FLC
+; @Chip: ATSAMD*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 7789 $
+; $Id: atsamd.cmm 7789 2020-01-10 19:14:33Z skrausse $
+
+
+LOCAL &parameters
+ENTRY %LINE &parameters
+
+PRIVATE &param_prepareonly &param_cpu
+&parameters=STRing.UPpeR("&parameters")
+&param_prepareonly=(STRing.SCAN("&parameters","PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract("&parameters","CPU=","")
+
+IF VERSION.BUILD.BASE()<55857.
+(
+  PRINT %ERROR "TRACE32 software version is too old, please request an update."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; Initialize and start the debugger
+
+IF !SYStem.Up()
+(
+  SYStem.RESet
+
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  IF !CPUIS(ATSAMD*)
+    SYStem.CPU ATSAMD*
+  SYStem.MemAccess DAP
+  SYStem.CONFIG.DEBUGPORTTYPE SWD
+  SYStem.Option.ResBreak OFF
+  SYStem.Up
+)
+
+; ------------------------------------------------------------------------------
+; Flash declaration
+
+FLASH.RESet
+GOSUB FlashDeclaration
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; -------------------------------------------------------------------------------
+; Flash programming example
+
+DIALOG.YESNO "Program flash memory?"
+PRIVATE &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram.ALL
+  Data.LOAD.auto *
+  FLASH.ReProgram.off
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+)
+
+ENDDO
+
+
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU
+
+FlashDeclaration:
+(
+  PRIVATE &FlashSize &RwweeSize  &FlashDriver &SmallSram
+
+  &SmallSram=FALSE()
+  IF CPUIS("ATSAMD5??18*")
+  (
+    &FlashSize=0x40000
+  )
+  ELSE IF CPUIS("ATSAMD5??19*")
+  (
+    &FlashSize=0x80000
+  )
+  ELSE IF CPUIS("ATSAMD5??20*")
+  (
+    &FlashSize=0x100000
+  )
+  ELSE IF CPUIS("ATSAMD???13*")
+  (
+    &FlashSize=0x2000
+    &FlashDriver="atsamd2.bin"
+  )
+  ELSE IF CPUIS("ATSAMD???14*")
+  (
+    &FlashSize=0x4000
+    &FlashDriver="atsamd2.bin"
+  )
+  ELSE IF CPUIS("ATSAMD???15*")
+  (
+    &FlashSize=0x8000
+    &FlashDriver="atsamd2.bin"
+  )
+  ELSE IF CPUIS("ATSAMD???16*")
+  (
+    &FlashSize=0x10000
+    &FlashDriver="atsamd2.bin"
+  )
+  ELSE IF CPUIS("ATSAMD???17*")
+  (
+    &FlashSize=0x20000
+    &FlashDriver="atsamd2.bin"
+  )
+  ELSE IF CPUIS("ATSAMD???18*")
+  (
+    &FlashSize=0x40000
+    &FlashDriver="atsamd2.bin"
+  )
+  ELSE
+  (
+    PRINT %ERROR "FLASH size of CPU type is unknown"
+    ENDDO
+  )
+
+  IF CPUIS("ATSAMD5*")
+  (
+    FLASH.Create  1. 0x00000000--(&FlashSize-1.) 0x2000 TARGET Long
+    FLASH.TARGET  0x20000000 0x20002000 0x2000 ~~/demo/arm/flash/long/atsame.bin
+  )
+  ELSE
+  (	
+    IF CPUIS("ATSAMD20?14")
+    (
+      &SmallSram=TRUE()
+    )
+    
+    ; FlashSize is lowered by the RWWEE Size
+    &RwweeSize=(64.>>((Data.Quad(E:0x804000)>>4.)&0x7))*0x100
+    
+    FLASH.Create  1. 0x00000000--(&FlashSize-&RwweeSize-1.) 0x100 TARGET Long
+    
+    ; User configuration row
+    IF ((VERSION.BUILD()<57164.)||(FLASH.TARGET.BUILD(~~/demo/arm/flash/long/&FlashDriver)<3000.))
+    (
+      FLASH.Create 2. 0x00804000--0x00804007  NOP Long
+    )
+    ELSE
+    (
+      FLASH.Create 2. 0x00804000--0x00804007  TARGET Long /CENSORSHIP 0x00804000--0x00804007
+    )
+   
+    IF &SmallSram
+    (
+      FLASH.TARGET 0x20000000 0x20000400 0x200 ~~/demo/arm/flash/long/&FlashDriver
+    )
+    ELSE
+    (
+      FLASH.TARGET 0x20000000 0x20000400 0x400 ~~/demo/arm/flash/long/&FlashDriver
+    )
+  )
+  RETURN
+)

@@ -1,0 +1,78 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo script for CY8C6347BZI-BLD53 CortexM0+ (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   Use this script for getting started.
+;   Prerequisites:
+;    * Connect Debug Cable to P6 using Adapter LA-3770
+;      or
+;      Connect Combiprobe/uTrace to P6
+; @Keywords: ARM, Cortex-M0+
+; @Author: AME
+; @Board: CY8CKIT-062-BLE, PSoC6 BLE Pioneer Kit
+; @Chip: CY8C6*-BLD* CY8C6*-D*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: psoc6dual-m0_sieve_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU CY8C6347BZI-BLD53-M0+
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+SYStem.Up
+
+GOSUB WatchdogDisable
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_v6m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO
+
+WatchdogDisable: ;()
+(
+  ; Unlock and disable WDT
+  ; SRSS->WDT_CTL = ((SRSS->WDT_CTL & (uint32_t)(~SRSS_WDT_CTL_WDT_LOCK_Msk)) | CY_WDT_LOCK_BIT0);
+  ; SRSS->WDT_CTL = (SRSS->WDT_CTL | CY_WDT_LOCK_BIT1);
+  ; SRSS->WDT_CTL &= (~ (uint32_t) SRSS_WDT_CTL_WDT_EN_Msk);
+
+  Data.Set A:0x40260180 %Long (Data.Long(A:0x40260180)&~0xC0000000)|0x40000000
+  Data.Set A:0x40260180 %Long Data.Long(A:0x40260180)|0x80000000
+  Data.Set A:0x40260180 %Long Data.Long(A:0x40260180)&~0x1
+  RETURN
+)

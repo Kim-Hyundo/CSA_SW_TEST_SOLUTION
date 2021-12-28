@@ -1,0 +1,65 @@
+; --------------------------------------------------------------------------------
+; @Title: Example for programming the user flash of Innovator 1510 development kit
+; @Description: Example for programming the user flash of Innovator 1510 development kit
+; @Keywords: OMAP
+; @Author: WRD
+; @Board: Innovator 1510
+; @Chip: OMAP1510
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: proguserflash.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+;
+
+
+; wrd - 22.05.2003
+;
+
+; Startup debugger
+DO ~~~~/innovator
+
+; Declare flash depending on DIP switch settings
+DO ~~~~/flashcreate
+
+; setup flash algorithm for target controlled flash programming
+IF &flashtarget==1
+(
+  FLASH.TARGET &ram_start &ram_start+0x2000 0x1000 ~~/demo/arm/flash/word/&userflash_type.bin
+)
+
+; disable Write Protection
+&saved_EMIFS_CONFIG_REG=Data.Long(sd:0xfffecc0c)
+Data.Set 0xfffecc0c %Long (&saved_EMIFS_CONFIG_REG|0x01)
+;
+; change programming voltage to 2.75 V
+&saved_VOLTAGE_CTRL_0=Data.Long(sd:0xfffe1060)
+Data.Set 0xfffe1060 %Long (&saved_VOLTAGE_CTRL_0|0x01)
+
+; Erase user flash
+IF &flashtarget==0
+(
+  FLASH.Erase 2.
+  FLASH.Erase 3.
+)
+ELSE
+(
+  ; Each device has top be erased in two steps until debugger supports unit erase
+  ; for target controlled flash programming in the case of not supported bulk erase
+  ; command of the flash device. Will be comming soon.
+  FLASH.Erase (&userflash_start+0x00000000)++0x7fffff
+  FLASH.Erase (&userflash_start+0x00800000)++0x7fffff
+  FLASH.Erase (&userflash_start+0x01000000)++0x7fffff
+  FLASH.Erase (&userflash_start+0x01800000)++0x7fffff
+)
+
+; Program user flash
+FLASH.Program.off &userflash_start++0x1ffffff
+Data.LOAD.Binary * &userflash_start
+FLASH.Program OFF
+
+; restore registers
+Data.Set 0xfffecc0c %Long &saved_EMIFS_CONFIG_REG
+Data.Set 0xfffe1060 %Long &saved_VOLTAGE_CTRL_0
+
+ENDDO

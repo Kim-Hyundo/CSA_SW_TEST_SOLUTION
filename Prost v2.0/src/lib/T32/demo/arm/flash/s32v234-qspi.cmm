@@ -1,0 +1,241 @@
+; --------------------------------------------------------------------------------
+; @Title: SPI FLASH Program script for the S32V234
+; @Description:
+; The S25FL512S (Cypress) is connected to the QSPI0 controller
+;
+; SRAM: 0x3E000000
+; QuadSPI(controller) Base: 0x400a6000
+; QuadSPI memory mapped ADDRESS: 0x20000000
+;
+; Prerequisites: Switch Settings
+; set
+; J36:2&3 for Serial NOR Flash
+; BOOT_CFG1[7:6]: 00 ; BOOT from QuadSPI0 interface
+; BOOT_CFG1[1:0]: 01(HyperFlash Mode) and 00(QuadSPI Mode)
+;
+; @Chip: S32V234
+; @Board: S32V234-EVB
+; @Author: JIM
+; @Keywords: Spansion  QuadSPI
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: s32v234-qspi.cmm 7602 2019-11-05 15:02:25Z bschroefel $
+
+LOCAL &CA5_start_addr
+LOCAL &QSPI_BASE
+LOCAL &QSPI_Cntl_BASE
+
+// for QSPI0
+&QSPI_BASE=0x20000000       ;qspi0 memory mapped address, not controller address
+&QSPI_Cntl_BASE=0x400a6000  ;qspi0 controller base address
+
+RESet
+SYStem.RESet
+SYStem.CPU S32V234-CM4
+SYStem.CONFIG.DEBUGPORTTYPE JTAG
+SYStem.Option.ResBreak OFF
+SYStem.Option.WaitReset 200.ms
+SYStem.JtagClock CTCK 10Mhz
+Trace.DISable
+ETM.OFF
+ITM.OFF
+HTM.OFF
+SYStem.Up
+
+GOSUB Init_ECC
+GOSUB XOSC_setup
+GOSUB ENET_PLL
+
+//To clear the soft lock bit (SWT_CR[SLK]), the value 0xC520 followed by 0xD928 is written to the WSC field
+IF (Data.Long(A:0x40086000)&0x1)==0x1
+(
+Data.Set  A:0x40086010 %Long 0xC520
+Data.Set  A:0x40086010 %Long 0xD928
+Data.Set  A:0x40086000 %Long 0xff00010a  ; or 0xff00010a  disable Watchdog SWT4_CR (Cortex-M4)
+)
+
+GOSUB QuadSPI_PinMux_CLKEnable
+GOSUB QuadSPI_Init
+GOSUB READ_ID_TEST
+
+; Init SRAM (32KB) for the flash algorithm
+Data.Set SD:0x3E000000++07FFF %Long 0x00000000
+
+Break.RESet
+
+FLASH.RESet
+FLASH.Create 0x20000000++0x01ffffff    0x40000   TARGET   Byte
+FLASH.TARGET 0x3E000000   EAHB:0x3E002000   0x1000   ~~/demo/arm/flash/byte/snor_s32v234.bin  /DUALPORT
+
+; Flash script ends here if called with parameter PREPAREONLY
+
+; -------------------------------------------------------------------------------
+; Flash programming example
+; -------------------------------------------------------------------------------
+
+  DIALOG.YESNO "Program flash memory?"
+  LOCAL &progflash
+  ENTRY &progflash
+  IF &progflash
+  (
+    FLASH.ReProgram.ALL /Erase
+    Data.LOAD.auto *
+    FLASH.ReProgram.off
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+  )
+
+ENDDO
+
+XOSC_setup:
+
+Data.Set 0x4004a008 %Long 0x80ff
+Data.Set 0x4004a080 %Long 0xFE
+
+Data.Set 0x4003C280  %Long 0x018020F0
+Data.Set 0x4004A02C  %Long 0x00100031
+Data.Set 0x4004A004  %Long 0x30005af0
+Data.Set 0x4004A004  %Long 0x3000A50F
+
+Data.Set 0x4004A02C  %Long 0x00100031
+Data.Set 0x4004A260  %Long 0x10
+Data.Set 0x4004A260  %Long 0x0110
+Data.Set 0x4004A260  %Long 0x1110
+Data.Set 0x4004A004  %Long 0x30005af0
+Data.Set 0x4004A004  %Long 0x3000A50F
+
+RETURN
+
+ENET_PLL:
+
+Data.Set 0x4007C100 %Long  0x58000000
+Data.Set 0x4003C128 %Long  0x02021019
+Data.Set 0x4003C130 %Long  0x70000000
+Data.Set 0x4003C140 %Long  0x5445
+Data.Set 0x4003C144 %Long  0x0
+Data.Set 0x4003C15C %Long  0x02DB
+Data.Set 0x4003C160 %Long  0x02DB
+Data.Set 0x4003C164 %Long  0x0320
+Data.Set 0x4003C168 %Long  0x04CE
+Data.Set 0x4003C158 %Long  0x0
+Data.Set 0x4003C154 %Long  0x0
+Data.Set 0x4004A02C %Long  0x001001F2
+Data.Set 0x4004A004 %Long  0x30005AF0
+Data.Set 0x4004A004 %Long  0x3000A50F
+
+RETURN
+
+
+QuadSPI_PinMux_CLKEnable:
+
+//clk enable for the QuadSPI0&1
+Data.Set SD:0x4003C9C0 %LE %Long  0x04000000  ;MC_CGM_0_AC14_SC
+Data.Set SD:0x4003C9C8 %LE %Long  0x80070000   //0x80070000  ;MC_CGM_0_AC14_DC0.R = 0x800F0000; /* divide by 2 (i.e. 80MHz) */
+
+Data.Set A:0x4006C494 %Long 0x20D701  ; PK5(149)   ,QuadSPI A Chip Select 0 Output, output enable(21), input disable(19) ; FLASH_CS1
+Data.Set A:0x4006C498 %Long 0x20D701  ; PK6(150)   ,QuadSPI A CLK 0 Output, output enable(21), input disable(19) ; FLASH_CLK
+
+Data.Set A:0x4006C49C %Long 0x9E000  ; PK7(151,819)  ,QuadSPI A Data Strobe Input.  input ebable(19) ; FLASH_DATA_STROBE
+Data.Set A:0x4006CF0C %Long 0x2  ; PK7(151,819)  ,QuadSPI A Data Strobe Input.  input ebable(19) ; FLASH_DATA_STROBE
+
+Data.Set A:0x4006C4A0 %Long 0x28D701  ; PK8(152)   ,QuadSPI A DATA 0 ; FLASH_DAT0
+Data.Set A:0x4006CF10 %Long 0x2  ; Input Mux PK8(152)   ,QuadSPI A DATA 0 ; FLASH_DAT0
+
+Data.Set A:0x4006C4A4 %Long 0x28D701  ; PK9(153)   ,QuadSPI A DATA 1 ; FLASH_DAT1
+Data.Set A:0x4006CF14 %Long 0x2  ; Input Mux PK9(153)   ,QuadSPI A DATA 1 ; FLASH_DAT1
+
+Data.Set A:0x4006C4A8 %Long 0x28D701  ; PK10(154)  ,QuadSPI A DATA 2 ; FLASH_DAT2
+Data.Set A:0x4006CF18 %Long 0x2  ; Input Mux PK10(154)  ,QuadSPI A DATA 2 ; FLASH_DAT2
+
+Data.Set A:0x4006C4AC %Long 0x28D701  ; PK11(155)  ,QuadSPI A DATA 3 ; FLASH_DAT3
+Data.Set A:0x4006CF1C %Long 0x2  ; Input Mux PK11(155)  ,QuadSPI A DATA 3 ; FLASH_DAT3
+
+Data.Set A:0x4006C4B0 %Long 0x200701  ; PK12(156)  ,QuadSPI B CS0 ; FLASH_CS0
+Data.Set A:0x4006C4B4 %Long 0x20D701  ; PK13(157)  ,QuadSPI B SCK ; FLASH_CK2  ; normal QSPI mode, 0x2: HyperFlash mode
+
+Data.Set A:0x4006C4BC %Long 0x28D701  ; PK15(159) ,QuadSPI B DATA 0
+Data.Set A:0x4006CF20 %Long 0x2  ; PK15(159) ,QuadSPI B DATA 0 ; FLASH_DATA4
+
+Data.Set A:0x4006C4C0 %Long 0x28D701  ; PL0(160)  ,QuadSPI B DATA 1 ; FLASH_DATA5
+Data.Set A:0x4006CF24 %Long 0x2  ; PL0(160)  ,QuadSPI B DATA 1 ; FLASH_DATA5
+
+Data.Set A:0x4006C4C4 %Long 0x28D701  ; PL1(161)  ,QuadSPI B DATA 2 ; FLASH_DATA6
+Data.Set A:0x4006CF28 %Long 0x2  ; PL1(161)  ,QuadSPI B DATA 2 ; FLASH_DATA6
+
+Data.Set A:0x4006C4C8 %Long 0x28D701  ; PL2(162)  ,QuadSPI B DATA 3 ; FLASH_DATA7
+Data.Set A:0x4006CF2C %Long 0x2  ; PL2(162)  ,QuadSPI B DATA 3 ; FLASH_DATA7
+
+RETURN
+
+QuadSPI_Init:
+
+//init QuadSPI
+Data.Set A:&QSPI_Cntl_BASE+0x00 %LE %Long 0xF400C   ; QuadSPI0->MCR =  QuadSPI_MCR_MDIS_MASK;
+Data.Set A:&QSPI_Cntl_BASE+0x0C %LE %Long 0x0303    ; QuadSPI0->FLSHCR = QuadSPI_FLSHCR_TCSH(3) | QuadSPI_FLSHCR_TCSS(3);
+Data.Set A:&QSPI_Cntl_BASE+0x30 %LE %Long 0x0        ; QuadSPI0->BUF0IND = 0x0;
+
+Data.Set A:&QSPI_Cntl_BASE+0x00 %LE %Long 0xF400C    ; QuadSPI0->MCR |= QuadSPI_MCR_MDIS_MASK;
+Data.Set A:&QSPI_Cntl_BASE+0x108 %LE %Long 0x00010000 ; // for 33MHz clock ,   QuadSPI0->SMPR = 0x10000;
+Data.Set  A:&QSPI_Cntl_BASE+0x100 %Long %LE &QSPI_BASE
+Data.Set  A:&QSPI_Cntl_BASE+0x104 %Long %LE 0x0  ; must be set for Quad SPI Flash, byte addressable , witdh of the column address 0
+
+Data.Set A:&QSPI_Cntl_BASE+0x180 %LE %Long &QSPI_BASE+0x4000000 ; QuadSPI0->SFA1AD
+Data.Set A:&QSPI_Cntl_BASE+0x184 %LE %Long &QSPI_BASE+0x8000000
+Data.Set A:&QSPI_Cntl_BASE+0x188 %LE %Long &QSPI_BASE+0xC000000
+Data.Set A:&QSPI_Cntl_BASE+0x18C %LE %Long &QSPI_BASE+0x10000000
+
+Data.Set A:&QSPI_Cntl_BASE+0x024 %Long %LE 0x80080
+Data.Set A:&QSPI_Cntl_BASE+0x108 %Long %LE 0x30000  ;SMPR
+
+Data.Set A:&QSPI_Cntl_BASE+0x00 %Long 0xF000C     ; QuadSPI0->MCR &= ~QuadSPI_MCR_MDIS_MASK
+
+RETURN
+
+READ_ID_TEST:
+
+PRINT "READ_ID_TEST..."
+&temp=Data.Long(A:&QSPI_Cntl_BASE)
+Data.Set A:&QSPI_Cntl_BASE %Long (&temp|0x0c00)   //clear Tx/Rx buffer
+
+Data.Set A:&QSPI_Cntl_BASE+0x300 %LE %Long 0x5AF05AF0  ;  LUTKEY
+Data.Set A:&QSPI_Cntl_BASE+0x304 %LE %Long 0x2  ;  LCKCR
+
+//SEQID 5
+Data.Set A:&QSPI_Cntl_BASE+0x360 %LE %Long 0x1c04049f   ; LUT0, SEQID0
+Data.Set A:&QSPI_Cntl_BASE+0x364 %LE %Long 0x0
+Data.Set A:&QSPI_Cntl_BASE+0x368 %LE %Long 0x0
+Data.Set A:&QSPI_Cntl_BASE+0x36C %LE %Long 0x0
+
+Data.Set A:&QSPI_Cntl_BASE+0x100 %Long  &QSPI_BASE      ; SFAR , FLASH BASE ADDRESS
+
+// assert Read id command
+Data.Set A:&QSPI_Cntl_BASE+0x08 %Long  (5.<<24.)  ;    (5.<<24.)
+WAIT 100.ms
+
+&temp=Data.Long(A:&QSPI_Cntl_BASE)
+Data.Set ZSD:&QSPI_Cntl_BASE+0x000 %Long (&temp|0x0800)   //clear Tx buffer
+
+PRINT "1st 0x" Data.Long(A:&QSPI_Cntl_BASE+0x200)>>24.        " (Manufacture)"
+PRINT "2nd 0x" (Data.Long(A:&QSPI_Cntl_BASE+0x200)>>16.)&0xFF " (Device ID)"
+PRINT "3rd 0x" (Data.Long(A:&QSPI_Cntl_BASE+0x200)>>8.)&0xFF
+PRINT "4th 0x" Data.Long(A:&QSPI_Cntl_BASE+0x200)&0xFF
+
+RETURN
+
+Init_ECC:
+// Init ECC memory using the DMA (to get 64 bit accesses)
+Data.Set SD:0x40003008 %Long 0x00100000      ; DMA_0.TCD[0].NBYTES.MLNO.R = 1024*1024;
+Data.Set SD:0x40003016 %Word 0x0001          ; DMA_0.TCD[0].DOFF.B.DOFF = 1;
+Data.Set SD:0x40003000 %Long 0x00000000      ; DMA_0.TCD[0].SADDR.R = 0x3F000010;
+Data.Set SD:0x40003004 %Word 0x0000          ; DMA_0.TCD[0].SOFF.B.SOFF = 0;
+Data.Set SD:0x40003006 %Word 0x0300          ; DMA_0.TCD[0].ATTR.B.SSIZE = 3;
+Data.Set SD:0x4000300C %Long 0x00000000      ; DMA_0.TCD[0].SLAST.R = 0;
+Data.Set SD:0x40003010 %Long 0x3E800000      ; DMA_0.TCD[0].DADDR.R = 0x3EF00000;
+Data.Set SD:0x40003014 %Word 0x0008          ; DMA_0.TCD[0].CITER.ELINKNO.B.CITER = 8;
+Data.Set SD:0x40003006 %Word 0x0303          ; DMA_0.TCD[0].ATTR.B.DSIZE = 3;
+Data.Set SD:0x40003018 %Long 0xFFF00000      ; DMA_0.TCD[0].DLASTSGA.R = -DMA_0.TCD[0].NBYTES.MLNO.R;
+Data.Set SD:0x4000301C %Word 0x0001          ; DMA_0.TCD[0].CSR.B.START = 1;
+RETURN
+

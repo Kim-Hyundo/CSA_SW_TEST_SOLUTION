@@ -1,0 +1,46 @@
+; --------------------------------------------------------------------------------
+; @Title: ETM activation script for the NXHX10 Board
+; @Description: 
+;   This script activates the ETM (Embedded Trace Macrocell)
+;   for the NXHX10 Board
+; @Keywords: ETM, Hilscher, NetX*, trace
+; @Board: NXHX10
+; @Chip: ARM966E-S
+; @Author: Hilscher
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: etm_init.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+LOCAL &ioconfig &restart
+
+&restart="0"
+
+IF STATE.RUN()
+(
+  &restart="1"
+  Break.direct
+)
+
+;Enable ETM Interface on netX
+&ioconfig=Data.Long(ASD:0x101c0004)
+
+Data.Set ASD:0x101c0070 %Long Data.Long(ASD:0x101c0070)
+Data.Set ASD:0x101c0004 %Long (&ioconfig|0x00800000)
+
+ETM.OFF
+;ETM.RESET
+ETM.PortMode NORMAL
+ETM.HalfRate ON
+ETM.PortSize 16
+ETM.FifoLevel 15.
+;ETM.DT READ 
+ETM.ON
+
+Analyzer.CLOCK 100MHz
+Analyzer.AutoFocus ASD:0x08000000--ASD:0x0800FFFC
+
+IF "&restart"=="1"
+  Go.direct
+
+ENDDO

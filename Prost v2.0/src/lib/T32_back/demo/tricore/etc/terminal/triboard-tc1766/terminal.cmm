@@ -1,0 +1,49 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for terminal demo for TC1766 on TriBoard TC1766
+; @Description:
+;   Terminal demo.
+;
+;   performed tests
+;   Dip Switch S301:      SW1=ON,  SW2=OFF, SW3=ON,  SW4=ON,
+;                         SW5=OFF, SW6=ON,  SW7=OFF, SW8=OFF
+;   TriBoard TC1766.102A TC1766 EES-BA 2005-01-26 MAX
+;   Error when writing data to file. Cause is currently unknown.
+;
+;   memory locations
+;   flash is not declared - see flash.cmm
+;   processor internal RAM (LDRAM)      56 KB  0xD0000000--0xD000DFFF
+;   processor internal RAM (SPRAM)      16 KB  0xD4000000--0xD4003FFF
+;   processor internal program flash   1.5 MB  0xA0000000--0xA0177FFF
+;   processor internal data flash       16 KB  0xAFE00000--0xAFE03FFF (Bank 0)
+;                                       16 KB  0xAFE10000--0xAFE13FFF (Bank 1)
+;
+; @Keywords: Infineon, terminal, TriCore
+; @Author: MAX
+; @Board: TriBoard-TC1766
+; @Chip: TC1766
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: terminal.cmm 7585 2014-08-27 15:55:00Z mobermeir $
+
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+
+RESet
+SYStem.CPU TC1766
+//SYStem.Option WDTFIX ON   ; only required for A-step devices
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load terminal application
+Data.LOAD.Elf ~~~~/terminal.elf
+
+; configure terminal
+TERM.RESet
+TERM.METHOD BufferE
+TERM.GATE OutBuffer InBuffer
+
+; start demo
+Go
+
+ENDDO

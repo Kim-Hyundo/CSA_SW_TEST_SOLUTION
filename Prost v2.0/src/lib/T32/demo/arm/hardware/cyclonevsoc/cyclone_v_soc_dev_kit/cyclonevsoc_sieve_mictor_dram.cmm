@@ -1,0 +1,66 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo script for the CYCLONE V SOC
+; @Description:
+;   Runs the preloader (Uboot) on a CYCLONEVSOC and loads an own
+;   application code afterwards into DRAM.
+;   Prerequisites:
+;   * Please set bootsel pins to SDCARD
+;     BOOTSEL[0..2] = 2-3 2-3 1-2
+;   * Please REMOVE SD Card
+;     => Device will stop in BOOT ROM
+;   * Assume Mictor based HPS only scanchain
+;     for CycloneV SoC Devkit
+;       * SW4[0]=1, JTAG SEL=1, JTAG_HPS_SEL=0
+;       * connection via J4 Mictor-38 connector
+;   * on Rev D boards the VREF-DEBUG pin is not sourced
+;     please populate the corresponding Resistor (R32) with 0Ohm
+; @Keywords: ALTERA, Cortex-A9, Cyclone, Cyclonev
+; @Author: AME
+; @Board: CYCLONEVSOC, Cyclone V SoC Dev Kit
+; @Chip: CYCLONEVSOC
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: cyclonevsoc_sieve_mictor_dram.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+  RESet
+  SYStem.RESet
+  SYStem.CPU CYCLONEVSOC
+  SYStem.JtagClock CTCK 5MHz
+  CORE.ASSIGN 1.
+  SYStem.Up
+
+; Let the BOOT-ROM run for 3 seconds
+  Go.direct
+  WAIT 3.s
+  Break.direct
+
+; disable Watchdog - Toggle RESET in PERMODRST
+  Data.Set A:0xFFD05014 %Long Data.Long(A:0xFFD05014)|0x40
+  Data.Set A:0xFFD05014 %Long Data.Long(A:0xFFD05014)&(~0x40)
+
+; Load U-Boot into SRAM - initialize the target
+  Data.LOAD.Elf ~~~~/<u-boot-spl.axf>
+; run till
+  Go spl_boot_device /Onchip
+  WAIT !STATE.RUN() 3.s
+  IF STATE.RUN()||(Register(PC)!=ADDRESS.OFFSET(spl_boot_device))
+  (
+    PRINT %ERROR "U-Boot boot did not succeed...."
+    ENDDO
+  )
+
+; Set VBAR - Exception Vectors
+  Data.Set C15:0x0C %Long 0x02000000
+; Disable TIMER 1 (will trigger interrupts) and disable interrupts
+  Data.Set A:0xFFD00008 %Long Data.Long(A:0xFFD00008)&(~0x1)
+  Register.Set F 1
+  Register.Set I 1
+
+; load Position Independent SIEVE demo into DRAM
+  DO ~~/demo/arm/compiler/gnu-pic/demo_sieve 0x8000
+  Go main
+  WAIT !STATE.RUN()
+  List.auto
+
+
+

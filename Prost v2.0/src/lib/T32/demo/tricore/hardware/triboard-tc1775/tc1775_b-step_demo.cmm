@@ -1,0 +1,88 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC1775 (AUDO-1) B-Step on TriBoard TC1775
+; @Description:
+;   Initializes the TriCore, SRAM and Flash,
+;   and loads the Sieve-Demo into memory.
+;
+;   Use the following boot option:
+;   Dip Switch S301: SW1=ON,  SW2=OFF, SW3=ON,  SW4=OFF,
+;                    SW5=OFF, SW6=ON,  SW7=OFF, SW8=ON
+;
+;   Please note: Stepping into function sieve() causes a jump to exit
+;   because of AUDO-1 bug.
+;
+;   Requirements to use OCDS-1:
+;   Set jumper JP501 to position 2-3
+;
+;   Requirements to use OCDS-2:
+;   Bug of AUDO-1: ClkOUT weakness; CPU clock should be <= 1MHz;
+;   use e.g 1MHz oscillator and switch No.1 OFF position (PLL bypass).
+;
+;   A-Step and B-Step have different peripheral files and TriBoards differ
+;   in external flash devices.
+;
+; @Keywords: Infineon, TriCore
+; @Author: MAX
+; @Board: TriBoard-TC1775
+; @Chip: TC1775*
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc1775_b-step_demo.cmm 7576 2014-08-27 14:49:47Z mobermeir $
+
+
+; --------------------------------------------------------------------------------
+; Performed tests:
+; TriBoard TC1775.200A TC1775 EES-BA11 2005-02-06 MAX
+;
+; Memory mappings:
+; SRAM  (1MB) mapped to 0xA0000000--0xA00FFFFF
+; Flash (4MB) mapped to 0xA4000000--0xA43FFFFF
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+
+RESet
+SYStem.CPU TC1775B
+; Slow JTAG clock is required for 1MHz crystal
+; SYStem.JtagClock 500000.
+SYStem.Up
+
+; Disable watchdog timer
+Data.Set 0xF0000024 %Long 0x00000008    ; WDTCON1
+
+; --------------------------------------------------------------------------------
+; Memory initialzation
+
+; initialize external bus unit
+Data.Set 0xF0000210 %Long 0x4001FFFF    ; EBU_BCUCON
+Data.Set 0xF0000510 %Long 0x0000FF68    ; EBU_EBUCON
+
+; memory assignment
+; Intel DT28F160 flash
+Data.Set 0xF0000520 %Long 0xA4000051    ; EBU_ADDSEL0
+Data.Set 0xF0000560 %Long 0x00420A7C    ; EBU_BUSCON0
+; Samsung KM616V4002BT-12 SRAM
+Data.Set 0xF0000524 %Long 0xA0000071    ; EBU_ADDSEL1
+Data.Set 0xF0000564 %Long 0x00020140    ; EBU_BUSCON1
+; unused
+Data.Set 0xF0000528 %Long 0x00000000    ; EBU_ADDSEL2
+Data.Set 0xF0000568 %Long 0x8002D7FF    ; EBU_BUSCON2
+Data.Set 0xF000052C %Long 0x00000000    ; EBU_ADDSEL3
+Data.Set 0xF000056C %Long 0x8002D7FF    ; EBU_BUSCON3
+
+; --------------------------------------------------------------------------------
+; load demo program
+Data.LOAD.Elf "~~~~/demo.elf"
+Go.direct main
+
+; open some windows
+WinCLEAR
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame.view /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch
+Var.AddWatch ast flags
+
+ENDDO

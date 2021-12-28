@@ -1,0 +1,72 @@
+Comment=$=TUC
+Tester=$=Choi
+TestStatement=$=$(workspace_loc)\ExampleProject\TestCase\TestSequence_2020-02-12.xlsx
+Testcase=$=C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\ExampleProject\Gen\20210510_TUC\TestSequence_2020-02-12\TestCase\202105101001_Parsed_new_TestSequence_2020-02-12.xlsx
+Frequency=$=2000000
+LogLevel=$=1
+Resolution=$=1
+CompilerType=$=TASKING
+CompilerVersion=$=4.3
+CpuName=$=tc27x
+DirectELFPath=$=
+DirectMapxmlPath=$=
+Core=$=0
+CpuClock=$=2000000
+TestcodePath=$=C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\ExampleProject\Target_SW
+WorkspaceRootPath=$=C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace
+SourceCodeRootPath=$=C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\CustomerCode\Model_Code
+EnumScriptPath=$=$(workspace_loc)\ExampleProject\Temp\EnumScript.cmm
+CompilerPath=$=C:\Program Files (x86)\TASKING\TriCore v4.3r3
+CompilerOption=$=-C$(TARGET) --lsl-core=vtc -t $(INC) -Wa-H"sfr/reg$(TARGET).def" -Wa-gAHLs --emit-locals=-equ,-symbols -Wa-Ogs -Wa--error-limit=42 -Wc-H"sfr/reg$(TARGET).sfr" --iso=99 --language=-gcc,-volatile,+strings --switch=auto --align=0 --default-near-size=0 --default-a0-size=0 --default-a1-size=0 -O2 --tradeoff=4 --compact-max-size=200 -g --source 
+LinkerOption=$="../$(PROJ).lsl" -Wl-OtxycL -Wl--map-file="$(PROJ).mapxml":XML -Wl--dep-file=".$(PROJ).elf.d" -Wl--make-target="$(PROJ).elf"
+ParserSelectedItem=$=WiaUnitTestspecParser
+TestSummaryReportPath=$=
+IOTestReportPath=$=
+IOTestReport_InputData=$=False
+IOTestReport_OutputData=$=False
+IOTestReport_ExpectedData=$=False
+IOTestReport_TestPassFail=$=False
+IOTestReport_RuntimeMeasure=$=False
+CodeCoverageReportPath=$=
+CodeCoverageReport_FunctionCall=$=False
+CodeCoverageReport_MC_DC=$=False
+CodeCoverageReport_Statement=$=False
+PerformanceReportPath=$=
+PerformanceMeasurementReport_BenchMark=$=False
+PerformanceMeasurementReport_DataReadWrite=$=False
+PerformanceMeasurementReport_ExecuteChart=$=False
+RunnableList=$=VC_Step3()$$5$$core0$$VC.h
+RunnableList=$=VC_Step1()$$1$$core0$$VC.h
+RunnableList=$=VC_Step2()$$3$$core0$$VC.h
+RunnableList=$=VC_Step4()$$10$$core0$$VC.h
+StubList=$=void RTE_Test_func1(int mode)$$0$$no return
+StubList=$=int RTE_Test_func2(void)$$150$$10
+StubList=$=int RTE_Test_func3(int a, int b)$$100$$20
+RegisterList=$=__SCU_PLLCON0_INIT$$0x1
+RegisterList=$=__SCU_PLLCON0_VALUE$$0x13A00
+RegisterList=$=__SCU_PLLCON1_INIT$$0x1
+RegisterList=$=__SCU_PLLCON1_VALUE$$0x502
+RegisterList=$=__SCU_OSCCON_INIT$$0x1
+RegisterList=$=__SCU_OSCCON_VALUE$$0x7011A
+RegisterList=$=__SCU_CCUCON0_INIT$$0x1
+RegisterList=$=__SCU_CCUCON0_VALUE$$0x12120128
+RegisterList=$=__SCU_CCUCON1_INIT$$0x1
+RegisterList=$=__SCU_CCUCON1_VALUE$$0x12202222
+RegisterList=$=__SCU_CCUCON2_INIT$$0x0
+RegisterList=$=__SCU_CCUCON2_VALUE$$0x2
+RegisterList=$=__PCON0_INIT$$0x1
+RegisterList=$=__PCON0_VALUE$$0x0
+RegisterList=$=__DCON0_INIT$$0x0
+RegisterList=$=__DCON0_VALUE$$0x0
+CopyPath=$=$(workspace_loc)\ExampleProject\Target_SW\jusik.h$$$(sourcecode_root)\\jusik.h
+CopyPath=$=$(workspace_loc)\ExampleProject\Target_SW\jusik0.c$$$(sourcecode_root)\\jusik0.c
+CopyPath=$=$(workspace_loc)\ExampleProject\Target_SW\jusik1.c$$$(sourcecode_root)\\jusik1.c
+CopyPath=$=$(workspace_loc)\ExampleProject\Target_SW\jusik2.c$$$(sourcecode_root)\\jusik2.c
+CopyPath=$=$(workspace_loc)\ExampleProject\Target_SW\jusik3.c$$$(sourcecode_root)\\jusik3.c
+CopyPath=$=$(workspace_loc)\ExampleProject\Target_SW\model_reference_types.h$$$(sourcecode_root)\\model_reference_types.h
+CopyPath=$=$(workspace_loc)\ExampleProject\Target_SW\pil_target_tc277_private.h$$$(sourcecode_root)\\pil_target_tc277_private.h
+CopyPath=$=$(workspace_loc)\ExampleProject\Target_SW\pil_target_tc277_types.h$$$(sourcecode_root)\\pil_target_tc277_types.h
+CopyPath=$=$(workspace_loc)\ExampleProject\Target_SW\random.c$$$(sourcecode_root)\\random.c
+CopyPath=$=$(workspace_loc)\ExampleProject\Target_SW\rtwtypes.h$$$(sourcecode_root)\\rtwtypes.h
+CopyPath=$=$(workspace_loc)\ExampleProject\Target_SW\VC.c$$$(sourcecode_root)\\VC.c
+CopyPath=$=$(workspace_loc)\ExampleProject\Target_SW\VC.h$$$(sourcecode_root)\\VC.h

@@ -1,0 +1,7 @@
+#ifndef GIT_VERSION_H
+#define GIT_VERSION_H
+
+#define GIT_VERSION_DATE 210701
+#define GIT_VERSION_TIME 11623
+
+#endif

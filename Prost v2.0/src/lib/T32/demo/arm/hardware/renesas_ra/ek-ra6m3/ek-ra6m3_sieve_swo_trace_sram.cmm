@@ -1,0 +1,127 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for R7FA6M3* chips on EK-RA6M3 boards with SWV (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The SerialWireViewer is set up to trace some data values using the DWT.
+;   Prerequisites:
+;    * Connect Combiprobe/uTrace to j13 or j20
+; @Keywords: ARM, Cortex-M4, ITM, SWV
+; @Author: CMO
+; @Board: EK-RA6M3
+; @Chip: R7FA6M3*
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: ek-ra6m3_sieve_swo_trace_sram.cmm 15690 2020-02-17 10:25:11Z cmorgenstern $
+
+
+; Prerequisite: check if a Combiprobe/uTrace is connected
+IF !CAnalyzer()
+(
+  DIALOG.OK "Support for SerialWireViewer requires a Combiprobe or uTrace."
+  ENDDO
+)
+
+LOCAL &chip
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+
+; Script compatible chips:
+; R7FA6M3AF2CBG
+; R7FA6M3AF2CLK
+; R7FA6M3AF3CFB
+; R7FA6M3AF3CFC
+; R7FA6M3AF3CFP
+; R7FA6M3AH2CBG
+; R7FA6M3AH2CLK
+; R7FA6M3AH3CFB
+; R7FA6M3AH3CFC
+; R7FA6M3AH3CFP
+&chip="R7FA6M2AF3CFB"
+SYStem.CPU &chip
+
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock 10MHz
+Trace.DISable
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; initialize SerialWireViewer (clock is stable now)
+Trace.METHOD CAnalyzer
+Trace.AutoInit ON
+
+GOSUB EnableTraceClock
+
+TPIU.PortSize SWV
+ITM.DataTrace ON
+ITM.ON
+; use auto-calibration script to find most suitable TPIU.SWVPrescaler <divider>
+DO ~~/demo/arm/etc/serial_wire_viewer/swv_autocalibration.cmm
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+ITMTrace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO
+
+DisableWatchdog:
+(
+  ; disable the Watchdog by setting mask bits in DBGSTOPCR
+  Data.Set ASD:0x4001B010 %Long (Data.Long(ASD:0x4001B010)|0x3)
+  RETURN
+)
+
+
+EnableTraceClock:
+(
+  ; After each reset, the trace clock must be enbaled for on- and off-chip trace
+
+  ; Aquire write permission for PLL registers
+  Data.Set ASD:0x4001E3FE %Word ((Data.Word(ASD:0x4001E3FE)&0xff)|0xa501)
+
+  ; Enable trace clock
+  Data.Set ASD:0x4001E03F %Byte (Data.Byte(ASD:0x4001E03F)|0x80)
+
+  ; Disable write permission for PLL registers
+  Data.Set ASD:0x4001E3FE %Word ((Data.Word(ASD:0x4001E3FE)&0xfe)|0xa500)
+
+  RETURN
+)

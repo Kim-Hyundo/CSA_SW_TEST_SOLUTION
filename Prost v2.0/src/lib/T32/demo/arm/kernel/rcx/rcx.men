@@ -1,0 +1,608 @@
+; --------------------------------------------------------------------------------
+; @Title: TRACE32 Kernel Awareness Menu
+; @Description: -
+; @Author: DIE
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: rcx.men 9324 2016-04-29 08:05:13Z kjmal $
+
+; --------------------------------------------------------------------------------
+; TRACE32 Kernel Awareness Menu
+; rcX from Hilscher
+; --------------------------------------------------------------------------------
+; 
+; history
+; date   :changes                                                       :
+; 070918 : Task Debugging added Go to Task, Break at Task               : akj
+; 070926 : Selective Trace added (Menu Version)                         : akj
+; 071014 : Selective Trace Task.List Window Version (Menu removed)      : akj
+;
+; --------------------------------------------------------------------------------
+; rcX specific menu
+
+add
+menu
+(
+  popup "&rcX"
+  (
+    popup "&Tasks"
+    (
+      menuitem "&Tasks"     "Task.Tasklist"
+      menuitem "&Stacks "   "Task.Stk"
+    )
+    popup "&Objects"
+    (
+      menuitem "&Mutexes"       "Task.Mtxlist"
+      menuitem "&Queues"        "Task.QueList"
+      menuitem "&Semaphores"    "Task.SemList"
+      menuitem "S&ignals"       "Task.SigList"
+      menuitem "&Timer"         "Task.TimList"
+      menuitem "Tri&ple Buffer" "Task.TrpList"
+    )
+    popup "&Drivers"
+    (
+      menuitem "&Interrupt" "Task.Irqlist"
+      menuitem "&Uart"      "Task.Uartlist"
+      popup "&HIF"
+      (
+        menuitem "&HIF"     "Task.HIFLIST"
+        menuitem "&Blocks"  "Task.HIFBLLIST"
+      )
+    )
+  )
+)
+
+; --------------------------------------------------------------------------------
+;
+; Selective Trace and Go to Task
+;
+; Beta state, only for InHouse !!
+; Bug-Reporting are welcome to:
+; Andreas.Jberg@jdt.ch
+;
+; --------------------------------------------------------------------------------
+
+; --------------------------------------------------------------------------------
+; go to task  HLL
+; --------------------------------------------------------------------------------
+; a Breakpoint (Addr to task.config(magic), and Data to selected Magic is
+; programmed with Write Access premission.
+; After Trigger, the Dispatcher have write the selected Task to magic (ptCurTsk).
+;
+; A loop steps now to the next part what creats a funktion-symbol.
+;
+ add
+ menu "OSRCX_TL"
+ (
+       menuitem "[:jumpto] go to Task [HLL]"
+               (
+                 local &tcb_ptr &exitCtr
+                 
+                       &exitCtr=100
+                       &tcb_ptr=address.offset(track.address())
+                       if !(os.file("bp$debtr$tmp$.cmm"))
+                               Store bp$debtr$tmp$ Break
+                       if run()
+                          break
+                       Break.Delete /all
+                       Break.Set task.config(magic) /Write /Data &tcb_ptr
+                       on PBREAK goto i_gtbreak0
+                       go
+                       stop
+i_gtbreak0:            print " Stopped at TaskSwitch"
+                       on PBREAK
+                       if ((data.long(d:task.config(magic)))==&tcb_ptr)
+                       (
+                               setup.IMASKASM on
+                               screen.on
+                               print " Stopped at TaskSwitch  step to HLL..."
+                               screen.off
+                               while (((string.scan((y.function(d:r(pc))),"\\",0))==-1)&&(&exitCtr>=1))
+                               (
+                                    step
+                                    &exitCtr=&exitCtr-1
+                               )
+                               screen.on
+                               if (&exitCtr<=1)
+                                    print " no HLL Part found !"
+                               else
+                                    print " Task found "
+                       )
+                       if os.file("bp$debtr$tmp$.cmm")
+                       (
+                               do bp$debtr$tmp$.cmm
+                               del bp$debtr$tmp$.cmm
+                       )
+               )
+; --------------------------------------------------------------------------------
+; go to task  ASM
+; --------------------------------------------------------------------------------
+;
+; same as "go to task hll"
+; but no steps are created to hll part. 
+; The stop is the dispatcher write access to ptCurTsk.
+;
+;
+       menuitem "[:jumpto] go to Task [ASM]"
+               (
+                 local &tcb_ptr
+                 
+                       &tcb_ptr=address.offset(track.address())
+                       if !(os.file("bp$debtr$tmp$.cmm"))
+                               Store bp$debtr$tmp$ Break
+                       if run()
+                          break
+                       Break.Delete /all
+                       Break.Set task.config(magic) /Write /Data &tcb_ptr
+                       on PBREAK goto i_gtbreak1
+                       go
+                       stop
+i_gtbreak1:            if ((data.long(d:task.config(magic)))==&tcb_ptr)
+                               print " Stopped at TaskSwitch"
+                       on PBREAK
+                       if os.file("bp$debtr$tmp$.cmm")
+                       (
+                               do bp$debtr$tmp$.cmm
+                               del bp$debtr$tmp$.cmm
+                       )
+               )
+
+
+
+; --------------------------------------------------------------------------------
+; Task-selective Trace
+; --------------------------------------------------------------------------------
+; - all task switches only
+; - one Task Trace
+; - two Task's trace
+; - Search to Taskswitch functions
+;
+;
+       separator
+       enable analyzer()
+       menuitem "[:aconfig]Taskselective Trace..."
+       (
+               local &t1_String &t2_String
+               local &t1_Magic  &t2_Magic
+               local &cst_TaskNameSize
+               local &cst_TaskNameOffset
+
+               &cst_TaskNameSize=8.
+               &cst_TaskNameOffset=8.
+               &t1_Magic=0
+               &t2_Magic=0
+
+       
+               dialog
+               (&
+                       header "Taskselectiv Trace    V1.1"
+; --------------------------------------------------------------------------------
+; Main Buttons
+; --------------------------------------------------------------------------------
+                       pos 9.0 5.5 7.0
+                       button "OK"
+                       (
+                               dialog.execute apply
+                               continue
+                       )
+                       pos 25.0 5.5 7.0
+                       button "Cancel"
+                       (
+                               if os.file("bp$debtr$tmp$.cmm")
+                               (
+                                       do  bp$debtr$tmp$.cmm
+                                       del bp$debtr$tmp$.cmm
+                               )
+                               print " DONE, of all Selective Trace settings. Old Breakpoints are reloaded"
+                               continue
+                       )
+                       pos 17.0 5.5 7.0
+                       button "Reset"
+                       (
+                               Break.Delete /all
+                               if os.file("bp$debtr$tmp$.cmm")
+                               (
+                                       do  bp$debtr$tmp$.cmm
+                                       del bp$debtr$tmp$.cmm
+                               )
+                               dialog.set str_t1 ""
+                               dialog.set str_t2 ""
+                               &t1_Magic=0
+                               &t2_Macig=0
+                               &t1_String=""
+                               &t2_String=""
+                               dialog.disable fe_t1
+                               dialog.disable fe_t2
+                               dialog.disable str_t2
+                               dialog.enable cb2
+                               dialog.set cb2 "0"
+                               dialog.enable str_t1
+                               dialog.enable gt1
+                               dialog.enable gt2
+                               dialog.enable cb1
+                               dialog.set a.cbox1
+                               
+                               print " RESET of all Selective Trace settings. Old Breakpoints are reloaded"
+                       )
+                       pos 1.0 5.5 7.0
+apply:                 defbutton "Apply"
+                       (
+                               local &n_selTask
+       ; all Task-changes only
+                               if dialog.boolean(a.cbox2)
+                               (
+                                       if !(os.file("bp$debtr$tmp$.cmm"))
+                                               store bp$debtr$tmp$ Break
+                                       Break.Delete /all
+                                       etm.ReadWriteBreak on
+                                       Break.Set task.config(magic) /Write /TraceEnable
+                                       Analyzer.Init
+                                       etm.DataTrace Both
+                                       print " ok Analyzer programmed. Only all Task-Changes are traced now"
+                               ) 
+       ; Selective Task Trace
+
+                               if dialog.boolean(a.cbox1)
+                               (
+                                       &n_SelTask=0
+                                       etm.ReadWriteBreak on
+                                       if !(os.file("bp$debtr$tmp$.cmm"))
+                                               store bp$debtr$tmp$ Break
+                                       Break.Delete /all
+                                       if ((dialog.boolean(cb1))&&(&t1_Magic>0))
+                                       (
+                                               Break.Set Task.config(magic) /Write /Data &t1_Magic /TraceOn
+                                               &n_SelTask=&n_SelTask+1
+                                       )
+                                       if ((dialog.boolean(cb2))&&(&t2_Magic>0))
+                                       (
+                                               Break.Set Task.config(magic) /Write /Data &t2_Magic /TraceOn
+                                               &n_SelTask=&n_SelTask+1
+                                       )
+                                       if &n_SelTask>0
+                                       (
+                                               Break.Set Task.config(magic) /Write /TraceOff
+                                               Print " Ok, Analyzer programmed for Trace " format.decimal(2.,&n_SelTask) " Task's"
+                                               Analyzer.Init
+                                               etm.DataTrace Both
+                                       )
+                                       else
+                                       (
+                                               Print " Wrong Setup, no Task for Trace found." 
+                                       )
+                               )
+                       )
+                       
+                       
+; --------------------------------------------------------------------------------
+; Trace-Display and Search Buttons
+; --------------------------------------------------------------------------------
+                       pos 17.0 4.5 7.0
+                       button "[:achart]Task" "Analyzer.Chart.Task /Track"
+                       pos 25.0 4.5 7.0
+                       button "[:perf]Task"  "Analyzer.STATistic.Task"
+                       pos 22.5 1.0 7.0
+fe_t1:                 button "[:find]Task" 
+                       (
+                               Analyzer.findall ADDRESS task.config(magic) cycle write DATA.L &t1_Magic
+                       )
+                       pos 22.5 2.0 7.0
+fe_t2:                 button "[:find]Task" 
+                       (
+                               Analyzer.findall ADDRESS task.config(magic) cycle write DATA.L &t2_Magic
+                       )
+                       
+                        
+
+
+
+; --------------------------------------------------------------------------------
+; Display Objects
+; --------------------------------------------------------------------------------
+
+                       pos 1.0 1.0 10.0 
+str_t1:                edit "" 
+                       (
+                       )
+                       pos 11.0 1.0 2.5
+gt1:                   button "GT"
+                       (
+                               &t1_Magic=address.offset(track.address())
+                               gosub GetTaskName &t1_Magic
+                               entry &t1_String
+                               dialog.set str_t1 "&t1_String"
+                               dialog.enable fe_t1
+                       )
+                       pos 16.0 1.0 1.0
+cb1:                   checkbox "enable"
+                       (
+                               if dialog.boolean(cb1)
+                               (
+                                       dialog.enable gt1
+                                       dialog.enable str_t1
+                               )
+                               else
+                               (
+                                       dialog.enable gt1
+                                       dialog.disable str_t1
+                               )
+                       )
+                       
+                       pos 1.0 2.0 10.0
+str_t2:                edit ""
+                       (
+                       )
+                       pos 11.0 2.0 2.5
+gt2:                   button "GT"
+                       (
+                               &t2_Magic=address.offset(track.address())
+                               gosub GetTaskName &t2_Magic
+                               entry &t2_String
+                               dialog.set str_t2 "&t2_String"
+                               dialog.enable fe_t2
+                       )
+                       pos 16.0 2.0 1.0
+cb2:                   checkbox "enable"
+                       (
+                               if dialog.boolean(cb2)
+                               (
+                                       dialog.enable str_t2
+                                       dialog.enable gt2
+                               )
+                               else
+                               (
+                                       dialog.disable str_t2
+                                       dialog.enable gt2
+                               )
+                       )
+
+                       pos 1.0 3.2 15.0
+a.cbox1:               choosebox "Selective Task Trace"
+                       (
+                               dialog.enable cb1
+                               dialog.enable cb2
+                               if dialog.boolean(cb1)
+                               (
+                                       dialog.enable gt1
+                                       dialog.enable str_t1
+                               )
+                               else
+                               (
+                                       dialog.disable gt1
+                                       dialog.disable str_t1
+                               )
+                               if dialog.boolean(cb2)
+                               (
+                                       dialog.enable gt2
+                                       dialog.enable str_t2
+                               )
+                               else
+                               (
+                                       dialog.enable gt2
+                                       dialog.disable str_t2
+                               )
+                       )
+
+                       pos 1.0 4.5 15.0
+a.cbox2:               choosebox "Task Changes only" 
+                       (
+                               dialog.disable str_t1
+                               dialog.disable str_t2
+                               dialog.disable cb1
+                               dialog.disable cb2
+                               dialog.disable gt1
+                               dialog.disable gt2
+                       )
+; --------------------------------------------------------------------------------
+; Boxes / Descriptions
+; --------------------------------------------------------------------------------
+                       pos 0.0 0.0 32.0 4.9
+                       box ""
+                       pos 0.0 0.0 14.0 3.8
+                       box "Task's"
+                       pos 14.0 0.0 6.0 3.8
+                       box "Trace"
+                       pos 20.0 0.0 12.0 3.8
+                       box "Search"
+
+; --------------------------------------------------------------------------------
+; Close Handler (Windows Close Button)
+; --------------------------------------------------------------------------------
+; if the Windows-Close button is pressed, 
+; the dialog Window is closed, but the Practice code
+; is not removed.
+;
+; This CLOSE Event is executed, if the Window Close Button 
+; is pressed. It is the same Code as in Cancel Button-Code. 
+
+                       CLOSE 
+                       (
+                               if os.file("bp$debtr$tmp$.cmm")
+                               (
+                                       do  bp$debtr$tmp$.cmm
+                                       del bp$debtr$tmp$.cmm
+                               )
+                               print " DONE, of all Selective Trace settings. Old Breakpoints are reloaded"
+                               continue
+                       )
+
+
+               )
+
+; --------------------------------------------------------------------------------
+; Init Code
+; --------------------------------------------------------------------------------
+               &t1_Magic=address.offset(track.address())
+               gosub GetTaskName &t1_Magic
+               entry &t1_String
+               dialog.set str_t1 "&t1_String"
+
+               dialog.enable str_t1
+               dialog.disable str_t2
+               dialog.enable cb1
+               dialog.enable cb2
+               dialog.enable gt1
+               dialog.enable gt2
+               dialog.enable fe_t1
+               dialog.disable fe_t2
+               dialog.set a.cbox1
+               dialog.set cb1
+
+; --------------------------------------------------------------------------------
+; Parking
+; --------------------------------------------------------------------------------
+; stop the practice execution. Now, only all 
+; dialog objects controlls the flow.
+; The end is executed by the "continue" command
+; in a dialog object. At this time, the command
+; behind the "stop" instruction is executed and
+; remove the Dialog.
+
+               stop
+               dialog.end
+               enddo
+               
+; --------------------------------------------------------------------------------
+; Sub Code
+; --------------------------------------------------------------------------------
+
+GetTaskName:
+               local &TaskMagic &TaskNameCtr &Str_TaskName
+               entry &TaskMagic
+               
+               &TaskNameCtr=1
+                &Str_TaskName=""
+               while (&TaskNameCtr<=&cst_TaskNameSize)
+               (
+                   if ((data.byte(d:&TaskMagic+&TaskNameCtr+&cst_TaskNameOffset-1))!=0x0)
+                  (
+                       &Str_TaskName="&Str_TaskName"+conv.char(data.byte(d:&TaskMagic+&TaskNameCtr+&cst_TaskNameOffset-1))
+                       &TaskNameCtr=&TaskNameCtr+1
+                  )
+                  else
+                   (
+                       &TaskNameCtr=&cst_TaskNameSize+1
+                   )
+               )
+               
+               return &Str_TaskName
+
+
+       )
+
+; --------------------------------------------------------------------------------
+; .eof. Dialog
+; --------------------------------------------------------------------------------
+
+ )
+
+ add
+ menu
+ (
+  popup "Trace"
+  (
+    popup "List"
+    (
+      separator
+      menuitem "&Task Switches"                        "Analyzer.List list.task list.time ti.back ti.ref /Track"
+      menuitem "&Default and Tasks"                    "Analyzer.List list.task def /Track"
+      menuitem "HLL &Only and Tasks"                   "Analyzer.List List.Task List.HllOnly list.time ti.back ti.ref /Track"
+      menuitem "&Hll with Vars and Tasks"              "Analyzer.List List.Task List.HllOnly Var /Track"
+    )
+    popup "Chart"
+    (
+      menuitem "[:achart]&Tasks"                       "Analyzer.Chart.Task"
+    )
+    popup "Statistic"
+    (
+      menuitem "[:perf]&Tasks"                         "Analyzer.Statistic.Task"
+    )
+  )
+  enable etm()
+  popup "Perf"
+  (
+    separator
+    enable 1==1
+    popup "&Task Runtime"
+    (
+       enable etm()
+       menuitem "&Prepare"
+       (
+          Store bp$pertr$tmp$ Break
+          Break.Delete /all
+          Break.Set task.config(magic) /Write /TraceEnable
+          etm.DataTrace Both
+          print " ok, ETM is programmed"
+       )
+        enable etm()
+        menuitem "[:perf]Show &Numerical"   "Analyzer.STATistic.TASK"
+        enable etm()
+        menuitem "[:achart]Show as &Timing" "Analyzer.CHART.TASK"
+        separator
+        menuitem "[:remove]Reset"
+        (
+               Break.Delete /all
+               if os.file("bp$pertr$tmp$.cmm")
+               (
+                       do  bp$pertr$tmp$
+                       del bp$pertr$tmp$.cmm
+               )
+               etm.clear
+               print " Trigger is reseted, ETm DataTrace is setting to Both."
+        )
+
+    )
+
+    enable etm()
+    popup "Task &Function Runtime"
+    (
+
+        enable 0==1                    
+        menuitem "&Prepare"
+        (
+         )
+           
+      menuitem "[:perf]Show &Numerical"     "Analyzer.STATistic.TASKFUNC"
+      menuitem "[:perf]Show as &Tree"       "Analyzer.STATistic.TASKTREE"
+      menuitem "[:perf]Show &Detailed Tree" "Analyzer.STATistic.TASKTREE ALL"
+      menuitem "[:achart]Show as &Timing"   "Analyzer.CHART.TASKFUNC"
+      menuitem "[:alist]Show N&esting"      "Analyzer.List List.Task FUNC TI.FUNC"
+      separator
+      enable 0==1
+      menuitem "[:remove]Reset"
+      (
+               Break.Delete /all
+               if os.file("bp$pertr$tmp$.cmm")
+               (
+                       do  bp$pertr$tmp$
+                       del bp$pertr$tmp$.cmm
+               )
+       )
+    )
+
+    
+    enable etm()
+    popup "Task &Status"
+    (
+        enable 0==1
+        menuitem "&Prepare"
+       (
+       )
+        menuitem "[:perf]Show &Numerical"   "Analyzer.STATistic.TASKSTATE"
+        menuitem "[:achart]Show as &Timing" "Analyzer.CHART.TASKSTATE"
+        separator
+        enable 0==1
+        menuitem "[:remove]Reset"
+        (
+                 Break.Delete /all
+                 if os.file("bp$pertr$tmp$.cmm")
+                 (
+                               do  bp$pertr$tmp$
+                               del bp$pertr$tmp$.cmm
+                 )
+         )
+    )
+  )
+)
+
+;.eof.

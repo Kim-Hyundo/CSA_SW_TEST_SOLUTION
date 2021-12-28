@@ -1,0 +1,57 @@
+; --------------------------------------------------------------------------------
+; @Title: parse /proc/kallsyms and modify kernel symbols addresses accordingly
+; @Description:
+;    This script parses the /proc/kallsyms given as parameter to modify the global
+;    kernel symbols addresses accordingly to this file.
+;    First, compile a linux kernel with the same version that exists on
+;    the target and load its symbols.
+;    Then, run the script with /proc/kallsyms or /boot/system.map file as parameter.
+;    usage: "CD.DO kallsyms_parser.cmm <kallsyms_file>"
+; @Keywords: Linux symbols, system.map, kallsyms
+; @Author: msamet
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: kallsyms_parser.cmm 4125 2019-03-22 17:16:46Z kjmal $
+
+
+LOCAL &line &ModNAME &sYmADDR &sYmNAME &file_name
+ENTRY &file_name
+
+  IF "&file_name"==""
+  (
+      DIALOG.OK "usage: CD.DO kallsyms_parser.cmm <kallsyms_file>"
+      ENDDO
+  )
+
+  OPEN #1  &file_name /Read
+  READ #1 %LINE &myline
+
+; if no kernel symbol found, should leave the script.
+  IF !sYmbol.EXIST(linux_banner)
+  (
+      DIALOG.OK "No linux symbols found, load  Kernel Linux symbols first!"
+      ENDDO
+  )
+  PRINT "Parsing symbols, please wait ... "
+  WHILE !FILE.EOF(1)
+  (
+      &line=STRing.TRIM("&myline")
+      &ModNAME=STRing.SPLIT("&line","	",1)
+      &sYmADDR=STRing.SPLIT("&line"," ",0)
+      &sYmNAME=STRing.SPLIT("&line"," ",2)
+
+      IF "&ModNAME"==""
+      (
+          ;modify symbol only if it already exists
+          IF "&sYmNAME"!=""
+          (
+            IF sYmbol.EXIST(&sYmNAME)
+                sYmbol.Modify.ADDRess &sYmNAME 0x&sYmADDR
+           )
+      )
+      READ #1 %LINE &myline
+  )
+  PRINT "Done."
+  CLOSE #1
+
+  ENDDO

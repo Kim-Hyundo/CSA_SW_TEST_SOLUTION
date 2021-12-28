@@ -1,0 +1,46 @@
+; --------------------------------------------------------------------------------
+; @Title: Start-Up script for MB86R1x Emerald with Trace.
+; @Description: 
+;   This script sets up the debug & trace of
+;   an MB86R1x. Starts an low-level code afterwards.
+;   Set SW10.Pin4 to 1 JTAG DFT mode
+;   Set SW10.Pin7 to 0 MPXMODE2=0
+;   Set SW7.Pin6 to 1
+; @Keywords: Emerald
+; @Author: AME
+; @Board: SK-86R12-01
+; @Chip: MB86R11, MB86R12
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: start-trace.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+RESet
+SYStem.RESet
+SYStem.CPU MB86R12
+SYStem.Up
+
+; setup offchip trace
+IF ANALYZER()
+(
+	; set PINMUX1(=0x3D100200), PMUX_B=3
+	Data.Set A:0x3D100200 %Long Data.Long(A:0x3D100200)&(~0x80000000)
+	Data.Set A:0x3D100200 %Long Data.Long(A:0x3D100200)&(~0x38)
+	Data.Set A:0x3D100200 %Long Data.Long(A:0x3D100200)|(0x18)
+	Data.Set A:0x3D100200 %Long Data.Long(A:0x3D100200)|(0x80000000)
+	ETM.PortSize 16
+	ETM.PortMode Continuous
+	ETM.ON
+	Analyzer.AutoFocus
+)
+
+; load some code into SRAM
+Data.LOAD.Elf ~~/demo/arm/compiler/gnu-pic/midi_arm.elf 0xd0200100 /RelPATH
+
+; stop at 'main'
+Go main
+WAIT !STATE.RUN()
+
+; open some windows
+List.auto
+

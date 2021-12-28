@@ -1,0 +1,47 @@
+; --------------------------------------------------------------------------------
+; @Title: IAR C++ Example for SRAM
+; @Description:
+;   Simple C++ application for ARM targets
+;   compiled with the IAR compiler
+;   running from SRAM
+; @Keywords: IAR
+; @Author: -
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: cppdemo.cmm 15227 2019-11-06 11:57:41Z bschroefel $
+
+
+ WinCLEAR
+ SYStem.Down
+
+ IF hardware.ICD()||INTERFACE.SIM()
+ (
+  SYStem.Up
+ )
+ IF hardware.ICE()||hardware.FIRE()
+ (
+  SYStem.Mode AloneInt
+  MAP.Ram 0x0--0x0ffff
+  MAP.Ram 0x100000++0x3ffff
+  MAP.Intern
+ )
+
+ IF SYStem.BIGENDIAN()
+  STOP "example for little endian only"
+
+ Data.LOAD.Ubrof cppdemo.d79 /StripPATH /LPATH
+
+ IF INTERFACE.SIM()
+ (
+   Register.Set PC main
+   Register.Set CPSR 0x0013
+   Register.Set R13 0x1000
+ )
+
+; Open some windows
+ WinPOS 0% 0% 100% 50%
+ List
+ WinPOS 0% 50% 50% 50%
+ Frame /Caller
+ WinPOS 50% 50% 50% 50%
+ Var.Watch %SpotLight flags ast

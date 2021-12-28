@@ -1,0 +1,140 @@
+; --------------------------------------------------------------------------------
+; @Title: Run Sieve demo in RAM with Watchdog Trigger with Trace
+; @Description:
+;   This demo programs a simple Watchdog Trigger application
+;   at the FLASH Entry point. Later a demo is loaded into SRAM
+;   which continiously serves the Watchdog reusing the code
+;   previously programmed into Flash.
+;   The trace is prepared by default for 4bit Trace as the TRACECTL and other
+;   TraceData lines may be not jumpered.
+;   Prerequisites:
+;     * JTAG is connected to 20PIN JTAG or Mictor38
+;     *   Flash is either ERASED by the time of first connection
+;       OR
+;         the SRST line is disconnected from the Chip and wired to
+;         RSTX on the board
+;     * parallel Trace interface is connected to Mictor38
+;       IF J107,J115,J120,J121 are set to MICTOR please uncomment
+;       the marked lines in the "IF ANALYZER()" section
+; @Chip: S6J311????
+; @Board: SK-Leo
+; @Author: AME
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: s6j311_watchdog_trigger_sieve_trace.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+RESet
+SYStem.RESet
+SYStem.CPU S6J311EJAA
+SYStem.Option ResBreak OFF
+IF VERSION.BUILD.BASE()<74695.
+(
+  SYStem.Option DAPREMAP 0x0--0x01ffffff 0x04000000
+)
+; <speedup for connection phase>
+ETM.OFF
+SYStem.JtagClock CTCK 10MHz
+; </speedup for connection phase>
+SYStem.UP
+
+DO ~~/demo/arm/flash/s6j3 PREPAREONLY
+FLASH.ReProgram ALL
+Data.Assemble R:0x19f2000   cpsid if
+Data.Assemble ,             movw r14,#0x2020
+Data.Assemble ,             movt r14,#0x019f
+Data.Assemble R:0x19f200c   mov  r0,#0x0
+Data.Assemble ,             movw r1,#0xc010
+Data.Assemble ,             movt r1,#0xb060
+Data.Assemble ,             movw r2,#0xc018
+Data.Assemble ,             movt r2,#0xb060
+Data.Assemble ,             str  r0,[r1]
+Data.Assemble ,             str  r0,[r2]
+Data.Assemble ,             bx r14
+FLASH.ReProgram OFF
+
+SYStem.Up
+ETM.ON
+Trace.METHOD Onchip
+
+IF Analyzer()
+(
+  ; for S6J311EJAA
+  ; P403 -> TraceData0
+  ; P404 -> TraceData1
+  ; P405 -> TraceData2
+  ; P406 -> TraceData3
+  ; P407 -> TraceData4
+  ; P408 -> TraceData5
+  ; P409 -> TraceData6
+  ; P411 -> TraceData7
+  ; P420 -> TraceClk
+  ; P421 -> TraceCtl
+  GOSUB WriteGpioPpc 0xb4740000+0x128 0x2 0x00c4 ; TraceClk
+  GOSUB WriteGpioPpc 0xb4740000+0x106 0x2 0x00c4 ; TraceData0
+  GOSUB WriteGpioPpc 0xb4740000+0x108 0x2 0x00c4 ; TraceData1
+  GOSUB WriteGpioPpc 0xb4740000+0x10a 0x2 0x00c4 ; TraceData2
+  GOSUB WriteGpioPpc 0xb4740000+0x10c 0x2 0x00c4 ; TraceData3
+  ETM.PortMode Continuous
+  ETM.PortSize 4
+  ETM.DataTrace OFF
+  ; if TraceData[4..7] and TraceCtl are jumpered uncomment this block
+  ; set pinmultiplexing for Tracelines
+  ; Bandwidth should be enough to do DataTrace
+  ; <uncomment me>
+  ; GOSUB WriteGpioPpc 0xb4740000+0x10e 0x2 0x00c4 ; TraceData4
+  ; GOSUB WriteGpioPpc 0xb4740000+0x110 0x2 0x00c4 ; TraceData5
+  ; GOSUB WriteGpioPpc 0xb4740000+0x112 0x2 0x00c4 ; TraceData6
+  ; GOSUB WriteGpioPpc 0xb4740000+0x116 0x2 0x00c4 ; TraceData7
+  ; GOSUB WriteGpioPpc 0xb4740000+0x12a 0x2 0x00c4 ; TraceCtl
+  ; ETM.PortMode ByPass
+  ; ETM.PortSize 8
+  ; ETM.DataTrace ON
+  ; </uncomment me>
+
+  ; write ETM settings, do AutoFocus
+  ETM.CLEAR
+  Trace.METHOD Analyzer
+
+  Analyzer.AutoFocus
+)
+
+; set PC to WDOG Trigger code - trigger WDOG
+Register.Set PC 0x19f2000
+Go 0x19f2028
+WAIT !STATE.RUN()
+
+DO ~~/demo/arm/compiler/gnu-pic/demo_sieve 0x100
+Go main
+WAIT !STATE.RUN()
+
+; assign the monhook function pointer to watchdog trigger in flash
+Var.Assign monHook = 0x19f200c
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+
+WriteGpioPpc: ;(address, accesssize, value)
+  LOCAL &addr &size &value &tmp &PPC_KEYCDR
+  ENTRY &addr &size &value
+  IF &size==4
+    &tmp=0x20000000
+  ELSE IF &size==2
+    &tmp=0x10000000
+  ELSE
+    &tmp=0x00000000
+
+  &PPC_KEYCDR=0xb4740400
+  Data.Set A:(&PPC_KEYCDR) %LONG &tmp|0x00000000|(&addr&0x7fff)
+  Data.Set A:(&PPC_KEYCDR) %LONG &tmp|0x40000000|(&addr&0x7fff)
+  Data.Set A:(&PPC_KEYCDR) %LONG &tmp|0x80000000|(&addr&0x7fff)
+  Data.Set A:(&PPC_KEYCDR) %LONG &tmp|0xc0000000|(&addr&0x7fff)
+
+  IF &size==4
+    &tmp="%Long"
+  ELSE IF &size==2
+    &tmp="%Word"
+  ELSE
+    &tmp="%Byte"
+  Data.Set A:(&addr) &tmp &value
+  RETURN

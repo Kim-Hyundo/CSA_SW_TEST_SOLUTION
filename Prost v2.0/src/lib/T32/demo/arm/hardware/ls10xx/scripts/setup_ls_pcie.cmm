@@ -1,0 +1,176 @@
+; --------------------------------------------------------------------------------
+; @Title: Low level initialization of the PCIe Rootcomplex NXP Layerscape
+; @Description:
+;   This script initializes the PCIe Rootcomplex of a NXP LS10xx device to
+;   map the PowerTrace Serial to the CPU memory map. After this setup the
+;   PowerTrace Serial module may record the trace via the ETR.
+;   In case the PCIe memory space is outside of the 4G memory area a virtual
+;   address mapping needs to be created beforehand.
+;   Prerequisites:
+;    * debug session is connected
+;    * PCIe is enabled via the RCW
+;
+;   Usage:
+;     generic
+;       DO setup_ls_pcie "<BaseAddressRootComplex>" "AddressMemoryMappedPciePhysical"
+;     e.g. for TWR-LS1021A PCIe header MiniPCIe1 Pci_1
+;          a mapping virt -> phys 0x0--0xffffffff -> 0x40:0x0 is created
+;       DO setup_ls_pcie "0x3400000" "0x4000000000" "0x0"
+; @Keywords: Layerscape, PCIe
+; @Author: AME
+; @Board: TWR-LS1021A
+; @Chip: LS1021A
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: setup_ls_pcie.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+PRIVATE &RootBase &PciMemBasePhys &PciMemBaseVirt
+PARAMETERS &RootBase &PciMemBasePhys &PciMemBaseVirt
+
+PRIVATE &Cfg0Phys &Cfg1Phys &Cfg0Virt &MemPhys &MemBus &IoPhys
+&Cfg0Phys=&PciMemBasePhys+0x0
+IF "&PciMemBaseVirt"!=""
+  &Cfg0Virt=&PciMemBaseVirt+0x0
+&Cfg1Phys=&PciMemBasePhys+0x1000
+&MemPhys=&PciMemBasePhys+0x40000000
+&MemBus=0x40000000
+&IoPhys=&PciMemBasePhys+0x10000
+
+PRIVATE &PcieAtuTypeMem &PcieAtuTypeCfg0 &PcieAtuTypeCfg1
+&PcieAtuTypeMem=0x0
+&PcieAtuTypeCfg0=0x4
+&PcieAtuTypeCfg1=0x5
+
+GOSUB PcieIatuOutboundSet "&RootBase" "0x0" "&PcieAtuTypeCfg0" "&Cfg0Phys" "0x0" "0xfff"
+GOSUB PcieIatuOutboundSet "&RootBase" "0x1" "&PcieAtuTypeCfg1" "&Cfg1Phys" "0x0" "0x1fff"
+GOSUB PcieIatuOutboundSet "&RootBase" "0x2" "&PcieAtuTypeMem" "&MemPhys" "&MemBus" "0x3fffffff"
+
+; clear BAR0
+Data.Set AD:&RootBase+0x10 %Long 0x00000000
+
+; MiscControl - Set DbiRoWrEn
+Data.Set AD:&RootBase+0x8BC %Long 0x1
+
+; set ClassCode - BridgePci
+Data.Set AD:&RootBase+0xa %Word 0x0604
+
+; MiscControl - Clear DbiRoWrEn
+Data.Set AD:&RootBase+0x8BC %Long 0x0
+
+; not implemented on all devices - not available on all devices ;-(
+;IF Data.Long(AD:&RootBase+0x7FC)<=0x10
+;(
+;  PRINT "Error: Link down"
+;  ENDDO FALSE()
+;)
+
+PRINT "Link state: x"+FORMAT.Decimal(1.,(Data.Word(AD:&RootBase+0x82)>>0x4)&0xf)+" Gen"+FORMAT.Decimal(1.,Data.Word(AD:&RootBase+0x82)&0x3)
+
+; now init the PCIe RootComplex
+; BAR0
+Data.Set AD:&RootBase+0x10 %Long &MemBus+0x00000000
+; ? - Limit?
+Data.Set AD:&RootBase+0x14 %Long &MemBus+0x04000000
+; Expansion ROM Bar
+Data.Set AD:&RootBase+0x38 %Long &MemBus+0x08000000
+; COMMAND -> Master + MemSpace
+Data.Set AD:&RootBase+0x4 %Word 0x6
+
+; set Primary/Secondary/Subordinate Bus number
+Data.Set AD:&RootBase+0x18 %Byte 0x0
+Data.Set AD:&RootBase+0x19 %Byte 0x1
+Data.Set AD:&RootBase+0x1a %Byte 0xff
+
+; set Memory Base
+Data.Set AD:&RootBase+0x20 %Word (&MemBus+0x09000000)>>16.
+; disable prefetchable memory
+Data.Set AD:&RootBase+0x24 %Word 0x1000
+Data.Set AD:&RootBase+0x26 %Word 0x0
+; upper
+Data.Set AD:&RootBase+0x28 %Long 0x0
+Data.Set AD:&RootBase+0x2c %Long 0x0
+; disable IO MEM
+Data.Set AD:&RootBase+0x1c %Byte 0x0
+Data.Set AD:&RootBase+0x1d %Byte 0x0
+
+GOSUB PcieIatuCfg0SetBusDev "&RootBase" "0x01000000"
+
+IF "&Cfg0Virt"==""
+(
+  IF (Data.Long(AD:&Cfg0Phys+0x0)!=0x10ee)
+  (
+    PRINT "Error: Power Trace Serial not detected"
+    ENDDO FALSE()
+  )
+  ; <Power Trace Serial>
+  ; set BAR0 of
+  Data.Set AD:&Cfg0Phys+0x10 %Long &MemBus+0x09000000
+  ; set COMMAND - 0x6 (MASTER+Memory)
+  Data.Set AD:&Cfg0Phys+0x04 %Word 0x06
+  ; </Power Trace Serial>
+)
+ELSE
+(
+  IF (Data.Long(D:&Cfg0Virt+0x0)!=0x10ee)
+  (
+    PRINT "Error: Power Trace Serial not detected"
+    ENDDO FALSE()
+  )
+  ; <Power Trace Serial>
+  ; set BAR0 of
+  Data.Set D:&Cfg0Virt+0x10 %Long &MemBus+0x09000000
+  ; set COMMAND - 0x6 (MASTER+Memory)
+  Data.Set D:&Cfg0Virt+0x04 %Word 0x06
+  ; </Power Trace Serial>
+)
+
+; now set the Memory Limit
+Data.Set AD:&RootBase+0x22 %Word (&MemBus+0x09000000)>>16.
+
+
+PRINT "Power Trace Serial is now mapped to 0x"+FORMAT.HEX(0.,&MemPhys+0x09000000)
+
+
+ENDDO TRUE()
+
+; --------------------------------------------------------------------------------
+
+PcieIatuOutboundSet: ;(pcie, region, type, base, bus, size)
+(
+  PARAMETERS &pcie &region &type &base &bus &size
+  GOSUB PcieIatuSet "&pcie" "&region&~0x80000000" "&type" "&base" "&bus" "&size"
+  RETURN
+)
+
+PcieIatuSet: ;(pcie, region, type, base, size)
+(
+  PARAMETERS &pcie &region &type &base &bus &size
+
+  ; viewport
+  Data.Set AD:&pcie+0x900 %Long &region
+  ; lower/upper base address
+  Data.Set AD:&pcie+0x90C %Long &base&0xffffffff
+  Data.Set AD:&pcie+0x910 %Long &base>>32.
+  ; size
+  Data.Set AD:&pcie+0x914 %Long (&base+&size)&0xffffffff
+  ; ?
+  Data.Set AD:&pcie+0x918 %Long &bus&0xffffffff
+  Data.Set AD:&pcie+0x91C %Long &bus>>32.
+  ; CTRL1 - Type
+  Data.Set AD:&pcie+0x904 %Long &type
+  ; CTRL2 - Enable
+  Data.Set AD:&pcie+0x908 %Long 0x80000000
+
+  RETURN
+)
+
+PcieIatuCfg0SetBusDev: ;(pcie, base)
+(
+  PARAMETERS &pcie &base
+  ; viewport - 0 outbound - previously configured with Type Cfg0
+  Data.Set AD:&pcie+0x900 %Long 0x0
+  ; TargetOffset
+  Data.Set AD:&pcie+0x918 %Long 0x01000000
+
+  RETURN
+)

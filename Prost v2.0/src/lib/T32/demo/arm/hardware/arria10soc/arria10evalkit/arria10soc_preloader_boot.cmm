@@ -1,0 +1,89 @@
+; --------------------------------------------------------------------------------
+; @Title: ARRIA10SOC Preloader U-Boot Load+Debug Demo
+; @Description:
+;   A simple example how to boot and debug a ARRIA10SOC using the U-Boot based
+;   preloader. Please note that the Preloader will still try to load the RBF 
+;   files from the QSPI or MMC. Please see arria10soc_preloader_boot_advanced
+;   if you want to load the RBF files from the debugger.
+;   The script loads the U-BOOT + DTB after the Bootrom is fully executed.
+;   Prerequisites:
+;   * Please set bootmode to SD-Card and REMOVE SD-Card
+;     => Device will stop in BOOT ROM
+;   * connect Debugcable or Combiprobe to HPS Trace connector
+;     and make sure nothing is connected to J24
+;     OR
+;     connect Debugcable or Combiprobe to J24 header
+;     using LA-3863 (ARM->NIOS converter)
+;   * set FPGA->HPS JTAG DaisyChain configuration
+;     SW3[1..8]=0b01111111 (M5A Jtag Enable)
+;   * U-Boot+DTB matching the board is available
+; @Keywords: ALTERA, Cortex-A9, Arria10
+; @Props: Template
+; @Author: AME
+; @Board: ARRIA10SOC
+; @Chip: ARRIA10SOC
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: arria10soc_preloader_boot.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; board setup
+RESet
+SYStem.RESet
+SYStem.CPU ARRIA10SOC
+; settings for FPGA-HPS scanchain - see prerequisites
+; can be discovered by SYStem.DETECT.ShowCHAIN
+SYStem.CONFIG DAPIRPOST 10.
+SYStem.CONFIG DAPDRPOST 1.
+SYStem.Option ResBreak OFF
+CORE.ASSIGN 1.              ; "1" = first core, "2" = second core, "1 2" = both cores (SMP)
+; perform two SYStem.Up 's -> Target stops at the RESET Vector due to TrOnchip.Set RESET ON
+TrOnchip.Set RESET ON
+SYStem.Up
+WAIT 0.1s
+SYStem.Up
+
+; let BootROM execute - set a BP to the Preloader entry point in case the target starts to boot
+Go.direct 0xffe00054 /Onchip
+WAIT 2.s
+IF STATE.RUN()
+  Break.direct
+
+; disable Watchdog0/1
+Data.Set A:0xFFD05028 %Long Data.Long(A:0xFFD05028)|0x3
+; disable OCROM - set PC to OCRAM (safety)
+Register.Set PC 0xffe00000
+Data.Set A:0xFFD06080 %Long 0x1
+
+; sanity checks - did the BootROM generate the HANDOFF data-structures?
+IF Data.Long(A:0xffe3fc80)!=0x31415926
+(
+  PRINT %ERROR "Version block missing."
+  ENDDO
+)
+IF Data.Long(A:0xffe3f800)!=0x02884197
+(
+  PRINT %ERROR "Shared Memory block missing."
+  ENDDO
+)
+
+; prepare handoff to preloader
+Data.Set C15:0x1 %Long 0xC51878 ; SCTLR - MMU OFF, I-Cache ON
+Register.Set M 0x13             ; SVC mode
+Register.Set NS 0               ; Secure mode
+
+; load u-boot sourcecode & symbols
+; load dtb to *_end* of u-boot
+Data.LOAD.Elf    <path to>/u-boot-socfpga/u-boot /StripPART "u-boot-socfpga"
+Data.LOAD.Binary <path to>/u-boot-socfpga/dts/dt.dtb ADDRESS.OFFSET(_end) /NoClear /NosYmbol
+; R0 = shared memory
+; R1 = length
+; R2 = 0x0
+; R3 = Version block
+; these parameters are "reverse engineered" from a RevA1 Board
+Register.Set R0 0xffe3f800
+Register.Set R1 0x5d8
+Register.Set R2 0x0
+Register.Set R3 0xffe3fc80
+
+
+ENDDO

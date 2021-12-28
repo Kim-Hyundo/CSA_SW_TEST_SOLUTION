@@ -1,0 +1,97 @@
+; --------------------------------------------------------------------------------
+; @Title: SNOOPer Demo
+; @Description:
+;   Loads simple example application in SRAM, then samples periodically variables
+;   and displays their value graphical over time
+; @Author: HLG
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: snoop.cmm 15248 2019-11-11 13:28:14Z bschroefel $
+
+
+DO "~~~~/demo_sram.cmm"
+WAIT !STATE.RUN()
+Go func_sin
+PRINT "Please wait we're starting soon..."
+SCREEN.display
+Go.Up
+WAIT !STATE.RUN()
+
+
+// Configure the snooper to record the course of the variables plot1 and plot2 (in a non-intrusive way)
+SNOOPer.RESet
+SNOOPer.SELect Var.RANGE(plot1) Var.RANGE(plot2)
+SNOOPer.Rate 500.us
+IF INTERFACE.SIM()
+(
+	SYStem.MemAccess Enable
+	Var.set period=9000
+)
+ELSE IF SYStem.CPU()=="EPXA"
+(
+	Var.set period=9000
+	IF Data.Long(D:0x7fffc008)==0x081010DD // EPXA1 ?
+		Var.set period=500
+	SNOOPer.Rate 50.ms
+)
+SNOOPer.Mode StopAndGo OFF
+SNOOPer.AutoArm ON
+SNOOPer.Init
+SNOOPer.Arm
+
+WinCLEAR
+SCREEN.ALways
+
+LOCAL &options
+IF INTERFACE.SIM()
+	&options="/MarkedVector" // Show sampling point on rather slow Simulator
+
+
+// SNOOPer.DRAW.channel ist the old tricky style
+WinPOS 0% 0% 50% 50%
+SNOOPer.DRAW %Decimal Data.W /Filter Address plot1
+WinPOS 50% 0% 50% 50%
+SNOOPer.DRAW %Decimal Data.W /Filter Address plot2
+
+
+// SNOOPer.DRAW.channel getting really tricky if you want to draw more than one value in the same window
+Var.Break.Set plot1 /Alpha
+Var.Break.Set plot2 /Beta
+WinPOS 0% 50% 50% 50%
+SNOOPer.DRAW %Decimal Data.W /Color
+
+
+// SNOOPer.DRAW.Data availalbe since Nov 2012.
+// It is the right choice to draw the course of any value in memory without symbol information.
+// If the data you'd like to draw corresponds to a C/C++ variable (like in this example) better use SNOOPer.DRAW.Var (see below)
+IF VERSION.BUILD.BASE()>39912.
+(
+	WinPOS 51% 51% 50% 50%
+	SNOOPer.DRAW.Data %Decimal.Word plot1++1 plot2++1 &options
+)
+
+
+// SNOOPer.DRAW.Var available since Jan 2013 is the easiest and recommend way to draw the course of a C/C++ variable
+IF VERSION.BUILD()>41354.
+(
+	WinPOS 50% 50% 50% 50%
+	SNOOPer.DRAW.Var %DEFault plot1 plot2 &options
+
+	// SNOOPer.DRAW.Var (-90.)--(-50.),100.0,-16000.0,plot1 plot2 /MarkedVector
+	//                        |         |       |                     |
+	//                        |         |       |                     +-- Option to show sampling points
+	//                        |         |       +-- Optional lower start value: Lowest value shown immediately is -16000.0
+	//                        |         +-- Optional Y scaling: 100.0units = 1px
+	//                        +-- Optional time scaling: Show immediately only samples -90 to -51
+)
+
+
+WinPOS ,,,,,,"snoop"
+SNOOPer.state
+PRINT "Please wait 10 seconds..."
+Go
+WAIT 10.s
+Break
+WinCLEAR "snoop"
+
+ENDDO

@@ -1,0 +1,194 @@
+; --------------------------------------------------------------------------------
+; @Title: Hard Reset based connection sequence for S6J311
+; @Description:
+;   This script programs a simple application into the FLASH of an S6J311xxxx.
+;   The script assumes that the RSTx line is connected to the debugger.
+;   The trace is prepared by default for 4bit Trace as the TRACECTL and other
+;   TraceData lines may be not jumpered.
+;   Prerequisites:
+;     * JTAG is connected to 20PIN JTAG or Mictor38
+;     * the SRST line is disconnected from the Chip and wired to
+;       RSTX on the board
+;     * parallel Trace interface is connected to Mictor38
+;       IF J107,J115,J120,J121 are set to MICTOR please uncomment
+;       the marked lines in the "IF ANALYZER()" section
+;   Note: This script does require a board modification!
+; @Chip: S6J311????
+; @Board: SK-Leo
+; @Author: AME
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: s6j311_flash_hard_reset.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+; Configure whether the watchdog reset shall be masked by a special debug register bit
+&DBG_MASK_WDG_RESET=FALSE()
+; Configure whether the Fake Power On mode shall be enabled by a special debug register bit
+&DBG_ENABLE_FAKEPOWERON=FALSE()
+; Configure whether the Fake Clock On mode shall be enabled by a special debug register bit
+; and which value (0-3) should be used, refer SCSCU_CNTL_FAKE_CLKON description
+&DBG_ENABLE_FAKECLOCKON=FALSE()
+; 0..3
+&DBG_FAKECLOCK_ON_SETTING=0x3
+&DBG_FAKECLOCK_ON_SETTING=&DBG_FAKECLOCK_ON_SETTING&0x3
+
+GOSUB DefineGlobals
+RESet
+SYStem.RESet
+SYStem.CPU S6J311EJAA
+SYStem.Option ResBreak OFF
+SYStem.Option EnReset ON
+SYStem.Option AHBHPROT 0x3
+IF VERSION.BUILD.BASE()<74695.
+(
+  SYStem.Option DAPREMAP 0x0--0x01ffffff 0x04000000
+)
+; <speedup for connection phase>
+ETM.OFF
+SYStem.JtagClock CTCK 10MHz
+; </speedup for connection phase>
+SYStem.UP
+
+; Step 1: Program FLASH
+
+; prepare flash programming - WDOG is masked by script
+DO ~~/demo/arm/flash/s6j3 PREPAREONLY
+FLASH.ReProgram ALL
+; Data.LOAD.Elf ~~~~/<yourcode.elf>
+Data.LOAD.Elf ~~~~/<yourcode.elf> /GHS
+FLASH.ReProgram OFF
+
+; Step 2: Trigger Reset - Reconnect (ready for debug)
+SYStem.Up
+
+PRINT "Wait till device reaches BOOTROM end"
+Go.direct R:0xffff12f8 /Onchip
+WAIT !STATE.RUN()
+
+GOSUB SetSpecialDebugFeatures &DBG_MASK_WDG_RESET &DBG_ENABLE_FAKEPOWERON &DBG_ENABLE_FAKECLOCKON &DBG_FAKECLOCK_ON_SETTING
+
+IF Analyzer()
+(
+  ; PortSize/Mode is handled in Subroutine!
+  ; Please adapt to your needs
+  GOSUB EnableTrace
+
+  ; write ETM settings, do AutoFocus
+  ETM.CLEAR
+  ETM.ON
+  Trace.METHOD Analyzer
+  ; use targetcode to get AutoFocus
+  Analyzer.AutoFocus
+)
+
+; ready for debug and trace!
+
+Mode.Hll
+List
+
+ENDDO
+
+TriggerSoftReset:
+  SYStem.Mode.Prepare
+  IF Data.Long(EAHB:0xb0600000)!=0xffffffff
+    Data.Set EAHB:0xb0600000 %Long 0x5CACCE55
+
+  ON ERROR CONTinue
+  Data.Set EAHB:0xb0600380 %Long 0xA50000
+  SYStem.Up
+  ON ERROR inherit
+
+  IF (SYStem.MODE()<5.)||(STATE.RUN())
+  (
+    PRINT %ERROR "Connection Sequence error ... cpu did not stop"
+    ENDDO
+  )
+
+  RETURN
+
+DefineGlobals: ;()
+  GLOBAL &MASK__SCSCU_CNTL_JTAGCON
+  GLOBAL &MASK__SCSCU_CNTL_FAKE_PDON
+  GLOBAL &MASK__SCSCU_CNTL_WDGRSTMASK
+  GLOBAL &KEY__SCCFG_UNLOCK
+  GLOBAL &KEY__SCCFG_LOCK
+  GLOBAL &REG_APB__SCCFG_UNLCK
+  GLOBAL &REG_APB__SCSCU_CNTL
+  &MASK__SCSCU_CNTL_JTAGCON=0x00010000
+  &MASK__SCSCU_CNTL_FAKE_PDON=0x00000010
+  &MASK__SCSCU_CNTL_WDGRSTMASK=0x00000100
+  &KEY__SCCFG_UNLOCK=0x5ecacce5
+  &KEY__SCCFG_LOCK=0xa135331a
+  &REG_APB__SCCFG_UNLCK=0x000c01a4
+  &REG_APB__SCSCU_CNTL=0x000c01b4
+
+  GLOBAL &REG_AHB__SYSC0_PROTKEYR
+  GLOBAL &REG_AHB__SYSC0_SPECFGR
+  GLOBAL &MASK__SYSC0_SPECFGR_IOxRSTC
+  GLOBAL &KEY__SYSC0_UNLOCK
+  &REG_AHB__SYSC0_PROTKEYR=0xb0600000
+  &REG_AHB__SYSC0_SPECFGR=0xb0600680
+  &MASK__SYSC0_SPECFGR_IOxRSTC=0x00600000
+  &KEY__SYSC0_UNLOCK=0x5cacce55
+  RETURN
+
+EnableTrace: ;()
+  ; for S6J311EJAA
+  ; P403 -> TraceData0
+  ; P404 -> TraceData1
+  ; P405 -> TraceData2
+  ; P406 -> TraceData3
+  ; P407 -> TraceData4
+  ; P408 -> TraceData5
+  ; P409 -> TraceData6
+  ; P411 -> TraceData7
+  ; P420 -> TraceClk
+  ; P421 -> TraceCtl
+  GOSUB WriteGpioPpc 0xb4740000+0x128 0x2 0x00c4 ; TraceClk
+  GOSUB WriteGpioPpc 0xb4740000+0x106 0x2 0x00c4 ; TraceData0
+  GOSUB WriteGpioPpc 0xb4740000+0x108 0x2 0x00c4 ; TraceData1
+  GOSUB WriteGpioPpc 0xb4740000+0x10a 0x2 0x00c4 ; TraceData2
+  GOSUB WriteGpioPpc 0xb4740000+0x10c 0x2 0x00c4 ; TraceData3
+  TPIU.PortMode Continuous
+  TPIU.PortSize 4
+  ETM.DataTrace OFF
+  ; if TraceData[4..7] and TraceCtl are jumpered uncomment this block
+  ; set pinmultiplexing for Tracelines
+  ; Bandwidth should be enough to do DataTrace
+  ; <uncomment me>
+  ; GOSUB WriteGpioPpc 0xb4740000+0x10e 0x2 0x00c4 ; TraceData4
+  ; GOSUB WriteGpioPpc 0xb4740000+0x110 0x2 0x00c4 ; TraceData5
+  ; GOSUB WriteGpioPpc 0xb4740000+0x112 0x2 0x00c4 ; TraceData6
+  ; GOSUB WriteGpioPpc 0xb4740000+0x116 0x2 0x00c4 ; TraceData7
+  ; GOSUB WriteGpioPpc 0xb4740000+0x12a 0x2 0x00c4 ; TraceCtl
+  ; TPIU.PortMode ByPass
+  ; TPIU.PortSize 8
+  ; ETM.DataTrace ON
+  ; </uncomment me>
+
+  RETURN
+
+SetSpecialDebugFeatures: ;(wdogrstmask, fakepoweron, fakeclockon, fakeclockon_setting)
+  PRIVATE &SCSCU_CNTL &wdogrstmask &fakepoweron &fakeclockon &fakeclockon_setting
+  ENTRY &wdogrstmask &fakepoweron &fakeclockon &fakeclockon_setting
+  &SCSCU_CNTL=&MASK__SCSCU_CNTL_JTAGCON
+  IF &wdogrstmask
+  (
+    PRINT "SCSCU_CNTL: HW/SW Watchdog Reset Mask"
+    &SCSCU_CNTL=&SCSCU_CNTL|&MASK__SCSCU_CNTL_WDGRSTMASK
+  )
+  IF &fakepoweron
+  (
+    PRINT "SCSCU_CNTL: Fake Power On Mode"
+    &SCSCU_CNTL=&SCSCU_CNTL|&MASK__SCSCU_CNTL_FAKE_PDON
+  )
+  IF &fakeclockon
+  (
+    PRINT "SCSCU_CNTL: Fake Clock On Mode &fakeclockon_setting "
+    &SCSCU_CNTL=&SCSCU_CNTL|(&fakeclockon_setting&0x3)
+  )
+  Data.Set APB:&REG_APB__SCCFG_UNLCK %Long &KEY__SCCFG_UNLOCK ; Unlock register write access
+  Data.Set APB:&REG_APB__SCSCU_CNTL %Long &SCSCU_CNTL         ; Make user configuration (SCSCU_CNTL_JTAGCON bit and others)
+  Data.Set APB:&REG_APB__SCCFG_UNLCK %Long &KEY__SCCFG_LOCK   ; Lock register write access again
+  RETURN
+
+

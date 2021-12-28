@@ -1,0 +1,182 @@
+; --------------------------------------------------------------------------------
+; @Title: Symbian OS Demo for TRACE32 OS Awareness on the DBPXA250 Board
+; @Description:
+;
+;   This batchfile demonstrates the use of
+;   the OS Awareness for Symbian OS
+;
+;   The example is generated for an intel DBPXA250 board using an ICD.
+;   It will NOT run on any other board, but may be used as a template for
+;   others.
+;   Symbian OS is downloaded to the board via ICD.
+;
+; @Keywords: awareness
+; @Author: DIE
+; @Chip: PXA250
+; @Board: DBPXA250
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: symbian.cmm 15236 2019-11-08 07:27:03Z bschroefel $
+
+;   Created by Rudi Dienstbeck / Lauterbach GmbH at 01.04.2004
+
+; Please prepare the board as described in the Symbian OS documentation
+
+ SCREEN.ON
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 26. 75. 9. 0. 0. W000
+ AREA.view
+
+ PRINT "resetting..."
+
+ SYStem.Down
+ Break.Delete
+ MAP.RESet
+ TASK.RESet
+ sYmbol.RESet
+ sYmbol.AutoLOAD.CHECK OFF      ; disable dynamic autoloader
+ sYmbol.AutoLOAD.RESet          ; reset autoloader list
+ TRANSlation.RESet
+
+; setup of ICD
+
+ PRINT "initializing..."
+ SYStem.CPU PXA250
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ SYStem.Option SOFTLONG ON      ; use 32bit access for soft breakpoint
+ TrOnchip.Set DABORT OFF        ; used by Symbian OS for page miss!
+ TrOnchip.Set PABORT OFF        ; used by Symbian OS for page miss!
+ SYStem.Option MMUSpaces ON     ; enable space ids to virtual addresses for data segments
+ SYStem.Option DynVector ON     ; Symbian OS may reprogram vector table
+ SYStem.JtagClock 25.0MHz       ; set max JTAG speed
+ SYStem.Up
+ SETUP.IMASKASM ON          ; lock interrupts while single stepping
+
+ SCREEN.ON
+
+; Target Setup: initialize DRAM controller and peripherals
+
+ ; Either let the on board boot monitor initialize everything
+    ;Go
+    ;wait 1.s
+    ;Break
+ ; Or initialize manually via script
+    DO ../dbpxa250
+
+; Load the Symbian OS image
+
+ PRINT "loading Symbian OS image..."
+
+ &epoc32drive="L:"
+ &epoc32path="&epoc32drive"+"/bin/TechView/epoc32"
+
+ ; load binary, skip serial rom header (if built with rom header)!
+ ; use Turbo mode only, if target RAM is fast enough
+
+ SYStem.Option TURBO ON
+ Data.LOAD.Binary &epoc32path/rom_die/la_001.techview.img 0xa0000000 /SKIP 0x100
+ SYStem.Option TURBO OFF
+
+ Register.RESet
+
+ ; set PC on start address of image
+ Register.Set PC 0xa0000000
+
+; Open a Code Window -- we like to see something
+
+ WinPOS 0. 0. 75. 20.
+ List.auto
+
+; If you want to debug the bootstrap, load the symbols:
+ ;Data.LOAD.exe &epoc32path/BUILD/e32/bootstrap/bootMCOT/MCOT/UDEB/rombin.dbg /nocode /noclear
+ ;sYmbol.demangle on
+
+; Run over exception vector table relocation
+
+ ; This is specific to XScale processors:
+ ; The debugger must trace exeption vector table relocation and modification.
+ ; This is enabled with "SYStem.Option DynVector ON" (see above).
+ ; But this option slows down target execution significanlty. So we
+ ; switch it off after the vector table is set up.
+
+ TrOnchip.Set SWI ON    ; halt on SWI: SWI will be first called, after vector table is set
+
+ IF !INTERFACE.SIM()
+ (
+   Go                   ; let the system run, until first SWI vector called
+   PRINT "running bootstrap..."
+   WAIT !STATE.RUN()
+ )
+
+ SYStem.Option DynVector OFF    ; table is set up, switch detection off
+ TrOnchip.Set SWI OFF           ; and let SWI be handled by Symbian OS
+
+; Configure Autoloader
+
+ ; The autoloader is able to automatically load symbol files,
+ ; if a specific code address is accessed. The autoloader gets
+ ; it's information from the rombuild log file, and from the
+ ; running process table.
+ ; The autoloader is configured to call the skript "autoload.cmm"
+ ; when a symbol file needs to be loaded.
+
+ PRINT "configuring autoloader..."
+
+ ; add search paths for symbol files
+ sYmbol.SourcePATH.Set &epoc32path/release/MCOT/UDEB
+ sYmbol.SourcePATH.Set &epoc32path/release/THUMB/UDEB ; for sym files
+ sYmbol.SourcePATH.Set &epoc32drive/                  ; for sources
+
+ ; scan rombuild log file for modules & addresses
+ sYmbol.AutoLOAD.LOADEPOC &epoc32path/rom_die/la_001.techview.log "do "+OS.PPD()+"/autoload "
+
+ ; define dynamic autoloader
+ sYmbol.AutoLOAD.CHECKEPOC "do "+OS.PPD()+"/autoload "
+
+ ; switch off automatic process detection (slows down debugger execution)
+ sYmbol.AutoLOAD.CHECK OFF
+
+; Load the Symbian OS kernel symbols into the debugger
+
+ PRINT "loading Symbian OS kernel symbols..."
+
+ ; force autoloader to load ekern
+ sYmbol.AutoLOAD.TOUCH "*ekern.exe*"
+
+ ; when not using the autoloader, you can load and relocate the ekern
+ ; symbols by extracting the ekern addresses through a script:
+    ;do reloc &epoc32path/rom_die/la_001.techview.log ekern.exe
+    ;entry &codeaddr &dataaddr
+    ;Data.LOAD.exe &epoc32path/release/MCOT/UDEB/ekern.sym /nocode /cpp /reloc .text at &codeaddr /reloc .data at &dataaddr /reloc .bss after .data
+
+ ; idle/sleep mode of processor will disable JTAG control;
+ ; so we patch the sleep instruction to nop here
+ Data.Assemble ImpHal::Idle+0x20 nop
+
+; Setting the system MMU translations
+
+ PRINT "setting system MMU..."
+
+ TRANSlation.COMMON 0x50000000--0xffffffff      ; process code and kernel pages are common to all space ids
+ MMU.SCAN 0x0:0x0--0xffffffff           ; scan kernel pages
+ TRANSlation.CLEANUP                            ; remove doubled entries
+ TRANSlation.ON                                 ; switch debugger MMU on
+
+; Initialize Mutitasking Support
+
+ PRINT "initializing RTOS support..."
+
+ TASK.CONFIG ../symbian     ; loads Symbian OS awareness (symbian.t32)
+ MENU.ReProgram ../symbian  ; loads Symbian OS menu (symbian.men)
+ HELP.FILTER.Add rtosepoc   ; add Symbian OS awareness manual to help filter
+
+; Ok, we're done, let's start Symbian OS
+
+ Go
+ PRINT "starting Symbian OS."
+
+ ENDDO

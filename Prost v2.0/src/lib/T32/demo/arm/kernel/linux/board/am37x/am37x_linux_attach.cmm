@@ -1,0 +1,89 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux Demo for TRACE32 OS Awareness on the AM37x Sitara Board
+; @Description:
+;   This script is supposed to attach to a running Linux on AM37x Sitara board.
+;   The Task Awareness + Debugger Address Translation are prepared as for the
+;   GSRD. After execution of this script the debugger is ready for Process,
+;   Kernel, optional Module and optional Library debugging.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+; @Keywords: AM37*, awareness, RTOS, Sitara
+; @Board: AM37x Sitara
+; @Chip: AM3715
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: am37x_linux_attach.cmm 16034 2020-05-08 11:09:16Z mcharfi $
+
+
+LOCAL &ka_path &awareness
+
+ SCREEN.ALways      ; permanent update for internal terminal window
+ ; screen.on        ; if you use external terminal
+
+  WinPAGE.RESet
+  AREA.RESet
+  WinPOS 0. 25. 75. 9. 0. 0. W000
+  AREA.view
+
+  PRINT "resetting..."
+
+  RESet
+
+; setup of ICD
+
+  PRINT "initializing..."
+  SYStem.CPU AM3715
+  SYStem.JtagClock RTCK
+  SYStem.Option DACR ON          ; give Debugger global write permissions
+  SYStem.Option ResBreak OFF     ; hardware dependent (see manual)
+  SYStem.Option WaitReset ON     ; hardware dependent (see manual)
+  TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+  TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+  TrOnchip.Set UNDEF OFF         ; my be used by Linux for FPU detection
+  SYStem.Option MMUSpaces ON     ; enable space ids to virtual addresses
+
+  SYStem.Attach
+  Break.direct
+  WAIT !STATE.RUN()
+
+  SETUP.IMASKASM ON          ; lock interrupts while single stepping
+
+; Load the Linux kernel symbols into the debugger
+
+  PRINT "loading Linux kernel symbols..."
+  ; use the Data.LOAD option strippart and the command sYmbol.SourcePATH.Set to find the source files
+  Data.LOAD.Elf vmlinux /gnu /NoCODE ; /strippart
+
+; Open a Code Window -- we like to see something
+
+  WinPOS 0. 0. 75. 20.
+  List.auto
+  SCREEN.display
+
+; Map the virtual kernel symbols to physical addresses
+; to give the debugger access to it before CPU MMU is
+; initialized
+
+  PRINT "initializing debugger MMU..."
+  MMU.FORMAT LINUX swapper_pg_dir 0xc0000000--0xc3ffffff 0x80000000
+  TRANSlation.COMMON 0c0000000--0ffffffff            ; common area for kernel and processes
+  TRANSlation.TableWalk ON   ; debugger uses a table walk to decode virtual addresses
+  TRANSlation.ON
+
+; Initialize Linux Awareness
+
+  ; Note that the Linux awareness needs the kernel symbols to work
+  PRINT "initializing RTOS support..."
+  ; Choose the correct Linux major version below
+  ;TASK.CONFIG ~~/demo/arm/kernel/linux/linux-2.x/linux.t32     ; loads Linux awareness for linux-2.x
+  ;MENU.ReProgram ~~/demo/arm/kernel/linux/linux-2.x/linux.men  ; loads Linux menu  for linux-2.x
+  TASK.CONFIG ~~/demo/arm/kernel/linux/linux-3.x/linux3.t32     ; loads Linux awareness for linux-3.x
+  MENU.ReProgram ~~/demo/arm/kernel/linux/linux-3.x/linux.men  ; loads Linux menu  for linux-3.x
+
+
+  Go.direct
+
+
+
+
+

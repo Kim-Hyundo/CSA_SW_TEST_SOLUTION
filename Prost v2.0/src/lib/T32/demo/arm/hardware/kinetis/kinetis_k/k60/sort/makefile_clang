@@ -1,0 +1,43 @@
+# Compile simple SORT demo for ARM, with Cygwin and GNU Binutils + compiler.
+# + LLVMs CLANG (3.8) to convert C to machine code.
+
+# First of all adopt ldsimple.script to define where your RAM is located
+
+# CPUDEF is used to compile for the correct CPU.
+CPUDEF:=-mthumb -mcpu=cortex-m3
+
+# CLANGTARGET defines the target for clang-3.8
+CLANGTARGET=--target=armv7m-none-eabi
+
+# Use GNU Compiler + CLANG-3.8
+AS:=arm-unknown-eabi-gcc
+CC:=clang-3.8 
+LD:=arm-unknown-eabi-ld
+
+APPL:=sort_clang.elf
+SRCS:=sort.c
+
+OBJS:=obj/crt0.o obj/clang_mem.o $(patsubst %.c,obj/%.o,$(SRCS))
+SRCS:=$(patsubst %.c,src/%.c,$(SRCS))
+
+all: $(APPL)
+
+$(OBJS): | obj
+
+obj:
+	mkdir obj
+
+$(APPL): $(OBJS)
+	$(LD) -v -n -T ldsimple.script -o $@ $^
+
+obj/clang_mem.o: src/clang_mem.s
+	$(AS) $(CPUDEF) -g -c -o $@ $<
+
+obj/crt0.o: src/crt0.s
+	$(AS) $(CPUDEF) -g -c -o $@ $<
+
+obj/%.o : src/%.c
+	$(CC) $(CLANGTARGET) -g -O -fno-inline -c -o $@ $<
+
+clean:
+	rm -rf obj $(APPL)

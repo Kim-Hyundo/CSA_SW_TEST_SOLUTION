@@ -1,0 +1,19 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags, NoIndex
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: taskwin.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+ WinPAGE.RESet
+ 
+ WinCLEAR
+ WinPOS 9. 5. 68. 8. 0. 1. W001
+ TASK.DP
+ 
+ WinPOS 70. 14. 80. 25. 13. 1. W000
+ List.auto
+ 
+ WinPAGE.select P000     
+ 
+ ENDDO

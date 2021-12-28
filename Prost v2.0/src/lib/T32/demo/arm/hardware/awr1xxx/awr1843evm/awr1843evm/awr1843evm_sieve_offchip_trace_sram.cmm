@@ -1,0 +1,118 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for AWR1843 on AWR1843 EVM with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug scenario.
+;   The program flow is traced using the Offchip-Trace. Pinmuxing and Clock
+;   setup is handled in the script.
+;   Use this script to test the Offchip-Trace.
+;   Prerequisites:
+;    * You need to mount the add-on board named MMWAVE-DEVPACK (AR1XXXEVM-012)
+;      and interconnect the boards by 60-pin Samtec cable.
+;    * Disconnect on AWR1843 EVM the JTAG lines from on-board XDS110 by removing
+;      R30, R69, R70, R71.
+;    * Power AWR1843 EVM with 5V power supply connected to P6.
+;    * Power MMWAVE-DEVPACK via MicroUSB connector J1.
+;    * Connect Debug Cable to P8 using LA-7748.
+;    * Connect AutoFocus Preprocessor to J3 (MIPI60 header).
+;    * DO NOT connect debug cable to the AutoFocus Preprocessor, otherwise
+;      JTAG communication doesn't work.
+; @Keywords: ARM, Cortex-R4, ETM
+; @Author: PEG
+; @Board: AWR1843 EVM (AWR1843BOOST)
+; @Chip: AWR1843
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: awr1843evm_sieve_offchip_trace_sram.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+  WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+  RESet
+  SYStem.RESet
+  SYStem.CPU AWR1843
+  SYStem.Option EnReset OFF ; Disable driving nReset and use soft resets instead
+  SYStem.MemAccess DAP
+  SYStem.Up
+  
+;---------------------------------------------------------------------------------
+; Execute boot ROM until user code shows up on address 0.
+  TrOnchip.Set DABORT OFF
+  TrOnchip.Set RESET ON
+  Go
+  WAIT !STATE.RUN() 1.s
+  IF STATE.RUN()
+    Break
+  IF Register(PC)!=0x0
+  (
+    PRINT %ERROR "ROM code did not branch to user code"
+    ENDDO
+  )
+  IF Data.Long(D:0x200000)!=Data.Long(D:0x0)
+  (
+    PRINT %ERROR "ROM code did not branch to user code"
+    ENDDO
+  )
+  TrOnchip.Set DABORT ON
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+  Data.LOAD.Elf "~~~~/sieve_ram_arm_v7r_le.elf"
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace (ETM) if Analyzer is plugged
+  IF Analyzer()
+  (
+    ; A part of the clock setup is already done by the boot ROM
+
+    ; configure TPIU export clock to /3 (fastest)
+    Data.Set 0xffffe3dc %Long 0x00000003
+
+    ; unlock IO muxing
+    Data.Set 0xffffebf8 %Long 0x83e70b13 ; MSS_IOMUX_IOCFGKICK0
+    Data.Set 0xffffebfc %Long 0x95a4f1e0 ; MSS_IOMUX_IOCFGKICK1
+
+    ; configure IO pins for 8-bit trace port
+    Data.Set 0xffffeabc %Long 0x00000040 ; MSS_IOMUX_PADBV_CFG_REG, TRACECLK   
+    Data.Set 0xffffeac0 %Long 0x00000040 ; MSS_IOMUX_PADBW_CFG_REG, TRACECTL   
+    Data.Set 0xffffea7c %Long 0x00000040 ; MSS_IOMUX_PADBF_CFG_REG, TRACEDATA0 
+    Data.Set 0xffffea80 %Long 0x00000040 ; MSS_IOMUX_PADBG_CFG_REG, TRACEDATA1 
+    Data.Set 0xffffea84 %Long 0x00000040 ; MSS_IOMUX_PADBH_CFG_REG, TRACEDATA2 
+    Data.Set 0xffffea88 %Long 0x00000040 ; MSS_IOMUX_PADBI_CFG_REG, TRACEDATA3 
+    Data.Set 0xffffea8c %Long 0x00000040 ; MSS_IOMUX_PADBJ_CFG_REG, TRACEDATA4 
+    Data.Set 0xffffea90 %Long 0x00000040 ; MSS_IOMUX_PADBK_CFG_REG, TRACEDATA5 
+    Data.Set 0xffffea94 %Long 0x00000040 ; MSS_IOMUX_PADBL_CFG_REG, TRACEDATA6 
+    Data.Set 0xffffea98 %Long 0x00000040 ; MSS_IOMUX_PADBM_CFG_REG, TRACEDATA7 
+
+    ETM.DataTrace OFF          ; FIFOOVERFLOW otherwise
+    ETM.Trace ON
+    ETM.ON
+    TPIU.PortSize 8            ; maximum size
+    TPIU.PortMode Wrapped
+    Trace.METHOD Analyzer
+    Trace.AutoFocus
+
+  )
+
+; --------------------------------------------------------------------------------
+; start program execution
+  Go.direct main
+  WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+  WinCLEAR
+  Mode.Hll
+  WinPOS 0. 0. 116. 26.
+  List.auto
+  WinPOS 120. 0. 100. 8.
+  Frame.view
+  WinPOS 120. 14.
+  Var.Watch
+  Var.AddWatch %SpotLight ast flags
+  WinPOS 120. 25.
+  Trace.List
+  WinPOS 0. 32.
+  Var.DRAW %DEFault sinewave
+  ENDDO
+

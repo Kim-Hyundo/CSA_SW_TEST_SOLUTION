@@ -1,0 +1,92 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC1765 A-Step on TriBoard TC1765 (Flash)
+; @Description:
+;   Flash programming demo.
+;
+;   Use the following boot option:
+;   Left  DIP Switch: SW1=ON,  SW2=OFF, SW3=ON,  SW4=OFF
+;   Right DIP Switch: SW1=ON,  SW2=OFF, SW3=OFF, SW4=ON
+;
+;   Requirements to use OCDS-1:
+;   Set jumper JP501 to position 2-3
+;
+; @Keywords: Flash, Infineon, TriCore
+; @Author: MAX
+; @Board: TriBoard-TC1765
+; @Chip: TC1765
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc1765_flash.cmm 13622 2018-12-06 09:16:15Z wdoering $
+
+
+; --------------------------------------------------------------------------------
+; Performed tests:
+; TriBoard A1.101 TC1775 EES-A13 2005-02-04 MAX
+;
+; Memory mappings:
+; SRAM  (1MB) mapped to 0xA0000000--0xA00FFFFF
+; Flash (2MB) mapped to 0xA4000000--0xA41FFFFF
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+
+RESet
+WinCLEAR
+SYStem.CPU TC1765
+SYStem.Up
+
+; Disable watchdog timer
+Data.Set 0xF0000024 %Long 0x00000008    ; WDTCON1
+
+; --------------------------------------------------------------------------------
+; memory initialzation
+
+; initialize external bus unit
+Data.Set 0xF0000210 %Long 0x4001FFFF    ; EBU_BCUCON
+Data.Set 0xF0000510 %Long 0x0000FF68    ; EBU_EBUCON
+
+; memory assignment
+; ST M58BW016BB flash
+Data.Set 0xF0000560 %Long 0x68FEF1FF    ; EBU_BUSCON0
+Data.Set 0xF0000520 %Long 0xA4000061    ; EBU_ADDSEL0
+; Samsung K6R4016V1C-TI15 SRAM
+Data.Set 0xF0000564 %Long 0x00020140    ; EBU_BUSCON1
+Data.Set 0xF0000524 %Long 0xA0000071    ; EBU_ADDSEL1
+; unused
+Data.Set 0xF0000528 %Long 0x00000000    ; EBU_ADDSEL2
+Data.Set 0xF000052C %Long 0x00000000    ; EBU_ADDSEL3
+
+; --------------------------------------------------------------------------------
+; flash programming
+FLASH.RESet
+
+; flash declaration for uncached address segments
+FLASH.Create 1. 0xA4000000--0xA400FFFF  0x2000 TARGET Long
+FLASH.Create 1. 0xA4010000--0xA41FFFFF 0x10000 TARGET Long
+FLASH.TARGET 0xA0000000 0xA0001000 1000 ~~/demo/tricore/flash/long/t28f033.bin
+
+; flash declaration for cached address segments
+FLASH.CreateALIAS 0x80000000--0x8FFFFFFF 0xA0000000
+
+; --------------------------------------------------------------------------------
+; show flash declaration
+WinPOS 0% 0%
+FLASH.List
+
+; --------------------------------------------------------------------------------
+; program flash
+DIALOG.YESNO "Program all external flash memory?"
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram ALL /Erase
+  Data.LOAD.auto *
+  FLASH.AUTO off
+)
+
+; --------------------------------------------------------------------------------
+; open some window
+WinPOS 0% 50%
+List.auto
+
+ENDDO

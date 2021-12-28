@@ -1,0 +1,79 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo script for ZYNQ-ULTRASCALE+-RPU on ZCU102 (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   As the bootcode does not start any core in JTAG-Bootmode we start the first
+;   core using the script.
+;   Use this script for getting started.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to J6
+;    * set SW6 = 0y1111 (JTAG Bootmode)
+;    * short J14
+; @Keywords: ARM, Cortex-R5
+; @Author: AME
+; @Board: ZCU102
+; @Chip: ZYNQ-ULTRASCALE+*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: zcu102-rpu_sieve_sram.cmm 15576 2020-01-27 10:11:09Z alintner $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF VERSION.BUILD.BASE()<75524.
+(
+  PRINT %ERROR "Please use more recent Software! Contact support@lauterbach.com."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU ZYNQ-ULTRASCALE+-RPU
+SYStem.Option TRST OFF
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 500ms
+SYStem.Option NoPRCRReset ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+CORE.ASSIGN 1.
+; disable Trace infrastructure for the moment - TPIU may be unclocked!
+ETM.OFF
+Trace.DISable
+SYStem.Mode Prepare
+
+DO "~~~~/../scripts/zynq-ultrascale_kick_bootcore.cmm" R5_SINGLE
+
+SYStem.Mode.Attach
+IF STATE.RUN()
+  Break
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_arm_v7r_le.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+ENDDO

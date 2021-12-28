@@ -1,0 +1,168 @@
+; --------------------------------------------------------------------------------
+; @Title: Xen specific menu
+; @Description: -
+; @Keywords: xen menu awareness
+; @Author: DIE
+; @Copyright: (c) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: xen.men 3620 2018-09-04 14:23:50Z rweiss $
+
+ADD
+MENU
+(
+  POPUP "&Xen"
+  (
+    DEFAULT
+    MENUITEM "Display &Domains"                "EXTension.DOMain"
+    MENUITEM "Display &VCPUs"                  "EXTension.VCPU"
+    MENUITEM "Display &CPUPools"               "EXTension.CPUPool"
+    IF CPUFAMILY()=="ARM"
+    (
+        POPUP "[:objects]&Device Tree"
+        (
+            MENUITEM "[:objects]Display Device Tree"      "EXTension.DTB"
+            MENUITEM "[:objects]Display Source"           "EXTension.DTS"
+            MENUITEM "[:dump]Extract Blob To File"
+            (
+              &extdir=ext.configstr(extdir)
+              DO "&extdir/extract_dtb" /DIALOG
+            )
+            MENUITEM "[:list]Save Source To File"
+            (
+              DIALOG
+              (
+                HEADER "Save Device Tree Source"
+                POS 0. 0. 30. 3.
+                BOX "File name"
+                POS 1. 1. 20. 1.
+    dtsfile:    DEFEDIT "devicetree.dts" ""
+                POS 22. 1. 7. 1.
+                POS 6. 3. 7. 1.
+                DEFBUTTON "Save"
+                (
+                  LOCAL &dtsfile
+                  &dtsfile=DIALOG.STRING(dtsfile)
+                  PRinter.File &dtsfile
+                  IF STATE.RUN()
+                    Break
+                  EXT.MaxVSize 10000.
+                  WinPrint.EXTension.DTS
+                  DIALOG.END
+                  EXT.MaxVSize 2000.
+                  PRinter.select WIN
+                )
+                POS 17. 3. 7. 1.
+                BUTTON "Cancel"  "DIALOG.END"
+              )
+            )
+        )
+    )
+    MENUITEM "Display &Xen Log"                "EXTension.Log"
+    MENUITEM "Display &VCPUs Registers"        "EXTension.REG"
+    SEPARATOR
+    MENUITEM "Go to Guest..."
+    (
+      DIALOG
+      (
+        HEADER "Go to Guest"
+        POS 0. 0. 10. 3.
+        BOX "VMID"
+        POS 1. 1. 8. 1.
+ vmid:  DEFEDIT "" ""
+        POS 13. 0.5 10. 1.
+        DEFBUTTON "Ok"
+        (
+          local &vmid &extdir
+          &vmid=DIALOG.string(vmid)
+          &extdir=ext.configstr(extdir)
+          DIALOG.END
+          DO &extdir/go_guest &vmid
+        )
+        BUTTON "Cancel" "DIALOG.END"
+      )
+    )
+    SEPARATOR
+    POPUP "[:symbols]Symbol &Autoloader"
+    (
+        MENUITEM "[:symbols]List Components"  "sYmbol.AutoLoad.List"
+        MENUITEM "[:init]Check Now!"          "sYmbol.AutoLoad.CHECK"
+        MENUITEM "[:config]Config"            "sYmbol.AutoLOAD.config"
+    )
+    SEPARATOR
+    MENUITEM "Display Task Tree"        "TASK.List.TREE"
+    MENUITEM "Display Core Activity"    "CORE.List"
+  )
+  //POPUP "&Help"
+  //(
+  //  MENUITEM "[:manual]Hypervisor Awareness Manual Xen" "HELP __RTOS_rtos_"
+  //)
+)
+
+ADD
+MENU "ext.dom"
+(
+  DEFAULT
+  MENUITEM "Display detailed"
+  (
+    &address=address.offset(track.address())
+    EXTension.DOMain &address
+  )
+  MENUITEM "Display domain struct"
+  (
+    &address=track.address()
+    Var.View %Open (struct domain*)(&address)
+  )
+  MENUITEM "List intermediate page table"
+  (
+    &address=address.offset(track.address())
+    &address=ext.vm.vttb(&address)
+    MMU.List IntermedPageTable 0x0 A:&address
+  )
+  MENUITEM "Dump domain entry"
+  (
+    &address=track.address()
+    Data.dump &address /Long /DIALOG
+  )
+)
+
+ADD
+MENU "ext.vcpu"
+(
+  DEFAULT
+  MENUITEM "Display detailed"
+  (
+    &address=address.offset(track.address())
+    EXTension.VCPU &address
+  )
+  MENUITEM "Display vcpu struct"
+  (
+    &address=track.address()
+    Var.View %Open (struct vcpu*)(&address)
+  )
+  MENUITEM "Dump vcpu entry"
+  (
+    &address=track.address()
+    Data.dump &address /Long /DIALOG
+  )
+)
+
+ADD
+MENU "ext.cpup"
+(
+  DEFAULT
+  MENUITEM "Display detailed"
+  (
+    &address=address.offset(track.address())
+    EXTension.CPUPool &address
+  )
+  MENUITEM "Display cpupool struct"
+  (
+    &address=track.address()
+    Var.View %Open (struct cpupool*)(&address)
+  )
+  MENUITEM "Dump cpupool entry"
+  (
+    &address=track.address()
+    Data.dump &address /Long /DIALOG
+  )
+)

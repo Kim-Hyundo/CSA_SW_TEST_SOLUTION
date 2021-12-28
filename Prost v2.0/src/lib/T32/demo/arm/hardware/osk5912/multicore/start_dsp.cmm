@@ -1,0 +1,78 @@
+; --------------------------------------------------------------------------------
+; @Title: Start-Up Script for TMS320C55x on OMAP5912
+; @Description:
+;   TMS320C55x on OSK5912 beagle board startup.
+;   - Create two start links for a C54x debugger and an ARM debugger
+;   - Assign to the start link the configuration files config_dsp.t32
+;     and config_arm.t32
+;   - Start the debuggers: At first the ARM debugger (master) and the the
+;     DSP debugger (slave)
+;   - Run first the script start_arm.cmm in the ARM debugger and than the
+;     script start start_dsp.cmm
+;   - In the Synch window of each debugger you can controll the master slave
+;     behaviour during debugging
+; @Keywords: AMP, C55x, DSP, TI
+; @Props: Template
+; @Author: PEG
+; @Board: OSK5912
+; @Chip: OMAP5912
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: start_dsp.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; Start-Up Script for TMS320C55x on OMAP5912
+; PEG, June 2005
+
+; try to establish intercom connection to ARM debugger
+  ON ERROR GOSUB
+  (
+    RETURN
+  )
+  SYnch.Connect LOCALHOST:20001
+  ON ERROR
+
+; start-up debugger
+  SYStem.CPU OMAP5912
+  SYStem.JtagClock RTCK
+  SYStem.Mode Attach
+
+; halt if the processor is not already in debug mode
+  IF STATE.RUN()
+    Break
+
+; disable watchdog
+  Data.Set IO:0x3404 %Word 0xf5
+  Data.Set IO:0x3404 %Word 0xa0
+
+; load demo program for DSP
+  Data.LOAD.COFF ~~~~/cppdemo.out /GNUCPP
+  Register.Set ST1 r(st1)|0x4000
+  Register.Set PC main
+  Register.Set XSP 0x300
+  Register.Set XSSP 0x400
+
+; open some windows
+  WinCLEAR
+  WinPOS 0% 0% 100% 50%
+  List.auto
+  WinPOS 0% 50% 50% 50%
+  Frame /Locals /Caller
+  WinPOS 50% 50% 50% 50%
+  Var.Watch
+  Var.AddWatch ast; flags;
+
+  ENDDO
+
+
+
+
+
+
+
+
+
+
+
+
+

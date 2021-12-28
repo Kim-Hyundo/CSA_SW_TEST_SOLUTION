@@ -1,0 +1,75 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo for Infineon XMC4400 series controller.
+; @Description: 
+;   Demo code is loaded to SRAM and Offchip trace is prepared in the script.
+;   Prerequisites:
+;     * MIPI20T connector is used
+;     * On some XMC4400 Hexagon boards the TRACED0-3 and TRACECLK are not ROUTED
+;       to the MIPI20T Connector
+; @Keywords: ETM, ITM
+; @Author: AME
+; @Board: CPU_44A-V2, Hexagon
+; @Chip: XMC4400
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: xmc4400-sieve-trace.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+RESet
+SYStem.RESet
+SYStem.CPU XMC4400
+SYStem.CONFIG CONNECTOR MIPI20T
+SYStem.CONFIG DEBUGPORTTYPE SWD
+SYStem.MemAccess DAP
+SYStem.Option DUALPORT ON
+SYStem.JtagClock 25MHz
+IF hardware.COMBIPROBE()||hardware.UTRACE()
+(
+	ITM.OFF
+	ETM.OFF
+	CAnalyzer.DISable
+)
+SYStem.Up
+
+; load some code
+DO ~~/demo/arm/compiler/gnu-pic/demo_sieve 0x20000100
+
+; run till *main*
+Go.direct main
+WAIT !STATE.RUN()
+
+IF hardware.COMBIPROBE()||hardware.UTRACE()
+(
+	; Set Pin-Multiplexing for enabling the trace
+	Data.Set E:0x48028274 %Long 0yXX01xxxxXXXXxxxxXXXXxxxxXXXXxxxx ; TRACE_CLK
+	Data.Set E:0x48028244 %Long 0yXXXXx000XXXXxxxxXXXXxxxxXXXXxxxx
+	
+	Data.Set E:0x48028374 %Long 0yXXXXxxxxXXXXxxxxXX01xxxxXXXXxxxx ; TRACE_DATA0
+	Data.Set E:0x48028340 %Long 0yXXXXx000XXXXxxxxXXXXxxxxXXXXxxxx
+
+	Data.Set E:0x48028474 %Long 0yXXXXxxxxXXXXxxxxXXXXxxxxXXXX0101 ; TRACE_DATA1/2
+	Data.Set E:0x48028440 %Long 0yXXXXxxxxXXXXxxxxXXXXxxxxX000x000
+	
+	Data.Set E:0x48028174 %Long 0y01XXxxxxXXXXxxxxXXXXxxxxXXXXxxxx ; TRACE_DATA3
+	Data.Set E:0x48028144 %Long 0yX000xxxxXXXXxxxxXXXXxxxxXXXXxxxx
+
+	Trace.METHOD CAnalyzer
+	ETM.ON
+	ETM.Trace ON
+	ETM.PortSize 4
+	ITM.ON
+	ITM.DataTrace CorrelatedData
+	CAnalyzer.OFF
+	CAnalyzer.AutoArm ON
+	CAnalyzer.AutoInit ON
+	
+	WinPOS 50% 0%
+	Trace.List
+)
+
+
+WinPOS 0% 0%
+List.auto
+
+Mode.Hll
+
+ENDDO

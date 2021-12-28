@@ -1,0 +1,159 @@
+; --------------------------------------------------------------------------------
+; @Title: I.MX23 GPMI NAND FLASH Programming Script
+; @Description:
+; NAND FLASH(SAMSUNG,K9F4G08) is connected to the NAND_CS0
+; 
+; External SDRAM    : 0x40010000
+; APBH-Bridge-DMA Register : 0x80004000        
+; GPMIRegister : 0x8000C000   
+;
+; @Author: jjeong
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; @Chip: IMX23
+; @Keywords: SAMSUNG K9F4G08 Flash NAND
+; --------------------------------------------------------------------------------
+; $Id: imx23-nand2g08.cmm 7625 2019-11-11 13:33:26Z bschroefel $
+
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+&GPMI_BASE=0x8000C000
+&APBHDMA_BASE=0x80004000
+&DMABUFF_BASE=0x40017100 ; the any address in the ram
+
+PRINT "initializing JTAG..."
+SYStem.CPU ARM926EJ-VFP
+SYStem.Option DACR ON          ; give Debugger global write permissions
+TrOnchip.Set DABORT OFF        ; used by Linux OS for page miss!
+TrOnchip.Set PABORT OFF        ; used by Linux OS for page miss!
+TrOnchip.Set UNDEF  OFF        ; let UNDEF be handled by Linux OS
+SYStem.Option MMUSpaces OFF    ; no space ids used (yet)
+SYStem.JtagClock 1.Mhz
+SETUP.IMASKASM ON              ; lock interrupts while single stepping
+SYStem.Option.ResBreak OFF
+SYStem.Option.EnReset ON
+SYStem.Option.WaitReset ON
+SYStem.Mode.Go
+
+WAIT 2.s
+IF STATE.RUN()
+  Break.direct
+
+  PER.Set.simple C15:0x1 %Long 0x51078   ;MMU disable
+
+//pin mux
+Data.Set A:0x80018100 %LE %Long 0x00000000
+Data.Set A:0x80018110 %LE %Long 0xFFF00000
+
+GOSUB InitGPMI
+
+GOSUB READ_ID_TEST
+
+  Break.RESet
+
+  FLASHFILE.RESet
+  
+//FLASHFILE.config <APBH-Bridge-DMA>    <GPMI reg>  
+  FLASHFILE.CONFIG  &APBHDMA_BASE       &GPMI_BASE   ,  ,
+
+// FLASHFILE.TARGET <code range>        <data range>      <Algorithm file>
+  FLASHFILE.TARGET 0x40010000++0x2FFF 0x40014000++0x3FFF   ~~/demo/arm/flash/byte/nand2g08_gpmimx23.bin /KEEP  /STACKSIZE 0x200  
+
+  FLASHFILE.GETID                                ; Read ID
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+ENDDO
+
+ ;FLASHFILE.DUMP 0x0                             ; Read NAND 
+ ;FLASHFILE.ERASE 0x0--0xFFFFF  /EraseBadBlock   ; Erase NAND
+ ;FLASHFILE.LOAD * 0x0  /WriteBadBlock           ; Write NAND
+
+ENDDO
+
+READ_ID_TEST:
+(
+//Write Command
+Data.Set A:&DMABUFF_BASE+0x00 %LE %Long 0x90          ;cmd
+Data.Set A:&DMABUFF_BASE+0x04 %LE %Long 0x00000000    ;next_buff
+Data.Set A:&DMABUFF_BASE+0x08 %LE %Long 0x0001409A    ;gdma0.cmd
+Data.Set A:&DMABUFF_BASE+0x0C %LE %Long (&DMABUFF_BASE+0x00)    ;gdma0.buff_ptr
+Data.Set A:&DMABUFF_BASE+0x10 %LE %Long 0x00c20001    ;gdma0.pioword[0]
+Data.Set A:&DMABUFF_BASE+0x14 %LE %Long 0x00000000    ;gdma0.pioword[1]
+Data.Set A:&DMABUFF_BASE+0x18 %LE %Long 0x00000000    ;gdma0.pioword[2]
+Data.Set A:&DMABUFF_BASE+0x1C %LE %Long 0x00000000    ;gdma0.pioword[3]
+GOSUB DoDMA
+
+//Write Address
+Data.Set A:&DMABUFF_BASE+0x00 %LE %Long 0x00000000    ;address
+Data.Set A:&DMABUFF_BASE+0x04 %LE %Long 0x00000000    ;next_buff
+Data.Set A:&DMABUFF_BASE+0x08 %LE %Long 0x0001109A    ;gdma0.cmd
+Data.Set A:&DMABUFF_BASE+0x0C %LE %Long (&DMABUFF_BASE+0x00) ;gdma0.buff_ptr
+Data.Set A:&DMABUFF_BASE+0x10 %LE %Long 0x00C40001    ;gdma0.pioword[0]
+Data.Set A:&DMABUFF_BASE+0x14 %LE %Long 0x00000000    ;gdma0.pioword[1]
+GOSUB DoDMA
+
+//Read Data
+Data.Set A:&DMABUFF_BASE+0x00 %LE %Long 0x00000000
+Data.Set A:&DMABUFF_BASE+0x04 %LE %Long 0x00000000
+Data.Set A:&DMABUFF_BASE+0x08 %LE %Long 0x00041089
+Data.Set A:&DMABUFF_BASE+0x0C %LE %Long (&DMABUFF_BASE+0x00)
+Data.Set A:&DMABUFF_BASE+0x10 %LE %Long 0x01C00004
+Data.Set A:&DMABUFF_BASE+0x14 %LE %Long 0x00C40001
+Data.Set A:&DMABUFF_BASE+0x18 %LE %Long 0x00000000
+GOSUB DoDMA
+
+&data=Data.Long(A:&DMABUFF_BASE+0x00)
+
+PRINT "1st 0x" (&data&0x0FF) " (Manufacture)"
+PRINT "2nd 0x" ((&data>>8.)&0x0FF)  " (Device ID)"
+PRINT "3rd 0x" ((&data>>16.)&0x0FF)
+PRINT "4th 0x" ((&data>>24.)&0x0FF)
+
+RETURN
+)
+
+DoDMA:
+(
+
+//reset channel 4.
+Data.Set A:0x80004004 %LE %Long 0x00100000  ;RESET CHANNEL NAND0
+Data.Set A:0x80004008 %LE %Long 0x00001000  ;HW_APBH_CTRL0_CLR
+Data.Set A:0x80004018 %LE %Long 0x00000010  ;HW_APBH_CTRL1_CLR
+
+//HW_APBH_CH4_NXTCMDAR 
+Data.Set A:0x80004210 %LE %Long (&DMABUFF_BASE+0x4)
+Data.Set A:0x80004240 %LE %Long 0x00000001
+
+//check status
+//print data.long(A:0x400108A0)
+
+WAIT 100.ms
+Data.Set A:0x80004018 %LE %Long 0x10   ; (0x1<<chan)
+
+RETURN
+)
+
+InitGPMI:
+(
+Data.Set A:&GPMI_BASE+0x000 %Long 0xC0000000   ;HW_GPMI_CTRL0_WR
+Data.Set A:&GPMI_BASE+0x008 %Long 0x40000000   ;HW_GPMI_CTRL0_CLR
+Data.Set A:&GPMI_BASE+0x008 %Long 0x80000000   ;HW_GPMI_CTRL0_CLR
+Data.Set A:&GPMI_BASE+0x004 %Long 0x80000000   ;HW_GPMI_CTRL0_SET
+Data.Set A:&GPMI_BASE+0x008 %Long 0xC0000000   ;HW_GPMI_CTRL0_CLR
+Data.Set A:&GPMI_BASE+0x028 %Long 0x1000       ;HW_GPMI_ECCCTRL_CLR
+
+Data.Set A:&GPMI_BASE+0x070 %Long 0x00030303   ;HW_GPMI_TIMING0_WR
+Data.Set A:&GPMI_BASE+0x080 %Long 0xFFFF0000   ;HW_GPMI_TIMING1_WR
+
+Data.Set A:&GPMI_BASE+0x068 %Long 0x1          ;GPMI_CTRL1_CLR
+Data.Set A:&GPMI_BASE+0x064 %Long 0x0          ;GPMI_CTRL1_SET
+Data.Set A:&GPMI_BASE+0x060 %Long 0xC          ;GPMI_CTRL1
+
+Data.Set &APBHDMA_BASE+0x008 %Long 0xC0000000   ;APBH_CTRL0_CLR
+Data.Set &APBHDMA_BASE+0x030 %Long 0x10000      ;APBH_CHANNEL_CTRLn
+Data.Set &APBHDMA_BASE+0x018 %Long 0x1          ;APBH_CTRL1_CLR
+
+RETURN
+)

@@ -1,0 +1,76 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple SRAM debug demo for NVIDIA Jetson TK1 board
+; @Description:
+;   Loads the sieve demo into SRAM and sets up a
+;   demo debug scenario on all cores.
+;   Note:
+;   * the debugger cannot assert RESET on the JetsonTK1 board thus the 
+;     RESET button must be pressed manually
+;   Prerequisites:
+;   * connect Debugcable or Combiprobe to JTAG header
+;
+; @Author: AME
+; @Board: NVIDIA Jetson TK1
+; @Chip: TEGRAK1
+; @Keywords: TEGRAK1, Cortex-A15MPCORE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: jetsontk1-sieve-smp-sram.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+RESet
+SYStem.CPU TEGRAK1
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 600ms
+ETM.OFF
+CORE.ASSIGN 1.
+; debugger cannot assert reset ... press reset button manually
+; deactivate the assertion of the reset line
+SYStem.Option EnReset OFF
+
+PRINT "Press reset button ..."
+WAIT STATE.RESET()
+WAIT 100.ms
+WAIT !STATE.RESET()
+SYStem.Up
+PRINT ""
+
+; Wakeup the other cores
+Data.Set ANSD:0x0:0x7000E430 %Long 0x00000109
+WAIT 100ms
+Data.Set ANSD:0x0:0x7000E430 %Long 0x0000010A
+WAIT 100ms
+Data.Set ANSD:0x0:0x7000E430 %Long 0x0000010B
+WAIT 100ms
+
+; connect to all cores
+SYStem.Down
+CORE.ASSIGN 1. 2. 3. 4.
+SYStem.Mode Attach
+
+IF STATE.RUN()
+	Break.direct
+	
+; load some code
+CORE.select 0.
+Data.LOAD.Elf ~~~~/sieve_ram_arm_v7.elf
+Register.Set PC _start /CORE 1.
+Register.Set PC _start /CORE 2.
+Register.Set PC _start /CORE 3.
+
+; Prepare STACK usage analysis for main thread
+;  initialize Stack with a specific pattern
+TASK.STaCK.view
+Data.Set sYmbol.SECRANGE(.stack) %Byte 0xa5
+TASK.STacK.PATtern 0xa5
+TASK.STacK.ADD main sYmbol.SECPRANGE(.stack)
+TASK.NAME.Set main "main"
+
+; preboot
+Go main
+WAIT !STATE.RUN()
+
+; open some windows
+Mode.Hll
+List.auto
+Frame.view

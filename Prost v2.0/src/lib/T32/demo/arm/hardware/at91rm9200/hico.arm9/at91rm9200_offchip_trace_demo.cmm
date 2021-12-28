@@ -1,0 +1,76 @@
+; --------------------------------------------------------------------------------
+; @Title: Off-chip Trace Demo Script for the HICO.ARM9 AT91RM9200
+; @Description:
+;   Loads the sieve demo into SRAM and set up a
+;   demo debug and trace scenario.
+; @Author: RIC
+; @Board: HiCO.ARM9
+; @Chip: AT91RM9200
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: at91rm9200_offchip_trace_demo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+ SCREEN.ON
+
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 26. 75. 9. 0. 0. W000
+ AREA.view
+
+ SYStem.CPU at91rm9200          ; AT91RM9200 core
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ SYStem.Option ResBreak OFF     ; hardware dependent (see manual)
+ SYStem.Option WaitReset ON     ; hardware dependent (see manual)
+ SYStem.Option BigEndian OFF    ; this demo is in little endian
+ SYStem.JtagClock 10.MHz
+
+ MAP.BOnchip 0x0--0x7fffff	; 8MB Flash from 0 (as long as Boot Mode Select in 'External' position)
+
+ SYStem.Up
+
+ DO ~~~~/at91rm9200_init.cmm   ; do basic setup
+
+
+
+ IF Trace.METHOD.ANALYZER()
+ (
+    &PIOD=0xfffffa00    ; base address of PIO D controller
+    &PIO_PDR=0x0004     ; offset of PIO Disable Register
+    &PIO_BSR=0x0074     ; offset of PIO Periph B Select Register
+
+     Data.Set &PIOD+&PIO_PDR %LE %Long 0x0fffff80   ; select peripheral for ETM lines
+     Data.Set &PIOD+&PIO_BSR %LE %Long 0x0fffff80   ; select periph B for ETM lines
+
+    ; configure TRACE32 for ETM
+
+     ETM.HalfRate ON
+     ETM.PortSize 16
+     ETM.PortMode Normal
+ )
+
+ Data.LOAD.Elf ~~~~/sieve.out
+
+ Register.Set PC main
+ Register.Set R13 0x280000	;set Stack correct
+
+
+ ; open some windows
+ WinCLEAR
+ WinPOS 0% 0% 100% 50%
+ List.auto
+ WinPOS 0% 50% 50% 50%
+ Frame /Locals /Caller
+ WinPOS 50% 50% 50% 50%
+ Var.Watch
+ Var.AddWatch ast; flags;
+
+
+ ENDDO
+
+
+
+

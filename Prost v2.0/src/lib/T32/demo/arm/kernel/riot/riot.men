@@ -1,0 +1,339 @@
+; --------------------------------------------------------------------------------
+; @Title: RIOT OS specific menu
+; @Description: -
+; @Keywords: riot riot-os menu awareness
+; @Author: RIC
+; @Copyright: (c) 1989-2018 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: riot.men 3620 2018-09-04 14:23:50Z rweiss $
+
+add
+menu
+(
+  popup "&RIOT OS"
+  (
+    default
+    MENUITEM "Display &Tasks"        "TASK.TaskList"
+    MENUITEM "Display M&ailboxes"
+    (
+    	TASK.MailBoX
+    )
+    MENUITEM "Display &Mutexes"
+    (
+			TASK.MuTeX
+    )
+    MENUITEM "Display &Recursive Mutexes"
+    (
+			TASK.RMutex
+    )
+    MENUITEM "Display Ring &Buffers"
+    (
+			TASK.RingBuffer
+    )
+    MENUITEM "Display &Semaphores"
+    (
+      TASK.SEMaphore
+    )
+    MENUITEM "Display &Timers"
+    (
+    	TASK.TIMer
+    )
+    separator
+    popup "&Stack Coverage"
+    (
+      menuitem "&List Stacks"
+      (
+        if !ice()&&!fire()
+          TASK.STacK.PATtern 0x5A
+        TASK.STacK.view
+      )
+      menuitem "Add Task"        "TASK.STacK.ADD"
+      menuitem "Remove Task"     "TASK.STacK.RM"
+      enable icd()||simulator()
+      menuitem "&Reset Coverage"
+      (
+      	DIALOG.YesNo "Overwrite unused stack space" "with stack fill pattern?"
+      	entry &yn
+      	if !&yn
+      	(
+      		enddo
+      	)
+      	TASK.STacK.Init
+      )
+    )
+  )
+  popup "Trace"
+  (
+    popup "List"
+    (
+      separator
+      menuitem "&Task Switches"     "Trace.List List.TASK"
+      menuitem "&Default and Tasks" "Trace.List List.TASK DEFault"
+    )
+  )
+  popup "Perf"
+  (
+    separator
+    popup "&Task Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+        )
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak&&Write
+          )
+          Break.Delete /Alpha
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+        )
+        if a.mode.flow()
+        (
+          Break.Delete /TraceEnable
+          Break.Set task.config(magic) /TraceEnable
+        )
+      )
+      menuitem "[:perf]Show &Numerical"   "Trace.STATistic.TASK"
+      menuitem "[:achart]Show as &Timing" "Trace.CHART.TASK"
+      menuitem "[:achart]Tracking with Trace &List"
+      (
+        Trace.List List.TASK DEFault /Track
+        Trace.CHART.TASK /Track
+      )
+    )
+    popup "Task &Function Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+          Analyzer.STATistic.PreFetch on
+        )
+
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          if a.config.hac()
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak
+               Sample.Enable if BetaBreak
+               Mark.A        if AlphaBreak
+               Mark.B        if BetaBreak
+             )
+          )
+          else
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak||BetaBreak
+               Mark.A if AlphaBreak
+               Mark.B if BetaBreak
+             )
+          )
+          Break.Delete /Alpha /Beta /Charly
+          Break.SetFunc
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+        )
+        if a.mode.flow()
+        (
+          Break.Delete /TraceData
+          Break.Set task.config(magic) /TraceData
+        )
+      )
+      menuitem "[:perf]Show &Numerical"     "Trace.STATistic.TASKFUNC"
+      menuitem "[:perf]Show as &Tree"       "Trace.STATistic.TASKTREE"
+      menuitem "[:perf]Show &Detailed Tree" "Trace.STATistic.TASKTREE ALL"
+      menuitem "[:achart]Show as &Timing"   "Trace.CHART.TASKFUNC"
+      menuitem "[:alist]Show N&esting"      "Trace.List List.TASK FUNC TI.FUNC"
+    )
+  )
+  popup "&Help"
+  (
+    MENUITEM "[:manual]OS Awareness Manual RIOT OS" "HELP __RTOS_RIOT_"
+  )
+)
+
+// Timer right-click menu
+MENU "RIOT.TIML"
+(
+	default
+	MENUITEM "Display Timer Structure"
+	(
+		&address=track.address()
+		&struct="xtimer_t"
+		Var.View %Open %String (&struct *)(&address)
+  )
+  SEPARATOR
+  MENUITEM "Dump Memory"
+  (
+  	&address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+  SEPARATOR
+  MENUITEM "Show Callback Function"
+  (
+  	&magic=address.offset(track.address())
+    &address=Var.Value(((xtimer_t*)&magic)->callback)
+  	List &address
+  )
+)
+
+
+// Mailbox Window right-click menu
+MENU "RIOT.MBOXL"
+(
+	default
+	MENUITEM "Display Detailed Information"
+	(
+		&address=TRACK.ADDRESS()
+		TASK.MailBoX &address
+	)
+	MENUITEM "Display Mailbox Structure"
+	(
+		&address=track.address()
+		&struct="mbox_t"
+		Var.View %Open %String (&struct *)(&address)
+  )
+  SEPARATOR
+  MENUITEM "Dump Memory"
+  (
+  	&address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+
+// Recursive Mutex right-click menu
+MENU "RIOT.RML"
+(
+	default
+	MENUITEM "Display Recursive Mutex Structure"
+	(
+		&address=track.address()
+		&struct="rmutex_t"
+		Var.View %Open %String (&struct *)(&address)
+  )
+  SEPARATOR
+  MENUITEM "Dump Memory"
+  (
+  	&address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+// Semaphore right-click menu
+MENU "RIOT.SEML"
+(
+	default
+	MENUITEM "Display Detailed Information"
+	(
+		&address=track.address()
+		TASK.SEMaphore &address
+	)
+	SEPARATOR
+	MENUITEM "Display Semaphore Structure"
+	(
+		&address=track.address()
+		&struct="sema_t"
+		Var.View %Open %String (&struct *)(&address)
+  )
+  SEPARATOR
+  MENUITEM "Dump Memory"
+  (
+  	&address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+
+// RingBuffer right-click menu
+MENU "RIOT.RBL"
+(
+	default
+	MENUITEM "Display RingBuffer Structure"
+	(
+		&address=track.address()
+		&struct="ringbuffer_t"
+		Var.View %Open %String (&struct *)(&address)
+  )
+  SEPARATOR
+  MENUITEM "Dump Memory"
+  (
+  	&address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+
+// Mutex right-click menu
+MENU "RIOT.ML"
+(
+	default
+	MENUITEM "Display Detailed Information"
+	(
+		&address=track.address()
+		TASK.MuTeX &address
+	)
+	SEPARATOR
+	MENUITEM "Display Mutex Structure"
+	(
+		&address=track.address()
+		&struct="mutex_t"
+		Var.View %Open %String (&struct *)(&address)
+  )
+  SEPARATOR
+  MENUITEM "Dump Memory"
+  (
+  	&address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+
+// Task List right-click menu
+menu "RIOT.TL"
+(
+  default
+  menuitem "Display Detailed Info"
+  (
+  	&address=address.offset(track.address())
+  	TASK.TaskList &address
+  )
+  separator
+  menuitem "Display task struct"
+  (
+    &address=track.address()
+    ;&struct=task.struct(tcb)
+    &struct="thread_t"
+    Var.View %Open %String (&struct*)(&address)
+  )
+  separator
+
+  menuitem "Display Stack Frame"
+  (
+    &address=address.offset(track.address())
+    Var.Frame /Locals /Caller /Task &address
+  )
+  menuitem "Display Registers"
+  (
+    &address=address.offset(track.address())
+    Register /Task &address
+  )
+  menuitem "Switch Context" "Register.TASK address.offset(track.address())"
+  separator
+  menuitem "Add to Stack Cov"  "TASK.STK.ADD address.offset(track.address())"
+  menuitem "Rm from Stack Cov" "TASK.STK.RM  address.offset(track.address())"
+  separator
+  menuitem "Dump task entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+

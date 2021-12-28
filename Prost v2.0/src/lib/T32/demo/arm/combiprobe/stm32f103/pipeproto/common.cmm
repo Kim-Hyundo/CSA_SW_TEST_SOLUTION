@@ -1,0 +1,117 @@
+; --------------------------------------------------------------------------------
+; @Title: Setup Script for STM32F103 EVB Demonstrating ITM via SWV with CombiProbe
+; @Description:
+;   Script to setup STM32F103 eval board to demonstrate ITM via
+;   Serial Wire Viewer with CombiProbe
+; @Chip: STM32F103ZE
+; @Board: STM32F103 EVB
+; @Author: ING
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: common.cmm 15209 2019-11-04 10:07:55Z bschroefel $
+
+
+; ING 31.05.2010
+  ENTRY &tracemode
+
+  WinCLEAR
+  IF CAnalyzer()
+  (
+    CAnalyzer.state
+  )
+  IF Analyzer()
+  (
+    Analyzer.state
+    &tracemode="TPIU"
+  )
+
+  SYStem.Down
+  SYStem.RESet
+
+  SYStem.CPU STM32F103
+
+; Use ARMs Serial Wire to connect to STM32F103 chip
+  SYStem.CONFIG SWDP ON
+
+  IF "&tracemode"=="TPIU"
+  (
+    ; When using narrow half size 20 pin connector and TPIU
+    ; Can only be used on STM32F103E Eval Board
+    SYStem.CONFIG.CONNECTOR mipi20T
+  )
+  ELSE
+  (
+    ; When using ARM20 Adapter
+    SYStem.CONFIG.CONNECTOR mipi34
+  )
+
+
+; Reset CombiProbe
+  IF CAnalyzer()
+  (
+    CAnalyzer.RESet
+    CAnalyzer.Init
+
+    ; unload all DLLs
+    CAnalyzer.ctl ""
+    ; set threshold voltage
+    CAnalyzer.THreshold 1.60
+  )
+
+  IF Analyzer()
+  (
+    Analyzer.RESet
+    Analyzer.Init
+    Analyzer.THreshold 1.60
+    Analyzer.ctl ""
+  )
+
+
+; Connect to STM32F103 chip
+  SYStem.Up
+
+; Crank up SYSCLK to   64 Mhz
+; Timer Clock (APB) to 32 Mhz
+  DO stm_setpll.cmm
+
+; Detect ETM/TPIU configuration
+  ETM.ON
+; Do not use ETM
+  ETM.OFF
+
+; Turn on ITM
+  ITM.ON
+
+  IF ("&tracemode"=="TPIU")
+  (
+; *** Receive ITM via TPIU ****
+    ITM.TraceID 3        ; Set TraceID for ITM to 3
+    ITM.PortSize 4         ; 4 bit TPIU
+  )
+  ELSE
+  (
+; Receive ITM via SWV
+    ITM.PortSize SWV
+    ITM.PortMode NRZ/2     ; SWV rate is CPU frequency/2
+; Specify Rate manually
+    CAnalyzer.ExportClock 32Mhz
+; Automatically detect rate of SWV port
+; ca.af
+  )
+
+  IF CAnalyzer()
+  (
+    ; enable pipe mode
+    CAnalyzer.Mode pipe
+  )
+
+  IF Analyzer()
+  (
+    Analyzer.Mode pipe
+  )
+
+; load application
+  Data.LOAD.Elf ../itmtest/test.elf
+
+
+

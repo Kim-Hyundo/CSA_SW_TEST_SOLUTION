@@ -1,0 +1,42 @@
+; --------------------------------------------------------------------------------
+; @Title: startup script for SPEAR300
+; @Description:
+;
+;   This demo demonstrates the debugging of the spear300 ARM9
+;   using a simple sieve demo.
+;
+; @Author: MSA
+; @Board: SPEAR300
+; @Chip: SPEAR300
+; @Keywords: ARM926EJ-S, sieve
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; Setup
+  SYStem.RESet
+  SYStem.CPU SPEAR300
+  SYStem.JtagClock 1.0MHz
+  SYStem.Up
+
+  GOSUB disable_watchdog
+
+; Target setup
+  DO ~~~~/init.cmm
+
+; Load demo application
+  Data.LOAD.ELF ~~~~/demo.axf
+  Register.Set PC main
+  Register.Set R13 10000
+
+  Data.List
+
+ENDDO
+
+disable_watchdog:
+
+  Data.Set ASD:0xFC880C00 %LONG 0x1ACCE551
+  Data.Set ASD:0xFC880008 %LONG 0x00000000
+
+RETURN
+

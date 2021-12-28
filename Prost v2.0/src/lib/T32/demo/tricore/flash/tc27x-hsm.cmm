@@ -1,0 +1,480 @@
+; --------------------------------------------------------------------------------
+; @Title: Generic Flash script file for TC27x devices (HSM Sectors)
+; @Description:
+;   Script for flash declaration and programming of the HSM sectors of Infineon
+;   TriCore TC27x internal flash.
+; @Keywords: AURIX, Flash, HSM, Infineon, TriCore
+; @Author: STK
+; @Chip: TC27*
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 8561 $
+; $Id: tc27x-hsm.cmm 8561 2020-07-30 16:06:57Z skrausse $
+
+
+; Important information, read this before using this script:
+;
+;   Do not edit this script. Instead, call this script from your project using the
+;   command line arguments described below. See the triboard demo scripts for an
+;   example.
+;
+;   If changing the sector type from NOP to TARGET is required, use the command
+;   FLASH.CHANGETYPE instead of modifying this script.
+;
+;   This script checks the programmed application to avoid permanent locking of the
+;   device. This script is constantly improved, but it is not guaranteed that all
+;   cases are covered.
+;
+; Supported devices:
+;
+;   All TC27xT and TC27xTE devices, e.g. TC275T, TC277T.
+;
+; Script arguments:
+;
+;   DO tc27x-hsm [PREPAREONLY] [FINISH] [ENABLE] [DISABLE] [FORCE] [CPU=<cpu>]
+;
+;     PREPAREONLY only declares flash but does not execute flash programming
+;
+;     FINISH   disables HSM flash programming
+;
+;     ENABLE   enables HSM by programming HSM config and OTP (UCB_HSMCOTP)
+;
+;     DISABLE  disables the HSM by programming HSM config and OTP (UCB_HSMCOTP)
+;
+;     FORCE    to be used together with ENABLE or DISABLE to suppress confirmation dialog
+;
+;     CPU=<cpu> selects CPU derivative <cpu>
+;
+; Flash:
+;
+;   4 MByte on-chip program flash      at 0x80000000--0x803FFFFF (cached)
+;                                      or 0xA0000000--0xA03FFFFF (non cached)
+;   384 kByte data flash EEPROM        at 0xAF000000--0xAF05FFFF
+;   16 kByte data flash UCB sectors    at 0xAF100000--0xAF103FFF
+;   64 kByte data flash HSM sectors    at 0xAF110000--0xAF11FFFF
+;
+; RAM:
+;
+;   112 kByte Data Scratch-Pad RAM (DSPR) at        0xD0000000--0xD001BFFF
+;    24 kByte Instruction Scratch-Pad RAM (PSPR) at 0xC0000000--0xC0005FFF
+;
+; CAUTION:
+;
+;   Do not reboot or unpower your device in case all BMH (Boot Mode Headers)
+;   do not contain valid information. This is normally the case after having
+;   erased the internal program flash or loading an object or binary file
+;   without a valid BMH. The BMH are located at:
+;     BMHD0 0xA0000000--0xA000001F
+;     BMHD1 0xA0020000--0xA002001F
+;     BMHD2 0xA000FFE0--0xA000FFFF
+;     BMHD3 0xA001FFE0--0xA001FFFF
+;   See the Infineon documentation for more information. For a valid default
+;   BMH see the comment below the Data.LOAD.auto command.
+;
+;   Do not enable HSM boot when no valid HSM code is present. This will lock
+;   your device permanently. See the Infineon documentation and contact your
+;   Infineon FAE for more information on HSM.
+;
+;   Pay special attention when modifying the UCB. An invalid or erroneous
+;   content will lock your device permanently. This also happens in case the
+;   confirmation code is neither "unlocked" nor "confirmed". See the Infineon
+;   documentation for more information.
+;
+; HINTS:
+;
+;   Erased PFlash is showing bus error caused by ECC error. The ECC width of
+;   PFlash an aligned group of 32 bytes.
+;
+;   The flash algorithm is programming PFlash in an aligned group of 32 bytes.
+;   When using FLASH.Program command the download has to care about this
+;   alignment.
+
+
+LOCAL &parameters &param_prepareonly &force
+ENTRY %LINE &parameters
+
+LOCAL &DMU_SP_PROCONHSMCOTP
+&DMU_SP_PROCONHSMCOTP=0xAF100800
+
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+
+IF (STRing.SCAN(STRing.UPpeR("&parameters"),"FINISH",0)!=-1)
+  GOTO finishHSM
+
+&force=FALSE()
+IF (STRing.SCAN(STRing.UPpeR("&parameters"),"FORCE",0)!=-1)
+(
+  &force=TRUE()
+)
+
+IF (STRing.SCAN(STRing.UPpeR("&parameters"),"ENABLE",0)!=-1)
+(
+  GOSUB checkAndEnableHSM &force
+  ENDDO
+)
+
+IF (STRing.SCAN(STRing.UPpeR("&parameters"),"DISABLE",0)!=-1)
+(
+  GOSUB disableHSMDialog &force
+  ENDDO
+)
+
+
+; ------------------------------------------------------------------------------
+; Initialize
+
+DO ~~/demo/tricore/flash/tc27x &parameters PREPAREONLY
+
+; ------------------------------------------------------------------------------
+; Create HSM sectors
+
+FLASH.CHANGETYPE 0xA0018000--0xA001BFFF TARGET   ; PS0, S6 (HSM)       1x16KB -> 0x80018000
+FLASH.CHANGETYPE 0xA0060000--0xA007FFFF TARGET   ; PS0, S16..S17 (HSM) 2x64KB -> 0x80060000
+FLASH.CHANGETYPE 0xAF100800--0xAF100BFF TARGET   ; DF0, UCB2   UCB_HSMCOTP
+FLASH.CHANGETYPE 0xAF110000--0xAF11FFFF TARGET   ; DF1 64KB
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; ------------------------------------------------------------------------------
+; Example for download
+
+DIALOG.YESNO "Program HSM?"
+LOCAL &progflash
+ENTRY &progflash
+IF &progflash
+(
+  ; Select file to program
+  DIALOG.FILE "*.*"
+  LOCAL &file
+  ENTRY %LINE &file
+  IF "&file"!=""
+  (
+    ; Program HSM program memory only for HSM program sections.
+    ; Other section can be pprogrammed using the TriCore flash programming script.
+    FLASH.ReProgram 0xA0018000--0xA001BFFF
+    FLASH.ReProgram 0xA0060000--0xA007FFFF
+    Data.LOAD.auto "&file"
+    ; Compare with VM memory
+    Data.LOAD.auto "&file" /DIFF
+    IF FOUND()
+    (
+      DIALOG.MESSAGE "Failed loading file for flash programming. HSM flash WILL NOT be programmed!" " " "DO NOT enable HSM, if not already done!!!"
+      ; Abort flashing
+      ; HSM doesn't need to be disabled, because flash content will not be changed.
+      FLASH.ReProgram.ALL
+      FLASH.ReProgram.off
+      ENDDO
+    )
+    FLASH.ReProgram.off
+
+    ; Compare programmed flash content
+    Data.LOAD.auto "&file" /DIFF
+    IF FOUND()
+    (
+      ; A flash programming error can brick the device on the next reset, so make sure the HSM is disabled.
+      IF (Data.Long(D:&DMU_SP_PROCONHSMCOTP)&0x00000001)==0x00000001
+      (
+        GOSUB disableHSM
+        DIALOG.MESSAGE "Failed programming HSM flash!" "" "HSM was already enabled. To avoid a lock of the device," "HSM is disabled!"
+      )
+      ELSE
+      (
+        DIALOG.MESSAGE "Failed programming HSM flash!" "" "HSM is kept disabled"
+      )
+      ENDDO
+    )
+    
+    ; Check, if HSM has valid boot code
+    PRIVATE &valid
+    
+    GOSUB checkHSMBootVectors
+    RETURNVALUES &valid
+    
+    IF &valid
+    (
+      ; Program HSM config and OTP (UCB_HSMCOTP)
+      GOSUB enableHSM
+    )
+    ELSE
+    (
+      PRINT %ERROR "No valid HSM code found! Disabling HSM!"
+      GOSUB disableHSM
+    )
+  )
+)
+
+; ------------------------------------------------------------------------------
+; Disable HSM sectors
+
+finishHSM:
+(
+  FLASH.CHANGETYPE 0xA0018000--0xA001BFFF NOP   ; PS0, S6 (HSM)       1x16KB -> 0x80018000
+  FLASH.CHANGETYPE 0xA0060000--0xA007FFFF NOP   ; PS0, S16..S17 (HSM) 2x64KB -> 0x80060000
+  FLASH.CHANGETYPE 0xAF100800--0xAF100BFF NOP   ; DF0, UCB2   UCB_HSMCOTP
+  FLASH.CHANGETYPE 0xAF110000--0xAF11FFFF NOP   ; DF1 64KB
+
+  ENDDO
+)
+
+
+
+; --------------------------------------------------------------------------------
+; Check HSM code and enable HSM, if valid code is present
+
+checkAndEnableHSM:
+(
+  PRIVATE &valid &force
+  ENTRY   &force
+
+  ; Check, if HSM has valid boot code
+  GOSUB checkHSMBootVectors
+  RETURNVALUES &valid
+  
+  IF !&valid
+  (
+    PRINT %ERROR "No valid HSM code found, HSM disabled!"
+    GOSUB disableHSM
+    ENDDO
+  )
+  
+  GOSUB enableHSM &force
+
+  RETURN
+)
+
+
+
+; --------------------------------------------------------------------------------
+; Enable HSM by programming HSM config and OTP (UCB_HSMCOTP)
+
+enableHSM:
+(
+  PRIVATE &found1 &enable &hsmcotp &force
+  ENTRY   &force
+  
+  &hsmcotp=Data.Long(D:&DMU_SP_PROCONHSMCOTP)
+  
+  IF (&hsmcotp&0x00000001)==0x00000000    ; Check, if HSM is disabled
+  (
+    Data.Set D:(&DMU_SP_PROCONHSMCOTP+0x70)++0x0F %LE %Long 0x00000000 0x00000000 0x00000000 0x00000000 /DIFF
+    &found1=FOUND()
+    Data.Set D:(&DMU_SP_PROCONHSMCOTP+0x70)++0x0F %LE %Long 0x43211234 0x00000000 0x43211234 0x00000000 /DIFF
+    IF !&found1||!FOUND()
+    (
+      IF &force
+      (
+        &enable=TRUE()
+      )
+      ELSE
+      (
+        DIALOG.YESNO "Enable HSM?" "" "Program flash for TriCore and HSM need to be programmed." "Otherwise the device gets locked!"
+        ENTRY &enable
+      )
+
+      IF &enable
+      (
+        ; Set HSMBOOTEN only, no protection/exclusive flags are configured.
+        FLASH.AUTO &DMU_SP_PROCONHSMCOTP++0x3FF
+        Data.Set &DMU_SP_PROCONHSMCOTP+0x00 %Long &hsmcotp|0x00000001
+        Data.Set &DMU_SP_PROCONHSMCOTP+0x10 %Long &hsmcotp|0x00000001
+        Data.Set &DMU_SP_PROCONHSMCOTP+0x70 %Long 0x43211234
+        Data.Set &DMU_SP_PROCONHSMCOTP+0x78 %Long 0x43211234
+        FLASH.AUTO.off
+      )
+    )
+  )
+  ELSE
+  (
+    PRINT "HSM already enabled!"
+  )
+
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Disble HSM by programming HSM config and OTP (UCB_HSMCOTP)
+
+disableHSMDialog:
+(
+  PRIVATE &hsmcotp &force &disable
+  ENTRY   &force
+  
+  &hsmcotp=Data.Long(D:&DMU_SP_PROCONHSMCOTP)
+  
+  IF (&hsmcotp&0x00000001)==0x00000001    ; Check, if HSM is enabled
+  (
+    IF &force
+    (
+      &disable=TRUE()
+    )
+    ELSE
+    (
+      DIALOG.YESNO "Disable HSM?"
+      ENTRY &disable
+    )
+    IF &disable
+    (
+      GOSUB disableHSM
+    )
+  )
+  ELSE
+  (
+    PRINT "HSM already disabled!"
+  )
+
+  RETURN
+)
+
+
+disableHSM:
+(
+  PRIVATE &hsmcotp
+  
+  &hsmcotp=Data.Long(D:&DMU_SP_PROCONHSMCOTP)
+  
+  ; Clear HSMBOOTEN only, no protection/exclusive flags are configured.
+  FLASH.AUTO &DMU_SP_PROCONHSMCOTP++0x3FF
+  Data.Set &DMU_SP_PROCONHSMCOTP+0x00 %Long &hsmcotp&0xFFFFFFFE
+  Data.Set &DMU_SP_PROCONHSMCOTP+0x10 %Long &hsmcotp&0xFFFFFFFE
+  Data.Set &DMU_SP_PROCONHSMCOTP+0x70 %Long 0x43211234
+  Data.Set &DMU_SP_PROCONHSMCOTP+0x78 %Long 0x43211234
+  FLASH.AUTO.off
+
+  RETURN
+)
+
+
+; --------------------------------------------------------------------------------
+; Check, if HSM has valid code in case it is enabled. This should make sure,
+; that the TriCore chip gets not locked, in case there is no HSM code, but
+; HSMBOOT is set. At least one HSM Code Sector need to have a valid vector table.
+;
+checkHSMBootVectors:
+(
+  PRIVATE &valid
+  
+  &valid=FALSE()
+  
+  ; Check PFLASH HSM Code Sector 1
+  GOSUB checkHSMVectorTable "0x80018000"
+  RETURNVALUES &valid
+  
+  IF &valid
+  (
+    PRINT "Valid HSM boot image found at 0x80018000!"
+    RETURN "&valid"
+  )
+  ELSE
+  (
+    PRINT "No valid HSM boot image found at 0x80018000!"
+  )
+  
+  ; Check PFLASH HSM Code Sector 2
+  GOSUB checkHSMVectorTable "0x80060000"
+  RETURNVALUES &valid
+  
+  IF &valid
+  (
+    PRINT "Valid HSM boot image found at 0x80060000!"
+    RETURN "&valid"
+  )
+  ELSE
+  (
+    PRINT "No valid HSM boot image found at 0x80060000!"
+  )
+  
+  ; Check PFLASH HSM Code Sector 3
+  GOSUB checkHSMVectorTable "0x80070000"
+  RETURNVALUES &valid
+  
+  IF &valid
+  (
+    PRINT "Valid HSM boot image found at 0x80070000!"
+  )
+  ELSE
+  (
+    PRINT "No valid HSM boot image found at 0x80070000!"
+  )
+  
+  RETURN "&valid"
+)
+
+
+; --------------------------------------------------------------------------------
+; Check a specific HSM code area for a valid vector table.
+;
+checkHSMVectorTable:
+(
+  PRIVATE &vectorbase &valid &stackpointer &resetvector &hsmsramstart &hsmsramend
+  PARAMETERS &vectorbase
+  
+  &valid=FALSE()
+  
+  ; Check for empty flash arround boot address
+  &stackpointer=0
+  &resetvector=0
+  
+  &hsmsramstart=0x20000000
+  &hsmsramend=0x20009FFF
+  
+  ; Check stackpointer
+  GOSUB readLong "&vectorbase"
+  RETURNVALUES &stackpointer
+  
+  IF "&stackpointer"=="?"
+    RETURN "&valid"
+  
+  IF (&stackpointer&0x3)!=0x0
+    RETURN "&valid"      ; Stackpointer is not 4 byte alligned
+        
+  IF !((&stackpointer>=&hsmsramstart)&&(&stackpointer<=&hsmsramend+1))
+    RETURN "&valid"      ; stack pointer not in SRAM area
+  
+  ; Check reset vector
+  &vectorbase=&vectorbase+0x4
+  GOSUB readLong "&vectorbase"
+  RETURNVALUES &resetvector
+  
+  IF "&resetvector"=="?"
+    RETURN "&valid"
+  
+  IF (&resetvector&0x1)!=0x1
+    RETURN "&valid"      ; reset vector has even address
+  
+  &resetvector=&resetvector&0xFFFFFFFE
+  
+  IF (!((&resetvector>0x80018000)&&(&resetvector<0x8001BFFF)))&&(!((&resetvector>0x80060000)&&(&resetvector<0x8006FFFF)))&&(!((&resetvector>0x80070000)&&(&resetvector<0x8007FFFF)))
+    RETURN "&valid"      ; reset vector out of valid flash area
+  
+  ; Check accessibility of reset vector code
+  GOSUB readLong "&resetvector"
+  RETURNVALUES &resetvector
+  
+  IF ("&resetvector"!="?")&&("&resetvector"!="")
+    &valid=TRUE()      ; Flash is not empty at reset entry.
+
+  RETURN "&valid"
+)
+
+
+
+; --------------------------------------------------------------------------------
+; Read a long word and return its value or "?" in case of a bus error.
+;
+readLong:
+(
+  PRIVATE &addr &value
+  PARAMETERS &addr
+
+  ON ERROR GOTO BusError
+  &value=Data.Long(D:&addr)
+  ON ERROR inherit
+
+  RETURN "&value"
+
+BusError:
+  ON ERROR inherit
+  RETURN "?"
+)

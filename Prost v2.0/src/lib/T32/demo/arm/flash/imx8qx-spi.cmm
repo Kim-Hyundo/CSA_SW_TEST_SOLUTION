@@ -1,0 +1,295 @@
+; --------------------------------------------------------------------------------
+; @Title: SPI Flash program script for IMX8QXP (by FLASH command)
+; @Description:
+;   Prerequisites:
+;
+;   !! No support the empty flash target, because the debugger
+;                              can not access the SECO (Secure Controller) !!
+;
+;   It does not matter of the boot mode (SD/eMMC/QSPI and so on)
+;
+; @Keywords: ARM, Cortex-M4
+; @Author: JIM
+; @Board: MCIMX8QXP-CPU
+; @Chip: IMX8QXP-CM4
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx8qx-spi.cmm 7605 2019-11-05 16:45:28Z bschroefel $
+
+
+PRIVATE &parameters &param_prepareonly
+ENTRY %LINE &parameters
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+
+&FLEXSPI_BASE=0x5D120000      ;FLEXSPI0 controller base address
+&ipc_addr=0x41480000  ; CM4_0_MU1_A_BASE , Messaging Unit
+
+; --------------------------------------------------------------------------------
+; SYSTEM.UP
+; --------------------------------------------------------------------------------
+SYStem.RESet
+SYStem.CPU IMX8QXP-CM4
+SYStem.Option.ResBreak off
+
+SYStem.Mode Attach
+
+IF STATE.RUN()
+    Break.direct
+
+GOSUB WDOG_DISABLE
+
+Data.Set A:&ipc_addr+0x24 %Long 0x0  ; /* Clear GIEn, RIEn, TIEn, GIRn and ABFn. */
+
+//     SC_PAD_SET    &padNum &mux &ctrl &cfg
+GOSUB  SC_PAD_SET    156.    0x0   0x21  0x0  ; LSIO.QSPI0A.DATA0, GPIO03.IO09
+GOSUB  SC_PAD_SET    157.    0x0   0x21  0x0  ; LSIO.QSPI0A.DATA1, GPIO03.IO10
+GOSUB  SC_PAD_SET    158.    0x0   0x21  0x0  ; LSIO.QSPI0A.DATA2, GPIO03.IO11
+GOSUB  SC_PAD_SET    159.    0x0   0x21  0x0  ; LSIO.QSPI0A.DATA3, GPIO03.IO12
+GOSUB  SC_PAD_SET    160.    0x0   0x21  0x0  ; LSIO.QSPI0A.DQS1 , GPIO03.IO13
+GOSUB  SC_PAD_SET    161.    0x0   0x21  0x0  ; LSIO.QSPI0A.SS0_B, GPIO03.IO14
+GOSUB  SC_PAD_SET    162.    0x0   0x21  0x0  ; LSIO.QSPI0A.SS1_B, GPIO03.IO15
+GOSUB  SC_PAD_SET    163.    0x0   0x21  0x0  ; LSIO.QSPI0A.SCLK , GPIO03.IO16
+
+
+; --------------------------------------------------------------------------------
+; Power ON SC_R_FSPI_0(QSPI0)
+; --------------------------------------------------------------------------------
+//    SC_POWER_ON_SET  &resource &mode
+GOSUB SC_POWER_ON_SET  0xED      0x03
+
+; --------------------------------------------------------------------------------
+; CLK Enable FSPI_0
+; --------------------------------------------------------------------------------
+//    SC_CLK_ENABLE    &resource  &clk
+GOSUB SC_CLK_ENABLE   0xED       0x02
+
+GOSUB FLEXSPIconfig
+
+GOSUB READ_ID_TEST
+
+FLASH.RESet
+FLASH.Create  1. 0x08000000++0xFFFFFF  0x10000 TARGET  Byte
+FLASH.TARGET   0x20010000  0x20012000   0x2000   ~~/demo/arm/flash/byte/snor_imx8qx.bin   /STACKSIZE 0x400
+
+// !!! please do not erase the boot image area,
+// the boot is wrong, then system.up will not work !!!
+
+IF &param_prepareonly
+  ENDDO
+
+FLASH.List
+
+;FLASH.SPICMD 1. 0x9F /READ 0x10   ;Get Flash Read_ID
+;FLASH.ReProgram ALL
+;Data.LOAD.Binary .\flash.bin 0x08000000
+;FLASH.ReProgram OFF
+
+ENDDO
+
+FLEXSPIconfig:
+(
+  //unlock
+  Data.Set A:&FLEXSPI_BASE+0x018 %LE %Long 0x5AF05AF0
+  Data.Set A:&FLEXSPI_BASE+0x01C %LE %Long 2
+
+  //controller init
+  Data.Set A:&FLEXSPI_BASE+0x000 %LE %Long 0xFFFF8000
+  Data.Set A:&FLEXSPI_BASE+0x004 %LE %Long 0xFFFFFFFF
+  Data.Set A:&FLEXSPI_BASE+0x008 %LE %Long 0x200001F7
+  Data.Set A:&FLEXSPI_BASE+0x00C %LE %Long 0x58
+  Data.Set A:&FLEXSPI_BASE+0x020 %LE %Long 0x80000000
+  Data.Set A:&FLEXSPI_BASE+0x024 %LE %Long 0x80000000
+  Data.Set A:&FLEXSPI_BASE+0x028 %LE %Long 0x80000000
+  Data.Set A:&FLEXSPI_BASE+0x060 %LE %Long 0x00200000
+
+  Data.Set A:&FLEXSPI_BASE+0x060 %LE %Long 0x4000 ;  0x4000 * 0x400(KB unit size) = 16MB Flash_A0 size.
+  Data.Set A:&FLEXSPI_BASE+0x064 %LE %Long 0x4000
+  Data.Set A:&FLEXSPI_BASE+0x068 %LE %Long 0x4000
+  Data.Set A:&FLEXSPI_BASE+0x06C %LE %Long 0x4000
+
+  //timing
+  Data.Set A:&FLEXSPI_BASE+0x070 %LE %Long 0x00000063
+  Data.Set A:&FLEXSPI_BASE+0x074 %LE %Long 0x00000063
+  Data.Set A:&FLEXSPI_BASE+0x078 %LE %Long 0x00000063
+  Data.Set A:&FLEXSPI_BASE+0x07C %LE %Long 0x00000063
+
+  Data.Set A:&FLEXSPI_BASE+0x080 %LE %Long 0x00000900
+  Data.Set A:&FLEXSPI_BASE+0x084 %LE %Long 0x00000900
+  Data.Set A:&FLEXSPI_BASE+0x088 %LE %Long 0x00000900
+  Data.Set A:&FLEXSPI_BASE+0x08C %LE %Long 0x00000900
+
+  Data.Set A:&FLEXSPI_BASE+0x0B8 %LE %Long 0x1  ; water marker level 0 , reset assert 0x1
+  Data.Set A:&FLEXSPI_BASE+0x0BC %LE %Long 0x1  ; water marker level 0 , reset assert 0x1
+
+  Data.Set A:&FLEXSPI_BASE+0x0C0 %LE %Long 00100
+  Data.Set A:&FLEXSPI_BASE+0x0C4 %LE %Long 00100
+
+  //LUT0 for read the spi memory data to the AHB
+  //FAST READ Quad I/O
+  ; Data.Set A:&FLEXSPI_BASE+0x200 %LE %Long 0x0A1804EB
+  ; Data.Set A:&FLEXSPI_BASE+0x204 %LE %Long 0x26043206
+  ; Data.Set A:&FLEXSPI_BASE+0x208 %LE %Long 0x00
+  ; Data.Set A:&FLEXSPI_BASE+0x20C %LE %Long 0x00
+  //Normal Read Mode
+   Data.Set A:&FLEXSPI_BASE+0x200 %LE %Long 0x08180403
+   Data.Set A:&FLEXSPI_BASE+0x204 %LE %Long 0x00002404
+   Data.Set A:&FLEXSPI_BASE+0x208 %LE %Long 0x00
+   Data.Set A:&FLEXSPI_BASE+0x20C %LE %Long 0x00
+
+  //AHB update automatically even though the window size is < 1KB
+  Data.Set A:&FLEXSPI_BASE+0x00C %LE %Long Data.Long(A:&FLEXSPI_BASE+0x00C)&~0x20
+
+  RETURN
+)
+
+
+
+READ_ID_TEST:
+(
+  PRINT "READ_ID_TEST..."
+
+  Data.Set ASD:&FLEXSPI_BASE+0x80 %LE %Long 0x80000900 ;FLASHCR2
+
+  Data.Set ASD:&FLEXSPI_BASE+0x14 %LE %Long -1   ;INTR clear
+
+  Data.Set A:&FLEXSPI_BASE+0xB8 %Long 0x1         ;IPRXFCR
+  Data.Set A:&FLEXSPI_BASE+0xBC %Long 0x1         ;IPTXFCR
+
+  Data.Set A:&FLEXSPI_BASE+0x250 %LE %Long 0x2404049F  ;readid with 4 bytes READ data
+  Data.Set A:&FLEXSPI_BASE+0x254 %LE %Long 0x0  ;
+  Data.Set A:&FLEXSPI_BASE+0x258 %LE %Long 0x0  ;
+  Data.Set A:&FLEXSPI_BASE+0x25c %LE %Long 0x0  ;
+
+  Data.Set A:&FLEXSPI_BASE+0x0A4 %LE %Long (5.<<16.)|0x4
+
+  Data.Set A:&FLEXSPI_BASE+0x0B0 %LE %Long 1  ;start
+
+  PRINT "1st 0x"  Data.Long(A:&FLEXSPI_BASE+0x100)&0xFF " (Manufacture)"
+  PRINT "2nd 0x" (Data.Long(A:&FLEXSPI_BASE+0x100)>>8.)&0xFF " (Device ID)"
+  PRINT "3rd 0x" (Data.Long(A:&FLEXSPI_BASE+0x100)>>16.)&0xFF
+  PRINT "4th 0x"  Data.Long(A:&FLEXSPI_BASE+0x100)>>24.
+
+  RETURN
+)
+
+SC_PAD_SET:
+(
+ENTRY  &padNum &mux &ctrl &cfg
+
+&data=0x00000001        ;version
+&data=&data|0x00000400  ;message size
+&data=&data|0x00060000  ;svc_pad
+&data=&data|0x05000000  ;func
+
+;wait until Tx buffer empty
+Data.Set A:&ipc_addr     %Long  &data 
+Data.Set A:&ipc_addr+0x4 %Long  &ctrl
+
+&data=&padNum
+&data=&data|(&mux<<16.)
+&data=&data|(&cfg<<24.)
+Data.Set A:&ipc_addr+0x8 %Long  &data
+
+Data.Set A:&ipc_addr+0xC %Long 0x00
+
+&status=Data.Long(A:&ipc_addr+0x20)
+&rxBuff=(&ipc_addr+0x10)
+WHILE (((&status>>24.)&0xF)!=0)
+(
+&data=Data.Long(A:&rxBuff)
+&rxBuff=&rxBuff+0x4
+&status=Data.Long(A:&ipc_addr+0x20)
+)
+RETURN
+)
+
+//Power_ON_SDHC1
+SC_POWER_ON_SET:
+(
+ENTRY  &resource &mode
+
+&data=0x00000001        ;version
+&data=&data|0x00000200  ;message size
+&data=&data|0x00020000  ;svc_pm
+&data=&data|0x03000000  ;func, POWER_MODE
+
+;wait until Tx buffer empty
+Data.Set A:&ipc_addr     %Long  &data 
+
+&data=&resource
+&data=&data|(&mode<<16.)
+&data=&data|0x07000000
+Data.Set A:&ipc_addr+0x4 %Long  &data
+
+&status=Data.Long(A:&ipc_addr+0x20)
+&rxBuff=(&ipc_addr+0x10)
+WHILE (((&status>>24.)&0xF)!=0)
+(
+&data=Data.Long(A:&rxBuff)
+&rxBuff=&rxBuff+0x4
+&status=Data.Long(A:&ipc_addr+0x20)
+)
+
+wait  200.ms ;dummy wait
+
+RETURN
+)
+
+//Clock_Enable_SDHC1
+SC_CLK_ENABLE: 
+(
+ENTRY  &resource &clk 
+
+&data=0x00000001        ;version
+&data=&data|0x00000300  ;message size
+&data=&data|0x00020000  ;svc_pm
+&data=&data|0x07000000  ;func, POWER_MODE
+
+;wait until Tx buffer empty
+Data.Set A:&ipc_addr     %Long  &data 
+
+&data=&resource
+&data=&data|(&clk<<16.)
+&data=&data|0x01000000
+Data.Set A:&ipc_addr+0x4 %Long  &data
+
+;&data=0x00CA0001
+&data=0x00C81301  ;imx8qx
+Data.Set A:&ipc_addr+0x8 %Long  &data
+
+&status=Data.Long(A:&ipc_addr+0x20)
+&rxBuff=(&ipc_addr+0x10)
+WHILE (((&status>>24.)&0xF)!=0)
+(
+&data=Data.Long(A:&rxBuff)
+&rxBuff=&rxBuff+0x4
+&status=Data.Long(A:&ipc_addr+0x20)
+)
+
+wait  200.ms ;dummy wait
+
+RETURN
+)
+
+//Watchdog disable
+WDOG_DISABLE:
+(
+  //the changing wdog register works only internal code running not by a cmm script.
+  //Data.Set SD:0x41420004 %LE %Long 0xd928c520  ;unlock
+  //Data.Set SD:0x41420000 %LE %Long (data.long(SD:0x41420000)&~0x80)   ;disable watchdog
+
+  &WDOG_CS=Data.Long(SD:0x41420000)&~0x80
+  Register.Set r0 0x41420000
+  Register.Set r1 0xd928c520
+  Register.Set r2 &WDOG_CS
+
+  Data.Assemble ST:0x20000800 str r1,[r0,#0x4]
+  Data.Assemble ST:0x20000802 str r2,[r0]
+  Data.Assemble ST:0x20000804 b 20000804
+
+  Register.Set pc 0x20000800
+  Break.Set 0x20000804
+  Go
+  WAIT !STATE.RUN()
+  RETURN
+)

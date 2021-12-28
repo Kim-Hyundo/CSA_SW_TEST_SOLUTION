@@ -1,0 +1,74 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for PXB4260 (RiderB) on Harrier-XT
+; @Description:
+;   Initializes the TriCore, SRAM and Flash,
+;   and loads the Sieve-Demo into memory.
+;
+;   Use the boot and clock option selected by following:
+;   S2 CONFIG: ON OFF ON ON ON ON ON ON
+;   CLOCK_CFG: ON OFF ON ON
+;
+; @Keywords: harrier-xt, Infineon, RiderB, TriCore
+; @Author: MAX
+; @Board: Harrier-XT
+; @Chip: PXB4260
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: pxb4260_demo.cmm 7573 2014-08-27 14:37:31Z mobermeir $
+
+
+; --------------------------------------------------------------------------------
+; Performed tests:
+; HarrierXT PXB4260 2006-06-07 MAX
+;
+; Memory mappings:
+; SRAM  (16MB) mapped to 0xA0000000--0xA0FFFFFF
+; Flash  (4MB) mapped to 0xA4000000--0xA43FFFFF
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+
+RESet
+SYStem.CPU PXB4260
+SYStem.Up
+
+; Disable watchdog timer
+Data.Set 0xF0000024 %Long 0x00000008    ; WDTCON1
+
+; --------------------------------------------------------------------------------
+; Memory initialzation
+
+; initialize external bus unit
+Data.Set 0xF0000210 %Long 0x4009FFFF    ; EBU_BCUCON
+Data.Set 0xF0000510 %Long 0x0000FF68    ; EBU_EBUCON
+
+; memory assignment
+; AMD AM29LV160BB flash
+Data.Set 0xF0000560 %Long 0x004213C4    ; EBU_BUSCON0
+Data.Set 0xF0000520 %Long 0xA4000051    ; EBU_ADDSEL0
+; Infineon HYB39S64160BT-8 SDRAM (4Mx16, PC100, CL2)
+Data.Set 0xF0000564 %Long 0x01023000    ; EBU_BUSCON1
+Data.Set 0xF0000524 %Long 0xA0000031    ; EBU_ADDSEL1
+; unused
+Data.Set 0xF0000528 %Long 0x00000000    ; EBU_ADDSEL2
+Data.Set 0xF000052C %Long 0x00000000    ; EBU_ADDSEL3
+
+Data.Set 0xF0000518 %Long 0x00000023    ; DRMSTAT (set this before DRMCON)
+Data.Set 0xF0000514 %Long 0x1F000030    ; DRMCON
+
+; --------------------------------------------------------------------------------
+; load demo program
+Data.LOAD.Ieee "~~~~/demo.abs" /msec
+Go.direct main
+
+; open some windows
+WinCLEAR
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame.view /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch
+Var.AddWatch ast flags
+
+ENDDO

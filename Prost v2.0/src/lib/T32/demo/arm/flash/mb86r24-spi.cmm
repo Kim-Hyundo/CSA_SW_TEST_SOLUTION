@@ -1,0 +1,151 @@
+; --------------------------------------------------------------------------------
+; @Title: MB86R24 HS-SPI FLASH Program script on TRITON-C Promotion Board
+; @Description:
+; The S25FL129 (SPANSION) is on the HS-SPI0 controller
+;
+; SRAM: 0x101000
+; HS-SPI(controller) Base: 0x38100000
+;
+; @Author: jjeong
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; @Chip: MB86R24
+; @Keywords: S25FL129 Flash SPI
+; --------------------------------------------------------------------------------
+; $Id: mb86r24-spi.cmm 7602 2019-11-05 15:02:25Z bschroefel $
+; assumptions: 
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+
+; * Set Bootmode: HS-SPI Flash
+; SW4[6]= OFF        - SELFL=0y0
+; SW4[3..1] = OFF ON ON  ;MPXMODE[2..0] =0y011
+; SW5[6]= ON  - EN_QSPI ON : Enable Quad SPI FLASH
+
+&spi_base=0x38100000
+
+RESet
+SYStem.RESet
+SYStem.CPU MB86R24
+SYStem.JtagClock CTCK 10MHz
+CORE.ASSIGN 1.
+SYStem.Up
+
+WAIT 1.s  ; dummy waiting, maybe the peripheral needs more reset time
+
+GOSUB WDOG_DISABLE
+
+Data.Set A:0x3B500028 %Long 0xF7FF770D ; CRRRS, Register controlled reset request register
+
+GOSUB DDRHSSPI_CONFIG
+
+GOSUB READ_ID_TEST
+
+Break.RESet
+
+FLASHFILE.RESet
+
+//FLASFILE.CONFIG <HS-SPI Base Reg>
+  FLASHFILE.CONFIG &spi_base
+
+//FLASHFILE.TARGET  <Code Range>      <Data Range>          <Algorithm File>
+  FLASHFILE.TARGET  0x101000++0x2FFF  0x104000++0x1FFF      ~~/demo/arm/flash/byte/spi64_mb86r24.bin  /KEEP
+
+FLASHFILE.GETID
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+ENDDO
+
+
+//Dump window for Serial FLASH
+FLASHFILE.DUMP 0x0 
+
+//Write Serial FLASH
+;FLASHFILE.ERASE 0x00--0xFFFFF
+
+//Write Serial FLASH
+;FLASHFILE.LOAD  * 0x00
+;FLASHFILE.LOAD  * 0x00  /ComPare
+
+ENDDO
+
+WDOG_DISABLE:
+Data.Set A:0x4A00000 %LE %Long 0xEDACCE55
+Data.Set A:0x4A00048 %LE %Long 0x0
+RETURN
+
+DDRHSSPI_CONFIG:
+
+Data.Set A:&spi_base+0x000  %Long 0x0   ; disable
+Data.Set A:&spi_base+0x035  %Byte 0x0   ; unDMAEN
+Data.Set A:&spi_base+0x039  %Byte 0x1   ; DMSTOP Enable
+Data.Set A:&spi_base+0x03A  %Byte 0x0   ; SS0 select, 0x1:SS1 select
+Data.Set A:&spi_base+0x03B  %Byte 0x00  ; '0000': DMTRP_TRP0 - TX and RX in legacy mode
+
+Data.Set A:&spi_base+0x034 %Byte 0x1    ;HSSPI master mode
+Data.Set A:&spi_base+0x03C %Word 0x0
+
+Data.Set A:&spi_base+0x04 %LE %Long 0x10603    ;PCC0, clock division
+Data.Set A:&spi_base+0x08 %LE %Long 0x10000    ;PCC1
+Data.Set A:&spi_base+0x0C %LE %Long 0x10000    ;PCC2
+Data.Set A:&spi_base+0x10 %LE %Long 0x10000    ;PCC3
+
+Data.Set A:&spi_base+0x00 %LE %Long 0x01       ;MCTRL, module enable
+
+Data.Set A:&spi_base+0x18 %LE %Long 0x7F       ;TXE, interrupt enable
+Data.Set A:&spi_base+0x30 %LE %Long 0x1F       ;FAULTC, Fault interrupt clear register 
+Data.Set A:&spi_base+0x38 %LE %Long 0x00000100  ;DMSTOP
+
+Data.Set A:&spi_base+0x4C  %Long   0x1077 //Flush transmit FIFOs
+Data.Set A:&spi_base+0x4C  %Long   0x0877 //Flush receive FIFOs
+
+RETURN
+
+
+READ_ID_TEST:
+
+screen.off
+
+Data.Set A:&spi_base+0x00  %Long 0x0  ; disable
+Data.Set A:&spi_base+0x3B  %Byte 0x0  ; Setting to HsspiDirectModeTxRxLegacyMode
+Data.Set A:&spi_base+0x00  %Long 0x1; enable
+
+Data.Set A:&spi_base+0x4C  %Long   0x01077 //Flush transmit FIFOs
+Data.Set A:&spi_base+0x4C  %Long   0x00877 //Flush receive FIFOs
+
+//DMBCC
+Data.Set A:&spi_base+0x3C  %Word 0x4  //length Tx+Rx
+
+Data.Set A:&spi_base+0x3A  %Byte 0x0  ; SS0
+
+//TXFIFO0
+Data.Set A:&spi_base+0x50  %Long 0x9f  ; 
+Data.Set A:&spi_base+0x54  %Long 0x00  ; 
+Data.Set A:&spi_base+0x58  %Long 0x00  ; 
+Data.Set A:&spi_base+0x5C  %Long 0x00  ; 
+
+//Trigger start of transfer
+Data.Set A:&spi_base+0x38  %Byte 0x01
+
+//TXC, Clear "transmit FIFO & shift register" empty flag. 
+Data.Set A:&spi_base+0x1C %Long 0x2 
+
+//check A:&spi_base+0x40 and A:&spi_base+0x14
+//PRINT "tx pending A:&spi_base+0x40 : 0x" Data.Long(A:&spi_base+0x40) "  ,  A:&spi_base+0x14 : 0x" Data.Long(A:&spi_base+0x14)
+
+//RXFIFO0
+PRINT "0th 0x" Data.Long(A:&spi_base+0x90) " (Dummy) "
+PRINT "1st 0x" Data.Long(A:&spi_base+0x90) " (Manufacture)"
+PRINT "2nd 0x" Data.Long(A:&spi_base+0x90) " (Device ID)"
+PRINT "3rd 0x" Data.Long(A:&spi_base+0x90) 
+
+//Flush transmit and receive FIFOs
+Data.Set A:&spi_base+0x4C  %Long   0x1077 //Flush transmit FIFOs
+Data.Set A:&spi_base+0x4C  %Long   0x0877 //Flush receive FIFOs
+
+screen.on
+
+RETURN
+

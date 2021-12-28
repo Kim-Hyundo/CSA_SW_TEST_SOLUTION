@@ -1,0 +1,82 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags
+; @Author: TI
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: omap4430_cortexa9_cross_triggering.cmm 8886 2015-11-18 18:06:51Z mobermeir $
+
+ENTRY &menu_type 
+
+&CMM_DIR="~~~~"
+
+
+IF (Var.VALUE(&menu_type)==0x0)
+( 
+  GOSUB Configure_CTI0
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0x1) 
+( 
+  GOSUB Configure_CTI1
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0x2)
+( 
+  GOSUB Configure_CTI0_SMP
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0x3) 
+( 
+  GOSUB Configure_CTI1_SMP
+  ENDDO
+)
+
+Configure_CTI0_SMP:
+(
+ENTRY  
+  SYnch.Connect localhost:10001
+  SYnch.ON
+  SYnch.MasterGo ON
+  SYnch.MasterBreak ON
+  SYnch.SlaveGo ON
+  SYnch.SlaveBreak ON 
+RETURN
+)
+
+Configure_CTI0:
+(
+ENTRY
+  Data.Set ahb:0x54148FB0 %Long 0xC5ACCE55
+  WAIT (Data.Long(ahb:0x54148FB4)&0x3)!=0x3
+  Data.Set ahb:0x54148020 %Long 0x1
+  Data.Set ahb:0x541480A0 %Long 0x1
+  Data.Set ahb:0x54148000 %Long 0x1
+RETURN
+)
+
+Configure_CTI1_SMP:
+(
+ENTRY
+  SYnch.Connect localhost:10000
+  SYnch.ON
+  SYnch.MasterGo ON
+  SYnch.MasterBreak ON
+  SYnch.SlaveGo ON
+  SYnch.SlaveBreak ON
+RETURN
+)
+
+
+Configure_CTI1:
+(
+ENTRY
+  Data.Set ahb:0x54149FB0 %Long 0xC5ACCE55
+  WAIT (Data.Long(ahb:0x54149FB4)&0x3)!=0x3
+  Data.Set ahb:0x54149020 %Long 0x1
+  Data.Set ahb:0x541490A0 %Long 0x1
+  Data.Set ahb:0x54149000 %Long 0x1
+RETURN
+)

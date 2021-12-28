@@ -1,0 +1,104 @@
+; --------------------------------------------------------------------------------
+; @Title: RTP-Offchip-Trace demo with ETM and RTP for TI TMS570LC43xx (RAM)
+; @Description:
+;   Script based example to test the RamTracePort on a TMS570LC43xx SoC from Ti.
+;   The example uses assembly only.
+;   Pin-Multiplexing and Clock initialization is handled in the script.
+;   Use this script to test the RTP.
+; @Keywords: Cortex-R5, CortexR5, TMS570
+; @Author: JBO STK
+; @Board: TMS570LC4357 Hercules Development Board
+; @Chip: TMS570LC43*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tms570lc4357_simple_rtp.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+LOCAL &RTPSAMPLE
+
+RESet
+SYStem.CPU TMS570LC4357
+SYStem.MemAccess DAP
+SYStem.Up
+
+IF Analyzer()
+(
+  Trace.METHOD Analyzer
+  Trace.PortType RTP
+
+  Analyzer.THreshold  1.48 1.65
+  Analyzer.TERMination ON
+  Analyzer.SAMPLE , +0.4
+
+  ; Overwrite RTP pin sample points
+  &RTPSAMPLE="+3.0"
+
+
+  RTP.PortSize 16R
+  RTP.PortClock 1/1
+
+  RTP.TM.RAM1.SECT1.ACCESS CPU
+  RTP.TM.RAM1.SECT1.SIZE 512B
+  RTP.TM.RAM1.SECT1.ADDRESS 0X08000200
+  RTP.TM.RAM1.SECT1.CYCLE WRITE
+  RTP.TM.RAM2.SECT1.ACCESS CPU
+  RTP.TM.RAM2.SECT1.SIZE 512B
+  RTP.TM.RAM2.SECT1.ADDRESS 0X08000200
+  RTP.TM.RAM2.SECT1.CYCLE WRITE
+
+  RTP.ON
+)
+
+Register.RESet
+Data.Assemble SR:0x08000000 LDR r0,[r1]
+Data.Assemble ,             NOP
+Data.Assemble ,             NOP
+Data.Assemble ,             NOP
+Data.Assemble ,             NOP
+Data.Assemble ,             ADD r0,r0,#1
+Data.Assemble ,             NOP
+Data.Assemble ,             NOP
+Data.Assemble ,             NOP
+Data.Assemble ,             NOP
+Data.Assemble ,             NOP
+Data.Assemble ,             STR r0,[r1]
+Data.Assemble ,             NOP
+Data.Assemble ,             MOV r2, 0x60
+Data.Assemble ,             NOP
+Data.Assemble ,             SUB r2, r2, 1
+Data.Assemble ,             CMP r2, 0
+Data.Assemble ,             BNE 0x800003c
+Data.Assemble ,             NOP
+Data.Assemble ,             B   0x08000000
+
+Register.Set PC 0x08000000
+Register.Set R1 0x08000200
+
+GOSUB multiplexRTPpins
+
+Trace.Init
+
+RTPA.List
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+
+multiplexRTPpins: ;()
+(
+	; unlock iomm registers (kick0 & kick 1)
+	Data.Set AD:0xffff1c38 %Long 0x83e70b13
+	Data.Set 0xffff1c3c %Long 0x95a4f1e0
+
+	Data.Set 0xffff1d10 %Long 0x02020202	;RTP_DATA[13]
+	Data.Set 0xffff1d14 %Long 0x02020202  ;RTP_DATA[9-12]
+	Data.Set 0xffff1d18 %Long 0x02020202	;RTP_DATA[4-6,8]
+	Data.Set 0xffff1d1c %Long 0x02020202	;RTP_DATA[0-3]
+	Data.Set 0xffff1d20 %Long 0x02020202	;RTP control
+
+	Data.Set 0xffff1d34 %Long 0x01020101	;RTP_DATA[15]
+	Data.Set 0xffff1d38 %Long 0x01010202	;RTP_DATA[7,14]
+
+	; lock iomm registers
+	Data.Set 0xffff1c38 %Long 0x83e70b13
+	RETURN
+)

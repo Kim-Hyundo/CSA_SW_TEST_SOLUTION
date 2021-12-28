@@ -1,0 +1,98 @@
+; --------------------------------------------------------------------------------
+; @Title: Zynq-7000 boot with FSBL in JTAG-MODE
+; @Description:
+;   This script how to do a boot/initialization of a Xilinx ZYNQ-7000 SoC using
+;   the generated FSBL. The script expects a prior RESET, loads the FSBL and
+;   demonstrates how to load the PL/FPGA. IF a Offchip Trace is available it is
+;   setup by this script too.
+;   Prerequisites:
+;     * BOOTMODE is JTAG_BOOT
+;       MIO[6..2]=0y00000 - JTAG BOOT + Cascaded JTAG
+;     * JTAG Cable is connected
+; @Keywords: ZYNQ
+; @Author: AME
+; @Chip: Zynq-7000
+; @Board: -
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: zynq7000_fsbl_boot.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+RESet
+SYStem.RESet
+SYStem.CPU ZYNQ-7000
+; set DaisyChaining Parameters of the board
+; check e.g. SYStem.DETECT.ShowCHAIN
+SYStem.CONFIG DAPIRPRE 6.
+SYStem.CONFIG DAPDRPRE 1.
+
+; disable the trace - prevents clock related problems when reloading the FPGA
+ETM.OFF
+Trace.DISable
+; disable the "RESET" Trigger
+TrOnchip.Set RESET OFF
+
+IF FALSE()
+(
+  ; Case 1: nReset line connected to ZYNQ-7000
+  ; SYStem.Option WaitReset <time> ; mandatory if nReset is wired to POReset
+  SYStem.Up
+)
+ELSE
+(
+  ; Case 2: no Reset line connected, use software triggered Reset
+  SYStem.Mode Attach
+  DO ~~/demo/arm/hardware/zynq-7000/scripts/zynq7000_reset
+
+  ; attach to the SoC - both cores should be stopped in the bootcode
+  SYStem.Mode.Attach
+)
+
+IF STATE.RUN()
+  Break.direct
+
+; load the FSBL - FirstStageBootloader
+; set both cores to the Entry Point (0x0)
+CORE.select 0.
+Data.LOAD.Elf ~~~~/<fsbl>.elf
+
+; execute FSBL
+Go Loop
+WAIT !STATE.RUN() 0.5s
+Break
+IF Register(PC)!=ADDRESS.OFFSET(Loop)
+(
+  PRINT %ERROR "Boot fail!"
+  STOP
+)
+
+IF TRUE()
+(
+  ; recommended: load FPGA design using PCAP
+  DO ~~/demo/arm/hardware/zynq-7000/scripts/zynq_bitstream.cmm "<path to>/zynq_wrapper.bit.bin" 0x00100000
+)
+ELSE
+(
+  ; load FPGA design using JTAG-Daisy-Chain
+  ; IRPRE/-POST DRPRE/-POST settings depend on the board
+  ; Usecase: ZYNQ-7000 without DRAM
+  DO ~~/demo/arm/hardware/zynq-7000/scripts/zynq_bitstream.cmm "<path to>/zynq_wrapper.bit" IRPOST=4 DRPOST=1 SKIPPOSTCONFIG
+)
+
+; call ps7_post_config() function (part of fsbl.elf)
+Var.Assign ps7_post_config()
+
+; setup trace - if available
+; please adjust PortSize to your configuration
+ETM.ON
+IF Analyzer()
+(
+  TPIU.PortSize 4
+  TPIU.PortMode Continuous
+  Analyzer.AutoFocus
+)
+
+PRINT "Bootup finished ..."
+
+ENDDO
+
+

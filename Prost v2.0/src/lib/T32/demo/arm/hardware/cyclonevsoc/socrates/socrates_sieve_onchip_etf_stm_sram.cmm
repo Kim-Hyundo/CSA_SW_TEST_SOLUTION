@@ -1,0 +1,115 @@
+; --------------------------------------------------------------------------------
+; @Title: Example for STM System-Trace on CYCLONEVSOC (using onchip-trace)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario which also puts out data via the STM.
+;
+;   The program flow is traced using the Onchip-Trace (ETF).
+;
+;   Prerequisites:
+;   * Please set bootmode to SD-Card and REMOVE SD-Card
+;     => Device will stop in BOOT ROM
+;     on SoCrates P18[6..8]=0y101
+;   * Connect Debugcable or Combiprobe to P19 header
+;     using LA-3863 (ARM->NIOS halfsize converter)
+;
+; @Keywords: ARM, Cortex-A9, ETM
+; @Author: AME, HLG
+; @Board: SoCrates
+; @Chip: CYCLONEVSOC
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: socrates_sieve_onchip_etf_stm_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+AREA.CLEAR
+AREA.view
+RESet
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+SYStem.RESet
+SYStem.CPU CYCLONEVSOC
+; settings for HPS-FPGA scanchain - hardwired on SoCrates
+SYStem.CONFIG DAPIRPOST  0.
+SYStem.CONFIG DAPIRPRE  10.
+SYStem.CONFIG DAPDRPOST  0.
+SYStem.CONFIG DAPDRPRE   1.
+SYStem.JtagClock CTCK 10MHz
+CORE.ASSIGN 1.    ; select only 1st core
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; Write to the clock manage to prevent the system from gating the debug clocks during a warm reset
+Data.Set A:0xFFD04010 %Long 0x1
+; Watchdog is activated by BOOTROM
+; the only way is to use the RESET MANAGER
+; disable Watchdog - Toggle RESET in PERMODRST
+Data.Set A:0xFFD05014 %Long Data.Long(A:0xFFD05014)|0x40
+Data.Set A:0xFFD05014 %Long Data.Long(A:0xFFD05014)&(~0x40)
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal SRAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_arm_v7.elf" /PlusVM
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; initialize ETM program flow trace to onchip buffer (ETF)
+Trace.RESet
+Trace.METHOD ONCHIP
+ETM.RESet
+ETM.ON
+ETM.Trace ON
+
+ETM.OFF   // Disable ETM since it would fill the ETF too fast, so that only less STM message get visible
+
+; --------------------------------------------------------------------------------
+; initialize STM system trace to onchip buffer (ETF)
+STMTrace.METHOD Onchip
+SystemTrace.METHOD Onchip
+STMTrace.AutoArm  ON
+STMTrace.AutoInit ON
+;STM.TimeStamps ON
+STM.TimeStampCLOCK 25.MHz
+STM.PortMASK 0xFFFFFFFF  // Enable all stimulus ports
+STM.ON
+
+; --------------------------------------------------------------------------------
+; Add functions to send out STM messages to application's main loop
+Var.Assign monHook=STM_StmMessages
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+
+WinPOS 0 0 50% 50%
+List.auto
+
+WinPOS 50% 0 50% 50%
+STMTrace.List
+
+WinPOS 50% 50% 50% 50%
+STMTrace.Draw.DATA %Decimal.WORD 0x003c0001++1 %Decimal.WORD 0x003c0002++1
+
+ENDDO
+
+
+; --------------------------------------------------------------------------------
+; compare result with SNOOPer
+SYStem.MemAccess DAP
+SNOOPer.RESET
+SNOOPer.AUTOARM  ON
+SNOOPer.AUTOINIT ON
+SNOOPer.SELECT Var.RANGE(plot1) Var.RANGE(plot2)
+
+WinPOS 0 50% 50% 50%
+SNOOPer.Draw.Var %DEFault plot1 plot2
+
+ENDDO
+

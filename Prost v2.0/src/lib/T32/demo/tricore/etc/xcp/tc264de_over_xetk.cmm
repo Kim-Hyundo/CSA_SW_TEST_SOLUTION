@@ -1,0 +1,26 @@
+; --------------------------------------------------------------------------------
+; @Title: Configuration demo script for debug over XCP using an ETAS XETK
+; @Description:
+;   The script shows how to configure TRACE32 for debugging over XCP.
+;
+; @Keywords: xcp, xetk, Infineon, TriCore
+; @Author: MEI
+; @Board: TriBoard-TC2x4
+; @Chip: TC264DE
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc264de_over_xetk.cmm 10940 2017-06-08 14:26:57Z meick $
+
+
+SYStem.CONFIG DEBUGPORT XCP0
+SYStem.CONFIG XCP.SLAVE 192.168.40.16       ; configure IP address of XETK
+
+SYStem.CPU TC264DE
+
+SYStem.CONFIG /XCP
+
+AREA.Create A000 100. 10000.
+
+SYStem.Up
+
+ENDDO

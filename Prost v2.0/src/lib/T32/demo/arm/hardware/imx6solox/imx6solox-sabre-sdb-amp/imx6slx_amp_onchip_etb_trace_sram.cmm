@@ -1,0 +1,156 @@
+; --------------------------------------------------------------------------------
+; @Title: AMP-Demo script for i.MX6SoloX on MCIMX6SX-SDB with Onchip-Trace (AMP, RAM, ETB)
+; @Description:
+;   Setup a AMP debug session using a single script approach.
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Onchip-Trace (ETB).
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to J17
+;    * TRACE32 is started using the .bat/.sh file in this directory
+; @Keywords: ARM, ETB, ETM
+; @Author: AME
+; @Board: MCIMX6SX-SDB, i.MX6SoloX Sabre Board
+; @Chip:
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx6slx_amp_onchip_etb_trace_sram.cmm 15362 2019-12-03 14:50:48Z mschleinkofer $
+
+PRIVATE &currPath &rclPort &remoteCmd
+&currPath=OS.PPD()
+&rclPort=FORMAT.DecimalU(1.,RCL.PORT(0))+"."
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF SYStem.INSTANCE()<1.
+(
+  PRINT %ERROR "TRACE32 is not running in AMP mode! Use .bat/.sh file in this directory."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; enable INTERCOM if not already specified and prepare related variables
+IF (INTERCOM.PORT()==0)
+(
+  InterCom.ENable CA9
+)
+&remoteCmd="InterCom.execute CM4"
+
+; --------------------------------------------------------------------------------
+; close any existing REMOTE GUI
+INTERCOM.execute OTHERS QUIT
+
+; --------------------------------------------------------------------------------
+; open SLAVE GUI with or without enabled remote API
+IF (RCL.PORT(0)!=0)
+(
+  TargetSystem.NewInstance CM4 /ARCHitecture ARM /ChipIndex 2. /APIPORT &rclPort+1. /ONCE
+)
+ELSE
+(
+  TargetSystem.NewInstance CM4 /ARCHitecture ARM /ChipIndex 2. /ONCE
+)
+
+TITLE "TRACE32 for ARM - IMX6SOLOX-CA9-CORE0 - MASTER"
+&remoteCmd TITLE "TRACE32 for ARM - IMX6SOLOX-CM4-CORE1 - SLAVE1"
+
+; --------------------------------------------------------------------------------
+; common SYStem settings
+RESet
+&remoteCmd RESet
+SYStem.RESet
+&remoteCmd SYStem.RESet
+SYStem.CPU IMX6SOLOX-CA9
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 10.0ms
+SYStem.CONFIG CORE 1. 1.
+SYStem.CONFIG SLAVE OFF
+&remoteCmd SYStem.CPU IMX6SOLOX-CM4
+&remoteCmd SYStem.CONFIG CORE 2. 1.
+&remoteCmd SYStem.CONFIG SLAVE ON
+
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; kick secondary cores
+GOSUB EnableM4
+
+; --------------------------------------------------------------------------------
+; attach to all cores on all sessions
+&remoteCmd SYStem.Mode.Up
+
+; --------------------------------------------------------------------------------
+; load demo program on all cores (use internal RAM only)
+Data.LOAD.Elf ~~~~/master/sieve_ram_arm_v7.elf
+&remoteCmd ChDir &currPath
+&remoteCmd Data.LOAD.Elf ./slave1/sieve_ram_thumb_ii_v7m.elf
+
+; --------------------------------------------------------------------------------
+; initialize ONCHIP trace (ETB)
+Trace.METHOD ONCHIP
+Trace.TraceCONNECT ETB
+&remoteCmd Trace.METHOD ONCHIP
+&remoteCmd Trace.TraceCONNECT ETB
+
+ETM.TraceID 1.
+ETM.Trace ON
+ETM.ON
+&remoteCmd ETM.TraceID 2.
+&remoteCmd ETM.Trace ON
+&remoteCmd ETM.ON
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main\1
+WAIT !STATE.RUN()
+&remoteCmd Go.direct main\1
+&remoteCmd WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+&remoteCmd WinCLEAR
+&remoteCmd Mode.Hll
+&remoteCmd WinPOS 0. 0.
+&remoteCmd List.auto
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+EnableM4: ;()
+(
+  ; Give access to peripherals for M4
+  Data.Set AZSD:0x207C000 %Long 0x77777777     ;AIPS-1 Configuration
+  Data.Set AZSD:0x217C000 %Long 0x77777777     ;AIPS-2 Configuration
+  Data.Set AZSD:0x227C000 %Long 0x77777777     ;AIPS-3 Configuration
+
+  ; Open M4 clocks
+  Data.Set AZSD:0x20c4068 %Long 0xFFFFFFFF    ;CCM Clock Gating Register0  (CCM_CCGR0)
+  Data.Set AZSD:0x20c406C %Long 0xFFFFFFFF    ;CCM Clock Gating Register1  (CCM_CCGR1)
+  Data.Set AZSD:0x20c4070 %Long 0xFFFFFFFF    ;CCM Clock Gating Register2  (CCM_CCGR2)
+  Data.Set AZSD:0x20c4074 %Long 0xFFFFFFFF    ;CCM Clock Gating Register3  (CCM_CCGR3)
+  Data.Set AZSD:0x20c4078 %Long 0xFFFFFFFF    ;CCM Clock Gating Register4  (CCM_CCGR4)
+  Data.Set AZSD:0x20c407C %Long 0xFFFFFFFF    ;CCM Clock Gating Register5  (CCM_CCGR5)
+  Data.Set AZSD:0x20c4080 %Long 0xFFFFFFFF    ;CCM Clock Gating Register6  (CCM_CCGR6)
+
+  ; Prepare M4 entry
+  ; Stack at TCMU
+  ; Stack pointer
+  Data.Set AZSD:0x007f8000 %Long 0x20000400
+  ; Code at BootRom
+  ;Program Counter
+  Data.Set AZSD:0x007f8004 %Long 0x00000009
+  ; Loop code
+  ; Code to halt the Cpu and check the asm address
+  Data.Assemble AZST:0x007f8008 b $+0 b $+0
+
+  ; Enable M4
+  Data.Set AZSD:0x020d8000 %Long Data.Long(AZSD:0x020d8000)|0x00400000
+  Data.Set AZSD:0x020d8000 %Long Data.Long(AZSD:0x020d8000)&~0x10
+  RETURN
+)

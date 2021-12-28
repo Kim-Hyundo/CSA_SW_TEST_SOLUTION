@@ -1,0 +1,77 @@
+; --------------------------------------------------------------------------------
+; @Title: start-up script running an STM demo for DRA7XX
+; @Description:
+;   MIPI Preprocessor connected to J17, CombiProbe connected to MIPI Preprocessor
+;   This script do pin multiplexing and enable ETM Trace.
+; 
+; @Chip: DRA7XX
+; @Board: Vayu EVM
+; @Keywords: Jacinto-6, ETM
+; @Author: MSA
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: dra7xx_stm_demo.cmm 15432 2019-12-17 13:49:45Z skrausse $
+
+  LOCAL &stm_path
+  
+  &stm_path="~~~~/stm_demo"
+  
+  RESet
+  SYStem.CPU DRA7XX
+  CORE.ASSIGN 1
+  SYStem.Up
+ 
+; Load demo program
+  Data.Set C15:1 %Long Data.Long(c15:1)&~1 ; switch off MMU
+  Data.LOAD.ELF &stm_path/demo_stm.axf
+  sYmbol.SourcePATH &stm_path/
+  Register.Set PC main
+  Register.Set CPSR 0x1D3 
+  Register.Set R13 0x40304000
+
+if Analyzer()
+(
+  ETM.PortSize 16
+  ETM.PortMode CONTINUOUS
+  Analyzer.AutoInit ON
+
+  ; Enable L3 clocks to instrumentation segment 	
+  Data.Set eansd:0x0:0x4A008E20 %Long 1	
+  Data.Set eansd:0x0:0x4A008E28 %Long 1 	
+  	
+  ; OMAP5/Vayu multi-core-trace bug work around	
+  Data.Set eapb:0xD416710C %Long 0x006F0008   	
+	
+  ; Lock EMUDPLL so CPU trace flows well into emulation domain	
+  ; 80MHz pin clock with 19.2 ref (M=250)	
+  Data.Set ENSD:0x5417180C %Long 0x1C60fa0A		
+	
+  Data.Set ENSD:0x54171810 %Long 0xE52008	
+  Data.Set ENSD:0x54171814 %Long 0x4	
+  Data.Set ENSD:0x54171808 %Long 0x1	
+		
+  ; do pad mux VOUT->EMU; 0-19 output + fast slew
+  ; Configure Spinner for TPIU trace pins, EMU0..19 for 16 bit mode
+  Data.Set AHB:0x4a003848 %Long 0x00090000 ; EMU0-tpiu-data0	
+  Data.Set AHB:0x4a00384c %Long 0x00090000 ; EMU1-tpiu-data1
+  Data.Set AHB:0x4a0035e4 %Long 0x00090002 ; EMU2-tpiu-clk
+  Data.Set AHB:0x4a003604 %Long 0x00090002 ; EMU3-tpiu-ctrl  	
+  Data.Set AHB:0x4a003624 %Long 0x00090002 ; EMU4-tpiu-data2, vout2_d10    	
+  Data.Set AHB:0x4a0035e8 %Long 0x00090002 ; EMU5    	
+  Data.Set AHB:0x4a0035ec %Long 0x00090002 ; EMU6    	
+  Data.Set AHB:0x4a0035f0 %Long 0x00090002 ; EMU7	
+  Data.Set AHB:0x4a0035f4 %Long 0x00090002 ; EMU8	
+  Data.Set AHB:0x4a0035f8 %Long 0x00090002 ; EMU9	
+  Data.Set AHB:0x4a003608 %Long 0x00090002 ; EMU10	
+  Data.Set AHB:0x4a00360c %Long 0x00090002 ; EMU11	
+  Data.Set AHB:0x4a003610 %Long 0x00090002 ; EMU12  	
+  Data.Set AHB:0x4a003614 %Long 0x00090002 ; EMU13    	
+  Data.Set AHB:0x4a003618 %Long 0x00090002 ; EMU14    	
+  Data.Set AHB:0x4a003628 %Long 0x00090002 ; EMU15    	
+  Data.Set AHB:0x4a00362c %Long 0x00090002 ; EMU16	
+  Data.Set AHB:0x4a003630 %Long 0x00090002 ; EMU17-tpiu-data15
+  Data.Set AHB:0x4a003634 %Long 0x00090002 ; EMU18-tpiu-data16 (tool clears)	
+  Data.Set AHB:0x4a003638 %Long 0x00090002 ; EMU19-tpiu-data17 (tool clears)
+)
+
+DO &stm_path/stm.cmm

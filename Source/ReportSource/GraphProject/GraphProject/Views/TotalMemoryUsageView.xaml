@@ -1,0 +1,144 @@
+﻿<UserControl x:Class="GraphProject.Views.TotalMemoryUsageView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:GraphProject.Views"
+             xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
+             xmlns:etc="clr-namespace:GraphProject.Etc"
+             mc:Ignorable="d"
+             xmlns:md ="http://materialdesigninxaml.net/winfx/xaml/themes"
+             d:DataContext="{Binding TotalMemoryUsageViewModel, Source={StaticResource Locator}}">
+    <UserControl.Resources>
+        <DataTemplate x:Key="ListViewCellTemplete">
+            <DockPanel>
+                <TextBlock Foreground="DarkBlue" HorizontalAlignment="Center" Text="{Binding}"/>
+            </DockPanel>
+        </DataTemplate>
+    </UserControl.Resources>
+    <Grid>
+        <md:Card Grid.Row="0" Grid.Column="0" UniformCornerRadius="3" Background="#2C000000">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="7*"/>
+                    <RowDefinition Height="3*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="5*"/>
+                    <ColumnDefinition Width="5*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Panel.ZIndex="1" Background="#484848">
+                    <!--<StackPanel.Background>
+                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                            <GradientStop Color="#8F5BBF98" Offset="1"/>
+                            <GradientStop Color="#8F9DD8A6"/>
+                        </LinearGradientBrush>
+                    </StackPanel.Background> -->
+                    <DockPanel LastChildFill="True" Height="50">
+                        <ComboBox DockPanel.Dock="Left" Width="110" Margin="0,9,5,0" Panel.ZIndex="5" SelectedItem="{Binding UnitMode, Mode=OneWayToSource}" etc:SelectionChangedBehaviour.Command="{Binding UnitComboSelectCommand}" SelectedIndex="0" BorderBrush="White" BorderThickness="0,1,0,1" HorizontalContentAlignment="Center" Foreground="White" Style="{StaticResource MaterialDesignComboBox}"  Background="#6f6f6f" VerticalAlignment="Center">
+                            <ComboBoxItem Content="Byte"></ComboBoxItem>
+                            <ComboBoxItem Content="KByte"></ComboBoxItem>
+                            <ComboBoxItem Content="MByte"></ComboBoxItem>
+                        </ComboBox>
+                        <ComboBox DockPanel.Dock="Right" Width="110" Margin="0,9,5,0" Panel.ZIndex="5" SelectedItem="{Binding MemoryMode, Mode=OneWayToSource}" etc:SelectionChangedBehaviour.Command="{Binding ComboSelectCommand}" SelectedIndex="0" BorderBrush="White" BorderThickness="0,1,0,1" HorizontalContentAlignment="Center" Foreground="White" Style="{StaticResource MaterialDesignComboBox}"  Background="#6f6f6f" VerticalAlignment="Center">
+                            <ComboBoxItem Content="Total Memory"></ComboBoxItem>
+                            <ComboBoxItem Content="Source File"></ComboBoxItem>
+                        </ComboBox>
+                        <TextBlock VerticalAlignment="Center"  Text="Memory Usage List" Foreground="White" FontWeight="Bold" FontSize="18" Padding="110,5,5,5" TextAlignment="Center" FontFamily="../Fonts/Roboto-Medium.ttf #Roboto"/>
+
+                    </DockPanel>
+                    <Separator/>
+                    <ListView Name="MemoryUsageListView" Style="{StaticResource MaterialDesignListView}" Height="160" ItemsSource="{Binding totalMemoryUsageModel.TotalMemoryList,UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" Background="White" Foreground="White" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Hidden">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Name" Width="150" DisplayMemberBinding="{Binding MemoryName}" CellTemplate="{StaticResource ListViewCellTemplete}"/>
+                                <GridViewColumn Header="{Binding totalMemoryUsageModel.Header1}" Width="120" DisplayMemberBinding="{Binding MemoryCode,UpdateSourceTrigger=PropertyChanged}"/>
+                                <GridViewColumn Header="{Binding totalMemoryUsageModel.Header2}" Width="120" DisplayMemberBinding="{Binding MemoryData,UpdateSourceTrigger=PropertyChanged}"/>
+                                <GridViewColumn Header="{Binding totalMemoryUsageModel.Header3}" Width="120" DisplayMemberBinding="{Binding MemoryUsage,UpdateSourceTrigger=PropertyChanged}"/>
+                                <GridViewColumn Header="{Binding totalMemoryUsageModel.Header4}" Width="120" DisplayMemberBinding="{Binding MemoryReserved,UpdateSourceTrigger=PropertyChanged}" />
+                                <GridViewColumn Header="{Binding totalMemoryUsageModel.Header5}" Width="120" DisplayMemberBinding="{Binding MemorySize,UpdateSourceTrigger=PropertyChanged}"/>
+                                <GridViewColumn Header="{Binding totalMemoryUsageModel.Header6}" Width="100" DisplayMemberBinding="{Binding MemoryUsageRate,UpdateSourceTrigger=PropertyChanged}"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </StackPanel>
+                <Grid Height="200" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="2.2*"/>
+                        <RowDefinition Height="2.2*"/>
+                        <RowDefinition Height="5.6*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Foreground="White" FontFamily="../Fonts/Roboto-Medium.ttf #Roboto" Text="USAGE (Byte)" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="6" BorderBrush="#FF2D2D2D" BorderThickness="0,5,0,0"/>
+                    <TextBlock Grid.Row="2" Grid.Column="0" Foreground="White" FontFamily="../Fonts/Roboto-Medium.ttf #Roboto" Text="STACK USAGE" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+
+                    <TextBlock Grid.Row="0" Grid.Column="1" Foreground="White" FontFamily="../Fonts/Roboto-Medium.ttf #Roboto" Text="CODE" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Row="0" Grid.Column="2" Foreground="White" FontFamily="../Fonts/Roboto-Medium.ttf #Roboto" Text="DATA" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Row="0" Grid.Column="3" Foreground="White" FontFamily="../Fonts/Roboto-Medium.ttf #Roboto" Text="RESERVED" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Row="0" Grid.Column="4" Foreground="White" FontFamily="../Fonts/Roboto-Medium.ttf #Roboto" Text="FREE" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Row="0" Grid.Column="5" Foreground="White" FontFamily="../Fonts/Roboto-Medium.ttf #Roboto" Text="TOTAL" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+
+                    <TextBlock Grid.Row="1" Grid.Column="1" Foreground="White" FontWeight="Bold" Text="{Binding totalMemoryUsageModel.TotalCode}" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Row="1" Grid.Column="2" Foreground="White" FontWeight="Bold" Text="{Binding totalMemoryUsageModel.TotalData}" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Row="1" Grid.Column="3" Foreground="White" FontWeight="Bold" Text="{Binding totalMemoryUsageModel.TotalReserved}" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Row="1" Grid.Column="4" Foreground="White" FontWeight="Bold" Text="{Binding totalMemoryUsageModel.TotalFree}" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Row="1" Grid.Column="5" Foreground="White" FontWeight="Bold" Text="{Binding totalMemoryUsageModel.TotalUsage}" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+
+                    <Grid Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="5">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="4*"/>
+                            <RowDefinition Height="6*"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Foreground="White" FontFamily="../Fonts/Roboto-Medium.ttf #Roboto" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Text="Start Address : "/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Foreground="White" FontWeight="Bold" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding totalMemoryUsageModel.StackStartAddress}"/>
+                        <TextBlock Grid.Row="0" Grid.Column="2" Foreground="White" FontFamily="../Fonts/Roboto-Medium.ttf #Roboto" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Text="End Address : "/>
+                        <TextBlock Grid.Row="0" Grid.Column="3" Foreground="White" FontWeight="Bold" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding totalMemoryUsageModel.StackEndAddress}"/>
+                        <TextBlock Grid.Row="0" Grid.Column="4" Foreground="White" FontFamily="../Fonts/Roboto-Medium.ttf #Roboto" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Text="Usage"/>
+                        <TextBlock Grid.Row="1" Grid.Column="4" Foreground="White" FontWeight="Bold" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding totalMemoryUsageModel.StackUsage}"/>
+
+                        <lvc:CartesianChart Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="4" Series="{Binding totalMemoryUsageModel.StackSeriesCollection}" LegendLocation="Left" Foreground="White" Panel.ZIndex="2" Hoverable="True">
+                            <lvc:CartesianChart.Resources>
+                                <Style TargetType="lvc:StackedRowSeries">
+                                    <Setter Property="StrokeThickness" Value="2"></Setter>
+                                    <Setter Property="MaxRowHeight" Value="30"/>
+                                </Style>
+                            </lvc:CartesianChart.Resources>
+                            <lvc:CartesianChart.AxisY>
+                                <lvc:Axis Title="Usage" ShowLabels="False" Foreground="White">
+                                    <lvc:Axis.Separator>
+                                        <lvc:Separator IsEnabled="False"></lvc:Separator>
+                                    </lvc:Axis.Separator>
+                                </lvc:Axis>
+                            </lvc:CartesianChart.AxisY>
+                            <lvc:CartesianChart.AxisX>
+                                <lvc:Axis ShowLabels="False" Foreground="White"/>
+                            </lvc:CartesianChart.AxisX>
+                            <lvc:CartesianChart.DataTooltip>
+                                <lvc:DefaultTooltip ShowTitle="False" SelectionMode="OnlySender" FontSize="10" Background="Black"></lvc:DefaultTooltip>
+                            </lvc:CartesianChart.DataTooltip>
+                        </lvc:CartesianChart>
+                    </Grid>
+
+                </Grid>
+            </Grid>
+        </md:Card>
+    </Grid>
+</UserControl>

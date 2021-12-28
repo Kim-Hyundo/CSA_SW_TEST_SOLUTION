@@ -1,0 +1,19 @@
+
+SYStem.CPU TC277T
+SYStem.Up
+Data.LOAD.Elf ~~~~/triboard-tc275_sieve_intflash.elf
+; break the program
+Data.Assemble P:0x80000910 lea a4,0x0
+PER.Set.simple D:0xF881C000 %Long 0x00000000   ; DPR0_L
+PER.Set.simple D:0xF881C004 %Long 0x00000400   ; DPR0_H
+PER.Set.simple D:0xF881C008 %Long 0x00000400   ; DPR1_L
+PER.Set.simple D:0xF881C00C %Long 0xffffFFFF   ; DPR1_H
+PER.Set.simple D:0xF881E010 %Long 0x00000002   ; DPRE_0
+PER.Set.simple D:0xF881E020 %Long 0x00000002   ; DPWE_0
+PER.Set.simple D:0xF881D000 %Long 0x00000000   ; CPR0_L
+PER.Set.simple D:0xF881D004 %Long 0xffffFFFF   ; CPR0_H
+PER.Set.simple D:0xF881E000 %Long 0x00000001   ; CPXE_0
+
+PER.Set.simple D:0xF881FE14 %Long 0x02    ; SYSCON.PROTEN = 1
+
+ENDDO

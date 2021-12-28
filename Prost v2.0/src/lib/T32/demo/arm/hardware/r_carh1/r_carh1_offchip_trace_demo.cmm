@@ -1,0 +1,92 @@
+; --------------------------------------------------------------------------------
+; @Title: Off-chip Trace Demo for the Renesas R-CarH1 (4x Cortex-A9)
+; @Description: 16 bit PTM trace demo for the 4 Cortex-A9 of the R-Car H2.
+; @Keywords: Cortex-A9, Renesas, SMP, Trace
+; @Author: PEG
+; @Board: MARZEN
+; @Chip: R8A77790
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: r_carh1_offchip_trace_demo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+  SYStem.RESet
+  SYStem.CPU RCARH1
+  SYStem.JtagClock 5.MHz
+  CORE.ASSIGN 1. 2. 3. 4.
+  SYStem.Mode Up
+
+  CORE 0.
+
+; Avoid WFI power down states
+  Data.Set ASD:0xF0000008 %Long 0x00000000
+
+; Enabling power for core 2, 3 and 4
+  Data.Set EAHB:0xFFD8500C %Long 0x00000000
+  Data.Set EAHB:0xFFD85010 %Long 0x00000000
+
+  WAIT (Data.Long(EAHB:0xFFD85000)&0x2)==0x2 100ms
+
+  IF (Data.Long(EAHB:0xFFD85000)&0x2)!=0x2
+  (
+    DIALOG.OK "Cannot power up the cores"
+    ENDDO
+  )
+
+  Data.Set EAHB:0xFFD8504C %Long 0x0000000e
+
+; Setup trace
+  LOCAL &TRACE_WIDTHSEL  &TRCCK_DIV_SEL
+
+  &TRACE_WIDTHSEL=0x2   ; 16 bit
+  ;&TRACE_WIDTHSEL=0x1   ;  8 bit
+
+
+  ;&TRCCK_DIV_SEL=0x0   ;  1/2 of CPU clock, 500 MHz (HS)/400 MHz (LS)
+  ;&TRCCK_DIV_SEL=0x1   ;  1/3 of CPU clock, 333 MHz (HS)/266 MHz (LS)
+  ;&TRCCK_DIV_SEL=0x2   ;  1/4 of CPU clock, 250 MHz (HS)/200 MHz (LS)
+  &TRCCK_DIV_SEL=0x3    ;  1/8 of CPU clock, 125 MHz (HS)/100 MHz (LS)
+
+  IF Analyzer()
+  (
+    Data.Set EDAP:0x8000F004  %Long (&TRACE_WIDTHSEL<<18.)|(0x1<<20.)|(&TRCCK_DIV_SEL<<25.)
+
+    Trace.METHOD Analyzer
+    ETM.PortMode Wrapped
+    ETM.PortSize 16.
+
+    IF AutoFocus()
+      Trace.AutoFocus
+
+    ; Enable trace trigger
+    Data.Set EDAP:0x80038000 %Long 1
+    Data.Set EDAP:0x80038038 %Long Data.Long(EDAP:0x80038038)|0x4
+
+    Data.Set EDAP:0x80039000 %Long 1
+    Data.Set EDAP:0x80039038 %Long Data.Long(EDAP:0x80039038)|0x4
+
+    Data.Set EDAP:0x8003A000 %Long 1
+    Data.Set EDAP:0x8003A038 %Long Data.Long(EDAP:0x8003A038)|0x4
+
+    Data.Set EDAP:0x8003B000 %Long 1
+    Data.Set EDAP:0x8003B038 %Long Data.Long(EDAP:0x8003B038)|0x4
+
+    Data.Set EDAP:0x80022000 %Long 1
+    Data.Set EDAP:0x800220AC %Long Data.Long(EDAP:0x800220AC)|0x4
+  )
+
+; Load demo application
+  CORE 0.
+  Register.RESet
+  Data.LOAD.Elf ~~~~/demo.axf
+  Register.Set PC main
+  Register.Set R13 0xfe798000
+  CORE 1.
+  Register.Set PC background
+  CORE 2.
+  Register.Set PC background
+  CORE 3.
+  Register.Set PC background
+  CORE 0.
+
+  ENDDO

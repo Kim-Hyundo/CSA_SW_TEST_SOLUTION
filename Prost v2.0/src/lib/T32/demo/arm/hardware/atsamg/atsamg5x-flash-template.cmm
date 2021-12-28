@@ -1,0 +1,42 @@
+; --------------------------------------------------------------------------------
+; @Title: Template script for using TRACE32 with ATSAMG5 series controllers
+; @Description:
+;   Template shows how to setup an debugsession with FLASH Programming for
+;   ATSAMG5x series controllers.
+;   Prerequisites:
+;     * SWD Debug lines are connected
+;     * Replace the SYStem.CPU setting
+; @Keywords: Atmel, ATSAM*
+; @Props: Template
+; @Author: AME
+; @Board: -
+; @Chip: ATSAMG5?
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: atsamg5x-flash-template.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+RESet
+SYStem.RESet
+SYStem.CPU ATSAMG51
+SYStem.CONFIG DEBUGPORTTYPE SWD
+SYStem.Option.DUALPORT ON
+SYStem.Option.ResBreak OFF
+SYStem.Up
+
+; prepare flash programming
+DO ~~/demo/arm/flash/atsamg PREPAREONLY
+
+; load Symbol File 
+FLASH.ReProgram ALL
+Data.LOAD.auto <your-file>.<elf/bin>
+FLASH.ReProgram OFF 
+
+; Reset CPU after Flash Programming
+SYStem.Up
+
+; open some windows
+Mode.Hll
+List.auto
+
+ENDDO

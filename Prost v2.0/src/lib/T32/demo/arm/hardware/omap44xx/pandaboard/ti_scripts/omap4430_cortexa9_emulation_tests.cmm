@@ -1,0 +1,210 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags
+; @Author: TI
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: omap4430_cortexa9_emulation_tests.cmm 9251 2016-04-13 15:59:56Z msamet $
+
+ENTRY &menu_type
+
+;GLOBAL &CMM_DIR &PROG_DIR_SIVAL &PROG_DIR_STANDALONE 
+GLOBAL &CMM_DIR &PROG_DIR_SIVAL
+&CMM_DIR="~~~~"
+;&PROG_DIR_SIVAL="Q:\tcomap4430\tc_emu\emulation_plus_board"
+
+MENU.ReProgram
+(
+  ADD
+  MENU
+  (
+    POPUP "CMM"
+    (
+      POPUP "Wake UP"
+      (
+        ;MENUITEM "Cortex register accesses" 
+        ;(
+          ; do &CMM_DIR/H3G_omap3430_cortex_tests_basic_reg
+        ;)
+        ;MENUITEM "System Reset" 
+        ;(
+          ; do &CMM_DIR/H3G_omap3430_Resets
+        ;)
+        MENUITEM "SelectSysClock_13MHz"
+        (
+          DO &CMM_DIR/omap4430_prcm 0x0
+        ) 
+        MENUITEM "SelectSysClock_19_2MHz"
+        (
+          DO &CMM_DIR/omap4430_prcm 0x1
+        )
+        MENUITEM "SelectSysClock_26MHz"
+        (
+          DO &CMM_DIR/omap4430_prcm 0x2
+        )
+        MENUITEM "SelectSysClock_38_4MHz"
+        (
+          DO &CMM_DIR/omap4430_prcm 0x3
+        )
+        MENUITEM "OPP config OPP100 SDC"
+        (
+          DO &CMM_DIR/omap4430_prcm 0x8
+        )
+                
+        MENUITEM "Load_Asm_program_OCMRAM1"
+        (
+          DO &CMM_DIR/omap4430_cortexa9_BasicEmulation 0x1
+        )
+        MENUITEM "Basic_Execution_control_OCMRAM1"
+        (
+          DO &CMM_DIR/omap4430_cortexa9_BasicEmulation 0x2
+        )
+        MENUITEM "Load_Asm_program_OCMRAM2"
+        (
+          DO &CMM_DIR/omap4430_cortexa9_BasicEmulation 0x3
+        )
+        MENUITEM "Basic_Execution_control_OCMRAM2"
+        (
+          DO &CMM_DIR/omap4430_cortexa9_BasicEmulation 0x4
+        )
+        MENUITEM "Load_Asm_program_DDR1"
+        (
+          DO &CMM_DIR/omap4430_cortexa9_BasicEmulation 0x5
+        )
+        MENUITEM "Basic_Execution_control_DDR1"
+        (
+          DO &CMM_DIR/omap4430_cortexa9_BasicEmulation 0x6
+        )
+        MENUITEM "Load_Asm_program_DDR2"
+        (
+          DO &CMM_DIR/omap4430_cortexa9_BasicEmulation 0x7
+        )
+        MENUITEM "Basic_Execution_control_DDR2"
+        (
+          DO &CMM_DIR/omap4430_cortexa9_BasicEmulation 0x8
+        )
+        MENUITEM "Load_Asm_program_CortexM3_L2_RAM"
+        (
+          DO &CMM_DIR/omap4430_cortexa9_BasicEmulation 0x9
+        )
+        MENUITEM "Basic_Execution_control_CortexM3_L2_RAM"
+        (
+          DO &CMM_DIR/omap4430_cortexa9_BasicEmulation 0xA
+        )     
+      )
+      POPUP "MS6"
+      (
+        MENUITEM "Load Program_DDR_CortexA9_standalone_SIVAL"
+        (
+          ;Data.LOAD.auto &PROG_DIR_SIVAL/cortexa9_cpu0_ES2_board_golden/cortexa9_cpu0_ape_silicon_image.axf /StripPART 7
+          ;sYmbol.SourcePATH.SetBaseDir &PROG_DIR_SIVAL/cortexa9_cpu0_board_golden/
+          ;Data.LOAD.auto &PROG_DIR_SIVAL/cortexa9_cpu0_ES2_board_golden/cortexa9_cpu0_ape_silicon_image.axf /NoCODE
+          List.auto
+        )
+        MENUITEM "Load Program_DDR_CortexA9_CPU0_FOR_DUAL_CORTEXA9_CPU0_CPU1_SIVAL"
+        (
+          ;Data.LOAD.auto &PROG_DIR_SIVAL/cortexa9_cpu1_ES2_board_golden/cortexa9_cpu0_ape_silicon_image.axf /StripPART 7
+          ;sYmbol.SourcePATH.SetBaseDir &PROG_DIR_SIVAL/cortexa9_cpu0_board_golden/
+          ;Data.LOAD.auto &PROG_DIR_SIVAL/cortexa9_cpu1_ES2_board_golden/cortexa9_cpu0_ape_silicon_image.axf /NoCODE
+          List.auto
+        )
+        MENUITEM "Load Program_DDR_CortexA9_CPU1_FOR_DUAL_CORTEXA9_CPU0_CPU1_SIVAL"
+        (
+          ;data.load &PROG_DIR_SIVAL/cortexa9_cpu1_ES2_board_golden/cortexa9_cpu0_ape_silicon_image.axf /StripPART 7
+          ;sYmbol.SourcePATH.SetBaseDir &PROG_DIR_SIVAL/cortexa9_cpu0_board_golden/
+          Register.Set CPSR 0x1d3
+          Register.Set PC 0x81800090
+          ;Data.LOAD.auto &PROG_DIR_SIVAL/cortexa9_cpu1_ES2_board_golden/cortexa9_cpu1_ape_silicon_image.axf /NoCODE
+          Go.direct
+          List.auto
+        )
+        MENUITEM "Load Program_DDR_CortexA9_with_CortexM3_RTOS_SIVAL"
+        (
+          ;Data.LOAD.auto &PROG_DIR_SIVAL/cortexm3_rtos_ES2_board_golden/cortexa9_cpu0_ape_silicon_image.axf  /StripPART 7
+          ;sYmbol.SourcePATH.SetBaseDir &PROG_DIR_SIVAL/cortexm3_rtos_golden/
+          ;Data.LOAD.auto &PROG_DIR_SIVAL/cortexm3_rtos_ES2_board_golden/cortexa9_cpu0_ape_silicon_image.axf /NoCODE
+          List.auto
+        )
+        MENUITEM "Load Program_DDR_CortexA9_with_Tesla_SIVAL"
+        (
+          ;Data.LOAD.auto &PROG_DIR_SIVAL/tesla_ES2_board_golden/cortexa9_cpu0_ape_silicon_image.axf /StripPART 7
+          ;sYmbol.SourcePATH.SetBaseDir &PROG_DIR_SIVAL/tesla_board_golden/
+          ;Data.LOAD.auto &PROG_DIR_SIVAL/tesla_ES2_board_golden/cortexa9_cpu0_ape_silicon_image.axf /NoCODE
+          List.auto
+        )
+        MENUITEM "Load Program_DDR_CortexA9_with_iCont1_iCont2_SIVAL"
+        (
+          ;Data.LOAD.auto &PROG_DIR_SIVAL/ivahd_iCont1_iCont2_board_ES2_golden/cortexa9_cpu0/cortexa9_cpu0_ape_silicon_image.axf /StripPART 7
+          ;sYmbol.SourcePATH.SetBaseDir &PROG_DIR_SIVAL/ivahd_iCont1_iCount2_board_golden/
+          ;Data.LOAD.auto &PROG_DIR_SIVAL/ivahd_iCont1_iCont2_board_ES2_golden/cortexa9_cpu0/cortexa9_cpu0_ape_silicon_image.axf /NoCODE
+          List.auto
+        )
+        MENUITEM "Reference testcase for validation STM using SW message"
+        (
+          Data.LOAD.Elf &CMM_DIR/golden_testcase/demo_stm.axf
+          Data.LOAD.Elf &CMM_DIR/golden_testcase/demo_stm.axf /VM
+          Data.Assemble zsr:0x800009b0 nop ; skip func40()
+          Register.Set pc main
+          Register.Set cpsr 0x1d3
+          Register.Set r13 0x80004000
+          Go.direct
+          WAIT 1s
+          Break.direct
+        )
+      )
+      POPUP "MS7"
+      (
+        POPUP "Cross Triggering"
+        (
+          MENUITEM "CortexA9 CPU0"
+          (                         
+            DO &CMM_DIR/omap4430_cortexA9_cross_triggering.cmm 0x0                       
+          )
+          MENUITEM "CortexA9 CPU1"
+          (  
+            DO &CMM_DIR/omap4430_cortexA9_cross_triggering.cmm 0x1
+          )
+          MENUITEM "CortexA9 CPU0_SMP"
+          (                         
+            DO &CMM_DIR/omap4430_cortexA9_cross_triggering.cmm 0x2                       
+          )
+          MENUITEM "CortexA9 CPU1_SMP"
+          (  
+            DO &CMM_DIR/omap4430_cortexA9_cross_triggering.cmm 0x3
+          )
+                   
+          ;Menuitem "CortexA9 CPU1 -> Master"
+          ;( 
+            ; trbus
+            ;    trbus.Connect Out
+            ;    trbus.Mode Falling
+            ;    trbus.Out Break On
+            ;    trbus.Set Break Off
+          ;)
+          ;Menuitem "CortexA9 CPU1 -> Slave"
+          ;( 
+            ; trbus
+            ;    trbus.Connect In
+            ;    trbus.Mode Falling
+            ;    trbus.Set Break On
+            ;    trbus.Out Break Off
+          ;)
+          ;Menuitem "CortexA8 -> Slave, IVA APE -> Master "
+          ;( 
+            ; do &CMM_DIR/H3G_omap3430_cortex_trigger_ivaAPE_to_cortexAPE_setting.cmm
+          ;)  
+          ;Menuitem "CortexA8 -> Slave, ARM9 MDM -> Master "
+          ;( 
+            ; do &CMM_DIR/H3G_omap3430_cortex_trigger_arm9MDM_to_cortexAPE_setting.cmm
+          ;)
+          ;Menuitem "CortexA8 -> Slave, C55 MDM -> Master "
+          ;( 
+            ; do &CMM_DIR/H3G_omap3430_cortex_trigger_c55MDM_to_cortexAPE_setting.cmm
+          ;)      
+        )
+      )    
+    )
+  )
+)
+  
+ENDDO
+

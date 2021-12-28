@@ -1,0 +1,1343 @@
+; --------------------------------------------------------------------------------
+; @Title: Peripheral-Trace Dialog script for TC39x-Astep 
+; @Description:
+;   Opens a dialog for programming the OTGB registers 
+;   to use a peripheral trace
+; @Keywords: AURIX2G, Infineon, TriCore
+; @Author: RAI
+; @Board: TriBoard-TC3x9
+; @Chip: TC3*
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: dialogtc3xx.cmm 15549 2020-01-20 12:15:35Z rsagerer $
+
+; Optinal script arguments:
+;
+;   DO dialogtc3xx [OTGB0=<text>] [OTGB1=<text>] [PROGRAM]
+;
+;     PROGRAM program the OCS/OTSS registers and set the names for the selected peripheral
+;
+; Example:
+;
+;   DO ~~/demo/tricore/etc/peripheraltrace/dialogtc3xx.cmm OTGB0="CAN1 TS16_CAN" OTGB1="DMA Active channels" PROGRAM
+;
+
+
+PMACRO.EXPLICIT 
+PRIVATE &parameters &otgb0_presel &otgb1_presel &auto_program
+ENTRY %LINE &parameters
+
+&otgb0_presel=STRing.SCANAndExtract("&parameters","OTGB0=","")
+&otgb0_presel=STRing.REPLACE("&otgb0_presel","""","",0)
+
+&otgb1_presel=STRing.SCANAndExtract("&parameters","OTGB1=","")
+&otgb1_presel=STRing.REPLACE("&otgb1_presel","""","",0)
+
+&auto_program=(STRING.SCAN("&parameters","PROGRAM",0)>=0)
+
+LOCAL &program_ready
+
+LOCAL &OFF_seltext 
+LOCAL &DMAact_seltext &DMAerr_seltext &DMA0_seltext &DMA16_seltext &DMA32_seltext &DMA48_seltext &DMA64_seltext &DMA80_seltext &DMA96_seltext &DMA112_seltext &DMA0_127_seltext &DMA0_63_seltext
+LOCAL &CAN0_seltext &CAN1_seltext &CAN2_seltext &CAN3_seltext &CAN4_seltext &CCU60_seltext &CCU61_seltext 
+LOCAL &EVADCgrou_seltext &EVADCchan_seltext &EVADC_seltext
+LOCAL &HSSL0sc_seltext &HSSL0err_seltext &HSSL0_seltext 
+LOCAL &HSSL1sc_seltext &HSSL1err_seltext &HSSL1_seltext 
+LOCAL &HSCT0_seltext &HSCT1_seltext
+LOCAL &ERAY0sep_seltext &ERAY0mc_seltext &ERAY1sep_seltext &ERAY1mc_seltext &ERAY0_seltext &ERAY1_seltext &ERAY_seltext
+LOCAL &SSI_seltext 
+LOCAL &IR_seltext &IRcpu0_seltext &IRdma_seltext &IRcpu1_seltext &IRcpu2_seltext &IRcpu3_seltext &IRcpu4_seltext &IRcpu5_seltext
+LOCAL &IRQ_seltext &IRQis_seltext &IRQspa_seltext 
+LOCAL &PMS_seltext &PMSadc_seltext &PMSevr_seltext 
+LOCAL &SPU_seltext &SPU0_seltext &SPU1_seltext &SPU0a_seltext &SPU0b_seltext &SPU1a_seltext &SPU1b_seltext
+LOCAL &RIF0_seltext &RIF1_seltext &RIF_seltext
+LOCAL &SMU_seltext
+LOCAL &textOTGB0 &textOTGB1 &timingSelection
+
+LOCAL &PMS_OTSS &PMS_OTSC0 &PMS_OTSC1
+LOCAL &DMA_OTSS &CAN0_OTSS &CAN1_OTSS &CAN2_OTSS &CAN3_OTSS &CAN4_OTSS &CCU60_OTSS &CCU61_OTSS &EVADC_OTSS &HSSL0_OTSS &HSSL1_OTSS &HSCT0_OTSS &HSCT1_OTSS &ERAY0_OTSS &ERAY1_OTSS
+LOCAL &SSI_OTSS &IR_OTSS &IRQ_OTSS &SPU0_OCS &SPU1_OCS &RIF0_OCS &RIF1_OCS &SMU_OCS
+
+
+LOCAL &textPMS_ADCMON_0 &textPMS_ADCMON_1 &textPMS_ADCMON_2 &textPMS_ADCMON_3 &textPMS_ADCMON_4 &textPMS_ADCMON_5 &textPMS_ADCMON_6 
+LOCAL &textPMS_ADCMON_7 &textPMS_ADCMON_8 &textPMS_ADCMON_9 &textPMS_ADCMON_A &textPMS_ADCMON_B &textPMS_ADCMON_C &textPMS_ADCMON
+LOCAL &textPMS_EVRCON_0 &textPMS_EVRCON_1 &textPMS_EVRCON_2 &textPMS_EVRCON_3 &textPMS_EVRCON_4 &textPMS_EVRCON_5 &textPMS_EVRCON
+
+LOCAL &OTGBxnames &OTGB0names &OTGB1names
+LOCAL &OTGBxselection
+LOCAL &OTGBx
+
+LOCAL &otbg0_smcdbg &otbg0_dmonad &otbg1_smcdbg &otbg1_dmonad
+
+LOCAL &ADCMONselection
+LOCAL &word_analog
+
+&program_ready=0x0
+
+&OFF_seltext="OFF"
+&DMAact_seltext="DMA Active channels"
+&DMAerr_seltext="DMA Error channel number and flags"
+&DMA0_seltext="DMA Transaction Request State Channel 0 - 15"
+&DMA16_seltext="DMA Transaction Request State Channel 16 - 31"
+&DMA32_seltext="DMA Transaction Request State Channel 32 - 47"
+&DMA48_seltext="DMA Transaction Request State Channel 48 - 63"
+&DMA64_seltext="DMA Transaction Request State Channel 64 - 79"
+&DMA80_seltext="DMA Transaction Request State Channel 80 - 95"
+&DMA96_seltext="DMA Transaction Request State Channel 96 - 111"
+&DMA112_seltext="DMA Transaction Request State Channel 112 -127"
+&DMA0_127_seltext="&DMAact_seltext"+","+"&DMAerr_seltext"+","+"&DMA0_seltext"+","+"&DMA16_seltext"+","+"&DMA32_seltext"+","+"&DMA48_seltext"+","+"&DMA64_seltext"+","+"&DMA80_seltext"+","+"&DMA96_seltext"+","+"&DMA112_seltext"
+&DMA0_63_seltext="&DMAact_seltext"+","+"&DMAerr_seltext"+","+"&DMA0_seltext"+","+"&DMA16_seltext"+","+"&DMA32_seltext"+","+"&DMA48_seltext"
+
+&CAN0_seltext="CAN0 TS16_CAN"
+&CAN1_seltext="CAN1 TS16_CAN"
+&CAN2_seltext="CAN2 TS16_CAN"
+&CAN3_seltext="CAN3 TS16_CAN"
+&CAN4_seltext="CAN4 TS16_CAN"
+
+&CCU60_seltext="CCU60 TS16_CCU6"
+&CCU61_seltext="CCU61 TS16_CCU6"
+
+&EVADCgrou_seltext="EVADC TS16_SSIGC primary/secondary groups"
+&EVADCchan_seltext="EVADC TS16_SSIGF fast compare channels"
+&EVADC_seltext="&EVADCgrou_seltext"+","+"&EVADCchan_seltext"
+
+&HSSL0sc_seltext="HSSL0 TS16_STR Streaming Channel"
+&HSSL0err_seltext="HSSL0 TS16_ERR Errors"
+&HSSL0_seltext="&HSSL0sc_seltext"+","+"&HSSL0err_seltext"
+&HSSL1sc_seltext="HSSL1 TS16_STR Streaming Channel"
+&HSSL1err_seltext="HSSL1 TS16_ERR Errors"
+&HSSL1_seltext="&HSSL1sc_seltext"+","+"&HSSL1err_seltext"
+
+&HSCT0_seltext="HSCT0 TS16_HSCT"
+&HSCT1_seltext="HSCT1 TS16_HSCT"
+
+&ERAY0sep_seltext="ERAY0 TS16_SEP"
+&ERAY0mc_seltext="ERAY0 TS16_MC"
+&ERAY1sep_seltext="ERAY1 TS16_SEP"
+&ERAY1mc_seltext="ERAY1 TS16_MC"
+&ERAY0_seltext="&ERAY0sep_seltext"+","+"&ERAY0mc_seltext"
+&ERAY1_seltext="&ERAY1sep_seltext"+","+"&ERAY1mc_seltext"
+&ERAY_seltext="&ERAY0_seltext"+","+"&ERAY1_seltext"
+
+&SSI_seltext="SSI TS16_SSI"
+
+&IRcpu0_seltext="IR CPU0 service" 
+&IRdma_seltext="IR DMA service" 
+&IRcpu1_seltext="IR CPU1 service" 
+&IRcpu2_seltext="IR CPU2 service" 
+&IRcpu3_seltext="IR CPU3 service" 
+&IRcpu4_seltext="IR CPU4 service" 
+&IRcpu5_seltext="IR CPU5 service" 
+&IR_seltext="&IRcpu0_seltext"+","+"&IRdma_seltext"+","+"&IRcpu1_seltext"+","+"&IRcpu2_seltext"+","+"&IRcpu3_seltext"+","+"&IRcpu4_seltext"+","+"&IRcpu5_seltext"
+
+&IRQis_seltext="IRQ TS8_IS" 
+&IRQspa_seltext="IRQ TS8_SPA" 
+&IRQ_seltext="&IRQis_seltext"+","+"&IRQspa_seltext"
+
+&PMSadc_seltext="PMS TS16_ADCMON" 
+&PMSevr_seltext="PMS TS16_EVRCON" 
+&PMS_seltext="&PMSadc_seltext"+","+"&PMSevr_seltext"
+
+&SPU0a_seltext="SPU0 Trigger Set A" 
+&SPU0b_seltext="SPU0 Trigger Set B" 
+&SPU1a_seltext="SPU1 Trigger Set A"
+&SPU1b_seltext="SPU1 Trigger Set B"
+&SPU0_seltext="&SPU0a_seltext"+","+"&SPU0b_seltext"
+&SPU1_seltext="&SPU1a_seltext"+","+"&SPU1b_seltext"
+&SPU_seltext="&SPU0_seltext"+","+"&SPU1_seltext"
+
+&RIF0_seltext="RIF0 Trigger Set A"     ; TS16_RIF_CURRAMP  TS16_RIF_CRC
+&RIF1_seltext="RIF1 Trigger Set A"
+&RIF_seltext="&RIF0_seltext"+","+"&RIF1_seltext"
+
+&SMU_seltext="SMU TS16_SMU"
+
+IF CPUIS("TC39*")&&(CPUIS("*ASTEP*"))
+(
+  &textOTGB0="&OFF_seltext"+","+"&DMA0_127_seltext"+","+"&CAN0_seltext"+","+"&CAN1_seltext"+","+"&CAN2_seltext"+","+"&CCU60_seltext"+","+"&CCU61_seltext"+","+"&EVADC_seltext"+","+"&HSSL0_seltext"+","+"&HSCT0_seltext"+","+"&ERAY_seltext"+","+"&SSI_seltext"+","+"&IR_seltext"+","+"&IRQ_seltext"+","+"&PMS_seltext"+","+"&SPU_seltext"+","+"&RIF_seltext"+","+"&SMU_seltext"
+)
+ELSE IF CPUIS("TC39*")    ;BSTEP
+(
+  &textOTGB0="&OFF_seltext"+","+"&DMA0_127_seltext"+","+"&CAN0_seltext"+","+"&CAN1_seltext"+","+"&CAN2_seltext"+","+"&CCU60_seltext"+","+"&CCU61_seltext"+","+"&EVADC_seltext"+","+"&HSSL0_seltext"+","+"&HSSL1_seltext"+","+"&HSCT0_seltext"+","+"&HSCT1_seltext"+","+"&ERAY_seltext"+","+"&SSI_seltext"+","+"&IR_seltext"+","+"&IRQ_seltext"+","+"&PMS_seltext"+","+"&SPU_seltext"+","+"&RIF_seltext"+","+"&SMU_seltext"
+)
+ELSE IF CPUIS("TC38*")
+(
+  &textOTGB0="&OFF_seltext"+","+"&DMA0_127_seltext"+","+"&CAN0_seltext"+","+"&CAN1_seltext"+","+"&CAN2_seltext"+","+"&CCU60_seltext"+","+"&CCU61_seltext"+","+"&EVADC_seltext"+","+"&HSSL0_seltext"+","+"&HSCT0_seltext"+","+"&ERAY_seltext"+","+"&SSI_seltext"+","+"&IR_seltext"+","+"&IRQ_seltext"+","+"&PMS_seltext"+","+"&SMU_seltext"
+)
+ELSE IF CPUIS("TC3E*")
+(
+  &textOTGB0="&OFF_seltext"+","+"&DMA0_127_seltext"+","+"&CAN0_seltext"+","+"&CAN1_seltext"+","+"&CAN2_seltext"+","+"&CAN3_seltext"+","+"&CAN4_seltext"+","+"&CCU60_seltext"+","+"&CCU61_seltext"+","+"&EVADC_seltext"+","+"&HSSL0_seltext"+","+"&HSCT0_seltext"+","+"&ERAY_seltext"+","+"&SSI_seltext"+","+"&IR_seltext"+","+"&IRQ_seltext"+","+"&PMS_seltext"+","+"&SMU_seltext"
+)
+ELSE IF CPUIS("TC37*")
+(
+  &textOTGB0="&OFF_seltext"+","+"&DMA0_127_seltext"+","+"&CAN0_seltext"+","+"&CAN1_seltext"+","+"&CAN2_seltext"+","+"&CCU60_seltext"+","+"&CCU61_seltext"+","+"&EVADC_seltext"+","+"&HSSL0_seltext"+","+"&HSCT0_seltext"+","+"&ERAY0_seltext"+","+"&SSI_seltext"+","+"&IR_seltext"+","+"&IRQ_seltext"+","+"&PMS_seltext"+","+"&SMU_seltext"
+)
+ELSE IF CPUIS("TC35*")
+(
+  &textOTGB0="&OFF_seltext"+","+"&DMA0_63_seltext"+","+"&CAN0_seltext"+","+"&CAN1_seltext"+","+"&CCU60_seltext"+","+"&CCU61_seltext"+","+"&EVADC_seltext"+","+"&ERAY0_seltext"+","+"&SSI_seltext"+","+"&IR_seltext"+","+"&IRQ_seltext"+","+"&PMS_seltext"+","+"&SMU_seltext"+","+"&SPU_seltext"+","+"&RIF_seltext"
+)
+ELSE IF CPUIS("TC33*")
+(
+  &textOTGB0="&OFF_seltext"+","+"&DMA0_63_seltext"+","+"&CAN0_seltext"+","+"&CCU60_seltext"+","+"&CCU61_seltext"+","+"&EVADC_seltext"+","+"&SSI_seltext"+","+"&IR_seltext"+","+"&IRQ_seltext"+","+"&PMS_seltext"+","+"&SMU_seltext"+","+"&SPU0_seltext"+","+"&RIF0_seltext"
+)
+ELSE IF CPUIS("TC36*")
+(
+  PRINT %ERROR "TC36x are not supported"
+  ENDDO
+)
+
+&textOTGB1="&textOTGB0"
+
+&textPMS_ADCMON_0="No Module selected"
+&textPMS_ADCMON_1="PRADCCV Primary Core / VDD voltage"
+&textPMS_ADCMON_2="PRADC33V Primary VDDP3 voltage"
+&textPMS_ADCMON_3="PRADCSWDV Primary VEXT voltage"
+&textPMS_ADCMON_4="PRADCFBCV Primary EVRC SMPS core voltage feedback"
+&textPMS_ADCMON_5="SECADCCV Secondary Core / VDD voltage"
+&textPMS_ADCMON_6="SECADC33V Secondary VDDP3 voltage"
+&textPMS_ADCMON_7="SECADCSWDV Secondary VEXT voltage"
+&textPMS_ADCMON_8="SECADCPRE EVRPR / VDDPD voltage"
+&textPMS_ADCMON_9="SECADCSB VEVRSB standby voltage"
+&textPMS_ADCMON_A="SECADCVDDM VDDM ADC voltage"
+&textPMS_ADCMON_B="DTSRESULTL DTS Temperature 7:0"
+&textPMS_ADCMON_C="DTSRESULTH DTS Temperature 11:8"
+&textPMS_ADCMON="&textPMS_ADCMON_0"+","+"&textPMS_ADCMON_1"+","+"&textPMS_ADCMON_2"+","+"&textPMS_ADCMON_3"+","+"&textPMS_ADCMON_4"+","+"&textPMS_ADCMON_5"+","+"&textPMS_ADCMON_6"+","+"&textPMS_ADCMON_7"+","+"&textPMS_ADCMON_8"+","+"&textPMS_ADCMON_9"+","+"&textPMS_ADCMON_A"+","+"&textPMS_ADCMON_B"+","+"&textPMS_ADCMON_C"
+
+&textPMS_EVRCON_0="No Module selected"
+&textPMS_EVRCON_1="EVRCDPWM EVRC digital PWM to ext MOSFET"
+&textPMS_EVRCON_2="EVRCOUT EVRC signals selected with SMCDBG and DMONAD"
+&textPMS_EVRCON_3="EVR33OUT EVR33 regulator DAC"
+&textPMS_EVRCON_4="WUTCNT Wake-up timer count"
+&textPMS_EVRCON_5="TCSCRINT PMS and SCR in/out bus interface"
+&textPMS_EVRCON="&textPMS_EVRCON_0"+","+"&textPMS_EVRCON_1"+","+"&textPMS_EVRCON_2"+","+"&textPMS_EVRCON_3"+","+"&textPMS_EVRCON_4"+","+"&textPMS_EVRCON_5"
+&timingSelection="Node.ALL"
+
+
+IF !CPUIS("TC3*")
+(
+  PRINT %ERROR "This script is only for TC3xx CPUs"
+  ENDDO
+)
+
+; Creating the dialog
+    DIALOG
+(&
+                      HEADER "Peripheral-Trace Selection TC3xx"
+
+            POS 1. 1. 43. 14.
+                      BOX "OTGB0 Selection"
+            POS 2. 2. 41. 1.
+OTGB0_SELECT.SEL:     DEFCOMBOBOX "&textOTGB0" "GOSUB enable_disable_box"
+
+            POS 2. 4. 41. 10.
+                      BOX "Power Management System (PMS)"
+            POS 3. 5. 39. 4.
+                      BOX "ADCMON"
+            POS 4. 6. 9. 1.
+                      TEXT "Low Byte:"
+            POS 11. 6. 30. 1.
+PMS_OTGB0_LOWB.SEL:   DEFCOMBOBOX "&textPMS_ADCMON" "GOSUB enable_disable_box"
+            POS 4. 7. 9. 1.
+                      TEXT "High Byte:"
+            POS 11. 7. 30. 1.
+PMS_OTGB0_HIGHB.SEL:  DEFCOMBOBOX "&textPMS_ADCMON" "GOSUB enable_disable_box"
+
+            POS 3. 9. 39. 4.
+                      BOX "EVRCON"
+            POS 4. 10. 37. 1.
+PMS_OTGB0_EVRCON.SEL: DEFCOMBOBOX "&textPMS_EVRCON" "GOSUB enable_disable_box"
+            POS 4. 11. 7. 1.
+                      TEXT "SMCDBG:"
+            POS 12. 11. 6. 1.
+EDIT_OTGB0_SMCDBG:    EDIT "" "GOSUB update_textbox"
+            POS 21. 11. 7. 1.
+                      TEXT "DMONAD:"
+            POS 29. 11. 6. 1.
+EDIT_OTGB0_DMONAD:    EDIT "" "GOSUB update_textbox"
+
+            POS 1.+43. 1. 43. 14.
+                      BOX "OTGB1 Selection"
+            POS 2.+43. 2. 41. 1.
+OTGB1_SELECT.SEL:     DEFCOMBOBOX "&textOTGB1" "GOSUB enable_disable_box"
+
+            POS 2.+43. 4. 41. 10.
+                      BOX "Power Management System (PMS)"
+            POS 3.+43. 5. 39. 4.
+                BOX "ADCMON"
+            POS 4.+43. 6. 9. 1.
+                      TEXT "Low Byte:"
+            POS 11.+43. 6. 30. 1.
+PMS_OTGB1_LOWB.SEL:   DEFCOMBOBOX "&textPMS_ADCMON" "GOSUB enable_disable_box"
+            POS 4.+43. 7. 9. 1.
+                      TEXT "High Byte:"
+            POS 11.+43. 7. 30. 1.
+PMS_OTGB1_HIGHB.SEL:  DEFCOMBOBOX "&textPMS_ADCMON" "GOSUB enable_disable_box"
+
+            POS 3.+43. 9. 39. 4.
+                      BOX "EVRCON"
+            POS 4.+43. 10. 37. 1.
+PMS_OTGB1_EVRCON.SEL: DEFCOMBOBOX "&textPMS_EVRCON" "GOSUB enable_disable_box"
+            POS 4.+43. 11. 7. 1.
+                      TEXT "SMCDBG:"
+            POS 12.+43. 11. 6. 1.
+EDIT_OTGB1_SMCDBG:    EDIT "" "GOSUB update_textbox"
+            POS 21.+43. 11. 7. 1.
+                      TEXT "DMONAD:"
+            POS 29.+43. 11. 6. 1.
+EDIT_OTGB1_DMONAD:    EDIT "" "GOSUB update_textbox"
+
+            POS 07. 15. 12. 2.
+DIALOG_LOGIC:         BUTTON    "Timing Logic" "GOSUB timing_logic"
+
+            POS 23. 15. 12. 2.
+DIALOG_ANALOG:        BUTTON    "Timing Analog" "GOSUB timing_analog"
+
+            POS 39. 15. 12. 2.
+                      BUTTON    "RESET" "GOSUB setdefault_program"
+
+            POS 55. 15. 12. 2.
+DIALOG_OK:            DEFBUTTON    "PROGRAM" "GOSUB dialog_ok"
+
+            POS 71. 15. 12. 2.
+                      BUTTON    "QUIT" "GOTO cancel"
+
+            POS  1. 17. 86. 1.
+                      TEXT ""
+
+;define action when window is closed
+                      CLOSE "GOTO cancel"
+
+                      CLOSE "CONTinue"
+)
+
+; Update data
+GOSUB setdefaults
+GOSUB buttomdisable_box
+
+IF ("&(otgb0_presel)"=="")
+(
+  ; nothing to do
+)
+ELSE IF (STRING.SCAN(",&(textOTGB0),",",&(otgb0_presel),",0)>=0)
+(
+  DIALOG.Set OTGB0_SELECT.SEL "&(otgb0_presel)"
+)
+ELSE
+(
+  PRINT %ERROR "Invalid parameter OTBGO=&otgb0_presel"
+)
+
+IF ("&(otgb1_presel)"=="")
+(
+  ; nothing to do
+)
+ELSE IF STRING.SCAN(",&(textOTGB1),",",&(otgb1_presel),",0)>=0
+(
+  DIALOG.Set OTGB1_SELECT.SEL "&(otgb1_presel)"
+)
+ELSE
+(
+  PRINT %ERROR "Invalid parameter OTBG1=&otgb1_presel"
+)
+
+IF &auto_program
+(
+  GOSUB dialog_ok
+)
+
+; WAIT until The close button was pressed.
+STOP
+
+;script continues here when Cancel is clicked"
+cancel:
+  DIALOG.END
+  ENDDO
+
+
+; --------------------------------------------------------------------------------
+; set default selections and program the registers
+setdefault_program:
+  GOSUB setdefaults
+  GOSUB dialog_ok
+
+  RETURN
+
+
+; --------------------------------------------------------------------------------
+; set default selections
+setdefaults:
+  &otbg0_smcdbg=0x0
+  &otbg0_dmonad=0x0
+  &otbg1_smcdbg=0x0
+  &otbg1_dmonad=0x0
+
+  DIALOG.SET OTGB0_SELECT.SEL "OFF"
+  DIALOG.SET PMS_OTGB0_LOWB.SEL "OFF"
+  DIALOG.SET PMS_OTGB0_HIGHB.SEL "OFF"
+  DIALOG.SET PMS_OTGB0_EVRCON.SEL "OFF"
+  DIALOG.SET OTGB1_SELECT.SEL "OFF"
+  DIALOG.SET PMS_OTGB1_LOWB.SEL "OFF"
+  DIALOG.SET PMS_OTGB1_HIGHB.SEL "OFF"
+  DIALOG.SET PMS_OTGB1_EVRCON.SEL "OFF"
+
+  DIALOG.Set EDIT_OTGB0_SMCDBG "0x"+FORMAT.HEX(2.,&otbg0_smcdbg)
+  DIALOG.Set EDIT_OTGB0_DMONAD "0x"+FORMAT.HEX(2.,&otbg0_dmonad)
+  DIALOG.Set EDIT_OTGB1_SMCDBG "0x"+FORMAT.HEX(2.,&otbg1_smcdbg)
+  DIALOG.Set EDIT_OTGB1_DMONAD "0x"+FORMAT.HEX(2.,&otbg1_dmonad)
+  
+  RETURN
+
+
+; --------------------------------------------------------------------------------
+; dialog enable/disable settings
+enable_disable_box:
+  &program_ready=0x1
+  GOSUB buttomdisable_box
+  RETURN  
+
+; --------------------------------------------------------------------------------
+; disable some settings
+buttomdisable_box:
+  LOCAL &OTGB0selection &OTGB1selection
+  &OTGB0selection=DIALOG.STRING(OTGB0_SELECT.SEL)
+  IF ("&OTGB0selection"=="&PMSadc_seltext")
+  (
+     DIALOG.ENABLE PMS_OTGB0_LOWB.SEL
+     DIALOG.ENABLE PMS_OTGB0_HIGHB.SEL
+     DIALOG.DISABLE PMS_OTGB0_EVRCON.SEL
+     DIALOG.DISABLE EDIT_OTGB0_SMCDBG
+     DIALOG.DISABLE EDIT_OTGB0_DMONAD
+  )
+  ELSE IF ("&OTGB0selection"=="&PMSevr_seltext")
+  (
+     DIALOG.DISABLE PMS_OTGB0_LOWB.SEL
+     DIALOG.DISABLE PMS_OTGB0_HIGHB.SEL
+     DIALOG.ENABLE PMS_OTGB0_EVRCON.SEL
+     LOCAL &selection
+     &selection=DIALOG.STRING(PMS_OTGB0_EVRCON.SEL)
+     IF ("&selection"=="&textPMS_EVRCON_2")
+     (     
+        DIALOG.ENABLE EDIT_OTGB0_SMCDBG
+        DIALOG.ENABLE EDIT_OTGB0_DMONAD
+     )
+     ELSE
+     (     
+        DIALOG.DISABLE EDIT_OTGB0_SMCDBG
+        DIALOG.DISABLE EDIT_OTGB0_DMONAD
+     )
+  )
+  ELSE
+  (
+     DIALOG.DISABLE PMS_OTGB0_LOWB.SEL
+     DIALOG.DISABLE PMS_OTGB0_HIGHB.SEL
+     DIALOG.DISABLE PMS_OTGB0_EVRCON.SEL
+     DIALOG.DISABLE EDIT_OTGB0_SMCDBG
+     DIALOG.DISABLE EDIT_OTGB0_DMONAD
+  )
+  
+  &OTGB1selection=DIALOG.STRING(OTGB1_SELECT.SEL)
+  IF ("&OTGB1selection"=="&PMSadc_seltext")
+  (
+     DIALOG.ENABLE PMS_OTGB1_LOWB.SEL
+     DIALOG.ENABLE PMS_OTGB1_HIGHB.SEL
+     DIALOG.DISABLE PMS_OTGB1_EVRCON.SEL
+     DIALOG.DISABLE EDIT_OTGB1_SMCDBG
+     DIALOG.DISABLE EDIT_OTGB1_DMONAD
+  )
+  ELSE IF ("&OTGB1selection"=="&PMSevr_seltext")
+  (
+     DIALOG.DISABLE PMS_OTGB1_LOWB.SEL
+     DIALOG.DISABLE PMS_OTGB1_HIGHB.SEL
+     DIALOG.ENABLE PMS_OTGB1_EVRCON.SEL
+     LOCAL &selection
+     &selection=DIALOG.STRING(PMS_OTGB1_EVRCON.SEL)
+     IF ("&selection"=="&textPMS_EVRCON_2")
+     (     
+        DIALOG.ENABLE EDIT_OTGB1_SMCDBG
+        DIALOG.ENABLE EDIT_OTGB1_DMONAD
+     )
+     ELSE
+     (     
+        DIALOG.DISABLE EDIT_OTGB1_SMCDBG
+        DIALOG.DISABLE EDIT_OTGB1_DMONAD
+     )
+  )
+  ELSE
+  (
+     DIALOG.DISABLE PMS_OTGB1_LOWB.SEL
+     DIALOG.DISABLE PMS_OTGB1_HIGHB.SEL
+     DIALOG.DISABLE PMS_OTGB1_EVRCON.SEL
+     DIALOG.DISABLE EDIT_OTGB1_SMCDBG
+     DIALOG.DISABLE EDIT_OTGB1_DMONAD
+  )
+  
+  GOSUB enable_disable_OK
+
+  RETURN
+
+
+; --------------------------------------------------------------------------------
+; view timing diagram of all digtal channels
+timing_logic:
+  Trace.Timing &timingSelection
+  RETURN
+
+; --------------------------------------------------------------------------------
+timing_analog:
+
+  Trace.DRAW &word_analog 
+  RETURN
+
+; --------------------------------------------------------------------------------
+enable_disable_OK:
+  IF &program_ready==0x0
+  (
+      DIALOG.DISABLE DIALOG_OK
+  )
+  ELSE
+  (
+      DIALOG.ENABLE DIALOG_OK
+  )
+
+  LOCAL &OTGB0selection &OTGB1selection
+  &OTGB0selection=DIALOG.STRING(OTGB0_SELECT.SEL)
+  &OTGB1selection=DIALOG.STRING(OTGB1_SELECT.SEL)
+  IF ((&program_ready==0x0)&&(("&OTGB0selection"=="&PMSadc_seltext")||("&OTGB1selection"=="&PMSadc_seltext")))
+  (
+      DIALOG.ENABLE DIALOG_ANALOG
+  )
+  ELSE
+  (
+      DIALOG.DISABLE DIALOG_ANALOG
+  )
+
+  RETURN
+
+; --------------------------------------------------------------------------------
+update_textbox:
+  LOCAL &temp
+  &temp=DIALOG.STRING(EDIT_OTGB0_SMCDBG)
+  EVAL &temp
+  IF (eval.type()==0004)||(eval.type()==0008)
+  (
+     &temp="0x"+(FORMAT.HEX(2.,&temp))
+     &temp=&temp&0x1F
+     &temp="0x"+(FORMAT.HEX(2.,&temp))
+     DIALOG.SET EDIT_OTGB0_SMCDBG "&temp"
+  )
+  ELSE 
+     DIALOG.Set EDIT_OTGB0_SMCDBG "0x00"
+
+  &temp=DIALOG.STRING(EDIT_OTGB0_DMONAD)
+  EVAL &temp
+  IF (eval.type()==0004)||(eval.type()==0008)
+  (
+     &temp="0x"+(FORMAT.HEX(2.,&temp))
+     &temp=&temp&0x1F
+     &temp="0x"+(FORMAT.HEX(2.,&temp))
+     DIALOG.SET EDIT_OTGB0_DMONAD "&temp"
+  )
+  ELSE 
+     DIALOG.Set EDIT_OTGB0_DMONAD "0x00"
+
+  &temp=DIALOG.STRING(EDIT_OTGB1_SMCDBG)
+  EVAL &temp
+  IF (eval.type()==0004)||(eval.type()==0008)
+  (
+     &temp="0x"+(FORMAT.HEX(2.,&temp))
+     &temp=&temp&0x1F
+     &temp="0x"+(FORMAT.HEX(2.,&temp))
+     DIALOG.SET EDIT_OTGB1_SMCDBG "&temp"
+  )
+  ELSE 
+     DIALOG.Set EDIT_OTGB1_SMCDBG "0x00"
+
+  &temp=DIALOG.STRING(EDIT_OTGB1_DMONAD)
+  EVAL &temp
+  IF (eval.type()==0004)||(eval.type()==0008)
+  (
+     &temp="0x"+(FORMAT.HEX(2.,&temp))
+     &temp=&temp&0x1F
+     &temp="0x"+(FORMAT.HEX(2.,&temp))
+     DIALOG.SET EDIT_OTGB1_DMONAD "&temp"
+  )
+  ELSE 
+     DIALOG.Set EDIT_OTGB1_DMONAD "0x00"
+
+  RETURN
+
+; --------------------------------------------------------------------------------
+dialog_ok:
+  NAME.RESet
+  &word_analog=""
+
+  ;reset all registers
+  &DMA_OTSS=0x00000
+  &CAN0_OTSS=0x00008
+  &CAN1_OTSS=0x00008
+  &CAN2_OTSS=0x00008
+  &CAN3_OTSS=0x00008
+  &CAN4_OTSS=0x00008
+  &CCU60_OTSS=0x00008
+  &CCU61_OTSS=0x00008
+  &EVADC_OTSS=0x00008
+  &HSSL0_OTSS=0x00008
+  &HSSL1_OTSS=0x00008
+  &HSCT0_OTSS=0x00008
+  &HSCT1_OTSS=0x00008
+  &ERAY0_OTSS=0x0
+  &ERAY1_OTSS=0x0
+  &SSI_OTSS=0x0000
+  &IR_OTSS=0x0000
+  &IRQ_OTSS=0x0000
+  
+  &PMS_OTSS=0x0000
+  &PMS_OTSC0=0x0000
+  &PMS_OTSC1=0x0000
+  
+  &SPU0_OCS=0x00008
+  &SPU1_OCS=0x00008
+  &RIF0_OCS=0x00008
+  &RIF1_OCS=0x00008
+  &SMU_OCS=0x00008
+
+  &timingSelection="Node.ALL"
+  &OTGBx=0
+  &OTGBxnames=""
+  &OTGBxselection=DIALOG.STRING(OTGB0_SELECT.SEL);
+  GOSUB selectioncheck
+  &OTGB0names="&OTGBxnames"
+
+  &OTGBx=1
+  &OTGBxnames=""
+  &OTGBxselection=DIALOG.STRING(OTGB1_SELECT.SEL);
+  GOSUB selectioncheck
+  &OTGB1names="&OTGBxnames"
+
+  GOSUB regsetting
+
+  RETURN
+
+
+; --------------------------------------------------------------------------------
+selectioncheck:
+  
+  IF "&OTGBxselection"=="&OFF_seltext"
+  (
+      &OTGBxnames=""
+  )
+  ELSE IF "&OTGBxselection"=="&DMAact_seltext"
+  (
+    IF &DMA_OTSS!=0x0
+       print %error "warning only one DMA can be selected"
+    &DMA_OTSS=0x00001|(&OTGBx<<7)
+    &OTGBxnames="ENG0_CH0, ENG0_CH1, ENG0_CH2, ENG0_CH3, ENG0_CH4, ENG0_CH5, ENG0_CH6, ENG0_ACTIV, ENG1_CH0, ENG1_CH1, ENG1_CH2, ENG1_CH3, ENG1_CH4, ENG1_CH5, ENG1_CH6, ENG1_ACTIV"
+    IF &OTGBx==0
+    (
+       NAME.Word CHENGINE0 n.OTGB0_0 n.OTGB0_1 n.OTGB0_2 n.OTGB0_3 n.OTGB0_4 n.OTGB0_5 n.OTGB0_6
+       NAME.Word CHENGINE1 n.OTGB0_8 n.OTGB0_9 n.OTGB0_10 n.OTGB0_11 n.OTGB0_12 n.OTGB0_13 n.OTGB0_14
+       &timingSelection="W.CHENGINE0 N.ENG0_ACTIV W.CHENGINE1 N.ENG1_ACTIV N.OTGB1_0 N.OTGB1_1 N.OTGB1_2 N.OTGB1_3 N.OTGB1_4 N.OTGB1_5 N.OTGB1_6 N.OTGB1_7 N.OTGB1_8 N.OTGB1_9 N.OTGB1_10 N.OTGB1_11 N.OTGB1_12 N.OTGB1_13 N.OTGB1_14 N.OTGB1_15"
+    )
+    ELSE
+    (
+       NAME.Word CHENGINE0 n.OTGB1_0 n.OTGB1_1 n.OTGB1_2 n.OTGB1_3 n.OTGB1_4 n.OTGB1_5 n.OTGB1_6
+       NAME.Word CHENGINE1 n.OTGB1_8 n.OTGB1_9 n.OTGB1_10 n.OTGB1_11 n.OTGB1_12 n.OTGB1_13 n.OTGB1_14
+       &timingSelection="N.OTGB0_0 N.OTGB0_1 N.OTGB0_2 N.OTGB0_3 N.OTGB0_4 N.OTGB0_5 N.OTGB0_6 N.OTGB0_7 N.OTGB0_8 N.OTGB0_9 N.OTGB0_10 N.OTGB0_11 N.OTGB0_12 N.OTGB0_13 N.OTGB0_14 N.OTGB0_15 W.ChEngine0 N.ENG0_ACTIV W.CHENGINE1 N.ENG1_ACTIV"
+    )
+  )
+  ELSE IF "&OTGBxselection"=="&DMAerr_seltext"
+  (
+    IF &DMA_OTSS!=0x0
+       print %error "warning only one DMA can be selected"
+    &DMA_OTSS=0x00002|(&OTGBx<<7)
+    &OTGBxnames="LEC0, LEC1, LEC2, LEC3, LEC4, LEC5, LEC6, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, ME0SE, ME0DE, ME1SE, ME1DE"
+  )
+  ELSE IF "&OTGBxselection"=="&DMA0_seltext"
+  (
+    IF &DMA_OTSS!=0x0
+       print %error "warning only one DMA can be selected"
+    &DMA_OTSS=0x00008|(&OTGBx<<7)
+    &OTGBxnames="DMACH_0, DMACH_1, DMACH_2, DMACH_3, DMACH_4, DMACH_5, DMACH_6, DMACH_7, DMACH_8, DMACH_9, DMACH_10, DMACH_11, DMACH_12, DMACH_13, DMACH_14, DMACH_15"
+  )
+  ELSE IF "&OTGBxselection"=="&DMA16_seltext"
+  (
+    IF &DMA_OTSS!=0x0
+       print %error "warning only one DMA can be selected"
+    &DMA_OTSS=0x00009|(&OTGBx<<7)
+    &OTGBxnames="DMACH_16, DMACH_17, DMACH_18, DMACH_19, DMACH_20, DMACH_21, DMACH_22, DMACH_23, DMACH_24, DMACH_25, DMACH_26, DMACH_27, DMACH_28, DMACH_29, DMACH_30, DMACH_31"
+  )
+  ELSE IF "&OTGBxselection"=="&DMA32_seltext"
+  (
+    IF &DMA_OTSS!=0x0
+       print %error "warning only one DMA can be selected"
+    &DMA_OTSS=0x0000a|(&OTGBx<<7)
+    &OTGBxnames="DMACH_32, DMACH_33, DMACH_34, DMACH_35, DMACH_36, DMACH_37, DMACH_38, DMACH_39, DMACH_40, DMACH_41, DMACH_42, DMACH_43, DMACH_44, DMACH_45, DMACH_46, DMACH_47"
+  )
+  ELSE IF "&OTGBxselection"=="&DMA48_seltext"
+  (
+    IF &DMA_OTSS!=0x0
+       print %error "warning only one DMA can be selected"
+    &DMA_OTSS=0x0000b|(&OTGBx<<7)
+    &OTGBxnames="DMACH_48, DMACH_49, DMACH_50, DMACH_51, DMACH_52, DMACH_53, DMACH_54, DMACH_55, DMACH_56, DMACH_57, DMACH_58, DMACH_59, DMACH_60, DMACH_61, DMACH_62, DMACH_63"
+  )
+  ELSE IF "&OTGBxselection"=="&DMA64_seltext"
+  (
+    IF &DMA_OTSS!=0x0
+       print %error "warning only one DMA can be selected"
+    &DMA_OTSS=0x0000c|(&OTGBx<<7)
+    &OTGBxnames="DMACH_64, DMACH_65, DMACH_66, DMACH_67, DMACH_68, DMACH_69, DMACH_70, DMACH_71, DMACH_72, DMACH_73, DMACH_74, DMACH_75, DMACH_76, DMACH_77, DMACH_78, DMACH_79"
+  )
+  ELSE IF "&OTGBxselection"=="&DMA80_seltext"
+  (
+    IF &DMA_OTSS!=0x0
+       print %error "warning only one DMA can be selected"
+    &DMA_OTSS=0x0000d|(&OTGBx<<7)
+    &OTGBxnames="DMACH_80, DMACH_81, DMACH_82, DMACH_83, DMACH_84, DMACH_85, DMACH_86, DMACH_87, DMACH_88, DMACH_89, DMACH_90, DMACH_91, DMACH_92, DMACH_93, DMACH_94, DMACH_95"
+  )
+  ELSE IF "&OTGBxselection"=="&DMA96_seltext"
+  (
+    IF &DMA_OTSS!=0x0
+       print %error "warning only one DMA can be selected"
+    &DMA_OTSS=0x0000e|(&OTGBx<<7)
+    &OTGBxnames="DMACH_96, DMACH_97, DMACH_98, DMACH_99, DMACH_100, DMACH_101, DMACH_102, DMACH_103, DMACH_104, DMACH_105, DMACH_106, DMACH_107, DMACH_108, DMACH_109, DMACH_110, DMACH_111"
+  )
+  ELSE IF "&OTGBxselection"=="&DMA112_seltext"
+  (
+    IF &DMA_OTSS!=0x0
+       print %error "warning only one DMA can be selected"
+    &DMA_OTSS=0x0000f|(&OTGBx<<7)
+    &OTGBxnames="DMACH_112, DMACH_113, DMACH_114, DMACH_115, DMACH_116, DMACH_117, DMACH_118, DMACH_119, DMACH_120, DMACH_121, DMACH_122, DMACH_123, DMACH_124, DMACH_125, DMACH_126, DMACH_127"
+  )
+  ELSE IF "&OTGBxselection"=="&CAN0_seltext"
+  (
+    &CAN0_OTSS=0x00009|(&OTGBx<<2)
+    &OTGBxnames="CAN0_AF_N0, CAN0_AF_N1, CAN0_AF_N2, CAN0_AF_N3, CAN0_MR_N0, CAN0_MR_N1, CAN0_MR_N2, CAN0_MR_N3, CAN0_FDR_N0, CAN0_FDR_N1, CAN0_FDR_N2, CAN0_FDR_N3, CAN0_FDT_N0, CAN0_FDT_N1, CAN0_FDT_N2, CAN0_FDT_N3"
+  )
+  ELSE IF "&OTGBxselection"=="&CAN1_seltext"
+  (
+    &CAN1_OTSS=0x00009|(&OTGBx<<2)
+    &OTGBxnames="CAN1_AF_N0, CAN1_AF_N1, CAN1_AF_N2, CAN1_AF_N3, CAN1_MR_N0, CAN1_MR_N1, CAN1_MR_N2, CAN1_MR_N3, CAN1_FDR_N0, CAN1_FDR_N1, CAN1_FDR_N2, CAN1_FDR_N3, CAN1_FDT_N0, CAN1_FDT_N1, CAN1_FDT_N2, CAN1_FDT_N3"
+  )
+  ELSE IF "&OTGBxselection"=="&CAN2_seltext"
+  (
+    &CAN2_OTSS=0x00009|(&OTGBx<<2)
+    &OTGBxnames="CAN2_AF_N0, CAN2_AF_N1, CAN2_AF_N2, CAN2_AF_N3, CAN2_MR_N0, CAN2_MR_N1, CAN2_MR_N2, CAN2_MR_N3, CAN2_FDR_N0, CAN2_FDR_N1, CAN2_FDR_N2, CAN2_FDR_N3, CAN2_FDT_N0, CAN2_FDT_N1, CAN2_FDT_N2, CAN2_FDT_N3"
+  )
+  ELSE IF "&OTGBxselection"=="&CAN3_seltext"
+  (
+    &CAN3_OTSS=0x00009|(&OTGBx<<2)
+    &OTGBxnames="CAN3_AF_N0, CAN3_AF_N1, CAN3_AF_N2, CAN3_AF_N3, CAN3_MR_N0, CAN3_MR_N1, CAN3_MR_N2, CAN3_MR_N3, CAN3_FDR_N0, CAN3_FDR_N1, CAN3_FDR_N2, CAN3_FDR_N3, CAN3_FDT_N0, CAN3_FDT_N1, CAN3_FDT_N2, CAN3_FDT_N3"
+  )
+  ELSE IF "&OTGBxselection"=="&CAN4_seltext"
+  (
+    &CAN4_OTSS=0x00009|(&OTGBx<<2)
+    &OTGBxnames="CAN4_AF_N0, CAN4_AF_N1, CAN4_AF_N2, CAN4_AF_N3, CAN4_MR_N0, CAN4_MR_N1, CAN4_MR_N2, CAN4_MR_N3, CAN4_FDR_N0, CAN4_FDR_N1, CAN4_FDR_N2, CAN4_FDR_N3, CAN4_FDT_N0, CAN4_FDT_N1, CAN4_FDT_N2, CAN4_FDT_N3"
+  )
+  ELSE IF "&OTGBxselection"=="&CCU60_seltext"
+  (
+    &CCU60_OTSS=0x00009|(&OTGBx<<2)
+    &OTGBxnames="60_T12PRE, 60_T13PRE, 60_T12_CM0, 60_T12_CM1, 60_T12_CM2, 60_T12_PM, 60_T12_OM, 60_T12_CDIR, 60_T12_ZM, 60_T13_CM, 60_T13_PM, 60_T13_ZM, 60_MCM_ST, 60_CHE, 60_WHE, 60_TRPF"
+  )
+  ELSE IF "&OTGBxselection"=="&CCU61_seltext"
+  (
+    &CCU61_OTSS=0x00009|(&OTGBx<<2)
+    &OTGBxnames="61_T12PRE, 61_T13PRE, 61_T12_CM0, 61_T12_CM1, 61_T12_CM2, 61_T12_PM, 61_T12_OM, 61_T12_CDIR, 61_T12_ZM, 61_T13_CM, 61_T13_PM, 61_T13_ZM, 61_MCM_ST, 61_CHE, 61_WHE, 61_TRPF"
+  )
+  ELSE IF "&OTGBxselection"=="&EVADCgrou_seltext"
+  (
+    IF &EVADC_OTSS!=0x8
+       print %error "warning only one EVADC can be selected"
+    &EVADC_OTSS=0x00009|(&OTGBx<<2)
+    &OTGBxnames="G0SAMPLE, G1SAMPLE, G2SAMPLE, G3SAMPLE, G4SAMPLE, G5SAMPLE, G6SAMPLE, G7SAMPLE, G8SAMPLE, G9SAMPLE, G10SAMPLE, G11SAMPLE, RESERVED, RESERVED, RESERVED, RESERVED"
+  )
+  ELSE IF "&OTGBxselection"=="&EVADCchan_seltext"
+  (
+    IF &EVADC_OTSS!=0x8
+       print %error "warning only one EVADC can be selected"
+    &EVADC_OTSS=0x0000a|(&OTGBx<<2)
+    &OTGBxnames="FC0SAMPLE, FC1SAMPLE, FC2SAMPLE, FC3SAMPLE, FC4SAMPLE, FC5SAMPLE, FC6SAMPLE, FC7SAMPLE, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED"
+  )
+  ELSE IF "&OTGBxselection"=="&HSSL0sc_seltext"
+  (
+    IF &HSSL0_OTSS!=0x8
+       print %error "warning only one HSSL0 can be selected"
+    &HSSL0_OTSS=0x00009|(&OTGBx<<2)
+    &OTGBxnames="TXFL0, TXFL1, RXFL0, RXFL1, EXFL0, EXFL1, ISF, TBE, RBE, ERR, EXI, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED"
+  )
+  ELSE IF "&OTGBxselection"=="&HSSL0err_seltext"
+  (
+    IF &HSSL0_OTSS!=0x8
+       print %error "warning only one HSSL0 can be selected"
+    &HSSL0_OTSS=0x0000A|(&OTGBx<<2)
+    &OTGBxnames="CRCE, PIE1, PIE2, EXI, ERR0, ERR1, ERR2, ERR3, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED"
+  )
+  ELSE IF "&OTGBxselection"=="&HSSL1sc_seltext"
+  (
+    IF &HSSL1_OTSS!=0x8
+       print %error "warning only one HSSL1 can be selected"
+    &HSSL1_OTSS=0x00009|(&OTGBx<<2)
+    &OTGBxnames="TXFL0, TXFL1, RXFL0, RXFL1, EXFL0, EXFL1, ISF, TBE, RBE, ERR, EXI, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED"
+  )
+  ELSE IF "&OTGBxselection"=="&HSSL1err_seltext"
+  (
+    IF &HSSL1_OTSS!=0x8
+       print %error "warning only one HSSL1 can be selected"
+    &HSSL1_OTSS=0x0000A|(&OTGBx<<2)
+    &OTGBxnames="CRCE, PIE1, PIE2, EXI, ERR0, ERR1, ERR2, ERR3, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED"
+  )
+  ELSE IF "&OTGBxselection"=="&HSCT0_seltext"
+  (
+    &HSCT0_OTSS=0x00009|(&OTGBx<<2)
+    &OTGBxnames=" HRXRQ, HRXCTS, HTXCTS, HTXRQ, TXF, TXL, TXW, TXS, RXFS, DFSMI, IFCT, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED"
+  )
+  ELSE IF "&OTGBxselection"=="&HSCT1_seltext"
+  (
+    &HSCT1_OTSS=0x00009|(&OTGBx<<2)
+    &OTGBxnames=" HRXRQ, HRXCTS, HTXCTS, HTXRQ, TXF, TXL, TXW, TXS, RXFS, DFSMI, IFCT, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED"
+  )
+  ELSE IF "&OTGBxselection"=="&ERAY0sep_seltext"
+  (
+    IF &OTGBx==0
+      &ERAY0_OTSS=0x1
+    ELSE 
+      &ERAY0_OTSS=(&ERAY0_OTSS&0xff)|0x00100
+    &OTGBxnames="INT0SRC, INT1SRC, TINT0SRC, TINT1SRC, NDAT0SRC, NDAT1SRC, MBSC0SRC, MBSC1SRC, OBUSYSRC, IBUSYSRC, RESERVED, EIR_EDA, EIR_EDB, CCSV_POCS0, CCSV_POCS1, CCSV_POCS2"
+  )
+  ELSE IF "&OTGBxselection"=="&ERAY0mc_seltext"
+  (
+    IF &OTGBx==0
+      &ERAY0_OTSS=0x2
+    ELSE 
+      &ERAY0_OTSS=(&ERAY0_OTSS&0xff)|0x00200
+    &OTGBxnames="MTCCVMTV0, MTCCVMTV1, MTCCVMTV2, MTCCVMTV3, MTCCVMTV4, MTCCVMTV5, MTCCVMTV6, MTCCVMTV7, MTCCVMTV8, MTCCVMTV9, MTCCVMTV10, MTCCVMTV11, MTCCVMTV12, MTCCVMTV13, RESERVED, RESERVED"
+  )
+  ELSE IF "&OTGBxselection"=="&ERAY1sep_seltext"
+  (
+    IF &OTGBx==0
+      &ERAY1_OTSS=0x1
+    ELSE 
+      &ERAY1_OTSS=(&ERAY1_OTSS&0xff)|0x00100
+    &OTGBxnames="INT0SRC, INT1SRC, TINT0SRC, TINT1SRC, NDAT0SRC, NDAT1SRC, MBSC0SRC, MBSC1SRC, OBUSYSRC, IBUSYSRC, RESERVED, EIR_EDA, EIR_EDB, CCSV_POCS0, CCSV_POCS1, CCSV_POCS2"
+  )
+  ELSE IF "&OTGBxselection"=="&ERAY1mc_seltext"
+  (
+    IF &OTGBx==0
+      &ERAY1_OTSS=0x2
+    ELSE 
+      &ERAY1_OTSS=(&ERAY1_OTSS&0xff)|0x00200
+    &OTGBxnames="MTCCVMTV0, MTCCVMTV1, MTCCVMTV2, MTCCVMTV3, MTCCVMTV4, MTCCVMTV5, MTCCVMTV6, MTCCVMTV7, MTCCVMTV8, MTCCVMTV9, MTCCVMTV10, MTCCVMTV11, MTCCVMTV12, MTCCVMTV13, RESERVED, RESERVED"
+  )
+  ELSE IF "&OTGBxselection"=="&SSI_seltext"
+  (
+    IF &SSI_OTSS!=0x0
+       print %error "warning only one SSI can be selected"
+    &SSI_OTSS=0x00001|(&OTGBx<<2)
+    &OTGBxnames="SPB_SBCU, BBB_EBCU, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED"
+  )
+  ELSE IF "&OTGBxselection"=="&IRcpu0_seltext"
+  (
+    IF &OTGBx==0
+      &IR_OTSS=0x80
+    ELSE 
+      &IR_OTSS=(&IR_OTSS&0xff)|0x8000
+    &OTGBxnames="CPU0_ASR0, CPU0_ASR1, CPU0_ASR2, CPU0_ASR3, CPU0_ASR4, CPU0_ASR5, CPU0_ASR6, CPU0_ASR7, CPU0_ASR8, CPU0_ASR9, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, CPU0_SPI"
+  )
+  ELSE IF "&OTGBxselection"=="&IRdma_seltext"
+  (
+    IF &OTGBx==0
+      &IR_OTSS=0x81
+    ELSE 
+      &IR_OTSS=(&IR_OTSS&0xff)|0x8100
+    &OTGBxnames="DMA_ASR0, DMA_ASR1, DMA_ASR2, DMA_ASR3, DMA_ASR4, DMA_ASR5, DMA_ASR6, DMA_ASR7, DMA_ASR8, DMA_ASR9, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, DMA_SPI"
+  )
+  ELSE IF "&OTGBxselection"=="&IRcpu1_seltext"
+  (
+    IF &OTGBx==0
+      &IR_OTSS=0x82
+    ELSE 
+      &IR_OTSS=(&IR_OTSS&0xff)|0x8200
+    &OTGBxnames="CPU1_ASR0, CPU1_ASR1, CPU1_ASR2, CPU1_ASR3, CPU1_ASR4, CPU1_ASR5, CPU1_ASR6, CPU1_ASR7, CPU1_ASR8, CPU1_ASR9, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, CPU1_SPI"
+  )
+  ELSE IF "&OTGBxselection"=="&IRcpu2_seltext"
+  (
+    IF &OTGBx==0
+      &IR_OTSS=0x83
+    ELSE 
+      &IR_OTSS=(&IR_OTSS&0xff)|0x8300
+    &OTGBxnames="CPU2_ASR0, CPU2_ASR1, CPU2_ASR2, CPU2_ASR3, CPU2_ASR4, CPU2_ASR5, CPU2_ASR6, CPU2_ASR7, CPU2_ASR8, CPU2_ASR9, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, CPU2_SPI"
+  )
+  ELSE IF "&OTGBxselection"=="&IRcpu3_seltext"
+  (
+    IF &OTGBx==0
+      &IR_OTSS=0x84
+    ELSE 
+      &IR_OTSS=(&IR_OTSS&0xff)|0x8400
+    &OTGBxnames="CPU3_ASR0, CPU3_ASR1, CPU3_ASR2, CPU3_ASR3, CPU3_ASR4, CPU3_ASR5, CPU3_ASR6, CPU3_ASR7, CPU3_ASR8, CPU3_ASR9, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, CPU3_SPI"
+  )
+  ELSE IF "&OTGBxselection"=="&IRcpu4_seltext"
+  (
+    IF &OTGBx==0
+      &IR_OTSS=0x85
+    ELSE 
+      &IR_OTSS=(&IR_OTSS&0xff)|0x8500
+    &OTGBxnames="CPU4_ASR0, CPU4_ASR1, CPU4_ASR2, CPU4_ASR3, CPU4_ASR4, CPU4_ASR5, CPU4_ASR6, CPU4_ASR7, CPU4_ASR8, CPU4_ASR9, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, CPU4_SPI"
+  )
+  ELSE IF "&OTGBxselection"=="&IRcpu5_seltext"
+  (
+    IF &OTGBx==0
+      &IR_OTSS=0x86
+    ELSE 
+      &IR_OTSS=(&IR_OTSS&0xff)|0x8600
+    &OTGBxnames="CPU5_ASR0, CPU5_ASR1, CPU5_ASR2, CPU5_ASR3, CPU5_ASR4, CPU5_ASR5, CPU5_ASR6, CPU5_ASR7, CPU5_ASR8, CPU5_ASR9, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, CPU5_SPI"
+  )
+  ELSE IF "&OTGBxselection"=="&IRQis_seltext"
+  (
+    IF &IRQ_OTSS!=0x0
+       print %error "warning only one IRQ can be selected"
+    &IRQ_OTSS=0x00001|(&OTGBx<<9)
+    &OTGBxnames="IRQ_AIL, IRQ_SIL, IRQ_SI0, IRQ_SI1, IRQ_SI2, IRQ_SI3, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED"
+  )
+  ELSE IF "&OTGBxselection"=="&IRQspa_seltext"
+  (
+    IF &IRQ_OTSS!=0x0
+       print %error "warning only one IRQ can be selected"
+    &IRQ_OTSS=0x00002|(&OTGBx<<9)
+    &OTGBxnames="IRQ_CPU0, IRQ_DMA, IRQ_CPU1, IRQ_CPU2, IRQ_CPU3, IRQ_CPU4, IRQ_CPU5, IRQ_PDMA, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED"
+  )
+  ELSE IF "&OTGBxselection"=="&PMSadc_seltext"
+  (
+    LOCAL &BxLAM &BxHAM
+    LOCAL &ADCMONselectionLOW &ADCMONselectionHIGH
+    IF &OTGBx==0
+      &ADCMONselectionLOW=DIALOG.STRING(PMS_OTGB0_LOWB.SEL);
+    ELSE 
+      &ADCMONselectionLOW=DIALOG.STRING(PMS_OTGB1_LOWB.SEL);
+    &ADCMONselection="&ADCMONselectionLOW"
+    GOSUB ADCMONselectioncheck
+    ENTRY &BxLAM
+    &PMS_OTSC0=&PMS_OTSC0|(&BxLAM<<(16.*&OTGBx))
+
+    IF &OTGBx==0
+      &ADCMONselectionHIGH=DIALOG.STRING(PMS_OTGB0_HIGHB.SEL);
+    ELSE 
+      &ADCMONselectionHIGH=DIALOG.STRING(PMS_OTGB1_HIGHB.SEL);
+    &ADCMONselection="&ADCMONselectionHIGH"
+    GOSUB ADCMONselectioncheck
+    ENTRY &BxHAM
+    &PMS_OTSC0=&PMS_OTSC0|(&BxHAM<<(8+(16.*&OTGBx)))
+
+; special name setting if DTSRESULTL and DTSRESULTH is selected
+    IF (&BxLAM==0xB)&&(&BxHAM==0xC)
+    (
+       &word_analog="&word_analog"+" "+"Word.Temperature"
+       IF &OTGBx==0
+          NAME.Word Temperature n.OTGB0_0 n.OTGB0_1 n.OTGB0_2 n.OTGB0_3 n.OTGB0_4 n.OTGB0_5 n.OTGB0_6 n.OTGB0_7 n.OTGB0_8 n.OTGB0_9 n.OTGB0_10 n.OTGB0_11 
+       ELSE
+          NAME.Word Temperature n.OTGB1_0 n.OTGB1_1 n.OTGB1_2 n.OTGB1_3 n.OTGB1_4 n.OTGB1_5 n.OTGB1_6 n.OTGB1_7 n.OTGB1_8 n.OTGB1_9 n.OTGB1_10 n.OTGB1_11 
+    )
+    ELSE 
+    (
+       IF (&BxLAM!=0x0)
+       (
+          LOCAL &temp
+          &temp=STRing.MID("&ADCMONselectionLOW",0,STRing.SCAN("&ADCMONselectionLOW"," ",0))
+          &word_analog="&word_analog"+" "+"Word.&temp"
+          IF &OTGBx==0
+             NAME.Word &temp n.OTGB0_0 n.OTGB0_1 n.OTGB0_2 n.OTGB0_3 n.OTGB0_4 n.OTGB0_5 n.OTGB0_6 n.OTGB0_7
+          ELSE
+             NAME.Word &temp n.OTGB1_0 n.OTGB1_1 n.OTGB1_2 n.OTGB1_3 n.OTGB1_4 n.OTGB1_5 n.OTGB1_6 n.OTGB1_7
+       )
+
+       IF (&BxHAM!=0x0)
+       (
+          &temp=STRing.MID("&ADCMONselectionHIGH",0,STRing.SCAN("&ADCMONselectionHIGH"," ",0))
+          &word_analog="&word_analog"+" "+"Word.&temp"
+          IF &OTGBx==0
+             NAME.Word &temp n.OTGB0_8 n.OTGB0_9 n.OTGB0_10 n.OTGB0_11 n.OTGB0_12 n.OTGB0_13 n.OTGB0_14 n.OTGB0_14
+          ELSE
+             NAME.Word &temp n.OTGB1_8 n.OTGB1_9 n.OTGB1_10 n.OTGB1_11 n.OTGB1_12 n.OTGB1_13 n.OTGB1_14 n.OTGB1_14
+       )
+    )
+
+    &PMS_OTSS=&PMS_OTSS|(0x0001<<(8*&OTGBx))
+  )
+  ELSE IF "&OTGBxselection"=="&PMSevr_seltext"
+  (
+    LOCAL &BxEC
+    IF &OTGBx==0
+      &EVRCONselection=DIALOG.STRING(PMS_OTGB0_EVRCON.SEL);
+    ELSE 
+      &EVRCONselection=DIALOG.STRING(PMS_OTGB1_EVRCON.SEL);
+
+    GOSUB EVRCONselectioncheck
+    entry &BxEC
+
+    LOCAL &selection &smcdbg &dmonad
+    IF &OTGBx==0
+    (
+       &selection=DIALOG.STRING(PMS_OTGB0_EVRCON.SEL)
+       &smcdbg=DIALOG.STRING(EDIT_OTGB0_SMCDBG)
+       &dmonad=DIALOG.STRING(EDIT_OTGB0_DMONAD)
+    )
+    ELSE 
+    (
+       &selection=DIALOG.STRING(PMS_OTGB1_EVRCON.SEL)
+       &smcdbg=DIALOG.STRING(EDIT_OTGB1_SMCDBG)
+       &dmonad=DIALOG.STRING(EDIT_OTGB1_DMONAD)
+    )
+    IF ("&selection"=="&textPMS_EVRCON_2")
+    (     
+       &PMS_OTSC1=(&PMS_OTSC1&0xFFFF)|(&dmonad<<16.)|(&smcdbg<<24.)
+    )
+
+    &PMS_OTSC1=&PMS_OTSC1|(&BxEC<<(8*&OTGBx))
+
+    &PMS_OTSS=&PMS_OTSS|(0x0002<<(8*&OTGBx))
+  )
+  ELSE IF "&OTGBxselection"=="&SPU0a_seltext"
+  (
+    IF &SPU0_OCS!=0x08
+       print %error "warning only one SPU0 can be selected"
+    &SPU0_OCS=0x00009|(&OTGBx<<2)
+    &OTGBxnames="SPU0_START, SPU0_PROCES, SPU0_CONFIG, SPU0_INDMA, SPU0_LOADER, SPU0_UNLOAD, SPU0_ODP, SPU0_MATH2, SPU0_OUTDMASIG, SPU0_OUTDMA, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED"
+  )
+  ELSE IF "&OTGBxselection"=="&SPU0b_seltext"
+  (
+    IF &SPU0_OCS!=0x08
+       print %error "warning only one SPU0 can be selected"
+    &SPU0_OCS=0x0000A|(&OTGBx<<2)
+    &OTGBxnames="SPU0_RUNERR, SPU0_LOADERR, SPU0_RAMERR, SPU0_BITERR, SPU0_FIFOOVER, SPU0_DMAP1ERR, SPU0_DMAP2ERR, SPU0_DMAP3ERR, SPU0_DMAP4ERR, SPU0_DMAP5ERR, SPU0_DMAP6ERR, SPU0_DMAP7ERR, SPU0_DMAP8ERR, RESERVED, RESERVED, RESERVED"
+  )
+  ELSE IF "&OTGBxselection"=="&SPU1a_seltext"
+  (
+    IF &SPU1_OCS!=0x08
+       print %error "warning only one SPU1 can be selected"
+    &SPU1_OCS=0x00009|(&OTGBx<<2)
+    &OTGBxnames="SPU1_START, SPU1_PROCES, SPU1_CONFIG, SPU1_INDMA, SPU1_LOADER, SPU1_UNLOAD, SPU1_ODP, SPU1_MATH2, SPU1_OUTDMASIG, SPU1_OUTDMA, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED, RESERVED"
+  )
+  ELSE IF "&OTGBxselection"=="&SPU1b_seltext"
+  (
+    IF &SPU1_OCS!=0x08
+       print %error "warning only one SPU1 can be selected"
+    &SPU1_OCS=0x0000A|(&OTGBx<<2)
+    &OTGBxnames="SPU1_RUNERR, SPU1_LOADERR, SPU1_RAMERR, SPU1_BITERR, SPU1_FIFOOVER, SPU1_DMAP1ERR, SPU1_DMAP2ERR, SPU1_DMAP3ERR, SPU1_DMAP4ERR, SPU1_DMAP5ERR, SPU1_DMAP6ERR, SPU1_DMAP7ERR, SPU1_DMAP8ERR, RESERVED, RESERVED, RESERVED"
+  )
+  ELSE IF "&OTGBxselection"=="&RIF0_seltext"
+  (
+    IF &RIF0_OCS!=0x08
+       print %error "warning only one RIF0 can be selected"
+    &RIF0_OCS=0x00009|(&OTGBx<<2)
+    &OTGBxnames="RIF0_D0, RIF0_D1, RIF0_D2, RIF0_D3, RIF0_D4, RIF0_D5, RIF0_D6, RIF0_D7, RIF0_D8, RIF0_D9, RIF0_D10, RIF0_D11, RIF0_D12, RIF0_D13, RIF0_CRC, RIF0_CURRAMP"
+  )
+  ELSE IF "&OTGBxselection"=="&RIF1_seltext"
+  (
+    IF &RIF1_OCS!=0x08
+       print %error "warning only one RIF1 can be selected"
+    &RIF1_OCS=0x00009|(&OTGBx<<2)
+    &OTGBxnames="RIF0_D0, RIF0_D1, RIF0_D2, RIF0_D3, RIF0_D4, RIF0_D5, RIF0_D6, RIF0_D7, RIF0_D8, RIF0_D9, RIF0_D10, RIF0_D11, RIF0_D12, RIF0_D13, RIF0_CRC, RIF0_CURRAMP"
+  )
+  ELSE IF "&OTGBxselection"=="&SMU_seltext"
+  (
+    IF &SMU_OCS!=0x08
+       print %error "warning only one SMU can be selected"
+    &SMU_OCS=0x00009|(&OTGBx<<2)
+    &OTGBxnames="SMU_AA, RESERVED, SMU_ABI0, SMU_ABI1, SMU_AGI0, SMU_AGI1, SMU_AGI2, SMU_AGI3, SMU_ALM0, SMU_ALM1, SMU_ALM2, SMU_ALM3, SMU_ALM4, SMU_ALM5, SMU_ALM6, SMU_ALM7"
+  )
+
+  RETURN
+
+; --------------------------------------------------------------------------------
+ADCMONselectioncheck:
+  LOCAL &value
+  &value=0
+  IF "&ADCMONselection"=="&textPMS_ADCMON_0"
+  (
+      &value=0
+  )
+  ELSE IF "&ADCMONselection"=="&textPMS_ADCMON_1"
+  (
+      &value=1
+  )
+  ELSE IF "&ADCMONselection"=="&textPMS_ADCMON_2"
+  (
+      &value=2
+  )
+  ELSE IF "&ADCMONselection"=="&textPMS_ADCMON_3"
+  (
+      &value=3
+  )
+  ELSE IF "&ADCMONselection"=="&textPMS_ADCMON_4"
+  (
+      &value=4
+  )
+  ELSE IF "&ADCMONselection"=="&textPMS_ADCMON_5"
+  (
+      &value=5
+  )
+  ELSE IF "&ADCMONselection"=="&textPMS_ADCMON_6"
+  (
+      &value=6
+  )
+  ELSE IF "&ADCMONselection"=="&textPMS_ADCMON_7"
+  (
+      &value=7
+  )
+  ELSE IF "&ADCMONselection"=="&textPMS_ADCMON_8"
+  (
+      &value=8
+  )
+  ELSE IF "&ADCMONselection"=="&textPMS_ADCMON_9"
+  (
+      &value=9
+  )
+  ELSE IF "&ADCMONselection"=="&textPMS_ADCMON_A"
+  (
+      &value=0xA
+  )
+  ELSE IF "&ADCMONselection"=="&textPMS_ADCMON_B"
+  (
+      &value=0xB
+  )
+  ELSE IF "&ADCMONselection"=="&textPMS_ADCMON_C"
+  (
+      &value=0xC
+  )
+  RETURN &value
+
+; --------------------------------------------------------------------------------
+EVRCONselectioncheck:
+  LOCAL &value
+  LOCAL &value
+  &value=0
+  IF "&EVRCONselection"=="&textPMS_EVRCON_0"
+  (
+      &value=0
+  )
+  ELSE IF "&EVRCONselection"=="&textPMS_EVRCON_1"
+  (
+      &value=1
+      &OTGBxnames="EVRCDPWM_0, EVRCDPWM_1, EVRCDPWM_2, EVRCDPWM_3, EVRCDPWM_4, EVRCDPWM_5, EVRCDPWM_6, EVRCDPWM_7, EVRCDPWM_8, EVRCDPWM_9, EVRCDPWM_10, EVRCDPWM_11, EVRCDPWM_12, EVRCDPWM_13, EVRCDPWM_14, EVRCDPWM_15"
+  )
+  ELSE IF "&EVRCONselection"=="&textPMS_EVRCON_2"
+  (
+      &value=2
+      &OTGBxnames="EVRCOUT_0, EVRCOUT_1, EVRCOUT_2, EVRCOUT_3, EVRCOUT_4, EVRCOUT_5, EVRCOUT_6, EVRCOUT_7, EVRCOUT_8, EVRCOUT_9, EVRCOUT_10, EVRCOUT_11, EVRCOUT_12, EVRCOUT_13, EVRCOUT_14, EVRCOUT_15"
+  )
+  ELSE IF "&EVRCONselection"=="&textPMS_EVRCON_3"
+  (
+      &value=3
+      &OTGBxnames="EVR33OUT_0, EVR33OUT_1, EVR33OUT_2, EVR33OUT_3, EVR33OUT_4, EVR33OUT_5, EVR33OUT_6, EVR33OUT_7, EVR33OUT_8, EVR33OUT_9, EVR33OUT_10, EVR33OUT_11, EVR33OUT_12, EVR33OUT_13, EVR33OUT_14, EVR33OUT_15"
+  )
+  ELSE IF "&EVRCONselection"=="&textPMS_EVRCON_4"
+  (
+      &value=4
+      &OTGBxnames="WUTCNT_0, WUTCNT_1, WUTCNT_2, WUTCNT_3, WUTCNT_4, WUTCNT_5, WUTCNT_6, WUTCNT_7, WUTCNT_8, WUTCNT_9, WUTCNT_10, WUTCNT_11, WUTCNT_12, WUTCNT_13, WUTCNT_14, WUTCNT_15"
+
+  )
+  ELSE IF "&EVRCONselection"=="&textPMS_EVRCON_5"
+  (
+      &value=5
+      &OTGBxnames="TCSCRINT_0, TCSCRINT_1, TCSCRINT_2, TCSCRINT_3, TCSCRINT_4, TCSCRINT_5, TCSCRINT_6, TCSCRINT_7, TCSCRINT_8, TCSCRINT_9, TCSCRINT_10, TCSCRINT_11, TCSCRINT_12, TCSCRINT_13, TCSCRINT_14, TCSCRINT_15"
+  )
+  RETURN &value
+
+; --------------------------------------------------------------------------------
+regsetting:
+  &program_ready=0x0
+  GOSUB enable_disable_OK
+
+  IF "&OTGB0names"!=""
+    GOSUB setnames OTGB0 &OTGB0names
+  IF "&OTGB1names"!=""
+    GOSUB setnames OTGB1 &OTGB1names
+  
+  IF !SYStem.Up()
+     RETURN
+
+  Data.Set ED:0xF0011200 %Long &DMA_OTSS   ;DMA_OTSS
+
+  IF (Data.Long(ED:0xF0208000)&0x3)==0x0   ;CAN0_CLC
+  (
+     Data.Set ED:0xF02080E8 %Long &CAN0_OTSS  ;CAN0_OCS
+  )
+
+  IF (Data.Long(ED:0xF0218000)&0x3)==0x0   ;CAN1_CLC
+  (
+     Data.Set ED:0xF02180E8 %Long &CAN1_OTSS  ;CAN1_OCS
+  )
+
+  IF (!CPUIS("TC35*"))
+  (
+     IF (Data.Long(ED:0xF0228000)&0x3)==0x0   ;CAN2_CLC
+     (
+        Data.Set ED:0xF02280E8 %Long &CAN2_OTSS  ;CAN2_OCS
+     )
+  )
+
+  IF (CPUIS("TC3E*"))
+  (
+     IF (Data.Long(ED:0xF0238000)&0x3)==0x0   ;CAN3_CLC
+     (
+        Data.Set ED:0xF02380E8 %Long &CAN3_OTSS  ;CAN3_OCS
+     )
+     IF (Data.Long(ED:0xF0248000)&0x3)==0x0   ;CAN4_CLC
+     (
+        Data.Set ED:0xF02480E8 %Long &CAN4_OTSS  ;CAN4_OCS
+     )
+  )
+
+  IF (Data.Long(ED:0xF0002A00)&0x3)==0x0    ;CCU60_CLC
+  (
+     Data.Set ED:0xF0002AE8 %Long &CCU60_OTSS   ;CCU60_OCS
+  )
+
+  IF (Data.Long(ED:0xF0002B00)&0x3)==0x0    ;CCU61_CLC
+  (
+     Data.Set ED:0xF0002BE8 %Long &CCU61_OTSS   ;CCU61_OCS
+  )
+
+  IF (Data.Long(ED:0xF0020000)&0x3)==0x0    ;EVADC_CLC
+  (
+     Data.Set ED:0xF0020028 %Long &EVADC_OTSS   ;EVADC_OCS
+  )
+
+  IF (!CPUIS("TC35*"))
+  (
+     IF (Data.Long(ED:0xF0080000)&0x3)==0x0    ;HSSL0_CLC
+     (
+        Data.Set ED:0xF00800E8 %Long &HSSL0_OTSS   ;HSSL0_OCS
+     )
+  )
+
+  IF (CPUIS("TC39*"))&&(!CPUIS("*ASTEP*"))
+  (
+    IF (Data.Long(ED:0xF00A0000)&0x3)==0x0    ;HSSL1_CLC
+    (
+       Data.Set ED:0xF00A00E8 %Long &HSSL1_OTSS   ;HSSL1_OCS
+    )
+  )
+
+  IF (!CPUIS("TC35*"))
+  (
+     IF (Data.Long(ED:0xF0090000)&0x3)==0x0    ;HSCT0_CLC 
+     (
+        Data.Set ED:0xF009FFE8 %Long &HSCT0_OTSS  ;HSCT0_OCS
+     )
+  )
+
+  IF (CPUIS("TC39*"))&&(!CPUIS("*ASTEP*"))
+  (
+     IF (Data.Long(ED:0xF00B0000)&0x3)==0x0    ;HSCT1_CLC 
+     (
+        Data.Set ED:0xF00BFFE8 %Long &HSCT1_OTSS  ;HSCT1_OCS
+     )
+  )
+
+  IF (Data.Long(ED:0xF001C000)&0x3)==0x0    ;ERAY0_CLC
+  (
+     Data.Set ED:0xF001C870 %Long &ERAY0_OTSS  ;ERAY0_OTSS
+  )
+  
+  IF (!CPUIS("TC35*"))&&(!CPUIS("TC37*"))
+  (
+     IF (Data.Long(ED:0xF0017000)&0x3)==0x0    ;ERAY1_CLC
+     (
+        Data.Set ED:0xF0017870 %Long &ERAY1_OTSS  ;ERAY1_OTSS
+     )
+  )
+
+  Data.Set ED:0xF0037084 %Long &SSI_OTSS   ;INT_OSSIC
+  Data.Set ED:0xF00370A0 %Long &IR_OTSS    ;INT_OIT
+  Data.Set ED:0xF0037088 %Long &IRQ_OTSS   ;INT_OIXTS
+
+; PMS Power Management System
+  Data.Set ED:0xF02481E0 %Long &PMS_OTSS    ;PMS_OTSS
+  Data.Set ED:0xF02481E4 %Long &PMS_OTSC0   ;PMS_OTSC0
+  Data.Set ED:0xF02481E8 %Long &PMS_OTSC1   ;PMS_OTSC1
+
+  IF (CPUIS("TC39*"))&&(CPUIS("*ASTEP*"))
+  (
+    IF CHIP.EmulationDevice()
+    (
+  ;ADAS - Signal Processing Unit (SPU)
+      IF (Data.Long(ED:0xFA800000)&0x3)==0x0    ;SPU0_CLC
+      (
+         Data.Set ED:0xFA8003EC %Long &SPU0_OCS   ;SPU0_OCS
+      )
+      IF (Data.Long(ED:0xFAC00000)&0x3)==0x0    ;SPU1_CLC
+      (
+         Data.Set ED:0xFAC003EC %Long &SPU1_OCS   ;SPU1_OCS
+      )
+
+  ;ADAS - Radar Interface (RIF)
+      IF (Data.Long(ED:0xFA040000)&0x3)==0x0    ;RIF0_CLC
+      (
+         Data.Set ED:0xFA0400E8 %Long &RIF0_OCS   ;RIF0_OCS
+      )
+      IF (Data.Long(ED:0xFA040200)&0x3)==0x0    ;RIF1_CLC
+      (
+         Data.Set ED:0xFA0402E8 %Long &RIF1_OCS   ;RIF1_OCS
+      )
+    )
+  )
+  ELSE IF (CPUIS("TC39*"))   ;BSTEP
+  (
+;  IF CHIP.EmulationDevice()
+    IF (0==1)
+    (
+  ;ADAS - Signal Processing Unit (SPU)
+      IF (Data.Long(ED:0xFA800000)&0x3)==0x0    ;SPU0_CLC
+      (
+         Data.Set ED:0xFA8007EC %Long &SPU0_OCS   ;SPU0_OCS
+      )
+      IF (Data.Long(ED:0xFAC00000)&0x3)==0x0    ;SPU1_CLC
+      (
+         Data.Set ED:0xFAC007EC %Long &SPU1_OCS   ;SPU1_OCS
+      )
+
+  ;ADAS - Radar Interface (RIF)
+      IF (Data.Long(ED:0xFA040000)&0x3)==0x0    ;RIF0_CLC
+      (
+         Data.Set ED:0xFA0400E8 %Long &RIF0_OCS   ;RIF0_OCS
+      )
+      IF (Data.Long(ED:0xFA040200)&0x3)==0x0    ;RIF1_CLC
+      (
+         Data.Set ED:0xFA0402E8 %Long &RIF1_OCS   ;RIF1_OCS
+      )
+    )
+  )
+
+;SMU Savety Mangement Unit
+  Data.Set ED:0xF0036FE8 %Long &SMU_OCS    ;SMU_OCS
+
+  RETURN
+
+
+; --------------------------------------------------------------------------------
+setnames:
+  LOCAL &names
+  ENTRY %LINE &names
+  LOCAL &foundsign
+  LOCAL &otgbsel
+  LOCAL &otgbname
+  LOCAL &newname
+  LOCAL &i
+
+  &foundsign=STRing.SCAN("&names"," ", 0)
+  &otgbsel="Node."+STRing.MID("&names",0,&foundsign)+"_"
+  &names=STRing.CUT("&names",&foundsign)
+  &i=0.
+  WHILE &i<=15.
+  (
+    &otgbname="&otgbsel"+FORMAT.DECIMAL(1.,&i)
+    &foundsign=STRing.SCAN("&names",",", 0)
+    IF &foundsign!=-1
+      &newname=STRing.MID("&names",0,&foundsign)
+    ELSE
+      &newname="&names"
+    NAME.Set &otgbname &newname + Transient Normal 
+    &names=STRing.CUT("&names",&foundsign+1)
+    &i=&i+1
+  )
+  RETURN
+

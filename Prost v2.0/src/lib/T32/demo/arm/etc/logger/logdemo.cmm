@@ -1,0 +1,54 @@
+; --------------------------------------------------------------------------------
+; @Title: TRACE32 Logger Demo
+; @Description:
+;  This script demonstrates the usage of the TRACE32 Logger Trace
+; @Keywords: logger, trace
+; @Author: -
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: logdemo.cmm 15671 2020-02-12 13:16:08Z slauterbach $
+
+
+ SYStem.Down
+
+ IF hardware.FIRE()
+ (
+  MAP.RESet
+  MAP.Ram 0x0--0xffff
+ )
+
+ IF SIMULATOR()
+   SYStem.CPU ARM7TDMI
+ IF hardware.ICE()||hardware.FIRE()
+   SYStem.Mode AloneInt
+ ELSE
+   SYStem.Up
+
+;check if RAM is vissible
+ Data.Test 8000++0ff /Long /Prime
+ IF FOUND()
+ (
+  Go.direct
+  WAIT 1.0s
+  Break.direct
+ )
+
+ Data.Assemble 8 mov pc,r14
+
+ LOGGER.RESet
+
+ Data.LOAD.Elf logdemo.axf
+
+ Go.direct main\5
+ WAIT !STATE.RUN()
+
+ LOGGER.ADDRESS T32_LoggerStruct
+ LOGGER.Init
+ WinPOS 98.625 0.21429 38. 16. 0. 0.
+ LOGGER
+ WinPOS 0.0 0.0 81. 25. 10. 1.
+ LOGGER.List
+
+ ENDDO
+
+

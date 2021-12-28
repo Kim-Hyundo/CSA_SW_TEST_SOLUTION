@@ -1,0 +1,60 @@
+; --------------------------------------------------------------------------------
+; @Title: NuttX Demo for TRACE32 OS Awareness
+; @Description:
+;   This batchfile loads all necessary files to demonstrate the
+;   OS Awareness for NuttX.
+; @Author: YDA
+; @Chip: STM32F407VG
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: nuttx.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+ SCREEN.ON
+ WinPAGE.RESet
+ WinPOS 0. 25. 70. 7. 0. 0. W000
+ AREA.view
+
+; Debugger reset
+ PRINT "resetting..."
+ RESet
+ SYStem.RESet
+
+; initialize debugger
+ PRINT "initializing..."
+ SYStem.CPU STM32F407VG
+ SYStem.CONFIG.DEBUGPORTTYPE SWD
+ SYStem.MemAccess DAP
+ SYStem.Option DUALPORT ON
+ SYStem.Up
+  
+  ; load sample application
+ PRINT "loading sample application..."
+ Data.LOAD.Elf nuttx /NoCODE
+
+; initialize RTOS support
+ PRINT "initializing NuttX support..."
+ TASK.CONFIG ~~/demo/arm/kernel/nuttx/nuttx.t32     ; load NuttX awareness
+ MENU.ReProgram ~~/demo/arm/kernel/nuttx/nuttx.men  ; load NuttX menu
+
+ PRINT "load complete."
+
+; open some windows
+ WinPOS 0.0 0.0 80. 20. 16. 1. W001
+ WinTABS 16. 10. 25.
+ List.auto
+ 
+ WinPOS 85.571 0.16667 45. 26. 0. 1. W002
+ WinTABS 10. 5. 12. 5.
+ TASK.Task
+ 
+ WinPOS 0.0 26.75 80. 7. 0. 0. W000
+ AREA.view
+ 
+ WinPOS 85.571 26.5 95. 15. 0. 1. W003
+ WinTABS 10. 29. 10. 10. 10.
+ TASK.BuiLTinApp
+ 
+; start application
+ Go
+
+ ENDDO

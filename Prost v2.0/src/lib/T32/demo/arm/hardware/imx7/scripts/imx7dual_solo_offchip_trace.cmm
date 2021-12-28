@@ -1,0 +1,113 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for IMX7SOLO/DUAL with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Offchip-Trace. Pinmuxing and Clock
+;   setup is handled in the script.
+;   Use this script to test the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe
+;    * Connect AutoFocus Preprocessor
+;    * set BOOTMODE - Internal Boot
+;    * set BOOTSRC - SD-Card
+;    * remove SD-Card
+; @Keywords: ARM, Cortex-A7, ETM
+; @Author: AME
+; @Board: -
+; @Chip: IMX7DUAL, IMX7SOLO
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx7dual_solo_offchip_trace.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF VERSION.BUILD.BASE()<75701.
+(
+  PRINT %ERROR "Please use more recent Software! Contact support@lauterbach.com."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU IMX7DUAL-CA7
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 30.0ms
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+CORE.ASSIGN 1.
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "<path to>/sieve_ram_arm_v7.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace if Analyzer is plugged (ETM)
+IF Analyzer()
+(
+  ; set PinMux and enable Clocks
+  ; Clock Gating 48 + Clock Tree 118
+  ; gate CCGR48
+  Data.Set AD:0x30384308 %Long 0x3
+  ; simple initialization - OSC24 no divider
+  Data.Set AD:0x3038BB00 %Long 0x10000000
+  ; example initialization - SYS_PLL_PFD2_DIV2 no divider
+  ; Data.Set AD:0x3038BB00 %Long 0x10000000|(0x1<<24.)
+  ; ungate CCGR48
+  Data.Set AD:0x30384304 %Long 0x3
+
+  ; set SW_MUX_CTL_PAD_LCD_DATA[00..16]
+  Data.Set AD:0x303300C8 %Long 0x2 //TRACEDATA[0]
+  Data.Set AD:0x303300CC %Long 0x2 //TRACEDATA[1]
+  Data.Set AD:0x303300D0 %Long 0x2 //TRACEDATA[2]
+  Data.Set AD:0x303300D4 %Long 0x2 //TRACEDATA[3]
+  Data.Set AD:0x303300D8 %Long 0x2 //TRACEDATA[4]
+  Data.Set AD:0x303300DC %Long 0x2 //TRACEDATA[5]
+  Data.Set AD:0x303300E0 %Long 0x2 //TRACEDATA[6]
+  Data.Set AD:0x303300E4 %Long 0x2 //TRACEDATA[7]
+  Data.Set AD:0x303300E8 %Long 0x2 //TRACEDATA[8]
+  Data.Set AD:0x303300EC %Long 0x2 //TRACEDATA[9]
+  Data.Set AD:0x303300F0 %Long 0x2 //TRACEDATA[10]
+  Data.Set AD:0x303300F4 %Long 0x2 //TRACEDATA[11]
+  Data.Set AD:0x303300F8 %Long 0x2 //TRACEDATA[12]
+  Data.Set AD:0x303300FC %Long 0x2 //TRACEDATA[13]
+  Data.Set AD:0x30330100 %Long 0x2 //TRACEDATA[14]
+  Data.Set AD:0x30330104 %Long 0x2 //TRACEDATA[15]
+  Data.Set AD:0x30330108 %Long 0x2 //TRACECLK
+
+  Trace.Method Analyzer
+  TPIU.PortSize 16
+  TPIU.PortMode Continuous
+  ETM.Trace ON
+  ETM.ON
+  ; use Autofocus based calibration
+  Analyzer.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

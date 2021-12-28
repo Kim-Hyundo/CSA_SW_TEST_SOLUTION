@@ -1,0 +1,42 @@
+; --------------------------------------------------------------------------------
+; @Title: GUI Adoption for AMP Demo
+; @Description:
+;   This file patches the TRACE32 Menu structure with the AMP Demo related
+;   scripts.
+; @Props:  NoMetaTags NoWelcome NoIndex NoFullText
+; @Author: AME
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: t32_amp.cmm 15209 2019-11-04 10:07:55Z bschroefel $
+
+GLOBAL &ScriptBase
+
+; Detect own directory
+&ScriptBase=OS.PPD()
+
+; Only do this, if the script is started by the first instance
+IF SYSTEM.INSTANCE()==1.
+(
+  ; register a button and call the initialization script
+  MENU.ReProgram
+  (
+    ADD
+    MENU
+    (
+      POPUP "Demos"
+      (
+        MENUITEM "[:goc] Start DUAL STM32F1"
+        (
+          DO "&ScriptBase/init_stm32f1.cmm"
+        )
+        MENUITEM "[:goc] Start DUAL STM32F2"
+        (
+          DO "&ScriptBase/init_stm32f2.cmm"
+        )
+      )
+    )
+  )
+  DIALOG.OK "Please select the demo using the *Demos* menu entry."
+)
+
+ENDDO

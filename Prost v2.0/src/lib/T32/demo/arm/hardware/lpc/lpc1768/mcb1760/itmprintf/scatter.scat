@@ -1,0 +1,46 @@
+#! armcc -E
+;; Preprocess this scatter file using armcc's preprocessor and #define's from stack.h
+#include "stack.h"
+
+
+LOAD_REGION 0x10000000 0x0020000
+{
+  VECTORS 0x10000000 0x400
+  {
+    ; First two entries provided by library
+    ; Remaining entries provided by the user in exceptions.c
+    
+    * (:gdef:__vectab_stack_and_reset, +FIRST)
+    * (exceptions_area)
+  }
+
+  ;; Code is placed immediately (+0) after the previous root region
+  ;; (so code region will also be a root region)
+  CODE +0
+  {
+    * (+RO)
+  }
+
+  DATA +0 0x00004000
+  {                     
+    * (+RW, +ZI)
+  }
+
+  ARM_LIB_HEAP HEAP_BASE EMPTY HEAP_SIZE
+  {
+  }
+
+  ARM_LIB_STACK STACK_BASE EMPTY -STACK_SIZE
+  {
+  }
+
+  PROCESS_STACK +0 EMPTY PROCESS_STACK_SIZE
+  {
+  }
+  
+  ; ;Position SCS registers using scatter file
+  ; SCS_REGION 0xE000E000 UNINIT 0x1000
+  ; {
+  ;   scs.o(scs_registers)
+  ; }
+}

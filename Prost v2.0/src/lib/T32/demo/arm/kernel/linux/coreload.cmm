@@ -1,0 +1,334 @@
+; --------------------------------------------------------------------------------
+; @Title: Dialog to load a Linux Core Dump File
+; @Description:
+;  This script opens a dialog to load a core dump file generated after a crash
+;  on a Linux system. 
+; @Keywords: crash, GDB, GNU, coredump
+; @Author: KJM
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: coreload.cmm 5822 2020-11-11 08:44:47Z kjmal $
+
+ GLOBAL &HaveExec
+ LOCAL &dynamic &lm &tmp &name_addr &offset &filepath &corefile &elffile &libpath &last_path &elfname &step_width &readFunc &lm_step &endRange &supportedArchs &curr_arch &script_path
+ 
+ &supportedArchs="ARM MIPS MICROBLAZE POWERPC I386"
+ &curr_arch=CPUFAMILY()
+ 
+ IF CPUIS("NONE")
+ (
+   DIALOG.OK "Please select CPU with SYStem.CPU and run script again."
+   ENDDO
+ )
+ 
+ IF STRing.SCAN("&supportedArchs","&curr_arch",0)==-1
+ (
+   PRINT %ERROR "&curr_arch architecture is not supported by coredump loader !"
+   ENDDO
+ )
+ 
+ &HaveExec=FALSE()
+ 
+ &step_width=0x4
+ &readFunc="Data.Long"
+ &lm_step=0xC ;  3 x &step_width
+ IF CPUIS64BIT()
+ (
+   &step_width=0x8
+   &readFunc="Data.Quad"
+   &lm_step=0x18  ;  3 x &step_width
+ )
+
+ &script_path=OS.PPD()
+ &last_path=OS.PPD()
+ 
+DIALOG.view
+(
+        HEADER "Linux Core Dump File Loader"
+        
+        POS  1.  1. 10.
+        TEXT "Core File"
+        POS 11.  1. 30.
+CORE:   EDIT "" "gosub set_core_file"
+
+        POS 43. 1. 3. 1.
+        BUTTON "..." "GOSUB browse_file CORE corefile *"
+
+        POS  1. 2. 10.
+        TEXT "Elf File :"
+        POS 11. 2. 30.
+ELF:    EDIT "" "gosub set_elf_file"
+
+        POS 43. 2. 3. 1.
+        BUTTON "..." "GOSUB browse_file   ELF elffile *"
+        
+        POS  1. 3. 10.
+        TEXT "Libs Path :"
+        POS 11. 3. 30.
+LIB:    EDIT "" "gosub set_libpath"
+        POS 43. 3. 3. 1.
+        BUTTON "..." "GOSUB browse_libpath"
+
+        POS 19. 5. 10. 1.
+START:  BUTTON "Start" "jumpto startme"
+
+        POS  0. 0. 47. 7.
+        BOX ""
+
+        CLOSE "jumpto winclose"        
+ )
+ STOP 
+ 
+winclose:
+   DIALOG.END
+   ENDDO
+
+set_elf_file:
+ LOCAL &str
+ &str=DIALOG.STRing(ELF)
+ &elffile="&str"
+ RETURN
+ 
+set_core_file:
+ LOCAL &str
+ &str=DIALOG.STRing(CORE)
+ &corefile="&str" 
+ RETURN
+
+
+set_libpath:
+ LOCAL &str
+ &str=DIALOG.STRing(LIB)
+ &libpath="&str"
+ RETURN 
+
+browse_libpath:
+ LOCAL &str
+ LOCAL &directory
+ &directory="&last_path"+"/*"
+ DIALOG.DIR &directory
+ ENTRY &str
+ IF "&str"==""
+  RETURN
+ &str="&str"
+ &libpath="&str"
+ DIALOG.Set LIB "&str"
+ RETURN
+
+browse_file:
+ LOCAL &str &label &item
+ ENTRY &label &item &ext
+ &str=DIALOG.STRing(&label)
+ &str=OS.FILE.PATH("&str")
+ IF "&str"!=""
+   &str="&last_path"+"/"+"&ext"
+ DIALOG.File "&str"
+ ENTRY &str
+ IF "&str"==""
+   RETURN
+ &assignment="&"+"&item"+"="+"""&str"""
+ &assignment
+ DIALOG.Set &label "&str"
+ &last_path=OS.FILE.PATH("&str")
+ RETURN 
+ 
+startme: 
+ DIALOG.END
+ WinCLEAR
+ AREA.CLEAR
+ RESet
+ SYStem.Up
+ 
+ IF "&corefile"==""
+   ENDDO
+  
+ WinPOS 0 0 50% 50%
+ AREA
+ 
+ WinPOS 0 51% 50% 30% ,,, "AUTOLOAD"
+ sYmbol.AutoLOAD.List
+  
+ IF "&libpath"!=""
+    sYmbol.SourcePATH.SetDir &libpath
+
+ sYmbol.AutoLOAD.CHECKCoMmand "do &script_path/core_autoload.cmm "
+ 
+ IF "&elffile"!=""
+   &HaveExec=TRUE()
+ 
+ Data.LOAD.CORE "&corefile" /NoClear
+ SILENT.WINFIND " 0x2 " AUTOLOAD 
+ &nt_file=FOUND()
+
+ IF "&elffile"!=""
+ (
+   Data.LOAD.Elf "&elffile" /NoClear /ia64 /NOREGISTER /NoCODE
+   IF Data.LONG(D:Register(PC))==0
+   (
+       LOCAL &text_range &basename
+       &basename=OS.FILE.NAME(&elffile)
+       RePeAT
+       (
+         &basename=STRing.CUT("&basename",-STRing.LENgth(OS.FILE.EXTENSION(&basename)))
+       )
+       WHILE OS.FILE.EXTENSION(&basename)!=""
+       &text_range=sYmbol.SECRANGE(\\&basename\.text)
+       Data.LOAD.Elf "&elffile" 0 &text_range /NoClear /ia64 /NOREGISTER /NOSYMBOL
+   )
+  )
+
+ IF "&elffile"!=""
+ (
+   ; strip name extension (.elf / .exe) if existing
+   &elffile=OS.FILE.NAME(&elffile)
+   &elfname=STRing.SPLIT("&elffile",".",0)
+ )
+ 
+ sYmbol.AutoLOAD.TOUCH
+ GOSUB CheckDynamicSection &nt_file
+   
+OpenWindows:
+  ON.ERROR nothing
+  WinPOS 50% 0 50% 49%
+  List
+ 
+  WinPOS 0 83% 50% 20%
+  TASK.List
+ 
+  IF "&elffile"!=""
+  (
+    MAP.RESet
+    MAP.DENYACCESS 0x0--0xffffffffffffffff
+    LOCAL &count
+    &count=1
+    SCREEN
+  
+    //IF sYmbol.List.MAP.COUNT()!=0
+    //  PRINT "Configuring memory regions..."
+  
+    RePeat sYmbol.List.MAP.COUNT()
+    (
+      MAP.NODENYACCESS sYmbol.List.MAP.RANGE(&count)
+     &count=&count+1
+    )
+  )
+  
+  WinPOS 50% 51% 50% 25%
+  Frame /MOD
+  
+  WinPOS 50% 78% 50% 25%
+  Register /Stack
+  
+  PRINT "Done."
+  
+  ENDDO
+   
+CheckDynamicSection:
+ LOCAL &nt_file
+ LOCAL &debug_base
+ ENTRY &nt_file
+ &debug_base=0
+ 
+ ON.ERROR GOTO OpenWindows
+ &dynamic=ADDRESS.OFFSET(sYmbol.SECADDRESS(\\&elfname\.dynamic))
+ ON.ERROR nothing
+ &endRange=ADDRESS.OFFSET(sYmbol.SECEND(\\&elfname\.dynamic))
+ 
+loop:
+ &tmp="D:"+"&dynamic"
+ &tmp=&readFunc(&tmp)
+ IF &tmp==0x15
+ (
+    &dynamic=&dynamic+&step_width
+    &tmp="D:"+"&dynamic"
+    &debug_base=&readFunc(&tmp)
+ )
+ ELSE
+ (
+    &dynamic=&dynamic+&step_width
+    IF &dynamic<&endRange
+      GOTO loop
+ )
+ 
+ IF &debug_base==0
+    RETURN
+    
+ &tmp=&debug_base+&step_width
+ &tmp="D:"+"&tmp"
+ &lm=&readFunc(&tmp)                ; discard first entry
+ 
+  IF &lm==0
+    RETURN
+ 
+ sYmbol.AutoLOAD.Delete
+ 
+next:
+ &tmp=&lm+&lm_step
+ &tmp="D:"+"&tmp"
+ &lm=&readFunc(&tmp)
+ 
+ IF &lm==0
+  RETURN
+ 
+ &tmp=&lm+&step_width
+ &tmp="D:"+"&tmp"
+ &name_addr=&readFunc(&tmp)
+ &tmp="D:"+"&name_addr"
+ &namestr=Data.STRing(&tmp)
+ 
+ IF "&namestr"==""
+   GOTO next
+ 
+ LOCAL &basename &tmp &len
+ &basename=OS.FILE.NAME(&namestr)
+ RePeAT
+ (
+  &basename=STRing.CUT("&basename",-STRing.LENgth(OS.FILE.EXTENSION(&basename)))
+ )
+ WHILE OS.FILE.EXTENSION(&basename)!=""
+ 
+ &tmp=STRING.SCAN("&basename", "-",0)
+ &len=STRING.LEN("&basename")
+ IF &tmp!=-1
+  &basename=STRING.CUT("&basename",&tmp-&len)
+ 
+ &tmp="D:"+"&lm"
+ &offset=&readFunc(&tmp)
+ &tmp=&lm+2*&step_width
+ &l_ld=&readFunc(D:&tmp)
+
+  
+ IF &nt_file==FALSE()
+   sYmbol.AUTOLOAD.Create P:&offset--&offset "&namestr" "do &script_path/core_autoload.cmm ""&namestr"" 2 &offset 0 0"
+ ELSE
+ (
+   PRIVATE &dynamic
+   ON ERROR GOTO nodynamic
+   &dynamic=ADDRESS.OFFSET(sYmbol.SECADDRESS(\\&basename\.dynamic))
+   IF (&offset+&dynamic)!=&l_ld
+   (
+     PRIVATE &shift
+     PRIVATE &text_range &text_start &text_end
+     &shift=&l_ld-&dynamic
+     IF &shift!=0
+     (
+       sYmbol.RELOCATE.shift &shift \\&basename
+       &text_start=ADDRESS.OFFSET(sYmbol.SECADDRESS(\\&basename\.text))
+       &text_end=ADDRESS.OFFSET(sYmbol.SECEND(\\&basename\.text))
+       IF (Register(PC)>=&text_start)&&(Register(PC)<=&text_end)
+       (
+         &text_range=sYmbol.SECRANGE(\\&basename\.text)
+         &filepath=sYmbol.SEARCHFILE("&namestr")
+         SILENT.Data.LOAD.Elf "&filepath" &offset+&shift &text_range /NoClear /ia64 /NOREGISTER /NOSYMBOL /NAME "&basename"
+       )
+     )
+   )
+nodynamic:
+   ON.ERROR nothing
+ )
+ 
+ GOTO next
+ 
+ 
+
+

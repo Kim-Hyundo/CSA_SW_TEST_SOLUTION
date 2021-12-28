@@ -1,0 +1,331 @@
+; --------------------------------------------------------------------------------
+; @Title: OSPI FLASH Program script for the j721e-evm (AM752X, DRA829, TDA4X)
+; @Description:
+; The MT35XU512 (Cypress) is connected to the OSPI_CS0 controller
+;
+; SRAM:
+; OSPI(controller) Base: 0x47040000
+; OSPI memory mapped ADDRESS: 0x50000000
+;
+; Prerequisites: Switch Settings: CONFIG_SW[1] = OFF (SW3.1 on common board)
+;
+; @Chip: AM752X, DRA829, TDA4*
+; @Board: J721E-EVM
+; @Author: CMO
+; @Keywords: Micron TD4*, Micron DRA829, Micron AM752X
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: j721e-ospi.cmm 8578 2020-08-05 13:40:50Z cmorgenstern $
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+PRIVATE &param_prepareonly &param_dualport
+&parameters=STRing.UPpeR("&parameters")
+&param_prepareonly=(STRing.SCAN("&parameters","PREPAREONLY",0)!=-1)
+&param_dualport=STRing.SCANAndExtract("&parameters","DUALPORT=","1")
+
+
+; --------------------------------------------------------------------------------
+LOCAL &OSPI_BASE &OSPI_MEMORY_BASE
+&OSPI_BASE=0x47040000
+&OSPI_MEMORY_BASE=0x50000000  ; flash contents memory mapped address
+
+
+; --------------------------------------------------------------------------------
+; Open the master core(CM3) to configure system
+
+; Basic attach via CortexM3
+RESet
+SYStem.RESet
+
+; Close leftover GUIs
+InterCom OTHERS QUIT
+
+; Open all SLAVE GUIs
+IF !INTERCOM.PING(CM3)
+	TargetSystem.NewInstance CM3 /ARCHitecture ARM
+
+InterCom CM3 System.CPU AM752X-CM3
+InterCom CM3 SYStem.Option RESBREAK OFF
+InterCom CM3 SYStem.Option EnReset OFF
+InterCom CM3 SYStem.CONFIG SLAVE OFF
+InterCom CM3 SYSTEM.JTAGCLOCK CTCK 10MHz
+
+IF COMBIPROBE()||UTRACE()
+(
+	InterCom CM3 SYStem.CONFIG.CONNECTOR MIPI34 ; because of converter LA-3782
+)
+
+
+; --------------------------------------------------------------------------------
+; Use Power-AP to signal initial states
+InterCom CM3 SYStem.Mode PREPARE
+InterCom CM3 Data.Set EDBG:0x400003f0 %Long 0x00190000    ; Ensure Power-AP unlocked
+InterCom CM3 Data.Set EDBG:0x400003f0 %Long 0yxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1    ; Soft reset system
+WAIT 500.ms                                               ; Wait some time for the system to stabilize
+InterCom CM3 Data.Set EDBG:0x400003f0 %Long 0x00190000    ; Ensure Power-AP unlocked
+InterCom CM3 Data.Set EDBG:0x40000344 %Long 0x00102098    ; J721e: Force M3 Power & Clock to active
+InterCom CM3 Data.Set EDBG:0x40000320 %Long 0x00224003    ; c7-wir
+InterCom CM3 Data.Set EDBG:0x40000334 %Long 0x00224003    ; c66.1-wir
+InterCom CM3 Data.Set EDBG:0x40000338 %Long 0x00224003    ; c66-2-wir
+InterCom CM3 Data.Set EDBG:0x40000364 %Long 0x00224003    ; dmpac-wir
+InterCom CM3 Data.Set EDBG:0x40000368 %Long 0x00224003    ; vmpac-wir
+
+InterCom CM3 SYStem.Up
+
+; work around LVCMOS IOdelay Issue
+InterCom CM3 Data.Set EZAXI:0x43005008 %LE %Long 0x68EF3490
+InterCom CM3 Data.Set EZAXI:0x4300500C %LE %Long 0xD172BC5A
+InterCom CM3 Data.Set EZAXI:0x430060c0 %LE %Long 0xd
+InterCom CM3 Data.Set EZAXI:0x430060d0 %LE %Long 0xd
+
+; Enable GTC for debug timestamps, 0x3=freeze in debug halt
+InterCom CM3 Data.Set EZAXI:0x00A90000 %LE %Long 0x1
+
+
+; --------------------------------------------------------------------------------
+; Basic board setup via CortexM3
+
+; Disbale CR5-MCU lockstep
+InterCom CM3 Data.Set EZAXI:0x45A50040 %Long 0x00000000
+
+; Enable necessary clock domains
+InterCom CM3 Do ~~/demo/arm64/hardware/j721e/scripts/configure_psc 0. 0. 4. 0x1 0x3 ; LPSC_WKUPMCU2MAIN
+InterCom.WAIT CM3
+
+; Configure PLLs
+InterCom CM3 Do ~~/demo/arm64/hardware/j721e/scripts/configure_pll MAIN
+InterCom.WAIT CM3
+InterCom CM3 Do ~~/demo/arm64/hardware/j721e/scripts/configure_pll DEBUG
+InterCom.WAIT CM3
+InterCom CM3 Do ~~/demo/arm64/hardware/j721e/scripts/configure_pll MCU0
+InterCom.WAIT CM3
+InterCom CM3 Do ~~/demo/arm64/hardware/j721e/scripts/configure_pll MCU1
+InterCom.WAIT CM3
+InterCom CM3 Do ~~/demo/arm64/hardware/j721e/scripts/configure_pll MCU2
+InterCom.WAIT CM3
+
+; Enable Power
+InterCom CM3 Do ~~/demo/arm64/hardware/j721e/scripts/configure_psc 0. 0.  0. 0x1 0x3 ; LPSC_WKUP_ALWAYSON
+InterCom.WAIT CM3
+InterCom CM3 Do ~~/demo/arm64/hardware/j721e/scripts/configure_psc 0. 0.  1. 0x1 0x3 ; LPSC_DMSC
+InterCom.WAIT CM3
+InterCom CM3 Do ~~/demo/arm64/hardware/j721e/scripts/configure_psc 0. 0.  2. 0x1 0x3 ; LPSC_DEBUG2DMSC
+InterCom.WAIT CM3
+InterCom CM3 Do ~~/demo/arm64/hardware/j721e/scripts/configure_psc 0. 0.  7. 0x1 0x3 ; LPSC_MCU_DEBUG
+InterCom.WAIT CM3
+InterCom CM3 Do ~~/demo/arm64/hardware/j721e/scripts/configure_psc 0. 0. 10. 0x1 0x3 ; LPSC_MCU_OSPI_0
+InterCom.WAIT CM3
+InterCom CM3 Do ~~/demo/arm64/hardware/j721e/scripts/configure_psc 0. 0. 11. 0x1 0x3 ; LPSC_MCU_OSPI_1
+InterCom.WAIT CM3
+
+; Close CM3 GUI
+InterCom OTHERS QUIT
+
+; --------------------------------------------------------------------------------
+; Connect to MCU-CR5 to program flash
+
+; The following CPU selections are equivalent:
+; AM752X-CR5-MCU
+; DRA829-CR5-MCU
+; TDA4X-CR5-MCU
+SYStem.CPU AM752X-CR5-MCU
+SYStem.CONFIG CORE 3. 1.
+CORE.ASSIGN 1.
+SYStem.Option RB off
+SYStem.Option EnReset OFF
+SYStem.MemAccess DAP    ;Enable to use the dualport
+
+SYStem.Option TRST OFF
+SYStem.Attach
+Break
+
+GOSUB CLK_INIT
+GOSUB PIN_MUX
+GOSUB OSPI_INIT
+GOSUB CACHE_MMU_INIT
+
+Break.RESet
+
+FLASH.RESet
+FLASH.Create   &OSPI_MEMORY_BASE++0x03fffff      0x20000   TARGET   Byte    ;MT35XU512 has 128KB uniform sectors
+
+IF ("&param_dualport"!="1")
+	FLASH.TARGET   0x41C00000   0x41C00000+0x2000    0x1000    ~~/demo/arm/flash/byte/snor_am752x.bin
+ELSE
+	FLASH.TARGET   0x41C00000   0x41C00000+0x2000    0x1000    ~~/demo/arm/flash/byte/snor_am752x.bin /DUALPORT
+
+; Re-enable I cache
+Data.Set C15:0x1 %long (Data.Long(C15:0x1)|(0x1<<12.))  ; enable I cache
+
+; Read id test
+FLASH.SPI.CMD 1. 0x9F /READ 0x4
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+	ENDDO PREPAREDONE
+
+
+; --------------------------------------------------------------------------------
+; Flash programming example
+DIALOG.YESNO "Program flash memory?"
+LOCAL &progflash
+ENTRY &progflash
+IF &progflash
+(
+	FLASH.ReProgram.ALL /Erase
+	Data.LOAD.auto *
+	FLASH.ReProgram.off
+
+	; Reset device
+	SYStem.Down
+	SYStem.Up
+)
+
+ENDDO
+
+
+READ_ID_TEST:
+(
+	; In case of errors you can try to read the ID via:
+	; GOSUB READ_ID_TEST
+	;
+	; Check the output of the AREA window.
+	; Expected output ID:
+	; 0x2C
+	; 0x5A (or 0x5B)
+	; 0x1A
+	; 0x10
+	; 0x41
+	; 0x00 (or 0x04)
+	; ...  (Unique ID code)
+	
+
+	LOCAL &rdata
+	&CTRLREG=&OSPI_BASE+0x090
+	&RXDATA0=&OSPI_BASE+0x0A0
+	&RXDATA1=&OSPI_BASE+0x0A4
+
+	&cmd=0x9f<<24.     //cmd
+	&rd=0x1<<23.       //rd data enable
+	&rd_num=0x7<<20.   //7+1==8bytes
+	&cmd_exec=0x1      //cmd execution
+
+	Data.Set EZAXI:&CTRLREG %LE %Long (&cmd|&cmd_exec|&rd_num|&rd)   ;write cmd + write data
+	WAIT 100.ms
+
+	&rdata=Data.Long(EZAXI:&RXDATA0)  ;read lower  , 8byte fifo
+	PRINT "1st 0x" (&rdata)&0xFF " (Manufacture)"      ; //RXFIFO0
+	PRINT "2nd 0x" (&rdata>>8.)&0xFF " (Device ID)"
+	PRINT "3rd 0x" (&rdata>>16.)&0xFF
+	PRINT "4th 0x" (&rdata>>24.)&0xFF
+	&rdata=Data.Long(EZAXI:&RXDATA1)  ;read upper , 8byte fifo
+	PRINT "5th 0x" (&rdata)&0xFF
+	PRINT "6th 0x" (&rdata>>8.)&0xFF
+	PRINT "7th 0x" (&rdata>>16.)&0xFF
+	PRINT "8th 0x" (&rdata>>24.)&0xFF
+
+	RETURN
+)
+
+OSPI_INIT:
+(
+	Data.Set EZAXI:&OSPI_BASE+0x0  %LE %Long 0x0
+	Data.Set EZAXI:&OSPI_BASE+0x4  %LE %Long 0x00000013 ; 4B Addr Read
+	Data.Set EZAXI:&OSPI_BASE+0x8  %LE %Long 0x00000012 ; 4B Addr Write
+
+	Data.Set EZAXI:&OSPI_BASE+0x0  %LE %Long 0x80800000
+	Data.Set EZAXI:&OSPI_BASE+0x14 %LE %Long 0x1003; 4B Address mode, 3B Addr: 0x1002
+	Data.Set EZAXI:&OSPI_BASE+0x10 %LE %Long 0x21
+
+	Data.Set EZAXI:&OSPI_BASE+0x1C %LE %Long 0xFFFFFFFF
+	Data.Set EZAXI:&OSPI_BASE+0xC  %LE %Long (0xFF<<16.)|(0xFF<<8.) ; !!!!! OSPI_DEV_DELAY_REG because of writing !!!!!
+	Data.Set EZAXI:&OSPI_BASE+0x0  %LE %Long 0x00000081|(0x1<<19.)|(0xE<<10.) ; 0x1==baudrate_div4, enable usage of OSPI_CS0
+	Data.Set EZAXI:&OSPI_BASE+0x1C %LE %Long 0x04000000 ;ospi_setdirectcutoff, end of the flash address
+
+	RETURN
+)
+
+PIN_MUX:
+(
+	;MMR_unlock
+	Data.Set EZAXI:0x4301D008 %Long 0x68EF3490  ;CTRLMMR_WKUP_LOCK7_KICK0
+	Data.Set EZAXI:0x4301D00C %Long 0xD172BC5A
+
+	Data.Set EZAXI:0x4301C000 %Long 0x00040000  ;CTRLMMR_WKUP_PADCONFIG0
+	Data.Set EZAXI:0x4301C004 %Long 0x00040000
+	Data.Set EZAXI:0x4301C008 %Long 0x00040000
+	Data.Set EZAXI:0x4301C00C %Long 0x00040000
+	Data.Set EZAXI:0x4301C010 %Long 0x00040000
+	Data.Set EZAXI:0x4301C014 %Long 0x00040000
+	Data.Set EZAXI:0x4301C018 %Long 0x00040000
+	Data.Set EZAXI:0x4301C01C %Long 0x00040000
+	Data.Set EZAXI:0x4301C020 %Long 0x00040000
+	Data.Set EZAXI:0x4301C024 %Long 0x00040000
+	Data.Set EZAXI:0x4301C028 %Long 0x00040000
+	Data.Set EZAXI:0x4301C02C %Long 0x00040000
+	Data.Set EZAXI:0x4301C030 %Long 0x00040000
+	Data.Set EZAXI:0x4301C038 %Long 0x00040001
+	Data.Set EZAXI:0x4301C03C %Long 0x00040001
+
+	RETURN
+)
+
+CLK_INIT:
+(
+	PRIVATE &HSDIV_OPTION
+
+	; If there are flashing issues or if it fails, try to modfy the following value.
+	; The valid range is:      0x3 <= &HSDIV_OPTION <= 0x8
+	&HSDIV_OPTION=0x5
+
+	; Set clock source
+	Data.Set EZAXI:0x40F09008 %Long 0x68EF3490  ; CTRLMMR_MCU_LOCK2_KICK0
+	Data.Set EZAXI:0x40F0900C %Long 0xD172BC5A
+
+	Data.Set EZAXI:0x40F08030 %Long 0x1         ; CTRLMMR_MCU_OSPI0_CLKSEL: 0x1 = MCU_PLL2_HSDIV4_CLKOUT
+
+	; Adjust PLL for MCU_PLL2_HSDIV4_CLKOUT
+	Do ~~/demo/arm64/hardware/j721e/scripts/configure_pll _CFG_ BYPASS MCU 2.
+	Do ~~/demo/arm64/hardware/j721e/scripts/configure_pll _CFG_ DIV    MCU 2. 0x2 0x1 0x1 0x68 0x2AAAAB
+	Do ~~/demo/arm64/hardware/j721e/scripts/configure_pll _CFG_ HSDIV  MCU 2. 4. &HSDIV_OPTION
+	Do ~~/demo/arm64/hardware/j721e/scripts/configure_pll _CFG_ ENABLE MCU 2.
+
+	RETURN
+)
+
+
+CACHE_MMU_INIT:
+(
+	PRIVATE &i &tmpReg
+
+	; Enable MPU and disable I and D caches
+	&tmpReg=Data.Long(C15:0x1)
+	&tmpReg=&tmpReg|0x1             ; enable MPU
+	&tmpReg=(&tmpReg&(~(0x1<<2.)))  ; disable D cache
+	&tmpReg=(&tmpReg&(~(0x1<<12.))) ; disable I cache
+	Data.Set C15:0x1 %long &tmpReg
+
+	; Configure small region setup for flash programming
+	PER.Set.SaveIndex C15:0x026 %Long 0x0 C15:0x016 %Long 0x00000000 ; set default
+	PER.Set.SaveIndex C15:0x026 %Long 0x0 C15:0x216 %Long 0x0000003F
+	PER.Set.SaveIndex C15:0x026 %Long 0x0 C15:0x416 %Long 0x00001310
+	PER.Set.SaveIndex C15:0x026 %Long 0x1 C15:0x016 %Long 0x50000000 ; setup flash window
+	PER.Set.SaveIndex C15:0x026 %Long 0x1 C15:0x216 %Long 0x00000035
+	PER.Set.SaveIndex C15:0x026 %Long 0x1 C15:0x416 %Long 0x00001301
+	PER.Set.SaveIndex C15:0x026 %Long 0x2 C15:0x016 %Long 0x41C00000 ; setup buffer space
+	PER.Set.SaveIndex C15:0x026 %Long 0x2 C15:0x216 %Long 0x00000027
+	PER.Set.SaveIndex C15:0x026 %Long 0x2 C15:0x416 %Long 0x0000030C
+	; Reset all other MPU regions
+	&i=3.
+	while &i<16.
+	(
+		PER.Set.SaveIndex C15:0x026 %Long &i C15:0x016 %Long 0x0
+		PER.Set.SaveIndex C15:0x026 %Long &i C15:0x216 %Long 0x0
+		PER.Set.SaveIndex C15:0x026 %Long &i C15:0x416 %Long 0x0
+		&i=&i+1.
+	)
+
+	RETURN
+)

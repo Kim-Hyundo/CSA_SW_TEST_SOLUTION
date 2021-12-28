@@ -1,0 +1,149 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for S32V232 on S32V234-EVB with ITM Onchip-Trace (RAM, ETF)
+; @Description:
+;   Loads the a ITM demo application into RAM and sets up a demo debug and trace
+;   scenario. The ITM stimulus registers are written by the application and
+;   traced into the onchip ETF, then evaluated by TRACE32.
+;   As only the Cortex-M4 is started after reset, we start the first A53 using
+;   the script.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to J17
+;    * set Bootmode to SD-Card, remove SD-Card
+; @Keywords: ARM, Cortex-A53, ETF, ETM, ITM
+; @Author: BES
+; @Board: S32V234-EVB
+; @Chip: S32V232
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: s32v232-evb-a53_itm_onchip_etf_trace_sram.cmm 16225 2020-06-25 14:27:47Z bschroefel $
+
+WinCLEAR
+
+IF SYStem.INSTANCE()>1.
+(
+  PRINT %ERROR "Please start this script in Non-AMP or AMP-Master mode."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; Initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU S32V232
+SYStem.Option AHBHPROT 0x3
+SYStem.Option EnReset OFF
+SYStem.JtagClock CTCK 10MHz
+CORE.ASSIGN 1.
+; Disable Trace infrastructure for the moment - TPIU may be unclocked!
+ETM.OFF
+Trace.DISable
+SYStem.Mode Prepare
+
+GOSUB DisableWatchdog
+DO ~~~~/../../scripts/kick_cores "A53_1"
+
+SYStem.Mode Attach
+IF STATE.RUN()
+  Break.direct
+
+GOSUB InitEcc
+
+; --------------------------------------------------------------------------------
+; Load ITM demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/itm_stimulus_ram_aarch64_v8.elf"
+
+; --------------------------------------------------------------------------------
+; Start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; Initialize global variables, set ITM / STIMULUS base address
+Var.Assign pITMBase=0x40091000
+Var.Assign pStimulusBase=0x40089000
+
+; --------------------------------------------------------------------------------
+; Initialize ITM ONCHIP trace (ETF)
+(
+  Trace.METHOD ONCHIP
+  Trace.Init
+  ETM.Trace OFF
+  ETM.OFF
+  
+  ITM1.ON
+  ITMTrace.OFF
+  ITMTrace.AutoArm ON
+  ITMTrace.Init
+  ITM.PortMode Wrapped
+)
+
+Data.Set EDAP:0x80001E00 %Long 0xF      ; Enable and use 4 of 32 channels for demo
+
+; Set to TRUE() for testing with data only and to FALSE() for testing with strings
+IF FALSE()
+(
+  ; Test data for example code
+  Var.Assign bLongStimulusEnable=1
+  Var.Assign nLongStimulus=0x12345678
+  Var.Assign bAlternateStimulusEnable=1
+
+  ; Open some windows
+  WinCLEAR
+  Mode.Hll
+  WinPOS 0. 0. 116. 26.
+  List.auto
+  WinPOS 120. 0. 100. 16.
+  Var.Watch
+  Var.AddWatch %SpotLight %Hex bLongStimulusEnable
+  Var.AddWatch %SpotLight %Hex bAlternateStimulusEnable
+  Var.AddWatch %SpotLight %Hex nLongStimulus
+  WinPOS 0. 32.
+  ITMTrace.List
+)
+ELSE
+(
+  ; Test string for example code
+  Var.Assign pPrintfString[0]="ITM Channel 0"
+  Var.Assign pPrintfString[1]="ITM Channel 1"
+  Var.Assign pPrintfString[2]="ITM Channel 2"
+  Var.Assign pPrintfString[3]="ITM Channel 3"
+  
+  ; Open some windows
+  WinCLEAR
+  Mode.Hll
+  WinPOS 0. 0. 116. 26.
+  List.auto
+  WinPOS 120. 0. 100. 16.
+  Var.Watch
+  Var.AddWatch %SpotLight %String pPrintfString
+  WinPOS 0. 32.
+  ITMTrace.List
+  WinPOS 120. 25.
+  PrintfTrace.METHOD Onchip
+  PrintfTrace.List MESSAGE
+)
+
+ENDDO
+
+DisableWatchdog:
+(
+  ; use the AHB access port to disable the WDOG before the actual connection
+  Data.Set EAHB:0x40086010 %Long 0xc520
+  Data.Set EAHB:0x40086010 %Long 0xd928
+  Data.Set EAHB:0x40086000 %Long Data.Long(EAHB:0x40086000)&~0x1
+  Data.Set EAHB:0x40086000 %Long Data.Long(EAHB:0x40086000)|0x40
+  RETURN
+)
+
+InitEcc:
+(
+  ; ECC init of SRAM with use eDMA TCD1
+  Data.Set EAHB:0x40003020 %Long 0x6230
+  Data.Set EAHB:0x40003024 %Long 0x03030000
+  Data.Set EAHB:0x40003028 %Long 0x00400000
+  Data.Set EAHB:0x40003030 %Long 0x3e800000
+  Data.Set EAHB:0x40003034 %Long 0x00010008
+  Data.Set EAHB:0x4000303C %Long 0x00010001
+  WAIT (Data.Word(EAHB:0x4000303C)&0x0080)==0x0080
+  RETURN
+)

@@ -1,0 +1,118 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux Boot Script for DM6446
+; @Description: 
+;   Boot via the U-Boot console to the start_kernel
+;   function. The boot is handshaked using the debugger and; serial console.
+;   Expect 256MB ram. UART connected to COM3.
+; @Keywords: awareness
+; @Author: AME
+; @Chip: TMS320DM6446
+; @Board: DM6446
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: dm6446_linux.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+WinCLEAR
+RESet
+
+; open the terminal
+TERM.RESet
+TERM.METHOD COM COM3 115200. 8 NONE 1STOP NONE 
+TERM.SIZE 80. 1000.
+TERM.Mode VT100 
+TERM.SCROLL ON
+WinPOS 76.0 25.0 80. 24. 0. 0. TermWin
+TERM.view
+
+; System Configuration, DM6446 with RTCK JtagClock
+TASK.RESet
+TRANSlation.RESet
+
+PRINT "System configuration ..."
+SYStem.CPU DM6446
+SYStem.Option MMUSPACES ON
+SYStem.JtagClock RTCK
+
+SYStem.Up
+
+; Reset Vector -> start of NOR-Flash
+Register.Set PC 0x02000000
+
+; let u-boot boot, stop him in the console
+GOSUB TerminalWaitString "Hit any key to stop"
+TERM.Out 0xa
+WAIT 0.1s
+Break.direct
+
+; we set a Breakpoint to the kernel entry area ...
+Go.direct 0x80008000 /Onchip
+
+; Prepare Linux specific settings. 
+; Don't stop DABORT/PABORT (MMU FAIL)
+; Don't stop on UNDEF Instr (FPU Emulation)
+TrOnchip.Set DABORT OFF
+TrOnchip.Set PABORT OFF
+TrOnchip.Set UNDEF OFF
+; now we can manipulate the UBOOT ENV ....
+; TERM.OUT ... 0xa
+; last but not least we boot -> U-Boot "boot" command
+TERM.Out "boot" 0xa
+; ...
+
+WAIT !STATE.RUN()
+PRINT "Load vmlinux code ..."
+; we are now at the kernel entry - we are free to replace the kernel now or to load only symbols
+; vmlinux starts physically at RAM start (=0x80000000) + 0x8000 
+; We have to adjust it from the virtual start address at the label
+; "stext" from the System.map ("nm vmlinux | sort")
+; i.e.: Data.LOAD.Elf vmlinux <physical start>-<virtual start>
+;Data.LOAD.Elf "~~~~/vmlinux" 0x80000000-0xc0000000 /NoRegister /NoCODE
+Data.LOAD.Elf "~~~~/vmlinux" 0x80000000-0xc0000000 /NoRegister
+
+; the Kernel code up to start_kernel runs without MMU. 
+; We run till the first function now which uses the MMU.
+Go.direct start_kernel-0x80000000+0xc0000000 /Onchip
+WAIT !STATE.RUN()
+
+PRINT "Load vmlinux symbols ..."
+; we are now in the virtual world, reload symbols without offset
+Data.LOAD.Elf "~~~~/vmlinux" /NoCODE /NoRegister /LowerPATH
+;sYmbol.SourcePATH.Translate "/home/.../linux" "C:\path\on\remote\machine"
+
+PRINT "Setup Debugger Address Translation ..."
+; setup debugger address translation
+; PageTableFormat: LINUXSWAP
+; Virtual Kernel Range: 0xc0000000++0x0FFFFFFF
+; Physical Kernel Start: 0x80000000
+; Section 0xbf000000--0xbfffffff + 0xc0000000--0xffffffff
+; are used by the kernel itself
+MMU.FORMAT LINUXSWAP swapper_pg_dir 0xC0000000++0x0FFFFFFF 0x80000000
+TRANSlation.COMMON 0xBF000000--0xFFFFFFFF
+TRANSlation.TableWalk ON
+TRANSlation.ON
+
+; load awareness for Linux 2.x
+PRINT "Load Linux Awareness 2.x ..."
+TASK.CONFIG ~~/demo/arm/kernel/linux/linux-2.x/linux.t32
+MENU.ReProgram ~~/demo/arm/kernel/linux/linux-2.x/linux.men
+
+
+WinPOS 0% 0%
+List.Hll
+
+ENDDO
+
+TerminalWaitString: ;(&str)
+        LOCAL &str
+        ENTRY %LINE &str
+        &str=&str
+        SCREEN.ALways
+        RePeaT
+        (
+              WAIT 0.5s
+              SCREEN.display
+              WinFIND "&str" TermWin
+        )
+         WHILE !FOUND() 
+        RETURN

@@ -1,0 +1,198 @@
+﻿<UserControl x:Class="ProstMain.View.ReportSettingView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:local="clr-namespace:ProstMain.View"
+             mc:Ignorable="d" 
+             DataContext="{Binding Source={StaticResource Locator},Path=ReportSettingVM}">
+
+    <Grid Background="{DynamicResource ResourceKey=StandardBackground}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="4*"/>
+            <ColumnDefinition Width="1.5*"/>
+            <ColumnDefinition Width="1.8*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+        </Grid.RowDefinitions>
+
+        <materialDesign:ColorZone Mode="PrimaryMid" Grid.Row="0" Grid.Column="0" VerticalAlignment="Stretch" Margin="5" CornerRadius="10">
+            <Grid VerticalAlignment="Center">
+                <Label FontSize="15" Content="Test Report Path" Margin="2" Foreground="{DynamicResource ResourceKey=GroupBoxHeaderForeground}" HorizontalAlignment="Center"/>
+            </Grid>
+        </materialDesign:ColorZone>
+        <Rectangle Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Margin="5" Stroke="{DynamicResource ResourceKey=PrimaryHueMidBrush}" StrokeThickness="2"/>
+        <Button Margin="13" Content="Browser.." Grid.Column="2" Grid.Row="0" Background="{DynamicResource ButtonBackground}" Foreground="{DynamicResource ResourceKey=ButtonForeground}" Height="Auto" Command="{Binding TestReportBrowserCommand}"/>
+
+        <materialDesign:Card Background="Transparent" Foreground="White" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="1"  HorizontalAlignment="Stretch" UniformCornerRadius="6" Margin="10" MouseMove="TEXTBLOCK_TestReportPath_MouseMove" MouseLeave="TEXTBLOCK_TestReportPath_MouseLeave" Padding="10,0,10,0" Height="30">
+            <Canvas ClipToBounds="True" Name="CANVAS_TestReportPath" VerticalAlignment="Stretch" Width="Auto" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="4">
+                <TextBlock Canvas.Top="7" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" FontSize="13" TextWrapping="Wrap" x:Name="TEXTBLOCK_TestReportPath" Text="{Binding ReportSettingModel.TestSummaryReport_Path}"/>
+            </Canvas>
+        </materialDesign:Card>
+
+        <materialDesign:ColorZone Mode="PrimaryMid" Grid.Row="1" Grid.Column="0" Grid.RowSpan="2" VerticalAlignment="Stretch" Margin="5" CornerRadius="10">
+            <Grid VerticalAlignment="Center">
+                <TextBlock FontSize="15" Text="I/O TestReport&#10;Path" Margin="2" Foreground="{DynamicResource ResourceKey=GroupBoxHeaderForeground}" HorizontalAlignment="Center" TextAlignment="Center"/>
+            </Grid>
+        </materialDesign:ColorZone>
+
+        <Rectangle Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Grid.RowSpan="2" Margin="5" Stroke="{DynamicResource ResourceKey=PrimaryHueMidBrush}" StrokeThickness="2"/>
+
+        <Button Margin="13" Content="Browser.." Grid.Column="2" Grid.Row="1" Background="{DynamicResource ButtonBackground}" Foreground="{DynamicResource ResourceKey=ButtonForeground}" Height="Auto" Command="{Binding IOTestReportBrowserCommand}"/>
+
+        <Grid Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Grid.RowSpan="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="4*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="4*"/>
+            </Grid.RowDefinitions>
+            <materialDesign:Card Background="Transparent" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="4"  HorizontalAlignment="Stretch" UniformCornerRadius="6" Margin="10,15,25,10" Padding="10,0,10,0" Height="30" MouseMove="TEXTBLOCK_IOTestReportPath_MouseMove" MouseLeave="TEXTBLOCK_IOTestReportPath_MouseLeave">
+                <Canvas ClipToBounds="True" Name="CANVAS_IOTestPath" VerticalAlignment="Stretch" Width="Auto" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="4">
+                    <TextBlock Canvas.Top="7" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" FontSize="13" TextWrapping="Wrap" x:Name="TEXTBLOCK_IOTestReportPath" Text="{Binding ReportSettingModel.IOTestReport_Path}"/>
+                </Canvas>
+            </materialDesign:Card>
+            <Separator Grid.Row="1" Grid.ColumnSpan="5" Margin="15,0,15,0"/>
+            <CheckBox Grid.Row="2" Margin="10,0,0,5" VerticalAlignment="Center" materialDesign:CheckBoxAssist.CheckBoxSize="20" IsChecked="{Binding ReportSettingModel.IOTestReport_InputData}" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" Background="{DynamicResource ResourceKey=CheckBoxBackGroundColor}">
+                <TextBlock TextAlignment="Center" Text=" Input &#10;Data"/>
+            </CheckBox>
+            <CheckBox Grid.Row="2" Grid.Column="1" Margin="10,0,0,5" VerticalAlignment="Center" materialDesign:CheckBoxAssist.CheckBoxSize="20" IsChecked="{Binding ReportSettingModel.IOTestReport_OutputData}" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" Background="{DynamicResource ResourceKey=CheckBoxBackGroundColor}">
+                <TextBlock TextAlignment="Center" Text=" Output &#10;Data"/>
+            </CheckBox>
+            <CheckBox Grid.Row="2" Grid.Column="2" Margin="10,0,0,5" VerticalAlignment="Center" materialDesign:CheckBoxAssist.CheckBoxSize="20" IsChecked="{Binding ReportSettingModel.IOTestReport_ExpectedData}" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" Background="{DynamicResource ResourceKey=CheckBoxBackGroundColor}">
+                <TextBlock TextAlignment="Center" Text=" Expected&#10;Data"/>
+            </CheckBox>
+            <CheckBox Grid.Row="2" Grid.Column="3" Margin="10,0,0,5" VerticalAlignment="Center" materialDesign:CheckBoxAssist.CheckBoxSize="20" IsChecked="{Binding ReportSettingModel.IOTestReport_TestPassFail}" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" Background="{DynamicResource ResourceKey=CheckBoxBackGroundColor}">
+                <TextBlock TextAlignment="Center" Text="Test&#10;Pass/Fail"/>
+            </CheckBox>
+            <CheckBox Grid.Row="2" Grid.Column="4" Margin="10,0,0,5" VerticalAlignment="Center" materialDesign:CheckBoxAssist.CheckBoxSize="20" IsChecked="{Binding ReportSettingModel.IOTestReport_RuntimeMeasure}" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" Background="{DynamicResource ResourceKey=CheckBoxBackGroundColor}">
+                <TextBlock TextAlignment="Center" Text="S/W&#10;Runtime"/>
+            </CheckBox>
+        </Grid>
+        <!-- Side Right -->
+        <materialDesign:ColorZone Mode="PrimaryMid" Grid.Row="0" Grid.Column="4" VerticalAlignment="Stretch" Margin="5" CornerRadius="10">
+            <Grid VerticalAlignment="Center">
+                <TextBlock FontSize="15" Text="Debug/Analysis&#10;Option" Margin="2" Foreground="{DynamicResource ResourceKey=GroupBoxHeaderForeground}" HorizontalAlignment="Center" TextAlignment="Center"/>
+            </Grid>
+        </materialDesign:ColorZone>
+        <CheckBox Grid.Row="1" Grid.Column="4" Grid.RowSpan="2" Margin="10,0,0,5" VerticalAlignment="Center" materialDesign:CheckBoxAssist.CheckBoxSize="20" IsChecked="{Binding ReportSettingModel.DebugAnalysis}" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" Background="{DynamicResource ResourceKey=CheckBoxBackGroundColor}">
+            <TextBlock TextAlignment="Center" Text=" Simulation Debug &#10;Analysis"/>
+        </CheckBox>
+        <Rectangle Grid.Row="1" Grid.Column="4" Margin="5" Grid.RowSpan="2" Stroke="{DynamicResource ResourceKey=PrimaryHueMidBrush}" StrokeThickness="2"/>
+
+        <materialDesign:ColorZone Mode="PrimaryMid" Grid.Row="3" Grid.Column="4" VerticalAlignment="Stretch" Margin="5" CornerRadius="10">
+            <Grid VerticalAlignment="Center">
+                <TextBlock FontSize="15" Text="Data Mornitoring&#10;Option" Margin="2" Foreground="{DynamicResource ResourceKey=GroupBoxHeaderForeground}" HorizontalAlignment="Center" TextAlignment="Center"/>
+            </Grid>
+        </materialDesign:ColorZone>
+        <CheckBox Grid.Row="4" Grid.Column="4" Grid.RowSpan="2" Margin="10,0,0,5" VerticalAlignment="Center" materialDesign:CheckBoxAssist.CheckBoxSize="20" IsChecked="{Binding ReportSettingModel.DataMornitoring}" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" Background="{DynamicResource ResourceKey=CheckBoxBackGroundColor}">
+            <TextBlock TextAlignment="Center" Text=" Data Mornitoring &#10;Option"/>
+        </CheckBox>
+        <Rectangle Grid.Row="4" Grid.Column="4" Margin="5" Grid.RowSpan="2" Stroke="{DynamicResource ResourceKey=PrimaryHueMidBrush}" StrokeThickness="2"/>
+
+
+        <materialDesign:ColorZone Mode="PrimaryMid" Grid.Row="3" Grid.Column="0" Grid.RowSpan="2" VerticalAlignment="Stretch" Margin="5" CornerRadius="10">
+            <Grid VerticalAlignment="Center">
+                <TextBlock FontSize="15" Text="Code Coverage&#10; Report" Margin="2" Foreground="{DynamicResource ResourceKey=GroupBoxHeaderForeground}" HorizontalAlignment="Center" TextAlignment="Center"/>
+            </Grid>
+        </materialDesign:ColorZone>
+
+        <Rectangle Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Grid.RowSpan="2" Margin="5" Stroke="{DynamicResource ResourceKey=PrimaryHueMidBrush}" StrokeThickness="2"/>
+        <Button Margin="13" Content="Browser.." Grid.Column="2" Grid.Row="3" Background="{DynamicResource ButtonBackground}" Foreground="{DynamicResource ResourceKey=ButtonForeground}" Height="Auto" Command="{Binding CoverageReportBrowserCommand}"/>
+
+        <Grid Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Grid.RowSpan="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="4*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="4*"/>
+            </Grid.RowDefinitions>
+            <materialDesign:Card Background="Transparent" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"  HorizontalAlignment="Stretch" UniformCornerRadius="6" Margin="10,15,10,10" Padding="10,0,10,0" Height="30" MouseMove="TEXTBLOCK_CodeCoverage_MouseMove" MouseLeave="TEXTBLOCK_CodeCoverage_MouseLeave">
+                <Canvas ClipToBounds="True" Name="CANVAS_CodeCoverage" VerticalAlignment="Stretch" Width="Auto" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="4">
+                    <TextBlock Canvas.Top="7" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" FontSize="13" TextWrapping="Wrap" x:Name="TEXTBLOCK_CodeCoverage" Text="{Binding ReportSettingModel.CodeCoverageReport_Path}"/>
+                </Canvas>
+            </materialDesign:Card>
+            <Separator Grid.Row="1" Grid.ColumnSpan="5" Margin="15,0,15,0"/>
+            <CheckBox Grid.Row="2" Margin="10,0,0,5" VerticalAlignment="Center" materialDesign:CheckBoxAssist.CheckBoxSize="20" IsChecked="{Binding ReportSettingModel.CodeCoverageReport_Statement}" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" Background="{DynamicResource ResourceKey=CheckBoxBackGroundColor}">
+                <TextBlock TextAlignment="Center" Text=" Statement Coverage &#10;Result"/>
+            </CheckBox>
+            <CheckBox Grid.Row="2" Grid.Column="1" Margin="10,0,0,5" VerticalAlignment="Center" materialDesign:CheckBoxAssist.CheckBoxSize="20" IsChecked="{Binding ReportSettingModel.CodeCoverageReport_FunctionCall}" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" Background="{DynamicResource ResourceKey=CheckBoxBackGroundColor}">
+                <TextBlock TextAlignment="Center" Text=" Function Call &#10;Result"/>
+            </CheckBox>
+            <CheckBox Grid.Row="2" Grid.Column="2" Margin="10,0,0,5" VerticalAlignment="Center" materialDesign:CheckBoxAssist.CheckBoxSize="20" IsChecked="{Binding ReportSettingModel.CodeCoverageReport_MC_DC}" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" Background="{DynamicResource ResourceKey=CheckBoxBackGroundColor}">
+                <TextBlock TextAlignment="Center" Text=" MC/DC Coverage&#10;Result"/>
+            </CheckBox>
+        </Grid>
+
+        <materialDesign:ColorZone Mode="PrimaryMid" Grid.Row="5" Grid.Column="0" Grid.RowSpan="2" VerticalAlignment="Stretch" Margin="5" CornerRadius="10">
+            <Grid VerticalAlignment="Center">
+                <TextBlock FontSize="15" Text="Performance&#10;Measurement Report" Margin="2" Foreground="{DynamicResource ResourceKey=GroupBoxHeaderForeground}" HorizontalAlignment="Center" TextAlignment="Center"/>
+            </Grid>
+        </materialDesign:ColorZone>
+
+        <Rectangle Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" Grid.RowSpan="2" Margin="5" Stroke="{DynamicResource ResourceKey=PrimaryHueMidBrush}" StrokeThickness="2"/>
+        <Button Margin="13" Content="Browser.." Grid.Column="2" Grid.Row="5" Background="{DynamicResource ButtonBackground}" Foreground="{DynamicResource ResourceKey=ButtonForeground}" Height="Auto" Command="{Binding PerformanceReportBrowserCommand}"/>
+        <Grid Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" Grid.RowSpan="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="4*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="4*"/>
+            </Grid.RowDefinitions>
+            <materialDesign:Card Background="Transparent" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"  HorizontalAlignment="Stretch" UniformCornerRadius="6" Margin="10,15,10,10" Padding="10,0,10,0" Height="30" MouseMove="TEXTBLOCK_Performance_MouseMove" MouseLeave="TEXTBLOCK_Performance_MouseLeave">
+                <Canvas ClipToBounds="True" Name="CANVAS_Performance" VerticalAlignment="Stretch" Width="Auto" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="4">
+                    <TextBlock Canvas.Top="7" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" FontSize="13" TextWrapping="Wrap" x:Name="TEXTBLOCK_Performance" Text="{Binding ReportSettingModel.PerformanceMeasurementReport_Path}"/>
+                </Canvas>
+            </materialDesign:Card>
+            <Separator Grid.Row="1" Grid.ColumnSpan="5" Margin="15,0,15,0"/>
+            <CheckBox Grid.Row="2" Margin="10,0,0,5" VerticalAlignment="Center" materialDesign:CheckBoxAssist.CheckBoxSize="20" IsChecked="{Binding ReportSettingModel.PerformanceMeasurementReport_ExecuteChart}" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" Background="{DynamicResource ResourceKey=CheckBoxBackGroundColor}">
+                <TextBlock TextAlignment="Center" Text=" Function Execute &#10;Time"/>
+            </CheckBox>
+            <CheckBox Grid.Row="2" Grid.Column="1" Margin="10,0,0,5" VerticalAlignment="Center" materialDesign:CheckBoxAssist.CheckBoxSize="20" IsChecked="{Binding ReportSettingModel.PerformanceMeasurementReport_DataReadWrite}" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" Background="{DynamicResource ResourceKey=CheckBoxBackGroundColor}">
+                <TextBlock TextAlignment="Center" Text=" Data Read/Write &#10;Count"/>
+            </CheckBox>
+            <CheckBox Grid.Row="2" Grid.Column="2" Margin="10,0,0,5" VerticalAlignment="Center" materialDesign:CheckBoxAssist.CheckBoxSize="20" IsChecked="{Binding ReportSettingModel.PerformanceMeasurementReport_BenchMark}" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" Background="{DynamicResource ResourceKey=CheckBoxBackGroundColor}">
+                <TextBlock TextAlignment="Center" Text=" Benchmark&#10;Count"/>
+            </CheckBox>
+        </Grid>
+
+        <materialDesign:ColorZone Mode="PrimaryMid" Grid.Row="7" Grid.Column="0" VerticalAlignment="Stretch" Margin="5" CornerRadius="10">
+            <Grid VerticalAlignment="Center">
+                <TextBlock FontSize="15" Text="Function Call&#10;Path Report" Margin="2" Foreground="{DynamicResource ResourceKey=GroupBoxHeaderForeground}" HorizontalAlignment="Center" TextAlignment="Center"/>
+            </Grid>
+        </materialDesign:ColorZone>
+
+
+        <CheckBox Grid.Row="7" Grid.Column="1" Margin="10,0,0,5" VerticalAlignment="Center" materialDesign:CheckBoxAssist.CheckBoxSize="20" IsChecked="{Binding ReportSettingModel.FunctionCallPathReport}" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" Background="{DynamicResource ResourceKey=CheckBoxBackGroundColor}">
+            <TextBlock TextAlignment="Center" Text=" Function Call Analysis"/>
+        </CheckBox>
+        <Rectangle Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2" Margin="5" Stroke="{DynamicResource ResourceKey=PrimaryHueMidBrush}" StrokeThickness="2"/>
+
+    </Grid>
+</UserControl>
+

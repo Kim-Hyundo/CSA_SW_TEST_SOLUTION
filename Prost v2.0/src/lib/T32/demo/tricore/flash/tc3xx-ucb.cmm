@@ -1,0 +1,1215 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash script file for TC3xx UCB sectors.
+; @Description:
+;   Script for programming of Infineon TriCore TC3xx UCBs.
+; @Keywords: AURIX2G, FLASH, Infineon, TriCore, UCB
+; @Author: MEI, MAX
+; @Chip: TC3*
+; @Copyright: (C) 1989-2016 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc3xx-ucb.cmm 8406 2020-06-10 06:53:35Z mobermaier $
+
+
+; Important information, read this before using this script:
+;
+;   Do not edit this script. Instead, call this script from your project using the
+;   command line arguments described below. See the TriBoard demo scripts for an
+;   example.
+;
+;   See the Application Note FLASH Programming TriCore (app_tricore_flash.pdf) for
+;   more information on how to use this script.
+;
+;   This script checks the programmed application to avoid permanent locking of the
+;   device. This script is constantly improved, but it is not guaranteed that all
+;   cases are covered.
+;
+; Preconditions:
+;
+;   Run CPU specific FLASH declaration script before with parameter PREPAREONLY.
+;   Example:
+;     DO ~~/demo/tricore/flash/tc39x PREPAREONLY
+;
+; Script arguments:
+;
+;   DO tc3xx-ucb.cmm UCB=<ucb> | PRO=<pro> [<action>] [<password>]
+;
+;     UCB=<ucb>   Set the UCB to perform <action> on.
+;                 Mandatory.
+;
+;     <ucb> :=    BMHD0_ORIG | BMHD1_ORIG | BMHD2_ORIG | BMHD3_ORIG |
+;                 BMHD0_COPY | BMHD1_COPY | BMHD2_COPY | BMHD3_COPY |
+;                 PFLASH_ORIG | PFLASH_COPY | DFLASH_ORIG | DFLASH_COPY |
+;                 DBG_ORIG | DBG_COPY | SSW | RETEST |
+;                 HSM_ORIG | HSM_COPY | HSMCOTP0_ORIG | HSMCOTP0_COPY |
+;                 HSMCOTP1_ORIG | HSMCOTP1_COPY |
+;                 ECPRIO_ORIG | ECPRIO_COPY |
+;                 SWAP_ORIG | SWAP_COPY |
+;                 OPT0_ORIG | OTP1_ORIG | OPT2_ORIG | OTP3_ORIG |
+;                 OPT4_ORIG | OTP5_ORIG | OPT6_ORIG | OTP7_ORIG |
+;                 OPT0_COPY | OTP1_COPY | OPT2_COPY | OTP3_COPY |
+;                 OPT4_COPY | OTP5_COPY | OPT6_COPY | OTP7_COPY
+;
+;     PRO=<pro>   Set the protection to unlock.
+;                 Required for UCBs that have multiple password protections, optional for
+;                 other UCBs. Only to be used with UNLOCK instead of UCB=<ucb>.
+;
+;     <pro> :=    BMHD |
+;                 PFLASH0 | PFLASH1 | PFLASH2 | PFLASH3 | PFLASH4 | PFLASH5 |
+;                 DFLASH | DBG | ECPRIO | SWAP | RETEST
+;
+;     <action> := [ACTIVATE] | [PROGRAM] | [CHECKUCB] | [UNLOCK] | [PREPAREONLY]
+;                 Set what should be done with the selected UCB. Actions can not be combined.
+;                 Default: PREPAREONLY
+;
+;     ACTIVATE    Prepare selected UCB for programming:
+;                 1) Unlock UCB if either PWD or DIALOG is specified (see UNLOCK).
+;                 2) Check if UCB sector is specified in FLASH declaration (see PREPAREONLY).
+;                 3) Change the UCB sector from NOP to TARGET (see PREPAREONLY).
+;                 4) Enable FLASH.AUTO mode for UCB sector.
+;                 Now new data can be written to the UCB. Programming is performed and
+;                 finialized using the PROGRAM action.
+;
+;     PROGRAM     Verify new UCB content and program to UCB sector:
+;                 1) Verify new UCB content for formal correctness.
+;                 2) Program new UCB content to UCB sector.
+;                 3) Change the UCB sector from TARGET to NOP to prevent unintended
+;                    modification.
+;
+;     CHECKUCB    Check if the content of the UCB is formally correct.
+;                 The script returns: UCBOK on pass, UCBFAIL otherwise
+;
+;     UNLOCK      Unlock password protected UCB sectors.
+;                 Password can be be provided using option PWD or requested from the
+;                 user by option DIALOG. Needs either UCB=<ucb> or PRO=<pro> to be set.
+;                 The script returns: UCBUNLOCKED on pass, UCBFAIL otherwise
+;
+;     PREPAREONLY Enable the specified UCB for programming:
+;                 1) Check if UCB sector is specified in FLASH declaration.
+;                 2) Change the UCB sector from NOP to TARGET.
+;
+;     <password> := [PWD=<pwd0>_<pwd1>_ ... _ <pwd7>] | [DIALOG]
+;                 Specify password to unlock.
+;
+;     PWD=<pwd0>_<pwd1>_ ... _<pwd7>
+;                 Specify password to unlock. No unlocking if empty.
+;                 Default: no password (empty)
+;
+;     DIALOG      Open dialog and ask user for password to unlock.
+;                 The dialog expects eight 32-bit words of the password line by line.
+;
+; Example:
+;
+;   DO ~~/demo/tricore/flash/tc3xx-ucb.cmm UCB=DBG ACTIVATE PWD=0x0_0x1_0x2_0x3_0x4_0x5_0x6_0x7
+;
+; Supported devices:
+;
+;   All TC3xx devices, e.g. TC387QP, TC399XA.
+;
+; CAUTION:
+;
+;   Reprogramming the UCB can permanently prohibit debug access to your device and
+;   prevent it from booting. Make sure you fully understand the INFINEON documentation
+;   before changing UCBs.
+
+
+; process parameters
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+LOCAL &param_UCB &param_PWD &param_DLG &param_PRO
+&param_UCB=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"UCB=","")
+&param_PWD=STRing.Replace(STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"PWD=",""),"_"," ",0)
+&param_DLG=(STRing.SCAN("&parameters","DIALOG",0.)>=0)
+&param_PRO=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"PRO=","")
+
+LOCAL &param_activate &param_program &param_checkucb &param_unlock &param_prepareonly
+&param_activate=(STRing.SCAN(STRing.UPpeR("&parameters"),"ACTIVATE",0)!=-1)
+&param_program=(STRing.SCAN(STRing.UPpeR("&parameters"),"PROGRAM",0)!=-1)
+&param_checkucb=(STRing.SCAN(STRing.UPpeR("&parameters"),"CHECKUCB",0)!=-1)
+&param_unlock=(STRing.SCAN(STRing.UPpeR("&parameters"),"UNLOCK",0)!=-1)
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+
+IF (&param_unlock)
+(
+  IF ("&param_UCB"=="")&&("&param_PRO"=="")
+  (
+    PRINT %ERROR "neither parameter UCB=<ucb> nor parameter PRO=<pro> specified, abort"
+    ENDDO UCBFAIL
+  )
+)
+ELSE IF ("&param_UCB"=="")
+(
+  PRINT %ERROR "parameter UCB=<ucb> not specified, abort"
+  ENDDO UCBFAIL
+)
+
+; script-global macros
+; configured by helper function selectUCB
+; &UCB_Index          Index of the UCB, e.g., 0 for UCB0
+; &UCB_IsDual         Dual-UCB: UCB_<name>_ORIG and UCB_<name>_COPY
+; &UCB_ReadProtection UCB is read-protected if confirmed or in error state
+; &UCB_CONFIRM_Reg    Register index 'x' of the DMU_HF_CONFIRMx register related to the selected UCB
+; &UCB_CONFIRM_Mask   Mask for the "CONFIRMED" flag for the UCB in the DMU_HF_CONFIRMx register
+; &UCB_Pro            Protection ID for the currently selected UCB
+; &UCB_BaseAddress    Base address of the UCB
+; &PRO_Mask           Mask for the disable flag for the UCB in the DMU_HF_PROTECT register
+;                     0x0 if there is no protection
+; &PRO_Index          "UC" argument for FLASH algorithms
+LOCAL &UCB_Index &UCB_BaseAddress &UCB_IsDual &UCB_ReadProtection &UCB_CONFIRM_Reg &UCB_CONFIRM_Mask &UCB_Checker &UCB_Pro
+LOCAL &PRO_Mask &PRO_Index
+
+; sanity checks
+IF !CPUIS("TC3*")
+(
+  PRINT %ERROR "CPU not supported by this script, only TC3xx supported"
+  ENDDO UCBFAIL
+)
+IF !SYStem.Up()
+(
+  PRINT "system is not up"
+  ENDDO UCBFAIL
+)
+
+; --------------------------------------------------------------------------------
+; execute depending on arguments
+
+; --------------------------------------------------------------------------------
+; activate UCB for programming
+
+IF &param_activate
+(
+  PRIVATE &result
+  &result="UCBOK"
+
+  ; check if UCB requires a password and unlock if required
+  ; there is no auto-detection whether the UCB is locked or not, it just depends on whether the
+  ; user has specified PWD= or DIALOG as script parameter
+  ; UCB and parameters are selected according to UCB=<ucb> or PRO=<pro>
+  GOSUB evalUCBPassword
+  RETURNVALUES &result
+  IF ("&result"=="UCBOK")
+  (
+    IF ("&param_PWD"!="")
+    (
+      ; there is a password specified, unlock UCB
+      GOSUB unlockUCB &param_PWD
+      RETURNVALUES &result
+      IF ("&result"!="UCBUNLOCKED")
+        ENDDO &result
+      &result="UCBOK"
+    )
+
+    ; check if the UCB FLASH sector exists
+    IF !FLASH.SECTOR.EXIST(D:&UCB_BaseAddress)
+    (
+      PRINT %ERROR "UCB FLASH sector not declared, run CPU specific FLASH declaration script before"
+      ENDDO UCBFAIL
+    )
+
+    ; change type to target to allow programming UCB
+    FLASH.CHANGEtype &UCB_BaseAddress++0x1FF TARGET
+    FLASH.AUTO &UCB_BaseAddress++0x1FF
+  )
+
+  ENDDO &result
+)
+
+; --------------------------------------------------------------------------------
+; check UCB and program new content to UCB sector
+
+IF &param_program
+(
+  PRIVATE &result
+  &result="UCBOK"
+
+  ; select UCB and get parameters
+  GOSUB selectUCB "&param_UCB"
+
+  ; check if new content is valid or may not result in unintended locking
+  GOSUB &UCB_Checker
+  RETURNVALUES &result
+  IF ("&result"=="UCBOK")
+  (
+    ; the new content is formally correct, program the changes to the device
+    FLASH.AUTO off
+  )
+  ELSE
+  (
+    ; the check detected invalid content, abort FLASH programming
+    FLASH.AUTO CANCEL
+    PRINT "invalid UCB PFLASH configuration detected"
+  )
+
+  ; restore NOP protection for UCB sector
+  FLASH.CHANGEtype &UCB_BaseAddress++0x1FF NOP
+
+  ENDDO &result
+)
+
+; --------------------------------------------------------------------------------
+; check UCB
+
+IF &param_checkucb
+(
+  PRIVATE &result
+  &result="UCBOK"
+
+  GOSUB selectUCB "&param_UCB"
+  GOSUB &UCB_Checker
+  RETURNVALUES &result
+
+  ENDDO &result
+)
+
+; --------------------------------------------------------------------------------
+; unlock UCB
+
+IF &param_unlock
+(
+  PRIVATE &result
+  &result="UCBOK"
+
+  GOSUB evalUCBPassword
+  RETURNVALUES &result
+
+  IF ("&result"=="UCBOK")
+  (
+    IF ("&param_PWD"=="")
+      PRINT "no password specified, skip unlocking UCB"
+    ELSE
+    (
+      GOSUB unlockUCB &param_PWD
+      RETURNVALUES &result
+    )
+  )
+
+  ENDDO &result
+)
+
+; --------------------------------------------------------------------------------
+; enable UCB for programming (preparonly)
+; this is executed when &param_prepareonly is set or no other action is set (default)
+
+; select UCB and get parameters
+GOSUB selectUCB "&param_UCB"
+
+; check if the UCB FLASH sector exists
+IF !FLASH.SECTOR.EXIST(D:&UCB_BaseAddress)
+(
+  PRINT %ERROR "UCB FLASH sector not declared, run CPU specific FLASH declaration script before"
+  ENDDO UCBFAIL
+)
+
+; change type to target to allow programming UCB
+FLASH.CHANGEtype &UCB_BaseAddress++0x1FF TARGET
+
+ENDDO PREPAREDONE
+
+; --------------------------------------------------------------------------------
+; helper functions
+; --------------------------------------------------------------------------------
+
+; --------------------------------------------------------------------------------
+; Unlock protected UCB.
+; Expects that script-global macros were configured by helper function selectUCB.
+;
+; Parameters:    nPWD0 ... nPWD7 password values
+; Return values: UNLOCKED on success, already unlocked or not protected
+;                FAIL otherwise
+
+unlockUCB:
+(
+  PRIVATE &nPWD0 &nPWD1 &nPWD2 &nPWD3 &nPWD4 &nPWD5 &nPWD6 &nPWD7
+  ENTRY &nPWD0 &nPWD1 &nPWD2 &nPWD3 &nPWD4 &nPWD5 &nPWD6 &nPWD7
+
+  ; check if UCB supports protection
+  IF (&PRO_Mask==0x0)
+  (
+    PRINT "No protection implemented"
+    RETURN "UNLOCKED"
+  )
+
+  ; registers
+  PRIVATE &DMU_HF_PROTECT &DMU_HF_CLRE &DMU_HF_ERRSR &DMU_HF_STATUS
+  PRIVATE &DMU_HF_PROCONUSR
+  &DMU_HF_STATUS=D:0xF8040010
+  &DMU_HF_PROTECT=D:0xF804001C
+  &DMU_HF_ERRSR=D:0xF8040034
+  &DMU_HF_CLRE=D:0xF8040038
+  &DMU_HF_PROCONUSR=D:0xF8040074
+
+  IF FLASH.ProgramMODE()!=""
+  (
+    PRINT %ERROR "TRACE32 FLASH operation still pending"
+    RETURN "FAIL"
+  )
+
+  IF ((Data.Long(&DMU_HF_STATUS)&0x000000FF)!=0x0)
+  (
+    PRINT %ERROR "Flash still busy"
+    RETURN "FAIL"
+  )
+
+  ; clear Flash Sequencer error status
+  PER.Set.Field &DMU_HF_CLRE %Long 0x0000003E 0x1F
+
+  ; write unlock sequence
+  PRIVATE &errHandler
+  &errHandler="GOTO chkstat"
+
+  IF ((Data.Long(&DMU_HF_PROCONUSR)&0x3)!=0)
+  (
+    ; complement sensing mode of DFLASH might lead to unexpected bus errors in the following sequence
+    PRINT "the following bus errors can be ignored"
+    &errHandler="CONTinue"
+  )
+
+  ON ERROR &errHandler
+
+  Data.Set D:0xAF00553C %Long &PRO_Index
+  Data.Set D:0xAF00553C %Long &nPWD0
+  Data.Set D:0xAF00553C %Long &nPWD1
+  Data.Set D:0xAF00553C %Long &nPWD2
+  Data.Set D:0xAF00553C %Long &nPWD3
+  Data.Set D:0xAF00553C %Long &nPWD4
+  Data.Set D:0xAF00553C %Long &nPWD5
+  Data.Set D:0xAF00553C %Long &nPWD6
+  Data.Set D:0xAF00553C %Long &nPWD7
+
+  ; check status
+chkstat:
+  ON ERROR inherit
+
+  PRIVATE &ErrorStatus
+  &ErrorStatus=Data.Long(&DMU_HF_ERRSR)
+  IF ((&ErrorStatus&0x00000004)>0.)
+  (
+    PRINT "unlock failed: invalid password, reset before retry required."
+    RETURN "UCBFAIL"
+  )
+  ELSE IF ((&ErrorStatus&0x00000002)>0.)
+  (
+    PRINT "unlock failed: sequence error"
+    RETURN "UCBFAIL"
+  )
+  ELSE IF ((&ErrorStatus&0x00000001)>0.)
+  (
+    PRINT "unlock failed: FLASH operation error"
+    RETURN "UCBFAIL"
+  )
+  ELSE IF (&ErrorStatus!=0x0)
+  (
+    PRINT "note: HF_ERRSR = 0x" %Hex &ErrorStatus
+  )
+
+
+  IF ((Data.Long(&DMU_HF_PROTECT)&(&PRO_Mask))>0.)
+  (
+    PRINT "unlock successful"
+    RETURN "UCBUNLOCKED"
+  )
+  ELSE
+  (
+    PRINT "unlock failed: HF_PROTECT does not indicate disabled protection"
+    RETURN "UCBFAIL"
+  )
+
+  PRINT "unknown error"
+  RETURN "UCBFAIL"
+)
+
+; --------------------------------------------------------------------------------
+; Show dialog for password entry.
+
+passwordDlg:
+(
+  PARAMETERS &proName &extraText
+  LOCAL &lf
+  &lf=""+CONVert.CHAR(10.)
+
+  DIALOG.view
+  (&+
+    POS 1. 0. 30. 1.
+    TEXT "Enter password for &proName protection"
+    POS 3. 1. 28. 1.
+    TEXT "&extraText"
+    POS 1. 2. 30. 6.
+    txtPwd: DEFMEDIT "" ""
+    POS 1. 9. 8. 1.
+    BUTTON "OK" "GOTO lOK"
+    POSX 1. 9. 1.
+    BUTTON "Cancel" "GOTO lCancel"
+    CLOSE "GOTO lCancel"
+  )
+
+  PRIVATE &txt
+  &txt=STRing.Replace("&param_PWD"," ","&lf",0.)
+  DIALOG.Set txtPwd "&txt"
+
+  STOP
+
+lCancel:
+  DIALOG.END
+  ENDDO CANCELED
+
+lOK:
+  &txt=DIALOG.STRing(txtPwd)
+  DIALOG.END
+  &param_PWD=STRing.Replace("&txt","&lf"," ",0.)
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Check status for the currently selected UCB.
+; Expects that script-global macros were configured by helper function selectUCB.
+;
+; Parameters:    none
+; Return vaules: UCBUNREAD if UCB confimation code is UNREAD
+;                UCBUNLOCKED if UCB confimation code is UNLOCKED
+;                UCBCONFIRMED if UCB confimation code is CONFIRMED
+;                UCBERRORED if UCB confimation code is error
+
+checkUCBStatus:
+(
+  PRIVATE &DMU_HF_CONFIRMx &ConfirmOffset &ConfirmStatus &Offset
+
+  &DMU_HF_CONFIRMx=D:0xF8040020+(&UCB_CONFIRM_Reg*0x4)
+  &ConfirmOffset=0.
+  &Offset=0.
+  WHILE ((&Offset<32.)&&(&ConfirmOffset==0.))
+  (
+    IF (((&UCB_CONFIRM_Mask>>&Offset)&0x0000003)==0x00000003)
+      &ConfirmOffset=&Offset
+    &Offset=&Offset+2.
+  )
+
+  &ConfirmStatus=(Data.Long(&DMU_HF_CONFIRMx)&(&UCB_CONFIRM_Mask))>>&ConfirmOffset
+  IF (&ConfirmStatus==0x0)
+    RETURN "UCBUNREAD"
+  IF (&ConfirmStatus==0x1)
+    RETURN "UCBUNLOCKED"
+  IF (&ConfirmStatus==0x2)
+    RETURN "UCBCONFIRMED"
+  IF (&ConfirmStatus==0x3)
+    RETURN "UCBERRORED"
+)
+
+; --------------------------------------------------------------------------------
+; Evaluate password for the currently selected UCB.
+; Expects that script-global macros were configured by helper function selectUCB.
+;
+; Checks if the currently selected UCB requires a password, and if the user is expected to
+; provide a password via DIALOG. If so, provide the password.
+; Note that the password may even be empty, which means "do not unlock".
+;
+; Parameters:    none
+; Return vaules: UCBOK   if password was evaluated
+;                UCBFAIL if evaluating password failed
+
+evalUCBPassword:
+(
+  IF "&param_PRO"!=""
+  (
+    GOSUB selectPRO "&param_PRO"
+    IF &param_DLG
+      GOSUB passwordDlg "&param_PRO"
+  )
+  ELSE IF "&param_UCB"!=""
+  (
+    GOSUB selectUCB "&param_UCB"
+    IF "&UCB_Pro"!=""
+    (
+      GOSUB selectPRO "&UCB_Pro"
+      IF &param_DLG
+        GOSUB passwordDlg "&UCB_Pro" "(unlocks UCB_&(param_UCB))"
+    )
+    ELSE
+      PRINT "UCB &param_UCB has no protection"
+  )
+  ELSE
+  (
+    PRINT %ERROR "Must specify UCB or protection name"
+    RETURN "UCBFAIL"
+  )
+
+  RETURN "UCBOK"
+)
+
+; --------------------------------------------------------------------------------
+; Select UCB and initialize UCB-specific script-global macros.
+; See "script-global macros" in header of this script. Not all UCBs supported.
+;
+; Parameters:     &ucbName Name of the UCB without the "UCB_" prefix.
+;                          Example: DBG_ORIG for UCB_DBG_ORIG
+; Return values:  None
+; Error handling: Will abort the script if the value given for &ucbName is unknown
+
+selectUCB:
+(
+  PARAMETERS &ucbName
+
+  &UCB_Pro=""
+
+  IF "&ucbName"=="BMHD0_ORIG"
+  (
+    &UCB_Index=0x00
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=TRUE()
+    &UCB_CONFIRM_Reg=0. ;DMU_HF_CONFIRM0
+    &UCB_CONFIRM_Mask=0x00000003
+    &UCB_Checker="BmhdChecker"
+    &UCB_Pro="BMHD"
+  )
+  ELSE IF "&ucbName"=="BMHD1_ORIG"
+  (
+    &UCB_Index=0x01
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=TRUE()
+    &UCB_CONFIRM_Reg=0. ;DMU_HF_CONFIRM0
+    &UCB_CONFIRM_Mask=0x0000000C
+    &UCB_Checker="BmhdChecker"
+    &UCB_Pro="BMHD"
+  )
+  ELSE IF "&ucbName"=="BMHD2_ORIG"
+  (
+    &UCB_Index=0x02
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=TRUE()
+    &UCB_CONFIRM_Reg=0. ;DMU_HF_CONFIRM0
+    &UCB_CONFIRM_Mask=0x00000030
+    &UCB_Checker="BmhdChecker"
+    &UCB_Pro="BMHD"
+  )
+  ELSE IF "&ucbName"=="BMHD3_ORIG"
+  (
+    &UCB_Index=0x03
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=TRUE()
+    &UCB_CONFIRM_Reg=0. ;DMU_HF_CONFIRM0
+    &UCB_CONFIRM_Mask=0x000000C0
+    &UCB_Checker="BmhdChecker"
+    &UCB_Pro="BMHD"
+  )
+  ELSE IF "&ucbName"=="BMHD0_COPY"
+  (
+    &UCB_Index=0x08
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=TRUE()
+    &UCB_CONFIRM_Reg=0. ;DMU_HF_CONFIRM0
+    &UCB_CONFIRM_Mask=0x00030000
+    &UCB_Checker="BmhdChecker"
+    &UCB_Pro="BMHD"
+  )
+  ELSE IF "&ucbName"=="BMHD1_COPY"
+  (
+    &UCB_Index=0x09
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=TRUE()
+    &UCB_CONFIRM_Reg=0. ;DMU_HF_CONFIRM0
+    &UCB_CONFIRM_Mask=0x000C0000
+    &UCB_Checker="BmhdChecker"
+    &UCB_Pro="BMHD"
+  )
+  ELSE IF "&ucbName"=="BMHD2_COPY"
+  (
+    &UCB_Index=0x0A
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=TRUE()
+    &UCB_CONFIRM_Reg=0. ;DMU_HF_CONFIRM0
+    &UCB_CONFIRM_Mask=0x00300000
+    &UCB_Checker="BmhdChecker"
+    &UCB_Pro="BMHD"
+  )
+  ELSE IF "&ucbName"=="BMHD3_COPY"
+  (
+    &UCB_Index=0x0B
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=TRUE()
+    &UCB_CONFIRM_Reg=0. ;DMU_HF_CONFIRM0
+    &UCB_CONFIRM_Mask=0x00C00000
+    &UCB_Checker="BmhdChecker"
+    &UCB_Pro="BMHD"
+  )
+  ELSE IF "&ucbName"=="PFLASH_ORIG"
+  (
+    &UCB_Index=0x10
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=TRUE()
+    &UCB_CONFIRM_Reg=1.
+    &UCB_CONFIRM_Mask=0x00000003
+    &UCB_Checker="DefaultChecker"
+    &UCB_Pro="PFLASH"
+  )
+  ELSE IF "&ucbName"=="PFLASH_COPY"
+  (
+    &UCB_Index=0x18
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=TRUE()
+    &UCB_CONFIRM_Reg=1.
+    &UCB_CONFIRM_Mask=0x00030000
+    &UCB_Checker="DefaultChecker"
+    &UCB_Pro="PFLASH"
+  )
+  ELSE IF "&ucbName"=="DFLASH_ORIG"
+  (
+    &UCB_Index=0x11
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=TRUE()
+    &UCB_CONFIRM_Reg=1. ;DMU_HF_CONFIRM1
+    &UCB_CONFIRM_Mask=0x0000000C
+    &UCB_Checker="DefaultChecker"
+    &UCB_Pro="DFLASH"
+  )
+  ELSE IF "&ucbName"=="DFLASH_COPY"
+  (
+    &UCB_Index=0x19
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=TRUE()
+    &UCB_CONFIRM_Reg=1. ;DMU_HF_CONFIRM1
+    &UCB_CONFIRM_Mask=0x000C0000
+    &UCB_Checker="DefaultChecker"
+    &UCB_Pro="DFLASH"
+  )
+  ELSE IF "&ucbName"=="DBG_ORIG"
+  (
+    &UCB_Index=0x12
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=TRUE()
+    &UCB_CONFIRM_Reg=1. ;DMU_HF_CONFIRM1
+    &UCB_CONFIRM_Mask=0x00000030
+    &UCB_Checker="DefaultChecker"
+    &UCB_Pro="DBG"
+  )
+  ELSE IF "&ucbName"=="DBG_COPY"
+  (
+    &UCB_Index=0x1A
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=TRUE()
+    &UCB_CONFIRM_Reg=1. ;DMU_HF_CONFIRM1
+    &UCB_CONFIRM_Mask=0x00300000
+    &UCB_Checker="DefaultChecker"
+    &UCB_Pro="DBG"
+  )
+  ELSE IF "&ucbName"=="HSM_ORIG"
+  (
+    &UCB_Index=0x13
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=TRUE()
+    &UCB_CONFIRM_Reg=1. ;DMU_HF_CONFIRM1
+    &UCB_CONFIRM_Mask=0x000000C0
+    &UCB_Checker="DefaultChecker"
+  )
+  ELSE IF "&ucbName"=="HSM_COPY"
+  (
+    &UCB_Index=0x1B
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=TRUE()
+    &UCB_CONFIRM_Reg=1. ;DMU_HF_CONFIRM1
+    &UCB_CONFIRM_Mask=0x00C00000
+    &UCB_Checker="DefaultChecker"
+  )
+  ELSE IF "&ucbName"=="HSMCOTP0_ORIG"
+  (
+    &UCB_Index=0x14
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=TRUE()
+    &UCB_CONFIRM_Reg=1. ;DMU_HF_CONFIRM1
+    &UCB_CONFIRM_Mask=0x00000300
+    &UCB_Checker="DefaultChecker"
+  )
+  ELSE IF "&ucbName"=="HSMCOTP0_COPY"
+  (
+    &UCB_Index=0x1C
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=TRUE()
+    &UCB_CONFIRM_Reg=1. ;DMU_HF_CONFIRM1
+    &UCB_CONFIRM_Mask=0x03000000
+    &UCB_Checker="DefaultChecker"
+  )
+  ELSE IF "&ucbName"=="HSMCOTP1_ORIG"
+  (
+    &UCB_Index=0x15
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=TRUE()
+    &UCB_CONFIRM_Reg=1. ;DMU_HF_CONFIRM1
+    &UCB_CONFIRM_Mask=0x00000C00
+    &UCB_Checker="DefaultChecker"
+  )
+  ELSE IF "&ucbName"=="HSMCOTP1_COPY"
+  (
+    &UCB_Index=0x1D
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=TRUE()
+    &UCB_CONFIRM_Reg=1. ;DMU_HF_CONFIRM1
+    &UCB_CONFIRM_Mask=0x0C000000
+    &UCB_Checker="DefaultChecker"
+  )
+  ELSE IF "&ucbName"=="ECPRIO_ORIG"
+  (
+    &UCB_Index=0x16
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=TRUE()
+    &UCB_CONFIRM_Reg=1. ;DMU_HF_CONFIRM1
+    &UCB_CONFIRM_Mask=0x00003000
+    &UCB_Checker="DefaultChecker"
+    &UCB_Pro="ECPRIO"
+  )
+  ELSE IF "&ucbName"=="ECPRIO_COPY"
+  (
+    &UCB_Index=0x1E
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=TRUE()
+    &UCB_CONFIRM_Reg=1. ;DMU_HF_CONFIRM1
+    &UCB_CONFIRM_Mask=0x30000000
+    &UCB_Checker="DefaultChecker"
+    &UCB_Pro="ECPRIO"
+  )
+  ELSE IF "&ucbName"=="SWAP_ORIG"
+  (
+    &UCB_Index=0x17
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=TRUE()
+    &UCB_CONFIRM_Reg=1. ;DMU_HF_CONFIRM1
+    &UCB_CONFIRM_Mask=0x0000C000
+    &UCB_Checker="DefaultChecker"
+    &UCB_Pro="SWAP"
+  )
+  ELSE IF "&ucbName"=="SWAP_COPY"
+  (
+    &UCB_Index=0x1F
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=TRUE()
+    &UCB_CONFIRM_Reg=1. ;DMU_HF_CONFIRM1
+    &UCB_CONFIRM_Mask=0xC0000000
+    &UCB_Checker="DefaultChecker"
+    &UCB_Pro="SWAP"
+  )
+  ELSE IF "&ucbName"=="SSW"
+  (
+    &UCB_Index=0x04
+    &UCB_IsDual=FALSE()
+    &UCB_ReadProtection=FALSE()
+    &UCB_CONFIRM_Reg=0. ;DMU_HF_CONFIRM0
+    &UCB_CONFIRM_Mask=0x00000100
+    &UCB_Checker="DefaultChecker"
+  )
+  ELSE IF "&ucbName"=="RETEST"
+  (
+    &UCB_Index=0x0F
+    &UCB_IsDual=FALSE()
+    &UCB_ReadProtection=TRUE()
+    &UCB_CONFIRM_Reg=0. ;DMU_HF_CONFIRM0
+    &UCB_CONFIRM_Mask=0xC0000000
+    &UCB_Checker="DefaultChecker"
+    &UCB_Pro="RETEST"
+  )
+  ELSE IF "&ucbName"=="OTP0_ORIG"
+  (
+    &UCB_Index=0x20
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=FALSE()
+    &UCB_CONFIRM_Reg=2. ;DMU_HF_CONFIRM2
+    &UCB_CONFIRM_Mask=0x00000003
+    &UCB_Checker="DefaultChecker"
+  )
+  ELSE IF "&ucbName"=="OTP1_ORIG"
+  (
+    &UCB_Index=0x21
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=FALSE()
+    &UCB_CONFIRM_Reg=2. ;DMU_HF_CONFIRM2
+    &UCB_CONFIRM_Mask=0x0000000C
+    &UCB_Checker="DefaultChecker"
+  )
+  ELSE IF "&ucbName"=="OTP2_ORIG"
+  (
+    &UCB_Index=0x22
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=FALSE()
+    &UCB_CONFIRM_Reg=2. ;DMU_HF_CONFIRM2
+    &UCB_CONFIRM_Mask=0x00000030
+    &UCB_Checker="DefaultChecker"
+  )
+  ELSE IF "&ucbName"=="OTP3_ORIG"
+  (
+    &UCB_Index=0x23
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=FALSE()
+    &UCB_CONFIRM_Reg=2. ;DMU_HF_CONFIRM2
+    &UCB_CONFIRM_Mask=0x000000C0
+    &UCB_Checker="DefaultChecker"
+  )
+  ELSE IF "&ucbName"=="OTP4_ORIG"
+  (
+    &UCB_Index=0x24
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=FALSE()
+    &UCB_CONFIRM_Reg=2. ;DMU_HF_CONFIRM2
+    &UCB_CONFIRM_Mask=0x00000300
+    &UCB_Checker="DefaultChecker"
+  )
+  ELSE IF "&ucbName"=="OTP5_ORIG"
+  (
+    &UCB_Index=0x25
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=FALSE()
+    &UCB_CONFIRM_Reg=2. ;DMU_HF_CONFIRM2
+    &UCB_CONFIRM_Mask=0x00000C00
+    &UCB_Checker="DefaultChecker"
+  )
+  ELSE IF "&ucbName"=="OTP6_ORIG"
+  (
+    &UCB_Index=0x26
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=FALSE()
+    &UCB_CONFIRM_Reg=2. ;DMU_HF_CONFIRM2
+    &UCB_CONFIRM_Mask=0x00003000
+    &UCB_Checker="DefaultChecker"
+  )
+  ELSE IF "&ucbName"=="OTP7_ORIG"
+  (
+    &UCB_Index=0x27
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=FALSE()
+    &UCB_CONFIRM_Reg=2. ;DMU_HF_CONFIRM2
+    &UCB_CONFIRM_Mask=0x0000C000
+    &UCB_Checker="DefaultChecker"
+  )
+  ELSE IF "&ucbName"=="OTP0_COPY"
+  (
+    &UCB_Index=0x28
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=FALSE()
+    &UCB_CONFIRM_Reg=2. ;DMU_HF_CONFIRM2
+    &UCB_CONFIRM_Mask=0x00030000
+    &UCB_Checker="DefaultChecker"
+  )
+  ELSE IF "&ucbName"=="OTP1_COPY"
+  (
+    &UCB_Index=0x29
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=FALSE()
+    &UCB_CONFIRM_Reg=2. ;DMU_HF_CONFIRM2
+    &UCB_CONFIRM_Mask=0x000C0000
+    &UCB_Checker="DefaultChecker"
+  )
+  ELSE IF "&ucbName"=="OTP2_COPY"
+  (
+    &UCB_Index=0x2A
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=FALSE()
+    &UCB_CONFIRM_Reg=2. ;DMU_HF_CONFIRM2
+    &UCB_CONFIRM_Mask=0x00300000
+    &UCB_Checker="DefaultChecker"
+  )
+  ELSE IF "&ucbName"=="OTP3_COPY"
+  (
+    &UCB_Index=0x2B
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=TRUE()
+    &UCB_CONFIRM_Reg=2. ;DMU_HF_CONFIRM2
+    &UCB_CONFIRM_Mask=0x00C00000
+    &UCB_Checker="DefaultChecker"
+  )
+  ELSE IF "&ucbName"=="OTP4_COPY"
+  (
+    &UCB_Index=0x2C
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=FALSE()
+    &UCB_CONFIRM_Reg=2. ;DMU_HF_CONFIRM2
+    &UCB_CONFIRM_Mask=0x03000000
+    &UCB_Checker="DefaultChecker"
+  )
+  ELSE IF "&ucbName"=="OTP5_COPY"
+  (
+    &UCB_Index=0x2D
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=FALSE()
+    &UCB_CONFIRM_Reg=2. ;DMU_HF_CONFIRM2
+    &UCB_CONFIRM_Mask=0x0C000000
+    &UCB_Checker="DefaultChecker"
+  )
+  ELSE IF "&ucbName"=="OTP6_COPY"
+  (
+    &UCB_Index=0x2E
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=FALSE()
+    &UCB_CONFIRM_Reg=2. ;DMU_HF_CONFIRM2
+    &UCB_CONFIRM_Mask=0x30000000
+    &UCB_Checker="DefaultChecker"
+  )
+  ELSE IF "&ucbName"=="OTP7_COPY"
+  (
+    &UCB_Index=0x2F
+    &UCB_IsDual=TRUE()
+    &UCB_ReadProtection=TRUE()
+    &UCB_CONFIRM_Reg=2. ;DMU_HF_CONFIRM2
+    &UCB_CONFIRM_Mask=0xC0000000
+    &UCB_Checker="DefaultChecker"
+  )
+  ELSE
+  (
+    PRINT "UCB_&ucbName not supported by this script"
+    ENDDO UNSUPPORTED
+  )
+  &UCB_BaseAddress=0xAF400000+&UCB_Index*0x200
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Select protection and initialize UCB-specific script-global macros.
+; See "script-global macros" in header of this script. Not all UCBs supported.
+;
+; Parameters:     &proName Name of the protection
+; Return values:  None
+; Error handling: Will abort the script if the value given for &proName is unknown
+
+selectPRO:
+(
+  PARAMETERS &proName
+
+  IF "&proName"=="BMHD"
+  (
+    &PRO_Mask=0x00000010
+    &PRO_Index=0x00
+  )
+  ELSE IF "&proName"=="PFLASH"
+  (
+    &PRO_Mask=0x00000001
+    &PRO_Index=0x10
+  )
+  ELSE IF "&proName"=="PFLASH0"
+  (
+    &PRO_Mask=0x00000100
+    &PRO_Index=0x20
+  )
+  ELSE IF "&proName"=="PFLASH1"
+  (
+    &PRO_Mask=0x00000200
+    &PRO_Index=0x21
+  )
+  ELSE IF "&proName"=="PFLASH2"
+  (
+    &PRO_Mask=0x00000400
+    &PRO_Index=0x22
+  )
+  ELSE IF "&proName"=="PFLASH3"
+  (
+    &PRO_Mask=0x00000800
+    &PRO_Index=0x23
+  )
+  ELSE IF "&proName"=="PFLASH4"
+  (
+    &PRO_Mask=0x00001000
+    &PRO_Index=0x24
+  )
+  ELSE IF "&proName"=="PFLASH5"
+  (
+    &PRO_Mask=0x00002000
+    &PRO_Index=0x25
+  )
+  ELSE IF "&proName"=="DFLASH"
+  (
+    &PRO_Mask=0x00000002
+    &PRO_Index=0x11
+  )
+  ELSE IF "&proName"=="DBG"
+  (
+    &PRO_Mask=0x00000004
+    &PRO_Index=0x12
+  )
+  ELSE IF "&proName"=="ECPRIO"
+  (
+    &PRO_Mask=0x00000008
+    &PRO_Index=0x16
+  )
+  ELSE IF "&proName"=="SWAP"
+  (
+    &PRO_Mask=0x00000020
+    &PRO_Index=0x17
+  )
+  ELSE IF "&proName"=="RETEST"
+  (
+    &PRO_Mask=0x01000000
+    &PRO_Index=0x0F
+  )
+  ELSE
+  (
+    PRINT %ERROR "Unknown protection '&proName'"
+    ENDDO FAIL
+  )
+
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+;  UCB specific checker methods
+; --------------------------------------------------------------------------------
+
+; --------------------------------------------------------------------------------
+; Check UCB values for the currently selected UCB.
+; Expects that script-global macros were configured by helper function selectUCB.
+;
+; Parameters:    none
+; Return vaules: UCBOK if valid
+;                UCBFAIL otherwise
+DefaultChecker:
+(
+  ; check for read-protection
+  IF (&UCB_ReadProtection)
+  (
+    LOCAL &ReadError
+    PRIVATE &tmp
+
+    ; I don't really like this ON ERROR solution because it generates a bus error,
+    ; however any other solution requires to implement a special handling for each UCB
+    &ReadError=FALSE()
+    ON ERROR GOSUB
+    (
+      &ReadError=TRUE()
+      RETURN
+    )
+    &tmp=Data.Long(D:&UCB_BaseAddress)
+    ON ERROR DEFault
+
+    IF (&ReadError)
+      RETURN "UCBFAIL"
+  )
+
+  ; check confirmation codes
+  IF (&UCB_IsDual)
+  (
+    ; Dual-UCB, only one confirmation code
+    PRIVATE &nConfirmation
+    &nConfirmation=Data.Long(D:(&UCB_BaseAddress+0x1F0))
+    IF ((&nConfirmation!=0x57B5327F)&&(&nConfirmation!=0x43211234))
+    (
+      PRINT "UCB not unlocked/confirmed (32-bit CODE failed)"
+      GOTO fail
+    )
+  )
+  ELSE
+  (
+    ; Single-UCB; ORIG and COPY confirmation codes
+    PRIVATE &nConfirmation
+    &nConfirmation=Data.Long(D:(&UCB_BaseAddress+0x1F0))
+    IF ((&nConfirmation!=0x57B5327F)&&(&nConfirmation!=0x43211234))
+    (
+      PRINT "UCB not unlocked/confirmed (32-bit ORIG CODE failed)"
+      GOTO fail
+    )
+
+    &nConfirmation=Data.Long(D:(&UCB_BaseAddress+0x1F8))
+    IF ((&nConfirmation!=0x57B5327F)&&(&nConfirmation!=0x43211234))
+    (
+      PRINT "UCB not unlocked/confirmed (32-bit COPY CODE failed)"
+      GOTO fail
+    )
+  )
+
+  PRINT "UCB check passed"
+  RETURN "UCBOK"
+
+fail:
+  PRINT "UCB check failed"
+  RETURN "UCBFAIL"
+)
+
+; --------------------------------------------------------------------------------
+; Check UCB_BMHDx_* values for the currently selected UCB.
+; Check if the BMHD is a valid boot mode header according to the Infineon
+; specification.
+; Expects that script-global macros were configured by helper function selectUCB.
+;
+; Parameters:    none
+; Return vaules: UCBOK if valid
+;                UCBFAIL otherwise
+
+BmhdChecker:
+(
+  PRIVATE &result
+  &result="UCBOK"
+
+  GOSUB DefaultChecker
+  RETURNVALUES &result
+  IF "&result"=="UCBFAIL"
+  (
+    RETURN "UCBFAIL"
+  )
+
+  ; check for BMHD cookie
+  PRIVATE &bmhdid
+  &bmhdid=Data.Word(D:(&UCB_BaseAddress+0x002))
+  IF &bmhdid!=0xB359
+  (
+    PRINT "BMHDID value 0x"+FORMAT.HEX(0.,&bmhdid)+" invalid"
+    RETURN "UCBFAIL"
+  )
+
+  ; check if HWCFG is valid (only specific values are allowed)
+  PRIVATE &bmi &bmi_hwcfg
+  &bmi=Data.Word(D:(&UCB_BaseAddress+0x000))
+  &bmi_hwcfg=(&bmi>>1)&0x7
+  IF ((&bmi_hwcfg!=0x7)&&(&bmi_hwcfg!=0x6)&&(&bmi_hwcfg!=0x4)&&(&bmi_hwcfg!=0x3))
+  (
+    PRINT "BMI_HWCFG value 0y"+FORMAT.BINary(3.,&bmi_hwcfg)+" invalid"
+    RETURN "UCBFAIL"
+  )
+
+  ; check if start address (STAD) is word-aligned and in program FLASH
+  PRIVATE &stad
+  &stad=Data.Long(D:(&UCB_BaseAddress+0x004))
+  IF ((&stad&0x3)!=0x0)
+  (
+    PRINT "STAD 0x"+FORMAT.HEX(0.,&stad)+" not word aligned"
+    RETURN "UCBFAIL"
+  )
+  IF ((CPUIS(TC39*Astep))&&((&stad&0xFF000000)!=0xA0000000))
+  (
+    ; BROM_TC.009: TC39x A-step only allows STAD in uncached program FLASH
+    PRINT "STAD 0x"+FORMAT.HEX(0.,&stad)+" not in 0xA0000000--0xA0FFFFFF"
+    RETURN "UCBFAIL"
+  )
+  ELSE IF ((&stad&0xDF000000)!=0x80000000)
+  (
+    PRINT "STAD 0x"+FORMAT.HEX(0.,&stad)+" not in either 0xA0000000--0xA0FFFFFF or 0x80000000--0x80FFFFFF"
+    RETURN "UCBFAIL"
+  )
+
+  ; check if FLASH at STAD contains data
+  LOCAL &ReadError
+  &ReadError=FALSE()
+  ON ERROR GOSUB
+  (
+    &ReadError=TRUE()
+    RETURN
+  )
+  PRIVATE &tmp
+  &tmp=Data.Long(D:&UCB_BaseAddress)
+  ON ERROR DEFault
+
+  IF (&ReadError)
+  (
+    PRINT "STAD: Cannot read from 0x"+FORMAT.HEX(0.,&stad)
+    RETURN "UCBFAIL"
+  )
+
+  ; check if check sum is correct
+  PRIVATE &crcExp &crcbmhd &crcbmhd_n
+  Data.SUM &UCB_BaseAddress++0x7 /Long /ByteSWAP /CRC32
+  &crcExp=Data.SUM()
+  &crcbmhd=Data.Long(D:(&UCB_BaseAddress+0x008))
+  IF &crcbmhd!=&crcExp
+  (
+    PRINT "CRCBMHD 0x"+FORMAT.HEX(0.,&crcbmhd)+" invalid"
+    RETURN UCBFAIL
+  )
+  &crcbmhd_n=Data.Long(D:(&UCB_BaseAddress+0x00C))
+  IF &crcbmhd_n!=(~&crcExp&0xFFFFFFFF)
+  (
+    PRINT "CRCBMHD_N 0x"+FORMAT.HEX(0.,&crcbmhd_n)+" invalid"
+    RETURN "UCBFAIL"
+  )
+
+  RETURN "&result"
+)

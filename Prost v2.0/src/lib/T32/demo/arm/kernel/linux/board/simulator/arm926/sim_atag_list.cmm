@@ -1,0 +1,54 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags, NoIndex
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: sim_atag_list.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+; Setup parameter tags for Linux boot
+
+&tagAddr=0x20000100
+
+; ATAG_CORE
+data.set &tagAddr %LONG %LE 0x5
+&tagAddr=&tagAddr+0x4
+data.set &tagAddr %LONG %LE 0x54410001
+&tagAddr=&tagAddr+0x4
+data.set &tagAddr %LONG %LE 0x1
+&tagAddr=&tagAddr+0x4
+data.set &tagAddr %LONG %LE 0x1000
+&tagAddr=&tagAddr+0x4
+data.set &tagAddr %LONG %LE 0x0
+&tagAddr=&tagAddr+0x4
+
+; ATAG_MEM
+data.set &tagAddr %LONG %LE 0x4
+&tagAddr=&tagAddr+0x4
+data.set &tagAddr %LONG %LE 0x54410002
+&tagAddr=&tagAddr+0x4
+data.set &tagAddr %LONG %LE 0x08000000  // size 128MB
+&tagAddr=&tagAddr+0x4
+data.set &tagAddr %LONG %LE 0x20000000  // start
+&tagAddr=&tagAddr+0x4
+
+; ATAG_CMDLINE
+&cmdline="root=/dev/t32vhd0 rw"
+&cmdsize=(STRing.LENgth("&cmdline")+16)&~0x3
+Data.Set &tagAddr %Long %LE &cmdsize/4
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x54410009
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr "&cmdline" 0
+&tagAddr=&tagAddr+(&cmdsize-8)
+
+; ATAG_NONE
+data.set &tagAddr %LONG %LE 0x0
+&tagAddr=&tagAddr+0x4
+data.set &tagAddr %LONG %LE 0x0
+&tagAddr=&tagAddr+0x4
+
+register.set r2 0x20000100
+
+ENDDO
+
+

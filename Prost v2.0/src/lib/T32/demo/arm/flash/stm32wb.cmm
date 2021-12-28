@@ -1,0 +1,131 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash declaration for ST Mircoelectronics STM32WB internal flash
+; @Description:
+;   Script arguments:
+;     DO stm32wb [PREPAREONLY] [CPU=<cpu>] [DUALPORT=<0|1>]
+;       PREPAREONLY    only declares flash but does not execute flash programming
+;       CPU=<cpu>      selects CPU derivative <cpu>
+;       DUALPORT=<0|1> use dual port memory access, default 1
+;   Example:
+;     DO ~~/demo/arm/flash/stm32wb PREPAREONLY
+;   Note:
+;     This file must NOT be modified.
+;     This file is intended to stay within TRACE32 installation.
+;     Usage examples are available in the ~~/demo/arm/hardware/... subdirectories.
+;
+;   List of STM32WB55RG derivatives and their configuration:
+;      CPU-Type       Flash        RamSize
+;                     [byte]       [byte]
+; --------------------------------------------------------------------------------
+;    STM32WB55xC      256K          128K     x=C/R/V
+;    STM32WB55xE      512K          256K     x=C/R/V
+;    STM32WB55xG       1M           256K     x=C/R/V
+;
+; @Chip: STM32WB55*
+; @Author: PHI
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 8191 $
+; $Id: stm32wb.cmm 8191 2020-04-15 07:45:04Z sphilipp $
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+PRIVATE &param_prepareonly &param_cpu &param_dualport
+&parameters=STRing.UPpeR("&parameters")
+&param_prepareonly=(STRing.SCAN("&parameters","PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract("&parameters","CPU=","")
+&param_dualport=STRing.SCANAndExtract("&parameters","DUALPORT=","0")
+
+; --------------------------------------------------------------------------------
+; Initialize and start the debugger
+IF !SYStem.Up()
+(
+  SYStem.RESet
+  
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+
+  IF !CPUIS(STM32WB55??-CM4*)
+    SYStem.CPU STM32WB*
+  IF CPUIS(STM32WB55??-CM0+)
+  (
+    PRINT %ERROR "Flash programming only suppoerted from CM4 core"
+    ENDDO
+  )
+
+  SYStem.MemAccess DAP
+
+  IF CABLE.TWOWIRE()
+    SYStem.CONFIG DEBUGPORTTYPE SWD
+  ELSE
+    SYStem.CONFIG DEBUGPORTTYPE JTAG
+  
+  SYStem.Up
+)
+
+
+; --------------------------------------------------------------------------------
+; Flash declaration
+FLASH.RESet
+GOSUB FlashDeclaration "&param_dualport"
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; --------------------------------------------------------------------------------
+; Flash programming example
+DIALOG.YESNO "Program flash memory?"
+PRIVATE &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram ALL /Erase
+  Data.LOAD.auto *
+  FLASH.ReProgram OFF
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+)
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+; SUBROUTINES
+
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU
+;
+;   Please do NOT modify the TRACE32 flash declaration.
+;
+;   Modifications can result in unpredictable behavior.
+;   Please contact support@lauterbach.com for any changes.
+FlashDeclaration: ;(param_dualport)
+(
+  PARAMETERS &param_dualport
+  PRIVATE &FlashDriver  &flashsize_unsecured
+
+  IF CPUIS(STM32WB????-CM4*)
+  (
+    &FlashDriver="stm32wb.bin"
+  )
+  ELSE
+  (
+    PRINT "CPU not supported by this script"
+    ENDDO
+  )
+
+  &flashsize_unsecured=(Data.Long(ASD:0x58004080)&0xFF)*0x1000
+
+  FLASH.Create 1. 0x8000000++(&flashsize_unsecured-0x1) 0x1000 TARGET quad
+  FLASH.Create 1. (0x8000000+&flashsize_unsecured)--(0x8000000+(0x100000-0x1)) 0x1000 NOP quad /INFO "Secured flash"
+
+  IF (("&param_dualport"!="1")||SYStem.ACCESS.DENIED())
+    FLASH.TARGET 0x20000000 0x20001000 0x1000 ~~/demo/arm/flash/byte/&FlashDriver
+  ELSE
+    FLASH.TARGET 0x20000000 E:0x20001000 0x1000 ~~/demo/arm/flash/byte/&FlashDriver /DualPort
+
+  RETURN
+)

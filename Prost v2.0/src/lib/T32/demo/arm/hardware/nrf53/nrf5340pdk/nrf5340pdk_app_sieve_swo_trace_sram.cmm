@@ -1,0 +1,96 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for NRF5340QKAA-APP on NRF5340-PDK with SWV (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The SerialWireViewer is set up to trace some data values using the DWT.
+;   Prerequisites:
+;    * Connect Combiprobe/uTrace to P18
+; @Keywords: ARM, Cortex-M33, ITM, SWV
+; @Author: BWR
+; @Board: NRF5340-PDK
+; @Chip: NRF5340QKAA
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: nrf5340pdk_app_sieve_swo_trace_sram.cmm 16418 2020-08-13 11:46:17Z bwright $
+
+
+; Prerequisite: check if a Combiprobe/uTrace is connected
+IF !CAnalyzer()
+(
+  DIALOG.OK "Support for SerialWireViewer requires a Combiprobe or uTrace."
+  ENDDO
+)
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU NRF5340QKAA-APP
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+
+; nReset is likely to be configured as GPIO - use SYSRESETREQ only
+SYStem.Option EnReset OFF
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+SYStem.CONFIG.TPIU.ATBSource NONE  ; TODO(BWR): redundant after 124720
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/application/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; configure SWV subsystem
+PER.Set.simple AZSD:0xE0080500 %Long 0x00000001  ; Enable debug domain
+PER.Set.simple AZSD:0xE0080004 %Long 0x00000001  ; Start debug clock
+; Configure pin 11: SPU firewall, high power output, trace mux selected
+PER.Set.simple AZSD:0x500034C0 %Long 0yXXXXxxxxXXXXxxxxXXXX0xxxXXXXxxxx
+PER.Set.simple AZSD:0x5084272C %Long 0x70000301
+PER.Set.simple AZSD:0xE0080508 %Long 0x0000000B  ; PSEL pin 11 as TRACE_D0
+PER.Set.simple AZSD:0xE0080518 %Long 0x00000002  ; Trace clock 8 MHz
+
+; --------------------------------------------------------------------------------
+; initialize SerialWireViewer (clock is stable now)
+Trace.METHOD CAnalyzer
+Trace.AutoInit ON
+TPIU.PortSize SWV
+ITM.DataTrace ON
+ITM.ON
+ETM.OFF
+; use auto-calibration script to find most suitable TPIU.SWVPrescaler <divider>
+DO ~~/demo/arm/etc/serial_wire_viewer/swv_autocalibration.cmm
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+ITMTrace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO

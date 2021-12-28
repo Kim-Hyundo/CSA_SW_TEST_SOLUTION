@@ -1,0 +1,77 @@
+; --------------------------------------------------------------------------------
+; @Title: Philips LPC2xxx Vectored Interrupt Controller Model Initialization Script
+; @Description: 
+;   Philips LPC2xxx Vectored Interrupt Controller Model initialization script
+;   For TRACE32 64-bit version
+; @Keywords: API, Model, Simulator
+; @Board: TRACE32 Simulator
+; @Chip: LPC2*
+; @Author: JER
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: vic_lpc2xxx_init_x64.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+NAME.Set port.0 wdint
+NAME.Set port.1 softint
+NAME.Set port.2 arm0int
+NAME.Set port.3 arm1int
+NAME.Set port.4 tim0int
+NAME.Set port.5 tim1int
+NAME.Set port.6 uart0int
+NAME.Set port.7 uart1int
+NAME.Set port.8 pwm0int
+NAME.Set port.9 i2c0int
+NAME.Set port.10 spi0int
+NAME.Set port.11 spi1int
+NAME.Set port.12 pllint
+NAME.Set port.13 rtcint
+NAME.Set port.14 ext0int
+NAME.Set port.15 ext1int
+NAME.Set port.16 ext2int
+NAME.Set port.17 ext3int
+NAME.Set port.18 adc0int
+
+IF ((SYStem.CPU()=="LPC2119")||(SYStem.CPU()=="LPC2129")||(SYStem.CPU()=="LPC2194")||(SYStem.CPU()=="LPC2290")||(SYStem.CPU()=="LPC2292")||(SYStem.CPU()=="LPC2294"))
+(
+	NAME.Set port.19 canint
+	NAME.Set port.20 can1txint
+	NAME.Set port.21 can2txint
+	NAME.Set port.22 can3txint
+	NAME.Set port.23 can4txint
+	NAME.Set port.24 int24
+	NAME.Set port.25 int25
+	NAME.Set port.26 can1rxint
+	NAME.Set port.27 can2rxint
+	NAME.Set port.28 can3rxint
+	NAME.Set port.29 can4rxint
+	NAME.Set port.30 int30
+	NAME.Set port.31 int31
+)
+ELSE
+(
+	NAME.Set port.19 i2c1int
+	NAME.Set port.20 bodint
+	NAME.Set port.21 adc1int
+	NAME.Set port.22 usbint
+	NAME.Set port.23 int23
+	NAME.Set port.24 int24
+	NAME.Set port.25 int25
+	NAME.Set port.26 timer2int
+	NAME.Set port.27 timer3int
+	NAME.Set port.28 int28
+	NAME.Set port.29 int29
+	NAME.Set port.30 int30
+	NAME.Set port.31 int31
+)
+
+;  Load Model for TRACE32 64-bit version
+SIM.UNLOAD vic_lpc2xxx_x64.dll
+SIM.LOAD vic_lpc2xxx_x64.dll 0.
+
+IF ((SYStem.CPU()=="LPC2119")||(SYStem.CPU()=="LPC2129")||(SYStem.CPU()=="LPC2194")||(SYStem.CPU()=="LPC2290")||(SYStem.CPU()=="LPC2292")||(SYStem.CPU()=="LPC2294"))
+	DO vic_lpc2xxx_can_dialog.cmm
+ELSE
+	DO vic_lpc2xxx_dialog.cmm
+
+ENDDO

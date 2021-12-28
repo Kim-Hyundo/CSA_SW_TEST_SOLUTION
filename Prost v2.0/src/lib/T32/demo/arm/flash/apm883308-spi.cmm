@@ -1,0 +1,191 @@
+; --------------------------------------------------------------------------------
+; @Title: APM883308 Serial FLASH Programming Script
+; @Description:
+; Serial FLASH (Numonyx, N25Q256) is connected the SPI0
+; (Serial Peripheral Interface)
+;
+; S(D)RAM : 0x1d000000
+; Serial FLASH Controller Addr: 0x10610000
+;
+; @Author: jjeong
+; @Chip: APM883308-X1
+; @Keywords: Numonyx N25Q256 FLASH SPI
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: apm883308-spi.cmm 7605 2019-11-05 16:45:28Z bschroefel $
+
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+
+SYStem.CPU APM883308-X1
+CORE.ASSIGN 1.
+
+SYStem.Mode Attach
+
+IF STATE.RUN()
+Break.direct
+
+Register.Set M 0x5 ;EL1h
+
+GOSUB MMU_DISABLE
+
+//Init SPI controller
+Data.Set HD:0x10610008 %LE %Long 0x0
+Data.Set HD:0x10610000 %LE %Long 0xC7
+Data.Set HD:0x10610004 %LE %Long 0xf ;fifo
+Data.Set HD:0x10610010 %LE %Long 0x0
+Data.Set HD:0x10610008 %LE %Long 0x1
+
+//FLASH READ ID TEST
+AREA.CLEAR
+AREA.view
+GOSUB READ_ID_TEST
+DIALOG.YESNO "the flash id is correct on AREA window?"
+ENTRY &result
+IF !&result
+(
+PRINT "pls, check your register configuration to enable your flash controller"
+ENDDO
+)
+
+//S(D)RAM TEST for algorithm file
+Data.Test 0x1d000000++0x3FFF  /Prime ;s(d)ram test
+IF FOUND()
+(
+PRINT "s(d)ram is NOT initialized around 0x" ADDRESS.OFFSET(TRACK.ADDRESS())
+ENDDO
+)
+
+programFlash:
+
+  Break.RESet
+
+  FLASHFILE.RESet
+//FLASFILE.CONFIG  <SPI Base Reg>       <slave select number, ss_x_n>
+  FLASHFILE.CONFIG  0x10610000           0
+
+// FLASHFILE.TARGET <<code range>>    <<data range>>    <<algorithm file>>
+  FLASHFILE.TARGET 0x1d000000++0x1FFF    0x1d002000++0x22FF       ~~/demo/arm64/flash/byte/spi4b64fs_apm88xx0x.bin   /KEEP  /STACKSIZE 0x200
+
+  FLASHFILE.GETID
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+ENDDO
+
+  FLASHFILE.DUMP 0x0
+
+  ;FLASHFILE.unlock 0x0--0xFFFFFF
+  ;FLASHFILE.erase 0x0--0xFFFFF
+  ;FLASHFILE.load * 0x0
+  ;FLASHFILE.load * 0x0  /ComPare
+ENDDO
+
+
+MMU_DISABLE:
+
+  LOCAL &sctlr &cpsr &sctlrAddr
+
+  &cpsr=Register(cpsr)
+
+  IF (&cpsr&0x10)==0x10
+  (
+    PRINTS "MMU off not supported for AArch32 in this test scenario"
+    ENDDO
+  )
+  ELSE IF (&cpsr&0x0C)==0xC            // EL3h or EL3t
+    &sctlrAddr=0x36100
+  ELSE IF (&cpsr&0x0C)==0x8            // EL2h or EL2t
+    &sctlrAddr=0x34100
+  ELSE IF (&cpsr&0x0C)==0x4            // EL1h or EL1t
+    &sctlrAddr=0x30100
+  ELSE
+  (
+    PRINTS "CPU mode unknown"
+    ENDDO
+  )
+
+  &sctlr=Data.Quad(SPR:&sctlrAddr)
+
+  &sctlr=&sctlr&0xFFFFFFFE
+
+  Data.Set SPR:&sctlrAddr %Quad &sctlr
+
+RETURN
+
+READ_ID_TEST:
+
+//write
+Data.Set HD:0x10610060  %LE %Long 0x9F
+Data.Set HD:0x10610060  %LE %Long 0x00
+Data.Set HD:0x10610060  %LE %Long 0x00
+Data.Set HD:0x10610060  %LE %Long 0x00
+
+Data.Set HD:0x10610010 %LE %Long 0x1  ;serial transfer begins.
+
+&status=Data.Long(HD:0x10610028)
+
+PRINT "Read 1st = 0x" Data.Long(HD:0x10610060)
+PRINT "Read 2nd = 0x" Data.Long(HD:0x10610060) " (Manufacture ID)"
+PRINT "Read 3rd = 0x" Data.Long(HD:0x10610060) " (Device ID)"
+PRINT "Read 4th = 0x" Data.Long(HD:0x10610060)
+
+
+RETURN
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

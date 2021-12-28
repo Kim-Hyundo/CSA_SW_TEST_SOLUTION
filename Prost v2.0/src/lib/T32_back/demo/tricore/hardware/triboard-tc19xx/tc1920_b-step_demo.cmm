@@ -1,0 +1,84 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC1920 B-step on TriBoard-TC1920
+; @Description:
+;   Initializes the TriCore, SRAM and Flash,
+;   and loads the Sieve-Demo into memory.
+;
+;   Use the following boot option:
+;   OFF ON OFF OFF ON ON ON ON
+;
+;   Requirements to use OCDS-1:
+;   Set jumper JP501 to position 2-3
+;
+; @Keywords: Infineon, TriCore
+; @Author: MAX
+; @Board: TriBoard-TC1920
+; @Chip: TC1920*
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc1920_b-step_demo.cmm 7578 2014-08-27 14:53:19Z mobermeir $
+
+
+; --------------------------------------------------------------------------------
+; Performed tests:
+; TriBoard-TC1920B.201 TC1920 ES-BA 2006-06-07 MAX
+;
+; Memory mappings:
+; SRAM  (8MB) mapped to 0xA0000000--0xA07FFFFF
+; Flash (4MB) mapped to 0xA4000000--0xA43FFFFF
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.CPU TC1920B
+SYStem.Option WDTFIX ON    ; only required for B-steps
+SYStem.Up
+
+; disable watchdog timer (if not already disabled by WDTFIX)
+//Data.Set 0xF0000024 %Long 0x00000008    ; WDTCON1
+
+; --------------------------------------------------------------------------------
+; Memory initialzation
+
+; initialize external bus unit
+Data.Set 0xF8000010 %Long 0x00F9FF68    ; EBU_CON
+Data.Set 0xF0000210 %Long 0x4001FFFF    ; BCU_CON
+Data.Set 0xF8000020 %Long 0x001001D0    ; EBU_BFCON
+
+; memory assignment
+; AMD AM29BL162CB flash
+Data.Set 0xF8000080 %Long 0xA4000051    ; EBU_ADDR_SEL0
+Data.Set 0xF80000C0 %Long 0x008A007F    ; EBU_BUSCON0
+Data.Set 0xF8000100 %Long 0x23FF0100    ; EBU_BUSAP0
+; Infineon HYB39S256160DT SDRAM
+Data.Set 0xF8000088 %Long 0xA0000011    ; EBU_ADDR_SEL1
+Data.Set 0xF80000C8 %Long 0x30B20000    ; EBU_BUSCON1
+Data.Set 0xF8000108 %Long 0x22070000    ; EBU_BUSAP1
+; unused
+Data.Set 0xF8000090 %Long 0x00000000    ; EBU_ADDR_SEL2
+Data.Set 0xF8000098 %Long 0x00000000    ; EBU_ADDR_SEL3
+Data.Set 0xF80000A0 %Long 0x00000000    ; EBU_ADDR_SEL4
+Data.Set 0xF80000A8 %Long 0x00000000    ; EBU_ADDR_SEL5
+Data.Set 0xF80000B0 %Long 0x00000000    ; EBU_ADDR_SEL6
+
+; SDRAM initialization
+Data.Set 0xF8000050 %Long 0x01162075    ; EBU_SDRMCON0
+Data.Set 0xF8000060 %Long 0x00000023    ; EBU_SDRMMOD0
+Data.Set 0xF8000040 %Long 0x000000D7    ; EBU_SDRMREF0
+
+; --------------------------------------------------------------------------------
+; load demo program
+Data.LOAD.Elf "~~~~/demo.elf"
+Go.direct main
+
+; open some windows
+WinCLEAR
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame.view /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch
+Var.AddWatch ast flags
+
+ENDDO

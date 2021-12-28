@@ -1,0 +1,94 @@
+﻿<UserControl x:Class="ProstMain.Dialog.SearchLastTestDialogView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:wpf="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
+             xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity" 
+             xmlns:util="clr-namespace:ProstMain.Util"
+             mc:Ignorable="d" Background="DarkGray" Height="180" Width="450">
+    <UserControl.Resources>
+        <util:PathFullNameConvert x:Key="pathfullnameconvert"/>
+    </UserControl.Resources>
+    <Grid>
+        <GroupBox>
+            <GroupBox.Header>
+                <StackPanel Orientation="Horizontal">
+                    <wpf:PackIcon Kind="Information" Foreground="Orange"/>
+                    <TextBlock Text="Search Test History" Foreground="{DynamicResource ResourceKey=GroupBoxHeaderForeground}" Margin="8,0,0,0" FontWeight="Bold"/>
+                </StackPanel>
+            </GroupBox.Header>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2.5*"/>
+                    <RowDefinition Height="2.5*"/>
+                    <RowDefinition Height="2.5*"/>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="2.9*"/>
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2.5*"/>
+                    <ColumnDefinition Width="7.5*"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Content="Build Folder" Foreground="Black" VerticalAlignment="Center"></Label>
+                <util:SlidingComboBox Style="{StaticResource MaterialDesignComboBox}" SlideForever="True" Grid.Column="1" SelectedItem="{Binding Source={StaticResource Locator},Path=ProjectSettingVM.ProjectSettingModel.SelectedBuildFolder}" ItemsSource="{Binding Source={StaticResource Locator},Path=ProjectSettingVM.ProjectSettingModel.BuildFolderList}" SelectedIndex="{Binding Source={StaticResource Locator},Path=ProjectSettingVM.ProjectSettingModel.SelectedBuildFolderIndex}" Foreground="Black" >
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="SelectionChanged">
+                            <i:InvokeCommandAction Command="{Binding Source={StaticResource Locator},Path=ProjectSettingVM.SelectedBuldFolderCommand}"/>
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                    <util:SlidingComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <ScrollViewer CanContentScroll="True" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                                <TextBlock Text="{Binding Converter={StaticResource pathfullnameconvert}}"/>
+                            </ScrollViewer>
+                        </DataTemplate>
+                    </util:SlidingComboBox.ItemTemplate>
+                </util:SlidingComboBox>
+                <Label Grid.Row="1" Content="Test Folder" Foreground="Black" VerticalAlignment="Center"/>
+                <util:SlidingComboBox Style="{StaticResource MaterialDesignComboBox}" SlideForever="True" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" SelectedItem="{Binding Source={StaticResource Locator},Path=ProjectSettingVM.ProjectSettingModel.SelectedTestFolder}" ItemsSource="{Binding Source={StaticResource Locator},Path=ProjectSettingVM.ProjectSettingModel.TestFolderList}" SelectedIndex="{Binding Source={StaticResource Locator},Path=ProjectSettingVM.ProjectSettingModel.SelectedTestFolderIndex}" Foreground="Black">
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="SelectionChanged">
+                            <i:InvokeCommandAction Command="{Binding Source={StaticResource Locator},Path=ProjectSettingVM.SelectedTestFolderCommand}"/>
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                    <util:SlidingComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <ScrollViewer CanContentScroll="True" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                                <TextBlock Text="{Binding Converter={StaticResource pathfullnameconvert}}"/>
+                            </ScrollViewer>
+                        </DataTemplate>
+                    </util:SlidingComboBox.ItemTemplate>
+                </util:SlidingComboBox>
+                <Label Grid.Row="2" Content="Scnario Folder" Foreground="Black" VerticalAlignment="Center"/>
+                <util:SlidingComboBox Style="{StaticResource MaterialDesignComboBox}" SlideForever="True" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch" SelectedItem="{Binding Source={StaticResource Locator},Path=ProjectSettingVM.ProjectSettingModel.SelectedSenario}" ItemsSource="{Binding Source={StaticResource Locator},Path=ProjectSettingVM.ProjectSettingModel.TestSenarioList}" SelectedIndex="{Binding Source={StaticResource Locator},Path=ProjectSettingVM.ProjectSettingModel.SelectedSenarioIndex}" Foreground="Black">
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="SelectionChanged">
+                            <i:InvokeCommandAction Command="{Binding Source={StaticResource Locator},Path=ProjectSettingVM.SelectedSenarioCommand}"/>
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                    <util:SlidingComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <ScrollViewer CanContentScroll="True" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                                <TextBlock Text="{Binding Converter={StaticResource pathfullnameconvert}}"/>
+                            </ScrollViewer>
+                        </DataTemplate>
+                    </util:SlidingComboBox.ItemTemplate>
+                </util:SlidingComboBox>
+
+                <Grid Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="5*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="1" Background="{DynamicResource ButtonBackground}" Command="{Binding Source={StaticResource Locator},Path=MainVM.DialogCancelCommand}" Foreground="{DynamicResource ResourceKey=ButtonForeground}" Width="130" Margin="5,0,0,0">Close</Button>
+                </Grid>
+            </Grid>
+        </GroupBox>
+    </Grid>
+</UserControl>
+
+
+

@@ -1,0 +1,56 @@
+; --------------------------------------------------------------------------------
+; @Title: T-Kernel Demo for TRACE32 OS Awareness
+; @Description:
+;   This batchfile loads all necessary files to demonstrate
+;   the OS Awareness for T-Kernel.
+; @Keywords: RTOS, tkernel
+; @Author: DIE
+; @Chip: ARM11MPCORE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tkernel.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+ SCREEN.ON
+ AREA.RESet
+ WinPAGE.RESet
+ WinPOS 0 24. 70. 8. 0. 0. W000
+ AREA.view
+
+; Debugger reset
+ PRINT "resetting..."
+ RESet
+
+; Debugger initializations
+ PRINT "initializing..."
+ SYStem.CPU ARM11MPCORESMP4
+ SYStem.JtagClock RTCK
+ SYStem.Option ResBreak OFF
+ TrOnchip.Set DABORT OFF
+ TrOnchip.Set UNDEF OFF
+
+ SYStem.Up
+
+ DO init_board
+
+; Load application
+ PRINT "loading..."
+ Data.LOAD.Elf demo_tkernel.elf
+
+; initialize RTOS support
+ PRINT "initializing T-Kernel support..."
+ TASK.CONFIG ~~/demo/arm/kernel/tkernel/tkernel.t32     ; load T-Kernel Awareness
+ MENU.ReProgram ~~/demo/arm/kernel/tkernel/tkernel.men  ; load T-Kernel Menu
+ HELP.FILTER.Add rtostkernel
+
+; open some windows
+ WinPOS 0. 0. 70. 21.
+ List.auto
+
+; start application
+ PRINT "starting..."
+ Go usermain
+
+ PRINT "done."
+
+ ENDDO

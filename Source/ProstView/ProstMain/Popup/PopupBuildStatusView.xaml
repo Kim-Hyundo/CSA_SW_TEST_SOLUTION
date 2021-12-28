@@ -1,0 +1,182 @@
+﻿    <Window x:Class="ProstMain.Popup.PopupBuildStatusView"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:wpf="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
+             xmlns:dialog="clr-namespace:ProstMain.Dialog"
+             xmlns:util="clr-namespace:ProstMain.Util"
+        AllowsTransparency="True"
+             mc:Ignorable="d" Background="{DynamicResource ResourceKey=PopupBackground}" Height="450" Width="450" WindowStyle="None" WindowStartupLocation="CenterOwner" DataContext="{Binding Source={StaticResource Locator},Path=PopupBuildStatusVM}">
+
+    <Window.Resources>
+        <util:CheckDataConvert x:Key="checkDataConvert"/>
+        <util:LineColorConvert x:Key="lineColorConvert"/>
+        <util:ProgressVisibleConvert x:Key="progressvisibleconvert"/>
+        <util:TestStepZeroConver x:Key="teststepzeroconver"/>
+        <util:BuildProgressConvert x:Key="buildprogressconvert"/>
+    </Window.Resources>
+    <materialDesign:DialogHost HorizontalAlignment="Stretch" VerticalAlignment="Stretch" OverlayBackground="Black" IsOpen="{Binding PopupBuildStatusModel.IsBuildStatusPopupOpen}">
+        <materialDesign:DialogHost.DialogContent>
+            <dialog:BuildStatusDialogView/>
+        </materialDesign:DialogHost.DialogContent>
+        <Grid>
+            <GroupBox MouseLeftButtonDown="DockPanel_MouseDown">
+                <GroupBox.Header>
+                    <DockPanel LastChildFill="False">
+                        <TextBlock Text="Build Status" Foreground="{DynamicResource ResourceKey=GroupBoxHeaderForeground}" VerticalAlignment="Center"></TextBlock>
+                        <Button DockPanel.Dock="Right" Command="{Binding StopBuildStatusCommand}">
+                            <Button.Content>
+                                <materialDesign:PackIcon Kind="Stop"/>
+                            </Button.Content>
+                        </Button>
+
+                    </DockPanel>
+                </GroupBox.Header>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2.5*"/>
+                        <ColumnDefinition Width="2.5*"/>
+                        <ColumnDefinition Width="2.5*"/>
+                        <ColumnDefinition Width="2.5*"/>
+                        <ColumnDefinition Width="2.5*"/>
+                        <ColumnDefinition Width="2.5*"/>
+                        <ColumnDefinition Width="2.5*"/>
+                        <ColumnDefinition Width="2.5*"/>
+                        <ColumnDefinition Width="2.5*"/>
+                        <ColumnDefinition Width="2.5*"/>
+                        <ColumnDefinition Width="2.5*"/>
+                        <ColumnDefinition Width="2.5*"/>
+
+                    </Grid.ColumnDefinitions>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="2.5*"/>
+                        <RowDefinition Height="2.5*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="2.5*"/>
+                        <RowDefinition Height="2.5*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="2*"/>
+                        <RowDefinition Height="2*"/>
+                        <RowDefinition Height="2*"/>
+
+                    </Grid.RowDefinitions>
+
+                    <Border  Grid.Column="1" Grid.ColumnSpan="2" Grid.RowSpan="2">
+                        <Image Source="{Binding PopupBuildStatusModel.IsBuildTestHWImagePath,UpdateSourceTrigger=PropertyChanged}" RenderOptions.BitmapScalingMode="HighQuality" Margin="-3"/>
+                    </Border>
+
+                    <Border  Grid.Column="5" Grid.ColumnSpan="2" Grid.RowSpan="2">
+                        <Image Source="{Binding PopupBuildStatusModel.IsBuildTestSWImagePath,UpdateSourceTrigger=PropertyChanged}" RenderOptions.BitmapScalingMode="HighQuality" Margin="-3"/>
+                    </Border>
+
+                    <Border  Grid.Column="9" Grid.ColumnSpan="2" Grid.RowSpan="2" >
+                        <Image Source="{Binding PopupBuildStatusModel.IsBuildTestCompileImagePath,UpdateSourceTrigger=PropertyChanged}" RenderOptions.BitmapScalingMode="HighQuality" Margin="-3"/>
+                    </Border>
+
+
+
+                    <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Text="Target H/W" HorizontalAlignment="Center" Foreground="{DynamicResource ResourceKey=StandardTextForeground}"/>
+                    <TextBlock Grid.Row="2" Grid.Column="5" Grid.ColumnSpan="2" Text="Target S/W" HorizontalAlignment="Center" Foreground="{DynamicResource ResourceKey=StandardTextForeground}"/>
+                    <TextBlock Grid.Row="2" Grid.Column="9" Grid.ColumnSpan="2" Text="Compiler" HorizontalAlignment="Center" Foreground="{DynamicResource ResourceKey=StandardTextForeground}"/>
+
+                    <Border  Grid.Row="3" Grid.Column="2" Grid.ColumnSpan="4" BorderBrush="{Binding PopupBuildStatusModel.IsHWSettingValue, Converter={StaticResource lineColorConvert},UpdateSourceTrigger=PropertyChanged}" BorderThickness="2,0,0,2"/>
+                    <Border Grid.Row="3" Grid.Column="6" Grid.ColumnSpan="1" BorderBrush="{Binding PopupBuildStatusModel.IsSWSettingValue, Converter={StaticResource lineColorConvert},UpdateSourceTrigger=PropertyChanged}" BorderThickness="2,0,0,0"/>
+                    <Border Grid.Row="3" Grid.Column="6" Grid.ColumnSpan="4" BorderBrush="{Binding PopupBuildStatusModel.IsCompilerSettingValue, Converter={StaticResource lineColorConvert},UpdateSourceTrigger=PropertyChanged}" BorderThickness="0,0,2,2"/>
+
+                    <Border Grid.RowSpan="5" Grid.ColumnSpan="12" BorderThickness="2,2,2,2" Margin="0,-8,0,0">
+                        <Border.BorderBrush>
+                            <DrawingBrush Viewport="0,0,8,8" ViewportUnits="Absolute" TileMode="Tile">
+                                <DrawingBrush.Drawing>
+                                    <DrawingGroup>
+                                        <GeometryDrawing Brush="White">
+                                            <GeometryDrawing.Geometry>
+                                                <GeometryGroup>
+                                                    <RectangleGeometry Rect="0,0,50,50" />
+                                                    <RectangleGeometry Rect="50,50,50,50" />
+                                                </GeometryGroup>
+                                            </GeometryDrawing.Geometry>
+                                        </GeometryDrawing>
+                                    </DrawingGroup>
+                                </DrawingBrush.Drawing>
+                            </DrawingBrush>
+                        </Border.BorderBrush>
+                    </Border>
+
+                    <Border  Grid.Column="5" Grid.Row="5" Grid.ColumnSpan="2" Grid.RowSpan="2">
+                        <Image Source="{Binding PopupBuildStatusModel.IsBuildTestELFImagePath}" RenderOptions.BitmapScalingMode="HighQuality" Margin="-3"/>
+                    </Border>
+
+                    <TextBlock Grid.Row="7" Grid.Column="5" Grid.ColumnSpan="2" Text="Elf Build" HorizontalAlignment="Center" Foreground="{DynamicResource ResourceKey=StandardTextForeground}"/>
+
+
+
+                    <Border Grid.Row="5" Grid.Column="4" Grid.RowSpan="3" Grid.ColumnSpan="4" BorderThickness="2,0,2,2">
+                        <Border.BorderBrush>
+                            <DrawingBrush Viewport="0,0,8,8" ViewportUnits="Absolute" TileMode="Tile">
+                                <DrawingBrush.Drawing>
+                                    <DrawingGroup>
+                                        <GeometryDrawing Brush="White">
+                                            <GeometryDrawing.Geometry>
+                                                <GeometryGroup>
+                                                    <RectangleGeometry Rect="0,0,50,50" />
+                                                    <RectangleGeometry Rect="50,50,50,50" />
+                                                </GeometryGroup>
+                                            </GeometryDrawing.Geometry>
+                                        </GeometryDrawing>
+                                    </DrawingGroup>
+                                </DrawingBrush.Drawing>
+                            </DrawingBrush>
+                        </Border.BorderBrush>
+                    </Border>
+
+                    <GroupBox Grid.Row="10" Grid.ColumnSpan="12" Grid.RowSpan="3" Header="CHECK">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*"/>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="2*"/>
+                                <ColumnDefinition Width="1*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Text="HW SETTING" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource ResourceKey=StandardTextForeground}"/>
+                            <TextBlock Text="SW SETTING" Grid.Row="1"  VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource ResourceKey=StandardTextForeground}"/>
+                            <TextBlock Text="COMPILER SETTING" Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource ResourceKey=StandardTextForeground}"/>
+
+                            <Image Grid.Column="1" Source="{Binding PopupBuildStatusModel.IsHWSettingValue, Converter={StaticResource checkDataConvert}}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="3"/>
+                            <Image Grid.Row="1" Grid.Column="1" Source="{Binding PopupBuildStatusModel.IsSWSettingValue, Converter={StaticResource checkDataConvert}}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="3"/>
+
+                            <Image Grid.Row="0" Grid.Column="3" Source="{Binding PopupBuildStatusModel.IsCompilerSettingValue, Converter={StaticResource checkDataConvert}}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="3"/>
+
+                            <Image Grid.Row="1" Grid.Column="4" Source="{Binding PopupBuildStatusModel.IsElfSettingValue, Converter={StaticResource checkDataConvert}}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="3"/>
+
+                            <TextBlock Text="ELF BUILD COMPLIETE" Grid.Row="1" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource ResourceKey=StandardTextForeground}"/>
+                        </Grid>
+                    </GroupBox>
+                    <Grid Margin="4" Grid.Row="8" Grid.ColumnSpan="12" Grid.Column="0" Grid.RowSpan="2" Visibility="{Binding PopupBuildStatusModel.IsBuildStart,Converter={StaticResource progressvisibleconvert}}">
+                        <Border Grid.Column="0">
+                            <Border.Background>
+                                <ImageBrush ImageSource="/ProstMain;component/Resources/bg_full_progressbar.png"/>
+                            </Border.Background>
+                        </Border>
+                        <util:NinePatchPanel BackgroundImage="/ProstMain;component/Resources/full_progressbar.9.png" HorizontalAlignment="Left" Visibility="{Binding PopupBuildStatusModel.ElfBuildProgress,Converter={StaticResource teststepzeroconver}}" Width="{Binding PopupBuildStatusModel.ElfBuildProgress,Converter={StaticResource buildprogressconvert},UpdateSourceTrigger=PropertyChanged}" Grid.Column="0"/>
+
+                        <TextBlock Grid.Column="0" HorizontalAlignment="Center" Text="{Binding PopupBuildStatusModel.ElfBuildProgress,StringFormat={}{0}%}" FontWeight="Bold" FontSize="15" VerticalAlignment="Center" />
+                    </Grid>
+                </Grid>
+            </GroupBox>
+        </Grid>
+    </materialDesign:DialogHost>
+</Window>
+
+

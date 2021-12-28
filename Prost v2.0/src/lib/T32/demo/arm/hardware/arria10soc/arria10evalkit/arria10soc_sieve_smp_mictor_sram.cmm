@@ -1,0 +1,57 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple SMP demo script for the ARRIA10SOC board (Mictor/HPS Trace con)
+; @Description:
+;   Loads the sieve demo into RAM and sets up a
+;   demo debug scenario on both cores.
+;   This script expects that the Debugger is connected to the Mictor/HPS Trace
+;   connector.
+;   Prerequisites:
+;   * Please set bootmode to SD-Card and REMOVE SD-Card
+;     => Device will stop in BOOT ROM
+;   * connect Debugcable or Combiprobe to HPS Trace connector
+;   * make sure nothing is connected to J24
+;   * set FPGA->HPS JTAG DaisyChain configuration
+;     SW3[1..8]=0b01111111 (M5A Jtag Enable)
+; @Keywords: ALTERA, Cortex-A9, Arria10
+; @Author: AME
+; @Board: ARRIA10SOC
+; @Chip: ARRIA10SOC
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: arria10soc_sieve_smp_mictor_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; board setup
+RESet
+SYStem.RESet
+SYStem.CPU ARRIA10SOC
+; settings for FPGA-HPS scanchain - see prerequisites
+; can be discovered by SYStem.DETECT.ShowCHAIN
+SYStem.CONFIG DAPIRPOST 10.
+SYStem.CONFIG DAPDRPOST 1.
+SYStem.Option ResBreak OFF
+CORE.ASSIGN 1.              ; "1" = first core, "2" = second core, "1 2" = both cores (SMP)
+SYStem.Up
+
+; disable Watchdog0/1
+Data.Set A:0xFFD05028 %Long Data.Long(A:0xFFD05028)|0x3
+; kick secondary core - loops in bootrom
+Data.Set A:0xFFD05020 %Long Data.Long(A:0xFFD05020)&~0x2
+
+;switch to SMP debugging
+SYStem.Down
+CORE.ASSIGN 1,2
+SYStem.Mode Attach
+
+; load demo code
+CORE.select 0.
+Data.LOAD.Elf ~~~~/sieve_ram_arm_v7.elf
+Register.Set PC _start /CORE 0.
+Register.Set PC _start /CORE 1.
+
+; execute till *main*
+Go main
+WAIT !STATE.RUN()
+
+; open some windows
+Mode.Hll
+List.auto

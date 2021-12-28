@@ -1,0 +1,156 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to force page load of Linux application (Linux Awareness)
+; @Description:
+; NOTE: Linux and the Linux awareness must be up.
+;       The debugger must be halted within the process.
+;
+; Start this script with an optional parameter:
+; Parameter: patch location.
+;
+; Examples: do app_page_load
+;           do app_page_load main
+;
+;
+; @Keywords: Linux pageload paging awareness
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: app_page_load.cmm 5614 2020-08-26 14:59:15Z kjmal $  
+
+ ; parameter: patch location
+ ENTRY &patchaddr
+
+ ; local variables
+ LOCAL &task &process &spaceid &magic &var
+ LOCAL &codeaddr &codesize &codeend
+ LOCAL &dataaddr &datasize &dataend
+ LOCAL &org_pc &org_r2 &org_r3 &org_r4 &org_r5
+ LOCAL &org_code1 &org_code2 &org_code3 &org_code4 &org_code5
+
+ ; check if debugger is halted
+ IF STATE.RUN()
+ (
+   PRINT "Error: debugger must be halted inside process"
+   ENDDO
+ )
+
+ ; get current process and spaceid
+ &task=Data.Long(D:task.config(magic))
+ &spaceid=task.proc.magic2sid(&task)
+ &magic=task.proc.sid2magic(&spaceid)
+ &process=task.proc.name(&magic)
+ ; check for kernel space
+ IF &spaceid==0
+ (
+   PRINT "&process runs in kernel space - no pade load"
+   ENDDO
+ )
+
+ ; check process sanity
+ IF &task!=task.proc.magic("&process")
+    PRINT "Warning: &process not unique - threads or multiple processes?"
+ 
+ ; get characteristics of the desired process
+ &codeaddr=task.proc.codeaddr("&process")
+ &codesize=task.proc.codesize("&process")
+ &codeend=((&codeaddr+&codesize-1)&0xfffff000)+0x1000
+ &dataaddr=task.proc.dataaddr("&process")
+ &datasize=task.proc.datasize("&process")
+ &dataend=((&dataaddr+&datasize-1)&0xfffff000)+0x1000
+ &dataaddr=&dataaddr&0xfffff000
+ 
+ ; if not specified: patch location is current PC
+ IF ("&patchaddr"=="")
+    &patchaddr=Register(pc)
+ ELSE
+    &patchaddr=ADDRESS.OFFSET(&patchaddr)
+ 
+ ; force symbol loader to check function code *before* it is patched
+ ; (patched code may confuse the symbol system of TRACE32)
+ &var=sYmbol.NAME(&spaceid:&patchaddr)
+ IF "&var"!=""
+ (
+   WinPOS ,,,,,, vinfo Iconic
+   Var.INFO &var
+   WinCLEAR vinfo
+ )
+ 
+ ; save original register contents and patched code
+ &org_pc=Register(pc)
+ &org_r2=Register(r2)
+ &org_r3=Register(r3)
+ &org_r4=Register(r4)
+ &org_r5=Register(r5)
+ &org_code1=Data.Long(P:&spaceid:&patchaddr)
+ &org_code2=Data.Long(P:&spaceid:&patchaddr+4)
+ &org_code3=Data.Long(P:&spaceid:&patchaddr+8)
+ &org_code4=Data.Long(P:&spaceid:&patchaddr+0xc)
+ &org_code5=Data.Long(P:&spaceid:&patchaddr+0x10)
+ 
+ ; remove possible breakpoints at patch location
+ Break.Delete P:&patchaddr++0x13
+ 
+ ; now write loop that loads the pages and set breakpoint at end of loop
+
+ LOCAL &addr 
+ &addr=&patchaddr
+ Data.Assemble P:&patchaddr ldr  r2,[r3]
+ &addr=&addr+ADDRESS.INSTR.LEN(P:&addr)
+ Data.Assemble ,            add  r3,r3,#0x1000
+ &addr=&addr+ADDRESS.INSTR.LEN(P:&addr)
+ Data.Assemble ,            cmp  r3,r4
+ &addr=&addr+ADDRESS.INSTR.LEN(P:&addr)
+ Data.Assemble ,            bne  $-0xc
+ &addr=&addr+ADDRESS.INSTR.LEN(P:&addr)
+ Break.Set P:&addr
+
+ 
+ ; set registers to code start and end address
+ Register.Set R3 &codeaddr
+ Register.Set R4 &codeend
+ 
+ ; set PC to patch address
+ Register.Set PC &patchaddr
+ 
+ ; let the patch run
+ Go.direct
+ PRINT "loading code pages of process &process at &codeaddr..."
+ WAIT !STATE.RUN()
+
+ ; set registers to data start and end address
+ Register.Set R3 &dataaddr
+ Register.Set R4 &dataend
+ 
+ ; set PC to patch address
+ Register.Set PC &patchaddr
+ 
+ ; let the patch run
+ Go.direct
+ PRINT "loading data pages of process &process at &dataaddr..."
+ WAIT !STATE.RUN()
+
+ ; delete used breakpoint
+ Break.Delete P:&patchaddr+0xa
+ 
+ ; restore code
+ Data.Set P:&patchaddr     %Long &org_code1
+ Data.Set P:&patchaddr+4   %Long &org_code2
+ Data.Set P:&patchaddr+8   %Long &org_code3
+ Data.Set P:&patchaddr+0xc %Long &org_code4
+ Data.Set P:&patchaddr+0x10 %Long &org_code5
+ 
+ ; restore registers
+ Register.Set PC &org_pc
+ Register.Set R2 &org_r2
+ Register.Set R3 &org_r3
+ Register.Set R4 &org_r4
+ Register.Set R5 &org_r5
+ 
+
+  Break.Delete P:&patchaddr+0x10
+
+ 
+ PRINT "done."
+ 
+ ENDDO
+ 

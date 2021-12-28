@@ -1,0 +1,56 @@
+; --------------------------------------------------------------------------------
+; @Title: On chip ETM trace script for LPC4357 on MCB4357 board
+; @Description:
+;   This is a small demo how to setup on chip ETM trace on Cortex-M4 for
+;   LPC4357 on MCB4357 board
+; @Keywords: Cortex-M4, ETB, ETM, NXP, on-chip, trace
+; @Author: HDA
+; @Board: MCB4300
+; @Chip: LPC4357*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mcb4300_onchip_trace.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+; Basic setup
+  Break.RESet
+  SYStem.RESet
+  SYStem.CPU LPC4357FET256
+  SYStem.CONFIG.DEBUGPORTTYPE SWD
+  SYStem.CONFIG.CONNECTOR MIPI20T
+  SYStem.Option EnReset OFF
+  SYStem.Up
+
+; Load the demo code into the SRAM
+  Data.LOAD.Elf ~~~~/demo.axf
+  Register.Set PC main
+  Register.Set R13 0x10005000
+
+  ; ETB accesses SRAM at address 0x2000C000
+  Data.Set D:0x40043128 %Long 0x0 ; ETB SRAM configuration register : ETBCFG
+
+  ETM.ON
+  Trace.METHOD onchip
+  Trace.OFF 		; Enable the trace and turn it off
+
+  ;open some window
+  WinCLEAR
+
+  WinPOS 0% 0% 50% 50%
+  List.auto
+
+  WinPOS 50% 0% 50% 50%
+  Register.view /SpotLight
+
+  WinPOS 0% 50% 50% 50%
+  Frame /Locals /Caller
+
+  WinPOS 50% 50% 50% 50%
+  Trace.List
+
+  ;run for 3 seconds
+  Go.direct
+  WAIT 3.s
+  Break.direct
+
+  ENDDO

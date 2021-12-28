@@ -1,0 +1,132 @@
+; --------------------------------------------------------------------------------
+; @Title: RTOS specific menu
+; @Description: -
+; @Author: DIE
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: oseb.men 7320 2014-07-03 08:57:49Z kjmal $
+
+add
+menu
+(
+  popup "&OSE Basic"
+  (
+;    enable ice()
+;    menuitem "&RTOS Terminal" "TERM T32OUT T32IN"
+;    separator
+    default
+    menuitem "Display &Processes"     "TASK.DProc"
+    menuitem "Display &Queue"
+    (
+      dialog
+      (
+	header "Display Queue"
+        pos 0x0 0x0 32. 3.
+        box "task name:"
+	pos 0x1 0x1 30. 1.
+name:	defedit "" ""
+	pos 0x2 0x3 7. 1.
+	defbutton "OK"
+	(
+	  local &name 
+	  &name=dialog.string(name)
+	  task.dqueue "&name"
+	  dialog.end
+	)
+	pos 10. 0x3 7. 1.
+	button "Cancel" "dialog.end"
+      )
+    )
+;    menuitem "Display &Configuration" "TASK.DC"
+    separator
+    popup "&Stack Coverage"
+    (
+      menuitem "&List Stacks"    "TASK.STacK"
+      menuitem "Add Task"        "TASK.STK.ADD"
+      menuitem "Remove Task"     "TASK.STK.RM"
+      if ice()
+      (
+        menuitem "&Reset Coverage" "TASK.STK.RES"
+      )
+      else
+      (
+	menuitem "Stack &Pattern..."
+	(
+	  dialog
+	  (
+	    header "Stack Pattern Check"
+	    pos 0x0 0x0 13. 3.
+	    box "initialized pattern:"
+	    pos 0x1 0x1 11. 1.
+pattern:    defedit "17" ""
+	    pos 14. 0x1 0x6 0x1
+	    defbutton "OK"
+	    (
+	      local &pattern
+	      &pattern=dialog.string(pattern)
+	      TASK.STK.PAT &pattern
+	      dialog.end
+	    )
+	  )
+	)
+      )
+    )
+  )
+  enable ice()
+  popup "Trace"
+  (
+    popup "List"
+    (
+      separator
+      menuitem "&Task Switches"     "Trace.List l.task"
+      menuitem "&Default and Tasks" "Trace.List l.task def"
+    )
+  )
+  enable ice()
+  popup "Perf"
+  (
+    separator
+    popup "&Task Runtime"
+    (
+        menuitem "&Prepare"
+	(
+          a.rp
+          (
+            s.e if ab&&write
+          )
+	  b.d /a
+	  b.s task.config(magic)++0x3 /a
+	)
+        menuitem "Show &Numerical" "Trace.STATistic.TASK"
+        menuitem "Show as &Timing" "Trace.CHART.TASK"
+    )
+    popup "Task &Function Runtime"
+    (
+        menuitem "&Prepare"            "DO men_ptfp.cmm"
+        menuitem "Show &Numerical"     "Trace.STATistic.TASKFUNC"
+        menuitem "Show as &Tree"       "Trace.STATistic.TASKTREE"
+        menuitem "Show &Detailed Tree" "Trace.STATistic.TASKTREE ALL"
+        menuitem "Show as &Timing"     "Trace.CHART.TASKFUNC"
+        menuitem "Show N&esting"       "Trace.List l.task FUNC TI.FUNC"
+    )
+    popup "Task &Status"
+    (
+        menuitem "&Prepare"
+	(
+          a.rp
+          (
+            s.e if alphab&&write
+          )
+	  b.d /a
+	  b.s task.config(magic)++0x3 /a
+	  task.taskstate
+	)
+        menuitem "Show &Numerical" "Trace.STATistic.TASKSTATE"
+        menuitem "Show as &Timing" "Trace.CHART.TASKSTATE"
+    )
+  )
+  popup "&Help"
+  (
+    menuitem "OSE Basic Manual" "HELP __RTOS_OSEE_"
+  )
+)

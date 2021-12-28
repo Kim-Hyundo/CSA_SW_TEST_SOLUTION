@@ -1,0 +1,44 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to debug the u-boot for the SabreLite i.MX6 Board
+; @Description: 
+;   This batchfile demonstrates the use of the TRACE32 debugger to debug
+;   the u-boot on the SabreLite i.MX6 Board.
+; @Keywords: Freescale, imx6*, uboot, i.MX6*
+; @Author: KJM
+; @Board: SabreLite
+; @Chip: IMX6*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx6_uboot_debug.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; Debugger Reset
+
+  WinPAGE.RESet
+  AREA.RESet
+  WinPOS 0. 25. 75. 9. 0. 0. W000
+  AREA.view
+ 
+  PRINT "resetting..."
+
+ ; reset chip, connect to core #0 only
+  RESet 
+  SYStem.CPU IMX6SOLO
+  SYStem.Option ResBreak OFF
+  SYStem.Option WaitReset 0.7s 
+   
+  Trace.METHOD Onchip
+  SYStem.Up
+  
+  DO ~~/demo/etc/terminal/serial/term.cmm COM1 115200.
+ 
+  ; load the u-boot symbols
+  Data.LOAD.Elf u-boot /NoCODE 
+ 
+  Go _start /Onchip
+  WAIT !STATE.RUN()
+   
+  WinPOS 0. 0. 75. 20.
+  List.auto
+  
+  ENDDO

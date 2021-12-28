@@ -1,0 +1,73 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for CC2650F128 on CC2650STK (FLASH)
+; @Description:
+;   Programs the sieve demo application into the processor internal flash and
+;   sets up a demo debug scenario.
+;   This script can be used as a template for flashing an application.
+;   Prerequisites:
+;    * Connect Debug Cable to P1 using Adapter LA-3770
+;      or
+;      Connect Combiprobe/uTrace to P1
+; @Keywords: ARM, Cortex-M3, Flash
+; @Author: STK
+; @Board: CC2650STK
+; @Chip: CC2650F128
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: cc2650stk_sieve_flash.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU CC2650F128
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; Flash programming
+
+; prepare flash programming (declarations)
+DO ~~/demo/arm/flash/cc2600.cmm PREPAREONLY
+
+; ReProgram Flash
+FLASH.ReProgram ALL
+Data.LOAD.Elf "~~~~/sieve_flash_thumb_ii_v7m.elf"
+FLASH.ReProgram OFF
+
+
+; Set image valid flag inside the CCFG registers
+FLASH.AUTO ALL
+Data.Set SD:0x0001FFEC %Long 0x00000000
+FLASH.AUTO OFF
+
+; --------------------------------------------------------------------------------
+; Reset the target again
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

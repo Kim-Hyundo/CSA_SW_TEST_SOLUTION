@@ -1,0 +1,163 @@
+; --------------------------------------------------------------------------------
+; @Title: STM demo start-up script for PandaBoard
+; @Description:
+;  This script start the OMAP4430APP1 and loads a demo, if CombiProbe is connected
+;  it will capture 4-bit system trace (STM)
+; @Author: PEG
+; @Keywords: PandaBoard OMAP4430 STM OCP CMI PMI StatCol
+; @Board: PandaBoard
+; @Chip: OMAP4430
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo_stm.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; connect debugger with first Cortex-A9
+  RESet
+  SYStem.CPU OMAP4430APP1
+  SYStem.Up
+
+; load demo program to SAR-RAM
+  Data.LOAD.Elf ~~~~/demo.axf
+  Register.Set PC main
+  Register.Set CPSR 0x1d3
+  Register.Set R13 0x4a327000
+
+; CombiProbe is connected to capture 4-bit system trace (STM)
+IF hardware.COMBIPROBE()||hardware.UTRACE()
+(
+; configure STM clock (PDLO_STM_CTL)
+  Data.Set 0x54160030 %Long 0x3f0846
+
+; configure PAD: PAD=EMU[15:19] (PADx_DPM_EMUx)
+  Data.Set 0x4A1001CC %Long 0
+  Data.Set 0x4A1001D0 %Long 0
+  Data.Set 0x4A1001d4 %Long 0
+
+; initialize CombiProbe for STM
+  SYStem.CONFIG.STM STP
+  STM.PortRoute CAnalyzer
+  STM.ON
+  CAnalyzer.THreshold 0.9
+  CAnalyzer.Init
+
+; open some windows
+  WinCLEAR
+  WinPOS 0% 0% 100% 50%
+  List.auto
+  WinPOS 0% 50% 50% 50%
+  Register.view /SpotLight
+  WinPOS 50% 50% 50% 50%
+  GOSUB RUN_STMDEMO
+)
+ELSE
+(
+	PRINT "Hardware not supported"
+)
+
+ENDDO
+
+RUN_STMDEMO:
+  ; pmi
+  ; JBO, 09/27/2011, Applicable for T32 versions >= 32385 only!
+	; Generate and trace power transitions of IVAHD and TCM1 modules on OMAP4.
+	CAnalyzer.AutoArm ON
+	PMI.RESet
+	PMI.SamplingWindow.Size	9
+	PMI.EnableMessage.LogicVoltage ON
+	PMI.EnableMessage.MemoryVoltage ON
+	PMI.EnableMessage.LogicPower ON
+	PMI.EnableMessage.MemoryPower ON
+	PMI.ON
+	Go.direct
+	; Generate PM message: Put IVAHD into RETENTION state
+	Data.Set eahb:0x4a306f00 %LE %Long 0x00ff0e01
+	WAIT 0.1s
+	; Generate PM message: Turn TCM1 memory off
+	Data.Set eahb:0x4a306f00 %LE %Long 0x00ff0c01
+	WAIT 0.1s
+	; Generate PM message: Put TCM1 memory into RETENTION state
+	Data.Set eahb:0x4a306f00 %LE %Long 0x00ff0e01
+	WAIT 0.1s
+	Break.direct
+	PMI.OFF
+	; Display trace data
+	PMITrace.List -100000000000000. cycle PMILP.IVAHD PMIMP.IVAHD-TCM1 List.NoDummy
+
+	; cmi
+	; Trace activity of the Multichannel Buffered Serial Port 1 (MCBSP1) on OMAP4
+	; and display in chart.
+	; Trace data will be generated as soon as CMI1 is switched on, even if the core
+	; is not running. Thus we have to arm the Combiprobe prior to switching on CMI1.
+	CAnalyzer.AutoArm OFF
+	CAnalyzer.Arm
+	CMI1.RESet
+	CMI1.SamplingWindow.Size 250.
+	CMI1.Mode ACTivity
+	Go.direct
+	CMI1.on
+	CMI1.off
+	Break.direct
+	; Disable Combiprobe
+	CAnalyzer.OFF
+	; Display trace data
+	CMITrace.l -100000000000000. cycle cmita.mcbsp1 List.NoDummy
+	; Draw a graph of activity
+	CMITrace.DRAW CMITA.MCBSP1 %decimalu.byte
+
+	;ocp
+	; Trace data accesses to CM2_DEBUG_CFG register on OMAP4.
+	CAnalyzer.AutoArm ON
+	OCP.RESet
+	OCP.DebugPort L4_CFG
+	OCP.TraceEnable 0x000080f0--0x000080f8
+	OCP.TraceFilter1.MCmd READ
+	OCP.TraceFilter2.MCmd WRiteNonPosted
+	OCP.ON
+	Go.direct
+	Break.direct
+	OCP.OFF
+	; Display trace data
+	OCPTrace.List DEFault OCPFN List.NoDummy
+
+	; statcol
+	; This example shows how to deploy the 'HistLatDist' (Histogram of Latency Distribution)
+	; macro function of the statistics collector on OMAP4. For each counter the min / max values
+	; specify the required number of latency cycles within the given sampling period. The according
+	; counter then returns the number of transactions which satisfy the conditions mentioned above.
+	StatCol.RESet
+	; Trace data will be generated as soon as the probe is switched on, even if the core
+	; is not running. Thus we have to arm the Combiprobe prior to switching on the probe.
+	CAnalyzer.AutoArm OFF
+	CAnalyzer.Arm
+	StatCol.LAT0.Counter 0 Filter MUX MODENARESPONSE
+	StatCol.LAT0.Counter 0 MIN.0.
+	StatCol.LAT0.Counter 0 MAX.39.
+	StatCol.LAT0.Counter 0 FunCTioN HistLatDist
+	StatCol.LAT0.Counter 1 Filter MUX MODENARESPONSE
+	StatCol.LAT0.Counter 1 MIN.40.
+	StatCol.LAT0.Counter 1 MAX.79.
+	StatCol.LAT0.Counter 1 FunCTioN HistLatDist
+	StatCol.LAT0.Counter 2 Filter MUX MODENARESPONSE
+	StatCol.LAT0.Counter 2 MIN.80.
+	StatCol.LAT0.Counter 2 MAX.119.
+	StatCol.LAT0.Counter 2 FunCTioN HistLatDist
+	StatCol.LAT0.Counter 3 Filter MUX MODENARESPONSE
+	StatCol.LAT0.Counter 3 MIN.120.
+	StatCol.LAT0.Counter 3 MAX.159.
+	StatCol.LAT0.Counter 3 FunCTioN HistLatDist
+	; Sampling period
+	StatCol.LAT0.CollectTime 255.
+	Go.direct
+	; Switch on the probe.
+	StatCol.LAT0.ON
+	; Switch off the probe
+	StatCol.LAT0.OFF
+	Break.direct
+	; Disable Combiprobe
+	CAnalyzer.OFF
+	; Display trace data
+	StatColTrace.List -100000000000000. SCC0 SCC1 SCC2 SCC3 List.NoDummy
+
+  PRINTFTRACE.List -100000000000000. message List.NoDummy
+  STMCAnalyzer.List cycle Data stptits TIme.Back stmmaster stmchannel List.NoDummy
+RETURN

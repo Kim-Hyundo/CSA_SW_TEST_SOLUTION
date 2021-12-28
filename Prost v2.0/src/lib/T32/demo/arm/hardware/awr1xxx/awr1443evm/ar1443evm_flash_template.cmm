@@ -1,0 +1,59 @@
+; --------------------------------------------------------------------------------
+; @Title: Template script for AR1443 on AR1443EVM (FLASH)
+; @Description:
+;   This script can be used as a template for flashing an application.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to 14-PIN_JTAG_CONN on AR1xxxEVM-012
+;      using adapter LA-
+;    * Connect PowerSupply to AR1443EVM-010 and AR1xxxEVM-012
+; @Keywords: ARM, Cortex-R4, Flash, AR1443
+; @Author: AME
+; @Board: AR1443EVM
+; @Chip: AWR1443
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: ar1443evm_flash_template.cmm 15432 2019-12-17 13:49:45Z skrausse $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU AR1443
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; Flash programming
+
+; prepare flash programming (declarations)
+DO ~~/demo/arm/flash/ar1xxx-snor PREPAREONLY
+
+; ReProgram Flash
+FLASH.ReProgram ALL
+; load image file with header to QSPI flash
+;Data.LOAD.Binary <file>.bin 0xc0000000
+;Data.LOAD.IntelHex <file>.hex 0
+FLASH.ReProgram OFF
+
+; --------------------------------------------------------------------------------
+; Reset the target again
+; - QSPI is not longer accessible, but will be configured again by BootROM
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+
+ENDDO

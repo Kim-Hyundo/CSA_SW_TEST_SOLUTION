@@ -1,0 +1,39 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags, NoIndex
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: read_phy.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+ENTRY &phyaddr
+LOCAL &phyreg
+LOCAL &phyval
+LOCAL &mdio_reg
+
+;&phyaddr=2.
+
+  PRINT "Phy Addr: " &phyaddr
+  PRINT "------------"
+  &phyreg=0
+  
+  WHILE &phyreg<32.
+  (
+    &mdio_reg=(&phyaddr<<11.)|(&phyreg<<6.)|0x13
+
+    Data.Set ASD:0x1C000C00 %Long &mdio_reg
+    
+    WHILE (Data.Long(ASD:0x1C000C00)&0x1)==0x1
+    (
+      WAIT 1.ms
+    )
+
+    &phyval=Data.Long(ASD:0x1C000C00)>>16.
+    
+    PRINT "Phy Addr0: Reg=" &phyreg " Value=" &phyval
+
+    &phyreg=&phyreg+1.
+  )
+;  &phyaddr=&phyaddr+1.
+;)
+
+
+ENDDO

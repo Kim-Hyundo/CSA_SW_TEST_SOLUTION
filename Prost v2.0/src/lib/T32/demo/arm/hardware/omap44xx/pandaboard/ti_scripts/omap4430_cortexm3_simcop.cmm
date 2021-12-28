@@ -1,0 +1,39 @@
+; --------------------------------------------------------------------------------
+; @Title: Start-Up Script for PandaBoard (OMAP4430.Ducati2, CortexM3)
+; @Description: 
+;   This start up script is will connect to the CortexM3 CPU (Ducati2). 
+;   This CPU should be released before running this script
+;   Use omap4430_cortexa9_cpu0.cmm cmm menu to release it.
+;   Other scripts are available in the TRACE32 window (CMM menu) 
+;   and executing by clicking on them (see omap4430_lauterbach_startup_guide.doc)
+; @Keywords: OMAP4430 PandaBoard
+; @Author: TI
+; @Board: PandaBoard
+; @Chip: OMAP4430
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: omap4430_cortexm3_simcop.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+SYStem.RESet
+SYStem.CPU OMAP4430DUCATI2
+;SYStem.JtagClock rtck
+SYStem.JtagClock 10Mhz
+SYStem.Mode.Attach
+IF STATE.RUN()
+  Break.direct
+;SYStem.Up
+  
+AREA.Create results
+AREA.CLEAR results
+AREA.view results
+AREA.Select results
+PRINT " CortexM3 SIMCOP connected ..."
+
+GLOBAL &CMM_DIR
+&CMM_DIR="~~~~"
+
+DO &CMM_DIR/omap4430_cortexM3_menu_tests
+//do &CMM_DIR/omap4430_cortexM3_menu_traces
+DO &CMM_DIR/omap4430_cortexM3_emulation_tests
+
+ENDDO

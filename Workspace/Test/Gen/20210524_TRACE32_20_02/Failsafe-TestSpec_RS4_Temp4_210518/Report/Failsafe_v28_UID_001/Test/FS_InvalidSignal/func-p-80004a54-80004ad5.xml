@@ -1,0 +1,1427 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="t32transform.xsl"?>
+<TRACE32 file="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Gen\20210524_TRACE32_20_02\Failsafe-TestSpec_RS4_Temp4_210518\Report\Failsafe_v28_UID_001\Test\FS_InvalidSignal\func-p-80004a54-80004ad5.xml">
+	<coverage>
+		<COVerage.EXPORT.ListLine ts="1621823166" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE" metric="object">
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\Rte_SWC_Diag</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>-</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>0</never>
+				<bytes>638</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\FS_HWFailure</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>16</never>
+				<bytes>236</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\SWC_Failsafe</tree>
+				<cov>partial</cov>
+				<exec metric="object">0.600%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>16</never>
+				<bytes>1666</bytes>
+				<bytesok>10</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80002DEA</addrFrom>
+				<addrTo>P:80002F83</addrTo>
+				<tree>\\Test\FS_BatteryVoltage</tree>
+				<cov>partial</cov>
+				<exec metric="object">59.512%</exec>
+				<branches>52.000%</branches>
+				<ok>8</ok>
+				<taken>3</taken>
+				<nottaken>7</nottaken>
+				<never>7</never>
+				<bytes>410</bytes>
+				<bytesok>244</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80002F84</addrFrom>
+				<addrTo>P:800030BB</addrTo>
+				<tree>\\Test\FS_CANBusOff</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>17</never>
+				<bytes>312</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\FS_CANTimeout</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>350</never>
+				<bytes>2458</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\FS_InvalidSignal</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>350</never>
+				<bytes>6758</bytes>
+				<bytesok>0</bytesok>
+				<function>
+					<addrFrom>P:80004A54</addrFrom>
+					<addrTo>P:80004AD5</addrTo>
+					<tree uid="p-80004a54-80004ad5">\\Test\FS_InvalidSignal\update_clu</tree>
+					<cov>never</cov>
+					<exec metric="object">0.000%</exec>
+					<branches>0.000%</branches>
+					<ok>0</ok>
+					<taken>0</taken>
+					<nottaken>0</nottaken>
+					<never>7</never>
+					<bytes>130</bytes>
+					<bytesok>0</bytesok>
+					<line>
+						<addrFrom>P:80004A54</addrFrom>
+						<addrTo>P:80004A55</addrTo>
+						<tree>FS_InvalidSignal.c \530--532</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004A56</addrFrom>
+						<addrTo>P:80004A59</addrTo>
+						<tree>FS_InvalidSignal.c \533--534</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004A5A</addrFrom>
+						<addrTo>P:80004A5D</addrTo>
+						<tree>FS_InvalidSignal.c \535--535</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004A5E</addrFrom>
+						<addrTo>P:80004A65</addrTo>
+						<tree>FS_InvalidSignal.c \536--537</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004A66</addrFrom>
+						<addrTo>P:80004A67</addrTo>
+						<tree>FS_InvalidSignal.c \538--538</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004A72</addrFrom>
+						<addrTo>P:80004A75</addrTo>
+						<tree>FS_InvalidSignal.c \539--540</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>0.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>1</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004A9C</addrFrom>
+						<addrTo>P:80004A9F</addrTo>
+						<tree>FS_InvalidSignal.c \541--541</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004A76</addrFrom>
+						<addrTo>P:80004A83</addrTo>
+						<tree>FS_InvalidSignal.c \542--542</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>0.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>2</never>
+						<bytes>14</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_InvalidSignal.c \543--543</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>0.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>2</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_InvalidSignal.c \544--544</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>14</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004AAC</addrFrom>
+						<addrTo>P:80004AAF</addrTo>
+						<tree>FS_InvalidSignal.c \545--547</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>0.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>1</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004AC4</addrFrom>
+						<addrTo>P:80004AC9</addrTo>
+						<tree>FS_InvalidSignal.c \548--548</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004ACA</addrFrom>
+						<addrTo>P:80004ACD</addrTo>
+						<tree>FS_InvalidSignal.c \549--549</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_InvalidSignal.c \550--550</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>0.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>2</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_InvalidSignal.c \551--551</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>10</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004AD4</addrFrom>
+						<addrTo>P:80004AD5</addrTo>
+						<tree>FS_InvalidSignal.c \552--553</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>SWC_Failsafe.h \1--738</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\SWC_Failsafe.h</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004A84</addrFrom>
+						<addrTo>P:80004A8B</addrTo>
+						<tree>SWC_Failsafe.h \739--758</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\SWC_Failsafe.h</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>0.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>1</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>SWC_Failsafe.h \759--763</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\SWC_Failsafe.h</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>10</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<total>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>0.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>9</never>
+						<bytes>138</bytes>
+						<bytesok>0</bytesok>
+					</total>
+				</function>
+				<total>
+					<cov>never</cov>
+					<exec metric="object">0.000%</exec>
+					<branches>0.000%</branches>
+					<ok>0</ok>
+					<taken>0</taken>
+					<nottaken>0</nottaken>
+					<never>7</never>
+					<bytes>130</bytes>
+					<bytesok>0</bytesok>
+				</total>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\FS_SWFailure</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>17</never>
+				<bytes>304</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_cstart</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>5</never>
+				<bytes>806</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_cstart_tc1</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>402</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_cstart_tc2</tree>
+				<cov>partial</cov>
+				<exec metric="object">81.094%</exec>
+				<branches>87.500%</branches>
+				<ok>3</ok>
+				<taken>0</taken>
+				<nottaken>1</nottaken>
+				<never>0</never>
+				<bytes>402</bytes>
+				<bytesok>326</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_cstart_tc3</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_main</tree>
+				<cov>partial</cov>
+				<exec metric="object">27.835%</exec>
+				<branches>31.818%</branches>
+				<ok>1</ok>
+				<taken>4</taken>
+				<nottaken>1</nottaken>
+				<never>5</never>
+				<bytes>388</bytes>
+				<bytesok>108</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:800065B6</addrFrom>
+				<addrTo>P:8000674B</addrTo>
+				<tree>\\Test\prost_cstart_tc4</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:8000674C</addrFrom>
+				<addrTo>P:800068E1</addrTo>
+				<tree>\\Test\prost_cstart_tc5</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80006A62</addrFrom>
+				<addrTo>P:80006A91</addrTo>
+				<tree>\\Test\prost_stubs</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>2</never>
+				<bytes>48</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<total>
+				<cov>partial</cov>
+				<exec metric="object">4.287%</exec>
+				<branches>2.412%</branches>
+				<ok>12</ok>
+				<taken>7</taken>
+				<nottaken>9</nottaken>
+				<never>801</never>
+				<bytes>16046</bytes>
+				<bytesok>688</bytesok>
+			</total>
+		</COVerage.EXPORT.ListLine>
+	</coverage>
+	<marker>
+		<BookMark.EXPORT ts="1621823166" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE">
+		</BookMark.EXPORT>
+	</marker>
+	<listing>
+		<List.EXPORT ts="1621823166" t32ver="R.2020.09.000128638" t32pv="TRICORE" order="source">
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>530</line><src></src></hll>
+				<hll><line>531</line><src>#if CCAN == CANFD</src></hll>
+				<hll><cov>never</cov><line>532</line><src>static void update_clu(void)</src></hll>
+				<asm><cov>never</cov><addr>P:80004A54</addr><code>0820</code><label>update_clu:                                                                                                                                                                                                                                                     </label><mnemonic>sub16.a   a10,#0x8</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>533</line><src>{</src></hll>
+				<hll><cov>never</cov><line>534</line><src>    struct precondition *p = get_precond_ptr();</src></hll>
+				<asm><cov>never</cov><addr>P:80004A56</addr><code>0820006D</code><mnemonic>call      0x80005A96</mnemonic><comment>get_precond_ptr</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>never</cov><line>535</line><src>    boolean meet_precond = (p-&gt;is_norm_vol == TRUE) &amp;&amp; (p-&gt;is_3s_after_ign_on == TRUE) &amp;&amp; (p-&gt;is_eng_run == TRUE) &amp;&amp; (p-&gt;is_not_ecan_busoff == TRUE);</src></hll>
+				<asm><cov>never</cov><addr>P:80004A5A</addr><code>F89BFF61</code><mnemonic>fcall     0x80003B90</mnemonic><comment>.cocofun_48</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>536</line><src></src></hll>
+				<hll><cov>never</cov><line>537</line><src>    uint16 CLU_DisSpdVal = ref_sig.CLU_DisSpdVal;</src></hll>
+				<asm><cov>never</cov><addr>P:80004A5E</addr><code>F8B6FF61</code><mnemonic>fcall     0x80003BCA</mnemonic><comment>.cocofun_52</comment></asm>
+				<asm><cov>never</cov><addr>P:80004A62</addr><code>08CCF009</code><mnemonic>ld.hu     d0,[a15]0x0C</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>never</cov><line>538</line><src>    uint8 CLU_HDALCFuncOnSetReq = ref_sig.CLU_HDALCFuncOnSetReq;</src></hll>
+				<asm><cov>never</cov><addr>P:80004A66</addr><code>EF08</code><mnemonic>ld16.bu   d15,[a15]0x0E</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>539</line><src></src></hll>
+				<hll><cov>never</cov><line>540</line><src>    if (is_timeout(CHASSIS_0, CLU_01_20ms_POS) == FALSE) {</src></hll>
+				<asm><cov>never</cov><addr>P:80004A72</addr><code>801C3F6F</code><mnemonic>jnz.t     d15,#0x3,0x80004AAA</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>never</cov><line>541</line><src>        update_info(&amp;clu[CLU_C165686_0], meet_precond,</src></hll>
+				<asm><cov>never</cov><addr>P:80004A9C</addr><code>F8D7FF61</code><mnemonic>fcall     0x80003C4A</mnemonic><comment>.cocofun_64</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>never</cov><line>542</line><src>                    (is_e2e_err(CHASSIS_0, CLU_01_20ms_POS) == TRUE) || (CLU_DisSpdVal == 0x3FF),</src></hll>
+				<asm><cov>never</cov><addr>P:80004A76</addr><code>F8AFFF61</code><mnemonic>fcall     0x80003BD4</mnemonic><comment>.cocofun_53</comment></asm>
+				<asm><cov>never</cov><addr>P:80004A7A</addr><code>34AE</code><mnemonic>jnz16.t   d15,#0x3,0x80004A82</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004A7C</addr><code>F03FF03B</code><mnemonic>mov       d15,#0x3FF</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004A80</addr><code>027E</code><mnemonic>jne16     d15,d0,0x80004A84</mnemonic><comment>d15,CLU_DisSpdVal,0x80004A84</comment></asm>
+				<asm><cov>never</cov><addr>P:80004A82</addr><code>1582</code><mnemonic>mov16     d5,#0x1</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c" type="multiple">
+				<hll><cov>never</cov><line>543</line><src>                    (is_updated(CHASSIS_0, CLU_01_20ms_POS) == TRUE) &amp;&amp; (is_e2e_err(CHASSIS_0, CLU_01_20ms_POS) == FALSE) &amp;&amp; (CLU_DisSpdVal != 0x3FF),</src></hll>
+				<asm><cov>never</cov><addr>P:80004A84</addr><code>0682</code><mnemonic>mov16     d6,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004A86</addr><code>F8DDFF61</code><mnemonic>fcall     0x80003C40</mnemonic><comment>.cocofun_63</comment></asm>
+				<asm><cov>never</cov><addr>P:80004A8A</addr><code>372E</code><mnemonic>jz16.t    d15,#0x3,0x80004A98</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004A8E</addr><code>35AE</code><mnemonic>jnz16.t   d15,#0x3,0x80004A98</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004A90</addr><code>F03FF03B</code><mnemonic>mov       d15,#0x3FF</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004A94</addr><code>F03A</code><mnemonic>eq16      d15,d0,d15</mnemonic><comment>d15,CLU_DisSpdVal,d15</comment></asm>
+				<asm><cov>never</cov><addr>P:80004A96</addr><code>16EA</code><mnemonic>cmovn16   d6,d15,#0x1</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c" type="multiple">
+				<hll><cov>never</cov><line>544</line><src>                    MS2TICK(2000), VALID_CNT_THR);</src></hll>
+				<asm><cov>never</cov><addr>P:80004A98</addr><code>02DA</code><mnemonic>mov16     d15,#0x2</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004A9A</addr><code>AFB4</code><mnemonic>st16.h    [a10],d15</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004AA0</addr><code>700C803B</code><mnemonic>mov       d7,#0xC8</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004AA4</addr><code>8402</code><mnemonic>mov16     d4,d8</mnemonic><comment>d4,meet_precond</comment></asm>
+				<asm><cov>never</cov><addr>P:80004AA6</addr><code>0367006D</code><mnemonic>call      0x80005174</mnemonic><comment>update_info</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>545</line><src>    }</src></hll>
+				<hll><line>546</line><src></src></hll>
+				<hll><cov>never</cov><line>547</line><src>    if (is_timeout(CHASSIS_0, CLU_02_100ms_POS) == FALSE) {</src></hll>
+				<asm><cov>never</cov><addr>P:80004AAC</addr><code>80144F6F</code><mnemonic>jnz.t     d15,#0x4,0x80004AD4</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>never</cov><line>548</line><src>        update_info(&amp;clu[CLU_C165686_1], meet_precond,</src></hll>
+				<asm><cov>never</cov><addr>P:80004AC4</addr><code>F8C3FF61</code><mnemonic>fcall     0x80003C4A</mnemonic><comment>.cocofun_64</comment></asm>
+				<asm><cov>never</cov><addr>P:80004AC8</addr><code>64B0</code><mnemonic>add16.a   a4,#0x6</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>never</cov><line>549</line><src>                    (is_e2e_err(CHASSIS_0, CLU_02_100ms_POS) == TRUE),</src></hll>
+				<asm><cov>never</cov><addr>P:80004ACA</addr><code>F8C5FF61</code><mnemonic>fcall     0x80003C54</mnemonic><comment>.cocofun_65</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c" type="multiple">
+				<hll><cov>never</cov><line>550</line><src>                    (is_updated(CHASSIS_0, CLU_02_100ms_POS) == TRUE) &amp;&amp; (is_e2e_err(CHASSIS_0, CLU_02_100ms_POS) == FALSE),</src></hll>
+				<asm><cov>never</cov><addr>P:80004AB0</addr><code>F915FF61</code><mnemonic>fcall     0x80003CDA</mnemonic><comment>.cocofun_78</comment></asm>
+				<asm><cov>never</cov><addr>P:80004AB4</addr><code>442E</code><mnemonic>jz16.t    d15,#0x4,0x80004ABC</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004ABA</addr><code>16EA</code><mnemonic>cmovn16   d6,d15,#0x1</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c" type="multiple">
+				<hll><cov>never</cov><line>551</line><src>                    MS2TICK(2000), VALID_CNT_THR);</src></hll>
+				<asm><cov>never</cov><addr>P:80004AC0</addr><code>2082</code><mnemonic>mov16     d0,#0x2</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004AC2</addr><code>A0B4</code><mnemonic>st16.h    [a10],d0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004ACE</addr><code>8402</code><mnemonic>mov16     d4,d8</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004AD0</addr><code>0352001D</code><mnemonic>j         0x80005174</mnemonic><comment>update_info</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>552</line><src>    }</src></hll>
+				<hll><cov>never</cov><line>553</line><src>}</src></hll>
+				<asm><cov>never</cov><addr>P:80004AD4</addr><code>9000</code><mnemonic>ret16     </mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\SWC_Failsafe.h" type="multiple">
+				<hll><line>1</line><src>#ifndef FAILSAFE_H</src></hll>
+				<hll><line>2</line><src>#define FAILSAFE_H</src></hll>
+				<hll><line>3</line><src></src></hll>
+				<hll><line>4</line><src>#include &quot;Platform_Types.h&quot;</src></hll>
+				<hll><line>5</line><src>#include &quot;DRV_par.h&quot;</src></hll>
+				<hll><line>6</line><src>#include &quot;FS_InvalidSignal.h&quot;</src></hll>
+				<hll><line>7</line><src>#include &quot;Dio.h&quot;</src></hll>
+				<hll><line>8</line><src></src></hll>
+				<hll><line>9</line><src>#define BIT(nr) (1UL &lt;&lt; (nr))</src></hll>
+				<hll><line>10</line><src>#define CLEAR_BIT(nr) (0UL &lt;&lt; (nr))</src></hll>
+				<hll><line>11</line><src></src></hll>
+				<hll><line>12</line><src>#define TEST_BIT(var,nr) ((var) &amp; ((uint8)((0x01U) &lt;&lt; (nr))))</src></hll>
+				<hll><line>13</line><src>#define ARRAY_SIZE(x) (sizeof((x))/sizeof((x)[0]))</src></hll>
+				<hll><line>14</line><src>#define MS2TICK(ms) ((ms) / 10UL)</src></hll>
+				<hll><line>15</line><src></src></hll>
+				<hll><line>16</line><src>#define SET_DTC(DTC, FAULT_CONDITION) \</src></hll>
+				<hll><line>17</line><src>    Rte_Call_Event_DEM_E_UDS_DTC_##DTC##_SetEventStatus((FAULT_CONDITION) ? DEM_EVENT_STATUS_FAILED : DEM_EVENT_STATUS_PASSED)</src></hll>
+				<hll><line>18</line><src></src></hll>
+				<hll><line>19</line><src>#define IGN_ON_DELAY  3000  // ms</src></hll>
+				<hll><line>20</line><src>#define IGN_OFF_DELAY 185000 // ms</src></hll>
+				<hll><line>21</line><src>#define BAT_VOL_UPPER 16000 // mV</src></hll>
+				<hll><line>22</line><src>#define BAT_VOL_LOWER 9000  // mV</src></hll>
+				<hll><line>23</line><src>#define ERR_CNT_THR   3</src></hll>
+				<hll><line>24</line><src></src></hll>
+				<hll><line>25</line><src>#define IGN_OFF  0</src></hll>
+				<hll><line>26</line><src>#define IGN_ON   1</src></hll>
+				<hll><line>27</line><src>#define PWR_OFF  0xFF</src></hll>
+				<hll><line>28</line><src></src></hll>
+				<hll><line>29</line><src>#define FS_DEBUG    0</src></hll>
+				<hll><line>30</line><src></src></hll>
+				<hll><line>31</line><src>struct internal_error_info {</src></hll>
+				<hll><line>32</line><src>    uint32 hw_err_cnt;</src></hll>
+				<hll><line>33</line><src>    uint32 sw_err_cnt;</src></hll>
+				<hll><line>34</line><src>    struct {</src></hll>
+				<hll><line>35</line><src>        uint8  err_idx1;</src></hll>
+				<hll><line>36</line><src>        uint8  err_idx2;</src></hll>
+				<hll><line>37</line><src>        uint32 err_info;</src></hll>
+				<hll><line>38</line><src>    } err_item[13];</src></hll>
+				<hll><line>39</line><src>};</src></hll>
+				<hll><line>40</line><src></src></hll>
+				<hll><line>41</line><src>struct reference_signal {</src></hll>
+				<hll><line>42</line><src>#if VEH_TYPE == NORMAL</src></hll>
+				<hll><line>43</line><src>    /* EMS */</src></hll>
+				<hll><line>44</line><src>    uint8 ENG_EngSpdErrSta;      // EMS_01_10ms</src></hll>
+				<hll><line>45</line><src>    uint8 ENG_IsgSta;            // EMS_01_10ms</src></hll>
+				<hll><line>46</line><src>    uint8 ENG_EngSta;            // EMS_02_10ms</src></hll>
+				<hll><line>47</line><src>    uint16 ENG_AccelPdlVal;      // EMS_02_10ms</src></hll>
+				<hll><line>48</line><src>    uint8 ENG_AppAccelPdlSta;    // EMS_02_10ms</src></hll>
+				<hll><line>49</line><src>    uint8 CF_ECU_SSC_STAT;       // EMS_03_10ms</src></hll>
+				<hll><line>50</line><src>    /* TCU */</src></hll>
+				<hll><line>51</line><src>    uint8 TCU_GearSlctDis;       // TCU_01_10ms</src></hll>
+				<hll><line>52</line><src>#elif VEH_TYPE == EV</src></hll>
+				<hll><line>53</line><src>    /* VCU */</src></hll>
+				<hll><line>54</line><src>    uint8 VCU_EvDrvRdySta;       // VCU_01_10ms</src></hll>
+				<hll><line>55</line><src>    uint8 VCU_GearPosSta;        // VCU_01_10ms</src></hll>
+				<hll><line>56</line><src>    uint8 VCU_AccPedDepVal;      // VCU_01_10ms</src></hll>
+				<hll><line>57</line><src>#elif VEH_TYPE == HEV</src></hll>
+				<hll><line>58</line><src>    /* EMS */</src></hll>
+				<hll><line>59</line><src>    uint16 HEV_AccelPdlVal;      // EMS_07_10ms</src></hll>
+				<hll><line>60</line><src>    uint8 HEV_EngSpdErrSta;      // EMS_11_10ms</src></hll>
+				<hll><line>61</line><src>    /* HCU */</src></hll>
+				<hll><line>62</line><src>    uint8 HCU_HevRdySta;         // HCU_03_10ms</src></hll>
+				<hll><line>63</line><src>    /* HTCU */</src></hll>
+				<hll><line>64</line><src>    uint8 HTCU_GearSlctrDis;     // HTCU_04_10ms</src></hll>
+				<hll><line>65</line><src>#endif /* VEH_TYPE */</src></hll>
+				<hll><line>66</line><src>    /* BCM */</src></hll>
+				<hll><line>67</line><src>    uint8 BCM_Ign1InSta;         // BCM_02_200ms</src></hll>
+				<hll><line>68</line><src>    /* SBCM */</src></hll>
+				<hll><line>69</line><src>    uint8 SBCM_AST_DiagSta;      // SBCM_AST_03_200ms</src></hll>
+				<hll><line>70</line><src>    uint8 SBCM_DRV_DiagSta;      // SBCM_DRV_02_200ms</src></hll>
+				<hll><line>71</line><src>    /* CLU */</src></hll>
+				<hll><line>72</line><src>    uint16 CLU_DisSpdVal;        // CLU_01_20ms</src></hll>
+				<hll><line>73</line><src>    uint8 CLU_HDALCFuncOnSetReq; // CLU_11_00ms</src></hll>
+				<hll><line>74</line><src>    /* ESC */</src></hll>
+				<hll><line>75</line><src>    uint8 ABS_DiagSta;           // ABS_ESC_01_10ms</src></hll>
+				<hll><line>76</line><src>    uint8 ESC_CylPrsrSta;        // ESC_01_10ms</src></hll>
+				<hll><line>77</line><src>    uint16 ESC_CylPrsrVal;       // ESC_01_10ms</src></hll>
+				<hll><line>78</line><src>    uint8 ESC_IMURstStaAck;      // ESC_01_10ms</src></hll>
+				<hll><line>79</line><src>    uint8 ESC_Sta;               // ESC_01_10ms</src></hll>
+				<hll><line>80</line><src>    uint8 FCA_EquipSta;          // ESC_03_20ms</src></hll>
+				<hll><line>81</line><src>    uint8 FCA_AvlblSta;          // ESC_03_20ms</src></hll>
+				<hll><line>82</line><src>    uint8 SCC_EnblReq;           // ESC_03_20ms</src></hll>
+				<hll><line>83</line><src>    uint8 SCC_OptTyp;            // ESC_03_20ms</src></hll>
+				<hll><line>84</line><src>    uint16 WHL_SpdFLVal;         // WHL_01_10ms</src></hll>
+				<hll><line>85</line><src>    uint16 WHL_SpdFRVal;         // WHL_01_10ms</src></hll>
+				<hll><line>86</line><src>    uint16 WHL_SpdRLVal;         // WHL_01_10ms</src></hll>
+				<hll><line>87</line><src>    uint16 WHL_SpdRRVal;         // WHL_01_10ms</src></hll>
+				<hll><line>88</line><src>    uint8 WHL_PlsFLVal;          // WHL_01_10ms</src></hll>
+				<hll><line>89</line><src>    uint8 WHL_PlsFRVal;          // WHL_01_10ms</src></hll>
+				<hll><line>90</line><src>    uint8 WHL_PlsRLVal;          // WHL_01_10ms</src></hll>
+				<hll><line>91</line><src>    uint8 WHL_PlsRRVal;          // WHL_01_10ms</src></hll>
+				<hll><line>92</line><src>    /* HOD */</src></hll>
+				<hll><line>93</line><src>    uint8 HOD_Dir_Status;        //HOD_01_100ms</src></hll>
+				<hll><line>94</line><src>    /* MDPS */</src></hll>
+				<hll><line>95</line><src>    uint16 MDPS_StrTqSnsrVal;    // MDPS_01_10ms</src></hll>
+				<hll><line>96</line><src>    uint8 MDPS_LkaToiActvSta;    // MDPS_01_10ms</src></hll>
+				<hll><line>97</line><src>    uint8 MDPS_LkaToiUnblSta;    // MDPS_01_10ms</src></hll>
+				<hll><line>98</line><src>    uint8 MDPS_LkaToiFltSta;     // MDPS_01_10ms</src></hll>
+				<hll><line>99</line><src>    uint8 MDPS_LkaFailSta;       // MDPS_01_10ms</src></hll>
+				<hll><line>100</line><src>    uint8 MDPS_LkaPlgInSta;      // MDPS_01_10ms</src></hll>
+				<hll><line>101</line><src>    uint8 MDPS_Typ;              // MDPS_01_10ms</src></hll>
+				<hll><line>102</line><src>    /* SAS */</src></hll>
+				<hll><line>103</line><src>    sint16 SAS_AnglVal;          // SAS_01_10ms</src></hll>
+				<hll><line>104</line><src>    uint8 SAS_SpdVal;            // SAS_01_10ms</src></hll>
+				<hll><line>105</line><src>    /* SWRC */</src></hll>
+				<hll><line>106</line><src>    uint8 SWRC_LFASwSta;         // SWRC_03_20ms</src></hll>
+				<hll><line>107</line><src>    /* YRS */</src></hll>
+				<hll><line>108</line><src>    uint16 IMU_YawRtVal;         // IMU_01_10ms</src></hll>
+				<hll><line>109</line><src>    uint16 IMU_LongAccelVal;     // IMU_01_10ms</src></hll>
+				<hll><line>110</line><src>    uint16 IMU_LatAccelVal;      // IMU_01_10ms</src></hll>
+				<hll><line>111</line><src>    uint8 IMU_AcuRstSta;         // IMU_01_10ms</src></hll>
+				<hll><line>112</line><src>    /* ICU */</src></hll>
+				<hll><line>113</line><src>    uint8 ExtLamp_TrnSigLmpLftBlnkngSta; // ICU_04_200ms &amp; used in F010_InputOutput service</src></hll>
+				<hll><line>114</line><src>    uint8 ExtLamp_TrnSigLmpRtBlnkngSta;  // ICU_04_200ms &amp; used in F010_InputOutput service</src></hll>
+				<hll><line>115</line><src>    uint8 Lamp_RrTrnSigLmpLftOpnSta;     // ICU_06_200ms</src></hll>
+				<hll><line>116</line><src>    uint8 Lamp_RrTrnSigLmpRtOpnSta;      // ICU_06_200ms</src></hll>
+				<hll><line>117</line><src>    uint8 Lamp_FrTrnSigLmpLftOpnSta;     // ICU_06_200ms</src></hll>
+				<hll><line>118</line><src>    uint8 Lamp_FrTrnSigLmpRtOpnSta;      // ICU_06_200ms</src></hll>
+				<hll><line>119</line><src></src></hll>
+				<hll><line>120</line><src>    /* NAVI */</src></hll>
+				<hll><line>121</line><src>    uint8 HU_NaviStatus;                // HU_CLU_PE_05</src></hll>
+				<hll><line>122</line><src>    uint8 HU_AliveStatus;               // HU_GW_PE_01</src></hll>
+				<hll><line>123</line><src>    uint8 HU_AdasSupport;               // HU_MON_PE_01</src></hll>
+				<hll><line>124</line><src>    uint8 HU_DistributeInfo;            // HU_MON_PE_01</src></hll>
+				<hll><line>125</line><src>    uint8 HU_NaviHandshakingSupport;    // HU_MON_PE_01</src></hll>
+				<hll><line>126</line><src>    uint8 HU_Navi_RspADASMapMsg ;       // HU_MON_PE_01</src></hll>
+				<hll><line>127</line><src>    uint8 POS_CyclicCounter;         // HU_NAVI_V2_POS_PE</src></hll>
+				<hll><line>128</line><src>    uint8 SEG_CalculatedRoute;       // HU_NAVI_V2_SEG_E</src></hll>
+				<hll><line>129</line><src></src></hll>
+				<hll><line>130</line><src>    /* Front Camera */</src></hll>
+				<hll><line>131</line><src>    uint8 FR_CMR_Genrl_FlInfoSta; // A_FR_CMR_Genrl_01_30ms</src></hll>
+				<hll><line>132</line><src>    uint8 LFA_ShrtkeySwSta;       // A_FR_CMR_Ctrl_01</src></hll>
+				<hll><line>133</line><src>    /* Front Radar */</src></hll>
+				<hll><line>134</line><src>    uint8 FR_RDR_Genrl_FlInfoSta; // A_FR_RDR_Genrl_01_50ms</src></hll>
+				<hll><line>135</line><src>    /* Front-Rear Corner Radar */</src></hll>
+				<hll><line>136</line><src>    uint8 FR_C_RDR_Genrl_FlrPosInfoSta; // A_FR_C_RDR_Genrl_01_50ms</src></hll>
+				<hll><line>137</line><src>    uint8 FR_C_RDR_Genrl_BlkgPosInfoSta; // A_FR_C_RDR_Genrl_01_50ms</src></hll>
+				<hll><line>138</line><src>};</src></hll>
+				<hll><line>139</line><src></src></hll>
+				<hll><line>140</line><src>struct precondition {</src></hll>
+				<hll><line>141</line><src>    boolean is_norm_vol;</src></hll>
+				<hll><line>142</line><src>    boolean is_3s_after_ign_on;</src></hll>
+				<hll><line>143</line><src>    boolean for_3min_after_ign_off;</src></hll>
+				<hll><line>144</line><src>    boolean is_eng_run;</src></hll>
+				<hll><line>145</line><src>    boolean is_not_ecan_busoff;</src></hll>
+				<hll><line>146</line><src>    boolean is_not_acan1_busoff;</src></hll>
+				<hll><line>147</line><src>    boolean is_not_acan2_busoff;</src></hll>
+				<hll><line>148</line><src>};</src></hll>
+				<hll><line>149</line><src></src></hll>
+				<hll><line>150</line><src></src></hll>
+				<hll><line>151</line><src>/* HDA_InfoPUDis */</src></hll>
+				<hll><line>152</line><src>enum {</src></hll>
+				<hll><line>153</line><src>    NO_FAULT      = 0,</src></hll>
+				<hll><line>154</line><src>    HDA_FAULT     = 1, // FS_02</src></hll>
+				<hll><line>155</line><src>    HDA_LFA_FAULT = 2, // FS_01</src></hll>
+				<hll><line>156</line><src>};</src></hll>
+				<hll><line>157</line><src></src></hll>
+				<hll><line>158</line><src>typedef struct {</src></hll>
+				<hll><line>159</line><src>    uint8 FcaRo_Inhibit;</src></hll>
+				<hll><line>160</line><src>    uint8 FcaSf2_Inhibit;</src></hll>
+				<hll><line>161</line><src>    uint8 FcaSf3_Inhibit;</src></hll>
+				<hll><line>162</line><src>    uint8 FcaSf3_JT_Inhibit;</src></hll>
+				<hll><line>163</line><src>    uint8 FcaRo_JC_Inhibit;</src></hll>
+				<hll><line>164</line><src>    uint8 FcaSf3_JC_Inhibit;</src></hll>
+				<hll><line>165</line><src>    uint8 FcaSf2_Lo_Inhibit;</src></hll>
+				<hll><line>166</line><src>    uint8 FcaSF3_LS_Inhibit;</src></hll>
+				<hll><line>167</line><src>    uint8 Fca_ESA_Inhibit;</src></hll>
+				<hll><line>168</line><src>} fca_inhibit_t;</src></hll>
+				<hll><line>169</line><src></src></hll>
+				<hll><line>170</line><src>typedef struct {</src></hll>
+				<hll><line>171</line><src>    uint8 SccCc_Inhibit;</src></hll>
+				<hll><line>172</line><src>    uint8 SccRo_Inhibit;</src></hll>
+				<hll><line>173</line><src>    uint8 SccSf2_Inhibit;</src></hll>
+				<hll><line>174</line><src>    uint8 SccSf3_Inhibit;</src></hll>
+				<hll><line>175</line><src>} scc_inhibit_t;</src></hll>
+				<hll><line>176</line><src></src></hll>
+				<hll><line>177</line><src>typedef struct {</src></hll>
+				<hll><line>178</line><src>    uint8 SccMl_Inhibit;</src></hll>
+				<hll><line>179</line><src>} sccml_inhibit_t;</src></hll>
+				<hll><line>180</line><src></src></hll>
+				<hll><line>181</line><src>typedef struct {</src></hll>
+				<hll><line>182</line><src>    uint8 NScc_Z_C_Inhibit;</src></hll>
+				<hll><line>183</line><src>    uint8 NScc_R_Inhibit;</src></hll>
+				<hll><line>184</line><src>} nscc_inhibit_t;</src></hll>
+				<hll><line>185</line><src></src></hll>
+				<hll><line>186</line><src>typedef struct {</src></hll>
+				<hll><line>187</line><src>    uint8 Lfa_Lat_Inhibit;</src></hll>
+				<hll><line>188</line><src>    uint8 LfaSf2_Inhibit;</src></hll>
+				<hll><line>189</line><src>} lfa_inhibit_t;</src></hll>
+				<hll><line>190</line><src></src></hll>
+				<hll><line>191</line><src>typedef struct {</src></hll>
+				<hll><line>192</line><src>    uint8 Hda_Lat_Inhibit;</src></hll>
+				<hll><line>193</line><src>    uint8 Hda_Long_Inhibit;</src></hll>
+				<hll><line>194</line><src>    uint8 Hda_Inhibit;</src></hll>
+				<hll><line>195</line><src>    uint8 HdaII_Inhibit;</src></hll>
+				<hll><line>196</line><src>} hda_inhibit_t;</src></hll>
+				<hll><line>197</line><src></src></hll>
+				<hll><line>198</line><src>typedef struct {</src></hll>
+				<hll><line>199</line><src>    uint8 BCA_Inhibit;</src></hll>
+				<hll><line>200</line><src>    uint8 BCA_RDRBlk_Inhibit; </src></hll>
+				<hll><line>201</line><src>} bca_inhibit_t;</src></hll>
+				<hll><line>202</line><src></src></hll>
+				<hll><line>203</line><src>typedef struct {</src></hll>
+				<hll><line>204</line><src>    uint8 SEA_Inhibit;</src></hll>
+				<hll><line>205</line><src>} sea_inhibit_t;</src></hll>
+				<hll><line>206</line><src></src></hll>
+				<hll><line>207</line><src>typedef struct {</src></hll>
+				<hll><line>208</line><src>    uint8 RCCA_Inhibit;</src></hll>
+				<hll><line>209</line><src>    uint8 RCCA_RDRBlk_Inhibit;</src></hll>
+				<hll><line>210</line><src>} rcca_inhibit_t;</src></hll>
+				<hll><line>211</line><src></src></hll>
+				<hll><line>212</line><src>typedef struct {</src></hll>
+				<hll><line>213</line><src>    uint8 FCA_SysFlrSta;</src></hll>
+				<hll><line>214</line><src>    uint8 SCC_SysFlrSta;</src></hll>
+				<hll><line>215</line><src>    uint8 SCCMode_OptUsmSta;</src></hll>
+				<hll><line>216</line><src>    uint8 SCC_NSCCOnOffSta;</src></hll>
+				<hll><line>217</line><src>    uint8 HDA_InfoPUDis;</src></hll>
+				<hll><line>218</line><src>    uint8 HDA_LCFuncSta;</src></hll>
+				<hll><line>219</line><src>    uint8 BCW_IndSta;</src></hll>
+				<hll><line>220</line><src>} warning_t;</src></hll>
+				<hll><line>221</line><src></src></hll>
+				<hll><line>222</line><src>struct inhibit_info {</src></hll>
+				<hll><line>223</line><src>    scc_inhibit_t scc;</src></hll>
+				<hll><line>224</line><src>    sccml_inhibit_t sccml;</src></hll>
+				<hll><line>225</line><src>    nscc_inhibit_t nscc;</src></hll>
+				<hll><line>226</line><src>    fca_inhibit_t fca;</src></hll>
+				<hll><line>227</line><src>    lfa_inhibit_t lfa;</src></hll>
+				<hll><line>228</line><src>    hda_inhibit_t hda;</src></hll>
+				<hll><line>229</line><src>    bca_inhibit_t bca;</src></hll>
+				<hll><line>230</line><src>    sea_inhibit_t sea;</src></hll>
+				<hll><line>231</line><src>    rcca_inhibit_t rcca;</src></hll>
+				<hll><line>232</line><src>    warning_t warning;</src></hll>
+				<hll><line>233</line><src>};</src></hll>
+				<hll><line>234</line><src></src></hll>
+				<hll><line>235</line><src></src></hll>
+				<hll><line>236</line><src>/* Voltage enum */</src></hll>
+				<hll><line>237</line><src>enum {</src></hll>
+				<hll><line>238</line><src>    VOL_IGN,</src></hll>
+				<hll><line>239</line><src>    VOL_IGN_FLAG,</src></hll>
+				<hll><line>240</line><src>    VOL_BAT,</src></hll>
+				<hll><line>241</line><src>    VOL_BUCK5P0,</src></hll>
+				<hll><line>242</line><src>    VOL_PMIC5P0,</src></hll>
+				<hll><line>243</line><src>    VOL_PMIC3P3,</src></hll>
+				<hll><line>244</line><src>    VOL_PMIC1P25,</src></hll>
+				<hll><line>245</line><src>    VOL_BUCKPG5P0,</src></hll>
+				<hll><line>246</line><src>    VOL_GRP_NUM</src></hll>
+				<hll><line>247</line><src>};</src></hll>
+				<hll><line>248</line><src></src></hll>
+				<hll><line>249</line><src>/* Message type definition */</src></hll>
+				<hll><line>250</line><src>enum msg_type {</src></hll>
+				<hll><line>251</line><src>    CHASSIS_0,</src></hll>
+				<hll><line>252</line><src>    CHASSIS_1,</src></hll>
+				<hll><line>253</line><src>    A_FR_CMR_0,</src></hll>
+				<hll><line>254</line><src>    A_FR_RDR_0,</src></hll>
+				<hll><line>255</line><src>    A_FR_RDR_1,</src></hll>
+				<hll><line>256</line><src>    A_FR_C_RDR_0,</src></hll>
+				<hll><line>257</line><src>    A_FR_C_RDR_1,</src></hll>
+				<hll><line>258</line><src>    A_FR_CMR_1,</src></hll>
+				<hll><line>259</line><src>    A_FR_CMR_2,     </src></hll>
+				<hll><line>260</line><src>    MSG_GRP_NUM,</src></hll>
+				<hll><line>261</line><src>};</src></hll>
+				<hll><line>262</line><src></src></hll>
+				<hll><line>263</line><src>/* Chassis CAN Time-out Flags Bit Position */</src></hll>
+				<hll><line>264</line><src>enum chassis_0_msgs {</src></hll>
+				<hll><line>265</line><src>        ABS_ESC_01_10ms_POS,</src></hll>
+				<hll><line>266</line><src>    BCM_02_200ms_POS,</src></hll>
+				<hll><line>267</line><src>        BCM_10_200ms_POS,</src></hll>
+				<hll><line>268</line><src>        CLU_01_20ms_POS,</src></hll>
+				<hll><line>269</line><src>        CLU_02_100ms_POS,</src></hll>
+				<hll><line>270</line><src>#if VEH_TYPE == NORMAL</src></hll>
+				<hll><line>271</line><src>        EMS_01_10ms_POS,</src></hll>
+				<hll><line>272</line><src>        EMS_02_10ms_POS,</src></hll>
+				<hll><line>273</line><src>    EMS_03_10ms_POS,</src></hll>
+				<hll><line>274</line><src>    EMS_05_100ms_POS,</src></hll>
+				<hll><line>275</line><src>    EMS_08_100ms_POS,</src></hll>
+				<hll><line>276</line><src>    TCU_01_10ms_POS,</src></hll>
+				<hll><line>277</line><src>#elif VEH_TYPE == EV</src></hll>
+				<hll><line>278</line><src>    VCU_01_10ms_POS,</src></hll>
+				<hll><line>279</line><src>    VCU_03_100ms_POS,</src></hll>
+				<hll><line>280</line><src>#endif</src></hll>
+				<hll><line>281</line><src>        ESC_01_10ms_POS,</src></hll>
+				<hll><line>282</line><src>        ESC_03_20ms_POS,</src></hll>
+				<hll><line>283</line><src>    HOD_01_100ms_POS,</src></hll>
+				<hll><line>284</line><src>        HU_CLU_PE_05_POS,</src></hll>
+				<hll><line>285</line><src>        HU_GW_PE_01_POS,</src></hll>
+				<hll><line>286</line><src>        HU_MON_PE_01_POS,</src></hll>
+				<hll><line>287</line><src>    HU_NAVI_V2_POS_PE_POS,</src></hll>
+				<hll><line>288</line><src>        ICSC_02_100ms_POS,</src></hll>
+				<hll><line>289</line><src>    ICU_02_200ms_POS,</src></hll>
+				<hll><line>290</line><src>        ICU_04_200ms_POS,</src></hll>
+				<hll><line>291</line><src>        ICU_06_200ms_POS,</src></hll>
+				<hll><line>292</line><src>        ICU_07_200ms_POS,</src></hll>
+				<hll><line>293</line><src>        MDPS_01_10ms_POS,</src></hll>
+				<hll><line>294</line><src>    MFSW_01_200ms_POS,</src></hll>
+				<hll><line>295</line><src>        SAS_01_10ms_POS,</src></hll>
+				<hll><line>296</line><src>    SBCM_AST_03_200ms_POS,</src></hll>
+				<hll><line>297</line><src>        SBCM_DRV_02_200ms_POS,</src></hll>
+				<hll><line>298</line><src>        SWRC_03_20ms_POS,</src></hll>
+				<hll><line>299</line><src>        WHL_01_10ms_POS,</src></hll>
+				<hll><line>300</line><src>        IMU_01_10ms_POS,</src></hll>
+				<hll><line>301</line><src>        CHASSIS_0_NUM</src></hll>
+				<hll><line>302</line><src>};</src></hll>
+				<hll><line>303</line><src>extern char compiler_assert_CHASSIS_0_NUM_exceed_32[(CHASSIS_0_NUM &gt; 32) ? (-1) : (1)];</src></hll>
+				<hll><line>304</line><src></src></hll>
+				<hll><line>305</line><src>/* Chassis CAN Time-out Flags Bit Position */</src></hll>
+				<hll><line>306</line><src>enum chassis_1_msgs {</src></hll>
+				<hll><line>307</line><src>    ADAS_PRK_21_20ms_POS,</src></hll>
+				<hll><line>308</line><src>        BCM_09_200ms_POS,</src></hll>
+				<hll><line>309</line><src>    CLU_11_00ms_POS,</src></hll>
+				<hll><line>310</line><src>    CTM_01_200ms_POS,</src></hll>
+				<hll><line>311</line><src>    FR_CMR_02_100ms_POS,</src></hll>
+				<hll><line>312</line><src>        HU_NAVI_V2_META_E_POS,  </src></hll>
+				<hll><line>313</line><src>        HU_NAVI_V2_PROLONG_E_POS,</src></hll>
+				<hll><line>314</line><src>        HU_NAVI_V2_PROSHORT_E_00_POS,</src></hll>
+				<hll><line>315</line><src>        HU_NAVI_V2_PROSHORT_SUB_E_POS,</src></hll>
+				<hll><line>316</line><src>        HU_NAVI_V2_SEG_E_POS,</src></hll>
+				<hll><line>317</line><src>        HU_NAVI_V2_SEG_SUB_E_POS,</src></hll>
+				<hll><line>318</line><src>        HU_NAVI_V2_STUB_E_POS,</src></hll>
+				<hll><line>319</line><src>#if HU_USM == NOT_APPLIED</src></hll>
+				<hll><line>320</line><src>    CLU_04_00ms_POS,</src></hll>
+				<hll><line>321</line><src>    CLU_12_00ms_POS,</src></hll>
+				<hll><line>322</line><src>    CLU_13_00ms_POS,</src></hll>
+				<hll><line>323</line><src>#elif HU_USM == APPLIED</src></hll>
+				<hll><line>324</line><src>        HU_USM_E_01_POS,</src></hll>
+				<hll><line>325</line><src>        HU_USM_E_02_POS,</src></hll>
+				<hll><line>326</line><src>        HU_USM_E_04_POS,</src></hll>
+				<hll><line>327</line><src>        HU_USM_E_08_POS,</src></hll>
+				<hll><line>328</line><src>#endif</src></hll>
+				<hll><line>329</line><src>    MFSW_02_200ms_POS,</src></hll>
+				<hll><line>330</line><src>    RR_C_RDR_03_50ms_POS,</src></hll>
+				<hll><line>331</line><src>    SBCM_AST_02_200ms_POS,</src></hll>
+				<hll><line>332</line><src>        SBCM_DRV_01_200ms_POS,</src></hll>
+				<hll><line>333</line><src>        SBCM_RL_01_200ms_POS,</src></hll>
+				<hll><line>334</line><src>        SBCM_RR_01_200ms_POS,</src></hll>
+				<hll><line>335</line><src>        ICU_08_200ms_POS,</src></hll>
+				<hll><line>336</line><src>        IEB_01_10ms_POS,</src></hll>
+				<hll><line>337</line><src>        CHASSIS_1_NUM</src></hll>
+				<hll><line>338</line><src>};</src></hll>
+				<hll><line>339</line><src>extern char compiler_assert_CHASSIS_1_NUM_exceed_32[(CHASSIS_1_NUM &gt; 32) ? (-1) : (1)];</src></hll>
+				<hll><line>340</line><src></src></hll>
+				<hll><line>341</line><src>/* Front Camera CAN Time-out Flags Bit Position */</src></hll>
+				<hll><line>342</line><src>enum l_fr_cmr_0_msgs {</src></hll>
+				<hll><line>343</line><src>    A_FR_CMR_Ctrl_01_10ms_POS,</src></hll>
+				<hll><line>344</line><src>        A_FR_CMR_Genrl_01_30ms_POS,</src></hll>
+				<hll><line>345</line><src>        A_FR_CMR_Ln_01_50ms_POS,</src></hll>
+				<hll><line>346</line><src>        A_FR_CMR_Ln_02_50ms_POS,</src></hll>
+				<hll><line>347</line><src>        A_FR_CMR_Ln_03_50ms_POS,</src></hll>
+				<hll><line>348</line><src>    A_FR_CMR_Obj_01_30ms_POS,</src></hll>
+				<hll><line>349</line><src>        A_FR_CMR_Obj_02_30ms_POS,</src></hll>
+				<hll><line>350</line><src>        A_FR_CMR_Obj_03_30ms_POS,</src></hll>
+				<hll><line>351</line><src>        A_FR_CMR_Obj_04_30ms_POS,</src></hll>
+				<hll><line>352</line><src>        A_FR_CMR_Obj_05_30ms_POS,</src></hll>
+				<hll><line>353</line><src>        A_FR_CMR_Obj_06_30ms_POS,</src></hll>
+				<hll><line>354</line><src>        A_FR_CMR_Obj_07_30ms_POS,</src></hll>
+				<hll><line>355</line><src>        A_FR_CMR_Obj_08_30ms_POS,</src></hll>
+				<hll><line>356</line><src>        A_FR_CMR_Obj_09_30ms_POS,</src></hll>
+				<hll><line>357</line><src>        A_FR_CMR_Obj_10_30ms_POS,</src></hll>
+				<hll><line>358</line><src>        A_FR_CMR_Obj_11_30ms_POS,</src></hll>
+				<hll><line>359</line><src>        A_FR_CMR_Obj_12_30ms_POS,</src></hll>
+				<hll><line>360</line><src>        A_FR_CMR_Obj_13_30ms_POS,</src></hll>
+				<hll><line>361</line><src>        A_FR_CMR_Obj_14_30ms_POS,</src></hll>
+				<hll><line>362</line><src>        A_FR_CMR_Obj_15_30ms_POS,</src></hll>
+				<hll><line>363</line><src>        A_FR_CMR_Obj_16_30ms_POS,</src></hll>
+				<hll><line>364</line><src>        A_FR_CMR_Obj_17_30ms_POS,</src></hll>
+				<hll><line>365</line><src>        A_FR_CMR_Obj_18_30ms_POS,</src></hll>
+				<hll><line>366</line><src>        A_FR_CMR_Obj_19_30ms_POS,</src></hll>
+				<hll><line>367</line><src>        A_FR_CMR_Obj_20_30ms_POS,</src></hll>
+				<hll><line>368</line><src>    A_FR_CMR_FS_01_30ms_POS,</src></hll>
+				<hll><line>369</line><src>        A_FR_CMR_FS_02_30ms_POS,</src></hll>
+				<hll><line>370</line><src>        A_FR_CMR_FS_03_30ms_POS,</src></hll>
+				<hll><line>371</line><src>        A_FR_CMR_FS_04_30ms_POS,</src></hll>
+				<hll><line>372</line><src>        A_FR_CMR_FS_05_30ms_POS,</src></hll>
+				<hll><line>373</line><src>        A_FR_CMR_FS_06_30ms_POS,</src></hll>
+				<hll><line>374</line><src>    A_FR_CMR_FS_07_30ms_POS,</src></hll>
+				<hll><line>375</line><src>    A_FR_CMR_0_NUM,</src></hll>
+				<hll><line>376</line><src>};</src></hll>
+				<hll><line>377</line><src>extern char compiler_assert_A_FR_CMR_0_NUM_exceed_32[(A_FR_CMR_0_NUM &gt; 32) ? (-1) : (1)];</src></hll>
+				<hll><line>378</line><src></src></hll>
+				<hll><line>379</line><src>enum l_fr_cmr_1_msgs {    </src></hll>
+				<hll><line>380</line><src>    A_FR_CMR_FS_08_30ms_POS,</src></hll>
+				<hll><line>381</line><src>        A_FR_CMR_FS_09_30ms_POS,</src></hll>
+				<hll><line>382</line><src>        A_FR_CMR_FS_10_30ms_POS,</src></hll>
+				<hll><line>383</line><src>        A_FR_CMR_FS_11_30ms_POS,</src></hll>
+				<hll><line>384</line><src>        A_FR_CMR_FS_12_30ms_POS,</src></hll>
+				<hll><line>385</line><src>        A_FR_CMR_FS_13_30ms_POS,</src></hll>
+				<hll><line>386</line><src>        A_FR_CMR_FS_14_30ms_POS,</src></hll>
+				<hll><line>387</line><src>        A_FR_CMR_FS_15_30ms_POS,</src></hll>
+				<hll><line>388</line><src>        A_FR_CMR_FS_16_30ms_POS,</src></hll>
+				<hll><line>389</line><src>        A_FR_CMR_FS_17_30ms_POS,</src></hll>
+				<hll><line>390</line><src>        A_FR_CMR_FS_18_30ms_POS,</src></hll>
+				<hll><line>391</line><src>        A_FR_CMR_FS_19_30ms_POS,</src></hll>
+				<hll><line>392</line><src>        A_FR_CMR_FS_20_30ms_POS,</src></hll>
+				<hll><line>393</line><src>        A_FR_CMR_FS_21_30ms_POS,</src></hll>
+				<hll><line>394</line><src>        A_FR_CMR_FS_22_30ms_POS,</src></hll>
+				<hll><line>395</line><src>        A_FR_CMR_FS_23_30ms_POS,</src></hll>
+				<hll><line>396</line><src>        A_FR_CMR_FS_24_30ms_POS,    </src></hll>
+				<hll><line>397</line><src>    A_FR_CMR_1_NUM,</src></hll>
+				<hll><line>398</line><src>};</src></hll>
+				<hll><line>399</line><src>extern char compiler_assert_A_FR_CMR_1_NUM_exceed_32[(A_FR_CMR_1_NUM &gt; 32) ? (-1) : (1)];</src></hll>
+				<hll><line>400</line><src></src></hll>
+				<hll><line>401</line><src>enum l_fr_cmr_2_msgs {</src></hll>
+				<hll><line>402</line><src>    A_FR_CMR_Ctrl_02_20ms_POS,</src></hll>
+				<hll><line>403</line><src>        A_FR_CMR_CA_01_30ms_POS,        </src></hll>
+				<hll><line>404</line><src>        A_FR_CMR_CA_02_30ms_POS,</src></hll>
+				<hll><line>405</line><src>    A_FR_CMR_CA_03_30ms_POS,</src></hll>
+				<hll><line>406</line><src>    A_FR_CMR_CA_04_30ms_POS,</src></hll>
+				<hll><line>407</line><src>    A_FR_CMR_HZ_01_30ms_POS,</src></hll>
+				<hll><line>408</line><src>    A_FR_CMR_HZ_02_30ms_POS,</src></hll>
+				<hll><line>409</line><src>    A_FR_CMR_HZ_03_30ms_POS,</src></hll>
+				<hll><line>410</line><src>    A_FR_CMR_RdEdg_01_50ms_POS,</src></hll>
+				<hll><line>411</line><src>    A_FR_CMR_RdEdg_02_50ms_POS,</src></hll>
+				<hll><line>412</line><src>    A_FR_CMR_RdMrk_01_50ms_POS,</src></hll>
+				<hll><line>413</line><src>    A_FR_CMR_RdMrk_02_50ms_POS,</src></hll>
+				<hll><line>414</line><src>    A_FR_CMR_RdMrk_03_50ms_POS,</src></hll>
+				<hll><line>415</line><src>    A_FR_CMR_2_NUM,</src></hll>
+				<hll><line>416</line><src>};</src></hll>
+				<hll><line>417</line><src>extern char compiler_assert_A_FR_CMR_2_NUM_exceed_32[(A_FR_CMR_2_NUM &gt; 32) ? (-1) : (1)];</src></hll>
+				<hll><line>418</line><src></src></hll>
+				<hll><line>419</line><src>/* Front Radar CAN Time-out Flags Bit Position */</src></hll>
+				<hll><line>420</line><src></src></hll>
+				<hll><line>421</line><src>enum l_fr_rdr_0_msgs {</src></hll>
+				<hll><line>422</line><src>    A_FR_RDR_Genrl_01_50ms_POS,</src></hll>
+				<hll><line>423</line><src>        A_FR_RDR_Genrl_02_50ms_POS,</src></hll>
+				<hll><line>424</line><src>    A_FR_RDR_ODM_01_50ms_POS,</src></hll>
+				<hll><line>425</line><src>    A_FR_RDR_Obj_01_50ms_POS,</src></hll>
+				<hll><line>426</line><src>        A_FR_RDR_Obj_02_50ms_POS,</src></hll>
+				<hll><line>427</line><src>        A_FR_RDR_Obj_03_50ms_POS,</src></hll>
+				<hll><line>428</line><src>        A_FR_RDR_Obj_04_50ms_POS,</src></hll>
+				<hll><line>429</line><src>        A_FR_RDR_Obj_05_50ms_POS,</src></hll>
+				<hll><line>430</line><src>        A_FR_RDR_Obj_06_50ms_POS,</src></hll>
+				<hll><line>431</line><src>        A_FR_RDR_Obj_07_50ms_POS,</src></hll>
+				<hll><line>432</line><src>        A_FR_RDR_Obj_08_50ms_POS,</src></hll>
+				<hll><line>433</line><src>        A_FR_RDR_Obj_09_50ms_POS,</src></hll>
+				<hll><line>434</line><src>        A_FR_RDR_Obj_10_50ms_POS,</src></hll>
+				<hll><line>435</line><src>        A_FR_RDR_Obj_11_50ms_POS,</src></hll>
+				<hll><line>436</line><src>        A_FR_RDR_Obj_12_50ms_POS,</src></hll>
+				<hll><line>437</line><src>        A_FR_RDR_Obj_13_50ms_POS,</src></hll>
+				<hll><line>438</line><src>        A_FR_RDR_Obj_14_50ms_POS,</src></hll>
+				<hll><line>439</line><src>        A_FR_RDR_Obj_15_50ms_POS,</src></hll>
+				<hll><line>440</line><src>        A_FR_RDR_Obj_16_50ms_POS,</src></hll>
+				<hll><line>441</line><src>        A_FR_RDR_Obj_17_50ms_POS,</src></hll>
+				<hll><line>442</line><src>        A_FR_RDR_Obj_18_50ms_POS,</src></hll>
+				<hll><line>443</line><src>        A_FR_RDR_Obj_19_50ms_POS,</src></hll>
+				<hll><line>444</line><src>        A_FR_RDR_Obj_20_50ms_POS,</src></hll>
+				<hll><line>445</line><src>        A_FR_RDR_Obj_21_50ms_POS,</src></hll>
+				<hll><line>446</line><src>        A_FR_RDR_Obj_22_50ms_POS,</src></hll>
+				<hll><line>447</line><src>        A_FR_RDR_Obj_23_50ms_POS,</src></hll>
+				<hll><line>448</line><src>        A_FR_RDR_Obj_24_50ms_POS,</src></hll>
+				<hll><line>449</line><src>        A_FR_RDR_Obj_25_50ms_POS,</src></hll>
+				<hll><line>450</line><src>        A_FR_RDR_Obj_26_50ms_POS,</src></hll>
+				<hll><line>451</line><src>        A_FR_RDR_Obj_27_50ms_POS,</src></hll>
+				<hll><line>452</line><src>        A_FR_RDR_Obj_28_50ms_POS,</src></hll>
+				<hll><line>453</line><src>        A_FR_RDR_Obj_29_50ms_POS,</src></hll>
+				<hll><line>454</line><src>    A_FR_RDR_0_NUM,</src></hll>
+				<hll><line>455</line><src>};</src></hll>
+				<hll><line>456</line><src>extern char compiler_assert_A_FR_RDR_0_NUM_exceed_32[(A_FR_RDR_0_NUM &gt; 32) ? (-1) : (1)];</src></hll>
+				<hll><line>457</line><src></src></hll>
+				<hll><line>458</line><src>enum l_fr_rdr_1_msgs {</src></hll>
+				<hll><line>459</line><src>    A_FR_RDR_Obj_30_50ms_POS,</src></hll>
+				<hll><line>460</line><src>        A_FR_RDR_Obj_31_50ms_POS,</src></hll>
+				<hll><line>461</line><src>        A_FR_RDR_Obj_32_50ms_POS,</src></hll>
+				<hll><line>462</line><src>    A_FR_RDR_FS_01_50ms_POS,</src></hll>
+				<hll><line>463</line><src>        A_FR_RDR_FS_02_50ms_POS,</src></hll>
+				<hll><line>464</line><src>        A_FR_RDR_FS_03_50ms_POS,</src></hll>
+				<hll><line>465</line><src>        A_FR_RDR_FS_04_50ms_POS,</src></hll>
+				<hll><line>466</line><src>        A_FR_RDR_FS_05_50ms_POS,</src></hll>
+				<hll><line>467</line><src>    A_FR_RDR_1_NUM,</src></hll>
+				<hll><line>468</line><src>};</src></hll>
+				<hll><line>469</line><src>extern char compiler_assert_A_FR_RDR_1_NUM_exceed_32[(A_FR_RDR_1_NUM &gt; 32) ? (-1) : (1)];</src></hll>
+				<hll><line>470</line><src></src></hll>
+				<hll><line>471</line><src>/* Front Corner Radar CAN Time-out Flags Bit Position */</src></hll>
+				<hll><line>472</line><src>enum l_fr_c_rdr_0_msgs {</src></hll>
+				<hll><line>473</line><src>        A_FR_C_RDR_Genrl_01_50ms_POS,</src></hll>
+				<hll><line>474</line><src>        A_FR_C_RDR_ODM_01_50ms_POS,</src></hll>
+				<hll><line>475</line><src>        A_FR_C_RDR_Obj_01_50ms_POS,</src></hll>
+				<hll><line>476</line><src>        A_FR_C_RDR_Obj_02_50ms_POS,</src></hll>
+				<hll><line>477</line><src>        A_FR_C_RDR_Obj_03_50ms_POS,</src></hll>
+				<hll><line>478</line><src>        A_FR_C_RDR_Obj_04_50ms_POS,</src></hll>
+				<hll><line>479</line><src>        A_FR_C_RDR_Obj_05_50ms_POS,</src></hll>
+				<hll><line>480</line><src>        A_FR_C_RDR_Obj_06_50ms_POS,</src></hll>
+				<hll><line>481</line><src>        A_FR_C_RDR_Obj_07_50ms_POS,</src></hll>
+				<hll><line>482</line><src>        A_FR_C_RDR_Obj_08_50ms_POS,</src></hll>
+				<hll><line>483</line><src>        A_FR_C_RDR_Obj_09_50ms_POS,</src></hll>
+				<hll><line>484</line><src>        A_FR_C_RDR_Obj_10_50ms_POS,</src></hll>
+				<hll><line>485</line><src>        A_FR_C_RDR_Obj_11_50ms_POS,</src></hll>
+				<hll><line>486</line><src>        A_FR_C_RDR_Obj_12_50ms_POS,</src></hll>
+				<hll><line>487</line><src>        A_FR_C_RDR_Obj_13_50ms_POS,</src></hll>
+				<hll><line>488</line><src>        A_FR_C_RDR_Obj_14_50ms_POS,</src></hll>
+				<hll><line>489</line><src>        A_FR_C_RDR_Obj_15_50ms_POS,</src></hll>
+				<hll><line>490</line><src>        A_FR_C_RDR_Obj_16_50ms_POS,</src></hll>
+				<hll><line>491</line><src>        A_FR_C_RDR_Obj_17_50ms_POS,</src></hll>
+				<hll><line>492</line><src>        A_FR_C_RDR_Obj_18_50ms_POS,</src></hll>
+				<hll><line>493</line><src>        A_FR_C_RDR_Obj_19_50ms_POS,</src></hll>
+				<hll><line>494</line><src>        A_FR_C_RDR_Obj_20_50ms_POS,</src></hll>
+				<hll><line>495</line><src>        A_FR_C_RDR_Obj_21_50ms_POS,</src></hll>
+				<hll><line>496</line><src>        A_FR_C_RDR_Obj_22_50ms_POS,</src></hll>
+				<hll><line>497</line><src>        A_FR_C_RDR_Obj_23_50ms_POS,</src></hll>
+				<hll><line>498</line><src>        A_FR_C_RDR_Obj_24_50ms_POS,</src></hll>
+				<hll><line>499</line><src>        A_FR_C_RDR_Obj_25_50ms_POS,</src></hll>
+				<hll><line>500</line><src>        A_FR_C_RDR_Obj_26_50ms_POS,</src></hll>
+				<hll><line>501</line><src>        A_FR_C_RDR_Obj_27_50ms_POS,</src></hll>
+				<hll><line>502</line><src>        A_FR_C_RDR_Obj_28_50ms_POS,</src></hll>
+				<hll><line>503</line><src>        A_FR_C_RDR_Obj_29_50ms_POS,</src></hll>
+				<hll><line>504</line><src>        A_FR_C_RDR_Obj_30_50ms_POS,</src></hll>
+				<hll><line>505</line><src>    A_FR_C_RDR_0_NUM,</src></hll>
+				<hll><line>506</line><src>};</src></hll>
+				<hll><line>507</line><src>extern char compiler_assert_A_FR_C_RDR_0_NUM_exceed_32[(A_FR_C_RDR_0_NUM &gt; 32) ? (-1) : (1)];</src></hll>
+				<hll><line>508</line><src></src></hll>
+				<hll><line>509</line><src>enum l_fr_c_rdr_1_msgs {</src></hll>
+				<hll><line>510</line><src>        A_FR_C_RDR_FS_01_50ms_POS,</src></hll>
+				<hll><line>511</line><src>        A_FR_C_RDR_FS_02_50ms_POS,</src></hll>
+				<hll><line>512</line><src>        A_FR_C_RDR_FS_03_50ms_POS,</src></hll>
+				<hll><line>513</line><src>        A_FR_C_RDR_FS_04_50ms_POS,</src></hll>
+				<hll><line>514</line><src>        A_FR_C_RDR_FS_05_50ms_POS,</src></hll>
+				<hll><line>515</line><src>        A_FR_C_RDR_FS_06_50ms_POS,</src></hll>
+				<hll><line>516</line><src>        A_FR_C_RDR_FS_07_50ms_POS,</src></hll>
+				<hll><line>517</line><src>        A_FR_C_RDR_FS_08_50ms_POS,</src></hll>
+				<hll><line>518</line><src>        A_FR_C_RDR_FS_09_50ms_POS,</src></hll>
+				<hll><line>519</line><src>        A_FR_C_RDR_FS_10_50ms_POS,</src></hll>
+				<hll><line>520</line><src>        A_FR_C_RDR_FS_11_50ms_POS,</src></hll>
+				<hll><line>521</line><src>        A_FR_C_RDR_FS_12_50ms_POS,</src></hll>
+				<hll><line>522</line><src>        A_FR_C_RDR_FS_13_50ms_POS,</src></hll>
+				<hll><line>523</line><src>        A_FR_C_RDR_FS_14_50ms_POS,</src></hll>
+				<hll><line>524</line><src>        A_FR_C_RDR_FS_15_50ms_POS,</src></hll>
+				<hll><line>525</line><src>        A_FR_C_RDR_FS_16_50ms_POS,</src></hll>
+				<hll><line>526</line><src>        A_FR_C_RDR_Tkl_01_50ms_POS,</src></hll>
+				<hll><line>527</line><src>        A_FR_C_RDR_Tkl_02_50ms_POS,</src></hll>
+				<hll><line>528</line><src>        A_FR_C_RDR_Tkl_03_50ms_POS,</src></hll>
+				<hll><line>529</line><src>        A_FR_C_RDR_Tkl_04_50ms_POS,</src></hll>
+				<hll><line>530</line><src>        A_FR_C_RDR_Tkl_05_50ms_POS,</src></hll>
+				<hll><line>531</line><src>        A_FR_C_RDR_Tkl_06_50ms_POS,</src></hll>
+				<hll><line>532</line><src>        A_FR_C_RDR_Tkl_07_50ms_POS,</src></hll>
+				<hll><line>533</line><src>        A_FR_C_RDR_Tkl_08_50ms_POS,</src></hll>
+				<hll><line>534</line><src>        A_FR_C_RDR_Tkl_09_50ms_POS,</src></hll>
+				<hll><line>535</line><src>        A_FR_C_RDR_Tkl_10_50ms_POS,</src></hll>
+				<hll><line>536</line><src>        A_FR_C_RDR_Tkl_11_50ms_POS,</src></hll>
+				<hll><line>537</line><src>        A_FR_C_RDR_Tkl_12_50ms_POS,</src></hll>
+				<hll><line>538</line><src>        A_FR_C_RDR_Tkl_13_50ms_POS,</src></hll>
+				<hll><line>539</line><src>        A_FR_C_RDR_Tkl_14_50ms_POS,</src></hll>
+				<hll><line>540</line><src>        A_FR_C_RDR_Tkl_15_50ms_POS,</src></hll>
+				<hll><line>541</line><src>    A_FR_C_RDR_1_NUM,</src></hll>
+				<hll><line>542</line><src>};</src></hll>
+				<hll><line>543</line><src>extern char compiler_assert_A_FR_C_RDR_1_NUM_exceed_32[(A_FR_C_RDR_1_NUM &gt; 32) ? (-1) : (1)];</src></hll>
+				<hll><line>544</line><src></src></hll>
+				<hll><line>545</line><src>/* Forcing Recover */</src></hll>
+				<hll><line>546</line><src>enum {</src></hll>
+				<hll><line>547</line><src>    RECOVER_GROUP_0,</src></hll>
+				<hll><line>548</line><src>    RECOVER_GROUP_1,</src></hll>
+				<hll><line>549</line><src>    RECOVER_GROUP_2,</src></hll>
+				<hll><line>550</line><src>    RECOVER_GROUP_3,</src></hll>
+				<hll><line>551</line><src>    RECOVER_GROUP_4,</src></hll>
+				<hll><line>552</line><src>    RECOVER_GROUP_5,</src></hll>
+				<hll><line>553</line><src>    RECOVER_GROUP_6,</src></hll>
+				<hll><line>554</line><src>    RECOVER_GROUP_7,</src></hll>
+				<hll><line>555</line><src>    RECOVER_GROUP_NUM,</src></hll>
+				<hll><line>556</line><src>};</src></hll>
+				<hll><line>557</line><src>extern uint8 recover_mask[RECOVER_GROUP_NUM];</src></hll>
+				<hll><line>558</line><src></src></hll>
+				<hll><line>559</line><src>/* Recover group 0 */</src></hll>
+				<hll><line>560</line><src>enum {</src></hll>
+				<hll><line>561</line><src>    VOL_HIGH,</src></hll>
+				<hll><line>562</line><src>    VOL_LOW,</src></hll>
+				<hll><line>563</line><src>    ECAN_BUSOFF,</src></hll>
+				<hll><line>564</line><src>    ACAN1_BUSOFF,</src></hll>
+				<hll><line>565</line><src>    ACAN2_BUSOFF,</src></hll>
+				<hll><line>566</line><src>    GROUP_0_NUM,</src></hll>
+				<hll><line>567</line><src>};</src></hll>
+				<hll><line>568</line><src>extern char compiler_assert_GROUP_0_exceed_8[(GROUP_0_NUM &gt; 8) ? (-1) : (1)];</src></hll>
+				<hll><line>569</line><src></src></hll>
+				<hll><line>570</line><src>/* Recover group 1 */</src></hll>
+				<hll><line>571</line><src>enum {</src></hll>
+				<hll><line>572</line><src>#if CCAN == CANFD</src></hll>
+				<hll><line>573</line><src>    ABS_ESC_TIMEOUT,</src></hll>
+				<hll><line>574</line><src>    VCU_HCU_TIMEOUT,</src></hll>
+				<hll><line>575</line><src>    BCM_TIMEOUT,</src></hll>
+				<hll><line>576</line><src>    CLU_TIMEOUT,</src></hll>
+				<hll><line>577</line><src>    EMS_TIMEOUT,</src></hll>
+				<hll><line>578</line><src>    ESC_TIMEOUT,</src></hll>
+				<hll><line>579</line><src>    HOD_TIMEOUT,</src></hll>
+				<hll><line>580</line><src>#elif CCAN == HSCAN</src></hll>
+				<hll><line>581</line><src>    CGW1_TIMEOUT,</src></hll>
+				<hll><line>582</line><src>    CGW2_TIMEOUT,</src></hll>
+				<hll><line>583</line><src>    CGW8_TIMEOUT,</src></hll>
+				<hll><line>584</line><src>    CGW_PC4_TIMEOUT,</src></hll>
+				<hll><line>585</line><src>    CGW_PC5_TIMEOUT,</src></hll>
+				<hll><line>586</line><src>    CLU11_TIMEOUT,</src></hll>
+				<hll><line>587</line><src>    CLU13_TIMEOUT,</src></hll>
+				<hll><line>588</line><src>    EMS12_TIMEOUT,</src></hll>
+				<hll><line>589</line><src>#endif /* CCAN */</src></hll>
+				<hll><line>590</line><src>    GROUP_1_NUM,</src></hll>
+				<hll><line>591</line><src>};</src></hll>
+				<hll><line>592</line><src>extern char compiler_assert_GROUP_1_exceed_8[(GROUP_1_NUM &gt; 8) ? (-1) : (1)];</src></hll>
+				<hll><line>593</line><src></src></hll>
+				<hll><line>594</line><src>/* Recover group 2 */</src></hll>
+				<hll><line>595</line><src>enum {</src></hll>
+				<hll><line>596</line><src>#if CCAN == CANFD</src></hll>
+				<hll><line>597</line><src>    HU_CLU_PE_TIMEOUT,</src></hll>
+				<hll><line>598</line><src>    HU_GW_PE_TIMEOUT,</src></hll>
+				<hll><line>599</line><src>    HU_MON_PE_TIMEOUT,</src></hll>
+				<hll><line>600</line><src>    HU_NAVI_V2_POS_PE_TIMEOUT,</src></hll>
+				<hll><line>601</line><src>    ICSC_TIMEOUT,</src></hll>
+				<hll><line>602</line><src>    ICU_TIMEOUT,</src></hll>
+				<hll><line>603</line><src>    MDPS_TIMEOUT,</src></hll>
+				<hll><line>604</line><src>    MFSW_TIMEOUT,</src></hll>
+				<hll><line>605</line><src>#elif CCAN == HSCAN</src></hll>
+				<hll><line>606</line><src>    EMS16_TIMEOUT,</src></hll>
+				<hll><line>607</line><src>    ESP12_TIMEOUT,</src></hll>
+				<hll><line>608</line><src>    HU_CLU_PE_05_TIMEOUT,</src></hll>
+				<hll><line>609</line><src>    HU_GW_PE_01_TIMEOUT,</src></hll>
+				<hll><line>610</line><src>    HU_MON_PE_01_TIMEOUT,</src></hll>
+				<hll><line>611</line><src>    MDPS11_TIMEOUT,</src></hll>
+				<hll><line>612</line><src>    MDPS12_TIMEOUT,</src></hll>
+				<hll><line>613</line><src>    NAVI_V2_POS_E_POS_TIMEOUT,</src></hll>
+				<hll><line>614</line><src>#endif /* CCAN */</src></hll>
+				<hll><line>615</line><src>    GROUP_2_NUM,</src></hll>
+				<hll><line>616</line><src>};</src></hll>
+				<hll><line>617</line><src>extern char compiler_assert_GROUP_2_exceed_8[(GROUP_2_NUM &gt; 8) ? (-1) : (1)];</src></hll>
+				<hll><line>618</line><src></src></hll>
+				<hll><line>619</line><src>/* Recover group 3 */</src></hll>
+				<hll><line>620</line><src>enum {</src></hll>
+				<hll><line>621</line><src>#if CCAN == CANFD</src></hll>
+				<hll><line>622</line><src>    RR_C_RDR_TIMEOUT,</src></hll>
+				<hll><line>623</line><src>    SAS_TIMEOUT,</src></hll>
+				<hll><line>624</line><src>    SWRC_TIMEOUT,</src></hll>
+				<hll><line>625</line><src>    TCU_TIMEOUT,</src></hll>
+				<hll><line>626</line><src>    WHL_TIMEOUT,</src></hll>
+				<hll><line>627</line><src>    YRS_TIMEOUT,</src></hll>
+				<hll><line>628</line><src>    SBCM_TIMEOUT,</src></hll>
+				<hll><line>629</line><src>#elif CCAN == HSCAN</src></hll>
+				<hll><line>630</line><src>    P_STS_TIMEOUT,</src></hll>
+				<hll><line>631</line><src>    RR_C_RDR_02_TIMEOUT,</src></hll>
+				<hll><line>632</line><src>    SAS11_TIMEOUT,</src></hll>
+				<hll><line>633</line><src>    TCS11_TIMEOUT,</src></hll>
+				<hll><line>634</line><src>    TCS13_TIMEOUT,</src></hll>
+				<hll><line>635</line><src>    VSM11_TIMEOUT,</src></hll>
+				<hll><line>636</line><src>    WHL_SPD11_TIMEOUT,</src></hll>
+				<hll><line>637</line><src>#endif /* CCAN */</src></hll>
+				<hll><line>638</line><src>    GROUP_3_NUM,</src></hll>
+				<hll><line>639</line><src>};</src></hll>
+				<hll><line>640</line><src>extern char compiler_assert_GROUP_3_exceed_8[(GROUP_3_NUM &gt; 8) ? (-1) : (1)];</src></hll>
+				<hll><line>641</line><src></src></hll>
+				<hll><line>642</line><src>/* Recover group 4 */</src></hll>
+				<hll><line>643</line><src>enum {</src></hll>
+				<hll><line>644</line><src>    A_FR_CMR_TIMEOUT,</src></hll>
+				<hll><line>645</line><src>    A_FR_RDR_TIMEOUT,</src></hll>
+				<hll><line>646</line><src>    A_FR_C_RDR_TIMEOUT,</src></hll>
+				<hll><line>647</line><src>    GROUP_4_NUM,</src></hll>
+				<hll><line>648</line><src>};</src></hll>
+				<hll><line>649</line><src>extern char compiler_assert_GROUP_4_exceed_8[(GROUP_4_NUM &gt; 8) ? (-1) : (1)];</src></hll>
+				<hll><line>650</line><src></src></hll>
+				<hll><line>651</line><src>/* Recover group 5 */</src></hll>
+				<hll><line>652</line><src>enum {</src></hll>
+				<hll><line>653</line><src>#if CCAN == CANFD</src></hll>
+				<hll><line>654</line><src>    CLU_INVALID_SIGNAL,</src></hll>
+				<hll><line>655</line><src>    ESC_INVALID_SIGNAL,</src></hll>
+				<hll><line>656</line><src>    MDPS_INVALID_SIGNAL,</src></hll>
+				<hll><line>657</line><src>    SAS_INVALID_SIGNAL,</src></hll>
+				<hll><line>658</line><src>    EMS_INVALID_SIGNAL,</src></hll>
+				<hll><line>659</line><src>    TCU_INVALID_SIGNAL,</src></hll>
+				<hll><line>660</line><src>    YRS_INVALID_SIGNAL,</src></hll>
+				<hll><line>661</line><src>    SWRC_INVALID_SIGNAL,</src></hll>
+				<hll><line>662</line><src>#elif CCAN == HSCAN</src></hll>
+				<hll><line>663</line><src>    CGW_INVALID_SIGNAL,</src></hll>
+				<hll><line>664</line><src>    CLU_INVALID_SIGNAL,</src></hll>
+				<hll><line>665</line><src>    ESC_INVALID_SIGNAL,</src></hll>
+				<hll><line>666</line><src>    MDPS_INVALID_SIGNAL,</src></hll>
+				<hll><line>667</line><src>    SAS_INVALID_SIGNAL,</src></hll>
+				<hll><line>668</line><src>    EMS_INVALID_SIGNAL,</src></hll>
+				<hll><line>669</line><src>    TCU_INVALID_SIGNAL,</src></hll>
+				<hll><line>670</line><src>    NAVI_INVALID_SIGNAL,</src></hll>
+				<hll><line>671</line><src>#endif /* CCAN */</src></hll>
+				<hll><line>672</line><src>    GROUP_5_NUM,</src></hll>
+				<hll><line>673</line><src>};</src></hll>
+				<hll><line>674</line><src>extern char compiler_assert_GROUP_5_exceed_8[(GROUP_5_NUM &gt; 8) ? (-1) : (1)];</src></hll>
+				<hll><line>675</line><src></src></hll>
+				<hll><line>676</line><src>/* Recover group 6 */</src></hll>
+				<hll><line>677</line><src>enum {</src></hll>
+				<hll><line>678</line><src>#if CCAN == CANFD</src></hll>
+				<hll><line>679</line><src>    VCU_HCU_INVALID_SIGNAL,</src></hll>
+				<hll><line>680</line><src>    ICSC_INVALID_SIGNAL,</src></hll>
+				<hll><line>681</line><src>    ICU_INVALID_SIGNAL,</src></hll>
+				<hll><line>682</line><src>    NAVI_INVALID_SIGNAL,</src></hll>
+				<hll><line>683</line><src>    FR_CMR_INVALID_SIGNAL,</src></hll>
+				<hll><line>684</line><src>    FR_RDR_INVALID_SIGNAL,</src></hll>
+				<hll><line>685</line><src>    FR_C_RDR_INVALID_SIGNAL,</src></hll>
+				<hll><line>686</line><src>#elif CCAN == HSCAN</src></hll>
+				<hll><line>687</line><src>    FR_CMR_INVALID_SIGNAL,</src></hll>
+				<hll><line>688</line><src>    FR_RDR_INVALID_SIGNAL,</src></hll>
+				<hll><line>689</line><src>    FR_C_RDR_INVALID_SIGNAL,</src></hll>
+				<hll><line>690</line><src>    RESERVED2,</src></hll>
+				<hll><line>691</line><src>    RESERVED3,</src></hll>
+				<hll><line>692</line><src>    RESERVED4,</src></hll>
+				<hll><line>693</line><src>    RESERVED5,</src></hll>
+				<hll><line>694</line><src>    RESERVED6,</src></hll>
+				<hll><line>695</line><src>#endif /* CCAN */</src></hll>
+				<hll><line>696</line><src>    GROUP_6_NUM,</src></hll>
+				<hll><line>697</line><src>};</src></hll>
+				<hll><line>698</line><src>extern char compiler_assert_GROUP_6_exceed_8[(GROUP_6_NUM &gt; 8) ? (-1) : (1)];</src></hll>
+				<hll><line>699</line><src></src></hll>
+				<hll><line>700</line><src>/* Recover group 7 */</src></hll>
+				<hll><line>701</line><src>enum {</src></hll>
+				<hll><line>702</line><src>    GROUP_7_NUM,</src></hll>
+				<hll><line>703</line><src>};</src></hll>
+				<hll><line>704</line><src>extern char compiler_assert_GROUP_7_exceed_8[(GROUP_7_NUM &gt; 8) ? (-1) : (1)];</src></hll>
+				<hll><line>705</line><src></src></hll>
+				<hll><line>706</line><src></src></hll>
+				<hll><line>707</line><src>/* Failsafe */</src></hll>
+				<hll><line>708</line><src>extern struct internal_error_info int_err_info;</src></hll>
+				<hll><line>709</line><src>extern volatile struct reference_signal ref_sig;</src></hll>
+				<hll><line>710</line><src>extern uint16 vol_grp[VOL_GRP_NUM];</src></hll>
+				<hll><line>711</line><src>extern boolean internal_sw_fault;</src></hll>
+				<hll><line>712</line><src>extern boolean internal_hw_fault;</src></hll>
+				<hll><line>713</line><src>extern uint32 can_timeout_fault[MSG_GRP_NUM];</src></hll>
+				<hll><line>714</line><src>extern boolean clear_dtc;</src></hll>
+				<hll><line>715</line><src>extern uint8 Get_ADAS_DRV_FailInfoSta(void);</src></hll>
+				<hll><line>716</line><src>extern uint8 Get_ADAS_DRV_CodingSta(void); </src></hll>
+				<hll><line>717</line><src>extern uint8 Get_ADAS_DRV_ACANMonSta(void);</src></hll>
+				<hll><line>718</line><src>extern uint8 Get_RadarFailureFlg(void);</src></hll>
+				<hll><line>719</line><src>extern volatile boolean BSW_InitCompleted;</src></hll>
+				<hll><line>720</line><src>extern uint8 rdr_fail_flag;</src></hll>
+				<hll><line>721</line><src>extern sigerr_t fr_rdr[FR_RDR_ITEM_NUM];</src></hll>
+				<hll><line>722</line><src></src></hll>
+				<hll><line>723</line><src>void FS_Init(void);</src></hll>
+				<hll><line>724</line><src>void FS_MasterLoop(void);</src></hll>
+				<hll><line>725</line><src>void update_inhibit_info(struct inhibit_info new);</src></hll>
+				<hll><line>726</line><src>void store_in_nvm(void);</src></hll>
+				<hll><line>727</line><src>struct precondition *get_precond_ptr(void);</src></hll>
+				<hll><line>728</line><src>struct inhibit_info *get_inhibit_ptr(void);</src></hll>
+				<hll><line>729</line><src>boolean Get_NAVI_Option(void);</src></hll>
+				<hll><line>730</line><src>boolean Get_HDA2_Option(void);</src></hll>
+				<hll><line>731</line><src>boolean Get_BCA_Option(void);</src></hll>
+				<hll><line>732</line><src>boolean Get_SEW_Option(void);</src></hll>
+				<hll><line>733</line><src>boolean Get_RCCW_Option(void);</src></hll>
+				<hll><line>734</line><src></src></hll>
+				<hll><line>735</line><src></src></hll>
+				<hll><line>736</line><src>static inline boolean is_timeout(uint8 msg_grp, uint8 pos)</src></hll>
+				<hll><line>737</line><src>{</src></hll>
+				<hll><cov>never</cov><line>738</line><src>    return !!(can_timeout_fault[msg_grp] &amp; BIT(pos));</src></hll>
+				<asm><cov>never</cov><addr>P:80004A68</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004A6C</addr><code>1030FFD9</code><mnemonic>lea       a15,[a15]0x70</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004A70</addr><code>FF54</code><mnemonic>ld16.w    d15,[a15]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004AAA</addr><code>FF54</code><mnemonic>ld16.w    d15,[a15]</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\SWC_Failsafe.h">
+				<hll><line>739</line><src>}</src></hll>
+				<hll><line>740</line><src></src></hll>
+				<hll><line>741</line><src>static inline boolean internal_error_occurred(void)</src></hll>
+				<hll><line>742</line><src>{</src></hll>
+				<hll><line>743</line><src>    return !!((int_err_info.hw_err_cnt &gt;= ERR_CNT_THR) || (int_err_info.sw_err_cnt &gt;= ERR_CNT_THR));</src></hll>
+				<hll><line>744</line><src>}</src></hll>
+				<hll><line>745</line><src></src></hll>
+				<hll><line>746</line><src>static inline void external_wdg_enable(void)</src></hll>
+				<hll><line>747</line><src>{</src></hll>
+				<hll><line>748</line><src>    Dio_WriteChannel(DioConf_DioChannel_Dio_Port2_Pin4, 0U);</src></hll>
+				<hll><line>749</line><src>}</src></hll>
+				<hll><line>750</line><src></src></hll>
+				<hll><line>751</line><src>/* SWC_ISR */</src></hll>
+				<hll><line>752</line><src>extern volatile uint32 e2e_err_flags[MSG_GRP_NUM];</src></hll>
+				<hll><line>753</line><src>extern volatile uint32 msg_received_flags[MSG_GRP_NUM]; </src></hll>
+				<hll><line>754</line><src>extern volatile uint32 msg_received_buf[MSG_GRP_NUM];</src></hll>
+				<hll><line>755</line><src></src></hll>
+				<hll><line>756</line><src>static inline boolean is_updated(uint8 msg_grp, uint8 pos)</src></hll>
+				<hll><line>757</line><src>{</src></hll>
+				<hll><cov>never</cov><line>758</line><src>    return !!(msg_received_flags[msg_grp] &amp; BIT(pos));</src></hll>
+				<asm><cov>never</cov><addr>P:80004A84</addr><code>0682</code><mnemonic>mov16     d6,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004A86</addr><code>F8DDFF61</code><mnemonic>fcall     0x80003C40</mnemonic><comment>.cocofun_63</comment></asm>
+				<asm><cov>never</cov><addr>P:80004A8A</addr><code>372E</code><mnemonic>jz16.t    d15,#0x3,0x80004A98</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\SWC_Failsafe.h" type="multiple">
+				<hll><line>759</line><src>}</src></hll>
+				<hll><line>760</line><src></src></hll>
+				<hll><line>761</line><src>static inline boolean is_e2e_err(uint8 msg_grp, uint8 pos)</src></hll>
+				<hll><line>762</line><src>{</src></hll>
+				<hll><cov>never</cov><line>763</line><src>    return !!(e2e_err_flags[msg_grp] &amp; BIT(pos));</src></hll>
+				<asm><cov>never</cov><addr>P:80004A8C</addr><code>2F54</code><mnemonic>ld16.w    d15,[a2]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004AB6</addr><code>F8A9FF61</code><mnemonic>fcall     0x80003C08</mnemonic><comment>.cocofun_59</comment></asm>
+				<asm><cov>never</cov><addr>P:80004ABC</addr><code>F8A6FF61</code><mnemonic>fcall     0x80003C08</mnemonic><comment>.cocofun_59</comment></asm>
+			</mixed>
+		</List.EXPORT>
+	</listing>
+</TRACE32>

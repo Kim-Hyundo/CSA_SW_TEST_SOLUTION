@@ -1,0 +1,35 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash Declaration Script for phyCORE-i.MX35 (PCM043) Board
+; @Description: Flash declaration file for phyCORE-i.MX35 (PCM043) board
+; @Keywords: flash, imx3*, Linux, phycore, i.mx3*
+; @Author: DIE
+; @Board: phyCORE-i.MX350
+; @Chip: IMX35
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx35_flash.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; Flash declaration file for phyCORE-i.MX35 (PCM043) board
+
+ RESet
+ SYStem.CPU IMX35
+ SYStem.JtagClock RTCK
+ SYStem.Option ResBreak    OFF
+ SYStem.CONFIG.L2CACHE.Base 0x30000000
+
+ SYStem.Up
+ 
+ FLASH.RESet
+ FLASH.CFI 0xa0000000 Word
+ FLASH.UNLOCK ALL
+ 
+ ;FLASH.Erase 0xa0000000--0xa1ffffff
+ ;FLASH.Program ON
+
+ ;Data.LOAD.Binary u-boot-pcm043     0xa0000000     ; u-boot
+ ;Data.LOAD.Binary u-boot-env        0xa0040000     ; u-boot environment
+ ;Data.LOAD.Binary uImage-pcm043     0xa0060000     ; Linux kernel image
+ ;Data.LOAD.Binary root-pcm043.jffs2 0xa0260000     ; root file system
+
+ ;FLASH.Program OFF

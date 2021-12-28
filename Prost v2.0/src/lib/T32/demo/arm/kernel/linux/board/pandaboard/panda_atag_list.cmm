@@ -1,0 +1,78 @@
+; --------------------------------------------------------------------------------
+; @Title: ATAG Structure Initialization Script for the PandaBoard
+; @Description: 
+;   Setup parameter tags for Linux boot
+;   Format:
+;   u32 size  \_ header
+;   u32 type  /
+;   n * u32 tag
+; @Keywords: OMAP4*, Panda*, TI
+; @Author: KJM
+; @Board: PandaBoard
+; @Props:NoWelcome
+; @Chip: OMAP4430
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: panda_atag_list.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+&tag=0x80000100
+&tagAddr=&tag
+
+Data.Set &tagAddr++0xef %Long 0x0
+
+; ATAG_CORE
+Data.Set &tagAddr %Long %LE 0x5
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x54410001
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x0
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x0
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x0
+&tagAddr=&tagAddr+0x4
+
+; ATAG_Revision
+Data.Set &tagAddr %Long %LE 0x3
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE  0x54410007
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x00000010
+&tagAddr=&tagAddr+0x4
+
+; ATAG_MEM
+Data.Set &tagAddr %Long %LE 0x4
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x54410002
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x20000000
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x80000000 
+&tagAddr=&tagAddr+0x4
+
+; ATAG_CMDLINE
+&cmdline="root=/dev/ram rw mem=463M console=ttyO2,115200n8 initrd=0x81600000,4M"
+;&cmdline="root=/dev/ram rw mem=463M console=ttyO2,115200n8 initrd=0x81600000,4M maxcpus=1"
+;&cmdline="root=/dev/mmcblk0p2 ro rootwait mem=463M console=ttyO2,115200n8 init=/linuxrc earlyprintk"
+&cmdsize=(STRing.LENgth("&cmdline")+16)&~0x3
+Data.Set &tagAddr %Long %LE &cmdsize/4
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x54410009
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr "&cmdline" 0
+&tagAddr=&tagAddr+(&cmdsize-8)
+
+; ATAG_NONE
+Data.Set &tagAddr %Long %LE 0x0
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x0
+&tagAddr=&tagAddr+0x4
+
+Register.Set R2 &tag
+
+ENDDO
+
+
+
+

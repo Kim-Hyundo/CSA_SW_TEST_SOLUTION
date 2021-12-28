@@ -1,0 +1,41 @@
+; --------------------------------------------------------------------------------
+; @Title: GUI Adoption for AMP Demo
+; @Description:
+;   This file patches the TRACE32 Menu structure with the AMP Demo related
+;   scripts.
+; @Keywords: ARM
+; @Author: AME
+; @Props: NoMetaTags NoWelcome NoIndex
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: t32_amp.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+; Store the location of the current script into a temporary macro ScriptBase
+PRIVATE &ScriptBase
+&ScriptBase=OS.PPD()
+
+IF SYSTEM.INSTANCE()<=1.
+(
+  ; for the MASTER instance
+
+  DIALOG.OK "Please start the demos using the AMP-DEMOS Menu entry."
+
+  ; add menu items with all demo scripts
+  MENU.ReProgram
+  (&
+    ADD
+    MENU
+    (
+      POPUP "AMP-DEMOS"
+      (
+
+        MENUITEM "Start tda3xevm_amp_sram.cmm" "WinResist.PSTEP ""&ScriptBase/tda3xevm_amp_sram.cmm"""
+      )
+    )
+  )
+)
+ELSE
+(
+  ; for the SLAVE instances
+)

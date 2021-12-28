@@ -1,0 +1,63 @@
+; --------------------------------------------------------------------------------
+; @Title: Tizen RT Demo for TRACE32 OS Awareness
+; @Description: This batchfile demonstrates the OS Awareness for Tizen RT.
+; @Keywords: awareness, RTOS, Tizen RT
+; @Author: DIE
+; @Chip: Cortex-R4
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tizenrt.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+WinPAGE.RESet
+WinCLEAR
+WinPOS 0. 26. 63. 7. 0. 0. W006
+AREA.view
+
+; Debugger reset
+
+PRINT "resetting..."
+RESet
+
+; Initializing Debugger
+
+PRINT "initializing..."
+SYStem.CPU CortexR4
+SYStem.Up
+
+; Load sample application
+
+PRINT "loading sample application..."
+Data.LOAD.Elf tinyara
+
+IF INTERFACE.SIM()
+(
+    Data.Assemble up_configure+0x18 nop
+    Data.Assemble s5j_sflash_init+0x34 nop
+    Data.Assemble up_lowputc+0x18 nop
+    Data.Assemble up_lowputc+0x34 nop
+)
+
+; Initialize RTOS support
+
+PRINT "initializing Tizen RT support..."
+TASK.CONFIG ~~/demo/arm/kernel/tizenrt/tizenrt.t32     ; load Tizen RT Awareness
+MENU.ReProgram ~~/demo/arm/kernel/tizenrt/tizenrt.men  ; load Tizen RT Menu
+TASK.STacK.PATtern %Long 0xDEADBEEF
+HELP.FILTER.Add rtostizenrt  ; add Tizen RT awareness manual to help filter
+
+; Open some windows
+
+WinPOS 0. 0. 75. 19.
+List
+
+WinPOS 80. 0. 44. 6.
+TASK.Task
+
+; Start application
+
+Go tash_main
+
+PRINT "done."
+
+ENDDO

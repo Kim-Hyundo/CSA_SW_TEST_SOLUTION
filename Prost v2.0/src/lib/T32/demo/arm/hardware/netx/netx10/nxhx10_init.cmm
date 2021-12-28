@@ -1,0 +1,39 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to connect to the NXHX10 Board
+; @Description:
+;   This script connects to the NXHX10 Board by calling the
+;   netx_common_init.cmm script and the enables the SDRAM
+;   interface, setup the SDRAM timing and setup the spansion
+;   flash.
+; @Keywords: Hilscher, NetX*
+; @Board: NXHX10
+; @Chip: ARM966E-S
+; @Author: Hilscher
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: nxhx10_init.cmm 12065 2018-02-07 12:26:30Z amerkle $
+
+
+DO ~~~~/netx_common_init.cmm
+
+;Enable SDRAM Interface on netX10
+Data.Set ASD:0x101c0070 %Long Data.Long(ASD:0x101c0070)
+Data.Set ASD:0x101C0C40 %Long 0x00000050
+
+;setup SDRam Timing
+Data.Set ASD:0x101C0140 %Long 0x0
+Data.Set ASD:0x101C0144 %Long 0x00a13262
+Data.Set ASD:0x101C0148 %Long 0x00000033
+Data.Set ASD:0x101C0140 %Long 0x030d0121
+
+; Setup Spansion Flash
+Data.Set ASD:0x101C0100 %Long 0x01010009
+
+FLASH.RESet
+;16MB Flash at 0xc0000000 with a sector size of 128kByte of type S29GL128N
+FLASH.Create 1. ASD:0xC0000000++0x00FFFFFF 0x20000 TARGET Word
+FLASH.TARGET ASD:0x08001000 ASD:0x08002000 0x1000 word/am29lv256.bin
+
+MAP.BOnchip 0xC0000000++0x1FFFFFF
+
+ENDDO

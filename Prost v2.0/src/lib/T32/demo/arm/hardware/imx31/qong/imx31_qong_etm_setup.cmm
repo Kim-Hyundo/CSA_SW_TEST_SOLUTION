@@ -1,0 +1,64 @@
+; --------------------------------------------------------------------------------
+; @Title: ETM Setup for DAVE-Qong i.MX31 Based board
+; @Description: 
+;   Setup ETM port & ETM probe for Qong
+; @Author:  MFE
+; @Board: DAVE-Qong i.MX31
+; @Keywords: i.MX31
+; @Chip: IMX31
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx31_qong_etm_setup.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; ETM pin setup
+  PRINT "Setting ETM pin configuration..."
+; lower 8bit alternate
+  Data.Set ASD:0x43FAC060 %Long 0x51515151
+  Data.Set ASD:0x43FAC064 %Long 0x00000050
+  Data.Set ASD:0x43FAC068 %Long 0x51515151
+  Data.Set ASD:0x43FAC06C %Long 0x00000050
+; lower 8bit primary
+  Data.Set ASD:0x43FAC040 %Long 0x50000000
+  Data.Set ASD:0x43FAC044 %Long 0x00000050
+  Data.Set ASD:0x43FAC09c %Long 0x51515050
+  Data.Set ASD:0x43FAC0D0 %Long 0x52525002
+  Data.Set ASD:0x43FAC0D4 %Long 0x52525252
+; upper 8bit alternat+primary
+  Data.Set ASD:0x43FAC08C %Long 0x50500000
+  Data.Set ASD:0x43FAC090 %Long 0x51515151
+  Data.Set ASD:0x43FAC09c %Long 0x51515050
+  PRINT ""
+
+; ETM setup
+  PRINT "ETM setup..."
+  PRINT "IMPORTANT: R163 and R269 must be 0 Ohms!"
+  PRINT "IMPORTANT: Mainboard influences the trace signals -> remove it! "
+  ETM.PortSize 8
+  ETM.PortMode 1/2
+
+; Trace setup
+  PRINT "Trace setup..."
+  Trace.Mode FIFO
+  Trace.ACCESS vm:
+
+; set focus
+ IF Analyzer()
+ (
+   Analyzer.TERMination ON
+   Analyzer.THreshold  1.38 1.53
+   Analyzer.SAMPLE   TCTL    +2.301
+   Analyzer.SAMPLE    TP0    +2.457
+   Analyzer.SAMPLE    TP1    +2.379
+   Analyzer.SAMPLE    TP2    +2.535
+   Analyzer.SAMPLE    TP3    +2.223
+   Analyzer.SAMPLE    TP4    +2.457
+   Analyzer.SAMPLE    TP5    +2.457
+   Analyzer.SAMPLE    TP6    +2.301
+   Analyzer.SAMPLE    TP7    +2.301
+ )
+
+ENDDO
+
+
+
+

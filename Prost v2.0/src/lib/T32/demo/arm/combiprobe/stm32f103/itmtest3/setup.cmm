@@ -1,0 +1,47 @@
+; --------------------------------------------------------------------------------
+; @Title: ITM Data Trace Script for the STM32F103 Using the CombiProbe
+; @Description: 
+;   This script starts the STM32F103 and configures ITM for data traces
+;   to be generated on SWD mode.
+; @Chip: STM32F103ZE
+; @Board: STM32F103 EVB
+; @Author: ING
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: setup.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; bring up board, load application etc.
+  SYStem.CPU STM32F103ZE
+  SYStem.Down
+  Break.Delete
+  ITM.RESet
+
+  ChDir ../pipeproto
+  DO common
+  ChDir ../itmtest3
+
+  CAnalyzer.Mode FIFO
+  CAnalyzer.Init
+
+  Data.LOAD.Elf test.elf
+
+; Now start application
+  Go.direct main
+  WAIT !STATE.RUN()
+  WinCLEAR
+  WinPOS 0% 0% 50% 30%
+  List.auto
+  WinPOS 51% 0% 
+  ca.
+  WinPOS 0% 31% 30% 68%
+  CAnalyzer.List /TRACK
+  WinPOS 31% 27. 68% 8.
+  CAnalyzer.Chart /TRACK
+
+; Sample Interrupts via DWT
+  ETM.OFF
+  ITM.ON
+  ITM.DataTrace OFF
+  ITM.InterruptTrace ON
+

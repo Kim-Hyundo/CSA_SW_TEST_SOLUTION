@@ -1,0 +1,2015 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags
+; @Author: TI
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: omap4430_ddr.cmm 8886 2015-11-18 18:06:51Z mobermeir $
+
+ENTRY &menu_type &opp_prcm_value
+
+GLOBAL &OPP25 &OPP25_SDC &OPP50 &OPP50_SDC &OPP100 &OPP100_SDC &OPP100_HDMI &OPP100_ES2 &OPPBOOT &ELPIDA2X2GBIT &MICRON_MT2L32M64DKH3 &ZEBU &ELPIDA4X2GBIT
+&OPPBOOT=0x0
+&OPP25=0x1
+&OPP25_SDC=0x2
+&OPP50=0x3
+&OPP50_SDC=0x4
+&OPP100=0X5
+&OPP100_SDC=0X6
+&OPP100_HDMI=0X7
+&OPP100_ES2=0X8
+
+
+
+&ELPIDA2X2GBIT=0x0
+&MICRON_MT2L32M64DKH3=0x1
+&ZEBU=0x2
+&ELPIDA4X2GBIT=0x3
+
+&CMM_DIR="~~~~"
+
+IF (Var.VALUE(&menu_type)==0)
+( 
+  GOSUB ddr_zebu
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==1)
+( 
+  GOSUB ddr_board_elpida_emif1_shadow
+  GOSUB ddr_board_elpida_emif2_shadow
+  GOSUB dmm_sections_elpida
+
+  Data.Set SR:0x4e000040 %Long 0x80540300
+  Data.Set SR:0x4A100638 %Long 0x9C9C9C9C
+  Data.Set SR:0x4A10063C %Long 0x9C9C9C9C
+  Data.Set SR:0x4A100640 %Long 0x9C9C9C9C
+  Data.Set SR:0x4A100648 %Long 0x9C9C9C9C
+  Data.Set SR:0x4A10064C %Long 0x9C9C9C9C
+  Data.Set SR:0x4A100650 %Long 0x9C9C9C9C
+  ;Data.Set SR:0x4A100704 %long 0x00084000 
+    
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==2)
+( 
+  GOSUB ddr_board_micron_emif1_shadow
+  GOSUB ddr_board_micron_emif2_shadow
+  GOSUB dmm_sections_micron
+
+  ;Data.Set SR:0x4e000040 %long 0x80540300
+  Data.Set SR:0x4A100638 %Long 0x9C9C9C9C
+  Data.Set SR:0x4A10063C %Long 0x9C9C9C9C
+  Data.Set SR:0x4A100640 %Long 0x9C9C9C9C
+  Data.Set SR:0x4A100648 %Long 0x9C9C9C9C
+  Data.Set SR:0x4A10064C %Long 0x9C9C9C9C
+  Data.Set SR:0x4A100650 %Long 0x9C9C9C9C
+  ;Data.Set SR:0x4A100704 %long 0x00084000 
+    
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==3)
+( 
+  AREA.Select results
+  PRINT "OPP50 ELPIDA2X2GBIT DDR CONFIG"
+  GOSUB ddr_config_top &OPP50 &ELPIDA2X2GBIT
+  ENDDO
+)
+    
+IF (Var.VALUE(&menu_type)==4)
+( 
+  AREA.Select results
+  PRINT "OPP50 ELPIDA4X2GBIT DDR CONFIG"
+  GOSUB ddr_config_top &OPP50 &ELPIDA4X2GBIT
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==5)
+( 
+  GOSUB elpida_EDB8064B1PB8DF_EMIF4D1_shadow_reg &opp_prcm_value
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==6)
+( 
+  GOSUB elpida_EDB8064B1PB8DF_EMIF4D2_shadow_reg &opp_prcm_value
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==7)
+( 
+  AREA.Select results
+  PRINT "OPP50 ELPIDA2X2GBIT DDR CONFIG"
+  GOSUB ddr_config_top &OPP50 &ELPIDA2X2GBIT
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==8)
+( 
+  AREA.Select results
+  PRINT "OPP50 ELPIDA4X2GBIT DDR CONFIG"
+  GOSUB ddr_config_top &OPP50 &ELPIDA4X2GBIT
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==9)
+( 
+  AREA.Select results
+  PRINT "OPP100 MICRON_MT2L32M64DKH3 DDR CONFIG"
+  GOSUB ddr_config_top &OPP100 &MICRON_MT2L32M64DKH3
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==10.)
+( 
+  AREA.Select results
+  PRINT "OPP100 ES2 ELPIDA2X2GBIT DDR CONFIG"
+  GOSUB ddr_config_top &OPP100_ES2 &ELPIDA2X2GBIT
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==11.)
+( 
+  AREA.Select results
+  PRINT "OPP100 ELPIDA2X2GBIT DDR CONFIG"
+  GOSUB ddr_config_top &OPP100 &ELPIDA2X2GBIT
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==12.)
+( 
+  AREA.Select results
+  PRINT "OPP100 ES2 ELPIDA4X2GBIT DDR CONFIG"
+  GOSUB ddr_config_top &OPP100_ES2 &ELPIDA4X2GBIT
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==13.)
+( 
+  AREA.Select results
+  PRINT "OPP100 ELPIDA4X2GBIT DDR CONFIG"
+  GOSUB ddr_config_top &OPP100 &ELPIDA4X2GBIT
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==14.)
+( 
+  AREA.Select results
+  PRINT "OPP100 ZEBU DDR CONFIG"
+  GOSUB ddr_config_top &OPP100  &ZEBU
+  ENDDO
+)
+
+ENDDO
+
+ddr_config_top:
+(
+  ENTRY &opp_type &memory_type
+  
+  LOCAL &lv_OPP; // Local OPP variable needed to overwrite OPP100_ES20 that is actually OPP50 (to keep consistency inside omap4430_startup_common.gel)
+  
+  IF (&opp_type==&OPP100_ES2)
+  (
+    &lv_OPP=&OPP50;
+  ) 
+  ELSE 
+  (
+    &lv_OPP=&opp_type;
+  )
+  
+  // Removing NVM mode on nCS1 in order to select if needed 2 CS of DDRAM for each EMIF4D instance
+  //*(int*)(0x4D00000C)&=0xBFFFFFFF; // Clear bit 30 - REG_CS1NVMEN
+  Data.Set SR:0x4D00000C %Long 0xBFFFFFFF
+  //*(int*)(0x4C00000C)&=0xBFFFFFFF; // Clear bit 30 - REG_CS1NVMEN
+  Data.Set SR:0x4C00000C %Long 0xBFFFFFFF
+  
+  AREA.Select results
+
+  IF (&DEBUG_INFO==1)
+  (    
+    PRINT " >>> ddr_config_top"
+  )
+
+  IF &memory_type==&ELPIDA4X2GBIT
+  (
+    GOSUB elpida_EDB8064B1PB8DF_EMIF4D1 &lv_OPP
+    GOSUB elpida_EDB8064B1PB8DF_EMIF4D2 &lv_OPP
+
+    GOSUB TOP1
+    RETURN
+  )
+
+  IF &memory_type==&ELPIDA2X2GBIT
+  (
+    GOSUB elpida_E1471E10_EMIF4D1 &lv_OPP
+    GOSUB elpida_E1471E10_EMIF4D2 &lv_OPP
+
+    GOSUB TOP1
+    RETURN
+  )
+
+  IF &memory_type==&MICRON_MT2L32M64DKH3
+  (
+    GOSUB micron_MT2L32M64DKH3_EMIF4D1 &lv_OPP
+    GOSUB micron_MT2L32M64DKH3_EMIF4D2 &lv_OPP
+
+    GOSUB TOP1
+    RETURN
+  )
+
+  IF &memory_type==&ZEBU
+  (
+    GOSUB zebu_memory &lv_OPP
+
+    GOSUB TOP1
+    RETURN
+  )
+
+  AREA.Select results
+  PRINT "ddr_config top unknown !!!!"
+  RETURN
+
+TOP1:
+  GOSUB dmm_settings_board &memory_type
+  Data.Set SR:0x4A100638 %Long 0x9C9C9C9C
+  Data.Set SR:0x4A10063C %Long 0x9C9C9C9C
+  Data.Set SR:0x4A100640 %Long 0x9C9C9C9C
+  Data.Set SR:0x4A100648 %Long 0x9C9C9C9C
+  Data.Set SR:0x4A10064C %Long 0x9C9C9C9C
+  Data.Set SR:0x4A100650 %Long 0x9C9C9C9C
+  ;Data.Set SR:0x4A100704 %long 0x00084000 
+
+  ;PRINT " <<< ddr_config_top"
+  RETURN
+)
+
+dmm_settings_board:
+(
+  ENTRY &memory_type
+    
+  AREA.Select results
+    
+  IF (&DEBUG_INFO==1)
+  (
+    PRINT " >>> dmm_settings_board"
+  )
+    
+  IF &memory_type==&ELPIDA2X2GBIT
+  (
+    // Write @40 LISA_MAP_0 
+    //*(int*)0x4e000040 = 0x80540300;
+    Data.Set SR:0x4e000040 %Long 0x80540300
+    
+    // Write @48 LISA_MAP_3 
+    //*(int*)0x4e00004C = 0xFF020100;
+    Data.Set SR:0x4e00004C %Long 0xFF020100
+    ;PRINT " <<< dmm_settings_board"
+    GOSUB TOP2
+    RETURN
+  )
+  
+  IF &memory_type==&ELPIDA4X2GBIT
+  (
+    // Write @40 LISA_MAP_0 
+    //*(int*)0x4e000040 = 0x80640300;
+    Data.Set SR:0x4e000040 %Long 0x80640300
+    
+    // Write @48 LISA_MAP_3 
+    //*(int*)0x4e00004C = 0xFF020100;
+    Data.Set SR:0x4e00004C %Long 0xFF020100
+    ;PRINT " <<< dmm_settings_board"
+    GOSUB TOP2
+    RETURN
+  )
+  
+  IF &memory_type==&MICRON_MT2L32M64DKH3
+  (
+    // Write @40 LISA_MAP_0 
+    //*(int*)0x4e000040 = 0x80440300;
+    Data.Set SR:0x4e000040 %Long 0x80440300
+    
+    // Write @48 LISA_MAP_3 
+    //*(int*)0x4e00004C = 0xFF020100;
+    Data.Set SR:0x4e00004C %Long 0xFF020100
+    ;PRINT " <<< dmm_settings_board"
+    GOSUB TOP2
+    RETURN
+  )
+  
+  IF &memory_type==&ZEBU
+  (
+    // Write @40 LISA_MAP_0 
+    //*(int*)0x4e000040 = 0x80700100;
+    Data.Set SR:0x4E000040 %Long 0x80700100
+    GOSUB TOP2
+    RETURN
+  )
+      
+  PRINT "dmm_settings_board unknown !!!!"
+TOP2:
+  RETURN
+)
+
+zebu_memory:
+(
+  ENTRY &opp_type
+  
+  AREA.Select results
+  PRINT " >>> ZEBU configuration"
+  
+  // DDR PHY CTRL 1
+  Data.Set SR:0x4c0000e4 %Long 0x901FF416
+
+  // SDRAM CONFIG
+  Data.Set SR:0x4c000008 %Long 0x80800EB2
+
+  // set MR0 (line CS0) register
+  Data.Set SR:0x4c000050 %Long 0x40000000
+  Data.Set SR:0x4c000040 %Long 0x00000000
+
+  Data.Set SR:0x4A008B30 %Long 0x00000001
+  Data.Set SR:0x4A008B50 %Long 0x00000001
+  
+  PRINT " <<< ZEBU configuration"
+  RETURN
+)
+
+elpida_EDB8064B1PB8DF_EMIF4D1:
+(
+  ENTRY &opp_type
+  
+  AREA.Select results
+  ;PRINT " >>> elpida_EDB8064B1PB8DF_EMIF4D1"
+
+  // SDRAM CONFIG
+  //*(int*)0x4C000008 = 0x98800eb9;
+  Data.Set SR:0x4C000008 %Long 0x98800eb9
+
+  // DDR PHY CTRL 1
+  //*(int*)0x4C0000E4 = DDR_PHY_CTRL1_OPPBOOT_RL3;
+  Data.Set SR:0x4C0000E4 %Long 0x449FFFF4
+  
+  // set MR0 (line CS0) register and poll 
+  //*(int*)0x4C000050 = 0x00000000;
+  Data.Set SR:0x4C000050 %Long 0x00000000
+  //while ( (*(int*)0x4C000040&0x1)!=0x0);
+  WAIT (Data.Long(NSR:0x4C000040)&0x1)==0x0
+  
+  // set MR0 (line CS1) register and poll 
+  //*(int*)0x4C000050 = 0x80000000;
+  Data.Set SR:0x4C000050 %Long 0x80000000
+  //while ( (*(int*)0x4C000040&0x1)!=0x0);
+  WAIT (Data.Long(NSR:0x4C000040)&0x1)==0x0
+
+  // set MR10 (line CS0) register
+  //*(int*)0x4C000050 = 0x0000000A;
+  Data.Set SR:0x4C000050 %Long 0x0000000A
+  //*(int*)0x4C000040 = 0x000000FF;
+  Data.Set SR:0x4C000040 %Long 0x000000FF
+
+  // set MR10 (line CS1) register
+  //*(int*)0x4C000050 = 0x8000000A;
+  Data.Set SR:0x4C000050 %Long 0x0000000A
+  //*(int*)0x4C000040 = 0x000000FF;
+  Data.Set SR:0x4C000040 %Long 0x000000FF
+
+  // set MR1 (line CS0) register
+  //*(int*)0x4C000050 = 0x00000001;
+  Data.Set SR:0x4C000050 %Long 0x00000001
+  //*(int*)0x4C000040 = 0x00000023;
+  Data.Set SR:0x4C000040 %Long 0x00000023
+
+  // set MR1 (line CS1) register
+  //*(int*)0x4C000050 = 0x80000001;
+  Data.Set SR:0x4C000050 %Long 0x80000001
+  //*(int*)0x4C000040 = 0x00000023;
+  Data.Set SR:0x4C000040 %Long 0x00000023
+  
+
+  IF ((&opp_type!=&OPP100_ES2)&&(&opp_type!=&OPP50))
+  (
+    // change RL
+    // set MR2 (line CS0) register 
+    //*(int*)0x4C000050 = 0x00000002;
+    Data.Set SR:0x4C000050 %Long 0x00000002
+    //*(int*)0x4C000040 = 0x00000004;
+    Data.Set SR:0x4C000040 %Long 0x00000004
+    // set MR2 (line CS1) register 
+    //  *(int*)0x4C000050 = 0x80000002;
+      Data.Set SR:0x4C000050 %Long 0x80000002
+    //  *(int*)0x4C000040 = 0x00000004;
+    Data.Set SR:0x4C000040 %Long 0x00000004
+    // SDRAM CONFIG
+    //*(int*)0x4C000008 = SDRAM_CONFIG_2X_2GBIT_MAP3_CL6;
+    Data.Set SR:0x4C000008 %Long 0x98801AB9
+    // DDR PHY CTRL 1
+    //*(int*)0x4C0000E4 = DDR_PHY_CTRL1_OPPBOOT_RL6;
+    Data.Set SR:0x4C0000E4 %Long 0x449FFFF8
+  )
+  
+  // DDR PHY CTRL 2
+  //*(int*)0x4C0000EC = 0x00000000;
+  Data.Set SR:0x4C0000EC %Long 0x00000000
+
+  // READ IDLE CTRL
+  //*(int*)0x4C000098 = 0x000501FF;
+  Data.Set SR:0x4C000098 %Long 0x000501FF
+
+  // PWR MGMT CTRL
+  //*(int*)0x4C000038 = 0x80000000;
+  Data.Set SR:0x4C000038 %Long 0x80000000
+
+  // ZQ INIT
+  //*(int*)0x4C0000C8 = 0x500B3215;
+  Data.Set SR:0x4C0000C8  %Long 0x500B3215
+
+  // SDRAM REF CTRL
+  //*(int*)0x4C000010 = REF_CTRL_3_9_US_OPPBOOT;
+  Data.Set SR:0x4C000010  %Long 0x0000004a
+
+  // program shadow registers
+  //elpida_EDB8064B1PB8DF_EMIF4D1_shadow_reg(OPP);
+  GOSUB elpida_EDB8064B1PB8DF_EMIF4D1_shadow_reg &opp_type
+
+  // set MR16 (line CS0) 
+  //*(int*)0x4C000050 = 0x40000010;
+  Data.Set SR:0x4C000050  %Long 0x40000010
+  //*(int*)0x4C000040 = 0x00000000;
+  Data.Set SR:0x4C000040  %Long 0x00000000
+
+  // set MR16 (line CS1) 
+  //*(int*)0x4C000050 = 0xC0000010;
+  //Data.Set SR:0x4C000050  %long 0xC0000010
+  //*(int*)0x4C000040 = 0x00000000;
+  //Data.Set SR:0x4C000040  %long 0x00000000
+  
+  ;PRINT " <<< elpida_EDB8064B1PB8DF_EMIF4D1"
+  RETURN
+)
+
+elpida_E1471E10_EMIF4D1:
+(
+  ENTRY &opp_type
+  
+  AREA.Select results
+  ;PRINT " >>> elpida_E1471E10_EMIF4D1"
+
+  // SDRAM CONFIG
+  //*(int*)0x4C000008 = 0x98800eb1;
+  Data.Set SR:0x4C000008 %Long 0x98800eb1
+
+  // DDR PHY CTRL 1
+  //*(int*)0x4C0000E4 = DDR_PHY_CTRL1_OPPBOOT_RL3;
+  Data.Set SR:0x4C0000E4 %Long 0x449FFFF4
+  
+  // set MR0 (line CS0) register and poll 
+  //*(int*)0x4C000050 = 0x00000000;
+  Data.Set SR:0x4C000050 %Long 0x00000000
+  //while ( (*(int*)0x4C000040&0x1)!=0x0);
+  WAIT (Data.Long(NSR:0x4C000040)&0x1)==0x0
+  
+  // set MR0 (line CS1) register and poll 
+  //*(int*)0x4C000050 = 0x80000000;
+  Data.Set SR:0x4C000050 %Long 0x80000000
+  //while ( (*(int*)0x4C000040&0x1)!=0x0);
+  WAIT (Data.Long(NSR:0x4C000040)&0x1)==0x0
+
+  // set MR10 (line CS0) register
+  //*(int*)0x4C000050 = 0x0000000A;
+  Data.Set SR:0x4C000050 %Long 0x0000000A
+  //*(int*)0x4C000040 = 0x000000FF;
+  Data.Set SR:0x4C000040 %Long 0x000000FF
+
+  // set MR10 (line CS1) register
+  //*(int*)0x4C000050 = 0x8000000A;
+  //Data.Set SR:0x4C000050 %long 0x0000000A
+  //*(int*)0x4C000040 = 0x000000FF;
+  //Data.Set SR:0x4C000040 %long 0x000000FF
+
+  // set MR1 (line CS0) register
+  //*(int*)0x4C000050 = 0x00000001;
+  Data.Set SR:0x4C000050 %Long 0x00000001
+  //*(int*)0x4C000040 = 0x00000023;
+  Data.Set SR:0x4C000040 %Long 0x00000023
+
+  // set MR1 (line CS1) register
+  //*(int*)0x4C000050 = 0x80000001;
+  //Data.Set SR:0x4C000050 %long 0x80000001
+  //*(int*)0x4C000040 = 0x00000023;
+  //Data.Set SR:0x4C000040 %long 0x00000023
+  
+  IF ((&opp_type!=&OPP100_ES2)&&(&opp_type!=&OPP50))
+  (
+    // change RL
+    // set MR2 (line CS0) register 
+    //*(int*)0x4C000050 = 0x00000002;
+    Data.Set SR:0x4C000050 %Long 0x00000002
+    //*(int*)0x4C000040 = 0x00000004;
+    Data.Set SR:0x4C000040 %Long 0x00000004
+    // set MR2 (line CS1) register 
+    //  *(int*)0x4C000050 = 0x80000002;
+    // Data.Set SR:0x4C000050 %long 0x80000002
+    //  *(int*)0x4C000040 = 0x00000004;
+    // Data.Set SR:0x4C000040 %long 0x00000004
+    // SDRAM CONFIG
+    //*(int*)0x4C000008 = SDRAM_CONFIG_1X_2GBIT_MAP3_CL6;
+    Data.Set SR:0x4C000008 %Long 0x98801AB1
+    // DDR PHY CTRL 1
+    //*(int*)0x4C0000E4 = DDR_PHY_CTRL1_OPPBOOT_RL6;
+    Data.Set SR:0x4C0000E4 %Long 0x449FFFF8
+  )
+  
+  // DDR PHY CTRL 2
+  //*(int*)0x4C0000EC = 0x00000000;
+  Data.Set SR:0x4C0000EC %Long 0x00000000
+
+  // READ IDLE CTRL
+  //*(int*)0x4C000098 = 0x000501FF;
+  Data.Set SR:0x4C000098 %Long 0x000501FF
+
+  // PWR MGMT CTRL
+  //*(int*)0x4C000038 = 0x80000000;
+  Data.Set SR:0x4C000038 %Long 0x80000000
+
+  // ZQ INIT
+  //*(int*)0x4C0000C8 = 0x500B3215;
+  Data.Set SR:0x4C0000C8  %Long 0x500B3215
+
+  // SDRAM REF CTRL
+  //*(int*)0x4C000010 = REF_CTRL_3_9_US_OPPBOOT;
+  Data.Set SR:0x4C000010  %Long 0x0000004a
+
+  // program shadow registers
+  //elpida_E1471E10_EMIF4D1_shadow_reg(OPP);
+  GOSUB elpida_E1471E10_EMIF4D1_shadow_reg &opp_type
+
+  // set MR16 (line CS0) 
+  //*(int*)0x4C000050 = 0x40000010;
+  Data.Set SR:0x4C000050  %Long 0x40000010
+  //*(int*)0x4C000040 = 0x00000000;
+  Data.Set SR:0x4C000040  %Long 0x00000000
+
+  // set MR16 (line CS1) 
+  //*(int*)0x4C000050 = 0xC0000010;
+  Data.Set SR:0x4C000050  %Long 0xC0000010
+  //*(int*)0x4C000040 = 0x00000000;
+  Data.Set SR:0x4C000040  %Long 0x00000000
+  
+  ;PRINT " <<< elpida_E1471E10_EMIF4D1"
+  RETURN
+)
+
+elpida_E1471E10_EMIF4D2:
+(
+  ENTRY &opp_type
+  
+  AREA.Select results
+  ;PRINT " >>> elpida_E1471E10_EMIF4D2"
+
+  // SDRAM CONFIG
+  //*(int*)0x4D000008 = 0x98800eb1;
+  Data.Set SR:0x4D000008 %Long 0x98800eb1
+
+  // DDR PHY CTRL 1
+  //*(int*)0x4D0000E4 = DDR_PHY_CTRL1_OPPBOOT_RL3;
+  Data.Set SR:0x4D0000E4 %Long 0x449FFFF4
+  
+  // set MR0 (line CS0) register and poll 
+  //*(int*)0x4D000050 = 0x00000000;
+  Data.Set SR:0x4D000050 %Long 0x00000000
+  //while ( (*(int*)0x4D000040&0x1)!=0x0);
+  WAIT (Data.Long(NSR:0x4D000040)&0x1)==0x0
+  
+  // set MR0 (line CS1) register and poll 
+  //*(int*)0x4D000050 = 0x80000000;
+  //Data.Set SR:0x4D000050 %long 0x80000000
+  //while ( (*(int*)0x4D000040&0x1)!=0x0);
+  //wait (Data.Long(NSR:0x4D000040)&0x1)==0x0
+
+  // set MR10 (line CS0) register
+  //*(int*)0x4D000050 = 0x0000000A;
+  Data.Set SR:0x4D000050 %Long 0x0000000A
+  //*(int*)0x4D000040 = 0x000000FF;
+  Data.Set SR:0x4D000040 %Long 0x000000FF
+
+  // set MR10 (line CS1) register
+  //*(int*)0x4D000050 = 0x8000000A;
+  //Data.Set SR:0x4D000050 %long 0x0000000A
+  //*(int*)0x4D000040 = 0x000000FF;
+  //Data.Set SR:0x4D000040 %long 0x000000FF
+
+  // set MR1 (line CS0) register
+  //*(int*)0x4D000050 = 0x00000001;
+  Data.Set SR:0x4D000050 %Long 0x00000001
+  //*(int*)0x4D000040 = 0x00000023;
+  Data.Set SR:0x4D000040 %Long 0x00000023
+
+  // set MR1 (line CS1) register
+  //*(int*)0x4D000050 = 0x80000001;
+  //Data.Set SR:0x4D000050 %long 0x80000001
+  //*(int*)0x4D000040 = 0x00000023;
+  //Data.Set SR:0x4D000040 %long 0x00000023
+  
+
+  IF ((&opp_type!=&OPP100_ES2)&&(&opp_type!=&OPP50))
+  (
+    // change RL
+    // set MR2 (line CS0) register 
+    //*(int*)0x4D000050 = 0x00000002;
+    Data.Set SR:0x4D000050 %Long 0x00000002
+    //*(int*)0x4D000040 = 0x00000004;
+    Data.Set SR:0x4D000040 %Long 0x00000004
+    // set MR2 (line CS1) register 
+    //  *(int*)0x4D000050 = 0x80000002;
+    // Data.Set SR:0x4D000050 %long 0x80000002
+    //  *(int*)0x4D000040 = 0x00000004;
+    // Data.Set SR:0x4D000040 %long 0x00000004
+    // SDRAM CONFIG
+    //*(int*)0x4D000008 = SDRAM_CONFIG_1X_2GBIT_MAP3_CL6;
+    Data.Set SR:0x4D000008 %Long 0x98801AB1
+    // DDR PHY CTRL 1
+    //*(int*)0x4D0000E4 = DDR_PHY_CTRL1_OPPBOOT_RL6;
+    Data.Set SR:0x4D0000E4 %Long 0x449FFFF8
+  )
+  
+  // DDR PHY CTRL 2
+  //*(int*)0x4D0000EC = 0x00000000;
+  Data.Set SR:0x4D0000EC %Long 0x00000000
+
+  // READ IDLE CTRL
+  //*(int*)0x4D000098 = 0x000501FF;
+  Data.Set SR:0x4D000098 %Long 0x000501FF
+
+  // PWR MGMT CTRL
+  //*(int*)0x4D000038 = 0x80000000;
+  Data.Set SR:0x4D000038 %Long 0x80000000
+
+  // ZQ INIT
+  //*(int*)0x4D0000C8 = 0x500B3215;
+  Data.Set SR:0x4D0000C8  %Long 0x500B3215
+
+  // SDRAM REF CTRL
+  //*(int*)0x4D000010 = REF_CTRL_3_9_US_OPPBOOT;
+  Data.Set SR:0x4D000010  %Long 0x0000004a
+
+  // program shadow registers
+  //elpida_E1471E10_EMIF4D2_shadow_reg(OPP);
+  GOSUB elpida_E1471E10_EMIF4D2_shadow_reg &opp_type
+
+  // set MR16 (line CS0) 
+  //*(int*)0x4D000050 = 0x40000010;
+  Data.Set SR:0x4D000050  %Long 0x40000010
+  //*(int*)0x4D000040 = 0x00000000;
+  Data.Set SR:0x4D000040  %Long 0x00000000
+
+  // set MR16 (line CS1) 
+  //*(int*)0x4D000050 = 0xC0000010;
+  Data.Set SR:0x4D000050  %Long 0xC0000010
+  //*(int*)0x4D000040 = 0x00000000;
+  Data.Set SR:0x4D000040  %Long 0x00000000
+  
+  ;PRINT " <<< elpida_E1471E10_EMIF4D2"
+  RETURN
+)
+
+micron_MT2L32M64DKH3_EMIF4D1:
+(
+  ENTRY &opp_type
+  
+  AREA.Select results
+  ;PRINT " >>> micron_MT2L32M64DKH3_EMIF4D1"
+
+  // SDRAM CONFIG
+  //*(int*)0x4C000008 = 0x98800e31;
+  Data.Set SR:0x4C000008 %Long 0x98800e31
+
+  // DDR PHY CTRL 1
+  //*(int*)0x4C0000E4 = DDR_PHY_CTRL1_OPPBOOT_RL3;
+  Data.Set SR:0x4C0000E4 %Long 0x449FFFF6
+  
+  // set MR0 (line CS0) register and poll 
+  //*(int*)0x4C000050 = 0x00000000;
+  Data.Set SR:0x4C000050 %Long 0x00000000
+  //while ( (*(int*)0x4C000040&0x1)!=0x0);
+  WAIT (Data.Long(NSR:0x4C000040)&0x1)==0x0
+  
+  // set MR0 (line CS1) register and poll 
+  //*(int*)0x4C000050 = 0x80000000;
+  Data.Set SR:0x4C000050 %Long 0x80000000
+  //while ( (*(int*)0x4C000040&0x1)!=0x0);
+  WAIT (Data.Long(NSR:0x4C000040)&0x1)==0x0
+
+  // set MR10 (line CS0) register
+  //*(int*)0x4C000050 = 0x0000000A;
+  Data.Set SR:0x4C000050 %Long 0x0000000A
+  //*(int*)0x4C000040 = 0x000000FF;
+  Data.Set SR:0x4C000040 %Long 0x000000FF
+
+  // set MR10 (line CS1) register
+  //*(int*)0x4C000050 = 0x8000000A;
+  Data.Set SR:0x4C000050 %Long 0x0000000A
+  //*(int*)0x4C000040 = 0x000000FF;
+  Data.Set SR:0x4C000040 %Long 0x000000FF
+
+  // set MR1 (line CS0) register
+  //*(int*)0x4C000050 = 0x00000001;
+  Data.Set SR:0x4C000050 %Long 0x00000001
+  //*(int*)0x4C000040 = 0x00000023;
+  Data.Set SR:0x4C000040 %Long 0x00000023
+
+  // set MR1 (line CS1) register
+  //*(int*)0x4C000050 = 0x80000001;
+  Data.Set SR:0x4C000050 %Long 0x80000001
+  //*(int*)0x4C000040 = 0x00000023;
+  Data.Set SR:0x4C000040 %Long 0x00000023
+
+  // change RL
+  // set MR2 (line CS0) register 
+  //*(int*)0x4C000050 = 0x00000002;
+  Data.Set SR:0x4C000050 %Long 0x00000002
+  //*(int*)0x4C000040 = 0x00000004;
+  Data.Set SR:0x4C000040 %Long 0x00000003
+  // set MR2 (line CS1) register 
+  //*(int*)0x4C000050 = 0x80000002;
+  Data.Set SR:0x4C000050 %Long 0x80000002;
+  //*(int*)0x4C000040 = 0x00000004;
+  Data.Set SR:0x4C000040 %Long 0x00000003
+  // SDRAM CONFIG
+  //*(int*)0x4C000008 = SDRAM_CONFIG_2X_2GBIT_MAP3_CL6;
+  Data.Set SR:0x4C000008 %Long 0x98801631;
+  // DDR PHY CTRL 1
+  //*(int*)0x4C0000E4 = DDR_PHY_CTRL1_OPPBOOT_RL6;
+  Data.Set SR:0x4C0000E4 %Long 0x449ffff7;
+
+  // DDR PHY CTRL 2
+  //*(int*)0x4C0000EC = 0x00000000;
+  Data.Set SR:0x4C0000EC %Long 0x00000000
+
+  // READ IDLE CTRL
+  //*(int*)0x4C000098 = 0x000501FF;
+  Data.Set SR:0x4C000098 %Long 0x000501FF
+
+  // PWR MGMT CTRL
+  //*(int*)0x4C000038 = 0x80000000;
+  Data.Set SR:0x4C000038 %Long 0x80000000
+
+  // ZQ INIT
+  //*(int*)0x4C0000C8 = 0x500B3215;
+  Data.Set SR:0x4C0000C8  %Long 0x500B3215
+
+  // SDRAM REF CTRL
+  //*(int*)0x4C000010 = REF_CTRL_3_9_US_OPPBOOT;
+  Data.Set SR:0x4C000010  %Long 0x00000095
+
+  // program shadow registers
+  //elpida_EDB8064B1PB8DF_EMIF4D1_shadow_reg(OPP);
+  GOSUB micron_MT2L32M64DKH3_EMIF4D1_shadow_reg &opp_type
+
+  // set MR16 (line CS0) 
+  //*(int*)0x4C000050 = 0x40000010;
+  Data.Set SR:0x4C000050  %Long 0x40000010
+  //*(int*)0x4C000040 = 0x00000000;
+  Data.Set SR:0x4C000040  %Long 0x00000000
+
+  // set MR16 (line CS1) 
+  //*(int*)0x4C000050 = 0xC0000010;
+  Data.Set SR:0x4C000050  %Long 0xC0000010
+  //*(int*)0x4C000040 = 0x00000000;
+  Data.Set SR:0x4C000040  %Long 0x00000000
+  
+  ;PRINT " <<< micron_MT2L32M64DKH3_EMIF4D1"
+  RETURN
+)
+
+micron_MT2L32M64DKH3_EMIF4D2:
+(
+  ENTRY &opp_type
+  
+  AREA.Select results
+  ;PRINT " >>> micron_MT2L32M64DKH3_EMIF4D2"
+
+  // SDRAM CONFIG
+  //*(int*)0x4D000008 = 0x98800e31;
+  Data.Set SR:0x4D000008 %Long 0x98800e31
+
+  // DDR PHY CTRL 1
+  //*(int*)0x4D0000E4 = DDR_PHY_CTRL1_OPPBOOT_RL3;
+  Data.Set SR:0x4D0000E4 %Long 0x449FFFF6
+  
+  // set MR0 (line CS0) register and poll 
+  //*(int*)0x4D000050 = 0x00000000;
+  Data.Set SR:0x4D000050 %Long 0x00000000
+  //while ( (*(int*)0x4D000040&0x1)!=0x0);
+  WAIT (Data.Long(NSR:0x4D000040)&0x1)==0x0
+  
+  // set MR0 (line CS1) register and poll 
+  //*(int*)0x4D000050 = 0x80000000;
+  Data.Set SR:0x4D000050 %Long 0x80000000
+  //while ( (*(int*)0x4D000040&0x1)!=0x0);
+  WAIT (Data.Long(NSR:0x4D000040)&0x1)==0x0
+
+  // set MR10 (line CS0) register
+  //*(int*)0x4D000050 = 0x0000000A;
+  Data.Set SR:0x4D000050 %Long 0x0000000A
+  //*(int*)0x4D000040 = 0x000000FF;
+  Data.Set SR:0x4D000040 %Long 0x000000FF
+
+  // set MR10 (line CS1) register
+  //*(int*)0x4D000050 = 0x8000000A;
+  Data.Set SR:0x4D000050 %Long 0x0000000A
+  //*(int*)0x4D000040 = 0x000000FF;
+  Data.Set SR:0x4D000040 %Long 0x000000FF
+
+  // set MR1 (line CS0) register
+  //*(int*)0x4D000050 = 0x00000001;
+  Data.Set SR:0x4D000050 %Long 0x00000001
+  //*(int*)0x4D000040 = 0x00000023;
+  Data.Set SR:0x4D000040 %Long 0x00000023
+
+  // set MR1 (line CS1) register
+  //*(int*)0x4D000050 = 0x80000001;
+  Data.Set SR:0x4D000050 %Long 0x80000001
+  //*(int*)0x4D000040 = 0x00000023;
+  Data.Set SR:0x4D000040 %Long 0x00000023
+
+  // change RL
+  // set MR2 (line CS0) register 
+  //*(int*)0x4D000050 = 0x00000002;
+  Data.Set SR:0x4D000050 %Long 0x00000002
+  //*(int*)0x4D000040 = 0x00000004;
+  Data.Set SR:0x4D000040 %Long 0x00000003
+  // set MR2 (line CS1) register 
+  //*(int*)0x4D000050 = 0x80000002;
+  Data.Set SR:0x4D000050 %Long 0x80000002;
+  //*(int*)0x4D000040 = 0x00000004;
+  Data.Set SR:0x4D000040 %Long 0x00000003
+  // SDRAM CONFIG
+  //*(int*)0x4D000008 = SDRAM_CONFIG_2X_2GBIT_MAP3_CL6;
+  Data.Set SR:0x4D000008 %Long 0x98801631;
+  // DDR PHY CTRL 1
+  //*(int*)0x4D0000E4 = DDR_PHY_CTRL1_OPPBOOT_RL6;
+  Data.Set SR:0x4D0000E4 %Long 0x449ffff7;
+
+  // DDR PHY CTRL 2
+  //*(int*)0x4D0000EC = 0x00000000;
+  Data.Set SR:0x4D0000EC %Long 0x00000000
+
+  // READ IDLE CTRL
+  //*(int*)0x4D000098 = 0x000501FF;
+  Data.Set SR:0x4D000098 %Long 0x000501FF
+
+  // PWR MGMT CTRL
+  //*(int*)0x4D000038 = 0x80000000;
+  Data.Set SR:0x4D000038 %Long 0x80000000
+
+  // ZQ INIT
+  //*(int*)0x4D0000C8 = 0x500B3215;
+  Data.Set SR:0x4D0000C8  %Long 0x500B3215
+
+  // SDRAM REF CTRL
+  //*(int*)0x4D000010 = REF_CTRL_3_9_US_OPPBOOT;
+  Data.Set SR:0x4D000010  %Long 0x00000095
+
+  // program shadow registers
+  GOSUB micron_MT2L32M64DKH3_EMIF4D2_shadow_reg &opp_type
+
+  // set MR16 (line CS0) 
+  //*(int*)0x4D000050 = 0x40000010;
+  Data.Set SR:0x4D000050  %Long 0x40000010
+  //*(int*)0x4D000040 = 0x00000000;
+  Data.Set SR:0x4D000040  %Long 0x00000000
+
+  // set MR16 (line CS1) 
+  //*(int*)0x4D000050 = 0xC0000010;
+  Data.Set SR:0x4D000050  %Long 0xC0000010
+  //*(int*)0x4D000040 = 0x00000000;
+  Data.Set SR:0x4D000040  %Long 0x00000000
+  
+  ;PRINT " <<< micron_MT2L32M64DKH3_EMIF4D2"
+  RETURN
+)
+
+micron_MT2L32M64DKH3_EMIF4D1_shadow_reg:
+(
+  ENTRY &OPP_type
+  
+  AREA.Select results
+  ;PRINT " >>> micron_MT2L32M64DKH3_EMIF4D1_shadow_reg"
+  
+  // DDR PHY CTRL1 SHDW
+  //*(int*)0x4C0000E8 = DDR_PHY_CTRL1_OPP100_RL6;
+  Data.Set SR:0x4C0000E8  %Long 0x449ff417
+    
+  // READ IDLE CTRL SHDW
+  //*(int*)0x4C00009C = 0x000501FF;
+  Data.Set SR:0x4C00009C  %Long 0x000501FF  
+  
+  // SDRAM TIM 1 SHDW
+  //*(int*)0x4C00001C = ;
+  Data.Set SR:0x4C00001C  %Long 0x0ca8d51a
+  
+  // SDRAM TIM 2 SHDW
+  //*(int*)0x4C000024 ;
+  Data.Set SR:0x4C000024  %Long 0x202e0b92
+  
+  // SDRAM TIM 3 SHDW
+  //*(int*)0x4C00002C = 0x008ea2b7;
+  Data.Set SR:0x4C00002C  %Long 0x008ea2b7
+
+  // PWR MGMT CTRL SHDW
+  //*(int*)0x4C00003C = 0x00000000;
+  Data.Set SR:0x4C00003C   %Long 0x00000000
+
+  // SDRAM REF CTRL SHDW
+  //*(int*)0x4C000014 = ;
+  Data.Set SR:0x4C000014   %Long 0x00000A1D
+  
+  ;PRINT " <<< micron_MT2L32M64DKH3_EMIF4D1_shadow_reg"
+  RETURN
+)
+
+micron_MT2L32M64DKH3_EMIF4D2_shadow_reg:
+(
+  ENTRY &OPP_type
+  
+  AREA.Select results
+  ;PRINT " >>> micron_MT2L32M64DKH3_EMIF4D2_shadow_reg"
+  
+  // DDR PHY CTRL1 SHDW
+  //*(int*)0x4D0000E8 = DDR_PHY_CTRL1_OPP100_RL6;
+  Data.Set SR:0x4D0000E8  %Long 0x449ff417
+    
+  // READ IDLE CTRL SHDW
+  //*(int*)0x4D00009C = 0x000501FF;
+  Data.Set SR:0x4D00009C  %Long 0x000501FF  
+  
+  // SDRAM TIM 1 SHDW
+  //*(int*)0x4D00001C = ;
+  Data.Set SR:0x4D00001C  %Long 0x0ca8d51a
+  
+  // SDRAM TIM 2 SHDW
+  //*(int*)0x4D000024 ;
+  Data.Set SR:0x4D000024  %Long 0x202e0b92
+  
+  // SDRAM TIM 3 SHDW
+  //*(int*)0x4D00002C = 0x008ea2b7;
+  Data.Set SR:0x4D00002C  %Long 0x008ea2b7
+
+  // PWR MGMT CTRL SHDW
+  //*(int*)0x4D00003C = 0x00000000;
+  Data.Set SR:0x4D00003C   %Long 0x00000000
+
+  // SDRAM REF CTRL SHDW
+  //*(int*)0x4D000014 = ;
+  Data.Set SR:0x4D000014   %Long 0x00000A1D
+  
+  ;PRINT " <<< micron_MT2L32M64DKH3_EMIF4D2_shadow_reg"
+  RETURN
+)
+
+elpida_EDB8064B1PB8DF_EMIF4D1_shadow_reg:
+(
+  ENTRY &OPP_type
+  
+  AREA.Select results
+  ;PRINT " >>> elpida_EDB8064B1PB8DF_EMIF4D1_shadow_reg"
+  
+  // DDR PHY CTRL1 SHDW
+  IF &OPP_type==&OPP100||&OPP_type==&OPP100_SDC||&OPP_type==&OPP100_HDMI
+  (
+    //*(int*)0x4C0000E8 = DDR_PHY_CTRL1_OPP100_RL6;
+    Data.Set SR:0x4C0000E8  %Long 0x449ff418
+  )
+
+  IF &OPP_type==&OPP50||&OPP_type==&OPP50_SDC
+  (
+    //*(int*)0x4C0000E8 = DDR_PHY_CTRL1_OPP50_RL6;
+    Data.Set SR:0x4C0000E8  %Long 0x449ff818
+  )
+
+  IF &OPP_type==&OPP25||&OPP_type==&OPP25_SDC
+  (
+    //*(int*)0x4C0000E8 = DDR_PHY_CTRL1_OPP25_RL6;
+    Data.Set SR:0x4C0000E8  %Long 0x449ffff8
+  )
+
+  IF &OPP_type==&OPPBOOT
+  (
+    //*(int*)0x4C0000E8 = DDR_PHY_CTRL1_OPPBOOT_RL6;
+    Data.Set SR:0x4C0000E8  %Long 0x449ffff8
+  )
+  
+  IF &OPP_type==&OPP100_ES2
+  (
+    *(int*)0x4C0000E8 = DDR_PHY_CTRL1_OPPBOOT_RL3;
+    Data.Set SR:0x4C0000E8  %Long 0x449FFFF4
+  )
+
+  // READ IDLE CTRL SHDW
+  //*(int*)0x4C00009C = 0x000501FF;
+  Data.Set SR:0x4C00009C  %Long 0x000501FF
+
+  // SDRAM TIM 1 SHDW
+  IF &OPP_type==&OPP100||&OPP_type==&OPP100_HDMI
+  (
+    //*(int*)0x4C00001C = JEDEC_TIM1_OPP100;
+    Data.Set SR:0x4C00001C  %Long 0x10eb065a
+  )
+
+  IF &OPP_type==&OPP100_SDC
+  (
+    //*(int*)0x4C00001C = JEDEC_TIM1_OPP100_SDC;
+    Data.Set SR:0x4C00001C  %Long 0x0ca8d51a
+  )
+
+  IF &OPP_type==&OPP50
+  (
+    //*(int*)0x4C00001C = JEDEC_TIM1_OPP50;
+    Data.Set SR:0x4C00001C  %Long 0x08648309
+  )
+
+  IF &OPP_type==&OPP50_SDC
+  (
+    *(int*)0x4C00001C = JEDEC_TIM1_OPP50_SDC;
+    Data.Set SR:0x4C00001C  %Long 0x06446289
+  )
+
+  IF &OPP_type==&OPP25
+  (
+    //*(int*)0x4C00001C = JEDEC_TIM1_OPP25;
+    Data.Set SR:0x4C00001C  %Long 0x04444189
+  )
+
+  IF &OPP_type==&OPP25_SDC
+  (
+    //*(int*)0x4C00001C = JEDEC_TIM1_OPP25_SDC;
+    Data.Set SR:0x4C00001C  %Long 0x04443149
+  )
+
+  IF &OPP_type==&OPPBOOT
+  (
+    //*(int*)0x4C00001C = JEDEC_TIM1_OPPBOOT;
+    Data.Set SR:0x4C00001C  %Long 0x04442049
+  )
+
+  // SDRAM TIM 2 SHDW
+  IF &OPP_type==&OPP100||&OPP_type==&OPP100_HDMI
+  (
+    //*(int*)0x4C000024 = JEDEC_TIM2_OPP100;
+    Data.Set SR:0x4C000024  %Long 0x20370dd2
+  )
+
+  IF &OPP_type==&OPP100_SDC
+  (
+    //*(int*)0x4C000024 = JEDEC_TIM2_OPP100_SDC;
+    Data.Set SR:0x4C000024  %Long 0x202e0b92
+  )
+
+  IF &OPP_type==&OPP50
+  (
+    //*(int*)0x4C000024 = JEDEC_TIM2_OPP50;
+    Data.Set SR:0x4C000024  %Long 0x101b06ca
+  )
+
+  IF &OPP_type==&OPP50_SDC
+  (
+    //*(int*)0x4C000024 = JEDEC_TIM2_OPP50_SDC;
+    Data.Set SR:0x4C000024  %Long 0x101705ca
+  )
+
+  IF &OPP_type==&OPP25
+  (
+    //*(int*)0x4C000024 = JEDEC_TIM2_OPP25;
+    Data.Set SR:0x4C000024  %Long 0x100d034a
+  )
+
+  IF &OPP_type==&OPP25_SDC
+  (
+    //*(int*)0x4C000024 = JEDEC_TIM2_OPP25_SDC;
+    Data.Set SR:0x4C000024  %Long 0x100b02ca
+  )
+
+  IF &OPP_type==&OPPBOOT
+  (
+    //*(int*)0x4C000024 = JEDEC_TIM2_OPPBOOT;
+    Data.Set SR:0x4C000024  %Long 0x1002008a
+  )
+
+  // SDRAM TIM 3 SHDW
+  IF &OPP_type==&OPP100||&OPP_type==&OPP100_HDMI
+  (
+    //*(int*)0x4C00002C = 0x00B1C33F;
+    Data.Set SR:0x4C00002C  %Long 0x00B1C33F
+  )
+
+  IF &OPP_type==&OPP100_SDC
+  (
+    //*(int*)0x4C00002C = 0x008EA2BF;
+    Data.Set SR:0x4C00002C  %Long 0x008EA2BF
+  )
+
+  IF &OPP_type==&OPP50
+  (
+    //*(int*)0x4C00002C = 0x0048A19F;
+    Data.Set SR:0x4C00002C  %Long 0x0048A19F
+  )
+
+  IF &OPP_type==&OPP50_SDC
+  (
+    //*(int*)0x4C00002C = 0x0047015F;
+    Data.Set SR:0x4C00002C  %Long 0x0047015F
+  )
+
+  IF &OPP_type==&OPP25
+  (
+    //*(int*)0x4C00002C = 0x004400CF;
+    Data.Set SR:0x4C00002C  %Long 0x004400CF
+  )
+
+  IF &OPP_type==&OPP25_SDC
+  (
+    //*(int*)0x4C00002C = 0x004380AF;
+    Data.Set SR:0x4C00002C  %Long 0x004380AF
+  )
+
+  IF &OPP_type==&OPPBOOT
+  (
+    //*(int*)0x4C00002C = 0x0040802F;
+    Data.Set SR:0x4C00002C  %Long 0x0040802F
+  )
+
+  // PWR MGMT CTRL SHDW
+  //*(int*)0x4C00003C = 0x00000000;
+  Data.Set SR:0x4C00003C   %Long 0x00000000
+
+
+  // SDRAM REF CTRL SHDW
+  IF &OPP_type==&OPP100
+  (
+    //*(int*)0x4C000014 = REF_CTRL_3_9_US_OPP100;
+    Data.Set SR:0x4C000014   %Long 0x00000618
+  )
+
+  IF &OPP_type==&OPP100_SDC
+  (
+    //*(int*)0x4C000014 = REF_CTRL_3_9_US_OPP100_SDC;
+    Data.Set SR:0x4C000014   %Long 0x0000050e
+  )
+
+  IF &OPP_type==&OPP100_HDMI
+  (
+    //*(int*)0x4C000014 = REF_CTRL_3_9_US_OPP100_HDMI;
+    Data.Set SR:0x4C000014   %Long 0x000005cd
+  )
+
+  IF &OPP_type==&OPP50
+  (
+    //*(int*)0x4C000014 = REF_CTRL_3_9_US_OPP50;
+    Data.Set SR:0x4C000014   %Long 0x0000030c
+  )
+
+  IF &OPP_type==&OPP50_SDC
+  (
+    //*(int*)0x4C000014 = REF_CTRL_3_9_US_OPP50_SDC;
+    Data.Set SR:0x4C000014   %Long 0x00000287
+  )
+
+  IF &OPP_type==&OPP25
+  (
+    //*(int*)0x4C000014 = REF_CTRL_3_9_US_OPP25;
+    Data.Set SR:0x4C000014   %Long 0x00000186
+  )
+
+  IF &OPP_type==&OPP25_SDC
+  (
+    //*(int*)0x4C000014 = REF_CTRL_3_9_US_OPP25_SDC;
+    Data.Set SR:0x4C000014   %Long 0x00000143
+  )
+
+  IF &OPP_type==&OPPBOOT
+  (
+    //*(int*)0x4C000014 = REF_CTRL_3_9_US_OPPBOOT;
+    Data.Set SR:0x4C000014   %Long 0x0000004a
+  )
+  
+  ;PRINT " <<< elpida_EDB8064B1PB8DF_EMIF4D1_shadow_reg"
+  RETURN
+)
+
+elpida_EDB8064B1PB8DF_EMIF4D2:
+(
+  ENTRY &opp_type
+  
+  AREA.Select results
+  ;PRINT " >>> elpida_EDB8064B1PB8DF_EMIF4D2"
+
+  // SDRAM CONFIG
+  //*(int*)0x4D000008 = 0x98800eb9;
+  Data.Set SR:0x4D000008 %Long 0x98800eb9
+
+  // DDR PHY CTRL 1
+  //*(int*)0x4D0000E4 = DDR_PHY_CTRL1_OPPBOOT_RL3;
+  Data.Set SR:0x4D0000E4 %Long 0x449FFFF4
+  
+  // set MR0 (line CS0) register and poll 
+  //*(int*)0x4d000050 = 0x00000000;
+  Data.Set SR:0x4d000050 %Long 0x00000000
+  //while ( (*(int*)0x4d000040&0x1)!=0x0);
+  WAIT (Data.Long(NSR:0x4d000040)&0x1)==0x0
+  
+  // set MR0 (line CS1) register and poll 
+  //*(int*)0x4d000050 = 0x80000000;
+  Data.Set SR:0x4d000050 %Long 0x80000000
+  //while ( (*(int*)0x4d000040&0x1)!=0x0);
+  WAIT (Data.Long(NSR:0x4d000040)&0x1)==0x0
+
+  // set MR10 (line CS0) register
+  //*(int*)0x4d000050 = 0x0000000A;
+  Data.Set SR:0x4d000050 %Long 0x0000000A
+  //*(int*)0x4d000040 = 0x000000FF;
+  Data.Set SR:0x4d000040 %Long 0x000000FF
+
+  // set MR10 (line CS1) register
+  //*(int*)0x4d000050 = 0x8000000A;
+  Data.Set SR:0x4d000050 %Long 0x0000000A
+  //*(int*)0x4d000040 = 0x000000FF;
+  Data.Set SR:0x4d000040 %Long 0x000000FF
+
+  // set MR1 (line CS0) register
+  //*(int*)0x4d000050 = 0x00000001;
+  Data.Set SR:0x4d000050 %Long 0x00000001
+  //*(int*)0x4d000040 = 0x00000023;
+  Data.Set SR:0x4d000040 %Long 0x00000023
+
+  // set MR1 (line CS1) register
+  //*(int*)0x4d000050 = 0x80000001;
+  Data.Set SR:0x4d000050 %Long 0x80000001
+  //*(int*)0x4d000040 = 0x00000023;
+  Data.Set SR:0x4d000040 %Long 0x00000023
+  
+  IF ((&opp_type!=&OPP100_ES2)&&(&opp_type!=&OPP50))
+  (
+    // change RL
+    // set MR2 (line CS0) register 
+    //*(int*)0x4D000050 = 0x00000002;
+    Data.Set SR:0x4d000050 %Long 0x00000002
+    //*(int*)0x4D000040 = 0x00000004;
+    Data.Set SR:0x4D000040 %Long 0x00000004
+    // set MR2 (line CS1) register 
+    //*(int*)0x4D000050 = 0x80000002;
+    Data.Set SR:0x4d000050 %Long 0x80000002
+    //*(int*)0x4D000040 = 0x00000004;
+    Data.Set SR:0x4D000040 %Long 0x00000004
+    // SDRAM CONFIG
+    //*(int*)0x4D000008 = SDRAM_CONFIG_2X_2GBIT_MAP3_CL6;
+    Data.Set SR:0x4D000008 %Long 0x98801AB9
+    // DDR PHY CTRL 1
+    //*(int*)0x4D0000E4 = DDR_PHY_CTRL1_OPPBOOT_RL6;
+    Data.Set SR:0x4D0000E4 %Long 0x449FFFF8
+  )
+
+  // change RL
+  // set MR2 (line CS0) register 
+  //*(int*)0x4d000050 = 0x00000002;
+  Data.Set SR:0x4d000050 %Long 0x00000002
+  //*(int*)0x4d000040 = 0x00000004;
+  Data.Set SR:0x4d000040 %Long 0x00000004
+  // set MR2 (line CS1) register 
+  //*(int*)0x4d000050 = 0x80000002;
+  Data.Set SR:0x4d000050 %Long 0x80000002;
+  //*(int*)0x4d000040 = 0x00000004;
+  Data.Set SR:0x4d000040 %Long 0x00000004
+  // SDRAM CONFIG
+  //*(int*)0x4d000008 = SDRAM_CONFIG_2X_2GBIT_MAP3_CL6;
+  Data.Set SR:0x4d000008 %Long 0x98801ab9;
+  // DDR PHY CTRL 1
+  //*(int*)0x4d0000E4 = DDR_PHY_CTRL1_OPPBOOT_RL6;
+  Data.Set SR:0x4d0000E4 %Long 0x449ffff8;
+
+  // DDR PHY CTRL 2
+  //*(int*)0x4d0000EC = 0x00000000;
+  Data.Set SR:0x4d0000EC %Long 0x00000000
+
+  // READ IDLE CTRL
+  //*(int*)0x4d000098 = 0x000501FF;
+  Data.Set SR:0x4d000098 %Long 0x000501FF
+
+  // PWR MGMT CTRL
+  //*(int*)0x4d000038 = 0x80000000;
+  Data.Set SR:0x4d000038 %Long 0x80000000
+
+  // ZQ INIT
+  //*(int*)0x4d0000C8 = 0x500B3215;
+  Data.Set SR:0x4d0000C8  %Long 0x500B3215
+
+  // SDRAM REF CTRL
+  // *(int*)0x4d000010 = REF_CTRL_3_9_US_OPPBOOT;
+  Data.Set SR:0x4d000010  %Long 0x0000004a
+
+  // program shadow registers
+  //elpida_EDB8064B1PB8DF_EMIF4D2_shadow_reg(OPP);
+  GOSUB elpida_EDB8064B1PB8DF_EMIF4D2_shadow_reg &opp_type
+
+  // set MR16 (line CS0) 
+  //*(int*)0x4d000050 = 0x40000010;
+  Data.Set SR:0x4d000050  %Long 0x40000010
+  //*(int*)0x4d000040 = 0x00000000;
+  Data.Set SR:0x4d000040  %Long 0x00000000
+
+  // set MR16 (line CS1) 
+  //*(int*)0x4d000050 = 0xC0000010;
+  Data.Set SR:0x4d000050  %Long 0xC0000010
+  //*(int*)0x4d000040 = 0x00000000;
+  Data.Set SR:0x4d000040  %Long 0x00000000
+  
+  ;PRINT " <<< elpida_EDB8064B1PB8DF_EMIF4D2"
+  RETURN
+)
+
+elpida_E1471E10_EMIF4D1_shadow_reg:
+(
+  ENTRY &OPP_type
+  
+  AREA.Select results
+  ;PRINT " >>> elpida_E1471E10_EMIF4D1_shadow_reg"
+  
+  // DDR PHY CTRL1 SHDW
+  IF &OPP_type==&OPP100||&OPP_type==&OPP100_SDC||&OPP_type==&OPP100_HDMI
+  (
+    //*(int*)0x4c0000E8 = DDR_PHY_CTRL1_OPP100_RL6;
+    Data.Set SR:0x4c0000E8  %Long 0x449ff418
+  )
+
+  IF &OPP_type==&OPP50||&OPP_type==&OPP50_SDC
+  (
+    //*(int*)0x4c0000E8 = DDR_PHY_CTRL1_OPP50_RL6;
+    Data.Set SR:0x4c0000E8  %Long 0x449ff818
+  )
+
+  IF &OPP_type==&OPP25||&OPP_type==&OPP25_SDC
+  (
+    //*(int*)0x4c0000E8 = DDR_PHY_CTRL1_OPP25_RL6;
+    Data.Set SR:0x4c0000E8  %Long 0x449ffff8
+  )
+
+  IF &OPP_type==&OPPBOOT
+  (
+    //*(int*)0x4c0000E8 = DDR_PHY_CTRL1_OPPBOOT_RL6;
+    Data.Set SR:0x4c0000E8  %Long 0x449ffff8
+  )
+  
+  IF &OPP_type==&OPP100_ES2
+  (
+    //*(int*)0x4c0000E8 = DDR_PHY_CTRL1_OPPBOOT_RL3;
+    Data.Set SR:0x4c0000E8  %Long 0x449ffff4
+  )
+
+  // READ IDLE CTRL SHDW
+  //*(int*)0x4c00009C = 0x000501FF;
+  Data.Set SR:0x4c00009C  %Long 0x000501FF
+
+  // SDRAM TIM 1 SHDW
+  IF &OPP_type==&OPP100||&OPP_type==&OPP100_HDMI
+  (
+    //*(int*)0x4c00001C = JEDEC_TIM1_OPP100;
+    Data.Set SR:0x4c00001C  %Long 0x10eb065a
+  )
+
+  IF &OPP_type==&OPP100_SDC
+  (
+    //*(int*)0x4c00001C = JEDEC_TIM1_OPP100_SDC;
+    Data.Set SR:0x4c00001C  %Long 0x0ca8d51a
+  )
+
+  IF &OPP_type==&OPP50
+  (
+    //*(int*)0x4c00001C = JEDEC_TIM1_OPP50;
+    Data.Set SR:0x4c00001C  %Long 0x08648309
+  )
+
+  IF &OPP_type==&OPP50_SDC
+  (
+    *(int*)0x4c00001C = JEDEC_TIM1_OPP50_SDC;
+    Data.Set SR:0x4c00001C  %Long 0x06446289
+  )
+
+  IF &OPP_type==&OPP25
+  (
+    //*(int*)0x4c00001C = JEDEC_TIM1_OPP25;
+    Data.Set SR:0x4c00001C  %Long 0x04444189
+  )
+
+  IF &OPP_type==&OPP25_SDC
+  (
+    //*(int*)0x4c00001C = JEDEC_TIM1_OPP25_SDC;
+    Data.Set SR:0x4c00001C  %Long 0x04443149
+  )
+
+  IF &OPP_type==&OPPBOOT
+  (
+    //*(int*)0x4c00001C = JEDEC_TIM1_OPPBOOT;
+    Data.Set SR:0x4c00001C  %Long 0x04442049
+  )
+
+  // SDRAM TIM 2 SHDW
+  IF &OPP_type==&OPP100||&OPP_type==&OPP100_HDMI
+  (
+    //*(int*)0x4c000024 = JEDEC_TIM2_OPP100;
+    Data.Set SR:0x4c000024  %Long 0x20370dd2
+  )
+
+  IF &OPP_type==&OPP100_SDC
+  (
+    //*(int*)0x4c000024 = JEDEC_TIM2_OPP100_SDC;
+    Data.Set SR:0x4c000024  %Long 0x202e0b92
+  )
+
+  IF &OPP_type==&OPP50
+  (
+    //*(int*)0x4c000024 = JEDEC_TIM2_OPP50;
+    Data.Set SR:0x4c000024  %Long 0x101b06ca
+  )
+
+  IF &OPP_type==&OPP50_SDC
+  (
+    //*(int*)0x4c000024 = JEDEC_TIM2_OPP50_SDC;
+    Data.Set SR:0x4c000024  %Long 0x101705ca
+  )
+
+  IF &OPP_type==&OPP25
+  (
+    //*(int*)0x4c000024 = JEDEC_TIM2_OPP25;
+    Data.Set SR:0x4c000024  %Long 0x100d034a
+  )
+
+  IF &OPP_type==&OPP25_SDC
+  (
+    //*(int*)0x4c000024 = JEDEC_TIM2_OPP25_SDC;
+    Data.Set SR:0x4c000024  %Long 0x100b02ca
+  )
+
+  IF &OPP_type==&OPPBOOT
+  (
+    //*(int*)0x4c000024 = JEDEC_TIM2_OPPBOOT;
+    Data.Set SR:0x4c000024  %Long 0x1002008a
+  )
+
+  // SDRAM TIM 3 SHDW
+  IF &OPP_type==&OPP100||&OPP_type==&OPP100_HDMI
+  (
+    //*(int*)0x4c00002C = 0x00B1C33F;
+    Data.Set SR:0x4c00002C  %Long 0x00B1C33F
+  )
+
+  IF &OPP_type==&OPP100_SDC
+  (
+    //*(int*)0x4c00002C = 0x008EA2BF;
+    Data.Set SR:0x4c00002C  %Long 0x008EA2BF
+  )
+
+  IF &OPP_type==&OPP50
+  (
+    //*(int*)0x4c00002C = 0x0048A19F;
+    Data.Set SR:0x4c00002C  %Long 0x0048A19F
+  )
+
+  IF &OPP_type==&OPP50_SDC
+  (
+    //*(int*)0x4c00002C = 0x0047015F;
+    Data.Set SR:0x4c00002C  %Long 0x0047015F
+  )
+
+  IF &OPP_type==&OPP25
+  (
+    //*(int*)0x4c00002C = 0x004400CF;
+    Data.Set SR:0x4c00002C  %Long 0x004400CF
+  )
+
+  IF &OPP_type==&OPP25_SDC
+  (
+    //*(int*)0x4c00002C = 0x004380AF;
+    Data.Set SR:0x4c00002C  %Long 0x004380AF
+  )
+
+  IF &OPP_type==&OPPBOOT
+  (
+    //*(int*)0x4c00002C = 0x0040802F;
+    Data.Set SR:0x4c00002C  %Long 0x0040802F
+  )
+
+  // PWR MGMT CTRL SHDW
+  //*(int*)0x4c00003C = 0x00000000;
+  Data.Set SR:0x4c00003C   %Long 0x00000000
+
+
+  // SDRAM REF CTRL SHDW
+  IF &OPP_type==&OPP100
+  (
+    //*(int*)0x4c000014 = REF_CTRL_3_9_US_OPP100;
+    Data.Set SR:0x4c000014   %Long 0x00000618
+  )
+
+  IF &OPP_type==&OPP100_SDC
+  (
+    //*(int*)0x4c000014 = REF_CTRL_3_9_US_OPP100_SDC;
+    Data.Set SR:0x4c000014   %Long 0x0000050e
+  )
+
+  IF &OPP_type==&OPP100_HDMI
+  (
+    //*(int*)0x4c000014 = REF_CTRL_3_9_US_OPP100_HDMI;
+    Data.Set SR:0x4c000014   %Long 0x000005cd
+  )
+
+  IF &OPP_type==&OPP50
+  (
+    //*(int*)0x4c000014 = REF_CTRL_3_9_US_OPP50;
+    Data.Set SR:0x4c000014   %Long 0x0000030c
+  )
+
+  IF &OPP_type==&OPP50_SDC
+  (
+    //*(int*)0x4c000014 = REF_CTRL_3_9_US_OPP50_SDC;
+    Data.Set SR:0x4c000014   %Long 0x00000287
+  )
+
+  IF &OPP_type==&OPP25
+  (
+    //*(int*)0x4c000014 = REF_CTRL_3_9_US_OPP25;
+    Data.Set SR:0x4c000014   %Long 0x00000186
+  )
+
+  IF &OPP_type==&OPP25_SDC
+  (
+    //*(int*)0x4c000014 = REF_CTRL_3_9_US_OPP25_SDC;
+    Data.Set SR:0x4c000014   %Long 0x00000143
+  )
+
+  IF &OPP_type==&OPPBOOT
+  (
+    //*(int*)0x4c000014 = REF_CTRL_3_9_US_OPPBOOT;
+    Data.Set SR:0x4c000014   %Long 0x0000004a
+  )
+  
+  ;PRINT " <<< elpida_E1471E10_EMIF4D1_shadow_reg"
+  RETURN
+)
+
+elpida_E1471E10_EMIF4D2_shadow_reg:
+(
+  ENTRY &OPP_type
+  
+  AREA.Select results
+  ;PRINT " >>> elpida_E1471E10_EMIF4D2_shadow_reg"
+  
+  // DDR PHY CTRL1 SHDW
+  IF &OPP_type==&OPP100||&OPP_type==&OPP100_SDC||&OPP_type==&OPP100_HDMI
+  (
+    //*(int*)0x4d0000E8 = DDR_PHY_CTRL1_OPP100_RL6;
+    Data.Set SR:0x4d0000E8  %Long 0x449ff418
+  )
+
+  IF &OPP_type==&OPP50||&OPP_type==&OPP50_SDC
+  (
+    //*(int*)0x4d0000E8 = DDR_PHY_CTRL1_OPP50_RL6;
+    Data.Set SR:0x4d0000E8  %Long 0x449ff818
+  )
+
+  IF &OPP_type==&OPP25||&OPP_type==&OPP25_SDC
+  (
+    //*(int*)0x4d0000E8 = DDR_PHY_CTRL1_OPP25_RL6;
+    Data.Set SR:0x4d0000E8  %Long 0x449ffff8
+  )
+
+  IF &OPP_type==&OPPBOOT
+  (
+    //*(int*)0x4d0000E8 = DDR_PHY_CTRL1_OPPBOOT_RL6;
+    Data.Set SR:0x4d0000E8  %Long 0x449ffff8
+  )
+  
+  IF &OPP_type==&OPP100_ES2
+  (
+    //*(int*)0x4d0000E8 = DDR_PHY_CTRL1_OPPBOOT_RL3;
+    Data.Set SR:0x4d0000E8  %Long 0x449ffff4
+  )
+
+  // READ IDLE CTRL SHDW
+  //*(int*)0x4d00009C = 0x000501FF;
+  Data.Set SR:0x4d00009C  %Long 0x000501FF
+
+  // SDRAM TIM 1 SHDW
+  IF &OPP_type==&OPP100||&OPP_type==&OPP100_HDMI
+  (
+    //*(int*)0x4d00001C = JEDEC_TIM1_OPP100;
+    Data.Set SR:0x4d00001C  %Long 0x10eb065a
+  )
+
+  IF &OPP_type==&OPP100_SDC
+  (
+    //*(int*)0x4d00001C = JEDEC_TIM1_OPP100_SDC;
+    Data.Set SR:0x4d00001C  %Long 0x0ca8d51a
+  )
+
+  IF &OPP_type==&OPP50
+  (
+    //*(int*)0x4d00001C = JEDEC_TIM1_OPP50;
+    Data.Set SR:0x4d00001C  %Long 0x08648309
+  )
+
+  IF &OPP_type==&OPP50_SDC
+  (
+    *(int*)0x4d00001C = JEDEC_TIM1_OPP50_SDC;
+    Data.Set SR:0x4d00001C  %Long 0x06446289
+  )
+
+  IF &OPP_type==&OPP25
+  (
+    //*(int*)0x4d00001C = JEDEC_TIM1_OPP25;
+    Data.Set SR:0x4d00001C  %Long 0x04444189
+  )
+
+  IF &OPP_type==&OPP25_SDC
+  (
+    //*(int*)0x4d00001C = JEDEC_TIM1_OPP25_SDC;
+    Data.Set SR:0x4d00001C  %Long 0x04443149
+  )
+
+  IF &OPP_type==&OPPBOOT
+  (
+    //*(int*)0x4d00001C = JEDEC_TIM1_OPPBOOT;
+    Data.Set SR:0x4d00001C  %Long 0x04442049
+  )
+
+  // SDRAM TIM 2 SHDW
+  IF &OPP_type==&OPP100||&OPP_type==&OPP100_HDMI
+  (
+    //*(int*)0x4d000024 = JEDEC_TIM2_OPP100;
+    Data.Set SR:0x4d000024  %Long 0x20370dd2
+  )
+
+  IF &OPP_type==&OPP100_SDC
+  (
+    //*(int*)0x4d000024 = JEDEC_TIM2_OPP100_SDC;
+    Data.Set SR:0x4d000024  %Long 0x202e0b92
+  )
+
+  IF &OPP_type==&OPP50
+  (
+    //*(int*)0x4d000024 = JEDEC_TIM2_OPP50;
+    Data.Set SR:0x4d000024  %Long 0x101b06ca
+  )
+
+  IF &OPP_type==&OPP50_SDC
+  (
+    //*(int*)0x4d000024 = JEDEC_TIM2_OPP50_SDC;
+    Data.Set SR:0x4d000024  %Long 0x101705ca
+  )
+
+  IF &OPP_type==&OPP25
+  (
+    //*(int*)0x4d000024 = JEDEC_TIM2_OPP25;
+    Data.Set SR:0x4d000024  %Long 0x100d034a
+  )
+
+  IF &OPP_type==&OPP25_SDC
+  (
+    //*(int*)0x4d000024 = JEDEC_TIM2_OPP25_SDC;
+    Data.Set SR:0x4d000024  %Long 0x100b02ca
+  )
+
+  IF &OPP_type==&OPPBOOT
+  (
+    //*(int*)0x4d000024 = JEDEC_TIM2_OPPBOOT;
+    Data.Set SR:0x4d000024  %Long 0x1002008a
+  )
+
+  // SDRAM TIM 3 SHDW
+  IF &OPP_type==&OPP100||&OPP_type==&OPP100_HDMI
+  (
+    //*(int*)0x4d00002C = 0x00B1C33F;
+    Data.Set SR:0x4d00002C  %Long 0x00B1C33F
+  )
+
+  IF &OPP_type==&OPP100_SDC
+  (
+    //*(int*)0x4d00002C = 0x008EA2BF;
+    Data.Set SR:0x4d00002C  %Long 0x008EA2BF
+  )
+
+  IF &OPP_type==&OPP50
+  (
+    //*(int*)0x4d00002C = 0x0048A19F;
+    Data.Set SR:0x4d00002C  %Long 0x0048A19F
+  )
+
+  IF &OPP_type==&OPP50_SDC
+  (
+    //*(int*)0x4d00002C = 0x0047015F;
+    Data.Set SR:0x4d00002C  %Long 0x0047015F
+  )
+
+  IF &OPP_type==&OPP25
+  (
+    //*(int*)0x4d00002C = 0x004400CF;
+    Data.Set SR:0x4d00002C  %Long 0x004400CF
+  )
+
+  IF &OPP_type==&OPP25_SDC
+  (
+    //*(int*)0x4d00002C = 0x004380AF;
+    Data.Set SR:0x4d00002C  %Long 0x004380AF
+  )
+
+  IF &OPP_type==&OPPBOOT
+  (
+    //*(int*)0x4d00002C = 0x0040802F;
+    Data.Set SR:0x4d00002C  %Long 0x0040802F
+  )
+
+  // PWR MGMT CTRL SHDW
+  //*(int*)0x4d00003C = 0x00000000;
+  Data.Set SR:0x4d00003C   %Long 0x00000000
+
+
+  // SDRAM REF CTRL SHDW
+  IF &OPP_type==&OPP100
+  (
+    //*(int*)0x4d000014 = REF_CTRL_3_9_US_OPP100;
+    Data.Set SR:0x4d000014   %Long 0x00000618
+  )
+
+  IF &OPP_type==&OPP100_SDC
+  (
+    //*(int*)0x4d000014 = REF_CTRL_3_9_US_OPP100_SDC;
+    Data.Set SR:0x4d000014   %Long 0x0000050e
+  )
+
+  IF &OPP_type==&OPP100_HDMI
+  (
+    //*(int*)0x4d000014 = REF_CTRL_3_9_US_OPP100_HDMI;
+    Data.Set SR:0x4d000014   %Long 0x000005cd
+  )
+
+  IF &OPP_type==&OPP50
+  (
+    //*(int*)0x4d000014 = REF_CTRL_3_9_US_OPP50;
+    Data.Set SR:0x4d000014   %Long 0x0000030c
+  )
+
+  IF &OPP_type==&OPP50_SDC
+  (
+    //*(int*)0x4d000014 = REF_CTRL_3_9_US_OPP50_SDC;
+    Data.Set SR:0x4d000014   %Long 0x00000287
+  )
+
+  IF &OPP_type==&OPP25
+  (
+    //*(int*)0x4d000014 = REF_CTRL_3_9_US_OPP25;
+    Data.Set SR:0x4d000014   %Long 0x00000186
+  )
+
+  IF &OPP_type==&OPP25_SDC
+  (
+    //*(int*)0x4d000014 = REF_CTRL_3_9_US_OPP25_SDC;
+    Data.Set SR:0x4d000014   %Long 0x00000143
+  )
+
+  IF &OPP_type==&OPPBOOT
+  (
+    //*(int*)0x4d000014 = REF_CTRL_3_9_US_OPPBOOT;
+    Data.Set SR:0x4d000014   %Long 0x0000004a
+  )
+  
+  ;PRINT " <<< elpida_E1471E10_EMIF4D2_shadow_reg"
+  RETURN
+)
+
+elpida_EDB8064B1PB8DF_EMIF4D2_shadow_reg:
+(
+  ENTRY &OPP_type
+  
+  AREA.Select results
+  ;PRINT " >>> elpida_EDB8064B1PB8DF_EMIF4D2_shadow_reg"
+  
+  // DDR PHY CTRL1 SHDW
+  IF &OPP_type==&OPP100||&OPP_type==&OPP100_SDC||&OPP_type==&OPP100_HDMI
+  (
+    //*(int*)0x4d0000E8 = DDR_PHY_CTRL1_OPP100_RL6;
+    Data.Set SR:0x4d0000E8  %Long 0x449ff418
+  )
+
+  IF &OPP_type==&OPP50||&OPP_type==&OPP50_SDC
+  (
+    //*(int*)0x4d0000E8 = DDR_PHY_CTRL1_OPP50_RL6;
+    Data.Set SR:0x4d0000E8  %Long 0x449ff818
+  )
+
+  IF &OPP_type==&OPP25||&OPP_type==&OPP25_SDC
+  (
+    //*(int*)0x4d0000E8 = DDR_PHY_CTRL1_OPP25_RL6;
+    Data.Set SR:0x4d0000E8  %Long 0x449ffff8
+  )
+
+  IF &OPP_type==&OPPBOOT
+  (
+    //*(int*)0x4d0000E8 = DDR_PHY_CTRL1_OPPBOOT_RL6;
+    Data.Set SR:0x4d0000E8  %Long 0x449ffff8
+  )
+  
+  IF &OPP_type==&OPP100_ES2
+  (
+    //*(int*)0x4d0000E8 = DDR_PHY_CTRL1_OPPBOOT_RL3;
+    Data.Set SR:0x4d0000E8  %Long 0x449ffff4
+  )
+
+  // READ IDLE CTRL SHDW
+  //*(int*)0x4d00009C = 0x000501FF;
+  Data.Set SR:0x4d00009C  %Long 0x000501FF
+
+  // SDRAM TIM 1 SHDW
+  IF &OPP_type==&OPP100||&OPP_type==&OPP100_HDMI
+  (
+    //*(int*)0x4d00001C = JEDEC_TIM1_OPP100;
+    Data.Set SR:0x4d00001C  %Long 0x10eb065a
+  )
+
+  IF &OPP_type==&OPP100_SDC
+  (
+    //*(int*)0x4d00001C = JEDEC_TIM1_OPP100_SDC;
+    Data.Set SR:0x4d00001C  %Long 0x0ca8d51a
+  )
+
+  IF &OPP_type==&OPP50
+  (
+    //*(int*)0x4d00001C = JEDEC_TIM1_OPP50;
+    Data.Set SR:0x4d00001C  %Long 0x08648309
+  )
+
+  IF &OPP_type==&OPP50_SDC
+  (
+    *(int*)0x4d00001C = JEDEC_TIM1_OPP50_SDC;
+    Data.Set SR:0x4d00001C  %Long 0x06446289
+  )
+
+  IF &OPP_type==&OPP25
+  (
+    //*(int*)0x4d00001C = JEDEC_TIM1_OPP25;
+    Data.Set SR:0x4d00001C  %Long 0x04444189
+  )
+
+  IF &OPP_type==&OPP25_SDC
+  (
+    //*(int*)0x4d00001C = JEDEC_TIM1_OPP25_SDC;
+    Data.Set SR:0x4d00001C  %Long 0x04443149
+  )
+
+  IF &OPP_type==&OPPBOOT
+  (
+    //*(int*)0x4d00001C = JEDEC_TIM1_OPPBOOT;
+    Data.Set SR:0x4d00001C  %Long 0x04442049
+  )
+
+  // SDRAM TIM 2 SHDW
+  IF &OPP_type==&OPP100||&OPP_type==&OPP100_HDMI
+  (
+    //*(int*)0x4d000024 = JEDEC_TIM2_OPP100;
+    Data.Set SR:0x4d000024  %Long 0x20370dd2
+  )
+
+  IF &OPP_type==&OPP100_SDC
+  (
+    //*(int*)0x4d000024 = JEDEC_TIM2_OPP100_SDC;
+    Data.Set SR:0x4d000024  %Long 0x202e0b92
+  )
+
+  IF &OPP_type==&OPP50
+  (
+    //*(int*)0x4d000024 = JEDEC_TIM2_OPP50;
+    Data.Set SR:0x4d000024  %Long 0x101b06ca
+  )
+
+  IF &OPP_type==&OPP50_SDC
+  (
+    //*(int*)0x4d000024 = JEDEC_TIM2_OPP50_SDC;
+    Data.Set SR:0x4d000024  %Long 0x101705ca
+  )
+
+  IF &OPP_type==&OPP25
+  (
+    //*(int*)0x4d000024 = JEDEC_TIM2_OPP25;
+    Data.Set SR:0x4d000024  %Long 0x100d034a
+  )
+
+  IF &OPP_type==&OPP25_SDC
+  (
+    //*(int*)0x4d000024 = JEDEC_TIM2_OPP25_SDC;
+    Data.Set SR:0x4d000024  %Long 0x100b02ca
+  )
+
+  IF &OPP_type==&OPPBOOT
+  (
+    //*(int*)0x4d000024 = JEDEC_TIM2_OPPBOOT;
+    Data.Set SR:0x4d000024  %Long 0x1002008a
+  )
+
+  // SDRAM TIM 3 SHDW
+  IF &OPP_type==&OPP100||&OPP_type==&OPP100_HDMI
+  (
+    //*(int*)0x4d00002C = 0x00B1C33F;
+    Data.Set SR:0x4d00002C  %Long 0x00B1C33F
+  )
+
+  IF &OPP_type==&OPP100_SDC
+  (
+    //*(int*)0x4d00002C = 0x008EA2BF;
+    Data.Set SR:0x4d00002C  %Long 0x008EA2BF
+  )
+
+  IF &OPP_type==&OPP50
+  (
+    //*(int*)0x4d00002C = 0x0048A19F;
+    Data.Set SR:0x4d00002C  %Long 0x0048A19F
+  )
+
+  IF &OPP_type==&OPP50_SDC
+  (
+    //*(int*)0x4d00002C = 0x0047015F;
+    Data.Set SR:0x4d00002C  %Long 0x0047015F
+  )
+
+  IF &OPP_type==&OPP25
+  (
+    //*(int*)0x4d00002C = 0x004400CF;
+    Data.Set SR:0x4d00002C  %Long 0x004400CF
+  )
+
+  IF &OPP_type==&OPP25_SDC
+  (
+    //*(int*)0x4d00002C = 0x004380AF;
+    Data.Set SR:0x4d00002C  %Long 0x004380AF
+  )
+
+  IF &OPP_type==&OPPBOOT
+  (
+    //*(int*)0x4d00002C = 0x0040802F;
+    Data.Set SR:0x4d00002C  %Long 0x0040802F
+  )
+
+  // PWR MGMT CTRL SHDW
+  //*(int*)0x4d00003C = 0x00000000;
+  Data.Set SR:0x4d00003C   %Long 0x00000000
+
+
+  // SDRAM REF CTRL SHDW
+  IF &OPP_type==&OPP100
+  (
+    //*(int*)0x4d000014 = REF_CTRL_3_9_US_OPP100;
+    Data.Set SR:0x4d000014   %Long 0x00000618
+  )
+
+  IF &OPP_type==&OPP100_SDC
+  (
+    //*(int*)0x4d000014 = REF_CTRL_3_9_US_OPP100_SDC;
+    Data.Set SR:0x4d000014   %Long 0x0000050e
+  )
+
+  IF &OPP_type==&OPP100_HDMI
+  (
+    //*(int*)0x4d000014 = REF_CTRL_3_9_US_OPP100_HDMI;
+    Data.Set SR:0x4d000014   %Long 0x000005cd
+  )
+
+  IF &OPP_type==&OPP50
+  (
+    //*(int*)0x4d000014 = REF_CTRL_3_9_US_OPP50;
+    Data.Set SR:0x4d000014   %Long 0x0000030c
+  )
+
+  IF &OPP_type==&OPP50_SDC
+  (
+    //*(int*)0x4d000014 = REF_CTRL_3_9_US_OPP50_SDC;
+    Data.Set SR:0x4d000014   %Long 0x00000287
+  )
+
+  IF &OPP_type==&OPP25
+  (
+    //*(int*)0x4d000014 = REF_CTRL_3_9_US_OPP25;
+    Data.Set SR:0x4d000014   %Long 0x00000186
+  )
+
+  IF &OPP_type==&OPP25_SDC
+  (
+    //*(int*)0x4d000014 = REF_CTRL_3_9_US_OPP25_SDC;
+    Data.Set SR:0x4d000014   %Long 0x00000143
+  )
+
+  IF &OPP_type==&OPPBOOT
+  (
+    //*(int*)0x4d000014 = REF_CTRL_3_9_US_OPPBOOT;
+    Data.Set SR:0x4d000014   %Long 0x0000004a
+  )
+  
+  ;PRINT " <<< elpida_EDB8064B1PB8DF_EMIF4D2_shadow_reg"
+  RETURN
+)

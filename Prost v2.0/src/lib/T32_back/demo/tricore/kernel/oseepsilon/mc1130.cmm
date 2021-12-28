@@ -1,0 +1,61 @@
+; --------------------------------------------------------------------------------
+; @Title: OSE Epsilon Demo for TRACE32 OS Awareness
+; @Description:
+;   This script loads all necessary files to demonstrate
+;   the RTOS-Debugger for OSE for Tricore
+; @Keywords: Infineon, kernel, oseepsilon, osetri, TriCore
+; @Author: DIE
+; @Chip: tc1130
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mc1130.cmm 13125 2018-09-11 14:03:01Z rdienstbeck $
+
+
+RESet
+
+SYStem.CPU tc1130
+
+SYStem.Up
+
+WinPAGE.RESet
+
+; SYStem.Mode AloneInt
+
+Data.Set 0xf8000010 %Long 0xf9ff68
+Data.Set 0xf8000080 %Long 0xa4000051
+Data.Set 0xf80000c0 %Long 0x820000
+Data.Set 0xf8000100 %Long 0x23ff0100
+Data.Set 0xf8000088 %Long 0xa0000021
+Data.Set 0xf80000c8 %Long 0x30b20000
+Data.Set 0xf8000108 %Long 0x22070000
+
+Data.Set 0xf8000090 %Long 0xa2000021
+Data.Set 0xf80000d0 %Long 0x30b20000
+Data.Set 0xf8000110 %Long 0x22070000
+Data.Set 0xf8000020 %Long 0x53
+Data.Set 0xf8000040 %Long 0xcb
+Data.Set 0xf8000050 %Long 0x1162075
+Data.Set 0xf8000060 %Long 0x23
+
+SETUP.IMASKASM ON
+SETUP.IMASKHLL ON
+
+Data.Set 0xf0000370 %Long 0ff000100
+
+WinPOS 0% 0% 40% 60%
+Register.view
+List.auto
+
+Data.LOAD.auto motcon.elf ;;/lpath /spath /long
+WinPOS 0% 60% 40% 50%
+
+WinPOS 30% 0% 50% 100%
+;;List.auto
+WinPOS 70% 0% 50% 100%
+Data.dump 0xa0000000
+;
+Break.Set ERR
+
+ TASK.CONFIG osetri.t32
+ TASK.STacK.PATtern 0x17
+ MENU.ReProgram osee

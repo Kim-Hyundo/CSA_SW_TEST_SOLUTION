@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="../../t32transform.xsl"?>
+<TRACE32 file="D:\svn\demo\demo\coverage\multi_file_report\example_report\sieve\sieve\func-p-4bc-4d7.xml">
+	<coverage>
+		<COVerage.EXPORT.ListLine ts="1539005269" t32ver="S.2018.10.000101728" t32pv="ARM">
+			<module>
+				<addrFrom>P:0x4B0</addrFrom>
+				<addrTo>P:0x167B</addrTo>
+				<tree>\\sieve\sieve</tree>
+				<cov>partial</cov>
+				<exec>75.109%</exec>
+				<branches>78.125%</branches>
+				<ok>47</ok>
+				<taken>4</taken>
+				<nottaken>2</nottaken>
+				<never>11</never>
+				<bytes>4556</bytes>
+				<bytesok>3422</bytesok>
+				<function>
+					<addrFrom>P:0x4BC</addrFrom>
+					<addrTo>P:0x4D7</addrTo>
+					<tree uid="p-4bc-4d7">\\sieve\sieve\func1</tree>
+					<cov>ok</cov>
+					<exec>100.000%</exec>
+					<branches>-</branches>
+					<ok>0</ok>
+					<taken>0</taken>
+					<nottaken>0</nottaken>
+					<never>-</never>
+					<bytes>28</bytes>
+					<bytesok>28</bytesok>
+					<line>
+						<addrFrom>P:0x4BC</addrFrom>
+						<addrTo>P:0x4C3</addrTo>
+						<tree>sieve.c \146--148</tree>
+						<srcpath>.\src</srcpath>
+						<cov>ok</cov>
+						<exec>100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>-</never>
+						<bytes>8</bytes>
+						<bytesok>8</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:0x4C4</addrFrom>
+						<addrTo>P:0x4CD</addrTo>
+						<tree>sieve.c \149--149</tree>
+						<srcpath>.\src</srcpath>
+						<cov>ok</cov>
+						<exec>100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>-</never>
+						<bytes>10</bytes>
+						<bytesok>10</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:0x4CE</addrFrom>
+						<addrTo>P:0x4D7</addrTo>
+						<tree>sieve.c \150--150</tree>
+						<srcpath>.\src</srcpath>
+						<cov>ok</cov>
+						<exec>100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>-</never>
+						<bytes>10</bytes>
+						<bytesok>10</bytesok>
+					</line>
+				</function>
+			</module>
+		<total>
+			<cov>partial</cov>
+			<exec>75.109%</exec>
+			<branches>78.125%</branches>
+			<ok>47</ok>
+			<taken>4</taken>
+			<nottaken>2</nottaken>
+			<never>11</never>
+			<bytes>4556</bytes>
+			<bytesok>3422</bytesok>
+		</total>
+		</COVerage.EXPORT.ListLine>
+	</coverage>
+	<marker>
+		<BookMark.EXPORT ts="1539005269" t32ver="S.2018.10.000101728" t32pv="ARM">
+		</BookMark.EXPORT>
+	</marker>
+	<listing>
+		<List.EXPORT ts="1539005269" t32ver="S.2018.10.000101728" t32pv="ARM" cpu="ARM922T">
+			<mixed module="\\sieve\sieve\sieve.c">
+				<hll><line>146</line><src></src></hll>
+				<hll><line>147</line><src>static void func1( int * intptr )       /* static function */</src></hll>
+				<hll><cov>ok</cov><line>148</line><src>{</src></hll>
+				<asm><cov>ok</cov><addr>ST:000004BC</addr><code>B580</code><label>func1:</label><mnemonic>push    {r7,r14}</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:000004BE</addr><code>B082</code><mnemonic>sub     sp,#0x8</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:000004C0</addr><code>AF00</code><mnemonic>add     r7,sp,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:000004C2</addr><code>6078</code><mnemonic>str     r0,[r7,#0x4]</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\sieve\sieve.c">
+				<hll><cov>ok</cov><line>149</line><src>    (*intptr)++;</src></hll>
+				<asm><cov>ok</cov><addr>ST:000004C4</addr><code>687B</code><mnemonic>ldr     r3,[r7,#0x4]</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:000004C6</addr><code>681B</code><mnemonic>ldr     r3,[r3]</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:000004C8</addr><code>1C5A</code><mnemonic>add     r2,r3,#0x1</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:000004CA</addr><code>687B</code><mnemonic>ldr     r3,[r7,#0x4]</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:000004CC</addr><code>601A</code><mnemonic>str     r2,[r3]</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\sieve\sieve.c">
+				<hll><cov>ok</cov><line>150</line><src>}</src></hll>
+				<asm><cov>ok</cov><addr>ST:000004CE</addr><code>46BD</code><mnemonic>mov     r13,r7</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:000004D0</addr><code>B002</code><mnemonic>add     sp,#0x8</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:000004D2</addr><code>BC80</code><mnemonic>pop     {r7}</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:000004D4</addr><code>BC01</code><mnemonic>pop     {r0}</mnemonic></asm>
+				<asm><cov>ok</cov><addr>ST:000004D6</addr><code>4700</code><mnemonic>bx      r0</mnemonic></asm>
+			</mixed>
+		</List.EXPORT>
+	</listing>
+</TRACE32>

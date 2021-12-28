@@ -1,0 +1,213 @@
+; --------------------------------------------------------------------------------
+; @Title: Chip initialization for MB86R24 on TritonC
+; @Description:
+;   converted from 1_Chip_Initialization.par
+; @Props: NoMetaTags NoErrors
+; @Author: converted by AME
+; @Board: TRITON-C Promotion Board
+; @Chip: MB86R24
+; --------------------------------------------------------------------------------
+; $Id: 1_chip_initialization.cmm 10197 2016-11-22 16:28:01Z amerkle $
+
+; MB86R24
+; TritonC
+
+
+;****************************************
+; Release only CRG_1 and DDR controller reset
+;****************************************
+Data.Set AD:0x3B500028 %Long 0x00000881   ;CRRRS (Register controlled reset request register)
+
+;****************************************
+; Configure Global control register
+;****************************************
+Data.Set AD:0x3d100100 %Long 0x00001F00   ;GLBLCTL(Global control) Register: All UARTs are in UART mode
+
+;****************************************
+; Additionally release CRG_1 bus reset in CRG_0
+;****************************************
+Data.Set AD:0x3B500028 %Long 0xC0000881   ;CRRRS (Register controlled reset request register)
+
+;****************************************
+; Configure CRG11_S (SSCG)
+;****************************************
+Data.Set AD:0x3B500100 %Long 0x0000000F     ;CRDM0 (Clock divider mode register): 1/1  ARM clock (533Mhz)
+Data.Set AD:0x3B500110 %Long 0x0000000F     ;CRDM1 (Clock divider mode register): 1/2  AXI clock (266Mhz)
+Data.Set AD:0x3B500120 %Long 0x0000000F     ;CRDM2 (Clock divider mode register): 1/2  AXI clock (266Mhz)
+Data.Set AD:0x3B500130 %Long 0x0000000F     ;CRDM3 (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3B500140 %Long 0x0000000F     ;CRDM4 (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3B500150 %Long 0x0000000F     ;CRDM5 (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3B500160 %Long 0x0000000F     ;CRDM6 (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3B500170 %Long 0x0000000F     ;CRDM7 (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3B500180 %Long 0x0000000F     ;CRDM8 (Clock divider mode register): 1/2  AXI clock (266Mhz)
+Data.Set AD:0x3B500190 %Long 0x0000000F     ;CRDM9 (Clock divider mode register): 1/8  APB clock (66Mhz)
+Data.Set AD:0x3B5001A0 %Long 0x0000000F     ;CRDMA (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3B5001B0 %Long 0x0000000F     ;CRDMB (Clock divider mode register): 1/12 SDI clock (44.3Mhz) -> Divider 11 allowed????
+Data.Set AD:0x3B5001C0 %Long 0x0000000F     ;CRDMC (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3B5001D0 %Long 0x0000000F     ;CRDMD (Clock divider mode register): 1/10 TS  clock (53.3Mhz) -> Divider allowed???
+Data.Set AD:0x3B5001E0 %Long 0x0000000F     ;CRDME (Clock divider mode register): 1/2  AXI clock (266Mhz)
+Data.Set AD:0x3B5001F0 %Long 0x0000000F     ;CRDMF (Clock divider mode register): 1/8  APB clock (66Mhz)
+
+Data.Set AD:0x3B500030 %Long 0x00000001     ;CRCDC (Clock divider control register): DCHREQ (Clock divider mode update request) is set
+
+WAIT 100ms ; wait PLLRDY
+
+;****************************************
+; Configure CRG11_P (PLL)
+;****************************************
+Data.Set AD:0x3E200100 %Long 0x0000000F     ;CRDM0 (Clock divider mode register): 1/1  ARM clock (533Mhz)
+Data.Set AD:0x3E200110 %Long 0x0000000F     ;CRDM1 (Clock divider mode register): 1/2  AXI clock (266Mhz)
+Data.Set AD:0x3E200120 %Long 0x0000000F     ;CRDM2 (Clock divider mode register): 1/2  AXI clock (266Mhz)
+Data.Set AD:0x3E200130 %Long 0x0000000F     ;CRDM3 (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3E200140 %Long 0x0000000F     ;CRDM4 (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3E200150 %Long 0x0000000F     ;CRDM5 (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3E200160 %Long 0x0000000F     ;CRDM6 (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3E200170 %Long 0x0000000F     ;CRDM7 (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3E200180 %Long 0x0000000F     ;CRDM8 (Clock divider mode register): 1/2  AXI clock (266Mhz)
+Data.Set AD:0x3E200190 %Long 0x0000000F     ;CRDM9 (Clock divider mode register): 1/8  APB clock (66Mhz)
+Data.Set AD:0x3E2001A0 %Long 0x0000000F     ;CRDMA (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3E2001B0 %Long 0x0000000F     ;CRDMB (Clock divider mode register): 1/12 SDI clock (44.3Mhz)
+Data.Set AD:0x3E2001C0 %Long 0x0000000F     ;CRDMC (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3E2001D0 %Long 0x0000000F     ;CRDMD (Clock divider mode register): 1/10 TS  clock (53.3Mhz) -> divider allowed???
+Data.Set AD:0x3E2001E0 %Long 0x0000000F     ;CRDME (Clock divider mode register): 1/2  AXI clock (266Mhz)
+Data.Set AD:0x3E2001F0 %Long 0x0000000F     ;CRDMF (Clock divider mode register): 1/8  APB clock (66Mhz)
+
+Data.Set AD:0x3E200030 %Long 0x00000001     ;CRCDC (Clock divider control register): DCHREQ (Clock divider mode update request) is set
+
+WAIT 100ms ; wait PLLRDY
+
+;****************************************
+; Enable PLL bypass mode
+;****************************************
+;CRG_0
+Data.Set AD:0x3B500000 %Long 0x010f003f     ;CRPLC (PLL control register)
+;CRG_1
+Data.Set AD:0x3E200000 %Long 0x010f003f     ;CRPLC (PLL control register)
+
+;****************************************
+; Confiugre PLL lock up wait time and stop PLL
+;****************************************
+;CRG_0
+Data.Set AD:0x3B500000 %Long 0x010f0000     ;CRPLC (PLL control register)
+;CRG_1
+Data.Set AD:0x3E200000 %Long 0x010f0000     ;CRPLC (PLL control register)
+
+;****************************************
+; Use CRG11_P (PLL) for all clocks
+; 533MHz
+;****************************************
+Data.Set AD:0x3D100600 %Long 0x00001040     ;SSCGCTL: CLKSEL=PLL,DISPCLK=PLL, IDIV= 32
+
+;****************************************
+; Activate PLL
+;****************************************
+;CRG_0
+Data.Set AD:0x3B500000 %Long 0x010f003F     ;CRPLC (PLL control register)
+;CRG_1
+Data.Set AD:0x3E200000 %Long 0x010f003F     ;CRPLC (PLL control register)
+
+;****************************************
+; Poll CRG_x.CRRDY.PLLRD until changed to 1
+;****************************************
+WAIT 100ms ; wait PLLRDY
+
+;/****************************************
+; Disable PLL bypass mode
+;****************************************
+;CRG_0
+Data.Set AD:0x3B500000 %Long 0x000f003f     ;CRPLC (PLL control register)
+;CRG_1
+Data.Set AD:0x3E200000 %Long 0x000f003f     ;CRPLC (PLL control register)
+
+;****************************************
+; Configure CRG11_S (SSCG)
+;****************************************
+Data.Set AD:0x3B500100 %Long 0x00000001     ;CRDM0 (Clock divider mode register): 1/1  ARM clock (533Mhz)
+Data.Set AD:0x3B500110 %Long 0x00000003     ;CRDM1 (Clock divider mode register): 1/2  AXI clock (266Mhz)
+Data.Set AD:0x3B500120 %Long 0x00000003     ;CRDM2 (Clock divider mode register): 1/2  AXI clock (266Mhz)
+Data.Set AD:0x3B500130 %Long 0x00000007     ;CRDM3 (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3B500140 %Long 0x00000007     ;CRDM4 (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3B500150 %Long 0x00000007     ;CRDM5 (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3B500160 %Long 0x00000007     ;CRDM6 (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3B500170 %Long 0x00000007     ;CRDM7 (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3B500180 %Long 0x00000007     ;CRDM8 (Clock divider mode register): 1/2  AXI clock (266Mhz)
+Data.Set AD:0x3B500190 %Long 0x0000000F     ;CRDM9 (Clock divider mode register): 1/8  APB clock (66Mhz)
+Data.Set AD:0x3B5001A0 %Long 0x00000007     ;CRDMA (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3B5001B0 %Long 0x00000015     ;CRDMB (Clock divider mode register): 1/12 SDI clock (44.3Mhz) -> Divider 11 allowed????
+Data.Set AD:0x3B5001C0 %Long 0x0000000F     ;CRDMC (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3B5001D0 %Long 0x000000AF     ;CRDMD (Clock divider mode register): 1/10 TS  clock (53.3Mhz) -> Divider allowed???
+Data.Set AD:0x3B5001E0 %Long 0x00000006     ;CRDME (Clock divider mode register): 1/2  AXI clock (266Mhz)
+Data.Set AD:0x3B5001F0 %Long 0x00000004     ;CRDMF (Clock divider mode register): 1/8  APB clock (66Mhz)
+
+Data.Set AD:0x3B500030 %Long 0x00000001     ;CRCDC (Clock divider control register): DCHREQ (Clock divider mode update request) is set
+
+WAIT 100ms ; wait PLLRDY
+
+;****************************************
+; Configure CRG11_P (PLL)
+;****************************************
+Data.Set AD:0x3E200100 %Long 0x0000000F     ;CRDM0 (Clock divider mode register): 1/1  ARM clock (533Mhz)
+Data.Set AD:0x3E200110 %Long 0x0000000F     ;CRDM1 (Clock divider mode register): 1/2  AXI clock (266Mhz)
+Data.Set AD:0x3E200120 %Long 0x0000000F     ;CRDM2 (Clock divider mode register): 1/2  AXI clock (266Mhz)
+Data.Set AD:0x3E200130 %Long 0x0000000F     ;CRDM3 (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3E200140 %Long 0x0000000F     ;CRDM4 (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3E200150 %Long 0x0000000F     ;CRDM5 (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3E200160 %Long 0x0000000F     ;CRDM6 (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3E200170 %Long 0x0000000F     ;CRDM7 (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3E200180 %Long 0x0000000F     ;CRDM8 (Clock divider mode register): 1/2  AXI clock (266Mhz)
+Data.Set AD:0x3E200190 %Long 0x0000000F     ;CRDM9 (Clock divider mode register): 1/8  APB clock (66Mhz)
+Data.Set AD:0x3E2001A0 %Long 0x0000000F     ;CRDMA (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3E2001B0 %Long 0x0000000F     ;CRDMB (Clock divider mode register): 1/12 SDI clock (44.3Mhz)
+Data.Set AD:0x3E2001C0 %Long 0x0000000F     ;CRDMC (Clock divider mode register): 1/4  AHB clock (133Mhz)
+Data.Set AD:0x3E2001D0 %Long 0x0000000F     ;CRDMD (Clock divider mode register): 1/10 TS  clock (53.3Mhz) -> divider allowed???
+Data.Set AD:0x3E2001E0 %Long 0x0000000F     ;CRDME (Clock divider mode register): 1/2  AXI clock (266Mhz)
+Data.Set AD:0x3E2001F0 %Long 0x0000000F     ;CRDMF (Clock divider mode register): 1/8  APB clock (66Mhz)
+
+Data.Set AD:0x3E200030 %Long 0x00000001     ;CRCDC (Clock divider control register): DCHREQ (Clock divider mode update request) is set
+
+WAIT 100ms ; wait PLLRDY
+
+;****************************************
+;Enable other modules
+;****************************************
+Data.Set AD:0x3B500028 %Long 0xEFFE7FFF     ;CRRRS (Register controlled reset request register): Deasserting request for RRESET: Watchdog is not released
+
+;****************************************
+; Configure external bus interface
+;****************************************
+
+;CS0: NOR flash
+Data.Set AD:0x3C400000 %Long 0x00000021 ;Mode0
+Data.Set AD:0x3C400020 %Long 0x040E0F03 ;Tim0
+Data.Set AD:0x3C400040 %Long 0x007f0000 ;Area0 -> 128MB
+
+;CS1: NAND flash
+Data.Set AD:0x3C400004 %Long 0x00000011 ;Mode1
+Data.Set AD:0x3C400024 %Long 0x055B2002 ;Tim1
+Data.Set AD:0x3C400044 %Long 0x00000080 ;Area1
+
+;CS2: External Ethernet
+Data.Set AD:0x3C400008 %Long 0x00000001 ;Mode2
+Data.Set AD:0x3C400028 %Long 0x055FF00F ;Tim2
+Data.Set AD:0x3C400048 %Long 0x000000FF ;Area2
+
+;Internal CS
+Data.Set AD:0x3C40000C %Long 0x00000001 ;Mode3
+Data.Set AD:0x3C400010 %Long 0x00000001 ;Mode4
+Data.Set AD:0x3C400014 %Long 0x00000001 ;Mode5
+Data.Set AD:0x3C400018 %Long 0x00000001 ;Mode6
+Data.Set AD:0x3C40001C %Long 0x00000001 ;Mode6
+Data.Set AD:0x3C40002C %Long 0x055FF00F ;Tim3
+Data.Set AD:0x3C400030 %Long 0x055FF00F ;Tim4
+Data.Set AD:0x3C400034 %Long 0x055FF00F ;Tim5
+Data.Set AD:0x3C400038 %Long 0x055FF00F ;Tim6
+Data.Set AD:0x3C40003C %Long 0x055FF00F ;Tim7
+Data.Set AD:0x3C40004C %Long 0x000000FF ;Area3
+Data.Set AD:0x3C400050 %Long 0x000000FF ;Area4
+Data.Set AD:0x3C400054 %Long 0x000000FF ;Area5
+Data.Set AD:0x3C400058 %Long 0x000000FF ;Area6
+Data.Set AD:0x3C40005C %Long 0x000000FF ;Area7
+
+WAIT 100ms
+
+ENDDO

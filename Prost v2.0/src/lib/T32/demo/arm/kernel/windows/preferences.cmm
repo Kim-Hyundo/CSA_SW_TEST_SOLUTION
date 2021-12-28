@@ -1,0 +1,114 @@
+; --------------------------------------------------------------------------------
+; @Title: Help script to set/get windows awareness user preferences
+; @Description: -
+; @Author: HDA
+; @Props: NoMetaTags NoWelcome NoIndex
+; @Copyright: (C) 1989-2018 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: preferences.cmm 4859 2019-12-05 10:51:45Z hdammak $
+
+  LOCAL &cmd &params
+  LOCAL &pref_download &pref_no_file
+  LOCAL &pref &val
+  ENTRY &cmd %LINE &params
+  
+  GOSUB getUserPreferences
+  ENTRY &pref_download &pref_no_file
+
+  IF (STRing.Upper("&cmd")=="GET")
+  (
+    ENDDO &pref_download &pref_no_file
+  ) 
+  ELSE IF (STRing.Upper("&cmd")=="SET")
+  (
+    GOSUB parse_set_params &params
+    ENTRY &pref &val
+    IF (STRing.Upper("&pref")=="SYMBOL_DOWNLOAD")
+    (
+      &pref_download="&val"
+    )
+    ELSE IF (STRing.Upper("&pref")=="SYMBOL_NOT_FOUND")
+    (
+      &pref_no_file="&val"
+    )
+    ELSE //ignore
+    (
+      ENDDO
+    )
+    GOSUB setUserPreferences &pref_download &pref_no_file
+    ENDDO
+  )
+  
+  ENDDO
+  
+parse_set_params:
+  LOCAL &preference &value
+  ENTRY &preference &value
+  RETURN &preference &value
+
+getUserPreferencesFile:
+  LOCAL &preference_dir &preference_file 
+  IF (OS.VERSION(0)>0x00)&&(OS.VERSION(0)<0x10)
+  (
+    &preference_dir=OS.ENV(APPDATA)+"\TRACE32"
+    IF (!OS.DIR(&preference_dir))
+      MKDIR &preference_dir
+  )
+  ELSE IF (OS.VERSION(0)>=0x10)&&(OS.VERSION(0)<0x20)||(OS.VERSION(0)>=0x40)
+  (
+    &preference_dir=OS.PHD()+"/.trace32"
+    IF (!OS.DIR(&preference_dir))
+      MKDIR &preference_dir
+  )
+  ELSE
+  (
+    &preference_dir=OS.PHD()
+  )
+  &preference_file="&preference_dir"+"/winstd-preferences.cfg"
+  RETURN &preference_file
+
+getUserPreferences:
+  LOCAL &preference_file &p_download &p_no_file &readLine
+  
+  GOSUB getUserPreferencesFile
+  ENTRY &preference_file
+
+  &p_download="ask"
+  &p_no_file="ask"
+  IF (FILE.EXIST(&preference_file))
+  (
+    OPEN #1 &preference_file /Read
+    WHILE !FILE.EOF(1)
+    (
+      READ #1 %LINE &readLine
+      IF (STRing.SCAN("&readLine","winstd.symbol_download",0)!=(-1))
+      (
+        &p_download=STRing.TRIM(STRing.SPLIT("&readLine","=",1))
+      )
+      ELSE IF (STRing.SCAN("&readLine","winstd.symbol_not_found",0)!=(-1))
+      (
+        &p_no_file=STRing.TRIM(STRing.SPLIT("&readLine","=",1))
+      )
+    )
+    CLOSE #1
+  )
+  RETURN &p_download &p_no_file
+  
+setUserPreferences:
+  LOCAL &preference_file &p_download &p_no_file &wLine
+  ENTRY &p_download &p_no_file
+  
+  GOSUB getUserPreferencesFile
+  ENTRY &preference_file
+
+
+  IF (FILE.EXIST(&preference_file))
+  (
+    RM &preference_file
+  )
+  OPEN #1 &preference_file /Create
+  WRITE #1 "; TRACE32 Windows awareness user preferences file"
+  WRITE #1 "winstd.symbol_download  = &p_download"
+  WRITE #1 "winstd.symbol_not_found = &p_no_file"
+  CLOSE #1
+  RETURN

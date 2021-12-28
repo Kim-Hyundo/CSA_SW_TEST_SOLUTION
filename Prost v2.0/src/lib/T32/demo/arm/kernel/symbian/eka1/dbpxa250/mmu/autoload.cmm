@@ -1,0 +1,63 @@
+; --------------------------------------------------------------------------------
+; @Title: Symbian Symbol Autoloader Script
+; @Description: Autoload script, called by TRACE32 if symbols are to be loaded
+; @Keywords: dbpxa250, eka1, mmu, symbian
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: autoload.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+// define local macros
+ LOCAL &filename &basename &progname &symfilename &filepath &code &data &space &databsslinear &basename
+
+// get filename and relocation information
+ // these parameters are passed when calling this skript
+ 
+ ENTRY &filename &code &data &databsslinear &space
+ 
+ // &filename:      name of process/file
+ // &code:          text segment address
+ // &data:          data segment address (not used in Symbian OS)
+ // &databsslinear: combined data & bss segment address
+ // &space:         space id of process
+
+// address space defaults to 0
+ IF "&space"==""
+   &space=0
+
+// get symbol file name and program name
+ &basename=STRing.CUT(&filename,-STRing.LENgth(OS.FILE.EXTENSION(&filename)))
+ &symfilename="&basename"+".sym"
+ &progname=OS.FILE.NAME("&basename")
+
+// delete program if it already exists or other code is already there
+ sYmbol.Delete &code
+ IF sYmbol.EXIST("\\&progname")
+   sYmbol.Delete \\&progname
+
+// search file in source search path and open dialog when not there
+ &filepath=sYmbol.SEARCHFILE("&symfilename")
+ IF !OS.FILE("&filepath")
+ (
+   LOCAL &file
+   &file=OS.FILE.NAME("&symfilename")
+   WinPOS ,,,,,, filebox normal "Searching symbols for &filename"
+   DIALOG.File "*\&file"
+   ENTRY %LINE &filepath
+   IF "&filepath"==""
+     ENDDO
+ )
+
+// load symbol file (options for sourcepath, e.g. /STRIPPART may need to be added when required)
+ Data.LOAD.eXe "&filepath" &space:0 /NoClear /CPP /NoCODE /StripPART 3 /RELOC .text at &code /RELOC .data at &databsslinear /RELOC .bss after .data
+ 
+// rescan mmu entries for this process
+ IF &space!=0
+ (
+    TRANSlation.Delete &space:0--0xffffffff
+    MMU.SCAN   &space:0--0xffffffff
+    TRANSlation.CLEANUP
+ )
+
+ ENDDO

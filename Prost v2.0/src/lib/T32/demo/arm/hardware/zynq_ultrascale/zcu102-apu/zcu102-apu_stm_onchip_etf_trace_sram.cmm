@@ -1,0 +1,142 @@
+; --------------------------------------------------------------------------------
+; @Title: STM-Demo script for ZYNQ-ULTRASCALE+-APU with Onchip-Trace
+; @Description:
+;   Loads the STM stimulus demo application into RAM and sets up a demo debug
+;   scenario. The code will continuously produce STM data by writing to
+;   STIMULUS register 0.
+;   As the bootcode does not start any core in JTAG-Bootmode we start the first
+;   core using the script.
+;   The STM data is traced using the Onchip-Trace (ETF).
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to J6
+;    * set SW6 = 0y1111 (JTAG Bootmode)
+;    * short J14
+; @Keywords: ARM, Cortex-A53, ETF, STM
+; @Author: AME
+; @Board: ZCU102
+; @Chip: ZYNQ-ULTRASCALE+*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: zcu102-apu_stm_onchip_etf_trace_sram.cmm 16744 2020-11-06 12:52:40Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF VERSION.BUILD.BASE()<75524.
+(
+  PRINT %ERROR "Please use more recent Software! Contact support@lauterbach.com."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU ZYNQ-ULTRASCALE+-APU
+SYStem.Option TRST OFF
+SYStem.Option ResBreak OFF
+SYStem.Option WaitDAPPWR ON
+SYStem.JtagClock CTCK 10MHz
+CORE.ASSIGN 1.
+; disable Trace infrastructure for the moment - TPIU may be unclocked!
+ETM.OFF
+Trace.DISable
+SYStem.Mode Prepare
+
+; --------------------------------------------------------------------------------
+; Disable watchdog SWDT and reset core 0 to defined state
+GOSUB DisableWatchdog
+
+DO "~~~~/../scripts/zynq-ultrascale_kick_bootcore.cmm" A53_X64
+
+SYStem.Mode.Attach
+IF STATE.RUN()
+  Break.direct
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/stm_stimulus_ram_aarch64_v8.elf"
+Register.Set M 0x5            ; EL1
+Register.Set NS 1.            ; nsec
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; initialize global variables
+; set STM STIMULUS base address
+Var.Assign pStimulusBase=0xf8000000
+
+; --------------------------------------------------------------------------------
+; initialize ONCHIP trace (ETF2)
+(
+  Trace.METHOD ONCHIP
+  STMTrace.METHOD ONCHIP
+  Trace.TraceCONNECT ETF2
+  DO "~~~~/../scripts/timestamps.cmm"
+  ETM.Trace OFF
+  STM.TimeStamps ON
+  ETM.ON
+  STM.ON
+)
+
+; per default demonstrate data trace only
+IF TRUE()    // For data trace only
+(
+  ; some more initializations for the example code
+  Var.Assign bLongStimulusEnable=1
+  Var.Assign nLongStimulus=0x12345678
+  Var.Assign bAlternateStimulusEnable=1
+
+  ; --------------------------------------------------------------------------------
+  ; open some windows
+  WinCLEAR
+  Mode.Hll
+  WinPOS 0. 0. 116. 26.
+  List.auto
+  WinPOS 120. 0. 100. 16.
+  Var.Watch
+  Var.AddWatch %SpotLight %Hex bByteStimulusEnable bWordStimulusEnable bLongStimulusEnable bQuadStimulusEnable
+  Var.AddWatch %SpotLight %Hex bAlternateStimulusEnable
+  Var.AddWatch %SpotLight %Hex nByteStimulus nWordStimulus nLongStimulus nQuadStimulus
+  WinPOS 0. 32.
+  SystemTrace.List
+)
+ELSE         // For STM string printout only
+(
+  ; some more variable initializations for the example code
+  Var.Assign pPrintfString="STM test string"
+
+  ; --------------------------------------------------------------------------------
+  ; open some windows
+  WinCLEAR
+  Mode.Hll
+  WinPOS 0. 0. 116. 26.
+  List.auto
+  WinPOS 120. 0. 100. 16.
+  Var.Watch
+  Var.AddWatch %SpotLight %String pPrintfString
+  WinPOS 0. 32.
+  SystemTrace.List
+  WinPOS 120. 25.
+  PrintfTrace.List MESSAGE
+)
+
+ENDDO
+
+; ================================================================================
+DisableWatchdog:
+(
+  PRIVATE &swdtMode
+  
+  &swdtMode=Data.Long(ENAXI:0xFF150000)
+  &swdtMode=&swdtMode&0xFFE      ; Mode.WDEN = 0
+  &swdtMode=&swdtMode+0xABC000   ; zKEY
+  
+  Data.Set ENAXI:0xFF150000 %LE %Long &swdtMode
+)
+RETURN

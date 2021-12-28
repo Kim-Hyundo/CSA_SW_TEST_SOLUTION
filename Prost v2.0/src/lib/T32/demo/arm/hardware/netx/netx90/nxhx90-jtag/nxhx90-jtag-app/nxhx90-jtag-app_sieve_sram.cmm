@@ -1,0 +1,77 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo script for NETX90-APP on NXHX90-JTAG (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   Use this script for getting started.
+;   Prerequisites:
+;    * Connect Debug Cable to X400 using Adapter LA-3770
+;      or connect Combiprobe/uTrace to X400.
+;    * Set S701[1] to "ON".
+; @Keywords: ARM, Cortex-M4
+; @Author: ALI
+; @Board: NXHX90-JTAG
+; @Chip: NETX90-APP
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: nxhx90-jtag-app_sieve_sram.cmm 13919 2019-02-09 09:45:19Z alintner $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF VERSION.BUILD()<105856.
+(
+  PRINT %ERROR "Please use more recent software. Contact support@lauterbach.com."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+
+RESet
+SYStem.RESet
+SYStem.CPU NETX90-APP
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option.DUALPORT ON
+SYStem.Option.EnReset OFF ; don't reset the communication CPU ...
+Trace.DISable
+IF TRUE() ; If application CPU is not enabled by the communication CPU software ...
+(
+  SYStem.Mode Prepare
+  Data.Set EAHB:0xFF4012C0 %LE %Long Data.Long(EAHB:0xFF4012C0) ; asic_ctrl_access_key
+  Data.Set EAHB:0xFF401268 %LE %Long 0x08000800 ; enable application CPU
+)
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

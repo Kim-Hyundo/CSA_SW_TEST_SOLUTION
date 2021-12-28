@@ -1,0 +1,178 @@
+; --------------------------------------------------------------------------------
+; @Title: Multi-Whisker trace example for Combiprobe
+; @Description:
+;   This script shows how to setup a AMP debug session on a CombiProbe with two
+;   whisker cables. We assume in this script that two equal STM32F controllers are
+;   connected to both port of the combiprobe using MIPI20 cables.
+;   Never call this script directly. It's supposed to be called using the
+;     start_amp.bat
+;   Prerequisites:
+;     * connect STM32F103ZE to the Combiprobe Cable A using MIPI20
+;     * connect STM32F407VG to the Combiprobe Cable B using MIPI20
+;     * PowerDebug/PowerTrace is connected via USB
+; @Author: AME
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: init_stm32f1.cmm 15362 2019-12-03 14:50:48Z mschleinkofer $
+
+LOCAL &BaseDir
+&BaseDir=OS.PPD()
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF SYStem.INSTANCE()<1.
+(
+  PRINT %ERROR "TRACE32 is not running in AMP mode! Use .bat/.sh file in this directory."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; enable INTERCOM if not already specified
+IF (INTERCOM.PORT()==0)
+(
+  InterCom.ENable CORE0
+)
+; --------------------------------------------------------------------------------
+; close any existing REMOTE GUIs
+InterCom.execute OTHERS QUIT
+
+; --------------------------------------------------------------------------------
+; open SLAVE GUI with or without enabled remote API
+IF (RCL.PORT(0)!=0)
+(
+  TargetSystem.NewInstance CORE1 /ARCHitecture ARM /ChipIndex 2. /APIPORT &rclPort+1. /ONCE
+)
+ELSE
+(
+  TargetSystem.NewInstance CORE1 /ARCHitecture ARM /ChipIndex 2. /ONCE
+)
+
+ON CMD WHISKER1 GOSUB Whisker1Exec
+ON CMD WHISKER2 GOSUB Whisker2Exec
+ON CMD BOTH     GOSUB BothExec
+
+WHISKER1 TITLE "WHISKER1-DebugCableA"
+WHISKER2 TITLE "WHISKER2-DebugCableB"
+
+; --------------------------------------------------------------------------------
+; Initialization part, use AMP using Combiprobe with two DebugCables
+BOTH     RESet
+BOTH     SYStem.RESet
+BOTH     SYStem.CPU STM32F103ZE
+WHISKER1 SYStem.CONFIG.DEBUGPORT DebugCableA
+WHISKER2 SYStem.CONFIG.DEBUGPORT DebugCableB
+WHISKER1 SYStem.CONFIG.CORE 1. 1.
+WHISKER2 SYStem.CONFIG.CORE 1. 2.
+BOTH     SYStem.CONFIG CONNECTOR MIPI20T
+BOTH     SYStem.CONFIG SLAVE OFF
+BOTH     SYStem.CONFIG SWDP ON
+BOTH     SYStem.Option IMASKASM ON
+BOTH     SYStem.Option IMASKHLL ON
+WHISKER1 DO &BaseDir/colors.cmm 1.
+WHISKER2 DO &BaseDir/colors.cmm 2.
+
+; connect to target at WHISKER1, load code, preboot code till 'main'
+WHISKER1 SYStem.Up
+WHISKER1 DO ~~/demo/arm/compiler/gnu-pic/demo_midi 0x20000000
+WHISKER1 Go main
+WHISKER1 WAIT !STATE.RUN()
+
+; connect to target at WHISKER2, load code, preboot code till 'main'
+WHISKER2 SYStem.Up
+WHISKER2 DO ~~/demo/arm/compiler/gnu-pic/demo_midi 0x20000000
+WAIT 3.s
+WHISKER2 Go main
+WHISKER2 WAIT !STATE.RUN()
+
+; optional Trace Setup, assume in the REAL example all PinMuxes are already configured by the
+; target software.
+; optional trace setup on WHISKER1
+IF TRUE()
+(
+  ; set pinmux
+  ; Prevent error during power saving states and stop peripherals in debug mode
+  WHISKER1 Data.Set E:0xE0042004 %Long 0yXXXXxxxxXXX11111XXXXxxxxXXXXx111  ; DBGMCU_CR
+
+  ; Select Trace Method CAnalyzer
+  WHISKER1 Trace.METHOD CAnalyzer
+  WHISKER1 CAnalyzer.ThresHold 1.65
+  WHISKER1 TPIU.PortSize 4
+  WHISKER1 TPIU.PortMode Continuous
+  WHISKER1 ETM.Trace ON
+  WHISKER1 ETM.ON
+  WHISKER1 ITM.DataTrace CorrelatedData
+  WHISKER1 ITM.ON
+  ; init Trace - ready for recording now
+  WHISKER1 CAnalyzer.Init
+  ; open the trace window
+  WHISKER1 Trace.List
+)
+; optional trace setup on WHISKER2
+IF TRUE()
+(
+  ; Prevent error during power saving states and stop peripherals in debug mode
+  WHISKER2 Data.Set E:0xE0042004 %Long 0yXXXXxxxxXXX11111XXXXxxxxXXXXx111  ; DBGMCU_CR
+
+  ; Select Trace Method CAnalyzer
+  WHISKER2 Trace.METHOD CAnalyzer
+  WHISKER2 CAnalyzer.ThresHold 1.65
+  WHISKER2 TPIU.PortSize 4
+  WHISKER2 TPIU.PortMode Continuous
+  WHISKER2 ETM.Trace ON
+  WHISKER2 ETM.ON
+  WHISKER2 ITM.DataTrace CorrelatedData
+  WHISKER2 ITM.ON
+  ; init Trace - ready for recording now
+  WHISKER2 CAnalyzer.Init
+  ; open the trace window
+  WHISKER2 Trace.List
+)
+
+; setup synchonous debugging - after init phase of the code
+; example sync Go/Break from WHISKER1 -> WHISKER2 and vice versa
+; can be changed by TargetSystem SYnch.All later
+PRIVATE &intercomport_core0 &intercomport_core1
+&intercomport_core0=INTERCOM.PORT()
+&intercomport_core1=INTERCOM.PORT()+1.
+WHISKER1 SYnch.ON
+WHISKER1 SYnch.Connect localhost:&intercomport_core1
+WHISKER1 SYnch.MasterGo ON
+WHISKER1 SYnch.SlaveGo ON
+WHISKER1 SYnch.MasterBreak ON
+WHISKER1 SYnch.SlaveBreak ON
+
+WHISKER2 SYnch.ON
+WHISKER2 SYnch.Connect localhost:&intercomport_core0
+WHISKER2 SYnch.MasterGo ON
+WHISKER2 SYnch.SlaveGo ON
+WHISKER2 SYnch.MasterBreak ON
+WHISKER2 SYnch.SlaveBreak ON
+
+;open some windows
+BOTH Mode.Hll
+BOTH List.auto
+BOTH TargetSystem DEFault SYnch.All
+
+ENDDO
+; --------------------------------------------------------------------------------
+; helper subroutines:
+
+Whisker1Exec: ;(param string)
+	LOCAL &params
+	ENTRY %LINE &params
+	&params ; execute on this GUI
+	RETURN
+
+
+Whisker2Exec: ;(param string)
+	LOCAL &params
+	ENTRY %LINE &params
+	; execute on remote GUI 1
+	InterCom.execute CORE1 &params
+	RETURN
+
+BothExec: ;(param string)
+	LOCAL &params
+	ENTRY %LINE &params
+	InterCom.execute ALL &params
+	RETURN

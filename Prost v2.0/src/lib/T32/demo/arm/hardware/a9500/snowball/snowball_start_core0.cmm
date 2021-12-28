@@ -1,0 +1,20 @@
+; --------------------------------------------------------------------------------
+; @Title: Start-Up Script for Cortex-A9 of A9500 on Snowball Board from ST Ericsson
+; @Description: This script attaches to the first Cortex-A9 of the AP9500.
+; @Keywords: A9500, Cortex-A9, ST, STEricsson
+; @Author: PEG
+; @Board: Snowball
+; @Chip: A9500
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: snowball_start_core0.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+  RESet
+  SYStem.CPU AP9500
+  CORE.ASSIGN 1
+  SYStem.Mode Attach
+  IF STATE.RUN()
+  	Break
+
+

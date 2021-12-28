@@ -1,0 +1,1137 @@
+; --------------------------------------------------------------------------------
+; @Title: ST STM32L5 Flash Dialog to program Option Bytes.
+;
+; @Description:
+; Script arguments:
+;
+;   DO ~~/demo/arm/flash/stm32l5-optionbyte 
+;
+;            Opens the STM32L5 option byte programming dialog.
+;
+;   DO ~~/demo/arm/flash/stm32l5-optionbyte
+;          [RDP_LEV=0|0.5|1] [BOR_LEV=0..4]
+;          [NRST_STDBY=0|1] [NRST_STOP=0|1] [NRST_SHDW=0|1]
+;          [IWDG_SW=0|1] [IWDG_STOP=0|1] [IWDG_STDBY=0|1] [WWDG_SW=0|1]
+;          [SWAP_BANK=0|1] [DB256K=0|1] [DBANK=0|1]
+;          [SRAM2_PE=0|1] [SRAM2_RST=0|1] [NSWBOOT0=0|1]
+;          [NBOOT0=0|1] [PA15PUPEN=0|1] [TZEN=0|1]
+;          [NSBOOTADD0R=<val>] [NSBOOTADD1R=<val>] [SECBOOTADD0R=<val>]
+;          [SECWM1R1=<val>] [SECWM1R2=<val>] [SECWM2R1=<val>] [SECWM2R2=<val>]
+;          [WRP1AR=<val>] [WRP1BR=<val>] [WRP2AR=<val>] [WRP2BR=<val>]
+;          [SECBB1R1=<val>] [SECBB1R2=<val>] [SECBB1R3=<val>] [SECBB1R4=<val>]
+;          [SECBB2R1=<val>] [SECBB2R2=<val>] [SECBB2R3=<val>] [SECBB2R4=<val>]
+;          [SECHDPCR=<val>] [PRIVCFGR=<val>]
+;          [RELOAD_OPTIONBYTES]
+;
+;   Program the STM32L5 option bytes according to the following parameters:
+;
+;   RDP_LEV=0|0.5|1 is programming read protection option byte
+;     0  : Level 0 memories read protection active
+;     0.5: Level 0.5 read protection not active, 
+;                    only non-secure debug access is possible
+;     1  : Level 1, memories read protection active
+;     Note : the script doens't support programming Level 2, because with it no
+;            further debugging would be possible !
+;
+;   BOR_LEV=0..4: BOR reset level
+;     0: BOR Level 0: Reset level threshold is around 1.7 V
+;     1: BOR Level 1: Reset level threshold is around 2.0 V
+;     2: BOR Level 2: Reset level threshold is around 2.2 V
+;     3: BOR Level 3: Reset level threshold is around 2.5 V
+;     4: BOR Level 4: Reset level threshold is around 2.8 V
+;
+;   NRST_STOP=0|1 is programming nRST_STOP bit of user option byte
+;     0: Reset generated when entering Stop mode
+;     1: No reset generated.
+;
+;   NRST_STDBY=0|1 is programming nRST_STDBY bit of user option byte 
+;     0: Reset generated when entering Standby mode
+;     1: No reset generated 
+;
+;   NRST_SHDW=0|1 is programming nRST_SHDW bit of user option byte 
+;     0: Reset generated when entering the Shutdown mode
+;     1: No reset generated when entering the Shutdown mode
+;
+;   IWDG_SW=0|1 is programming IWDG_SW bit of user option byte
+;     0: Hardware independant watchdog
+;     1: Software independant watchdog
+;
+;   IWDG_STOP=0|1 is programming IWDG_STOP bit of user option byte
+;     0: Independent watchdog counter is frozen in Stop mode
+;     1: Independent watchdog counter is running in Stop mode
+;
+;   IWDG_STDBY=0|1 is programming IWDG_STDBY bit of user option byte
+;     0: Independent watchdog counter is frozen in Standby mode
+;     1: Independent watchdog counter is running in Standby mode
+;
+;   WWDG_SW=0|1 is programming WWDG_SW bit of user option byte
+;     0: Hardware window watchdog
+;     1: Software window watchdog
+;
+;   SWAP_BANK=0|1: Swap banks
+;     0: Bank 1 and bank 2 address are not swapped
+;     1: Bank 1 and bank 2 address are swapped
+;
+;   DB256K: Dual bank on 256 Kbyte Flash memory devices
+;     0: 256Kbyte single Flash contiguous address in bank1
+;     1: 256Kbyte Dual-bank Flash with contiguous addresses
+;
+;   DBANK: Dual bank mode 
+;     0: Single-bank mode with 128 bits data read width
+;     1: Dual-bank mode with 64 bits data
+;
+;   NSBOOTADD0R=<val>       NSBOOTADD0R register
+;   NSBOOTADD1R=<val>       NSBOOTADD1R register
+;   SECBOOTADD0R=<val>      SECBOOTADD0R register
+;   SECWM1R1=<val>          SECWM1R1 register
+;   SECWM1R2=<val>          SECWM1R2 register
+;   SECWM2R1=<val>          SECWM2R1 register
+;   SECWM2R2=<val>          SECWM2R2 register
+;   WRP1AR=<val>            WRP1AR register
+;   WRP1BR=<val>            WRP1BR register
+;   WRP2AR=<val>            WRP2AR register
+;   WRP2BR=<val>            WRP2BR register
+;   SECBB1R1=<val>          SECBB1R1 register
+;   SECBB1R2=<val>          SECBB1R2 register
+;   SECBB1R3=<val>          SECBB1R3 register
+;   SECBB1R4=<val>          SECBB1R4 register
+;   SECBB2R1=<val>          SECBB2R1 register
+;   SECBB2R2=<val>          SECBB2R2 register
+;   SECBB2R3=<val>          SECBB2R3 register
+;   SECBB2R4=<val>          SECBB2R4 register
+;   SECHDPCR=<val>          SECHDPCR register
+;   PRIVCFGR=<val>          PRIVCFGR register
+;   Note: for clearing protection set xx_START=0xFF and xx_END=0x0
+;
+;   RELOAD_OPTIONBYTES Activate Flash Settings by execution of an OBL_LAUNCH
+;
+;   Calling the script without argument starts the Option Byte programming
+;   dialog window.
+;
+; @Author: PHI
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 8152 $
+; $Id: stm32l5-optionbyte.cmm 8152 2020-04-03 08:06:33Z sphilipp $
+
+LOCAL &parameters
+ENTRY %LINE &parameters
+
+; LOCAL macros used as script global macros
+LOCAL &Script
+LOCAL &FlashRegBase &FlashAdressStart &FlashSize
+LOCAL &OPTR
+
+LOCAL &NSBOOTADD0R &NSBOOTADD1R &SECBOOTADD0R &SECHDPCR &PRIVCFGR
+LOCAL &SECWM1R1 &SECWM1R2 &SECWM2R1 &SECWM2R2
+LOCAL &WRP1AR &WRP1BR &WRP2AR &WRP2BR
+LOCAL &SECBB1R1 &SECBB1R2 &SECBB1R3 &SECBB1R4
+LOCAL &SECBB2R1 &SECBB2R2 &SECBB2R3 &SECBB2R4
+
+&Script=OS.PPF()
+
+&FlashRegBase="D:0x40022000"
+&FlashAdressStart="0x08000000"
+
+; Checking CPU selection
+IF !CPUIS(STM32L5*)
+(
+  SYStem.RESet
+  SYStem.CPU STM32L5*
+)
+IF !(CPUIS(STM32L5*))
+(
+  PRINT %ERROR "CPU not supported by this script"
+  ENDDO
+)
+
+IF SYStem.MODE()<5
+(
+  SYStem.Option.ResBreak OFF
+  SYStem.Up
+)
+
+IF CPUIS(STM32L552?C)
+  &FlashSize=0x40000
+ELSE IF(CPUIS(STM32L5?2?E))
+  &FlashSize=0x80000
+ELSE
+(
+  PRINT %ERROR "CPU not supported by this script"
+  ENDDO
+)
+
+; Parse script arguments
+IF "&parameters"==""
+(
+  ; Look for any opened STM32L5 dialog windows and close them
+  IF DIALOG.EXIST("COMB_BORLEV")
+    DIALOG.END
+
+  GOSUB OptionByteDialog
+)
+ELSE
+(
+  PRIVATE &param_RDP_LEV &param_BOR_LEV 
+  PRIVATE &param_nRST_STOP &param_nRST_STDBY &param_nRST_SHDW
+  PRIVATE &param_IWDG_SW &param_IWDG_STOP &param_IWDG_STDBY &param_WWDG_SW &param_SWAP_BANK
+  PRIVATE &param_DB256K &param_DBANK &param_TZEN
+  PRIVATE &param_PA15PUPEN &param_SRAM2_PE &param_SRAM2_RST &param_nSWBOOT0 &param_nBOOT0
+  PRIVATE &param_NSBOOTADD0R &param_NSBOOTADD1R &param_SECBOOTADD0R
+  PRIVATE &param_SECWM1R1 &param_SECWM1R2 &param_SECWM2R1 &param_SECWM2R2
+  PRIVATE &param_WRP1AR &param_WRP2AR &param_WRP1BR &param_WRP2BR &param_SECHDPCR &param_PRIVCFGR
+  PRIVATE &param_SECBB1R1 &param_SECBB1R2 &param_SECBB1R3 &param_SECBB1R4
+  PRIVATE &param_SECBB2R1 &param_SECBB2R2 &param_SECBB2R3 &param_SECBB2R4
+
+  PRIVATE &param_reloadOptionBytes &programFlash
+  &programFlash=FALSE()
+
+  &param_RDP_LEV=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"RDP_LEV=","")
+  &param_BOR_LEV=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"BOR_LEV=","")
+  &param_nRST_STOP=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"NRST_STOP=","")
+  &param_nRST_STDBY=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"NRST_STDBY=","")
+  &param_nRST_SHDW=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"NRST_SHDW=","")
+  &param_IWDG_SW=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"IWDG_SW=","")
+  &param_IWDG_STOP=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"IWDG_STOP=","")
+  &param_IWDG_STDBY=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"IWDG_STDBY=","")
+  &param_WWDG_SW=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"WWDG_SW=","")
+  &param_SWAP_BANK=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"SWAP_BANK=","")
+  &param_DB256K=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"DB256K=","")
+  &param_DBANK=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"DBANK=","")
+  &param_PA15PUPEN=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"PA15PUPEN=","")
+  &param_SRAM2_PE=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"SRAM2_PE=","")
+  &param_SRAM2_RST=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"SRAM2_RST=","")
+  &param_nSWBOOT0=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"NSWBOOT0=","")
+  &param_nBOOT0=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"NBOOT0=","")
+  &param_TZEN=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"TZEN=","")
+  &param_NSBOOTADD0R=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"NSBOOTADD0R=","")
+  &param_NSBOOTADD1R=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"NSBOOTADD1R=","")
+  &param_SECBOOTADD0R=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"SECBOOTADD0R=","")
+  &param_SECWM1R1=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"SECWM1R1=","")
+  &param_SECWM1R2=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"SECWM1R2=","")
+  &param_SECWM2R1=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"SECWM2R1=","")
+  &param_SECWM2R2=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"SECWM2R2=","")
+  &param_WRP1AR=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"WRP1AR=","")
+  &param_WRP2AR=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"WRP2AR=","")
+  &param_WRP1BR=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"WRP1BR=","")
+  &param_WRP2BR=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"WRP2BR=","")
+  &param_SECHDPCR=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"SECHDPCR=","")
+  &param_PRIVCFGR=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"PRIVCFGR=","")
+  &param_SECBB1R1=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"SECBB1R1=","")
+  &param_SECBB1R2=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"SECBB1R2=","")
+  &param_SECBB1R3=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"SECBB1R3=","")
+  &param_SECBB1R4=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"SECBB1R4=","")
+  &param_SECBB2R1=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"SECBB2R1=","")
+  &param_SECBB2R2=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"SECBB2R2=","")
+  &param_SECBB2R3=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"SECBB2R3=","")
+  &param_SECBB2R4=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"SECBB2R4=","")
+
+  &param_reloadOptionBytes=(STRing.SCAN(STRing.UPpeR("&parameters"),"RELOAD_OPTIONBYTES",0)!=-1)
+
+  GOSUB ReadOptionBytes
+
+  IF "&param_RDP_LEV"!=""
+  (
+    IF "&param_RDP_LEV"=="1"
+      &OPTR=&OPTR&~0xFF
+    ELSE IF  "&param_RDP_LEV"=="0"
+      &OPTR=(&OPTR&~0xFF)|0xAA
+    ELSE IF  "&param_RDP_LEV"=="0.5"
+      &OPTR=(&OPTR&~0xFF)|0x55
+    &programFlash=TRUE()
+  )
+  
+  IF "&param_BOR_LEV"!=""
+  (
+    &OPTR=&OPTR&~0x700
+    IF "&param_BOR_LEV"=="4"
+      &OPTR=&OPTR|0x400
+    ELSE IF "&param_BOR_LEV"=="3"
+      &OPTR=&OPTR|0x300
+    ELSE IF "&param_BOR_LEV"=="2"
+      &OPTR=&OPTR|0x200
+    ELSE IF "&param_BOR_LEV"=="1"
+      &OPTR=&OPTR|0x100
+    &programFlash=TRUE()
+  )    
+  
+  IF "&param_nRST_STOP"!=""
+  (
+    IF "&param_nRST_STOP"=="1"
+      &OPTR=&OPTR|0x1000
+    ELSE IF  "&param_nRST_STOP"=="0"
+      &OPTR=&OPTR&~0x1000
+    &programFlash=TRUE()
+  )
+  IF "&param_nRST_STDBY"!=""
+  (
+    IF "&param_nRST_STDBY"=="1"
+      &OPTR=&OPTR|0x2000
+    ELSE IF  "&param_nRST_STDBY"=="0"
+      &OPTR=&OPTR&~0x2000
+    &programFlash=TRUE()
+  )
+  IF "&param_nRST_SHDW"!=""
+  (
+    IF "&param_nRST_SHDW"=="1"
+      &OPTR=&OPTR|0x4000
+    ELSE IF  "&param_nRST_SHDW"=="0"
+      &OPTR=&OPTR&~0x4000
+    &programFlash=TRUE()
+  )
+  IF "&param_IWDG_SW"!=""
+  (
+    IF "&param_IWDG_SW"=="1"
+      &OPTR=&OPTR|0x10000
+    ELSE IF  "&param_IWDG_SW"=="0"
+      &OPTR=&OPTR&~0x10000
+    &programFlash=TRUE()
+  )
+  IF "&param_IWDG_STOP"!=""
+  (
+    IF "&param_IWDG_STOP"=="1"
+      &OPTR=&OPTR&~0x20000
+    ELSE IF  "&param_IWDG_STOP"=="0"
+      &OPTR=&OPTR|0x20000
+    &programFlash=TRUE()
+  )
+  IF "&param_IWDG_STDBY"!=""
+  (
+    IF "&param_IWDG_STDBY"=="1"
+      &OPTR=&OPTR&~0x40000
+    ELSE IF  "&param_IWDG_STDBY"=="0"
+      &OPTR=&OPTR|0x40000
+    &programFlash=TRUE()
+  )
+  IF "&param_WWDG_SW"!=""
+  (
+    IF "&param_WWDG_SW"=="1"
+      &OPTR=&OPTR|0x80000
+    ELSE IF  "&param_WWDG_SW"=="0"
+      &OPTR=&OPTR&~0x80000
+    &programFlash=TRUE()
+  )
+  IF "&param_SWAP_BANK"!=""
+  (
+    IF "&param_SWAP_BANK"=="1"
+      &OPTR=&OPTR|0x100000
+    ELSE IF  "&param_SWAP_BANK"=="0"
+      &OPTR=&OPTR&~0x100000
+    &programFlash=TRUE()
+  )
+  IF "&param_DDB256K"!=""
+  (
+    IF "&param_DB256K"=="1"
+      &OPTR=&OPTR|0x200000
+    ELSE IF  "&param_DB256K"=="0"
+      &OPTR=&OPTR&~0x200000
+    &programFlash=TRUE()
+  )
+  IF "&param_DBANK"!=""
+  (
+    IF "&param_DBANK"=="1"
+      &OPTR=&OPTR|0x400000
+    ELSE IF  "&param_DBANK"=="0"
+      &OPTR=&OPTR&~0x400000
+    &programFlash=TRUE()
+  )
+  IF "&param_PA15PUPEN"!=""
+  (
+    IF "&param_PA15PUPEN"=="1"
+      &OPTR=&OPTR|0x10000000
+    ELSE IF  "&param_PA15PUPEN"=="0"
+      &OPTR=&OPTR&~0x10000000
+    &programFlash=TRUE()
+  )
+  IF "&param_SRAM2_PE"!=""
+  (
+    IF "&param_SRAM2_PE"=="1"
+      &OPTR=&OPTR|0x1000000
+    ELSE IF  "&param_SRAM2_PE"=="0"
+      &OPTR=&OPTR&~0x1000000
+    &programFlash=TRUE()
+  )
+  IF "&param_SRAM2_RST"!=""
+  (
+    IF "&param_SRAM2_RST"=="1"
+      &OPTR=&OPTR|0x2000000
+    ELSE IF  "&param_SRAM2_RST"=="0"
+      &OPTR=&OPTR&~0x2000000
+    &programFlash=TRUE()
+  )
+  IF "&param_nSWBOOT0"!=""
+  (
+    IF "&param_nSWBOOT0"=="1"
+      &OPTR=&OPTR|0x4000000
+    ELSE IF  "&param_nSWBOOT0"=="0"
+      &OPTR=&OPTR&~0x4000000
+    &programFlash=TRUE()
+  )
+  IF "&param_nBOOT0"!=""
+  (
+    IF "&param_nBOOT0"=="1"
+      &OPTR=&OPTR|0x8000000
+    ELSE IF  "&param_nBOOT0"=="0"
+      &OPTR=&OPTR&~0x8000000
+    &programFlash=TRUE()
+  )
+  IF "&param_PA15PUPEN"!=""
+  (
+    IF "&param_PA15PUPEN"=="1"
+      &OPTR=&OPTR|0x10000000
+    ELSE IF  "&param_PA15PUPEN"=="0"
+      &OPTR=&OPTR&~0x10000000
+    &programFlash=TRUE()
+  )
+  IF "&param_TZEN"!=""
+  (
+    IF "&param_TZEN"=="1"
+      &OPTR=&OPTR|0x80000000
+    ELSE IF  "&param_TZEN"=="0"
+      &OPTR=&OPTR&~0x80000000
+    &programFlash=TRUE()
+  )
+
+  IF ("&param_NSBOOTADD0R"!="")
+  (
+    &NSBOOTADD0R=&param_NSBOOTADD0R
+    &programFlash=TRUE()
+  )
+  IF ("&param_NSBOOTADD1R"!="")
+  (
+    &NSBOOTADD1R=&param_NSBOOTADD1R
+    &programFlash=TRUE()
+  )
+  IF ("&param_SECBOOTADD0R"!="")
+  (
+    &SECBOOTADD0R=&param_SECBOOTADD0R
+    &programFlash=TRUE()
+  )
+  IF ("&param_SECWM1R1"!="")
+  (
+    &SECWM1R1=&param_SECWM1R1
+    &programFlash=TRUE()
+  )
+  IF ("&param_SECWM1R2"!="")
+  (
+    &SECWM1R2=&param_SECWM1R2
+    &programFlash=TRUE()
+  )
+  IF ("&param_SECWM2R1"!="")
+  (
+    &SECWM2R1=&param_SECWM2R1
+    &programFlash=TRUE()
+  )
+  IF ("&param_SECWM2R2"!="")
+  (
+    &SECWM2R2=&param_SECWM2R2
+    &programFlash=TRUE()
+  )
+  IF ("&param_WRP1AR"!="")
+  (
+    &WRP1AR=&param_WRP1AR
+    &programFlash=TRUE()
+  )
+  IF ("&param_WRP1BR"!="")
+  (
+    &WRP1BR=&param_WRP1BR
+    &programFlash=TRUE()
+  )
+  IF ("&param_WRP2AR"!="")
+  (
+    &WRP2AR=&param_WRP2AR
+    &programFlash=TRUE()
+  )
+  IF ("&param_WRP2BRR"!="")
+  (
+    &WRP2BR=&param_WRP2BR
+    &programFlash=TRUE()
+  )
+  IF ("&param_SECBB1R1"!="")
+  (
+    &SECBB1R1=&param_SECBB1R1
+    &programFlash=TRUE()
+  )
+  IF ("&param_SECBB1R2"!="")
+  (
+    &SECBB1R2=&param_SECBB1R2
+    &programFlash=TRUE()
+  )
+  IF ("&param_SECBB1R3"!="")
+  (
+    &SECBB1R3=&param_SECBB1R3
+    &programFlash=TRUE()
+  )
+  IF ("&param_SECBB1R4"!="")
+  (
+    &SECBB1R4=&param_SECBB1R4
+    &programFlash=TRUE()
+  )
+  IF ("&param_SECBB2R1"!="")
+  (
+    &SECBB2R1=&param_SECBB2R1
+    &programFlash=TRUE()
+  )
+  IF ("&param_SECBB2R2"!="")
+  (
+    &SECBB2R2=&param_SECBB2R2
+    &programFlash=TRUE()
+  )
+  IF ("&param_SECBB2R3"!="")
+  (
+    &SECBB2R3=&param_SECBB2R3
+    &programFlash=TRUE()
+  )
+  IF ("&param_SECBB2R4"!="")
+  (
+    &SECBB2R4=&param_SECBB2R4
+    &programFlash=TRUE()
+  )
+  IF ("&param_SECHDPCR"!="")
+  (
+    &SECHDPCR=&param_SECHDPCR
+    &programFlash=TRUE()
+  )
+  IF ("&param_PRIVCFGR"!="")
+  (
+    &PRIVCFGR=&param_PRIVCFGR
+    &programFlash=TRUE()
+  )
+
+  ; Special script calls from dialog to refresh the dialog or activate option bytes.
+  IF (STRing.SCAN(STRing.UPpeR("&parameters"),"REFRESH",0)!=-1)
+  (
+    GOSUB UpdateWindowFromFlashContents
+  )
+  ELSE IF (STRing.SCAN(STRing.UPpeR("&parameters"),"RELOAD_OPTIONBYTES",0)!=-1)
+  (
+    GOSUB ActivateFlashSettings
+  )
+  ; Program option bytes into flash
+  ELSE IF &programFlash
+  (
+    GOSUB ProgramOptionBytes
+  )
+  ELSE
+  (
+  )
+)
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+; NVM bit programming dialog window
+
+OptionByteDialog:
+
+  ; Creating the main dialog. (& afer DIALOG command must be in first column!
+  WinPOS 50. 5. 68. 33.
+
+  DIALOG.view
+  (&
+                HEADER SYStem.CPU()+" option bytes"
+                POS  1. 0. 66. 18.
+                BOX "User option bytes"
+                POS 3. 2. 20. 1.
+                TEXT "Read protection Level:"
+                POS  20. 2. 25. 1.
+COMB_RDP:       COMBOBOX "Level 0:No read protection,Level 0.5:only non-secure debug access,Level 1:Read protection" ""
+                POS 3. 3. 20. 1.
+                TEXT "BOR reset level:"
+                POS 20. 3. 25. 1.
+COMB_BORLEV:    COMBOBOX "Level 0:threshold around 1.7 V,Level 1:threshold around 2.0 V,Level 2:threshold around 2.2 V,Level 3:threshold around 2.5 V,Level 4:threshold around 2.8 V" ""
+                POS  3. 5. 30. 1.
+CHK_RST_STOP:   CHECKBOX "Reset when entering Stop mode" ""
+                POS  3. 6. 30. 1.
+CHK_RST_STDBY:  CHECKBOX "Reset when entering Standby mode" ""
+                POS 3. 7. 30. 1.
+CHK_RST_SHDW:   CHECKBOX "Reset when entering Shutdown mode" ""
+                POS 3. 9. 30. 1.
+CHSB_IWDG.HW:   CHOOSEBOX "Hardware independant watchdog" ""
+CHSB_IWDG.SW:   CHOOSEBOX "Software independant watchdog" ""
+                POS  35. 9. 30. 1.
+CHSB_WWDG.HW:   CHOOSEBOX "Hardware window watchdog" ""
+CHSB_WWDG.SW:   CHOOSEBOX "Software window watchdog" ""
+                POS 3. 11. 30. 1.
+CHK_IWDG_STOP:  CHECKBOX "Independent watchdog counter freeze in Stop mode" ""
+                POS 35. 11. 30. 1.
+CHK_IWDG_STDBY: CHECKBOX "Independent watchdog counter freeze in Standby mode" ""
+                POS 3. 13. 24. 1.
+CHK_SWAP_BANK:  CHECKBOX "Swap Banks" ""
+                POS 3. 14. 30. 1.
+CHK_DB256K:     CHECKBOX "Dual-bank on 256 Kbytes Flash memory devices" ""
+                POS 35. 13. 31. 1.
+CHSB_DBANK.SINGLE:  CHOOSEBOX "Single-bank mode with 128 bits data read" ""
+CHSB_DBANK.DUAL:    CHOOSEBOX "Dual-bank mode with 64 bits data" ""
+                POS 3. 15. 31. 1.
+CHK_RAM_PARITY_CHECK_DIS: CHECKBOX "RAM Parity Check disabled" ""
+                POS 35. 15. 30. 1.
+CHK_RAM_ERASE: CHECKBOX "SRAM2 Erase when system reset" ""
+                POS 3. 16. 15. 1.
+CHK_NBOOT0:     CHECKBOX "nBOOT0" ""
+                POS 19. 16. 15. 1.
+CHK_PA15PUPEN:  CHECKBOX "PA15PUPEN" ""
+                POS 35. 16. 15. 1.
+CHK_NSWBOOT0:   CHECKBOX "nSWBOOT0" ""
+                POS 51. 16. 15. 1.
+CHK_TZEN:       CHECKBOX "TZEN" ""
+
+                POS  1. 18. 66. 13.
+                BOX "Registers for protected zones"
+                POS 3. 19. 12. 1.
+                TEXT "NSBOOTADD0R:"
+                POS 18. 19. 12. 1.
+NSBOOTADD0R:    EDIT "" ""
+                POS 35. 19. 12. 1.
+                TEXT "NSBOOTADD1R:"
+                POS 48. 19. 12. 1.
+NSBOOTADD1R:    EDIT "" ""
+                POS 3. 20. 12. 1.
+                TEXT "SECBOOTADD0R:"
+                POS 18. 20. 12. 1.
+SECBOOTADD0R:   EDIT "" ""
+                POS 3. 21. 12. 1.
+                TEXT "SECWM1R1:"
+                POS 18. 21. 12. 1.
+SECWM1R1:       EDIT "" ""
+                POS 35. 21. 12. 1.
+                TEXT "SECWM1R2:"
+                POS 48. 21. 12. 1.
+SECWM1R2:       EDIT "" ""
+                POS 3. 22. 12. 1.
+                TEXT "SECWM2R1:"
+                POS 18. 22. 12. 1.
+SECWM2R1:       EDIT "" ""
+                POS 35. 22. 12. 1.
+                TEXT "SECWM2R2:"
+                POS 48. 22. 12. 1.
+SECWM2R2:       EDIT "" ""
+                POS 3. 23. 12. 1.
+                TEXT "WRP1AR:"
+                POS 18. 23. 12. 1.
+WRP1AR:         EDIT "" ""
+                POS 35. 23. 12. 1.
+                TEXT "WRP1BR:"
+                POS 48. 23. 12. 1.
+WRP1BR:         EDIT "" ""
+                POS 3. 24. 12. 1.
+                TEXT "WRP2AR:"
+                POS 18. 24. 12. 1.
+WRP2AR:         EDIT "" ""
+                POS 35. 24. 12. 1.
+                TEXT "WRP2BR:"
+                POS 48. 24. 12. 1.
+WRP2BR:         EDIT "" ""
+                POS 3. 25. 12. 1.
+                TEXT "SECBB1R1:"
+                POS 18. 25. 12. 1.
+SECBB1R1:       EDIT "" ""
+                POS 35. 25. 12. 1.
+                TEXT "SECBB1R2:"
+                POS 48. 25. 12. 1.
+SECBB1R2:       EDIT "" ""
+                POS 3. 26. 12. 1.
+                TEXT "SECBB1R3:"
+                POS 18. 26. 12. 1.
+SECBB1R3:       EDIT "" ""
+                POS 35. 26. 12. 1.
+                TEXT "SECBB1R4:"
+                POS 48. 26. 12. 1.
+SECBB1R4:       EDIT "" ""
+                POS 3. 27. 12. 1.
+                TEXT "SECBB2R1:"
+                POS 18. 27. 12. 1.
+SECBB2R1:       EDIT "" ""
+                POS 35. 27. 12. 1.
+                TEXT "SECBB2R2:"
+                POS 48. 27. 12. 1.
+SECBB2R2:       EDIT "" ""
+                POS 3. 28. 12. 1.
+                TEXT "SECBB2R3:"
+                POS 18. 28. 12. 1.
+SECBB2R3:       EDIT "" ""
+                POS 35. 28. 12. 1.
+                TEXT "SECBB2R4:"
+                POS 48. 28. 12. 1.
+SECBB2R4:       EDIT "" ""
+                POS 3. 29. 12. 1.
+                TEXT "SECHDPCR:"
+                POS 18. 29. 12. 1.
+SECHDPCR:       EDIT "" ""
+                POS 35. 29. 12. 1.
+                TEXT "PRIVCFGR:"
+                POS 48. 29. 12. 1.
+PRIVCFGR:       EDIT "" ""
+
+                POS 1. 31. 12. 1.5
+                BUTTON "Program option bytes"
+                (
+                  PRIVATE &value
+                  LOCAL &progRDP_LEV &progBOR_LEV &progRST_STOP &progRST_STDBY &progRST_SHDW
+                  LOCAL &progIWDG_SW &progIWDG_STOP &progIWDG_STDBY &progWWDG_SW
+                  LOCAL &param_SWAP_BANK &progDB256K &progDBANK &progTZEN
+                  LOCAL &progPA15PUPEN &SRAM2_PE &progSRAM2_RST &progNSWBOOT0 &progNBOOT0
+                  LOCAL &progNSBOOTADD0R &progNSBOOTADD1R &progSECBOOTADD0R
+                  LOCAL &progSECWM1R1 &progSECWM1R2 &progSECWM2R1 &progSECWM2R2
+                  LOCAL &progWRP1AR &progWRP1BR &progWRP2AR &progWRP2BR
+                  LOCAL &progSECBB1R1 &progSECBB1R2 &progSECBB1R3 &progSECBB1R4
+                  LOCAL &progSECBB2R1 &progSECBB2R2 &progSECBB2R3 &progSECBB2R4
+                  LOCAL &progSECHDPCR &progPRIVCFGR
+
+                  IF DIALOG.STRING("COMB_RDP")=="Level 0:No read protection"
+                    &progRDP_LEV="RDP_LEV=0"
+                  ELSE IF DIALOG.STRING("COMB_RDP")=="Level 0.5:only non-secure debug access"
+                    &progRDP_LEV="RDP_LEV=0.5"
+                  ELSE
+                    &progRDP_LEV="RDP_LEV=1"
+
+                  IF DIALOG.STRING("COMB_BORLEV")=="Level 4:threshold around 2.8 V"
+                    &progBOR_LEV="BOR_LEV=4"
+                  ELSE IF DIALOG.STRING("COMB_BORLEV")=="Level 3:threshold around 2.5 V"
+                    &progBOR_LEV="BOR_LEV=3"
+                  ELSE IF DIALOG.STRING("COMB_BORLEV")=="Level 2:threshold around 2.2 V"
+                    &progBOR_LEV="BOR_LEV=2"
+                  ELSE IF DIALOG.STRING("COMB_BORLEV")=="Level 1:threshold around 2.0 V"
+                    &progBOR_LEV="BOR_LEV=1"
+                  ELSE
+                    &progBOR_LEV="BOR_LEV=0"
+
+                  IF DIALOG.BOOLEAN("CHK_RST_STOP")
+                    &progRST_STOP="NRST_STOP=0"
+                  ELSE
+                    &progRST_STOP="NRST_STOP=1"
+
+                  IF DIALOG.BOOLEAN("CHK_RST_STDBY")
+                    &progRST_STDBY="NRST_STDBY=0"
+                  ELSE
+                    &progRST_STDBY="NRST_STDBY=1"
+
+                  IF DIALOG.BOOLEAN("CHK_RST_SHDW")
+                    &progRST_SHDW="NRST_SHDW=0"
+                  ELSE
+                    &progRST_SHDW="NRST_SHDW=1"
+
+                  IF DIALOG.BOOLEAN("CHSB_IWDG.SW")
+                    &progIWDG_SW="IWDG_SW=1"
+                  ELSE
+                    &progIWDG_SW="IWDG_SW=0"
+
+                  IF DIALOG.BOOLEAN("CHK_IWDG_STOP")
+                    &progIWDG_STOP="IWDG_STOP=1"
+                  ELSE
+                    &progIWDG_STOP="IWDG_STOP=0"
+
+                  IF DIALOG.BOOLEAN("CHK_IWDG_STDBY")
+                    &progIWDG_STDBY="IWDG_STDBY=1"
+                  ELSE
+                    &progIWDG_STDBY="IWDG_STDBY=0"
+
+                  IF DIALOG.BOOLEAN("CHSB_WWDG.SW")
+                    &progWWDG_SW="WWDG_SW=1"
+                  ELSE
+                    &progWWDG_SW="WWDG_SW=0"
+
+                  IF DIALOG.BOOLEAN("CHK_SWAP_BANK")
+                    &progSWAP_BANK="SWAP_BANK=1"
+                  ELSE
+                    &progSWAP_BANK="SWAP_BANK=0"
+
+                  IF DIALOG.BOOLEAN("CHK_DB256K")
+                    &progDB256K="DB256K=1"
+                  ELSE
+                    &progDB256K="DB256K=0"
+
+                  IF DIALOG.BOOLEAN("CHSB_DBANK.DUAL")
+                    &progDBANK="DBANK=1"
+                  ELSE
+                    &progDBANK="DBANK=0"
+
+                  IF DIALOG.BOOLEAN("CHK_PA15PUPEN")
+                    &progPA15PUPEN="PA15PUPEN=1"
+                  ELSE
+                    &progPA15PUPEN="PA15PUPEN=0"
+
+                  IF DIALOG.BOOLEAN("CHK_NBOOT0")
+                    &progNBOOT0="NBOOT0=1"
+                  ELSE
+                    &progNBOOT0="NBOOT0=0"
+
+                  IF DIALOG.BOOLEAN("CHK_TZEN")
+                    &progTZEN="TZEN=1"
+                  ELSE
+                    &progTZEN="TZEN=0"
+
+                  IF DIALOG.BOOLEAN("CHK_RAM_PARITY_CHECK_DIS")
+                    &SRAM2_PE="SRAM2_PE=1"
+                  ELSE
+                    &SRAM2_PE="SRAM2_PE=0"
+
+                  IF DIALOG.BOOLEAN("CHK_RAM_ERASE")
+                    &progSRAM2_RST="SRAM2_RST=0"
+                  ELSE
+                    &progSRAM2_RST="SRAM2_RST=1"
+
+                  IF DIALOG.BOOLEAN("CHK_NSWBOOT0")
+                    &progNSWBOOT0="NSWBOOT0=1"
+                  ELSE
+                    &progNSWBOOT0="NSWBOOT0=0"
+
+                  &value=DIALOG.STRing(NSBOOTADD0R)
+                  &progNSBOOTADD0R="NSBOOTADD0R=&value"
+                  &value=DIALOG.STRing(NSBOOTADD1R)
+                  &progNSBOOTADD1R="NSBOOTADD1R=&value"
+                  &value=DIALOG.STRing(SECBOOTADD0R)
+                  &progSECBOOTADD0R="SECBOOTADD0R=&value"
+                  &value=DIALOG.STRing(SECWM1R1)
+                  &progSECWM1R1="SECWM1R1=&value"
+                  &value=DIALOG.STRing(SECWM1R2)
+                  &progSECWM1R2="SECWM1R2=&value"
+                  &value=DIALOG.STRing(SECWM2R1)
+                  &progSECWM2R1="SECWM2R1=&value"
+                  &value=DIALOG.STRing(SECWM2R2)
+                  &progSECWM2R2="SECWM2R2=&value"
+                  &value=DIALOG.STRing(WRP1AR)
+                  &progWRP1AR="WRP1AR=&value"
+                  &value=DIALOG.STRing(WRP1BR)
+                  &progWRP1BR="WRP1BR=&value"
+                  &value=DIALOG.STRing(WRP2AR)
+                  &progWRP2AR="WRP2AR=&value"
+                  &value=DIALOG.STRing(WRP2BR)
+                  &progWRP2BR="WRP2BR=&value"
+                  &value=DIALOG.STRing(SECBB1R1)
+                  &progSECBB1R1="SECBB1R1=&value"
+                  &value=DIALOG.STRing(SECBB1R2)
+                  &progSECBB1R2="SECBB1R2=&value"
+                  &value=DIALOG.STRing(SECBB1R3)
+                  &progSECBB1R3="SECBB1R3=&value"
+                  &value=DIALOG.STRing(SECBB1R4)
+                  &progSECBB1R4="SECBB1R4=&value"
+                  &value=DIALOG.STRing(SECBB2R1)
+                  &progSECBB2R1="SECBB2R1=&value"
+                  &value=DIALOG.STRing(SECBB1R2)
+                  &progSECBB1R2="SECBB1R2=&value"
+                  &value=DIALOG.STRing(SECBB2R2)
+                  &progSECBB2R2="SECBB2R2=&value"
+                  &value=DIALOG.STRing(SECBB2R3)
+                  &progSECBB2R3="SECBB2R3=&value"
+                  &value=DIALOG.STRing(SECBB2R4)
+                  &progSECBB2R4="SECBB2R4=&value"
+                  &value=DIALOG.STRing(SECHDPCR)
+                  &progSECHDPCR="SECHDPCR=&value"
+                  &value=DIALOG.STRing(PRIVCFGR)
+                  &progPRIVCFGR="PRIVCFGR=&value"
+
+                  DO "&Script" &progRDP_LEV &progBOR_LEV &progRST_STOP &progRST_STDBY &progRST_SHDW &progIWDG_SW &progIWDG_STOP &progIWDG_STDBY &progWWDG_SW &progSWAP_BANK &progDB256K &progDBANK &progPA15PUPEN &progTZEN &SRAM2_PE &progSRAM2_RST &progNSWBOOT0 &progNBOOT0 &progNSBOOTADD0R &progNSBOOTADD1R &progSECBOOTADD0R &progSECWM1R1 &progSECWM1R2 &progSECWM2R1 &progSECWM2R2 &progWRP1AR &progWRP1BR &progWRP2AR &progWRP2BR &progSECBB1R1 &progSECBB1R2 &progSECBB1R3 &progSECBB1R4 &progSECBB2R1 &progSECBB2R2 &progSECBB2R3 &progSECBB2R4 &progSECHDPCR &progPRIVCFGR
+                )
+
+                POS 19. 31. 15. 1.5
+                BUTTON "Activate option bytes"
+                (
+                  DO "&Script" RELOAD_OPTIONBYTES
+                )
+
+                POS 41. 31. 10. 1.5
+                BUTTON "Refresh"
+                (
+                  DO "&Script" REFRESH
+                )
+
+                POS 57. 31. 10. 1.5
+                BUTTON "Exit" "DIALOG.END"
+
+                CLOSE "DIALOG.END"
+  )
+
+  GOSUB UpdateWindowFromFlashContents
+
+  ENDDO
+
+
+; --------------------------------------------------------------------------------
+; Read out option bytes and set dialog entries
+
+UpdateWindowFromFlashContents:
+(
+  GOSUB ReadOptionBytes
+
+  ; Get read protection
+  IF ((&OPTR&0xFF)==0xAA)
+    DIALOG.Set COMB_RDP "Level 0:No read protection"
+  ELSE IF ((&OPTR&0xFF)==0x55)
+    DIALOG.Set COMB_RDP "Level 0.5:only non-secure debug access"
+  ELSE
+    DIALOG.Set COMB_RDP "Level 1:Read protection"
+
+  IF ((&OPTR>>8.)&0x07)==0x0
+    DIALOG.Set COMB_BORLEV "Level 0:threshold around 1.7 V"
+  ELSE IF((&OPTR>>8.)&0x07)==0x1
+    DIALOG.Set COMB_BORLEV "Level 1:threshold around 2.0 V"
+  ELSE IF ((&OPTR>>8.)&0x07)==0x2
+    DIALOG.Set COMB_BORLEV "Level 2:threshold around 2.2 V"
+  ELSE IF ((&OPTR>>8.)&0x07)==0x3
+    DIALOG.Set COMB_BORLEV "Level 3:threshold around 2.5 V"
+  ELSE IF ((&OPTR>>8.)&0x07)==0x4
+    DIALOG.Set COMB_BORLEV "Level 4:threshold around 2.8 V"
+
+  IF ((&OPTR>>12.)&0x1)==0x1
+    DIALOG.Set CHK_RST_STOP "OFF"
+  ELSE
+    DIALOG.Set CHK_RST_STOP "ON"
+
+  IF ((&OPTR>>13.)&0x1)==0x1
+    DIALOG.Set CHK_RST_STDBY "OFF"
+  ELSE
+    DIALOG.Set CHK_RST_STDBY "ON"
+
+  IF ((&OPTR>>14.)&0x1)==0x1
+    DIALOG.Set CHK_RST_SHDW "OFF"
+  ELSE
+    DIALOG.Set CHK_RST_SHDW "ON"
+
+  IF ((&OPTR>>16.)&0x1)==0x1
+    DIALOG.Set CHSB_IWDG.SW
+  ELSE
+    DIALOG.Set CHSB_IWDG.HW
+
+  IF ((&OPTR>>17.)&0x1)==0x1
+    DIALOG.Set CHK_IWDG_STOP "OFF"
+  ELSE
+    DIALOG.Set CHK_IWDG_STOP "ON"
+
+  IF ((&OPTR>>18.)&0x1)==0x1
+    DIALOG.Set CHK_IWDG_STDBY "OFF"
+  ELSE
+    DIALOG.Set CHK_IWDG_STDBY "ON"
+
+  IF ((&OPTR>>19.)&0x1)==0x1
+    DIALOG.Set CHSB_WWDG.SW
+  ELSE
+    DIALOG.Set CHSB_WWDG.HW
+
+  IF ((&OPTR>>20.)&0x1)==0x1
+    DIALOG.Set CHK_SWAP_BANK "ON"
+  ELSE
+    DIALOG.Set CHK_SWAP_BANK "OFF"
+
+  IF ((&OPTR>>21.)&0x1)==0x1
+    DIALOG.Set CHK_DB256K "ON"
+  ELSE
+    DIALOG.Set CHK_DB256K "OFF"
+
+  IF ((&OPTR>>22.)&0x1)==0x1
+    DIALOG.Set CHSB_DBANK.DUAL
+  ELSE
+    DIALOG.Set CHSB_DBANK.SINGLE
+
+  IF ((&OPTR>>24.)&0x1)==0x1
+    DIALOG.Set CHK_RAM_PARITY_CHECK_DIS "ON"
+  ELSE
+    DIALOG.Set CHK_RAM_PARITY_CHECK_DIS "OFF"
+
+  IF ((&OPTR>>25.)&0x1)==0x1
+    DIALOG.Set CHK_RAM_ERASE "OFF"
+  ELSE
+    DIALOG.Set CHK_RAM_ERASE "ON"
+
+  IF ((&OPTR>>26.)&0x1)==0x1
+    DIALOG.Set CHK_NSWBOOT0 "ON"
+  ELSE
+    DIALOG.Set CHK_NSWBOOT0 "OFF"
+
+  IF ((&OPTR>>27.)&0x1)==0x1
+    DIALOG.Set CHK_NBOOT0 "ON"
+  ELSE
+    DIALOG.Set CHK_NBOOT0 "OFF"
+
+  IF ((&OPTR>>28.)&0x1)==0x1
+    DIALOG.Set CHK_PA15PUPEN "ON"
+  ELSE
+    DIALOG.Set CHK_PA15PUPEN "OFF"
+
+  IF ((&OPTR>>31.)&0x1)==0x1
+    DIALOG.Set CHK_TZEN "ON"
+  ELSE
+    DIALOG.Set CHK_TZEN "OFF"
+
+  DIALOG.Set NSBOOTADD0R "&NSBOOTADD0R"
+  DIALOG.Set NSBOOTADD1R "&NSBOOTADD1R"
+  DIALOG.Set SECBOOTADD0R "&SECBOOTADD0R"
+  DIALOG.Set SECWM1R1 "&SECWM1R1"
+  DIALOG.Set SECWM1R2 "&SECWM1R2"
+  DIALOG.Set SECWM2R1 "&SECWM2R1"
+  DIALOG.Set SECWM2R2 "&SECWM2R2"
+  DIALOG.Set WRP1AR "&WRP1AR"
+  DIALOG.Set WRP1BR "&WRP1BR"
+  DIALOG.Set WRP2AR "&WRP2AR"
+  DIALOG.Set WRP2BR "&WRP2BR"
+  DIALOG.Set SECBB1R1 "&SECBB1R1"
+  DIALOG.Set SECBB1R2 "&SECBB1R2"
+  DIALOG.Set SECBB1R3 "&SECBB1R3"
+  DIALOG.Set SECBB1R4 "&SECBB1R4"
+  DIALOG.Set SECBB2R1 "&SECBB2R1"
+  DIALOG.Set SECBB2R2 "&SECBB2R2"
+  DIALOG.Set SECBB2R3 "&SECBB2R3"
+  DIALOG.Set SECBB2R4 "&SECBB2R4"
+  DIALOG.Set SECHDPCR "&SECHDPCR"
+  DIALOG.Set PRIVCFGR "&PRIVCFGR"
+
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Activate programmed flash settings by resetting device
+
+ActivateFlashSettings:
+(
+  PRIVATE &cr &optlocked
+
+  ; Athorize flash programming
+  &cr=Data.Long(&FlashRegBase+0x28)
+
+  ; Unlock the Flash Program Erase controller
+  IF ((&cr&0x80000000)==0x80000000)
+  (
+    Data.Set &FlashRegBase+0x08 %Long 0x45670123            // FLASH->KEYR = FLASH_KEY1;
+    Data.Set &FlashRegBase+0x08 %Long 0xCDEF89AB            // FLASH->KEYR = FLASH_KEY2;
+  )
+  ; Authorize option byte programming
+  IF ((&cr&0x40000000)==0x40000000)
+  (
+    Data.Set &FlashRegBase+0x10 %Long 0x08192A3B            // FLASH->OPTKEYR = FLASH_KEY1;
+    Data.Set &FlashRegBase+0x10 %Long 0x4C5D6E7F            // FLASH->OPTKEYR = FLASH_KEY2;
+  )
+
+  &optlocked=Data.Long(&FlashRegBase+0x28)&0x40000000       // locked = FLASH->OTPCR & OPT_LOCK
+  IF &optlocked==0x40000000
+  (
+    PRINT %ERROR "Cannot unlock option byte programming!"
+    RETURN
+  )
+
+  ; Set OBL_LAUNCH to power down core (necessary for loading option bytes into Flash registers)
+  ON.ERROR CONTINUE
+  Data.Set &FlashRegBase+0x28 %Long &cr|(1.<<27.)
+  ON.ERROR
+  WAIT 0.1s
+  IF (SYStem.UP())
+    BREAK
+  ELSE
+    SYStem.UP
+
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Read option byte values out of flash
+
+ReadOptionBytes:
+(
+  &OPTR=Data.Long(&FlashRegBase+0x40)
+  &NSBOOTADD0R=Data.Long(&FlashRegBase+0x44)
+  &NSBOOTADD1R=Data.Long(&FlashRegBase+0x48)
+  &SECBOOTADD0R=Data.Long(&FlashRegBase+0x4C)
+  &SECWM1R1=Data.Long(&FlashRegBase+0x50)
+  &SECWM1R2=Data.Long(&FlashRegBase+0x54)
+  &SECWM2R1=Data.Long(&FlashRegBase+0x60)
+  &SECWM2R2=Data.Long(&FlashRegBase+0x64)
+  &WRP1AR=Data.Long(&FlashRegBase+0x58)
+  &WRP1BR=Data.Long(&FlashRegBase+0x5C)
+  &WRP2AR=Data.Long(&FlashRegBase+0x68)
+  &WRP2BR=Data.Long(&FlashRegBase+0x6C)
+  &SECBB1R1=Data.Long(&FlashRegBase+0x80)
+  &SECBB1R2=Data.Long(&FlashRegBase+0x84)
+  &SECBB1R3=Data.Long(&FlashRegBase+0x88)
+  &SECBB1R4=Data.Long(&FlashRegBase+0x8C)
+  &SECBB2R1=Data.Long(&FlashRegBase+0xA0)
+  &SECBB2R2=Data.Long(&FlashRegBase+0xA4)
+  &SECBB2R3=Data.Long(&FlashRegBase+0xA8)
+  &SECBB2R4=Data.Long(&FlashRegBase+0xAC)
+  &SECHDPCR=Data.Long(&FlashRegBase+0xC0)
+  &PRIVCFGR=Data.Long(&FlashRegBase+0xC4)
+
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Program option bytes
+
+ProgramOptionBytes:
+(
+  PRIVATE &cr
+
+  ; Clear All pending flags in FLASH->SR
+  Data.Set &FlashRegBase+0x20 %Long 0x000020FB
+
+  ; Wait for last operation to be completed
+  IF (Data.Long(&FlashRegBase+0x20)&0x00010000)==0x00010000
+  (
+    PRINT %ERROR "Flash memory interface busy, operation aborted"
+    RETURN
+  )
+
+  ; Athorize flash programming
+  &cr=Data.Long(&FlashRegBase+0x28)
+
+  ; Unlock the Flash Program Erase controller
+  IF ((&cr&0x80000000)==0x80000000)
+  (
+    Data.Set &FlashRegBase+0x08 %Long 0x45670123              // FLASH->KEYR) = FLASH_KEY1;
+    Data.Set &FlashRegBase+0x08 %Long 0xCDEF89AB              // FLASH->KEYR) = FLASH_KEY2;
+  )
+  ; Authorize option byte programming
+  IF ((&cr&0x40000000)==0x40000000)
+  (
+    Data.Set &FlashRegBase+0x10 %Long 0x08192A3B            // FLASH->OPTKEYR = FLASH_KEY1;
+    Data.Set &FlashRegBase+0x10 %Long 0x4C5D6E7F            // FLASH->OPTKEYR = FLASH_KEY2;
+  )
+
+  &optlocked=Data.Long(&FlashRegBase+0x14)&0x40000000       // locked = FLASH->OTPCR & OPT_LOCK
+  IF &optlocked==0x40000000
+  (
+    PRINT %ERROR "Cannot unlock option byte programming!"
+    RETURN
+  )
+
+  IF ((&OPTR&0xFF)==0xCC)
+  (
+    PRINT "Option byte programming aborted,because RDP_LEV=0xCC will disable further debugging"
+    PRINT "Disabling JTAG won't be reversible"
+    Data.Set &FlashRegBase+0x28 %Long &cr                     // restore FLASH_CR register
+    ENDDO
+  )
+  Data.Set &FlashRegBase+0x40 %Long &OPTR
+  Data.Set &FlashRegBase+0x44 %Long &NSBOOTADD0R
+  Data.Set &FlashRegBase+0x48 %Long &NSBOOTADD1R
+  Data.Set &FlashRegBase+0x4C %Long &SECBOOTADD0R
+  Data.Set &FlashRegBase+0x50 %Long &SECWM1R1
+  Data.Set &FlashRegBase+0x54 %Long &SECWM1R2
+  Data.Set &FlashRegBase+0x58 %Long &WRP1AR
+  Data.Set &FlashRegBase+0x5C %Long &WRP1BR
+  Data.Set &FlashRegBase+0x60 %Long &SECWM2R1
+  Data.Set &FlashRegBase+0x64 %Long &SECWM2R2
+  Data.Set &FlashRegBase+0x68 %Long &WRP2AR
+  Data.Set &FlashRegBase+0x6C %Long &WRP2BR
+  Data.Set &FlashRegBase+0x80 %Long &SECBB1R1
+  Data.Set &FlashRegBase+0x84 %Long &SECBB1R2
+  Data.Set &FlashRegBase+0x88 %Long &SECBB1R3
+  Data.Set &FlashRegBase+0x8C %Long &SECBB1R4
+  Data.Set &FlashRegBase+0xA0 %Long &SECBB2R1
+  Data.Set &FlashRegBase+0xA4 %Long &SECBB2R2
+  Data.Set &FlashRegBase+0xA8 %Long &SECBB2R3
+  Data.Set &FlashRegBase+0xAC %Long &SECBB2R4
+  Data.Set &FlashRegBase+0xC0 %Long &SECHDPCR
+  Data.Set &FlashRegBase+0xC4 %Long &PRIVCFGR
+
+  ; Start option byte programming
+  Data.Set &FlashRegBase+0x28 %Long (&cr&~0xC0000000)|0x20000  // FLASH->CR = OPT_STRT;
+  
+  ; Wait for last operation to be completed */
+  WHILE (Data.Long(&FlashRegBase+0x20)&0x00010000)==0x00010000 // while ((FLASH->NSSR & FLASH_FLAG_BSY) == FLASH_FLAG_BSY) 
+  (
+  )
+
+  ; restore FLASH_CR register
+  Data.Set &FlashRegBase+0x28 %Long &cr
+
+  RETURN
+)

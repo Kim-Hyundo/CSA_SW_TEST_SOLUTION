@@ -1,0 +1,103 @@
+; --------------------------------------------------------------------------------
+; @Title: Usage example for the RBF based Fpga loading on the SoCrates board
+; @Description:
+;   This script shows the usage of the cyclonevsoc_fpgaloadrbf.cmm based loading
+;   of an ALTERA CYCLONE-V Fpga.
+;   The script uses the preloader to initialize the DRAM and loads an example
+;   fpga design afterwards. The fpga-leds will flash after the fpga is loaded
+;   Prerequisites:
+;   * Please set bootmode to SD-Card and REMOVE SD-Card
+;     => Device will stop in BOOT ROM
+;     on SoCrates P18[6..8]=0y101 (small dip-switch)
+;   * Connect Debugcable or Combiprobe to P19 header
+;     using LA-3863 (ARM->NIOS halfsize converter)
+;   * Set MIO[4..0]=0y00010 (FPP x16, compressed fast)
+;     on SoCrates P18[1..5]=0y10111 (small dip-switch)
+; @Keywords: ALTERA, Cortex-A9, Cyclone, Cyclonev, FPGA, RBF
+; @Author: AME
+; @Board: SOCRATES
+; @Chip: CYCLONEVSOC
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: socrates_loadrbf.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+LOCAL &ppd
+&ppd=OS.PPD()
+
+; unzip the files if not existing
+IF !OS.FILE("&ppd/ep5csxfc6.rbf")
+(
+  UNZIP "&ppd/ep5csxfc6.rbf.gz" "&ppd/ep5csxfc6.rbf"
+)
+
+; Initialization part, preconfigure ARM GUI
+RESet
+SYStem.RESet
+SYStem.CPU CYCLONEVSOC
+SYStem.JtagClock CTCK 20MHz
+SYStem.Option MMUSPACES ON
+SYStem.Option DACR ON
+TrOnchip.Set DABORT OFF
+TrOnchip.Set PABORT OFF
+TrOnchip.Set UNDEF  OFF
+TrOnchip.Set RESET  OFF
+CORE.ASSIGN 1.
+ETM.OFF
+
+; Board + SOC specific settings
+SYStem.CONFIG DAPIRPOST  0.
+SYStem.CONFIG DAPIRPRE  10.
+SYStem.CONFIG DAPDRPOST  0.
+SYStem.CONFIG DAPDRPRE   1.
+
+PRINT "cold reset CYCLONEVSOC via ARM ..."
+SYStem.Up
+; set SWCOLDRSTREQ in RSTMGR-CTRL
+ON ERROR CONTinue
+Data.Set AZSD:0xFFD05004 %Long %LE Data.Long(AZSD:0xFFD05004)|0x1
+WAIT SYStem.MODE()<5.
+ON ERROR inherit
+PRINT "cold reset CYCLONEVSOC via ARM ... finished"
+
+PRINT "bringup ARM debug session ..."
+SYStem.Mode Attach
+IF STATE.RUN()
+  Break.direct
+
+; Write to the clock manage to prevent the system from gating the debug clocks during a warm reset
+Data.Set AHB:0xFFD04010 %Long 0x01
+; Watchdog is activated by BOOTROM
+; the only way is to use the RESET MANAGER
+; disable Watchdog - Toggle RESET in PERMODRST
+Data.Set A:0xFFD05014 %Long Data.Long(A:0xFFD05014)|0x40
+Data.Set A:0xFFD05014 %Long Data.Long(A:0xFFD05014)&(~0x40)
+
+; now execute u-boot-spl
+PRINT "run U-Boot-SPL ... load"
+Data.LOAD.Binary "~~~~/u-boot-spl.bin" 0xFFFF0000--0xFFFFFFFF
+Register.Set PC 0xFFFF0000
+Register.Set T 0
+PRINT "run U-Boot-SPL ... start"
+Go.direct 0xFFFF6204 /Onchip
+WAIT !STATE.RUN() 3.s
+IF STATE.RUN()||(Register(PC)!=0xFFFF6204)
+(
+  PRINT %ERROR "run U-Boot-SPL ... fail"
+  ENDDO
+)
+PRINT "run U-Boot-SPL ... finished - SDRAM ready"
+
+; Watchdog may be reactivated by PRELOADER
+; the only way is to use the RESET MANAGER
+; disable Watchdog - Toggle RESET in PERMODRST
+Data.Set A:0xFFD05014 %Long Data.Long(A:0xFFD05014)|0x40
+Data.Set A:0xFFD05014 %Long Data.Long(A:0xFFD05014)&(~0x40)
+
+; now load the fpga
+PRINT "load FPGA design using FPGA Manager ..."
+;DO "~~/demo/arm/hardware/cyclonevsoc/cyclonevsoc_fpgaloadrbf.cmm" "&ppd/ep5csxfc6.rbf" 0x100000
+DO "~~~~/../cyclonevsoc_fpgaloadrbf.cmm" "&ppd/ep5csxfc6.rbf" 0x100000
+PRINT "load FPGA design using FPGA Manager ... finished"
+; the leds should flash now
+
+ENDDO

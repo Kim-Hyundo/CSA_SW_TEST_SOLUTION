@@ -1,0 +1,62 @@
+; --------------------------------------------------------------------------------
+; @Title: optee autoload script, called by TRACE32 if TA symbols are to be loaded
+; @Description:
+;   This script is part of the TRACE32 optee Awareness
+;
+; @Keywords: optee autoloader awareness
+; @Props: NoWelcome NoIndex
+; @Author: KJM
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: autoload.cmm 4815 2019-11-21 13:32:51Z amerkle $
+
+// define local macros
+PRIVATE &sProgname &sProgpath &sFilepath &cFirst
+
+// get filename and relocation information
+// these parameters are passed from TRACE32 when calling this skript
+PRIVATE &sFilename &nType &nCodeAddr &nDataAddr &nSpaceID &nMachineID
+ENTRY &sFilename &nType &nCodeAddr &nDataAddr &nSpaceID &nMachineID
+
+// get symbol file name and program name
+&sFilepath=""
+
+// get program name
+&sProgname=&sFilename
+
+&cFirst=STRING.CHAR("&sProgname", 0)
+IF (&cFirst>=0x30)&&(&cFirst<=0x39)
+  &sProgname="_"+"&sProgname"
+
+// delete symbols if they already exist
+IF sYmbol.EXIST("\\&sProgname")
+(
+  // create program path - due to possible special characters
+  &sProgpath="`"+"\\"+"&sProgname"+"`"
+  sYmbol.Delete &sProgpath
+)
+GROUP.Delete "&sProgname"
+
+&sFilename=&sFilename+".elf"
+
+// check if preset file path is valid
+IF !OS.FILE("&sFilename")
+  &sFilepath=sYmbol.SEARCHFILE("&sFilename")
+
+IF !OS.FILE("&sFilepath")
+(
+  PRIVATE &sSourcePath
+
+  WinPOS ,,,,,, filebox normal "Searching symbols for &sFilename"
+  DIALOG.File "*&sFilename*"
+  ENTRY %LINE &sFilepath
+  IF "&sFilepath"==""
+    ENDDO
+  &sSourcePath=OS.FILE.PATH("&sFilepath")
+  sYmbol.SourcePATH.Set "&sSourcePath"
+)
+IF SYStem.Option.MACHINESPACES()
+  Data.LOAD.Elf "&sFilepath" Z:0:::&nSpaceID:&nCodeAddr /NoCODE /NoClear
+ELSE
+  Data.LOAD.Elf "&sFilepath" Z:&nSpaceID:&nCodeAddr /NoCODE /NoClear
+ENDDO

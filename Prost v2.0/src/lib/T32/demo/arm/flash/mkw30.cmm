@@ -1,0 +1,221 @@
+; --------------------------------------------------------------------------------
+; @Title: Generic script for NXP MKW30Z/MKW31Z internal flash
+; @Description:
+;   Script arguments:
+;     DO mkw30 [PREPAREONLY] [CPU=<cpu>] [DUALPORT=<0|1>] [MASSERASE] ;
+;       PREPAREONLY    only declares flash but does not execute flash programming
+;       CPU=<cpu>      selects CPU derivative <cpu>
+;       DUALPORT=<0|1> use dual port memory access, default 1
+;       MASSERASE      forces mass erase of device before establishing debug
+;                      connection
+;   Example:
+;     DO ~~/demo/arm/flash/mkw40z PREPAREONLY
+;   Note:
+;     This file must NOT be modified.
+;     This file is intended to stay within TRACE32 installation.
+;     Usage examples are available in the ~~/demo/arm/hardware/... subdirectories.
+;
+;   List of MKW30Z/MKW31Z derivatives and their configuration:
+;      CPU-Type            ProgFlash   FlexNVM   EEPROM   RamSize
+;                           [Byte]     [Byte]    [Byte]   [Byte]
+; --------------------------------------------------------------------------------
+;     MKW30Z160VHM4          160KB         -        -       20KB
+;     MKW30Z160VHM4R         160KB         -        -       20KB
+;     MKW31Z512CAT4R         512KB         -        -      128KB
+;     MKW31Z512VHT4          512KB         -        -      128KB
+;     MKW31Z512VHT4R         512KB         -        -      128KB
+;     MKW31Z256VHT4          256KB         -        -       64KB
+;     MKW31Z256VHT4R         256KB         -        -       64KB
+;
+;   The range 0x400--0x40F is guarded against modification. 
+;
+;     Byte address    Width   Description
+; --------------------------------------------------------------------------------
+;     0x0400--0x0407    8    Backdoor Comparison Key.
+;     0x0408--0x040B    4    Program flash protection bytes (FPROT0-3).
+;     0x040F            1    Program flash only devices: Reserved
+;                            FlexNVM devices: Data flash protection byte
+;                            (FDPROT).
+;     0x040E            1    Program flash only devices: Reserved
+;                            FlexNVM devices: EEPROM protection byte
+;                            (FEPROT).
+;     0x040D            1    Flash nonvolatile option byte (FOPT).
+;     0x040C            1    Flash security byte (FSEC).
+;
+;   Modifications can be done using the FLASH.AUTO command with /CENSORSHIP option.
+;
+; @Author: PHI
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 7602 $
+; $Id: mkw30.cmm 7602 2019-11-05 15:02:25Z bschroefel $
+;
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+PRIVATE &param_cpu &param_prepareonly &param_masserase &param_dualport
+
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+&param_masserase=(STRing.SCAN(STRing.UPpeR("&parameters"),"MASSERASE",0)!=-1)
+&param_cpu=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CPU=","")
+&param_dualport=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"DUALPORT=","1")
+
+
+; --------------------------------------------------------------------------------
+; Initialize and start the debugger
+IF !SYStem.Up()||&param_masserase
+(
+  SYStem.RESet
+
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  IF !CPUIS(MKW3?Z*)
+    SYStem.CPU MKW3*
+
+  SYStem.MemAccess DAP
+
+  SYStem.CONFIG DEBUGPORTTYPE SWD
+
+  IF &param_masserase
+    GOSUB Unsecure
+
+  SYStem.Up
+
+  ; Disable watchdog
+  ON.ERROR GOSUB Unsecure
+  GOSUB DisableWatchdog
+  ON.ERROR
+)
+
+; --------------------------------------------------------------------------------
+; Flash declaration
+FLASH.RESet
+GOSUB FlashDeclaration "&param_dualport"
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+
+; ------------------------------------------------------------------------------
+; Flash programming
+
+DIALOG.YESNO "Program flash memory?"
+PRIVATE &progflash
+ENTRY &progflash
+IF &progflash 
+(
+  FLASH.ReProgram.ALL /Erase
+  Data.LOAD.auto *
+  FLASH.ReProgram.off
+
+  ; Example to modify Censorship range 
+  ; FLASH.AUTO 0x400--0x40F /CENSORSHIP  ; Reset device
+  ; Data.Set 0x400--0x40F %Byte <value>  SYStem.Down
+  ; Data.LOAD.auto <file> 0x400--0x40F   SYStem.Up
+  ; FLASH.AUTO OFF                     
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+  GOSUB DisableWatchdog
+)
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+; SUBROUTINES
+
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU
+;
+;   Please do NOT modify the TRACE32 flash declaration.
+;
+;   Modifications can result in unpredictable behavior.
+;   Please contact support@lauterbach.com for any changes.
+FlashDeclaration: ;(param_dualport)
+(
+  PARAMETERS &param_dualport
+  PRIVATE &flashdriver &PFlashSize &PSectorSize
+
+  IF CPUIS(CPUIS("MKW30Z*")
+  (
+    &PSectorSize=0x400 
+    &PFlashSize=0x28000
+    &flashdriver="ftfa.bin"
+)
+  ELSE IF CPUIS("MKW31Z256*")
+  (
+    &PSectorSize=0x800 
+    &PFlashSize=0x40000
+    &flashdriver="ftfa1n.bin"
+)
+  ELSE IF CPUIS("MKW31Z512*")
+  (
+    &PSectorSize=0x800 
+    &PFlashSize=0x80000
+    &flashdriver="ftfa1n.bin"
+  )
+  ELSE
+  (
+    PRINT %ERROR "FLASH size of CPU type is not supported by the script"
+    ENDDO
+  )
+
+  FLASH.Create 1. 0x00000000++(&PFlashSize-0x1) &PSectorSize TARGET Long /CENSORSHIP 0x400--0x40F
+
+  IF (("&param_dualport"!="1")||SYStem.ACCESS.DENIED())
+    FLASH.TARGET 0x1FFFF000 0x20000000 &PSectorSize ~~/demo/arm/flash/long/&flashdriver
+  ELSE
+    FLASH.TARGET 0x1FFFF000 E:0x20000000 &PSectorSize ~~/demo/arm/flash/long/&flashdriver /DualPort
+
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Disable watchdog
+
+DisableWatchdog:
+(
+  Data.Set SD:0x40048100 %Long 0  ; this register can only be accessed once after reset.
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Try to unsecure a secured device
+
+Unsecure:
+(
+  ; Print security state information
+  SYStem.Mode.Prepare
+  PRINT "MDM-AP Status Register is 0x" Data.Long(EDBG:0x40000100)
+
+  DIALOG.YESNO "Execute mass erase to unsecure chip?"
+  PRIVATE &masserase
+  ENTRY &masserase
+  IF &masserase
+  (
+    ON.ERROR DEFault
+
+    ; Unsecure device
+    SYStem.Down
+    FLASH.UNSECUREerase
+    SYStem.Mode.Prepare
+    IF (Data.Long(EDBG:0x40000100)&0x04)==0x04
+    (
+      PRINT %ERROR "Unsecure failed, MDM-AP Status Register is 0x" Data.Long(EDBG:0x40000100)
+      SYStem.Down
+      ENDDO
+    )
+  )
+  ELSE
+    ENDDO
+
+  SYStem.Up
+
+  ; Disable watchdog
+  GOSUB DisableWatchdog
+
+  RETURN
+)

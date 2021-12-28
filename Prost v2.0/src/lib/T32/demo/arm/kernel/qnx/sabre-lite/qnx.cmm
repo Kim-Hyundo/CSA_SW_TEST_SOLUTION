@@ -1,0 +1,184 @@
+; --------------------------------------------------------------------------------
+; @Title: QNX Demo for TRACE32 OS Awareness on a SabreLite board
+; @Description:
+;
+;   This batchfile demonstrates the use of the OS Awareness for QNX
+;
+;   The example is generated for the SabreLite using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;
+;   U-Boot on board is used to initialize the board.
+;   QNX is downloaded to the board via ICD.
+;   Does not require microSD card to be inserted
+;
+; @Keywords: awareness, imx6
+; @Props: Template
+; @Author: RIC
+; @Board: SabreLite
+; @Chip: IMX6QUAD
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: qnx.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+LOCAL &image &imgdir &DNLD_ADDR &procntosym &startup &term
+
+; Edit this to point to the images sub-directory of your QNX project
+&imgdir="C:\qnx-workspace\SabreLite\images"
+
+; This should be the name of your IFS .raw file that will be downloaded
+; to the target
+&image="&imgdir\ifs-SabreLite.raw"
+
+; Adding [+keeplinked] to your src/build file will produce the symbol files.
+; Consult ~~/pdf/rtos_qnx_stop.pdf for more details
+&procntosym="&imgdir\procnto-smp-instr.sym"
+&startup="&imgdir\startup-imx6x-sabrelite.sym"
+
+; This is the start address of the .raw file in RAM - you shouldn't need to
+; change this
+&DNLD_ADDR="0x10800000"
+
+; Edit this to point to your serial device that is connected to the target
+&term="COM7"
+
+ ; Set Trace32 main window size and position
+ ; Should almost fill a 1080p screen
+ FramePOS 0. 0. 190. 53.
+
+ ; Set up windows and sizes for initial display
+ WinPAGE.RESet
+ WinCLEAR
+ SCREEN.ALways
+
+ ; Set tab spacing to 4, not 8
+ SETUP.TabSize 4.
+
+ ; Clear up from any previous debug sessions
+ TASK.RESet
+ MMU.RESet
+ Break.RESet
+ RESet
+
+; Un-comment these lines to use the TRACE32 terminal
+; Leave them commented if you use an external terminal program
+; PRINT "starting terminal on &term"
+; WinPOS 35. 0. ,,,,, TERM.view
+; TERM.METHOD COM &term 115200. 8 NONE 1STOP NONE
+; TERM.SIZE 80. 1000.
+; TERM.Mode VT100
+; TERM.SCROLL ON
+; TERM.view
+
+ AREA.view
+
+
+ PRINT "Initialising..."
+ SYStem.CPU iMX6Quad
+ CORE.ASSIGN 1.
+ SYStem.Option DACR on
+ SYStem.Option MMUSPACES ON
+ TrOnchip.Set DABORT OFF
+ TrOnchip.Set PABORT OFF
+ TrOnchip.Set UNDEF OFF
+
+ SYStem.Option ResBreak OFF
+ SYStem.Option WaitReset 1.0s
+ SYStem.JtagClock 20.MHz
+
+ Trace.Method ONCHIP
+
+ SYStem.Up
+
+ SETUP.IMASKHLL ON
+ SETUP.IMASKASM ON
+
+ ; Let Uboot configure the board for us
+ Go.direct
+ PRINT "Uboot target setup"
+ WAIT 2.s
+ Break.direct
+ WAIT !STATE.RUN()
+
+ ; Load QNX .raw image (binary file) to the start address
+ Data.LOAD.Binary "&image" &DNLD_ADDR
+ Register.Set PC &DNLD_ADDR
+
+ ; Load symbols for startup and procnto
+ Data.LOAD.Elf "&startup" /NOCODE
+ Data.LOAD.Elf "&procntosym" /NOCODE
+
+ ; Let QNX start and run
+ ; Run over MMU initialization
+ Break.Set _main /Program /Onchip                 ; use onchip because of virtual address
+ Go.direct
+ PRINT "initilizing QNX..."
+ WAIT !STATE.RUN()
+ Break.Delete _main
+
+ ; Declare the MMU format to the debugger
+ PRINT "initializing debugger MMU..."
+ MMU.FORMAT STD
+ TRANSlation.COMMON 0xe0000000--0xffffffff        ; kernel area is common for all MMU space ids
+ TRANSlation.TableWalk ON                         ; debugger uses a table walk to decode virtual addresses
+ TRANSlation.ON                                   ; switch on debugger(!) address translation
+
+ ; Assign all cores to allow SMP debugging
+ SYStem.Down                                      ; detach from CPU
+ CORE.ASSIGN 1. 2. 3. 4.                          ; assign to all cores
+ SYStem.Attach                                    ; reattach to CPU
+
+
+ ; Initialize QNX Support
+ PRINT "initializing QNX support..."
+ TASK.CONFIG ~~/demo/arm/kernel/qnx/qnx.t32       ; loads QNX awareness
+ MENU.ReProgram ~~/demo/arm/kernel/qnx/qnx.men    ; loads QNX menu
+ HELP.FILTER.Add rtosqnx                          ; add QNX awareness manual to help system
+
+ TASK.sYmbol.Option MMUSCAN OFF                   ; not necessary with tablewalk
+
+ ; Switch on autoloader
+ sYmbol.AutoLoad.CHECKQNX "do ~~/demo/arm/kernel/qnx/autoload "
+
+ ; Group kernel area to be displayed with red bar
+ GROUP.Create "kernel" 0xfc000000--0xffffffff /RED
+
+ ; activate autoloader for processes:
+ TASK.sYmbol.Option AutoLoad Process
+
+ PRINT "Starting QNX..."
+ Go.direct
+ WAIT 3.s
+ Break.direct
+ WAIT !STATE.RUN()
+
+ ; Open some Windows
+ WinCLEAR
+ WinPOS 0.6 39.875 100. 9. 0. 0. W000
+ AREA.view
+
+ WinPOS 0.6 0.1875 98. 26. 22. 1. W002
+ WinTABS 10. 10. 25. 62.
+ List
+
+ WinPOS 104.9 0.25 80. 26. 0. 1. W001
+ WinTABS 10. 8. 8. 6. 5.
+ TASK.Process
+
+ PRINT "Setup complete."
+ ENDDO
+
+ ; To debug a new task:
+ ;   QNX->Process Debugging->Watch Processes->Add
+ ;   Enter task name
+ ;   Start target
+ ;   On target launch the process
+ ;   TRACE32 may prompt you for the symbol file for the process
+ ;
+ ; To attach to an existing task
+ ;   QNX->Display Processes
+ ;   Right-click on the tasks' "magic" column
+ ;   Select "Load Process Symbols"
+ ;   Set breakpoint in process and start target to run til breakpoint
+ ;
+ ; More information is in ~~/pdf/rtos_qnx_stop.pdf

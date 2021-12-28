@@ -1,0 +1,233 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to capture min/max/average function performances using BMC
+; @Description:
+;   Results will be in area window "RESULT"
+;
+;   Script arguments:
+;       DO capture.cmm prepare | exec "<func>" "<time>"
+;           prepare    prepare BMC for capture
+;           exec       capture single function called <func> for <time>
+;
+; @Keywords: AURIX, BMC, runtime
+; @Author: MEI
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: stat_capture.cmm 15739 2020-02-27 14:00:25Z meick $
+
+
+
+PRIVATE &cmd &params
+ENTRY &cmd %LINE &params
+
+GOSUB &cmd &params
+
+ENDDO
+
+prepare:
+(
+  PRIVATE &area
+  ; configure BMC
+  BMC.ICNT.EVENT ON
+  BMC.ICNT.ATOB ON
+  
+  ; configure clock readout to determine core frequency
+  CLOCK.ON
+  
+  &area=AREA.SELECTed()
+  AREA.Create RESULT
+  AREA.CLEAR RESULT
+  AREA.SELect RESULT
+  PRINTF "%-20s %-10s" "function" "count"
+  PRINTF %CONT "%-44s" "CLOCKS"  
+  PRINTF %CONT "%-44s" "ICNT"
+  PRINTF %CONT "%-44s" "M1CNT"
+  PRINTF %CONT "%-44s" "M2CNT"
+  PRINTF %CONT "%-44s" "M3CNT"
+  PRINTF "%-31s" ""
+  PRINTF %CONT " %-10s %-10s %-10s %-10s" "tot." "avg." "min." "max."
+  PRINTF %CONT " %-10s %-10s %-10s %-10s" "tot." "avg." "min." "max."
+  PRINTF %CONT " %-10s %-10s %-10s %-10s" "tot." "avg." "min." "max."
+  PRINTF %CONT " %-10s %-10s %-10s %-10s" "tot." "avg." "min." "max."
+  PRINTF %CONT " %-10s %-10s %-10s %-10s" "tot." "avg." "min." "max."
+ 
+  PRINT "=">>(20.+11.*21.) 
+  AREA.SELect &area
+  
+  RETURN
+)
+
+exec:
+(
+  PARAMETERS &funcName &strIterations 
+  PRIVATE &saveArea &i &iterations
+  
+  &iterations=&strIterations
+  
+  &saveArea=AREA.SELECTed()
+  AREA.Create _TMP_RETURN
+  AREA.CLEAR _TMP_RETURN
+  AREA.Select _TMP_RETURN
+  Data.FindCODE &funcName RETURN "PRINT *"
+  
+  ; set stop breakpoint at each exit  
+  Break.Set &funcName /Alpha
+  &i=0.
+  WHILE (AREA.LINE(_TMP_RETURN,-&i)!="")&&(&i<3.)
+  (
+    PRIVATE &exit
+    &exit=AREA.LINE(_TMP_RETURN,-&i)
+
+    Break.Set &exit
+    IF ADDRESS.INSTR.LEN(&exit-2)==2.
+      Break.Set &exit-2 /Beta
+    ELSE
+      Break.Set &exit-4 /Beta
+
+   &i=&i+1.
+  )
+
+  IF (AREA.LINE(_TMP_RETURN,-&i)=="")&&(&i==0.)
+  (
+    AREA.SELect RESULT
+    PRINTF "%-20s %-20s" "&funcName" "no exits found"
+    GOTO execEnd
+  )
+  IF (AREA.LINE(_TMP_RETURN,-&i)!="")&&(&i>=3.)
+  (
+    AREA.SELect RESULT
+    PRINTF "%-20s %-20s" "&funcName" "more than three exits found"    
+    GOTO execEnd
+  )      
+  
+  ; run one time to make sure we are not in a nested function
+  Go
+  WAIT !STATE.RUN() 1.s
+  IF STATE.RUN()
+  (
+    Break  
+    PRINTF "%-20s %-20s" "&funcName" "was not called within 1.s"   
+    GOTO execEnd      
+  )  
+  
+  AREA.SELect RESULT    
+ 
+  PRIVATE &clkTot &clkMin &clkMax
+  PRIVATE &icntTot &icntMin &icntMax
+  PRIVATE &m1cntTot &m1cntMin &m1cntMax
+  PRIVATE &m2cntTot &m2cntMin &m2cntMax
+  PRIVATE &m3cntTot &m3cntMin &m3cntMax
+  
+  GOSUB InitStat
+  RETURNVALUES &clkTot &clkMin &clkMax
+  
+  GOSUB InitStat
+  RETURNVALUES &icntTot &icntMin &icntMax
+  
+  GOSUB InitStat
+  RETURNVALUES &m1cntTot &m1cntMin &m1cntMax
+  
+  GOSUB InitStat
+  RETURNVALUES &m2cntTot &m2cntMin &m2cntMax 
+  
+  GOSUB InitStat
+  RETURNVALUES &m3cntTot &m3cntMin &m3cntMax 
+  
+  &i=0.
+  WHILE &i<&iterations
+  (
+    BMC.Init
+    Go
+    WAIT !STATE.RUN() 1.s
+    IF STATE.RUN()
+    (
+      Break  
+      PRINTF "%-20s %-20s" "&funcName" "was not called within 1.s"   
+      GOTO execEnd      
+    )
+    GOSUB RecordStat "CLOCKS" "&clkTot" "&clkMin" "&clkMax"
+    RETURNVALUES &clkTot &clkMin &clkMax
+    
+    GOSUB RecordStat "ICNT" "&icntTot" "&icntMin" "&icntMax"
+    RETURNVALUES &icntTot &icntMin &icntMax
+
+    GOSUB RecordStat "M1CNT" "&m1cntTot" "&m1cntMin" "&m1cntMax"
+    RETURNVALUES &m1cntTot &m1cntMin &m1cntMax
+
+    GOSUB RecordStat "M2CNT" "&m2cntTot" "&m2cntMin" "&m2cntMax"
+    RETURNVALUES &m2cntTot &m2cntMin &m2cntMax 
+
+    GOSUB RecordStat "M3CNT" "&m3cntTot" "&m3cntMin" "&m3cntMax"
+    RETURNVALUES &m3cntTot &m3cntMin &m3cntMax     
+    
+    &i=&i+1.
+  )
+  
+  IF &clkTot==0.
+  ( 
+    PRINTF "%-20s %-20s" "&funcName" "not called"
+    GOTO execEnd
+  )
+  
+  PRINTF "%-20s %10u" "&funcName" &iterations
+  PRINTF %CONTinue "%10u %10.2f %10u %10u" &clkTot   &(clkTot)*1.0/&(iterations)   &clkMin &clkMax 
+  PRINTF %CONTinue "%10u %10.2f %10u %10u" &icntTot  &(icntTot)*1.0/&(iterations)  &icntMin &icntMax
+  PRINTF %CONTinue "%10u %10.2f %10u %10u" &m1cntTot &(m1cntTot)*1.0/&(iterations) &m1cntMin &m1cntMax
+  PRINTF %CONTinue "%10u %10.2f %10u %10u" &m2cntTot &(m2cntTot)*1.0/&(iterations) &m2cntMin &m2cntMax 
+  PRINTF %CONTinue "%10u %10.2f %10u %10u" &m3cntTot &(m3cntTot)*1.0/&(iterations) &m3cntMin &m3cntMax  
+  
+execEnd:
+  Break.Delete /ALL  
+  AREA.SELect &saveArea  
+  
+  RETURN
+)
+
+InitStat:
+(
+  RETURN "0." "0xffffFFFF" "0."
+)
+
+RecordStat:
+(
+  PARAMETERS &name &tot &min &max
+  PRIVATE &val
+  &val=BMC.COUNTER.BYNAME("&name")
+  &tot=&tot+&val
+  IF &val<&min
+    &min=&val
+  IF &val>&max
+    &max=&val
+  RETURN "&tot" "&min" "&max"
+)
+
+generateScriptAllFuncs:
+(
+  PRIVATE &strName &saveArea &iter &ppf
+  PARAMETERS &strIterations
+  
+  &ppf=OS.PresentPracticeFile()
+  &iter=&strIterations
+  
+  &saveArea=AREA.SELECTed()
+  AREA.Create _TMP_SCRIPT
+  AREA.CLEAR _TMP_SCRIPT
+  AREA.Select _TMP_SCRIPT
+  
+  MKTEMP &strName "capture-all-funcs.cmm"
+  
+  AREA.OPEN _TMP_SCRIPT &strName
+  
+  PRINT "PRIVATE &"+"iter &"+"stopAt &"+"script"
+  PRINT "&"+"iter=&(iter)"
+  PRINT "&"+"script=""&ppf"""
+  PRINT "DO &"+"script prepare"
+ 
+  sYmbol.ForEach "print ""DO &"+"script exec """"*"""" """"&"+"iter"""" """ * /Function 
+  
+  AREA.CLOSE _TMP_SCRIPT
+  
+  AREA.SELect &saveArea
+  PEDIT &strName
+  
+  RETURN
+)

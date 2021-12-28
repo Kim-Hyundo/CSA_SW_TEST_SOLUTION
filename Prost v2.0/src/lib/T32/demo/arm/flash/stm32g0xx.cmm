@@ -1,0 +1,203 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash declaration for SGS Thomson STM32G070CB internal flash
+; @Description: 
+; Script arguments:
+;     DO stm32g0xx [PREPAREONLY] [CPU=<cpu>] [MASSERASE]
+;       PREPAREONLY    only declares flash but does not execute flash programming
+;       CPU=<cpu>      selects CPU derivative <cpu>
+;       MASSERASE      forces mass erase of device before establishing debug
+;                      connection
+;       FINISH         checks and update the boot configuration after flash
+;                      programming
+;   Example:
+;     DO ~~/demo/arm/flash/stm32g0xx PREPAREONLY
+;
+; List of STM32G070CB derivatives and their configuration:
+;    CPU-Type       Flash    RamSize
+;                   [KByte]   [KByte]
+; --------------------------------------------------------------------------------
+;  STM32G071x8         64       32
+;   STM32G071G8
+;   STM32G071C8
+;   STM32G071K8
+;   STM32G071R8
+;  STM32G081x8         64       32
+;   STM32G081C8
+;   STM32G081G8
+;   STM32G081K8
+;   STM32G081R8
+;  STM32G070xB        128       32
+;   STM32G070CB
+;   STM32G070KB
+;   STM32G070RB
+;  STM32G071xB        128       32
+;   STM32G071CB
+;   STM32G071EB
+;   STM32G071GB
+;   STM32G071KB
+;   STM32G071RB
+;  STM32G081xB        128       32
+;   STM32G081CB
+;   STM32G081EB
+;   STM32G081GB
+;   STM32G081KB
+;   STM32G081RB
+;
+; --------------------------------------------------------------------------------
+; Flash base address is 0x08000000
+; RAM base address is   0x20000000
+;
+; @Chip: STM32G0*
+; @Author: PHI
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 7602 $
+; $Id: stm32g0xx.cmm 7602 2019-11-05 15:02:25Z bschroefel $
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+PRIVATE &param_prepareonly &param_cpu &param_masserase &param_dualport &param_finish
+&parameters=STRing.UPpeR("&parameters")
+&param_prepareonly=(STRing.SCAN("&parameters","PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract("&parameters","CPU=","")
+&param_masserase=(STRing.SCAN("&parameters","MASSERASE",0)!=-1)
+&param_dualport=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"DUALPORT=","1")
+&param_finish=(STRing.SCAN("&parameters","FINISH",0)!=-1)
+
+; --------------------------------------------------------------------------------
+; Initialize and start the debugger
+IF !SYStem.Up()||&param_masserase
+(
+  SYStem.RESet
+  
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  IF !CPUIS(STM32G0*)
+    SYStem.CPU STM32G0*
+  ELSE
+  (
+    PRINT %ERROR "Please select STM32G0 CPU derivative"
+    ENDDO
+  )
+
+  SYStem.CONFIG DEBUGPORTTYPE SWD
+
+  IF &param_masserase
+    FLASH.UNSECUREerase
+  
+  SYStem.Up
+)
+ELSE
+(
+  IF !CPUIS(STM32G0*)
+  (
+    PRINT %ERROR "Please select STM32G0 CPU derivative"
+    ENDDO
+  )
+)
+
+; --------------------------------------------------------------------------------
+; checks and update the boot configuration after flash programming
+IF &param_finish
+(
+  GOSUB finishProgramming
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; Flash declaration
+FLASH.RESet
+GOSUB FlashDeclaration "&param_dualport"
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; --------------------------------------------------------------------------------
+; Flash programming example
+DIALOG.YESNO "Program flash memory?"
+PRIVATE &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram ALL /Erase
+  Data.LOAD.auto *
+  FLASH.ReProgram OFF
+  
+  GOSUB finishProgramming
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+)
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+; SUBROUTINES
+
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU
+FlashDeclaration:
+(
+  PARAMETERS &param_dualport
+  PRIVATE &FlashDriver &FlashSize
+
+  IF CPUIS(STM32G0???8*)
+  (
+    &FlashSize=0x10000
+  )
+  ELSE IF CPUIS(STM32G0???B*)
+  (
+    &FlashSize=0x20000
+  )
+  ELSE
+  (
+    PRINT %ERROR "FLASH size of CPU type is unknown"
+    ENDDO
+  )
+
+  FLASH.Create 1.  0x08000000++(&FlashSize-0x1) 0x800 TARGET Quad
+  Data.ComPare 0x0--0xf 0x08000000
+  IF !FOUND()
+    FLASH.CreateALIAS 0x00000000++(&FlashSize-1) 0x08000000
+
+  IF "&param_dualport"=="0" 
+    FLASH.TARGET 0x20000000 0x20001000 0x1000 ~~/demo/arm/flash/byte/stm32l4b
+  ELSE
+    FLASH.TARGET 0x20000000 EAHB:0x20001000 0x1000 ~~/demo/arm/flash/byte/stm32l4b /DualPort
+
+  RETURN
+)
+
+
+finishProgramming:
+(
+  PRIVATE &flash_cr
+  
+  ; In case of programming main flash, but memory at 0x0 isn't mapped to it a 
+  ; OBL_LAUNCH is executed to force next boot from flash (programming empty flash)
+  ; Because SYSCFG_CFGR1:MEM_MODE[1:0] is not indicating active memory remap
+  ; we are comparing flash reset vector against reset vector at address 0
+  Data.ComPare 0x0--0xf 0x08000000
+  IF FOUND()
+  (
+    &flash_cr=Data.Long(D:0x40022014)
+    IF ((&flash_cr&0x80000000)==0x80000000)
+    (
+      Data.Set D:0x40022008 %Long 0x45670123
+      Data.Set D:0x40022008 %Long 0xCDEF89AB
+    )
+    IF ((&flash_cr&0x40000000)==0x40000000)
+    (
+      Data.Set D:0x4002200C %Long 0x08192A3B
+      Data.Set D:0x4002200C %Long 0x4C5D6E7F
+    )
+    ON ERROR CONTinue
+    Data.Set D:0x40022014 %Long &flash_cr|(1.<<27.)
+    WAIT 0.05s
+  )
+
+  RETURN 
+)

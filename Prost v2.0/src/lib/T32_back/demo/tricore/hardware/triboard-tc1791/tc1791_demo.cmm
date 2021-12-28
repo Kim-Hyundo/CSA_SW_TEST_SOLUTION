@@ -1,0 +1,72 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC1791 on TriBoard-TC1791
+; @Description:
+;   Initializes the TriCore and loads the Sieve-Demo into memory.
+; @Keywords: Infineon, internal, intmem, memory, sieve, TriCore
+; @Author: MAX
+; @Board: TriBoard-TC1791
+; @Chip: TC1791
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc1791_demo.cmm 7577 2014-08-27 14:51:11Z mobermeir $
+
+
+; --------------------------------------------------------------------------------
+; Memory mappings:
+; internal program memory PSPR     mapped to 0xC0000000--0xC0007FFF   32 KB
+;                                            0xC0200000--0xC0203FFF   16 KB
+; internal data memory    DSPR     mapped to 0xD0000000--0xD001FFFF  128 KB
+;                                            0xD0200000--0xD0203FFF   16 KB
+;                         LMU SRAM mapped to 0xB0000000--0xB001FFFF  128 KB
+; internal program flash  PFLASH0  mapped to 0xA0000000--0xA01FFFFF    2 MB
+;                         PFLASH1  mapped to 0xA0800000--0xA09FFFFF    2 MB
+; internal data flash     DFLASH   mapped to 0xAF000000--0xAF017FFF   96 KB
+;                                            0xAF080000--0xAF097FFF   96 KB
+; Notes:
+; - flash memory is not declared - see tc1791_flash.cmm
+; - memories mirrored in segment 8 (cached access):
+;   - internal PFLASH0, PFLASH1
+; - memories mirrored in segment 9 (cached access):
+;   - internal LMU SRAM
+; - memories mirrored within their segment
+;   - internal PSPR, DSPR with offset 0x08000000
+; - memories not mirrored
+;   - internal DFLASH0, DFLASH1
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+
+RESet
+SYStem.CPU TC1791
+
+IF DAP.Available()
+(
+  ; Bi-Directional Debug Cable detected
+  ; switch to DAP2 mode instead of using JTAG
+  SYStem.CONFIG.DEBUGPORTTYPE DAP2
+)
+ELSE
+(
+  ; Uni-Directional Debug Cable
+  ; use JTAG as default mode
+  SYStem.CONFIG.DEBUGPORTTYPE JTAG
+)
+
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program
+Data.LOAD.Elf "~~~~/triboard-tc1798_sieve_intmem.elf"
+Go.direct main
+
+; open some windows
+WinCLEAR
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame.view /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch
+Var.AddWatch ast flags
+
+ENDDO

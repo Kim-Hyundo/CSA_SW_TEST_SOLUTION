@@ -1,0 +1,68 @@
+; --------------------------------------------------------------------------------
+; @Title: Start-Up Script for ATSAM4C
+; @Description:
+;   A simple demo code is loaded into SRAM of the chip.
+; @Keywords: Atmel, ATSAM*
+; @Author: HLG
+; @Board: ATSAM4C-EK_REVC
+; @Chip: ATSAM4C*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+WinCLEAR
+RESet
+
+SYStem.CPU ATSAM4C16C-CORE0
+SYStem.CONFIG DEBUGPORTTYPE SWD
+SYStem.Up
+
+Data.LOAD.Elf "~~~~/demo.elf"
+
+IF CAnalyzer()
+(
+	TPIU.PortSize SWV
+	TPIU.SWVPrescaler 4.
+	ITM.ON
+	ITM.DataTrace ON
+	Trace.METHOD CAnalyzer
+	Trace.AutoFocus
+	Trace.AutoArm  ON
+	Trace.AutoInit ON
+)
+
+Go.direct main
+WAIT !STATE.RUN()
+
+Mode.Hll
+
+
+
+WinPOS 0% 0% 100% 48%
+List.auto
+
+WinPOS 64% 50% 36% 48%
+Var.Watch
+Var.AddWatch flags; ast;
+Var.AddWatch %E %Fixed mcount;
+
+
+IF CAnalyzer()
+(
+	WinPOS 0% 50% 64% 48%
+	Trace.List List.ADDRESS DEFault
+)
+ELSE
+(
+	WinPOS 0% 50% 36% 48%
+	Var.Ref %Hex %Decimal
+
+	WinPOS 36% 50% 28% 48% ,, 5.
+	Frame.view /Args /Locals
+)
+
+
+ENDDO
+
+
+

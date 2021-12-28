@@ -1,0 +1,143 @@
+; --------------------------------------------------------------------------------
+; @Title: PikeOS Demo for TRACE32 OS Awareness on a SabreLite board
+; @Description:
+;
+;   This batchfile demonstrates the use of the OS Awareness for QNX
+;
+;   The example is generated for the SabreLite using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;
+;   U-Boot on board is used to initialize the board.
+;   PikeOS is downloaded to the board via ICD.
+;
+; @Keywords: awareness, imx6
+; @Props: Template
+; @Author: RIC
+; @Board: SabreLite
+; @Chip: IMX6QUAD
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: pikeos.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+LOCAL &image &imgdir &DNLD_ADDR &knlsym &knlsymdir
+
+&imgdir="C:\sysgo\workspace-t32\SabreLite\boot"
+&image="&imgdir\simple-pikeos-imx6q_sabrelite-raw"
+&knlsymdir="C:\sysgo\opt\pikeos-4.1\target\arm\v7hf\object\bsp\imx6\"
+&knlsym="&knlsymdir\kernel-nodebug-tracesys-smp.elf"
+&DNLD_ADDR="0x10020000"
+
+ ; Set Trace32 main window size and position
+ ; Should almost fill a 1080p screen
+ FramePOS 0. 0. 190. 53.
+
+ ; Set up windows and sizes for initial display
+ WinPAGE.RESet
+ WinCLEAR
+ SCREEN.ALways
+
+ ; Set tab spacing to 4, not 8
+ SETUP.TabSize 4.
+
+ ; Clear up from any previous debug sessions
+ TASK.RESet
+ MMU.RESet
+ Break.RESet
+ RESet
+
+;configure serial terminal
+  ;term.method com COM1 115200. 8 none 1stop none
+  ;term.mode vt100
+  ;term.size 80. 25.  ;allow a scrollback buffer
+  ;do termwin.cmm
+
+ AREA.view
+
+
+ PRINT "Initialising..."
+ SYStem.CPU iMX6Quad
+ CORE.ASSIGN 1.
+ SYStem.Option DACR on
+ SYStem.Option MMUSPACES ON
+ TrOnchip.Set DABORT OFF
+ TrOnchip.Set PABORT OFF
+ TrOnchip.Set UNDEF OFF
+
+ SYStem.Option ResBreak OFF
+ SYStem.Option WaitReset 1.0s
+ SYStem.JtagClock 20.MHz
+ trace.Method ONCHIP
+ SYStem.Up
+
+  ;MAP.DenyAccess 0xE0000000--0xEFFFFFFF  ; access may disturb the board
+
+ SETUP.IMASKHLL ON
+ SETUP.IMASKASM ON
+
+ ; Let Uboot configure the board for us
+ Go.direct
+ PRINT "Uboot target setup"
+ WAIT 2.s
+ Break.direct
+ WAIT !STATE.RUN()
+
+ ; Load PikeOS .raw image (binary file) to the start address
+ Data.LOAD.Binary "&image" &DNLD_ADDR
+ Register.Set PC &DNLD_ADDR
+
+ ; Load symbols for PikeOS
+ Data.LOAD.Elf "&knlsym" /NOCODE
+
+
+ ; Declare the MMU format to the debugger
+ PRINT "initializing debugger MMU..."
+ PRINT "initializing debugger translation..."
+ MMU.FORMAT STD
+ TRANSlation.Create 0x80000000--0x9fffffff 0x10000000  ; kernel
+ TRANSlation.COMMON 0x80000000--0xffffffff
+ TRANSlation.TableWalk ON
+ TRANSlation.ON
+
+ ; Start kernel
+
+ Go P4Main /Program /Onchip  ; use onchip due to MMU switch
+ WAIT !STATE.RUN()
+ Break.Delete P4Main
+
+; Initialize PikeOS Support
+
+ PRINT "initializing PikeOS support..."
+ TASK.CONFIG ~~/demo/arm/kernel/pikeos/v4.x/pikeos.t32      ; load PikeOS awareness
+ MENU.ReProgram ~~/demo/arm/kernel/pikeos/v4.x/pikeos.men   ; load PikeOS specific menu
+
+ ; Switch on autoloader
+ sYmbol.AutoLoad.CHECKQNX "do ~~/demo/arm/kernel/pikeos/v4.x/autoload "
+
+
+ PRINT "Starting PikeOS..."
+ Go.direct
+ WAIT 3.s
+ Break.direct
+ WAIT !STATE.RUN()
+
+  ; Assign all cores to allow SMP debugging
+ SYStem.Down                                ; detach from CPU
+ CORE.ASSIGN 1. 2. 3. 4.                    ; assign to all cores
+ SYStem.Attach                              ; reattach to CPU
+
+ ; Open some Windows
+ WinCLEAR
+ WinPOS 0.6 39.875 100. 9. 0. 0. W000
+ AREA.view
+
+ WinPOS 0.6 0.1875 98. 26. 22. 1. W002
+ WinTABS 10. 10. 25. 62.
+ List
+
+ WinPOS 104.9 0.25 80. 26. 0. 1. W001
+ WinTABS 10. 8. 8. 6. 5.
+ TASK.TaskList
+
+ PRINT "Setup complete."
+ ENDDO

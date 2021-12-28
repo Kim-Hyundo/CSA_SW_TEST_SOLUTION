@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="../../t32transform.xsl"?>
+<TRACE32 file="D:\svn\demo\demo\coverage\multi_file_report\example_report\sieve\sieve\func-p-eb0-ec3.xml">
+	<coverage>
+		<COVerage.EXPORT.ListLine ts="1539005269" t32ver="S.2018.10.000101728" t32pv="ARM">
+			<module>
+				<addrFrom>P:0x4B0</addrFrom>
+				<addrTo>P:0x167B</addrTo>
+				<tree>\\sieve\sieve</tree>
+				<cov>partial</cov>
+				<exec>75.109%</exec>
+				<branches>78.125%</branches>
+				<ok>47</ok>
+				<taken>4</taken>
+				<nottaken>2</nottaken>
+				<never>11</never>
+				<bytes>4556</bytes>
+				<bytesok>3422</bytesok>
+				<function>
+					<addrFrom>P:0xEB0</addrFrom>
+					<addrTo>P:0xEC3</addrTo>
+					<tree uid="p-eb0-ec3">\\sieve\sieve\func25</tree>
+					<cov>never</cov>
+					<exec>0.000%</exec>
+					<branches>-</branches>
+					<ok>0</ok>
+					<taken>0</taken>
+					<nottaken>0</nottaken>
+					<never>-</never>
+					<bytes>20</bytes>
+					<bytesok>0</bytesok>
+					<line>
+						<addrFrom>P:0xEB0</addrFrom>
+						<addrTo>P:0xEB3</addrTo>
+						<tree>sieve.c \541--543</tree>
+						<srcpath>.\src</srcpath>
+						<cov>never</cov>
+						<exec>0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>-</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:0xEB4</addrFrom>
+						<addrTo>P:0xEB5</addrTo>
+						<tree>sieve.c \544--544</tree>
+						<srcpath>.\src</srcpath>
+						<cov>never</cov>
+						<exec>0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>-</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:0xEB6</addrFrom>
+						<addrTo>P:0xEC3</addrTo>
+						<tree>sieve.c \545--545</tree>
+						<srcpath>.\src</srcpath>
+						<cov>never</cov>
+						<exec>0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>-</never>
+						<bytes>14</bytes>
+						<bytesok>0</bytesok>
+					</line>
+				</function>
+			</module>
+		<total>
+			<cov>partial</cov>
+			<exec>75.109%</exec>
+			<branches>78.125%</branches>
+			<ok>47</ok>
+			<taken>4</taken>
+			<nottaken>2</nottaken>
+			<never>11</never>
+			<bytes>4556</bytes>
+			<bytesok>3422</bytesok>
+		</total>
+		</COVerage.EXPORT.ListLine>
+	</coverage>
+	<marker>
+		<BookMark.EXPORT ts="1539005269" t32ver="S.2018.10.000101728" t32pv="ARM">
+		</BookMark.EXPORT>
+	</marker>
+	<listing>
+		<List.EXPORT ts="1539005269" t32ver="S.2018.10.000101728" t32pv="ARM" cpu="ARM922T">
+			<mixed module="\\sieve\sieve\sieve.c">
+				<hll><line>541</line><src></src></hll>
+				<hll><line>542</line><src>long func25(void)           /* Long Return */</src></hll>
+				<hll><cov>never</cov><line>543</line><src>{</src></hll>
+				<asm><cov>never</cov><addr>ST:00000EB0</addr><code>B580</code><label>func25:</label><mnemonic>push    {r7,r14}</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00000EB2</addr><code>AF00</code><mnemonic>add     r7,sp,#0x0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\sieve\sieve.c">
+				<hll><cov>never</cov><line>544</line><src>    return 12345678l;</src></hll>
+				<asm><cov>never</cov><addr>ST:00000EB4</addr><code>4B02</code><mnemonic>ldr     r3,0xEC0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\sieve\sieve.c">
+				<hll><cov>never</cov><line>545</line><src>}</src></hll>
+				<asm><cov>never</cov><addr>ST:00000EB6</addr><code>1C18</code><mnemonic>mov     r0,r3</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00000EB8</addr><code>46BD</code><mnemonic>mov     r13,r7</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00000EBA</addr><code>BC80</code><mnemonic>pop     {r7}</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00000EBC</addr><code>BC02</code><mnemonic>pop     {r1}</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00000EBE</addr><code>4708</code><mnemonic>bx      r1</mnemonic></asm>
+				<asm><cov>never</cov><addr>SP:00000EC0</addr><code>00BC614E</code><mnemonic>dcd     0xBC614E</mnemonic></asm>
+			</mixed>
+		</List.EXPORT>
+	</listing>
+</TRACE32>

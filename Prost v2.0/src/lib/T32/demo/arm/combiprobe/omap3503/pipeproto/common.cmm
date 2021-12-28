@@ -1,0 +1,84 @@
+; --------------------------------------------------------------------------------
+; @Title: PIPE Demo setup script for Cortex-A8 on OMAP3503
+; @Description: -
+; @Keywords: OMAP, PIPE, TI
+; @Chip: OMAP3503
+; @Author: ING
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: common.cmm 15209 2019-11-04 10:07:55Z bschroefel $
+
+
+WinCLEAR
+SystemTrace.state
+
+; start-up the debugger
+
+  SYStem.Down
+  SYStem.CPU OMAP3503
+
+; When using ARM20/TI Adapter
+  SYStem.CONFIG.CONNECTOR mipi34
+
+  CAnalyzer.RESet
+  CAnalyzer.PipePROTO
+  CAnalyzer.AutoArm ON
+  CAnalyzer.THreshold 0.9
+
+  SYStem.Up
+
+  GOSUB disable_watchdog
+
+  ETM.OFF
+
+  ; Setup SDTI on OMAP
+  STM.ON
+  STM.PS 4
+  STM.PortMode 1/1
+  STM.PortMode HalfRate
+
+  ; Now turn on PIPE mode
+  SystemTrace.Mode PIPE
+  
+  ; Load demo application
+  Data.LOAD.Elf ../omaptest/test.elf
+
+ENDDO
+
+disable_watchdog:
+
+  ; Enable Interface Clock
+  Data.Set 0x48004C10 %Long 0x20
+ 
+  ; Enable functional clock
+  Data.Set 0x48004C00 %Long 0x20
+ 
+  ; Check that module is IDLE
+  WAIT (Data.Long(SD:0x48004C20)&0x20)==0 
+   
+  ; Disable watchdog timer
+  Data.Set SD:0x48314048 %LE %Long 0x0000AAAA
+  WAIT (Data.Long(SD:0x48314034)&0x10)==0
+ 
+  Data.Set SD:0x48314048 %LE %Long 0x00005555
+  WAIT (Data.Long(SD:0x48314034)&0x10)==0
+ 
+  ; Check if the watchdog timer is running
+  IF (Data.Long(SD:0x48314048)!=0x00005555)
+  (
+    ; Disable Watchdog 2
+    ; Wait until reset complete
+    WAIT (Data.Long(SD:0x48314014)&0x01)!=0
+ 
+    ; Disable 32Khz watchdog timer
+    Data.Set 0x48314048 %Long 0x0000AAAA
+ 
+    WAIT (Data.Long(SD:0x48314034)&0x10)==0
+           
+    ; Disable 32Khz watchdog timer
+    Data.Set 0x48314048 %Long 0x00005555
+   
+    WAIT (Data.Long(SD:0x48314034)&0x10)==0 
+  )
+ 
+  RETURN

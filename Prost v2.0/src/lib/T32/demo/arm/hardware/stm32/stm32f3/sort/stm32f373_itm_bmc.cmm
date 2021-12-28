@@ -1,0 +1,96 @@
+; --------------------------------------------------------------------------------
+; @Title: ITM benchmark counters for STM32373C-EVAL board
+; @Description:
+;   This script sets up a small demo showing how to use the ITM benchmark
+;   counters STM32373C-EVAL board for code profiling.
+;   Prerequisites:
+;     - Use CN15 connector
+;     - Remove R29, R73, and R89 : In this situation, the touch slider
+;       and joystick do not work.
+;     - Remove the SD card
+; @Keywords: BMC, Cortex-M4, ITM, performance, PMU, profiling, SWD
+; @Author: HDA
+; @Board: STM32373C-EVAL
+; @Chip: STM32F373VC
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: stm32f373_itm_bmc.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+  IF INTERFACE.SIM()
+  (
+    PRINT %ERROR "This script is not supported by the SIMULATOR."
+    ENDDO FALSE()
+  )
+
+  Break.Reset
+  SYStem.RESet
+  MAP.DENYACCESS 0x20020000--0x3FFFFFFF
+  SYStem.CPU STM32F373VC
+  SYStem.CONFIG DEBUGPORTTYPE SWD
+  SYStem.CONFIG CONNECTOR MIPI20T
+  SYStem.Up
+
+; load stack pointer and PC from vector table
+  Register.Init
+
+; Prevent error during power saving states and stop peripherals in debug mode
+  Data.Set E:0xE0042004 %Long 0yXXXXxxxxXXX11111XXXXxxxxXXXXx111  ; DBGMCU_CR
+; Setup GPIO clock
+  Data.Set E:0x40021014  %Long 0yXXXXxxxxXX1XxxxxXXXXxxxxXXXXxxxx  ; RCC_AHBENR
+; Setup pin multiplexing for using the 4 bit trace
+  Data.Set E:0x48001000 %Long 0yXXXXxxxxXXXXxxxxXX1010101010xxxx  ; GPOIE_PORTMODE
+  Data.Set E:0x48001008 %Long 0yXXXXxxxxXXXXxxxxXX1111111111xxxx  ; GPOIE_PORTSPEED
+  Data.Set E:0x48001020 %Long 0yXXXX00000000000000000000XXXXxxxx  ; GPIOE_AFRL
+
+; load debug information of demo application on the board
+  Data.LOAD.ELF ~~~~/demo.axf
+  Register.Set PC main
+  Register.Set R13 0x20005000
+
+  ITM.PortMode Continuous
+  ITM.PortSize 4.
+
+  IF hardware.COMBIPROBE()||hardware.UTRACE()
+  (
+    Trace.METHOD CAnalyzer   ; Using CombiProbe
+  )
+  ELSE IF Analyzer()
+  (
+    Trace.METHOD Analyzer    ; Using ARM preprocessor
+  )
+
+
+; Create groups to group the different functions
+  GROUP.RESet
+  GROUP.Create "hsort" \\demo\sort\heapsort /RED
+  GROUP.Create "isort" \\demo\sort\is_h /GREEN
+  GROUP.Create "isort" \\demo\sort\isort /GREEN
+  GROUP.Create "qsort" \\demo\sort\qs_h /OLIVE
+  GROUP.Create "qsort" \\demo\sort\quicksort /OLIVE
+  GROUP.Create "shell" \\demo\sort\shell_h /PURPLE
+  GROUP.Create "shell" \\demo\sort\shellsort /PURPLE
+
+;Turn on ITM
+  ETM.OFF
+  ITM.ON
+; Turn on ITM benchmark counter trace
+  ITM.ProfilingTrace ON
+  ITM.DataTrace OFF
+; Sample PC to be able to correlate benchmark
+; counters to code regions.
+  ITM.PCSampler 1/128
+
+; Setup Benchmark Counter Display
+  BMC.CLOCK 75Mhz
+  BMC.Init
+; Select to display Load/Stores
+  BMC.SELect LSU
+
+; Open window showing distribution via GROUPs
+  BMC.ProfileChart.GROUP
+
+; Set breakpoint after return of main()
+  Break.Delete
+  Break.Set     T:0x200002B8 /Program
+  Go.direct
+  ENDDO

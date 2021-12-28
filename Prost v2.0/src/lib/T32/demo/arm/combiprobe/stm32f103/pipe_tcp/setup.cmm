@@ -1,0 +1,62 @@
+; --------------------------------------------------------------------------------
+; @Title: Setup Script for STM32F103 EVB Demonstrate ITM with CombiProbe
+; @Description: This script starts the STM32F103 and configures ITM for data traces
+; @Author: ING
+; @Chip: STM32F103ZE
+; @Board: STM32F103 EVB
+; @Author: ING
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: setup.cmm 15209 2019-11-04 10:07:55Z bschroefel $
+
+
+; bring up board, load application etc.
+  DO common
+
+  SystemTrace.UartRate 1Mhz
+
+; set timer rate
+
+; ca 500KByte/s with SWV @ 24Mhz core frequency
+  Var.set timerReload = 1055.
+
+; ca 4MB/s in 4 bit TPIU mode @ 24Mhz core frequency
+; v timerReload = 218.
+
+; Load a custom DLL to display "printf" messages
+  IF (OS.VERSION(0)>=0x20)||(OS.VERSION(0)==0x0)
+  (
+    PRINT "Demo unsupported for this OS"
+    ENDDO
+  )
+  ELSE IF OS.VERSION(0)>=0x10 
+  (
+; LINUX OS detected
+
+; Load TCP Server DLL. 
+    SystemTrace.PipePROTO src/pproto_tcp.so.1 23456
+
+; Start PC application which will receive data
+; via a Linux named fifo (see "man 7 fifo")
+    OS.screen xterm -fg white -bg black -sl 0 -e ./src/pread_tcp localhost 23456 pproto00 &
+    OS.screen xterm -fg white -bg black -sl 0 -e ./src/pread_tcp localhost 23456 pproto01 &
+  )
+  ELSE
+  (
+; Load TCP Server DLL. 
+
+    IF SOFTWARE.64BIT()
+      SystemTrace.PipePROTO src/pproto_tcp64.dll 23456
+    ELSE    
+      SystemTrace.PipePROTO src/pproto_tcp32.dll 23456
+
+
+; Start PC application which will receive data
+; via a Windows "named pipe"
+    OS.screen src/pread_tcp localhost 23456 pproto00
+    OS.screen src/pread_tcp localhost 23456 pproto01
+  )
+
+; Now start application
+
+

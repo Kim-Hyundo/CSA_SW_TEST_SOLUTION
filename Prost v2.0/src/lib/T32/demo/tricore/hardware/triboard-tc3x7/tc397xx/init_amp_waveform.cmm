@@ -1,0 +1,94 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC397XX on TriBoard-TC3x7 (AMP, waveform app)
+; @Description:
+;   Helper script to start and initialize cores 1 to 5
+; @Keywords: AURIX2G, Infineon, multi-core, TriCore, waveform
+; @Author: MEI
+; @Board: TriBoard-TC3x7
+; @Chip: TC397XX
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; @Props: NoWelcome, NoIndex
+; --------------------------------------------------------------------------------
+; $Id: init_amp_waveform.cmm 15539 2020-01-17 12:22:53Z meick $
+
+
+PARAMETERS &elfFile &params
+PRIVATE &coreName &arch &ix &demoPath
+&coreName=STRing.SCANAndExtract("&params","CORENAME=","")
+
+; determine parameteters depending on selected core
+IF ("&coreName"=="TC1")
+(
+  &arch="TRICORE"
+  &ix=1.
+)
+ELSE IF ("&coreName"=="TC2")
+(
+  &arch="TRICORE"
+  &ix=2.
+)
+ELSE IF ("&coreName"=="TC3")
+(
+  &arch="TRICORE"
+  &ix=3.
+)
+ELSE IF ("&coreName"=="TC4")
+(
+  &arch="TRICORE"
+  &ix=4.
+)
+ELSE IF ("&coreName"=="TC5")
+(
+  &arch="TRICORE"
+  &ix=5.
+)
+ELSE
+(
+  PRINT %ERROR "unknown corename: &corename"
+  ENDDO
+)
+
+IF !INTERCOM.PING(&coreName)
+(
+  TargetSystem.NewInstance "&coreName" /ARCH &arch
+)
+
+; Configure slave PowerView instance
+IC &coreName FramePOS ,,,, Auto
+IC &coreName SYStem.CPU TC397XX
+IC &coreName SYStem.CONFIG.CORE (&ix+1) 1.
+IC &coreName SYStem.Option DUALPORT ON
+IC &coreName SETUP.Var %SpotLight
+IC &coreName MAP.BOnchip 0x0--0xffffffff // force onchip-breakpoints
+
+PRIVATE &traceMethod
+&traceMethod=Trace.METHOD()
+IC &coreName Trace.METHOD &traceMethod
+IF "&coreName"=="TC1"
+(
+  IC TC1 MCDS.SOURCE.Set CpuMux0.Core TriCore1
+)
+ELSE IF "&coreName"=="TC2"
+(
+  IC TC2 MCDS.SOURCE.Set CpuMux1.Core TriCore2
+)
+
+; Connect slave PowerView instance to slave core
+IC &coreName SYStem.Attach
+
+; Load symbols on slave instance
+&demoPath=OS.PPD()
+IC &coreName Data.LOAD.Elf "&elfFile" /SingleLineAdjacent /NoCODE
+
+; Open some windows
+IC &coreName WinPOS 0% 0% 50% 100%
+IC &coreName List.auto
+IC &coreName WinPOS 50% 0% 50% 50%
+IC &coreName Var.Watch
+IC &coreName WinPOS 50% 50% 50% 50%
+IC &coreName Var.DRAW &(coreName)_mixed 10000.0 -1500000.0
+
+IC &coreName Var.AddWatch &(coreName)_result
+IC &coreName Var.AddWatch %Decimal %Bin.OFF &(coreName)_mixed
+
+ENDDO

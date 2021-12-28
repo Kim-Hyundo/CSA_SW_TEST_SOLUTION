@@ -1,0 +1,193 @@
+; --------------------------------------------------------------------------------
+; @Title: Xilinx ZEDBOARD(ZYNQ-7000) NAND Flash Programming CMM
+;
+;   Prerequisites:
+;
+;   Note:
+;
+; @Author: JIM
+; @Copyright: (c) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; @Chip: Zynq-7000
+; @Board:
+; @Keywords: Zynq Zynq7000 flash nand
+; --------------------------------------------------------------------------------
+; $Id: zynq7000-nand.cmm 7948 2020-02-17 16:15:25Z jjeong $
+; $Rev: 7948 $
+
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+&SMC_BASE=0xE000E000
+&NAND_BASE=0xE1000000
+
+; --------------------------------------------------------------------------
+; Setup CPU
+RESet
+SYStem.RESet
+SYStem.CPU ZYNQ-7000
+SYStem.JtagClock CTCK 10MHz
+; set DaisyChaining Parameters of the board
+; check e.g. SYStem.DETECT.ShowCHAIN
+SYStem.CONFIG DAPIRPRE  6.
+SYStem.CONFIG DAPIRPOST 0.
+SYStem.CONFIG DAPDRPRE  1.
+SYStem.CONFIG DAPDRPOST 0.
+; Reset line is connected on ZC702 - give BootROM time to execute
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 40.ms
+Trace.DISable
+CORE.ASSIGN 1.
+SYStem.Mode Up ; or Attach
+
+IF RUN()
+  Break
+
+; ------------------------------------------------------------------------------
+; Flash Controller Power & Clock Enable
+
+; MMU Disable
+PER.Set.simple C15:0x1 %Long Data.Long(C15:0x1)&(~0x1)
+
+; SLCR - UNLOCK WRITE
+Data.Set ASD:0XF8000008 %Long 0x0000DF0D
+
+Data.Set ZSD:0xF8000234 %LE %Long 0x3  ;SMC_RST_CTRL , reset
+WAIT 100.ms
+
+Data.Set ZSD:0xF8000130 %LE %Long 0x101941
+Data.Set ZSD:0xF8000164 %LE %Long 0x543
+Data.Set ZSD:0xF8000240 %LE %Long 0x0
+Data.Set ZSD:0xF8000258 %LE %Long 0x00400000
+Data.Set ZSD:0xF8000148 %LE %Long 0xB21 ;SMC CLK CTRL
+Data.Set ZSD:0xF800012C %LE %Long Data.Long(A:0xF800012C)|(1<<24.) ;enable clock of SMC_AMBA_CLOCK
+
+Data.Set ZSD:0xF8000234 %LE %Long 0x0  ; SMC_RST_CTRL , no reset
+WAIT 100.ms
+
+; ------------------------------------------------------------------------------
+; Flash Pin Mux Configuration
+GOSUB PINMUX
+
+; ------------------------------------------------------------------------------
+; Flash Controller Init
+
+Data.Set  0xE000D000 %Long 0x8002C4C1  ;QSPI_ConfigReg (?????????????)
+
+; disable interrupts  PL353-CFR
+Data.Set  &SMC_BASE+0xC %LE %Long ((0x1<<1)|(0x1<<4)|(0x1<<6))
+
+;ZYNQ_NAND_SET_CYCLES  PL353-SCR
+Data.Set  &SMC_BASE+0x14 %LE %Long ((0x2<<20.)|(0x2<<17.)|(0x1<<14.)|(0x3<<11.)|(0x2<<8.)|(0x5<<4.)|(0x5<<0))
+
+;ZYNQ_NAND_SET_OPMODE PL353-SOR
+Data.Set  &SMC_BASE+0x18 %LE %Long 0x0
+
+;ZYNQ_NAND_DIRECT_CMD PL353-DCR
+Data.Set  &SMC_BASE+0x10 %LE %Long ((0x4<<23.)|(0x2<<21.))  //* Chip 0 from interface 1 */
+
+;ECC configuration....
+Data.Set  &SMC_BASE+0x404 %LE %Long (0x1|(0x1<<2)|(0x1<<4)|(0x0<<5))  ; 0x1: 512, 0x3:2048
+;emcmd1r
+Data.Set  &SMC_BASE+0x408 %LE %Long ((0x80)|(0x00<<8)|(0x30<<16.)|(0x1<<24.))
+;emcmd2r
+Data.Set  &SMC_BASE+0x40C %LE %Long ((0x85)|(0x05<<8)|(0xE0<<16.)|(0x1<<24.))
+
+; ------------------------------------------------------------------------------
+; Flash Read ID Test
+GOSUB READ_ID_TEST
+
+; ------------------------------------------------------------------------------
+; Init SRAM (16KB) for the flash algorithm
+Data.Set 0x1000++0x3FFF %Long 0x0
+
+; ------------------------------------------------------------------------------
+; Flash declaration
+
+Break.RESet
+
+FLASHFILE.RESet
+//FLASHFILE.CONFIG <SMC>   <NAND_BASE>  <0>
+FLASHFILE.CONFIG &SMC_BASE &NAND_BASE  0x0
+FLASHFILE.TARGET 0x1000++0x2FFF   0x4000++0x41FF  ~~/demo/arm/flash/byte/nand2g08_pl35x.bin /keep
+
+FLASHFILE.GETID
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+ENDDO
+
+//Open NAND FLASH Dump window
+;FLASHFILE.DUMP 0x0
+
+//Check bad blocks into area window
+;FLASHFILE.GETBADBLOCK 0x0--0xFFFFFF
+
+//Erase NAND
+;FLASHFILE.ERASE 0x0--0xFFFFFF 
+
+//Program NAND
+;FLASHFILE.LOAD  * 0x0  /WriteBadBlocks
+
+ENDDO
+
+
+PINMUX:
+
+Data.Set ZSD:0xF8000700 %LE %Long 0x1610  ;MIO0 - NAND_CS
+Data.Set ZSD:0xF8000704 %LE %Long 0x0602  ;MIO1 - SPI1_CS
+Data.Set ZSD:0xF8000708 %LE %Long 0x0610  ;MIO2 - NAND_ALE
+Data.Set ZSD:0xF800070C %LE %Long 0x0610  ;MIO3 - NAND_WE
+Data.Set ZSD:0xF8000710 %LE %Long 0x0610  ;MIO4 - NAND_IO2
+Data.Set ZSD:0xF8000714 %LE %Long 0x0610  ;MIO5 - NAND_IO0
+Data.Set ZSD:0xF8000718 %LE %Long 0x0610  ;MIO6 - NAND_IO1
+Data.Set ZSD:0xF800071C %LE %Long 0x0610  ;MIO7 - NAND_CLE
+Data.Set ZSD:0xF8000720 %LE %Long 0x0610  ;MIO8 - NAND_RE
+Data.Set ZSD:0xF8000724 %LE %Long 0x0610  ;MIO9 - NAND_IO4
+Data.Set ZSD:0xF8000728 %LE %Long 0x0610  ;MIO10 - NAND_IO5
+Data.Set ZSD:0xF800072C %LE %Long 0x0610  ;MIO11 - NAND_IO6
+Data.Set ZSD:0xF8000730 %LE %Long 0x0610  ;MIO12 - NAND_IO7
+Data.Set ZSD:0xF8000734 %LE %Long 0x0610  ;MIO13- NAND_IO3
+Data.Set ZSD:0xF8000738 %LE %Long 0x0610  ;MIO14 -NAND_R/B
+Data.Set ZSD:0xF800073C %LE %Long 0x600
+
+RETURN
+
+
+
+READ_ID_TEST:
+
+Data.Set A:&SMC_BASE+0xC %LE %Long (0x1<<4.)
+
+//	cmd_phase_addr = (unsigned long __force)xnand->nand_base           |
+//			 (addrcycles << ADDR_CYCLES_SHIFT21)               |
+//			 (end_cmd_valid << END_CMD_VALID_SHIFT20)          |
+//			 (COMMAND_PHASE19(0))                              |
+//			 (end_cmd << END_CMD_SHIFT11)                      |
+//			 (curr_cmd->start_cmd << START_CMD_SHIFT3);
+//CMD_BASE for read_id: 0E1200480
+&CMD=&NAND_BASE|(0<<19.)|(1<<21.)|(0<<20.)|(0x90<<3.)
+
+//	data_phase_addr = (unsigned long __force)xnand->nand_base           |
+//			  (0x0 << CLEAR_CS_SHIFT(21))                       |
+//			  (end_cmd_valid << END_CMD_VALID_SHIFT20)          |
+//			  (DATA_PHASE(1<<19))                               |
+//			  (end_cmd << END_CMD_SHIFT11)                      |
+//			  (0x0 << ECC_LAST_SHIFT10);
+//IO_Base for read_id: 0xE1080000
+&IO=&NAND_BASE|(1<<19.)|(0<<21.)
+
+Data.Set A:&CMD  %Byte 0x00	;   0x90(readid) and 0x0(address)
+WAIT 10.ms
+
+PRINT ""
+PRINT "1st 0x" Data.Byte(a:&IO) "  (Manufacture Id)"
+PRINT "2nd 0x" Data.Byte(a:&IO) "  (Device Id)"
+PRINT "3rd 0x" Data.Byte(a:&IO)
+PRINT "4th 0x" Data.Byte(a:&IO)
+PRINT "5th 0x" Data.Byte(a:&IO)
+PRINT "6th 0x" Data.Byte(a:&IO)
+&IO=&IO|(0x1<<21.)
+PRINT "7th 0x" Data.Byte(a:&IO)
+
+RETURN

@@ -1,0 +1,33 @@
+; -------------------------------------------------------------------------------
+; @Title: Read CMM
+; Script arguments:
+;
+;   DO read.cmm [Read Variable Name]
+;
+; --------------------------------------------------------------------------------
+LOCAL &parameters &param_read_name &param_read_cnt &idx_cnt
+ENTRY %LINE &parameters
+
+//------------Read Variable Counting------------//
+&param_read_cnt=STRing.COUNT("&parameters",",")
+&param_read_cnt=&param_read_cnt+1.
+
+//------------Read Variable Value------------//
+&idx_cnt=1.
+while &idx_cnt<=&param_read_cnt
+(
+	&parsed_part=string.split("&parameters",",",&idx_cnt-1)
+    &read_value=var.value("&parsed_part")
+
+    //print area
+    print &read_value
+
+    &idx_cnt=&idx_cnt+1.
+)
+
+//변수 명과 값이 같이 출력되야함 and Pass Fail
+
+//스크립트가 종료될 때, getstate 함수로 끝낫는지 확인 후, C#에서 getReadMem으로 실제 output값 확인
+
+PMACRO.RESET
+END

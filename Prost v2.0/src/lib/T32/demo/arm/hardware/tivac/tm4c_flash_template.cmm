@@ -1,0 +1,40 @@
+; @Title: Template for TM4C startup with FLASH Programming
+; @Description:
+;   This example can be used as template for own scripts. It shows the 
+;   required SYStem settings + Flash Setup sequence required for a TM4C
+;   derivative.
+;   Note:
+;     The TM4C DebuggerReset does not fully work (See WaitReset Parameter).
+;     In order to have a devined status after SYStem.Up it's required to add
+;     a waiting loop of WaitResetTime*2 at the ResetVector!
+;     Otherwise Peripherals/Interrupts/... are already running after SYStem.Up
+;     as the CPU executed some code.
+;   Prerequisites:
+;     * Debug Cable or Combiprobe or uTrace is connected
+;     * ELF File includes the WaitResetWaitingLoop
+;
+; @Keywords: Cortex-M4, Flash, Reset
+; @Author: AME
+; @Board: -
+; @Chip: TM4C*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tm4c_flash_template.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+RESet
+SYStem.RESet
+SYStem.CPU TM4C*
+SYStem.CONFIG.CONNECTOR MIPI20T
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF VERSION.BUILD.BASE()<58225.
+( 
+  SYStem.Option ResBreak OFF
+  SYStem.Option WaitReset 50.0ms
+)
+SYStem.Up
+
+DO ~~/demo/arm/flash/tm4c PREPAREONLY
+FLASH.ReProgram ALL
+// see special requirements for the BOOTCODE!!!!
+Data.LOAD.Elf *
+FLASH.ReProgram OFF

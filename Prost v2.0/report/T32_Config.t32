@@ -1,0 +1,28 @@
+; --------------------------------------------------------------------------------
+; @Title: TRACE32 Configuration file for multiple PDMU
+; @Description:
+;   Parametrized configuration file for TRACE32 to start multiple instances of
+;   TRACE32 for multiple PDMU
+; @Copyright: (C) 2018~ HANCOMMDS, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+
+; t32marm -c T32_Config.t32 <intercom_port> <title> <tmp-dir> <sys-dir> <help-dir> <interface-to-debug-module> <device-name> <screen-option> <startup-cmm> [interface-option]
+; t32marm -c T32_Config.t32 20000 C:\Users\Mingi.Nam\AppData\Local\Temp C:\T32 C:\T32\pdf USB NODE=C12100166073 OFF -s C:\T32\training\IAR_project\T32\startup.cmm
+
+; Environment variables
+OS=
+ID=T32
+TMP=${2}
+SYS=${3}
+
+; USB information 
+PBI=SIM
+
+; T32 Remote API
+RCL=NETASSIST
+PACKLEN=1024
+PORT=${1}
+
+; Printer settings 
+PRINTER=WINDOWS
+

@@ -1,0 +1,89 @@
+; --------------------------------------------------------------------------------
+; @Title: EMIF Configuration Script for the PandaBoard Rev A2/A6
+; @Description: Configure the Extended Memory InterFace (EMIF) 1 and 2 of the PandaBoard
+; @Keywords: EMIF, Linux, OMAP4*, Panda*, RTOS, SDRAM, TI
+; @Author: KJM
+; @Board: PandaBoard
+; @Chip: OMAP4430
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: panda_emif_config.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+// Configure the extended memory interface 1 and 2
+LOCAL &EMIF_SDRAM_CONFIG_INIT &EMIF_SDRAM_CONFIG_FINAL &EMIF_DDR_PHY_CTRL_1
+&EmifBase="ANSD:0x4C000000" ;EMIF1
+&EMIF_LPDDR2_MODE_REG_CFG=0x50        
+&EMIF_LPDDR2_MODE_REG_DATA= 0x40
+
+IF (Data.Long(C15:0x0)==0x411FC093) ;Rev. A6
+(
+  &EMIF_SDRAM_CONFIG_INIT=0x80800eb2
+   &EMIF_SDRAM_CONFIG_FINAL=0x80801ab2
+  &EMIF_DDR_PHY_CTRL_1=0x849FF418
+)
+ELSE
+(
+  &EMIF_SDRAM_CONFIG_INIT=0x80000eb9
+  &EMIF_SDRAM_CONFIG_FINAL=0x80001ab9
+  &EMIF_DDR_PHY_CTRL_1=0x849FF408
+)
+
+
+RePeaT 2
+(
+  Data.Set &EmifBase+0x0C %LE %Long 0x00000010              ;EMIF_SDRAM_CONFIG_2
+
+  ; set EMIF_SDRAM_CONFIG registers:
+  ; LPDDR2-S4, internal bank address bits from L3, 32-bit data bus width
+  ; Latency=3, 12 row bits, 8 banks, use pad_cs_o_n[1:0], 512 row page (0 column)
+  Data.Set &EmifBase+0x08 %LE %Long &EMIF_SDRAM_CONFIG_INIT ;EMIF_SDRAM_CONFIG
+
+  Data.Set &EmifBase+0xE4 %LE %Long 0x849FFFF5               ;EMIF_DDR_PHY_CTRL_1
+  Data.Set &EmifBase+0xE8 %LE %Long &EMIF_DDR_PHY_CTRL_1     ;EMIF_DDR_PHY_CTRL_1_SHDW
+  Data.Set &EmifBase+0x98 %LE %Long 0x000501FF               ;EMIF_READ_IDLE_CTRL
+  Data.Set &EmifBase+0x9C %LE %Long 0x000501FF               ;EMIF_READ_IDLE_CTRL_SHDW
+  Data.Set &EmifBase+0x18 %LE %Long 0x10EB0662               ;EMIF_SDRAM_TIM_1
+  Data.Set &EmifBase+0x1C %LE %Long 0x10EB0662               ;EMIF_SDRAM_TIM_1_SHDW
+  Data.Set &EmifBase+0x20 %LE %Long 0x20370DD2               ;EMIF_SDRAM_TIM_2
+  Data.Set &EmifBase+0x24 %LE %Long 0x20370DD2               ;EMIF_SDRAM_TIM_2_SHDW
+  Data.Set &EmifBase+0x28 %LE %Long 0x00B1C33F               ;EMIF_SDRAM_TIM_3
+  Data.Set &EmifBase+0x2C %LE %Long 0x00B1C33F               ;EMIF_SDRAM_TIM_3_SHDW
+  Data.Set &EmifBase+0xC8 %LE %Long 0xD00B3215               ;EMIF_ZQ_CONFIG
+
+  &cs=0x80000000                                             ; CS1
+        
+  &mr=10.
+  Data.Set &EmifBase+&EMIF_LPDDR2_MODE_REG_CFG  %LE %Long &mr                ; MR10
+  Data.Set &EmifBase+&EMIF_LPDDR2_MODE_REG_DATA %LE %Long 0x000000FF        
+  Data.Set &EmifBase+&EMIF_LPDDR2_MODE_REG_CFG  %LE %Long &mr|&cs        
+  Data.Set &EmifBase+&EMIF_LPDDR2_MODE_REG_DATA %LE %Long 0x000000FF
+
+  WAIT 1.ms        ; wait for tZQINIT
+
+  &mr=1
+  Data.Set &EmifBase+&EMIF_LPDDR2_MODE_REG_CFG  %LE %Long &mr                ; MR1
+  Data.Set &EmifBase+&EMIF_LPDDR2_MODE_REG_DATA %LE %Long 0x00000083
+  Data.Set &EmifBase+&EMIF_LPDDR2_MODE_REG_CFG  %LE %Long &mr|&cs        
+  Data.Set &EmifBase+&EMIF_LPDDR2_MODE_REG_DATA %LE %Long 0x00000083
+
+  &mr=2
+  Data.Set &EmifBase+&EMIF_LPDDR2_MODE_REG_CFG  %LE %Long &mr                ; MR2
+  Data.Set &EmifBase+&EMIF_LPDDR2_MODE_REG_DATA %LE %Long 0x00000004
+  Data.Set &EmifBase+&EMIF_LPDDR2_MODE_REG_CFG  %LE %Long &mr|&cs        
+  Data.Set &EmifBase+&EMIF_LPDDR2_MODE_REG_DATA %LE %Long 0x00000004
+
+  ; Set SDRAM CONFIG register with final RL-WL value
+  Data.Set &EmifBase+0x08 %LE %Long &EMIF_SDRAM_CONFIG_FINAL ;EMIF_SDRAM_CONFIG
+  Data.Set &EmifBase+0xE4 %LE %Long &EMIF_DDR_PHY_CTRL_1     ;EMIF_DDR_PHY_CTRL_1
+  Data.Set &EmifBase+0x10 %LE %Long 0x00000618               ;EMIF_SDRAM_REF_CTRL
+  Data.Set &EmifBase+0x14 %LE %Long 0x00000618               ;EMIF_SDRAM_REF_CTRL_SHDW
+
+  &mr=16.
+  Data.Set &EmifBase+&EMIF_LPDDR2_MODE_REG_CFG  %LE %Long 0x40000000|&mr                
+  Data.Set &EmifBase+&EMIF_LPDDR2_MODE_REG_DATA %LE %Long 0x00000000
+  Data.Set &EmifBase+&EMIF_LPDDR2_MODE_REG_CFG  %LE %Long 0x40000000|&mr|&cs        
+  Data.Set &EmifBase+&EMIF_LPDDR2_MODE_REG_DATA %LE %Long 0x00000000
+
+  &EmifBase="ANSD:0x4D000000" ;EMIF2
+)

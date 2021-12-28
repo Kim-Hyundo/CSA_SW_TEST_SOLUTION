@@ -1,0 +1,46 @@
+; --------------------------------------------------------------------------------
+; @Title: Example to switch on ECC for XSI SDRAM of IXP2350
+; @Description: 
+;   Script to switch on ECC for XSI SDRAM of IXP2350.
+;   We assume here that the debugger is already in Up mode.
+; @Keywords: XSCALE
+; @Author: WRD
+; @Board: IXDP2351
+; @Chip: IXP2350
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: xsi-sdramecc.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+;
+
+
+; Initialize 64kByte block first 
+Data.Set 0--0xffff %Long 0
+
+; Assemble SDRAM initialization routine
+;
+; Initialization routine is writing to whole SDRAM except the 
+; first 64 kByte initialized already above.
+;
+Data.Assemble 0x1000 mov r2,#0
+Data.Assemble 0x1004 str r2,[r0],#0x04
+Data.Assemble 0x1008 cmp r0,r1
+Data.Assemble 0x100c bne 0x1000
+; Setup register for initialization routine
+Register.Set r0 0x10000		; Initialization start
+Register.Set r1 0x10000000	; size of SDRAM
+Register.Set PC 0x1000		; set PC to Initialization routine
+; Execute initialization routine
+Go.direct 0x1010
+SCREEN.display
+WAIT !STATE.RUN()
+
+; Enable ECC
+Data.Set 0FFFFE51C %Long 00000008
+WAIT 5.ms
+
+; Initialize 64kByte block again to clear initialization routine 
+Data.Set 0--0xffff %Long 0
+
+ENDDO

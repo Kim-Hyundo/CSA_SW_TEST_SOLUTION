@@ -1,0 +1,91 @@
+; --------------------------------------------------------------------------------
+; @Title: Load and start a VxWorks RTPs with TRACE32
+; @Description:
+;
+;   This script loads a VxWorks RTP (*.vxe) with TRACE32 internal terminal
+;   and halts at its entry point (default: main).
+;   Pleast note the prerequisites below!
+;
+;   usage: do startrtp <file> [<entry>]
+;   e.g.:  do startrtp /ram0/myRTP.vxe main
+;
+; @Keywords: VxWorks
+; @Author: DIE
+; @Copyright: (C) 1989-2018 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: startrtp.cmm 4754 2019-11-06 10:55:10Z rdienstbeck $
+
+
+; Prerequisites:
+; - INCLUDE_SHELL (target-resident kernel shell)
+; - INCLUDE_SHELL_INTERP_C (C line interpreter)
+; - INCLUDE_SHELL_INTERP_CMD (command line interpreter)
+; - Access to kernel shell via TERM window within TRACE32
+
+
+LOCAL &file &entry
+
+; get and check parameters
+ENTRY &file &entry
+IF ("&file"=="")
+(
+    PRINT "usage: do startrtp <file> [<entry>]"
+    ENDDO
+)
+if ("&entry"=="")
+    &entry="main"
+
+; get filename and basename
+&filename=OS.FILE.NAME(&file)
+&basename=STRing.CUT("&filename",-STRING.LENgth(OS.FILE.EXTENSION(&filename)))
+
+; run target if halted
+IF !STATE.RUN()
+    Go
+
+; delete possibly existing symbols
+sYmbol.AutoLOAD.CLEAR "&filename"
+IF sYmbol.EXIST("\\&basename")
+    sYmbol.Delete \\&basename
+
+; change to command mode
+TERM.Out , "cmd" 0x0a
+WAIT 0.2s
+
+; check if RTP already loaded and remove it if necessary
+Break
+&rtpid=task.rtp.id("&filename")
+Go
+IF &rtpid!=0xffffffff
+(
+  TERM.Out , "rtp delete &rtpid" 0x0a
+  WAIT 0.2s
+)
+
+; start RTP stopped and in background
+TERM.Out , 0x0a
+TERM.Out , "rtp exec -s &file " 0x26 0x0a   ; &
+WAIT 0.5s
+TERM.Out , 0x0a
+TERM.Out , "rtp list" 0x0a
+WAIT 0.2s
+
+; load symbols of RTP
+Break
+sYmbol.AutoLOAD.CHECK
+sYmbol.AutoLOAD.TOUCH "&filename"
+
+; set breakpoint on RTP entry point
+Break.Set \\&basename\\&entry
+
+; start RTP
+&rtpid=task.rtp.id("&filename")
+Go
+TERM.Out , 0x0a
+TERM.Out , "rtp continue &rtpid" 0x0a
+WAIT !STATE.RUN()
+
+; remove breakpoint on entry point
+Break.Delete &entry
+
+ENDDO

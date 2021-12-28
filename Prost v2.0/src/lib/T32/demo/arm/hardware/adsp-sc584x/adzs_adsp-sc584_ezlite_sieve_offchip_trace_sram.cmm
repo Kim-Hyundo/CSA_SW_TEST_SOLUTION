@@ -1,0 +1,77 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for ADSP-SC584 with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Offchip-Trace. Pinmuxing and Clock
+;   setup is handled in the script.
+;   Use this script to test the Offchip-Trace.
+;   Prerequisites:
+;    * Debug cable is connected to preprocessor LA-7992
+;    * AutoFocus Preprocessor LA-7992 is connected using Mictor38 cable
+;    * Please short pins 12-14 on Mictor-38 (VREF-DEBUG <-> VREF-TRACE)
+;    * Set SW6[1..6]=0y101010, SW7[1..6]=0y101000
+;    * Set BOOT_MODE rotary switch SW1 to 0
+;
+; @Keywords: ARM, Cortex-A5, ETM
+; @Author: AME
+; @Board: ADZS ADSP-SC584 EZLITE
+; @Chip: ADSP-SC58*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: adzs_adsp-sc584_ezlite_sieve_offchip_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU ADSP-SC584
+SYStem.JtagClock CTCK 10MHz
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_arm_v7.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace if Analyzer is plugged (ETM)
+IF Analyzer()
+(
+  ; set PinMux and enable Clocks
+  Data.Set ASD:0x31004184 %Long 0x000007FC
+  Data.Set ASD:0x310041B0 %Long 0yXXXXxxxxXX101010101010101010xxxx    ; PD02-PD10
+
+  Trace.Method Analyzer
+  TPIU.PortSize 8
+  TPIU.PortMode Continuous
+  ETM.Trace ON
+  ETM.ON
+  ; use Autofocus based calibration
+  Analyzer.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

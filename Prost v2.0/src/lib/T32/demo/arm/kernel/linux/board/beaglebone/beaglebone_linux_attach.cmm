@@ -1,0 +1,93 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux Demo for TRACE32 OS Awareness on the BeagleBoneBlack
+; @Description: 
+;   This script is supposed to attach to a running Linux on BlackBoneBlack board. 
+;   The Task Awareness + Debugger Address Translation are prepared as for the 
+;   GSRD. After execution of this script the debugger is ready for Process, 
+;   Kernel, optional Module and optional Library debugging.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+; @Keywords: awareness, AM3359, Beagle*, RTOS
+; @Board: BeagleBoneBlack
+; @Chip: AM3359
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: beaglebone_linux_attach.cmm 16133 2020-06-01 11:09:18Z mcharfi $
+
+
+; Starting Linux example with TRACE32:
+;   - Connect the Serial to USb convertor cable 
+;     to the RX(PIN4),TX(PIN5),GND(PIN1) PINS of the board
+;   - 115200 baud, 8/N/1, no(!) handshake
+;   - Start TRACE32
+;   - Switch on the board
+;   - TRACE32: "DO beaglebone_linux_attach.cmm"
+
+
+LOCAL &ka_path &awareness
+
+  SCREEN.ALways      ; permanent update for internal terminal window
+  WinCLEAR
+  AREA.CLEAR
+  Break.RESet
+  TRANSlation.RESet
+  sYmbol.RESet
+  MAP.RESet
+
+
+  WinPOS 0. 0. 80. 20. 0. 0. W000
+  AREA.view
+
+; Initializing Debugger
+
+  PRINT "initializing..." 
+  SYStem.CPU AM3359
+  SYStem.Option DACR ON          ; give Debugger global write permissions
+  TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+  TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+  TrOnchip.Set UNDEF OFF 	 ; my be used by Linux for FPU detection
+  SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+
+  SYStem.Attach
+  Break.direct
+  WAIT !STATE.RUN()
+
+
+; Serial terminal
+  WinPOS 0. 25. 80. 25. 0. 0. W001
+
+  DO ~~/demo/etc/terminal/serial/term.cmm COM1. 115200.
+  
+  SETUP.IMASKASM ON          ; lock interrupts while single stepping
+ 
+; Load the Linux kernel symbols into the debugger
+
+  PRINT "loading Linux kernel symbols..."
+  Data.LOAD.Elf vmlinux /gnu /NoCODE  /StripPART "kernel"
+
+; Map the virtual kernel symbols to physical addresses
+  ; to give the debugger access to it before CPU MMU is
+  ; initialized 
+  PRINT "initializing debugger MMU..."
+  MMU.FORMAT LINUXSWAP3 swapper_pg_dir 0xc0000000--0xdfffffff 0x80000000
+  TRANSlation.COMMON 0bf000000--0ffffffff     ; common area for kernel and processes
+  TRANSlation.TableWalk ON   ; debugger uses a table walk to decode virtual addresses
+  TRANSlation.ON
+
+; Initialize Linux Awareness
+  ; Note that the Linux awareness needs the kernel symbols to work 
+  PRINT "initializing RTOS support..."
+  ; Choose the correct Linux major version below
+  ;TASK.CONFIG ~~/demo/arm/kernel/linux/linux-2.x/linux.t32     ; loads Linux awareness for linux-2.x
+  ;MENU.ReProgram ~~/demo/arm/kernel/linux/linux-2.x/linux.men  ; loads Linux menu  for linux-2.x
+  TASK.CONFIG ~~/demo/arm/kernel/linux/linux-3.x/linux3.t32     ; loads Linux awareness for linux-3.x
+  MENU.ReProgram ~~/demo/arm/kernel/linux/linux-3.x/linux.men  ; loads Linux menu  for linux-3.x
+  
+; Group kernel area to be displayed with red bar
+  GROUP.Create "kernel" 0xc0000000--0xffffffff /RED
+
+  Go.direct
+
+  Mode.Hll
+
+  ENDDO

@@ -1,0 +1,122 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for S32K118 on S32K118EVB with MTB-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the MTB.
+;   Prerequisites:
+;    * Connect Debug Cable to J14 using Adapter LA-3770
+;      or
+;      Connect Combiprobe/uTrace to J14
+; @Keywords: ARM, Cortex-M0+, MTB
+; @Author: STK
+; @Board: S32K118EVB
+; @Chip: S32K118
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: s32k118evb_sieve_onchip_mtb_trace_sram.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU S32K118
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; Init SRAM to avoid ECC errors
+Data.Set 0x1FFFFC00--0x200057FF %Long 0x0
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_v6m.elf"
+
+; --------------------------------------------------------------------------------
+; initialize ONCHIP trace (MTB)
+Trace.METHOD Onchip
+
+; MTB cannot use RAM area beginning at 0x20000000,
+; but only the range from 0x1FFFFC00--0x1FFFFFFF!
+Trace.TBADDRESS 0x1FFFFC00
+Trace.SIZE 0x400
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO
+
+DisableWatchdog: ;()
+(
+  LOCAL &tmp1 &tmp2 &error
+  &error=FALSE()
+
+  ON ERROR GOSUB
+  (
+    Data.Set 0x20000000++0x7 %Long 0x0
+    &error=TRUE()
+  )
+
+  &tmp1=Data.Long(SD:0x20000000)
+  &tmp2=Data.Long(SD:0x20000004)
+  
+  ON ERROR inherit
+  
+  Register.SWAP
+  ; The watchdog has a restrictive timing. It has to be configured and unlocked within a peripod
+  ; of 128 cycles. Therefor the unlock sequence need to be done by a small target program.
+  Data.Assemble ST:0x20000000  str  r1,[r0]  ;SD:0x40052004 = 0xD928C520   (Key)
+  Data.Assemble ,              str  r3,[r2]  ;SD:0x40052000 = 0x00002120   (Control register)
+  Data.Assemble ,              str  r5,[r4]  ;SD:0x40052008 = 0x0000FFFF   (Timeout value)
+  Data.Assemble ,              bkpt #0
+  Register.Set PC 0x20000000
+  Register.Set SP 0x20001000
+  Register.Set R0 0x40052004
+  Register.Set R1 0xD928C520
+  Register.Set R2 0x40052000
+  Register.Set R3 0x00002120
+  Register.Set R4 0x40052008
+  Register.Set R5 0x0000FFFF
+  Go.direct
+  WAIT !STATE.RUN()
+
+  IF !&error
+  (
+    Data.Set ST:0x20000000 %Long &tmp1
+    Data.Set ST:0x20000004 %Long &tmp2
+  )
+  Register.SWAP
+
+  RETURN
+)
+

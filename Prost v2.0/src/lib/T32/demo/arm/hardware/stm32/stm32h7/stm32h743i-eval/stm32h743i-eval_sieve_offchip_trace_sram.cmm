@@ -1,0 +1,195 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for STM32H743ZI on STM32H743I-EVAL with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The Offchip Trace using a Combiprobe/uTrace or PowerTrace is set up.
+;   Use this script for testing the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Combiprobe/uTrace to CN8
+;      or
+;      Connect AutoFocus Preprocessor to CN8 using adapter LA-3809
+;      and connect DebugCable to Preprocessor
+; @Keywords: ARM, Cortex-M7, ETM, ITM
+; @Author: AME
+; @Board: STM32H7?3I-EVAL
+; @Chip: STM32H7*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: stm32h743i-eval_sieve_offchip_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check Prerequisites
+IF VERSION.BUILD()<95056.
+(
+  PRINT %ERROR "Please use more recent Software! Contact support@lauterbach.com."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU STM32H743ZI
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace (ETM, ITM)
+IF COMBIPROBE()||UTRACE()||Analyzer()
+(
+  ; set PinMux and enable Clocks
+  ; set output speed to 0x0 to reduce EMI, should be set to 0x3 at full speed
+  GOSUB configure_trace_pins "0x0"
+
+  ; Alternatively, with AutoFocus II preprocessor and proper wiring, we can go
+  ; up to the maximum TRACECLK frequency of 133 MHz.
+  ; Output speed setting 0x2 seems to work best.
+  ; GOSUB configure_pll "3."
+  ; GOSUB configure_trace_pins "0x2"
+
+  TPIU.PortSize 4
+  TPIU.PortMode Continuous
+  ITM.DataTrace CorrelatedData
+  ITM.ON
+  ETM.Trace ON
+  ETM.COND ALL
+  ETM.ON
+)
+IF COMBIPROBE()||UTRACE()
+(
+  Trace.METHOD CAnalyzer
+  Trace.AutoInit ON
+  CAnalyzer.AutoFocus
+)
+IF Analyzer()
+(
+  Trace.METHOD Analyzer
+  Trace.AutoInit ON
+  Trace.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+
+configure_pll: ;(trace_clkdiv)
+(
+  ; CPU will run at 400 MHz (the maximum)
+  ; buses and peripherals will run at 200 MHz (the maximum)
+  ; Both TPIUs will run at 800 MHz / trace_clkdiv; maximum is 266 MHz
+  PRIVATE &trace_clkdiv
+  PARAMETERS &trace_clkdiv
+
+  ; RCC_PLLCFGR.PLL1VCOSEL resets to 0, so the valid VCO range is 192 MHz to 838 MHz
+
+  ; RCC_CR.HSDIV = 0, HSI clock divided by 1 => 64 MHz
+  Data.Set AD:0x58024400 %Long Data.Long(AD:0x58024400)&~(((1.<<2.)-1.)<<3.)|(0.<<3.)
+
+  ; RCC_PLLSKSELR.PLLSRC =  0, use HSI clock (64 MHz)
+  ; RCC_PLLSKSELR.DIVM1  = 16, divide input clock by 16 (4 MHz)
+  Data.Set AD:0x58024428 %Long (16.<<4.)|(0x0<<0.)
+
+  ; RCC_PLL1DIVR.DIVN = 199., divide feedback clock by 200 => VCO frequency = 800 MHz
+  Data.Set AD:0x58024430 %Long (Data.Long(AD:0x58024430)&~(((1.<<9.)-1.)<<0.))|((200.-1.)<<0.)
+
+  ; output P is used for the system clock (max 400 MHz)
+  ; RCC_PLL1DIVR.DIVP = 1., divide P output clock by 2 => output frequency = 400 MHz
+  Data.Set AD:0x58024430 %Long (Data.Long(AD:0x58024430)&~(((1.<<7.)-1.)<<9.))|((2.-1.)<<9.)
+
+  ; output R is used for the TPIU (max 266 MHz)
+  ; RCC_PLL1DIVR.DIVR = trace_clkdiv - 1, divide R output clock by trace_clkdiv
+  Data.Set AD:0x58024430 %Long (Data.Long(AD:0x58024430)&~(((1.<<7.)-1.)<<24.))|((&trace_clkdiv-1.)<<24.)
+
+  ; RCC_CR.PLL1ON = 1, enable PLL1
+  Data.Set AD:0x58024400 %Long Data.Long(AD:0x58024400)|(1.<<24.)
+
+  SCREEN.WAIT (Data.Long(AD:0x58024400)&(1.<<25.))!=0. 1.0s
+  IF (Data.Long(AD:0x58024400)&(1.<<25.))==0.
+  (
+    STOP %ERROR "PLL did not lock!"
+  )
+
+  ; D1CFGR.HPRE = 0x8, divide AHB and peripheral clocks by two (avoids overclocking, maximum frequency is 200 MHz)
+  Data.Set AD:0x58024418 %Long Data.Long(AD:0x58024418)|(0x8<<0.)
+
+  ; RCC_CFGR.SW = 0x3, select PLL1 as system clock
+  Data.Set AD:0x58024410 %Long (Data.Long(AD:0x58024410)&~(((1.<<3.)-1.)<<0.))|(0x3<<0.)
+
+  RETURN
+)
+
+configure_trace_pins: ;(OSPEED)
+(
+  ; valid range of 'os' is 0x0 to 0x3, with 0x3 being the fastest option
+  PRIVATE &os
+  PARAMETERS &os
+
+  ; GPIOE ENable
+  Data.Set AD:0x580244E0 %Long Data.Long(AD:0x580244E0)|0x10
+
+  ; PE[2..6] set to Alternate Function 0
+  ; MODER, OSPEED, AFR
+  ; PE2 AF0 - TraceClk
+  Data.Set AD:0x58021000 %Long (Data.Long(AD:0x58021000)&~(0x3<<(2.*2.)))|(0x2<<(2.*2.))
+  Data.Set AD:0x58021008 %Long (Data.Long(AD:0x58021008)&~(0x3<<(2.*2.)))|(&os<<(2.*2.))
+  Data.Set AD:0x58021020 %Long (Data.Long(AD:0x58021020)&~(0xf<<(2.*4.)))|(0x0<<(2.*4.))
+  ; PE3 AF0 - TraceData0
+  Data.Set AD:0x58021000 %Long (Data.Long(AD:0x58021000)&~(0x3<<(3.*2.)))|(0x2<<(3.*2.))
+  Data.Set AD:0x58021008 %Long (Data.Long(AD:0x58021008)&~(0x3<<(3.*2.)))|(&os<<(3.*2.))
+  Data.Set AD:0x58021020 %Long (Data.Long(AD:0x58021020)&~(0xf<<(3.*4.)))|(0x0<<(3.*4.))
+  ; PE4 AF0 - TraceData1
+  Data.Set AD:0x58021000 %Long (Data.Long(AD:0x58021000)&~(0x3<<(4.*2.)))|(0x2<<(4.*2.))
+  Data.Set AD:0x58021008 %Long (Data.Long(AD:0x58021008)&~(0x3<<(4.*2.)))|(&os<<(4.*2.))
+  Data.Set AD:0x58021020 %Long (Data.Long(AD:0x58021020)&~(0xf<<(4.*4.)))|(0x0<<(4.*4.))
+  ; PE5 AF0 - TraceData2
+  Data.Set AD:0x58021000 %Long (Data.Long(AD:0x58021000)&~(0x3<<(5.*2.)))|(0x2<<(5.*2.))
+  Data.Set AD:0x58021008 %Long (Data.Long(AD:0x58021008)&~(0x3<<(5.*2.)))|(&os<<(5.*2.))
+  Data.Set AD:0x58021020 %Long (Data.Long(AD:0x58021020)&~(0xf<<(5.*4.)))|(0x0<<(5.*4.))
+  ; PE6 AF0 - TraceData3
+  Data.Set AD:0x58021000 %Long (Data.Long(AD:0x58021000)&~(0x3<<(6.*2.)))|(0x2<<(6.*2.))
+  Data.Set AD:0x58021008 %Long (Data.Long(AD:0x58021008)&~(0x3<<(6.*2.)))|(&os<<(6.*2.))
+  Data.Set AD:0x58021020 %Long (Data.Long(AD:0x58021020)&~(0xf<<(6.*4.)))|(0x0<<(6.*4.))
+
+  RETURN
+)

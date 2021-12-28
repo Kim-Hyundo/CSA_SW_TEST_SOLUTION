@@ -1,0 +1,47 @@
+;-------------------------------------------------------------------------------
+; This config file requires a T32 shortcut that passes in the following
+; command line arguements
+; example shortcut call:
+; t32marm.exe -c config_usb.t32,  autostart.cmm Prost-Dev0   	C:\T32		   192.168.110.222	
+; |              |                                |                |             |    
+; V              V                                V                V             V	
+;                                                ${1}             ${2}          ${3}          ${4}             ${5}                ${6}
+; (T32 program)  (config file)                 (Dev Name)        (SYS)          (IP)            (PORT)	
+;	
+;-------------------------------------------------------------------------------
+
+
+
+;Environment Variables
+OS=
+ID=${2}
+SYS=${3}
+
+; Standard License File (license.t32) used
+
+;T32 Intercom
+IC=NETASSIST
+PORT=10000
+PACKLEN=1024
+
+;T32 API Access
+RCL=NETASSIST
+PORT=20000
+PACKLEN=1024
+
+SCREEN=
+${5}
+
+;Connection to Host
+PBI=
+USB
+;NODE=${4}
+;PORT=20001
+
+;Screen Settings
+SCREEN=
+FONT=SMALL
+HEADER=${2} @ ${4}
+
+;Printer Settings:
+PRINTER=WINDOWS

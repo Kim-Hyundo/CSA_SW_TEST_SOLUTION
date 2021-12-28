@@ -1,0 +1,81 @@
+; --------------------------------------------------------------------------------
+; @Title: Precise/MQX Demo for TRACE32 OS Awareness
+; @Description:
+;
+;    This batchfile loads all necessary files to demonstrate
+;    the Awareness for Precise/MQX.
+;
+;
+; @Keywords: awareness, mqx, RTOS, v250
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mqx.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+;   Created by Rudolf Dienstbeck / Lauterbach GmbH at 02.12.2002
+
+ SCREEN.ON
+
+; Emulator reset
+ PRINT "resetting..."
+ SYStem.Down
+ Break.Delete
+ WinPAGE.RESet
+ WinPOS 0 26. 70. 8. 0. 0. W000
+ AREA.view
+
+; initialize system
+ PRINT "initializing..."
+
+ SYStem.Option DisMode ACCESS   ; disassembler mode
+ SYStem.Up
+
+; load sample application
+ PRINT "loading sample application..."
+ Register.RESet
+ Data.LOAD.Elf demo.out
+ sYmbol.CLEANUP.sYmbols             ; clean multiple type entries
+
+; on Simulator reroute output to TRACE32 terminal emulation
+ IF INTERFACE.SIM()
+ (
+   ; patch serial ouput to output on memory
+   Data.Assemble SR:ks50100_uart_serial_putc mov r2,pc
+   Data.Assemble ,                           ldrb r3,[r2,#0x10]
+   Data.Assemble ,                           cmp  r3,#0x00
+   Data.Assemble ,                           bne  $-8
+   Data.Assemble ,                           strb r1,[r2,#0x10]
+   Data.Assemble ,                           mov  pc,r14
+
+   ; initialize and open TRACE32 terminal window
+   sYmbol.NEW.Label T32OUT ks50100_uart_serial_putc+0x18
+   Data.Set T32OUT 0
+   TERM.Protocol SingleE
+   WinPOS 0 0 80. 24.
+   TERM.view T32OUT 0
+ )
+
+; on Simulator patch idle task to simulate timer tick
+ IF INTERFACE.SIM()
+ (
+   Data.Assemble SR:mqx_idle_task+0x08 bl time_notify_kernel
+   Data.Assemble ,                     bl sched_yield
+   Data.Assemble ,                     nop nop nop
+ )
+
+; initialize mutitasking support
+ PRINT "initializing RTOS support..."
+ SCREEN.OFF
+ TASK.CONFIG    mqx     ; load MQX awareness (mqx.t32)
+ MENU.ReProgram mqx     ; load MQX menu (mqx.men
+
+ PRINT "load complete."
+
+; open some windows
+ WinPOS 50. 1. 70. 21.
+ List.auto
+ WinPOS 40. 13. 78. 14.
+ TASK.TASK
+
+; start application
+ Go main_task

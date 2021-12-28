@@ -1,0 +1,157 @@
+; --------------------------------------------------------------------------------
+; @Title: Generic AMP-Demo script for an AM4376 board with Offchip-Trace (AMP, RAM)
+; @Description:
+;   Setup a AMP debug session using a single script approach.
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Offchip-Trace. Pinmuxing and Clock
+;   setup is handled in the script.
+;   Use this script to test the Offchip-Trace.
+;
+;   The scripts requires a board with an connector for external trace!
+; @Keywords: ARM, ETM
+; @Author: STK
+; @Board: -
+; @Chip: AM4376
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: am43xx_amp_offchip_trace_sram.cmm 15362 2019-12-03 14:50:48Z mschleinkofer $
+
+PRIVATE &currPath &rclPort &remoteCmd
+&currPath=OS.PPD()
+&rclPort=FORMAT.DecimalU(1.,RCL.PORT(0))+"."
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF SYStem.INSTANCE()<1.
+(
+  PRINT %ERROR "TRACE32 is not running in AMP mode! Use .bat/.sh file in this directory."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; enable INTERCOM if not already specified and prepare related variables
+IF (INTERCOM.PORT()==0)
+(
+  InterCom.ENable CORE0
+)
+&remoteCmd="InterCom.execute CM3"
+
+; --------------------------------------------------------------------------------
+; close any existing REMOTE GUI
+INTERCOM.execute OTHERS QUIT
+
+; --------------------------------------------------------------------------------
+; open SLAVE GUI with or without enabled remote API
+IF (RCL.PORT(0)!=0)
+(
+  TargetSystem.NewInstance CM3 /ARCHitecture ARM /ChipIndex 2. /APIPORT &rclPort+1. /ONCE
+)
+ELSE
+(
+  TargetSystem.NewInstance CM3 /ARCHitecture ARM /ChipIndex 2. /ONCE
+)
+
+; --------------------------------------------------------------------------------
+; set titles for SLAVE GUIs
+TITLE "TRACE32 for ARM - AM4376 - MASTER"
+&remoteCmd TITLE "TRACE32 for ARM - AM4376-CM3 - SLAVE1"
+
+; --------------------------------------------------------------------------------
+; common SYStem settings
+RESet
+&remoteCmd RESet
+SYStem.RESet
+&remoteCmd SYStem.RESet
+SYStem.CPU AM4376
+SYStem.CONFIG CORE 1. 1.
+SYStem.CONFIG SLAVE OFF
+
+; Disable ResBreak for boards, that have nReset connected to the
+; Power-On-Reset of the board.
+SYStem.Option ResBreak OFF
+
+&remoteCmd SYStem.CPU AM4376-CM3
+&remoteCmd SYStem.CONFIG CORE 2. 1.
+&remoteCmd SYStem.CONFIG SLAVE ON
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; disable watchdog
+Data.Set ASD:0x44e35048 %Long 0xaaaa
+Data.Set ASD:0x44e35048 %Long 0x5555
+
+; --------------------------------------------------------------------------------
+; attach to slave core and set onchip trigger on reset vector
+&remoteCmd SYStem.Attach
+&remoteCmd TrOnchip.Set CORERESET ON
+
+; --------------------------------------------------------------------------------
+; kick secondary cores, M3 should stop by vector catch
+Data.Set ASD:0x44DF2010 %Long 0x00000000
+&remoteCmd WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; load demo program on all sessions (use internal RAM only)
+Data.LOAD.Elf ~~~~/master/sieve_ram_arm_v7.elf
+&remoteCmd ChDir &currPath
+&remoteCmd Data.LOAD.Elf ./slave1/sieve_ram_thumb_ii_v7m.elf
+&remoteCmd Register.Init
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace if Analyzer is plugged (ETM)
+IF Analyzer()
+(
+  ; set PinMux and enable Clocks
+  Data.Set AD:0x44E10AA4 %Long 0x13070000 ; EMU0  -> N23  -> Mictor.38 (TRACEDATA0)
+  Data.Set AD:0x44E10AA8 %Long 0x13070000 ; EMU1  -> T24  -> Mictor.28 (TRACEDATA1)
+  Data.Set AD:0x44E109B0 %Long 0x13070006 ; EMU2  -> AE17 -> Mictor.6  (TRACECLK)
+  Data.Set AD:0x44E109B4 %Long 0x13070006 ; EMU3  -> AD18 -> Mictor.36 (TRACECTL)
+  Data.Set AD:0x44E109B8 %Long 0x13070006 ; EMU4  -> AC18 -> Mictor.26 (TRACEDATA2)
+  Data.Set AD:0x44E109BC %Long 0x13070006 ; EMU5  -> AD17 -> Mictor.24 (TRACEDATA3)
+  Data.Set AD:0x44E109C0 %Long 0x13070006 ; EMU6  -> AC20 -> Mictor.22 (TRACEDATA4)
+  Data.Set AD:0x44E109C4 %Long 0x13070006 ; EMU7  -> AB19 -> Mictor.20 (TRACEDATA5)
+  Data.Set AD:0x44E109C8 %Long 0x13070006 ; EMU8  -> AA19 -> Mictor.18 (TRACEDATA6)
+  Data.Set AD:0x44E109CC %Long 0x13070006 ; EMU9  -> AC24 -> Mictor.16 (TRACEDATA7)
+  Data.Set AD:0x44E109D0 %Long 0x13070006 ; EMU10 -> AD24 -> Mictor.37 (TRACEDATA8)
+  Data.Set AD:0x44E109E4 %Long 0x13070006 ; EMU11 -> AB25 -> Mictor.35 (TRACEDATA9)
+
+  ; Enable PMD Clocking
+  Data.Set EDAP:0xCB160050 %Long 0x40000000
+  Data.Set EDAP:0xCB160050 %Long 0x80000000
+  Data.Set EDAP:0xCB160020 %Long 0x1
+
+  Trace.Method Analyzer
+
+  TPIU.PortSize 10.
+  TPIU.PortMode Continuous
+  ETM.Trace ON
+  ETM.ON
+
+  ; use Autofocus based calibration
+  Analyzer.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main\1
+WAIT !STATE.RUN()
+&remoteCmd Go.direct main\1
+&remoteCmd WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 0. 32.
+Trace.List
+&remoteCmd WinCLEAR
+&remoteCmd Mode.Hll
+&remoteCmd WinPOS 0. 0. 116. 26.
+&remoteCmd List.auto
+
+ENDDO

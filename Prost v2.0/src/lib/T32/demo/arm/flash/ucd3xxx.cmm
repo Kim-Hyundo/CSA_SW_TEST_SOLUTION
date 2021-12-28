@@ -1,0 +1,141 @@
+; --------------------------------------------------------------------------------
+; @Title: Example for flash declaration of TI UCD3xxx internal flash
+; @Description:
+;   Script arguments:
+;
+;    DO ucd3xxx [PREPAREONLY] [CPU=<cpu>]
+;      PREPAREONLY   only declares flash but does not execute flash programming
+;      CPU=<cpu>     selects CPU derivative <cpu>
+;
+;   Example:
+;
+;   DO ~~/demo/arm/flash/ucd3xxx CPU=UCD3138A64 PREPAREONLY
+;
+;   List of UCD3xxx derivatives and their configuration:
+;
+;     CPU-Type        PFlash size PSector size DFlash size DSector size
+;                        [Byte]      [Byte]       [Byte]       [Byte]
+;     UCD3020            32k                        2k
+;     UCD3020A           32k                        2k
+;     UCD3028            32k                        2k
+;     UCD3040RGC         32k                        2k
+;     UCD3040PFC         32k                        2k
+;     UCD3138A           32k                        2k
+;     UCD3138RGC         32k                        2k
+;     UCD3138RHA         32k                        2k
+;     UCD3138RMH         32k                        2k
+;     UCD3138A64         64k                        2k
+;     UCD3138128        128k                        2k
+;
+;    Note: The flash create extra argument is used to handover flash unit
+;          specific informations in following format:
+;          Bit 0-3:      KEY_NUMBER_MASK
+;          Bit 4-7:     SectorSize given in 2 ^ n
+;          Bit 8-15     MFBALR_MASK
+;          Bit 16-23    FLASH_CTRL_REG_MASK;
+;
+; @Author: MAM
+; @Chip: UCD3*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 7602 $
+; $Id: ucd3xxx.cmm 7602 2019-11-05 15:02:25Z bschroefel $
+
+
+  LOCAL &parameters
+  ENTRY %LINE &parameters
+
+  PRIVATE &param_prepareonly &param_cpu
+  &param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+  &param_cpu=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CPU=","")
+
+  ; ------------------------------------------------------------------------------
+  ; Setup CPU
+
+  IF SYStem.MODE()<5
+  (
+    SYStem.RESet
+
+    IF "&param_cpu"!=""
+      SYStem.CPU &param_cpu
+    IF !CPUIS(UCD3*)
+      SYStem.CPU UCD3*
+
+    SYStem.Option.BigEndian ON
+    SYStem.JtagClock 5MHz
+    SYStem.Mode.UP
+  )
+
+  ; ------------------------------------------------------------------------------
+  ; Flash declaration
+
+  FLASH.RESet
+  GOSUB FlashDeclaration
+
+  ; Flash script ends here if called with parameter PREPAREONLY
+  IF &param_prepareonly
+    ENDDO PREPAREDONE
+
+ ; -------------------------------------------------------------------------------
+  ; Flash programming example
+
+  DIALOG.YESNO "Program flash memory?"
+  LOCAL &progflash
+  ENTRY &progflash
+  IF &progflash
+  (
+    FLASH.ReProgram.ALL
+    Data.LOAD.auto *
+    FLASH.ReProgram.off
+
+    ; Reset device
+    SYStem.Down
+    SYStem.Up
+  )
+
+  ENDDO
+
+
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU
+
+FlashDeclaration:
+  LOCAL &RamBase
+  LOCAL &FlashSectorSize
+  LOCAL &PflashBase &PFlashSize 
+  LOCAL &DflashBase &DFlashSize
+  
+  &RamBase=0x00069000 //e.g for UCD3138064
+  &PFlashSectorSize=0x400 // we use the smallet possible sector size of 1K 
+  &PflashBase=0x00040000
+  &PFlashSize=0x8000
+  &DflashBase=0x00068800 //e.g for UCD3138064
+  &DFlashSize=0x800
+  &DFlashSectorSize=0x20 // we use the smallet possible sector size of 32 Byte
+
+  IF CPUIS("UCD3138")
+  (
+    //settings according UCD3138_tech_ref_man_siniu028a.pdf chapter 17.2.1. UCD3138 Memory Maps
+    &RamBase=0x00019000
+    &PflashBase=0x00010000 
+    &DflashBase=0x00018800
+  )		
+  IF CPUIS("UCD3138A64")
+  (
+    &RamBase=0x0006A000
+  	&DflashBase=0x00069800
+    FLASH.Create 2. (&PflashBase+&PFlashSize)++(&PFlashSize-1) &PFlashSectorSize TARGET Long  0x9C8CA1
+  )
+  IF CPUIS("UCD3138128")
+  (
+    &RamBase=0x0006A000
+    &DflashBase=0x00069800
+    FLASH.Create 3. (&PflashBase+(2*&PFlashSize))++(&PFlashSize-1) &PFlashSectorSize TARGET Long     &FlashSize=0x20000 0xA0ACA2
+    FLASH.Create 4. (&PflashBase+(3*&PFlashSize))++(&PFlashSize-1) &PFlashSectorSize TARGET Long     &FlashSize=0x20000 0xA4B4A3
+  )
+
+  FLASH.Create 1. &PflashBase++(&PFlashSize-1) &PFlashSectorSize TARGET Long 0x900CA0
+  FLASH.Create 5. &DflashBase++(&DFlashSize-1) &DFlashSectorSize TARGET Long 0x940450
+
+  FLASH.TARGET &RamBase (&RamBase+0x600) 0x800  ~~/demo/arm/flash/long_be/ucd3xxx.bin
+  RETURN

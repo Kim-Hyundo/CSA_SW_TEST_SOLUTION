@@ -1,0 +1,236 @@
+; --------------------------------------------------------------------------------
+; @Title: S6J331 (Traveo) Serial FLASH Programming Script for DDR HS SPI controller
+; @Description:
+; This script was tested on the S6J3310 208pin Evaluation Board
+;
+; SRAM: 0x2000000
+; DDR-HS-SPI: 0xB0101000  (MPU DDRHSSPI controller)
+; SPI FLASH pin connection: M_SSEL0,M_SCLK0, M_SDATA0_0, M_SDATA0_1, M_SDATA0_2,
+;  M_SDATA0_3, M_SDATA1_0, M_SDATA1_1, M_SDATA1_2, M_SDATA1_3
+;
+; @Author: JIM
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; @Keywords: S6J331 HSSPI QSPI S25FL256 SPANSION
+; --------------------------------------------------------------------------------
+; $Id: s6j331-ddrhsspi.cmm 7602 2019-11-05 15:02:25Z bschroefel $
+
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+
+;&flash_algorithm="~~/demo/arm/flash/byte/spi64_ddrhsspi.bin"   ; single SPI Flash
+&flash_algorithm="~~/demo/arm/flash/word/spiw64_ddrhsspi.bin"   ; dual SPI Flash
+
+; --------------------------------------------------------------------------------
+; check Prerequisites
+
+IF VERSION.BUILD()<92177.
+(
+  DIALOG.OK "Please use more recent software!"
+  END
+)
+
+SYStem.RESet
+SYStem.CPU S6J331EKCA
+SYStem.Option WATCHDOG OFF
+SYStem.Option WaitIDCODE ON
+SYStem.Option ResBreak OFF
+SYStem.Up
+
+GOSUB WDOG_DISABLE
+GOSUB PORT_CONFIG
+GOSUB DDRHSSPI_CONFIG
+GOSUB READ_ID_TEST
+
+Break.RESet
+
+FLASHFILE.RESet
+
+//FLASFILE.CONFIG <SPI Base Reg>
+FLASHFILE.CONFIG 0xB0101000
+
+FLASHFILE.TARGET 0x2000000++0x1FFF EAHB:0x2002000++0x1FFF   &flash_algorithm  /KEEP  /DualPort
+
+// Read FLASH Manufacturer and Device ID
+  FLASHFILE.GETID
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+ENDDO
+
+
+//Read FLASH
+  FLASHFILE.DUMP 0x0
+
+//Erase FLASH
+; FLASHFILE.ERASE 0x0--0xFFFFF
+
+//Write FLASH
+; FLASHFILE.LOAD  * 0x0
+; FLASHFILE.LOAD  * 0x0  /ComPare   ;verify
+
+ENDDO
+
+WDOG_DISABLE:
+
+Data.Set 0xB05C01A4 %Long 0x5ECACCE5
+Data.Set 0xB05C01B4 %Long Data.Long(D:0xB05C01B4)|0x100
+Data.Set 0xB05C01A4 %Long 0xA135331A
+
+RETURN
+
+
+PORT_CONFIG:
+SCREEN.OFF
+
+GOSUB PORT_WPREG_PPC    0xB4740034  0x1002        // PPC_PCF GR026 (0x0034) M_SCLKO
+GOSUB PORT_WPREG_GPIO   0xB473800C  0x04000000    ;GPIO_DDCR0
+
+GOSUB PORT_WPREG_PPC  0xb4740030  0x1002      // PPC_PCF GR024 M_SSEL0
+GOSUB PORT_WPREG_GPIO 0xb473800C  0x01000000    ;GPIO_DDCR0
+
+GOSUB PORT_WPREG_PPC   0xb474002A 0x1002 ;  //PPC_PCF GR021 M_SDATA0_0
+GOSUB PORT_WPREG_GPIO  0xb473800C 0x00200000  ; GPIO_DDCR0
+
+GOSUB PORT_WPREG_PPC   0xb474002E 0x1002 ;  //PPC_PCF  GR023 M_SDATA0_1
+GOSUB PORT_WPREG_GPIO  0xb473800C 0x00800000  ; GPIO_DDCR0
+
+GOSUB PORT_WPREG_PPC  0xb474002C  0x1002 ;  //PPC_PCF  GR022 M_SDATA0_2
+GOSUB PORT_WPREG_GPIO 0xb473800C  0x00400000  ; GPIO_DDCR0
+
+GOSUB PORT_WPREG_PPC  0xb4740032 0x1002 ;  //PPC_PCF  GR025 M_SDATA0_3
+GOSUB PORT_WPREG_GPIO 0xb473800C  0x02000000  ; GPIO_DDCR0
+
+GOSUB PORT_WPREG_PPC  0xb474003C 0x1002 ;  //PPC_PCF  GR030 M_SSEL1
+GOSUB PORT_WPREG_GPIO 0xb473800C  0x40000000  ; GPIO_DDCR0
+
+GOSUB PORT_WPREG_PPC  0xb4740036 0x1002 ;  //PPC_PCF  GR027 M_SDATA1_0
+GOSUB PORT_WPREG_GPIO 0xb473800C  0x08000000  ; GPIO_DDCR0
+
+GOSUB PORT_WPREG_PPC  0xb474003A 0x1002 ;  //PPC_PCF  GR029 M_SDATA1_1
+GOSUB PORT_WPREG_GPIO 0xb473800C  0x20000000  ; GPIO_DDCR0
+
+GOSUB PORT_WPREG_PPC  0xb4740038 0x1002 ;  //PPC_PCF  GR028 M_SDATA1_2
+GOSUB PORT_WPREG_GPIO 0xb473800C  0x10000000  ; GPIO_DDCR0
+
+GOSUB PORT_WPREG_PPC  0xb474003E 0x1002 ;  //PPC_PCF  GR031 M_SDATA1_3
+GOSUB PORT_WPREG_GPIO 0xb473800C  0x80000000  ; GPIO_DDCR0
+
+;GOSUB PORT_WPREG_PPC  0xb4740040 0x1002 ;  //PPC_PCF  GR100
+;GOSUB PORT_WPREG_GPIO 0xb473801C  0x00000001  ; GPIO_DDCR1
+
+GOSUB PORT_WPREG_GPIO 0xb4738400  0x1  ; PORT_WPREG_GPIO(GPIO_PORTEN, 0x00000001);
+
+SCREEN.ON
+
+RETURN
+
+
+PORT_WPREG_PPC:
+ENTRY &reg  &data
+
+&reg_low15=(&reg&0x3FFF)
+
+Data.Set  ((&reg&0xFFFFC000)|0x400)  %Long  (0x10000000|&reg_low15)   ;PPC_KEYCDR, 16bit access (01<<28.)
+Data.Set  ((&reg&0xFFFFC000)|0x400)  %Long  (0x50000000|&reg_low15)   ;PPC_KEYCDR, 16bit access (01<<28.)
+Data.Set  ((&reg&0xFFFFC000)|0x400)  %Long  (0x90000000|&reg_low15)   ;PPC_KEYCDR, 16bit access (01<<28.)
+Data.Set  ((&reg&0xFFFFC000)|0x400)  %Long  (0xD0000000|&reg_low15)   ;PPC_KEYCDR, 16bit access (01<<28.)
+
+Data.Set &reg %Word &data
+
+RETURN
+
+PORT_WPREG_GPIO:
+
+ENTRY &reg  &data
+
+&reg_low15=(&reg&0x3FFF)
+
+Data.Set  ((&reg&0xFFFFC000)|0x404)  %Long  (0x20000000|&reg_low15)   ;PPC_KEYCDR, 32bit access (01<<28.)
+Data.Set  ((&reg&0xFFFFC000)|0x404)  %Long  (0x60000000|&reg_low15)   ;PPC_KEYCDR, 32bit access (01<<28.)
+Data.Set  ((&reg&0xFFFFC000)|0x404)  %Long  (0xA0000000|&reg_low15)   ;PPC_KEYCDR, 32bit access (01<<28.)
+Data.Set  ((&reg&0xFFFFC000)|0x404)  %Long  (0xE0000000|&reg_low15)   ;PPC_KEYCDR, 32bit access (01<<28.)
+
+Data.Set &reg %Long &data
+
+RETURN
+
+
+DDRHSSPI_CONFIG:
+
+Data.Set 0x0B0101000  %Long 0x0  ; disable
+
+Data.Set &SPI_BASE+0x035 %Byte 0x0   ; unDMAEN
+Data.Set &SPI_BASE+0x03A %Byte 0x0   ; SS0 select, 0x1:SS1 select
+Data.Set &SPI_BASE+0x03B %Byte 0x0   ; unDMTRP
+Data.Set &SPI_BASE+0x034 %Byte 0x2
+Data.Set &SPI_BASE+0x03C %Word 0x0
+Data.Set &SPI_BASE+0x044 %Word 0x0807
+
+Data.Set &SPI_BASE+0x154 %Long 0x0   ; CS mode reset
+Data.Set &SPI_BASE+0x150 %Long 0xFFFF
+Data.Set &SPI_BASE+0x14C %Long 0x000F0004
+
+Data.Set &SPI_BASE+0x044 %Long 0x7
+Data.Set &SPI_BASE+0x028 %Long 0x20
+
+Data.Set &SPI_BASE+0x004 %Long 0x001F1E20  ;ss0 [12:9] sclk Clock Division
+Data.Set &SPI_BASE+0x008 %Long 0x001F1E20  ;ss1 [12:9] sclk Clock Division
+
+Data.Set 0x0B0101000  %Long 0x1; enable
+
+Data.Set 0x0B0101000  %Long 0x0  ; disable
+Data.Set 0x0B010103B  %Byte 0xA  ; Setting to HsspiProtocolModeQuadTxOnly
+Data.Set 0x0B0101000  %Long 0x1; enable
+
+//Flush transmit and receive FIFOs
+Data.Set &SPI_BASE+0x044 %Long 0x00100807 ; TXFLSH
+Data.Set &SPI_BASE+0x044 %Long 0x00080807 ; TXFLSH
+
+RETURN
+
+
+READ_ID_TEST:
+(
+screen.off
+
+Data.Set &SPI_BASE %Long Data.Long(A:&SPI_BASE)&~0x1   ; Disable Module
+Data.Set &SPI_BASE+0x3B %Byte 0x0                      ; HsspiProtocolModeLegacy , Legacy mode(TX-and-RX)
+Data.Set &SPI_BASE %Long Data.Long(A:&SPI_BASE)|0x1   ; Enable Module
+
+//Flush fifo
+Data.Set &SPI_BASE+0x44 %Long Data.Long(A:&SPI_BASE+0x44)|0x100000   ;
+Data.Set &SPI_BASE+0x44 %Long Data.Long(A:&SPI_BASE+0x44)|0x080000   ;
+
+Data.Set &SPI_BASE+0x3C %Word 0x5         ; unDMBCC = Tx(1cmd)+Rx(4B read) Count
+
+Data.Set &SPI_BASE+0x44 %Long Data.Long(A:&SPI_BASE+0x44)&~0x40000  ; (TXCTRL[18]:0)
+
+Data.Set &SPI_BASE+0x48 %Long 0x9F  ; TxFIFO0
+Data.Set &SPI_BASE+0x48 %Long 0x00  ; TxFIFO0 ,dummy
+Data.Set &SPI_BASE+0x48 %Long 0x00  ; TxFIFO0 ,dummy
+Data.Set &SPI_BASE+0x48 %Long 0x00  ; TxFIFO0 ,dummy
+Data.Set &SPI_BASE+0x48 %Long 0x00  ; TxFIFO0 ,dummy
+
+Data.Set &SPI_BASE+0x38 %Byte 0x01  ;DMSTART
+Data.Set &SPI_BASE+0x1C %Long 0x02  ;TXC
+
+Data.Set &SPI_BASE+0x44 %Long Data.Long(A:&SPI_BASE+0x44)&~0x40000  ; (TXCTRL[18]:0)
+
+WAIT 100.ms
+
+PRINT "1st 0x" Data.Long(A:&SPI_BASE+0xA8) " (Dummy) "      ; //RXFIFO0
+PRINT "2nd 0x" Data.Long(A:&SPI_BASE+0xA8) " (Manufacture)"
+PRINT "3rd 0x" Data.Long(A:&SPI_BASE+0xA8) " (Device ID)"
+PRINT "4th 0x" Data.Long(A:&SPI_BASE+0xA8) 
+PRINT "5th 0x" Data.Long(A:&SPI_BASE+0xA8) 
+
+//Flush fifo
+Data.Set &SPI_BASE+0x44 %Long Data.Long(A:&SPI_BASE+0x44)|0x100000   
+Data.Set &SPI_BASE+0x44 %Long Data.Long(A:&SPI_BASE+0x44)|0x080000   
+
+screen.on
+RETURN
+)
+

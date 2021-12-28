@@ -1,0 +1,65 @@
+; --------------------------------------------------------------------------------
+; @Title: TOPPERS Demo for TRACE32 OS Awareness
+; @Description: 
+;   
+;   This batchfile loads all necessary files to demonstrate
+;   the OS Awareness for TOPPERS.
+;   
+;   This script has been tested with following PrKERNEL versions:
+;   
+;   2015-09-07: FMP 1.3.0
+;   2015-09-07: ASP 1.7.0
+;   
+; @Keywords: Awareness, TOPPERS, RTOS
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: toppers.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+SCREEN.ON
+AREA.RESet
+WinPAGE.RESet
+WinCLEAR
+WinPOS 0. 27. 63. 7. 0. 0. W006
+AREA.view
+
+; Debugger reset
+
+PRINT "resetting..."
+RESet
+
+; Initializing Debugger
+
+PRINT "initializing..."
+SYStem.Up
+SYStem.CPU CortexM3
+SYStem.Up
+
+; Load application
+
+PRINT "loading application..."
+Data.LOAD.Elf myapplication.axf
+
+; Initialize RTOS support
+
+PRINT "initializing TOPPERS support..."
+TASK.CONFIG ~~/demo/arm/kernel/toppers/toppers.t32      ; load TOPPERS awareness
+MENU.ReProgram ~~/demo/arm/kernel/toppers/toppers.men   ; load TOPPERS awareness
+HELP.FILTER.Add rtostoppers ; add TOPPERS awareness manual to help filter
+
+PRINT "load complete."  ; send to Message Line
+
+; Open some windows
+
+WinPOS 0. 0. 73. 23. 11. 1. W001
+List.auto
+ 
+WinPOS 40. 15. 60. 8. 0. 1. W003
+TASK.TASK 
+
+; Start application
+
+Go tsk_sys
+
+ENDDO

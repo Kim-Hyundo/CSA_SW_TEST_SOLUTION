@@ -1,0 +1,110 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for NRF52832QFAA on nRF52PreviewDK with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The Offchip Trace using a Combiprobe/uTrace or PowerTrace is set up.
+;   Use this script for testing the Offchip-Trace.
+;   Prerequisites:
+;    * Connect debug signals to P18
+;      The trace signals are not directly accessible on the debug header,
+;      so it requires hand wiring via the expansion headers.
+; @Keywords: ARM, Cortex-M4, ETM, ITM
+; @Author: STK
+; @Board: nRF52PreviewDK
+; @Chip: NRF52832QFAA
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: nrf52previewdk_sieve_offchip_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU NRF52832QFAA
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  ; The trace was tested on a  nRF52 Development Kit without trace signals on a debug header.
+  ; To test the trace a test adapter has used, that maps the trace signals according to the
+  ; MIPI34 spec.
+  SYStem.CONFIG.CONNECTOR MIPI34
+)
+; nReset is likely to be configured as GPIO - use SYSRESETREQ only
+SYStem.Option EnReset OFF
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; initialize offchip-trace (ETM ON, ITM ON)
+IF COMBIPROBE()||UTRACE()||Analyzer()
+(
+  ; Setup pin multiplexing for parallel trace.
+  Data.Set AD:0x4000055C %Long 0x00020000    ; Set CLOCK.TRACECONFIG.TRACEMUX to Parallel
+  ; Inclease driver strength GPIO.PIN_CNF[x].DRIVE = H0H1
+  Data.Set AD:0x50000738 %Long 0x00000303    ; Port 14 (TRACEDATA3)
+  Data.Set AD:0x5000073C %Long 0x00000303    ; Port 15 (TRACEDATA2)
+  Data.Set AD:0x50000740 %Long 0x00000303    ; Port 16 (TRACEDATA1)
+  Data.Set AD:0x50000748 %Long 0x00000303    ; Port 18 (TRACEDATA0)
+  Data.Set AD:0x50000750 %Long 0x00000303    ; Port 20 (TRACECLK)
+
+  TPIU.PortSize 4
+  TPIU.PortMode Continuous
+  ITM.DataTrace CorrelatedData
+  ITM.ON
+  ETM.Trace ON
+  ETM.ON
+)
+IF COMBIPROBE()||UTRACE()
+(
+  Trace.METHOD CAnalyzer
+  Trace.AutoInit ON
+  IF CAnalyzer.FEATURE(TPIU.TERMINATION)
+  (
+    ; pins have limited output current with low Supply voltage -> disable Termination
+    Trace.TERMination OFF
+  )
+  Trace.AutoFocus
+)
+IF Analyzer()
+(
+  Trace.METHOD Analyzer
+  Trace.AutoInit ON
+  Trace.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO

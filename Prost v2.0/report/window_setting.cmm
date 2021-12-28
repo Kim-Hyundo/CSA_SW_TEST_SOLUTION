@@ -1,0 +1,83 @@
+B::
+ENTRY &cpu &elf_path &trace_path &inputvar &outputvar &enumscript &enummacro
+
+print "&inputvar"
+System.CPU TC397XE
+;System.Detect CPU
+Core.assign 1. 2. 3. 4. 5. 6.
+System.UP
+Data.Load.Elf &elf_path
+Trace.Load &trace_path
+
+if ("&enumscript"!="")
+(
+    CD.DO "&enumscript"
+    CD.DO "&enummacro"
+)
+TOOLBAR   ON
+STATUSBAR ON
+FramePOS 46.857 12.083 271. 73.
+WinPAGE.RESet
+WinPAGE.Create P000
+WinCLEAR
+WinPOS 0.14286 0.41667 95. 32. 13. 1. W002
+WinTABS 10. 10. 25.
+List.auto
+WinPOS 100.86 0.33333 86. 32. 25. 2. W003
+;Trace.Chart.sYmbol /TRACK
+Trace.Chart.Func /TRACK /sort nesting
+WinPOS 192.71 0.5 64. 21. 0. 0. W000
+trace
+WinPOS 192.57 39.5 71. 26. 8. 1. W001
+WinTABS 32.
+Trace.List /TRACK
+WinPOS 119.57 39.25 67. 26. 5. 0. W004
+Frame.view /Locals /Caller
+WinPOS 0.28571 39.583 114. 26. 0. 0. W005
+Var.Watch %e
+WinPAGE.select P000
+&cnt=0.
+&inputvar=STRing.cut("&inputvar",1)
+&inputvar=STRing.cut("&inputvar",-1)
+&input_cnt=STRing.COUNT("&inputvar","||")
+&output_cnt=STRing.COUNT("&outputvar","||")
+if &input_cnt==0.
+   END
+repeat &input_cnt
+(
+   
+   &inp=string.split("&inputvar","||",&cnt)
+   
+   ;USER MACRO
+   if (STRing.SCAN("&inp",".cmm",0)!=-1)
+   (
+      &cmmname=STRing.SPLIT("&inp",".cmm",0)
+      ;print "&cmmname"
+      &cmm_input_value=STRing.SPLIT("&inp",".cmm",1)
+      ;print "&cmm"+"""
+      &strtmp="&cmmname.cmm"
+      CD.DO "&strtmp" &cmm_input_value
+      ;&inp_tmp="&inp_name_tmp"+"="+&inp_value_tmp"
+      
+   )
+   ;Var
+   else
+   (
+      print "&inp"
+      ;if SYMBOL.EXIST(&inp)
+      var.set &inp
+   )
+   
+   &cnt=&cnt+1.
+)
+CTS.ON
+cts.goto Trace.FIRST()
+;&cnt=0.
+;repeat &output_cnt
+;(
+;	&out=string.split("&outputvar","||",&cnt)
+;	if SYMBOL.EXIST(&out)
+;		VAR.ADDWATCH &out
+;	&cnt=&cnt+1.
+;)
+ENDDO

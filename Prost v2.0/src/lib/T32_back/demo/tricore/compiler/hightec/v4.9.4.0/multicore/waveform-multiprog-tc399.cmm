@@ -1,0 +1,51 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo for HighTec object files with "advanced multi-core support"
+; @Description:
+;   CPU: TC399X
+;
+;   Use the simulator to avoid conflicts with undecleared memory.
+;
+;   This demo shows how to load an elf file linked with 
+;   "advanced multi-core support". Each core is represented as separate program.
+;   TRACE32 is working in SMP mode.
+;
+;   Requires TRACE32 Version N.2020.04.000119477 or newer.
+;
+; @Keywords: compiler, hightec, Infineon, sieve, TriCore
+; @Author: MEI
+; @Chip: TC399X
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: waveform-multiprog-tc399.cmm 16183 2020-06-15 09:05:18Z meick $
+
+PRIVATE &elfFile &i
+
+IF VERSION.BUILD.BASE()<119477.
+(
+  PRINT %ERROR "Demo requires at least version N.2020.04.000119477. Your version is:" VERSION.SOFTWARE()
+  ENDDO
+)
+
+sYmbol.RESet
+
+&elfFile="~~~~/waveform-tc162-og.elf"
+
+SYStem.CPU TC399X
+CORE.ASSIGN 1 2 3 4 5 6
+SYStem.Up
+
+; load data
+Data.LOAD.Elf &elfFile /NosYmbol
+; load symbols
+&i=0.
+WHILE &i<6.
+(
+  PRIVATE &cname
+  SPRINTF &cname "core%u" &i
+  Data.LOAD.Elf &elfFile /FilterByCORE &i /NAME "&cname" /NoClear /NoCODE /NoRegister
+  &i=&i+1.
+)
+
+Go.direct main
+
+ENDDO

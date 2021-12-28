@@ -1,0 +1,255 @@
+; --------------------------------------------------------------------------------
+; @Title: OSE specific menu
+; @Description: Additional menu for OSE.
+; @Author: DIE
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: osee.men 6997 2014-04-24 14:15:38Z mobermeir $
+
+
+add
+menu
+(
+  popup "&OSE Epsilon"
+  (
+;    enable ice()
+;    menuitem "&RTOS Terminal" "TERM T32OUT T32IN"
+;    separator
+    default
+    menuitem "Display &Processes"     "TASK.DProc"
+    menuitem "Display &Queue"
+    (
+      dialog
+      (
+        header "Display Queue"
+        pos 0x0 0x0 32. 3.
+        box "task name:"
+        pos 0x1 0x1 30. 1.
+name:   defedit "" ""
+        pos 0x2 0x3 7. 1.
+        defbutton "OK"
+        (
+          local &name 
+          &name=dialog.string(name)
+          task.dqueue "&name"
+          dialog.end
+        )
+        pos 10. 0x3 7. 1.
+        button "Cancel" "dialog.end"
+      )
+    )
+;    menuitem "Display &Configuration" "TASK.DC"
+    separator
+    popup "&External Stack Coverage"
+    (
+      menuitem "&List Stacks"       "TASK.STacK"
+      menuitem "Add Process to Cov" "TASK.STacK.ADD"
+      menuitem "Remove Process from Cov" "TASK.STacK.ReMove"
+      if ice()
+      (
+        menuitem "&Reset Coverage" "TASK.STK.RES"
+      )
+      else
+      (
+      menuitem "Stack &Pattern..."
+      (
+        dialog
+        (
+          header "Stack Pattern Check"
+          pos 0x0 0x0 13. 3.
+          box "initialized pattern:"
+          pos 0x1 0x1 11. 1.
+pattern:    defedit "17" ""
+            pos 14. 0x1 0x6 0x1
+            defbutton "OK"
+            (
+              local &pattern
+              &pattern=dialog.string(pattern)
+              TASK.STK.PAT &pattern
+              dialog.end
+            )
+          )
+        )
+      )
+    )
+  )
+  popup "Trace"
+  (
+    popup "List"
+    (
+      separator
+      menuitem "&Task Switches"     "Trace.List List.TASK"
+      menuitem "&Default and Tasks" "Trace.List List.TASK DEFault"
+    )
+  )
+  popup "Perf"
+  (
+    separator
+    popup "&Task Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+        )
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak&&Write
+          )
+        )
+        Break.Delete /Alpha
+        Break.Set task.config(current)++(task.config(magicsize)-1) /Alpha
+      )
+      menuitem "[:perf]Show &Numerical"   "Trace.STATistic.TASK"
+      menuitem "[:achart]Show as &Timing" "Trace.CHART.TASK"
+      menuitem "[:achart]Tracking with Trace &List"
+      (
+        Trace.List List.TASK DEFault /Track
+        Trace.CHART.TASK /Track
+      )
+    )
+    popup "Task &Function Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+          Analyzer.STATistic.PreFetch on
+        )
+
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          if a.config.hac()
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak
+               Sample.Enable if BetaBreak
+               Mark.A        if AlphaBreak
+               Mark.B        if BetaBreak
+             )
+          )
+          else
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak||BetaBreak
+               Mark.A if AlphaBreak
+               Mark.B if BetaBreak
+             )
+          )
+        )
+
+        Break.Delete /Alpha /Beta /Charly
+        Break.SetFunc
+        Break.Set task.config(current)++(task.config(magicsize)-1) /Alpha
+      )
+      menuitem "[:perf]Show &Numerical"     "Trace.STATistic.TASKFUNC"
+      menuitem "[:perf]Show as &Tree"       "Trace.STATistic.TASKTREE"
+      menuitem "[:perf]Show &Detailed Tree" "Trace.STATistic.TASKTREE ALL"
+      menuitem "[:achart]Show as &Timing"   "Trace.CHART.TASKFUNC"
+      menuitem "[:alist]Show N&esting"      "Trace.List List.TASK FUNC TI.FUNC"
+    )
+    popup "Task &Status"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+        )
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak&&Write
+          )
+        )
+        Break.Delete /Alpha
+        Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+        TASK.TASKState
+      )
+      menuitem "[:perf]Show &Numerical"   "Trace.STATistic.TASKSTATE"
+      menuitem "[:achart]Show as &Timing" "Trace.CHART.TASKSTATE"
+      menuitem "[:achart]Tracking with Trace &List"
+      (
+        Trace.List List.TASK DEFault /Track
+        Trace.CHART.TASKSTATE /Track
+      )
+    )
+  )
+  popup "&Help"
+  (
+    menuitem "OSE Epsilon Manual" "HELP __RTOS_OSEE_"
+  )
+)
+
+menu "TASK.DP"
+(
+  menuitem "Display Detailed"  "TASK.DP track.address()"
+  separator
+  enable ice()
+  menuitem "Add to Stack Cov"  "TASK.STK.ADD address.offset(track.address())"
+  enable ice()
+  menuitem "Rm from Stack Cov" "TASK.STK.RM  address.offset(track.address())"
+  separator
+  menuitem "Go till this task"
+  (
+    &task=address.offset(track.address())
+    screen.always
+    if state.run()
+      break
+    repeat
+    (
+      go
+      wait !state.run()
+    )
+    while data.long(a:task.config(current))!=&task
+    screen.on
+  )
+  menuitem "Go till next entry"
+  (
+    &task=address.offset(track.address())
+    screen.always
+    if state.run()
+      break
+    b.s task.config(current)++0x3 /w
+    repeat
+    (
+      go
+      wait !state.run()
+    )
+    while data.long(a:task.config(current))!=&task
+    b.d task.config(current)++0x3 /w
+    screen.on
+  )
+  enable ice()
+  menuitem "Break on next entry"
+  (
+    &task=address.offset(track.address())
+    trigger.set aa on
+    b.d /b
+    b.d task.config(current)++0x3 /w
+    b.s task.config(current)++0x3 /b
+    a.res
+    a.rp
+    (
+      data.l0 TSK &task
+      trigger.a if BB&&W&&TSK
+    )
+    a.arm
+    if !state.run()
+      go
+    wait !state.run()
+    a.rp
+    a.off
+  )
+)
+
+
+
+

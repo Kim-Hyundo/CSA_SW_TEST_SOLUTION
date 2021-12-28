@@ -1,0 +1,81 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC1796ED on TriBoard TC1796
+; @Description:
+;   Initializes the TriCore, SRAM and Flash and loads the Sieve-Demo into memory.
+; @Keywords: Infineon, sieve, TriCore
+; @Author: MAX
+; @Board: TriBoard-TC1796
+; @Chip: TC1796ED
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc1796ed_demo.cmm 7675 2014-09-24 13:53:50Z mobermaier $
+
+
+; --------------------------------------------------------------------------------
+; Performed tests:
+; Dip Switch S301:      SW1=ON,  SW2=OFF, SW3=ON,  SW4=ON,
+;                       SW5=ON,  SW6=ON,  SW7=OFF, SW8=OFF
+; TriBoard TC1796.200B TC1796ED EES-AC 2005-06-08 MAX (don't use any more)
+; TriBoard TC1796.300 TC1796ED EES-BC 2005-01-24 MAX
+;
+; A-steps: Since the watchdog is not suspended in debug mode, do not use a
+; low JTAG clock frequency in case the watchdog is not already disabled by
+; the target program. Otherwise the debugger is possibly to slow to disable
+; the watchdog in time. Minimum JTAG clock depends on the core clock. Default
+; JTAG clock should be fine.
+;
+; Requirements to use OCDS-1:
+; Set jumper JP501 to 2-3 (= disable on-board wiggler)
+;
+; If onchip flash is not functional: DIP Switch S401 SW5=ON
+; Note: This may disable OCDS-L2 functionality.
+;
+; Memory mappings:
+; flash is not declared - see flash.cmm
+; external SRAM                    mapped to 0xA1000000--0xA10FFFFF    1 MB
+; external Flash                   mapped to 0xA2000000--0xA23FFFFF    4 MB
+; processor internal program flash mapped to 0xA0000000--0xA01FFFFF    2 MB
+; processor internal data flash    mapped to 0xAFE00000--0xAFE1FFFF  128 KB
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+
+RESet
+SYStem.CPU TC1796ED
+//SYStem.Option WDTFIX ON ; only required for A-Step devices via JTAG
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; Memory initialzation
+; initialize external bus unit
+Data.Set 0xF8000010 %Long 0x00F9FF68 ; EBU_CON
+Data.Set 0xF8000020 %Long 0x001001D0 ; EBU_BFCON
+
+; memory assignment
+; /CS0: AMD AM29BL162CB flash
+Data.Set 0xF8000080 %Long 0xA2000051 ; EBU_ADDR_SEL0
+Data.Set 0xF80000C0 %Long 0x00820000 ; EBU_BUSCON0
+Data.Set 0xF8000100 %Long 0x23FF0100 ; EBU_BUSAP0
+; /CS1: ALLIANCE SRAM
+Data.Set 0xF8000088 %Long 0xA1000071 ; EBU_ADDR_SEL1
+Data.Set 0xF80000C8 %Long 0x00820000 ; EBU_BUSCON1
+Data.Set 0xF8000108 %Long 0x00D84000 ; EBU_BUSAP1
+; /CS2, /CS3: unused
+
+; --------------------------------------------------------------------------------
+; load demo program
+Data.LOAD.Elf "~~~~/triboard-tc1796_sieve_extmem.elf"
+Trace.Init
+Go.direct main
+
+; open some windows
+WinCLEAR
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame.view /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch
+Var.AddWatch ast flags
+
+ENDDO

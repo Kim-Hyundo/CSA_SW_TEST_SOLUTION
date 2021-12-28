@@ -1,0 +1,174 @@
+; --------------------------------------------------------------------------------
+; @Title: AM3715 NAND FLASH Programming Script (with BCH ECC)
+; @Description:
+;   NAND FLASH(MT29F4G16ABA) is connected to CS0
+;   MISTRAL OMAP EVM Board
+;
+;   Internal SRAM    : 0x40200000
+;   Command Register : 0x6E00007C  
+;   Address Register : 0x6E000080
+;   Data Register    : 0x6E000084
+;
+; @Author: jjeong
+; @Chip: AM3715
+; @Keywords: NAND
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: am3715eccbch-nand2g16.cmm 7577 2019-10-30 15:30:31Z bschroefel $
+
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+
+ 
+ PRINT "initializing..."
+ SYStem.RESet
+ SYStem.CPU AM3715
+ SYStem.JtagClock 1Mhz          ; start with a fix JTAG clock,
+                                ; otherwise every second system.up fails with an RTCK error
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ SYStem.Option ResBreak OFF     ; hardware dependent (see manual)
+ SYStem.Option WaitReset ON     ; hardware dependent (see manual)
+ SYStem.Up
+ SYStem.JtagClock RTCK
+
+PER.Set.simple C15:0x1 %Long  (Data.Long(C15:0x1)&~(0x1005))   ; disable MMU and cache
+
+GOSUB disable_watchdog
+
+; --------------------------------------------------------------------------------
+; Initialize General Purpose Memory Controller
+; --------------------------------------------------------------------------------
+
+; GPMC_SYSCONFIG
+Data.Set 0x6E000010 %LE %Long 0x00000010
+
+; GPMC_IRQENABLE
+Data.Set 0x6E00001C %LE %Long 0x00000000
+
+; GPMC_TIMEOUT_CONTROL
+Data.Set 0x6E000040 %LE %Long 0x00000000
+
+; GPMC_CONFIG
+Data.Set 0x6E000050 %LE %Long 0x00000011
+
+; --------------------------------------------------------------------------------
+; Initialize CS0
+; --------------------------------------------------------------------------------
+; GPMC_CONFIG1_0
+;    WRAPBURST		not supported
+;    READMULTIPLE	single
+;    READTYPE		asynchronous
+;    WRITEMULTIPLE	single
+;    WRITETYPE		asynchronous
+;    CLKACTIVATIONTIME	at start access
+;    ATTACHEDDEVPAGELEN	4 words
+;    WAITREADMONITORING	not monitored
+;    WAITWRITEMONITOR	not monitored
+;    WAITMONITORTIME	with valid data
+;    WAITPINSELECT	WAIT0
+;    DEVICESIZE		16 bit
+;    DEVICETYPE		NAND flash like
+;    MUXADDDATA		disabled
+;    TIMEPARAGRANULARIT	x1 latencies
+;    GPMCFCLKDIVIDER	1
+
+Data.Set 0x6E000060 %LE %Long 0x00001800
+
+; GPMC_CONFIG2_0
+Data.Set 0x6E000064 %LE %Long 0x00060600
+
+; GPMC_CONFIG3_0
+Data.Set 0x6E000068 %LE %Long 0x00060401
+
+; GPMC_CONFIG4_0
+Data.Set 0x6E00006C %LE %Long 0x05010801
+
+; GPMC_CONFIG5_0
+Data.Set 0x6E000070 %LE %Long 0x00080909
+
+; GPMC_CONFIG6_0
+Data.Set 0x6E000074 %LE %Long 0x1F0F0A80
+
+; GPMC_CONFIG7_0
+Data.Set 0x6E000078 %LE %Long 0x00000F48
+
+; --------------------------------------------------------------------------------
+; Flash programming
+; --------------------------------------------------------------------------------
+
+Data.Set   0x6E0001F8 %LE %Long 0x101     ;Enable  ECC engine, GPMI_ECC_CONTROL
+;DATA.SET  0x6E0001F8 %LE %LONG 0x0       ;Disable ECC engine, GPMI_ECC_CONFIG
+
+;DATA.SET   0x6E0001F4 %LE %LONG 0x10631   ; BCH-4bit
+Data.Set   0x6E0001F4 %LE %Long 0x11631   ; BCH-8bit
+
+
+  FLASHFILE.RESet
+
+//FLASHFILE.config <Cmd_reg>   <Addr_reg>  <Data_reg>
+  FLASHFILE.CONFIG 0x6E00007C  0x6E000080  0x6E000084
+
+//FLASHFILE.target <Code_range> <Data_range> <Algorithm file>
+  FLASHFILE.TARGET 0x40200000++0x1FFF 0x40202000++0x3FFF ~~/demo/arm/flash/word/nand2g16_tigpmcbch.bin /KEEP
+
+//Read FLASH Manufacture and Device ID
+  FLASHFILE.GETID
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+ENDDO
+
+
+//Open NAND FLASH Dump window
+  FLASHFILE.DUMP 0x0
+
+//Check bad blocks into area window
+  ;FLASHFILE.GETBADBLOCK 0x0--0xFFFFFF
+
+//Erase NAND
+  ;FLASHFILE.ERASE 0x0--0xFFFFFF 
+
+//Program NAND
+  ;FLASHFILE.LOAD  * 0x0  /WriteBadBlocks
+  
+
+ENDDO
+
+disable_watchdog:
+   ; Enable Interface Clock
+   Data.Set 0x48004C10 %Long 0x20
+  
+   ; Enable functional clock
+   Data.Set 0x48004C00 %Long 0x20
+  
+   ; Check that module is IDLE
+   WAIT (Data.Long(SD:0x48004C20)&0x20)==0 
+    
+   ; Disable watchdog timer
+   Data.Set SD:0x48314048 %LE %Long 0x0000AAAA
+   WAIT (Data.Long(SD:0x48314034)&0x10)==0
+  
+   Data.Set SD:0x48314048 %LE %Long 0x00005555
+   WAIT (Data.Long(SD:0x48314034)&0x10)==0
+  
+   ; Check if the watchdog timer is running
+   IF (Data.Long(SD:0x48314048)!=0x00005555)
+   (
+     ; Disable Watchdog 2
+     ; Wait until reset complete
+     WAIT (Data.Long(SD:0x48314014)&0x01)!=0
+  
+     ; Disable 32Khz watchdog timer
+     Data.Set 0x48314048 %Long 0x0000AAAA
+  
+     WAIT (Data.Long(SD:0x48314034)&0x10)==0
+            
+     ; Disable 32Khz watchdog timer
+     Data.Set 0x48314048 %Long 0x00005555
+    
+     WAIT (Data.Long(SD:0x48314034)&0x10)==0 
+   )
+
+RETURN

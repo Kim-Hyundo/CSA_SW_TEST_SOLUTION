@@ -1,0 +1,37 @@
+; --------------------------------------------------------------------------------
+; @Title: ETM deactivation script for the NXHX10 Board
+; @Description: 
+;   This script deactivates the ETM (Embedded Trace Macrocell)
+;   for the NXHX10 Board
+; @Keywords: ETM, Hilscher, NetX*, trace
+; @Board: NXHX10
+; @Chip: ARM966E-S
+; @Author: Hilscher
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: etm_deinit.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+LOCAL &ioconfig &restart
+
+&restart="0"
+
+IF STATE.RUN()
+(
+  &restart="1"
+  Break.direct
+)
+
+;Enable ETM Interface on netX
+&ioconfig=Data.Long(ASD:0x101c0004)&0xFF7FFFFF
+
+Data.Set ASD:0x101c0070 %Long Data.Long(ASD:0x101c0070)
+Data.Set ASD:0x101c0004 %Long (&ioconfig)
+
+ETM.OFF
+ETM.RESet
+
+IF "&restart"=="1"
+  Go.direct
+
+ENDDO

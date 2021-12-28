@@ -1,0 +1,436 @@
+; --------------------------------------------------------------------------------
+; @Title: uC3-standard awareness menu
+; @Description: -
+; @Author: DIE
+; @Copyright: (c) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: uc3std.men 16195 2020-06-18 07:42:09Z rdienstbeck $
+
+add
+menu
+(
+  popup "&uC3Std"
+  (
+    default
+    menuitem "Display &Tasks"           "TASK.TaSK"
+    menuitem "Display &Semaphores"      "TASK.SEMaphore"
+    menuitem "Display &Event Flags"     "TASK.FLaG"
+    menuitem "Display Data &Queues"     "TASK.DaTaQueue"
+    menuitem "Display &Mailboxes"       "TASK.MailBoX"
+    menuitem "Display Mute&xes"         "TASK.MuTeX"
+    menuitem "Display Message &Buffers" "TASK.MsgBuFfer"
+    menuitem "Display &Ports"           "TASK.PORt"
+    menuitem "Display &Fixed MemPools"  "TASK.MemPoolF"
+    menuitem "Display &Var MemPools"    "TASK.MemPoolL"
+    menuitem "Display &Alarm Handlers"  "TASK.ALarM"
+    menuitem "Display &Cyclic Handlers" "TASK.CYClic"
+    menuitem "Display &ISRs"            "TASK.ISR"
+    separator
+    popup "&Stack Coverage"
+    (
+      menuitem "&List Stacks"    "TASK.STacK"
+      menuitem "Add Task"        "TASK.STacK.ADD"
+      menuitem "Remove Task"     "TASK.STacK.ReMove"
+      enable ice()||fire()
+      menuitem "&Reset Coverage" "TASK.STacK.RESet"
+    )
+  )
+  popup "Trace"
+  (
+    popup "List"
+    (
+      separator
+      menuitem "&Task Switches"     "Trace.List List.TASK"
+      menuitem "&Default and Tasks" "Trace.List List.TASK DEFault"
+    )
+  )
+  popup "Perf"
+  (
+    separator
+    popup "&Task Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+        )
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak&&Write
+          )
+          Break.Delete /Alpha
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+        )
+        if a.mode.flow()
+        (
+          Break.Delete /TraceEnable
+          Break.Set task.config(magic) /TraceEnable
+        )
+      )
+      menuitem "[:perf]Show &Numerical"   "Trace.STATistic.TASK"
+      menuitem "[:achart]Show as &Timing" "Trace.CHART.TASK"
+      menuitem "[:achart]Tracking with Trace &List"
+      (
+        Trace.List List.TASK DEFault /Track
+        Trace.CHART.TASK /Track
+      )
+    )
+    popup "Task &Function Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+          Analyzer.STATistic.PreFetch on
+        )
+
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          if a.config.hac()
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak
+               Sample.Enable if BetaBreak
+               Mark.A        if AlphaBreak
+               Mark.B        if BetaBreak
+             )
+          )
+          else
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak||BetaBreak
+               Mark.A if AlphaBreak
+               Mark.B if BetaBreak
+             )
+          )
+          Break.Delete /Alpha /Beta /Charly
+          Break.SetFunc
+	      Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+	    )
+        if a.mode.flow()
+        (
+          Break.Delete /TraceData
+          Break.Set task.config(magic) /TraceData
+        )
+      )
+      menuitem "[:perf]Show &Numerical"     "Trace.STATistic.TASKFUNC"
+      menuitem "[:perf]Show as &Tree"       "Trace.STATistic.TASKTREE"
+      menuitem "[:perf]Show &Detailed Tree" "Trace.STATistic.TASKTREE ALL"
+      menuitem "[:achart]Show as &Timing"   "Trace.CHART.TASKFUNC"
+      menuitem "[:alist]Show N&esting"      "Trace.List List.TASK FUNC TI.FUNC"
+    )
+    popup "Task &Status"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+        )
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak&&Write
+          )
+          Break.Delete /Alpha
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+          TASK.TASKState
+        )
+      )
+      menuitem "[:perf]Show &Numerical"   "Trace.STATistic.TASKSTATE"
+      menuitem "[:achart]Show as &Timing" "Trace.CHART.TASKSTATE"
+      menuitem "[:achart]Tracking with Trace &List"
+      (
+        Trace.List List.TASK DEFault /Track
+        Trace.CHART.TASKSTATE /Track
+      )
+    )
+  )
+  popup "&Help"
+  (
+    MENUITEM "[:manual]OS Awareness Manual NORTi" "HELP __RTOS_NORTI_"
+  )
+)
+
+
+menu "task.tsk"
+(
+  default
+  menuitem "Display Detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.TaSK &address
+  )
+  menuitem "Display TCB struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %Open %String (T_TCB*)&address
+  )
+  ;separator
+  ;menuitem "Display Stack Frame"
+  ;(
+  ;  &address=address.offset(track.address())
+  ;  Var.Frame /Locals /Caller /Task &address
+  ;)
+  ;menuitem "Switch Context"      "Register.TASK address.offset(track.address())"
+  ;separator
+  ;menuitem "Add to Stack Cov"    "TASK.STK.ADD address.offset(track.address())"
+  ;menuitem "Rm from Stack Cov"   "TASK.STK.RM  address.offset(track.address())"
+  ;separator
+  ;menuitem "Dump task entry"
+  ;(
+  ;  &address=address.offset(track.address())
+  ;  Data.dump &address /Long /dialog
+  ;)
+)
+
+menu "task.sem"
+(
+  default
+  menuitem "Display Detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.SEMaphore &address
+  )
+  menuitem "Display semaphore struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %Open %String (T_SEM*)&address
+  )
+  menuitem "Dump semaphore entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /Long /dialog
+  )
+)
+
+menu "task.flg"
+(
+  default
+  menuitem "Display Detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.FLaG &address
+  )
+  menuitem "Display flag struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %Open %String (T_FLG*)&address
+  )
+  menuitem "Dump flag entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /Long /dialog
+  )
+)
+
+
+menu "task.dtq"
+(
+  default
+  menuitem "Display Detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.DaTaQueue &address
+  )
+  menuitem "Display data queue struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %Open %String (T_DTQ*)&address
+  )
+  menuitem "Dump data queue entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /Long /dialog
+  )
+)
+
+
+menu "task.mbx"
+(
+  default
+  menuitem "Display Detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.MailBoX &address
+  )
+  menuitem "Display mailbox struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %Open %String (T_MBX*)&address
+  )
+  menuitem "Dump mailbox entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /Long /dialog
+  )
+)
+
+
+menu "task.mtx"
+(
+  default
+  menuitem "Display Detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.MuTeX &address
+  )
+  menuitem "Display mutex struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %Open %String (T_MTX*)&address
+  )
+  menuitem "Dump mutex entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /Long /dialog
+  )
+)
+
+
+menu "task.mbf"
+(
+  default
+  menuitem "Display Detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.MsgBuFfer &address
+  )
+  menuitem "Display message buffer struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %Open %String (T_MBF*)&address
+  )
+  menuitem "Dump message buffer entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /Long /dialog
+  )
+)
+
+
+menu "task.por"
+(
+  default
+  menuitem "Display Detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.PORt &address
+  )
+  menuitem "Display port struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %Open %String (T_POR*)&address
+  )
+  menuitem "Dump port entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /Long /dialog
+  )
+)
+
+
+menu "task.mpf"
+(
+  default
+  menuitem "Display Detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.MemPoolF &address
+  )
+  menuitem "Display memory pool struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %Open %String (T_MPF*)&address
+  )
+  menuitem "Dump memory pool entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /Long /dialog
+  )
+)
+
+menu "task.mpl"
+(
+  default
+  menuitem "Display Detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.MemPoolL &address
+  )
+  menuitem "Display memory pool struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %Open %String (T_MPL*)&address
+  )
+  menuitem "Dump memory pool entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /Long /dialog
+  )
+)
+
+
+menu "task.alm"
+(
+  default
+  menuitem "Display Detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.ALarM &address
+  )
+  menuitem "Display handler control struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %Open %String (T_ALM*)&address
+  )
+  menuitem "Dump handler control entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /Long /dialog
+  )
+)
+
+
+menu "task.cyc"
+(
+  default
+  menuitem "Display Detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.CYClic &address
+  )
+  menuitem "Display handler control struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %Open %String (T_CYC*)&address
+  )
+  menuitem "Dump handler control entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /Long /dialog
+  )
+)
+
+
+menu "task.isr"
+(
+  default
+  menuitem "Display ISR control struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %Open %String (T_ISR*)&address
+  )
+  menuitem "Dump ISR control entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /Long /dialog
+  )
+)

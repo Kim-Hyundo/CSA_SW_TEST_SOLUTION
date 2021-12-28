@@ -1,0 +1,197 @@
+; --------------------------------------------------------------------------------
+; @Title: NOR/CFI Flash programming example for i.MX6
+; @Description:
+;   Setup parallel NOR-Flash programming on a i.MX6 chip.
+;   In this example the NOR-Flash is attached to the 16bit wide bus.
+;   Per default TOOL based programming is used by the script. The TARGET based
+;   flash programming can be unlocked by uncommenting the section in the script.
+;   Prerequisites:
+;     * JTAG is connected
+;     * Chip is configured to boot from NOR
+; @Author: AME
+; @Board: -
+; @Chip: IMX6*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx6-norflash.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+RESet 
+SYStem.CPU iMX6QUAD
+CORE.ASSIGN 1
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 1.3s 
+ETM.OFF
+SYStem.Up
+
+; disable interrupt, cache, branch predictor and mmu
+Data.Set C15:0x1 %LONG  (Data.Long(C15:0x1)&~(0x1c3))  
+
+Data.Set ASD:0x020d8000 %Long 0x01C00521
+
+; ----- initialize EIM -----------------------------------------------------------
+
+Data.Set ASD:0x020e00dc %Long 0x00000000 ; EIM_A22
+Data.Set ASD:0x020e03f0 %Long 0x0000b0b1
+Data.Set ASD:0x020e00e0 %Long 0x00000000 ; EIM_A21
+Data.Set ASD:0x020e03f4 %Long 0x0000b0b1
+Data.Set ASD:0x020e00e4 %Long 0x00000000 ; EIM_A20
+Data.Set ASD:0x020e03f8 %Long 0x0000b0b1
+Data.Set ASD:0x020e00e8 %Long 0x00000000 ; EIM_A19
+Data.Set ASD:0x020e03fc %Long 0x0000b0b1
+Data.Set ASD:0x020e00ec %Long 0x00000000 ; EIM_A18
+Data.Set ASD:0x020e0400 %Long 0x0000b0b1
+Data.Set ASD:0x020e00f0 %Long 0x00000000 ; EIM_A17
+Data.Set ASD:0x020e0404 %Long 0x0000b0b1
+Data.Set ASD:0x020e00f4 %Long 0x00000000 ; EIM_A16
+Data.Set ASD:0x020e0408 %Long 0x0000b0b1
+Data.Set ASD:0x020e00f8 %Long 0x00000000 ; EIM_CS0
+Data.Set ASD:0x020e040c %Long 0x0000b0b1
+Data.Set ASD:0x020e0100 %Long 0x00000000 ; EIM_OE
+Data.Set ASD:0x020e0414 %Long 0x0000b0b1
+Data.Set ASD:0x020e0104 %Long 0x00000000 ; EIM_RW
+Data.Set ASD:0x020e0418 %Long 0x0000b0b1
+Data.Set ASD:0x020e0114 %Long 0x00000000 ; EIM_DA0
+Data.Set ASD:0x020e0428 %Long 0x0000b0b1
+Data.Set ASD:0x020e0118 %Long 0x00000000 ; EIM_DA1
+Data.Set ASD:0x020e042c %Long 0x0000b0b1
+Data.Set ASD:0x020e011c %Long 0x00000000 ; EIM_DA2
+Data.Set ASD:0x020e0430 %Long 0x0000b0b1
+Data.Set ASD:0x020e0120 %Long 0x00000000 ; EIM_DA3
+Data.Set ASD:0x020e0434 %Long 0x0000b0b1
+Data.Set ASD:0x020e0124 %Long 0x00000000 ; EIM_DA4
+Data.Set ASD:0x020e0438 %Long 0x0000b0b1
+Data.Set ASD:0x020e0128 %Long 0x00000000 ; EIM_DA5
+Data.Set ASD:0x020e043c %Long 0x0000b0b1
+Data.Set ASD:0x020e012c %Long 0x00000000 ; EIM_DA6
+Data.Set ASD:0x020e0440 %Long 0x0000b0b1
+Data.Set ASD:0x020e0130 %Long 0x00000000 ; EIM_DA7
+Data.Set ASD:0x020e0444 %Long 0x0000b0b1
+Data.Set ASD:0x020e0134 %Long 0x00000000 ; EIM_DA8
+Data.Set ASD:0x020e0448 %Long 0x0000b0b1
+Data.Set ASD:0x020e0138 %Long 0x00000000 ; EIM_DA9
+Data.Set ASD:0x020e044c %Long 0x0000b0b1
+Data.Set ASD:0x020e013c %Long 0x00000000 ; EIM_DA10
+Data.Set ASD:0x020e0450 %Long 0x0000b0b1
+Data.Set ASD:0x020e0140 %Long 0x00000000 ; EIM_DA11
+Data.Set ASD:0x020e0454 %Long 0x0000b0b1
+Data.Set ASD:0x020e0144 %Long 0x00000000 ; EIM_DA12
+Data.Set ASD:0x020e0458 %Long 0x0000b0b1
+Data.Set ASD:0x020e0148 %Long 0x00000000 ; EIM_DA13
+Data.Set ASD:0x020e045c %Long 0x0000b0b1
+Data.Set ASD:0x020e014c %Long 0x00000000 ; EIM_DA14
+Data.Set ASD:0x020e0460 %Long 0x0000b0b1
+Data.Set ASD:0x020e0150 %Long 0x00000000 ; EIM_DA15
+Data.Set ASD:0x020e0464 %Long 0x0000b0b1
+Data.Set ASD:0x020e0090 %Long 0x00000000 ; EIM_D16
+Data.Set ASD:0x020e03a4 %Long 0x0000b0b1
+Data.Set ASD:0x020e0094 %Long 0x00000000 ; EIM_D17
+Data.Set ASD:0x020e03a8 %Long 0x0000b0b1
+Data.Set ASD:0x020e0098 %Long 0x00000000 ; EIM_D18
+Data.Set ASD:0x020e03ac %Long 0x0000b0b1
+Data.Set ASD:0x020e009c %Long 0x00000000 ; EIM_D19
+Data.Set ASD:0x020e03b0 %Long 0x0000b0b1
+Data.Set ASD:0x020e00a0 %Long 0x00000000 ; EIM_D20
+Data.Set ASD:0x020e03b4 %Long 0x0000b0b1
+Data.Set ASD:0x020e00a4 %Long 0x00000000 ; EIM_D21
+Data.Set ASD:0x020e03b8 %Long 0x0000b0b1
+Data.Set ASD:0x020e00a8 %Long 0x00000000 ; EIM_D22
+Data.Set ASD:0x020e03bc %Long 0x0000b0b1
+Data.Set ASD:0x020e00ac %Long 0x00000000 ; EIM_D23
+Data.Set ASD:0x020e03c0 %Long 0x0000b0b1
+Data.Set ASD:0x020e00b4 %Long 0x00000000 ; EIM_D24
+Data.Set ASD:0x020e03c8 %Long 0x0000b0b1
+Data.Set ASD:0x020e00b8 %Long 0x00000000 ; EIM_D25
+Data.Set ASD:0x020e03cc %Long 0x0000b0b1
+Data.Set ASD:0x020e00bc %Long 0x00000000 ; EIM_D26
+Data.Set ASD:0x020e03d0 %Long 0x0000b0b1
+Data.Set ASD:0x020e00c0 %Long 0x00000000 ; EIM_D27
+Data.Set ASD:0x020e03d4 %Long 0x0000b0b1
+Data.Set ASD:0x020e00c4 %Long 0x00000000 ; EIM_D28
+Data.Set ASD:0x020e03d8 %Long 0x0000b0b1
+Data.Set ASD:0x020e00c8 %Long 0x00000000 ; EIM_D29
+Data.Set ASD:0x020e03dc %Long 0x0000b0b1
+Data.Set ASD:0x020e00cc %Long 0x00000000 ; EIM_D30
+Data.Set ASD:0x020e03e0 %Long 0x0000b0b1
+Data.Set ASD:0x020e00d0 %Long 0x00000000 ; EIM_D31
+Data.Set ASD:0x020e03e4 %Long 0x0000b0b1
+Data.Set ASD:0x020e00d8 %Long 0x00000000 ; EIM_A23
+Data.Set ASD:0x020e03ec %Long 0x0000b0b1
+Data.Set ASD:0x020e00d4 %Long 0x00000000 ; EIM_A24
+Data.Set ASD:0x020e03e8 %Long 0x0000b0b1
+
+Data.Set ASD:0x021b8000 %Long 0x10020281 ; CSEN
+Data.Set ASD:0x021b8004 %Long 0x00000001 ; Chip Select n General Configuration Register 2 (EIM_CS0GCR2)
+Data.Set ASD:0x021b8008 %Long 0x0d020000 ; Chip Select n Read Configuration Register 1 (EIM_CS0RCR1)
+Data.Set ASD:0x021b800c %Long 0x00009000 ; Chip Select n Read Configuration Register 2 (EIM_CS0RCR2)
+
+Data.Set ASD:0x021b8010 %Long 0x1c092480 ; Chip Select n Write Configuration Register 1 (EIM_CS0WCR1)
+Data.Set ASD:0x021b8014 %Long 0x00000000 ; Chip Select n Write Configuration Register 2 (EIM_CS0WCR2)
+Data.Set ASD:0x021b8090 %Long 0x00000020 ; EIM Configuration Register (EIM_WCR)
+Data.Set ASD:0x021b8094 %Long 0x00000010 ; EIM Configuration Register (EIM_WIAR) - Enable ACLK
+
+; ----- this is NOR speed dependant, adjust to your needs ------------------------
+
+Data.Set ASD:0x020C401C %Long 0x41f00000 ; CCM Serial Clock Multiplexer Register 1 (CCM_CSCMR1)
+Data.Set ASD:0x020C4014 %Long 0x00008d00 ; CCM Bus Clock Divider Register (CCM_CBCDR)
+Data.Set ASD:0x020C4018 %Long 0x00260204 ; CCM Bus Clock Multiplexer Register (CCM_CBCMR)
+Data.Set ASD:0x020C4024 %Long 0x02490b00 ; CCM Serial Clock Divider Register (VPU Clock divider for 400MHz AXI-Bus included)
+
+; --------------------------------------------------------------------------------
+; Flash declaration
+
+FLASH.RESet
+; Tool based programming
+FLASH.CFI 0x8000000 Word
+; Target based programming - using SRAM
+; FLASH.CFI 0x8000000 Word /TARGET 0x900000 0x901000 0x1000
+
+; --------------------------------------------------------------------------------
+; Flash programming example
+
+DIALOG.YESNO "Program flash memory?"
+LOCAL &progflash
+ENTRY &progflash
+IF &progflash
+( 
+  FLASH.ReProgram.ALL /Erase
+  Data.LOAD * 0x8000000
+  FLASH.ReProgram.off
+)
+
+ENDDO
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

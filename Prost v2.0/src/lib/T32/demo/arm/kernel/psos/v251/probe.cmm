@@ -1,0 +1,65 @@
+; --------------------------------------------------------------------------------
+; @Title: Patch Program to use pROBE+ with TRACE32 Terminal Window
+; @Description: 
+;   
+;   This patch program uses the address 0x80 for output and
+;   0x81 for input.
+;   Use the command "probe" on the command line to activate pROBE
+;   
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: probe.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+;   Created by R. Dienstbeck, Lauterbach GmbH at 15.05.01
+
+ Data.Assemble probe_poll_out mov r0,#0
+ Data.Assemble , mov  r0,#0x80
+ Data.Assemble , ldrb r0,[r0]
+ Data.Assemble , cmp  r0,#0
+ Data.Assemble , bne  probe_poll_out
+ Data.Assemble , cmp  r2,#0
+ Data.Assemble , bne  $+4
+ Data.Assemble , bx   r14
+ Data.Assemble , mov  r0,#0x80
+ Data.Assemble , ldrb r3,[r1]
+ Data.Assemble , strb r3,[r0]
+ Data.Assemble , add  r1,#1
+ Data.Assemble , sub  r2,#1
+ Data.Assemble , b    probe_poll_out
+ 
+ Data.Assemble probe_io_status mov r0,#0
+ Data.Assemble , mov  r0,#0x81
+ Data.Assemble , ldrb r0,[r0]
+ Data.Assemble , cmp  r0,#0
+ Data.Assemble , beq  $+6
+ Data.Assemble , mov  r0,#0
+ Data.Assemble , bx   r14
+ Data.Assemble , mov  r0,#0
+ Data.Assemble , sub  r0,#1
+ Data.Assemble , bx   r14
+ 
+ Data.Assemble ProbeConin mov r0,#0
+ Data.Assemble , mov  r1,#0x81
+ Data.Assemble , ldrb r0,[r1]
+ Data.Assemble , mov  r2,#0
+ Data.Assemble , strb r2,[r1]
+ Data.Assemble , bx   r14
+ 
+ Data.Set 80 0 0
+ TERM.view 80 81
+ 
+ ON cmd probe GOSUB
+ (
+    Break.Set probe_io_status
+    WAIT !STATE.RUN()
+    Register.Set r0 2
+    Register.Set PC probe_io_status+0x0c
+    Break.Delete probe_io_status
+    Go
+    RETURN
+  )
+ 
+; do not end, so that "probe" remains active
+ STOP
+

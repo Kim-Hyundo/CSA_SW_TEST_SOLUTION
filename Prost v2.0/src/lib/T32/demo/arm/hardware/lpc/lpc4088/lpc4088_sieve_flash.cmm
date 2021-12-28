@@ -1,0 +1,82 @@
+;-----------------------------------------------------------------------------------
+; @Title: Simple sieve demo running from FLASH
+; @Description:
+;   This is a small demo how to setup a debug session on LPC40xx derivatives. 
+;   The sieve demo is loaded on Flash using the board support scripts of the 
+;   TRACE32.
+;   Prerequisites:
+;     * uTrace/Combiprobe is connected to MIPI20 connector
+;       or
+;       Debugcable is connected to MIPI20 connector using LA-3770
+;
+; @Keywords: Cortex-M4, debug, SWD
+; @Author: AME
+; @Board: LPC4088 Quick Start
+; @Chip: LPC40*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: lpc4088_sieve_flash.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+LOCAL &vectorsvalid
+
+RESet
+SYStem.RESet
+SYStem.CPU LPC4088FET208
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+SYStem.CONFIG.CONNECTOR MIPI20T
+SYStem.Up
+
+; Flash programming warning
+DIALOG.YESNO "This demo will program flash memory. Do you want to continue?"
+LOCAL &progflash
+ENTRY &progflash
+IF !&progflash
+(
+  ENDDO
+)
+
+GOSUB ExecBootrom
+
+; update flash
+DO ~~/demo/arm/flash/lpc40xx PREPAREONLY
+FLASH.ReProgram ALL
+Data.LOAD.Elf ~~~~/sieve_flash_thumb_ii_v7.elf
+; ensure the checksum is correct
+Data.SUM 0x0--0x1b /Long
+Data.Set 0x1c %Long %LE -Data.SUM()
+FLASH.ReProgram OFF
+
+; reset target
+SYStem.Up
+
+GOSUB ExecBootrom
+ENTRY &vectorsvalid
+IF !&vectorsvalid
+(
+  PRINT "Aborted ... cannot bootstrap into Flash .. vectors invalid"
+  ENDDO
+)
+; BootROM will load the initial PC and SP from Flash
+Go 0x4 /Read
+WAIT !STATE.RUN()
+; finally reinitialize the registers by the debugger
+Register.RESet
+
+; ready for debugging
+Mode.Hll
+List.auto
+
+ENDDO
+
+ExecBootrom:
+  ; MEMMAP -> ensure BootROM is mapped
+  Data.Set 0x400fc040 %Long %LE 0x0
+  ; let bootcode execute 
+  ; re-read the exception vectors
+  Register.RESet
+  ; -> wait till Checksum in REAL FLASH is read
+  Go 0x1c /Read
+  WAIT !STATE.RUN()
+  Data.SUM 0x0--0x1f /Long
+  RETURN (Data.SUM()==0x0)
+

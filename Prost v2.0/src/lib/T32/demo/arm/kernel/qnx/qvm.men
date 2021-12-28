@@ -1,0 +1,47 @@
+; --------------------------------------------------------------------------------
+; @Title: QNX Hypervisor (QVM) specific menu
+; @Description: -
+; @Keywords: QNX hypervisor QVM menu awareness
+; @Author: DIE
+; @Copyright: (c) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: qvm.men 3620 2018-09-04 14:23:50Z rweiss $
+
+add
+menu
+(
+  popup "&QNXHV"
+  (
+    SEPARATOR
+    MENUITEM "Display &VMs"             "TASK.QVM"
+    MENUITEM "Display Task Tree"        "TASK.List.TREE"
+    MENUITEM "Display Core Activity"    "CORE.List"
+  )
+  //popup "&Help"
+  //(
+  //  MENUITEM "[:manual]OS Awareness Manual QNX Hypervisor" "HELP __RTOS_rtos_"
+  //)
+)
+
+add
+menu "task.qvm"
+(
+  default
+  menuitem "Display detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.QVM &address
+  )
+  menuitem "Display guest struct"
+  (
+    &segment=address.segment(track.address())
+    &address=address.offset(all_guests)
+    Var.View %Open (struct guest_system***)(H:0:::&segment::&address)
+  )
+  menuitem "List intermediate page table"
+  (
+    &address=address.offset(track.address())
+    &address=ext.qvm.vttb(&address)
+    MMU.List IntermedPageTable 0x0 A:&address
+  )
+)

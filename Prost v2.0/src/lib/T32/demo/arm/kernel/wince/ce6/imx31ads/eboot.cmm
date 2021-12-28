@@ -1,0 +1,56 @@
+; --------------------------------------------------------------------------------
+; @Title: Startup Script for Debugging Eboot on iMX31ADS Board, WinCE 6.0
+; @Description: -
+; @Keywords: awareness, Windows, i.MX31
+; @Author: DIE
+; @Board: iMX31ADS
+; @Chip: IMX31
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: eboot.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+ LOCAL &projectdrive
+ LOCAL &projectpath
+
+ &projectdrive="C:"
+ &projectpath="&projectdrive"+"\WINCE600\OSDesigns\iMX31ADSMobility\RelDir\Freescale_i_MX31_ADS_ARMV4I_Debug"
+ 
+ ; reset debugger
+ 
+ sYmbol.RESet
+ SYStem.RESet
+
+ ; setup debugger
+ 
+ SYStem.CPU MCIMX31
+ SYStem.Option ResBreak OFF
+ SYStem.JtagClock RTCK
+
+ SYStem.Up
+
+ ; initialize the board
+ 
+ DO mx31_ddr
+  
+ ; load bootloader to *physical* address (virtual 0x88040000, see eboot.bib)
+ 
+ Data.LOAD.Binary "&projectpath\EBOOT.nb0" 0x80040000
+ Register.Set PC 0x80040000
+ 
+ ; load wince awareness (wince6.t32) for section detection
+ 
+ TASK.CONFIG wince6
+ TASK.ROM.PA 0x80040000     ; specify physical address of image
+ 
+ ; load eboot.exe symbols; module is named "nk.exe"
+ 
+ DO ../loadrom nk.exe "&projectpath\eboot.exe"
+
+ ; if you want to debug the physical startup until enabling the MMU,
+ ; then relocate the .text symbols to physical address (-0x08000000)
+ ; sYmbol.RELOC P:0xF8000000
+ 
+ Go main /Onchip    ; use onchip because of MMU switch
+
+ENDDO

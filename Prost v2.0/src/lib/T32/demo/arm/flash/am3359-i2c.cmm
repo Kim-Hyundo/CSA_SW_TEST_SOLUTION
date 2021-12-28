@@ -1,0 +1,67 @@
+; --------------------------------------------------------------------------------
+; @Title: I2C EEPROM Programming script for TI AM3359
+; @Description:
+; EEPROM(24LC32A) is connected to I2C0
+;
+; SRAM: 0x40300000
+;
+; I2C controller base : 0x44E0B000
+;
+; @Author: jjeong
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; @Chip: AM3359
+; @Keywords: I2C flash EEPROM
+; --------------------------------------------------------------------------------
+; $Id: am3359-i2c.cmm 7577 2019-10-30 15:30:31Z bschroefel $
+
+SYStem.CPU AM3359
+SYStem.Up
+
+Data.Set C15:0x1 %Long  (Data.Long(C15:0x1)&~(0x1005))  ; disable cache and mmu
+
+//Disable watchdog
+Data.Set A:0x44E35048 %Long  0xAAAA
+Data.Set A:0x44E35048 %Long  0x5555
+
+//Enable OCM memory 
+Data.Set A:0x44E0002C %Long 0x2
+
+PER.Set.simple AD:0x44E00400 %Long 0x1E16  ;CM_WKUP_CLKSTCTRL
+PER.Set.simple AD:0x44E004B8 %Long 0x2     ;CM_WKUP_I2C0_CLKCTRL
+;PER.Set.simple AD:0x44E00044 %Long 0x2    ;I2C2_CLKCTRL
+;PER.Set.simple AD:0x44E00048 %Long 0x2    ;I2C1_CLKCTRL
+
+PER.Set.simple AD:0x44E10988 %Long 0x60  ;conf_i2c0_sda, Control_module register
+PER.Set.simple AD:0x44E1098C %Long 0x60  ;conf_i2c0_scl
+
+//I2C registers
+PER.Set.simple AD:0x44E0B010 %Long 0x2   ;I2C reset
+WAIT 10.ms
+
+PER.Set.simple AD:0x44E0B0A8 %Long 0x1   ;I2C_OA
+PER.Set.simple AD:0x44E0B0AC %Long 0x50  ;I2C_SA, slave address
+PER.Set.simple AD:0x44E0B0B4 %Long 0x0A  ;I2C_SCLL  , <400khz
+PER.Set.simple AD:0x44E0B0B8 %Long 0x0A  ;I2C_SCLH  , <400khz
+
+PER.Set.simple AD:0x44E0B0A4 %Long 0x8602
+PER.Set.simple AD:0x44E0B028 %Long 0xFFFF
+
+  Break.RESet
+
+  FLASHFILE.RESet
+  
+//FLASFILE.CONFIG  <i2c controller Reg>    <Slave addr>
+  FLASHFILE.CONFIG 0x44E0B000              0x50
+
+// FLASHFILE.TARGET <code range>        <data range>           <Algorithm file>
+  FLASHFILE.TARGET 0x40300000++0x1FFF   0x40302000++0x1FFF    ~~/demo/arm/flash/byte/i2c32_omap.bin /KEEP 
+
+  FLASHFILE.GETID
+
+//FLASHFILE.ERASE 0x0++0xFFF
+//FLASHFILE.LOAD * 0x0            ; Write
+//FLASHFILE.LOAD * 0x0  /ComPare  ; Verify
+
+  FLASHFILE.DUMP 0x0
+
+ENDDO

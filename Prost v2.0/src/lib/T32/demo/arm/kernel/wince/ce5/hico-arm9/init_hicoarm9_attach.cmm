@@ -1,0 +1,17 @@
+; --------------------------------------------------------------------------------
+; @Title: Switch off MMU and other stuff
+; @Description: -
+; @Props: NoWelcome, NoIndex
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: init_hicoarm9_attach.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+ PER.Set.simple C15:0x1 %Long 0xc0004078
+ ; mask timer int
+ PER.Set.simple ASD:0xFFFFFD18 %Long 0x1
+ ;usart1 mode
+ PER.Set.simple ASD:0xFFFC4004 %Long 0x8c0
+ ;usart1 dma transfer disable
+ PER.Set.simple ASD:0xFFFC4120 %Long 0x202

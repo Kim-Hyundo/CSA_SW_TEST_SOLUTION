@@ -1,0 +1,287 @@
+; --------------------------------------------------------------------------------
+; @Title: Setup Script for AM572x : am572x_prcm_config.cmm
+; @Description: see "am572x_hardware_init.cmm"
+; @Keywords: AM57xx
+; @Author: jvogl
+; @Board: AM572x EVM
+; @Chip: AM572x
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: am572x_multicore_reset.cmm 15893 2020-03-31 07:11:47Z jvogl $
+
+//******************************************************************************
+//      AM572x Registers Map Defines: CortexA15_CPU1 view
+//******************************************************************************
+&GPMC_TARG=AD:0x00000000
+&MPU_RAM=AD:0x402F0000
+&OCMC_RAM1_TARG=AD:0x40300000
+&OCMC_RAM2_TARG=AD:0x40400000
+&OCMC_RAM3_TARG=AD:0x40500000
+&DSP1_L2_SRAM_TARG=AD:0x40800000
+&DSP1_SYSTEM_TARG=AD:0x40D00000
+&DSP1_MMU0CFG_TARG=AD:0x40D01000
+&DSP1_MMU1CFG_TARG=AD:0x40D02000
+&DSP1_FW0CFG_TARG=AD:0x40D03000
+&DSP1_FW1CFG_TARG=AD:0x40D04000
+&DSP1_EDMA_TC0_TARG=AD:0x40D05000
+&DSP1_EDMA_TC1_TARG=AD:0x40D06000
+&DSP1_NoC_TARG=AD:0x40D07000
+&DSP1_EDMA_CC_TARG=AD:0x40D10000
+&DSP1_L1P_SRAM_TARG=AD:0x40E00000
+&DSP1_L1D_SRAM_TARG=AD:0x40F00000
+&DSP2_L2_SRAM_TARG=AD:0x41000000
+&DSP2_SYSTEM_TARG=AD:0x41500000
+&DSP2_MMU0CFG_TARG=AD:0x41501000
+&DSP2_MMU1CFG_TARG=AD:0x41502000
+&DSP2_FW0CFG_TARG=AD:0x41503000
+&DSP2_FW1CFG_TARG=AD:0x41504000
+&DSP2_EDMA_TC0_TARG=AD:0x41505000
+&DSP2_EDMA_TC1_TARG=AD:0x41506000
+&DSP2_NoC_TARG=AD:0x41507000
+&DSP2_EDMA_CC_TARG=AD:0x41510000
+&DSP2_L1P_SRAM_TARG=AD:0x41600000
+&DSP2_L1D_SRAM_TARG=AD:0x41700000
+&OCMC_RAM1_CBUF_TARG=AD:0x41800000
+&EDMA_TPCC_TARG=AD:0x43300000
+&EDMA_TC0_TARG=AD:0x43400000
+&EDMA_TC1_TARG=AD:0x43500000
+&OCMC_ROM_TARG=AD:0x43A00000
+&SN_L3_MAIN_TARG=AD:0x44000000
+&McASP1_TARG=AD:0x45800000
+&McASP2_TARG=AD:0x45C00000
+&McASP3_TARG=AD:0x46000000
+&L4_PER1_TARG=AD:0x48000000
+&MPU_MA=AD:0x482AF000
+&L4_PER2_TARG=AD:0x48400000
+&L4_PER3_TARG=AD:0x48800000
+&OCMC_RAM2_CBUF_TARG=AD:0x49000000
+&OCMC_RAM3_CBUF_TARG=AD:0x49800000
+&L4_CFG_TARG=AD:0x4A000000
+&L4_WKUP_TARG=AD:0x4AE00000
+&QSPI_ADDRSP0_TARG=AD:0x4B300000
+&EMIF1_CONF_REGS=AD:0x4C000000
+&EMIF2_CONF_REGS=AD:0x4D000000
+&DMM_CONF_REGS_TARG=AD:0x4E000000
+&GPMC_CONF_REGS_TARG=AD:0x50000000
+&IPU2_TARGET_TARG=AD:0x55000000
+&GPU_TARG=AD:0x56000000
+&DSS_TARG=AD:0x58000000
+&IPU1_TARGET_TARG=AD:0x58800000
+&BB2D_TARG=AD:0x59000000
+&IVA_CONFIG_TARG=AD:0x5A000000
+&IVA_SL2IF_TARG=AD:0x5B000000
+&QSPI_ADDRSP1_TARG=AD:0x5C000000
+&TILER=AD:0x60000000
+&EMIF1_SDRAM_CS0=AD:0x80000000
+&EMIF2_SDRAM_CS0=AD:0xC0000000
+
+//******************************************************************************
+//      L4_CFG Registers Map Defines: CortexA15_CPU1 view
+//******************************************************************************
+&CTRL_MODULE_CORE=(&L4_CFG_TARG+0x2000)
+&CM_CORE_AON=(&L4_CFG_TARG+0x5000)
+&CM_CORE=(&L4_CFG_TARG+0x8000)
+
+//******************************************************************************
+//      L4_WKUP Registers Map Defines: CortexA15_CPU1 view
+//******************************************************************************
+&PRM=(&L4_WKUP_TARG+0x6000)
+
+//******************************************************************************
+//      PRCM Registers Map Defines: CortexA15_CPU1 view
+//******************************************************************************
+&IPU_CM_CORE_AON=(&CM_CORE_AON+0x500)
+&DSP1_CM_CORE_AON=(&CM_CORE_AON+0x400)
+&DSP2_CM_CORE_AON=(&CM_CORE_AON+0x600)
+&CORE_CM_CORE=(&CM_CORE+0x700)
+&IVA_CM_CORE=(&CM_CORE+0xF00)
+&DSP1_PRM=(&PRM+0x400)
+&IPU_PRM=(&PRM+0x500)
+&CORE_PRM=(&PRM+0x700)
+&IVA_PRM=(&PRM+0xF00)
+&DSP2_PRM=(&PRM+0x1B00)
+
+//******************************************************************************
+//      DSPSS1 Address Map defines: CortexA15_CPU1 view
+//******************************************************************************
+&CM_DSP1_CLKSTCTRL=(&DSP1_CM_CORE_AON+0x0)
+&CM_DSP1_DSP1_CLKCTRL=(&DSP1_CM_CORE_AON+0x20)
+&RM_DSP1_RSTCTRL=(&DSP1_PRM+0x10)
+&RM_DSP1_RSTST=(&DSP1_PRM+0x14)
+
+&DSPSS1BOOTADDR=(&CTRL_MODULE_CORE+0x55C)
+&DSPSS1BOOTADDRVALUE=(0x40800000-0x40000000)
+
+//******************************************************************************
+//      DSPSS2 Address Map defines: CortexA15_CPU1 view
+//******************************************************************************
+&CM_DSP2_CLKSTCTRL=(&DSP2_CM_CORE_AON+0x0)
+&CM_DSP2_DSP2_CLKCTRL=(&DSP2_CM_CORE_AON+0x20)
+&RM_DSP2_RSTCTRL=(&DSP2_PRM+0x10)
+&RM_DSP2_RSTST=(&DSP2_PRM+0x14)
+
+&DSPSS2BOOTADDR=(&CTRL_MODULE_CORE+0x560)
+&DSPSS2BOOTADDRVALUE=(0x41000000-0x40800000)
+
+//******************************************************************************
+//      DSPSS CPU Independent defines
+//******************************************************************************
+&CM_DSP_CLKSTCTRL="(&(CM_DSP&(CPU_NUM)_CLKSTCTRL))"
+&CM_DSP_DSP_CLKCTRL="(&(CM_DSP&(CPU_NUM)_DSP1_CLKCTRL))"
+&RM_DSP_RSTCTRL="(&(RM_DSP&(CPU_NUM)_RSTCTRL))"
+&RM_DSP_RSTST="(&(RM_DSP&(CPU_NUM)_RSTST))"
+
+&&DSPSSBOOTADDR="(&(DSPSS&(CPU_NUM)BOOTADDR))"
+&&DSPSSBOOTADDRVALUE="(&(DSPSS&(CPU_NUM)BOOTADDRVALUE))"
+
+&DSP_L2_SRAM_TARG="(&(DSP&(CPU_NUM)_L2_SRAM_TARG))"
+
+&DRM_SUSPEND_CTRL=AD:0x54160200
+&DRM_SUSPEND_CTRL_TIMER1=(&DRM_SUSPEND_CTRL+0x00000040)
+&DRM_SUSPEND_CTRL_TIMER2=(&DRM_SUSPEND_CTRL+0x00000044)
+&DRM_SUSPEND_CTRL_TIMER3=(&DRM_SUSPEND_CTRL+0x00000048)
+&DRM_SUSPEND_CTRL_TIMER4=(&DRM_SUSPEND_CTRL+0x0000004C)
+&DRM_SUSPEND_CTRL_TIMER5=(&DRM_SUSPEND_CTRL+0x00000014)
+&DRM_SUSPEND_CTRL_TIMER6=(&DRM_SUSPEND_CTRL+0x00000018)
+&DRM_SUSPEND_CTRL_TIMER7=(&DRM_SUSPEND_CTRL+0x0000001C)
+&DRM_SUSPEND_CTRL_TIMER8=(&DRM_SUSPEND_CTRL+0x00000020)
+&DRM_SUSPEND_CTRL_TIMER9=(&DRM_SUSPEND_CTRL+0x00000050)
+&DRM_SUSPEND_CTRL_TIMER10=(&DRM_SUSPEND_CTRL+0x00000054)
+&DRM_SUSPEND_CTRL_TIMER11=(&DRM_SUSPEND_CTRL+0x00000058)
+&DRM_SUSPEND_CTRL_TIMER12=(&DRM_SUSPEND_CTRL+0x0000005C)
+&DRM_SUSPEND_CTRL_TIMER13=(&DRM_SUSPEND_CTRL+0x00000028)
+&DRM_SUSPEND_CTRL_TIMER14=(&DRM_SUSPEND_CTRL+0x00000030)
+&DRM_SUSPEND_CTRL_TIMER15=(&DRM_SUSPEND_CTRL+0x00000060)
+&DRM_SUSPEND_CTRL_TIMER16=(&DRM_SUSPEND_CTRL+0x00000074)
+
+&DRM_SUSPEND_SRC_DSP1=0x0
+&DRM_SUSPEND_SRC_IVA1=0x1
+&DRM_SUSPEND_SRC_IVA2=0x2
+&DRM_SUSPEND_SRC_IPU1_C0=0x3
+&DRM_SUSPEND_SRC_IPU1_C1=0x4
+&DRM_SUSPEND_SRC_MPU_C0=0x5
+&DRM_SUSPEND_SRC_MPU_C1=0x6
+&DRM_SUSPEND_SRC_DSP2=0x7
+
+GOSUB AM572x_MULTICORE_EnableAllCores
+
+ENDDO
+
+//************ Enable all slave cores ***************
+AM572x_MULTICORE_EnableAllCores:
+(
+	PRINT "--->>> Mapping TIMER suspend sources to default cores <<<<<<----"
+
+	//*   --------------------------------------------
+	//*  | Target       | Default availMask           |
+	//*   --------------------------------------------
+	//*  | A15          | 0x0202 (GPTimer 2 & 10)     |
+	//*  | DSP          | 0x0030 (GPTimer 5 & 6)      |
+	//*  | IPU(Dual-M4) | 0x050C (GPTimer 3,4,9 & 11) |
+	//*   --------------------------------------------
+	Data.Set &DRM_SUSPEND_CTRL_TIMER2  %Long (&DRM_SUSPEND_SRC_MPU_C0<<4)|0x1
+	Data.Set &DRM_SUSPEND_CTRL_TIMER10 %Long (&DRM_SUSPEND_SRC_MPU_C1<<4)|0x1
+	Data.Set &DRM_SUSPEND_CTRL_TIMER5  %Long (&DRM_SUSPEND_SRC_DSP1<<4)|0x1
+	Data.Set &DRM_SUSPEND_CTRL_TIMER6  %Long (&DRM_SUSPEND_SRC_DSP2<<4)|0x1
+	Data.Set &DRM_SUSPEND_CTRL_TIMER3  %Long (&DRM_SUSPEND_SRC_IPU1_C0<<4)|0x1
+	Data.Set &DRM_SUSPEND_CTRL_TIMER4  %Long (&DRM_SUSPEND_SRC_IPU1_C1<<4)|0x1
+
+;	GOSUB IPU1SSClkEnable_API
+;	GOSUB IPU2SSClkEnable_API //IPU2 subsystem is dedicated to IVA support and is not available for other processing
+
+	GOSUB DSP1SSClkEnable_API
+	GOSUB DSP2SSClkEnable_API
+
+;	GOSUB IVAHDSSClkEnable_API
+
+	GOSUB PRUSS_1_2_ClkEnable
+
+	PRINT
+
+	RETURN
+)
+
+//************ Enable the DSP1 Clocks ***************
+DSP1SSClkEnable_API:
+(
+	GOSUB DSPSSClkEnable "1"
+
+	RETURN
+)
+
+//************ Enable the DSP2 Clocks ***************
+DSP2SSClkEnable_API:
+(
+	GOSUB DSPSSClkEnable "2"
+
+	RETURN
+)
+
+PRUSS_1_2_ClkEnable:
+(
+	PRINT "--->>> PRUSS 1 and 2 Initialization is in progress ... <<<---"
+
+	Data.Set AD:0x4a009718 %Long 0x0 //PRUSS_1_CLKCTRL
+	Data.Set AD:0x4a009720 %Long 0x0 //PRUSS_2_CLKCTRL
+
+	Data.Set AD:0x4a009718 %Long 0x2 //PRUSS_1_CLKCTRL
+	Data.Set AD:0x4a009720 %Long 0x2 //PRUSS_2_CLKCTRL
+	WAIT ((Data.Long(AD:0x4a0098FC)&0x100)==0x100) //L4PER2 - ICSS_CLKACTIVITY
+
+	PRINT "--->>> PRUSS 1 and 2 Initialization is in complete ... <<<---"
+	
+	RETURN
+)
+
+DSPSSClkEnable:
+(
+	PARAMETERS &CPU_NUM
+	
+	&&CM_DSP_CLKSTCTRL=(&(CM_DSP&(CPU_NUM)_CLKSTCTRL))
+	&&CM_DSP_DSP_CLKCTRL=(&(CM_DSP&(CPU_NUM)_DSP&(CPU_NUM)_CLKCTRL))
+	&&RM_DSP_RSTCTRL=(&(RM_DSP&(CPU_NUM)_RSTCTRL))
+	&&RM_DSP_RSTST=(&(RM_DSP&(CPU_NUM)_RSTST))
+	&&DSPSSBOOTADDR=(&(DSPSS&(CPU_NUM)BOOTADDR))
+	&&DSPSSBOOTADDRVALUE=(&(DSPSS&(CPU_NUM)BOOTADDRVALUE))
+	&&DSP_L2_SRAM_TARG=(&(DSP&(CPU_NUM)_L2_SRAM_TARG))
+
+	PRINT "--->>> DSP" &CPU_NUM "SS Initialization is in progress ... <<<---"
+
+	// DSPSS Boot Address
+	Data.Set &DSPSSBOOTADDR %Long &DSPSSBOOTADDRVALUE>>10.
+
+	// Ware reset asserted for DSP_LRST, DSP Cache and Slave
+	Data.Set &RM_DSP_RSTCTRL %Long 0x3
+
+	// Start a SW force wakeup for DSPSS
+	Data.Set &CM_DSP_CLKSTCTRL %Long 0x2
+	// Enable DSPSS clock
+	Data.Set &CM_DSP_DSP_CLKCTRL %Long 0x1
+
+	// Check whether GFCLK is gated or not
+	WAIT (Data.Long(&CM_DSP_CLKSTCTRL)&0x100)==0x100
+	PRINT "DEBUG: Clock is active ... "
+
+	// Reset de-assertion for DSPSS
+	Data.Set &RM_DSP_RSTCTRL %Long 0x1
+	// Check the reset state: DSPSS
+	WAIT (Data.Long(&RM_DSP_RSTST)&0x2)==0x2
+
+	Data.Set &DSP_L2_SRAM_TARG %Long 0x0000A120 //Self branch loop for DSP
+
+	// Reset de-assertion for DSP CPUs
+	Data.Set &RM_DSP_RSTCTRL %Long 0x0
+	// Check the reset state: DSPSS Core, Cache and Slave interface
+	WAIT (Data.Long(&RM_DSP_RSTST)&0x3)==0x3
+	// Check module mode
+	WAIT (Data.Long(&CM_DSP_DSP_CLKCTRL)&0x30000)==0x0
+
+	PRINT "DEBUG: Checking for data integrity in DSPSS L2RAM ..."
+	Data.Set (&DSP_L2_SRAM_TARG+0x4)++0x3c %Long 0x12345678 /Verify
+
+	PRINT "--->>> DSP" &CPU_NUM "SS Initialization is DONE! <<<---"
+
+	RETURN
+)
+
+ENDDO

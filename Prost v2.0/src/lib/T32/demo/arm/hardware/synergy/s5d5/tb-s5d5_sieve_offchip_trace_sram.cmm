@@ -1,0 +1,125 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for R7FS5D57C3A01CFB on TB-S5D5 with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The Offchip Trace using a Combiprobe/uTrace or PowerTrace is set up.
+;   Use this script for testing the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Combiprobe/uTrace to J10
+;      or
+;      Connect AutoFocus Preprocessor to J10
+;      and connect DebugCable to Preprocessor
+;    * Trace signals are avaialbe on J1 and need to be connected manually:
+;          J1.20 (P214) TraceCLK
+;          J1.22 (P211) TraceD0
+;          J1.28 (P210) TraceD1
+;          J1.30 (P209) TraceD2
+;          J1.32 (P208) TraceD3
+; @Keywords: ARM, Cortex-M4, ETM, ITM
+; @Author: STK
+; @Board: TB-S5D5
+; @Chip: R7FS5D57C3A01CFB
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tb-s5d5_sieve_offchip_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU R7FS5D57C3A01CFB
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  ; The TB-S5D5 does not have a trace port, so the tracesignals need to be
+  ; connected manually to the CombiProbe or µTrace. In example script it is
+  ; assumed, that the signals are connected according to the MIPI34 spec.
+  SYStem.CONFIG.CONNECTOR MIPI34
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace (ETM, ITM)
+IF COMBIPROBE()||UTRACE()||Analyzer()
+(
+  ; Enable trace clock (even needed for on-chip trace)
+  Data.Set 0x4001e3fe %Word 0xa501     ; Protect Register (PRCR)
+  Data.Set 0x4001E03f %Byte 0x82       ; Trace Clock Control Register (TRCKCR)
+  Data.Set 0x4001e3fe %Word 0xa500     ; Protect Register (PRCR)
+
+; Configure I/O for off-chip trace
+  Data.Set 0x40040d03 %Byte 0x00       ; Write-Protect Register (PWPR)
+  Data.Set 0x40040d03 %Byte 0x40       ; Write-Protect Register (PWPR)
+  Data.Set 0x400408a0 %Long 0x1a010004 ; Port P208 Pin Function Select Register (P208PFS)
+  Data.Set 0x400408a4 %Long 0x1a010004 ; Port P209 Pin Function Select Register (P209PFS)
+  Data.Set 0x400408a8 %Long 0x1a010004 ; Port P210 Pin Function Select Register (P210PFS)
+  Data.Set 0x400408ac %Long 0x1a010004 ; Port P211 Pin Function Select Register (P211PFS)
+  Data.Set 0x400408b8 %Long 0x1a010004 ; Port P214 Pin Function Select Register (P214PFS)
+  Data.Set 0x40040d03 %Byte 0x80       ; Write-Protect Register (PWPR)
+
+  TPIU.PortSize 4
+  TPIU.PortMode Continuous
+  ITM.DataTrace CorrelatedData
+  ITM.ON
+  ETM.Trace ON
+  ETM.ON
+)
+IF COMBIPROBE()||UTRACE()
+(
+  Trace.METHOD CAnalyzer
+  Trace.AutoInit ON
+  IF VERSION.BUILD.BASE()>=74752.
+  (
+    CAnalyzer.AutoFocus
+  )
+  ELSE
+  (
+    ; for uTrace & Combiprobe use manual calibration
+     CAnalyzer.ClockDELAY None
+  )
+)
+IF Analyzer()
+(
+  Trace.METHOD Analyzer
+  Trace.AutoInit ON
+  Trace.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO

@@ -1,0 +1,447 @@
+; --------------------------------------------------------------------------------
+; @Title: S6J326 (Traveo) Serial FLASH Programming Script for DDR HS SPI controller
+; @Description:
+; This script was tested on the S6J3260 216 pin Evaluation Board
+;
+; SRAM: 0x01000, 0x50000000
+; DDR-HS-SPI: 0x50212000  (Graphic subsystem DDRHSSPI controller)
+; SPI FLASH pin connection: G_SSEL0,G_SCLK0, G_SDATA0_0,
+;                               G_SDATA0_1, G_SDATA0_2, G_SDATA0_3
+;
+; @Author: JIM
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; @Keywords: S6J326 HSSPI QSPI S25FL256 SPANSION
+; --------------------------------------------------------------------------------
+; $Id: s6j32x-ddrhsspi.cmm 7602 2019-11-05 15:02:25Z bschroefel $
+
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+&SPI_BASE= 0x50212000
+
+; --------------------------------------------------------------------------------
+; check Prerequisites
+
+IF VERSION.BUILD()<92177.
+(
+  DIALOG.OK "Please use more recent software!"
+  END
+)
+
+SYStem.RESet
+SYStem.CPU S6J326CK
+SYStem.Option WATCHDOG off
+SYStem.Option WaitIDCODE ON
+SYStem.Option ResBreak off
+SYStem.Up
+
+GOSUB WDOG_DISABLE
+
+GOSUB CLK_CONFIG
+
+GOSUB MPU_CONFIG
+
+GOSUB PORT_CONFIG
+
+GOSUB DDRHSSPI_CONFIG
+
+GOSUB READ_ID_TEST
+
+Break.RESet
+
+FLASHFILE.RESet
+
+//FLASFILE.CONFIG <SPI Base Reg>
+FLASHFILE.CONFIG &SPI_BASE
+
+Data.Set 0x0++0x4FFF %Long 0x0
+Data.Set 0x50000000++0x4FFF %Long 0x0
+
+FLASHFILE.Create 0x0++0xFFFFFF 0x40000   ;256KB uniform block spi flash
+
+;FLASHFILE.TARGET 0x0001000++0x1FFF       0x00003000++0x1FFF     ~~/demo/arm/flash/byte/spi64_ddrhsspi.bin  /KEEP
+FLASHFILE.TARGET 0x50001000++0x1FFF  EAHB:0x50003000++0x1FFF     ~~/demo/arm/flash/byte/spi64_ddrhsspi.bin  /KEEP  /DualPort
+
+// Read FLASH Manufacturer and Device ID
+  FLASHFILE.GETID
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+ENDDO
+
+
+//Dump window for Serial FLASH
+FLASHFILE.DUMP 0x0
+
+//Write Serial FLASH
+;FLASHFILE.ERASE 0x00--0xFFFFF
+
+//Write Serial FLASH
+;FLASHFILE.LOAD  * 0x00
+;FLASHFILE.LOAD  * 0x00  /ComPare
+
+ENDDO
+
+WDOG_DISABLE:
+
+//disable wdog
+Data.Set 0xB05C01A4 %Long 0x5ECACCE5
+Data.Set 0xB05C01B4 %Long Data.Long(D:0xB05C01B4)|0x100
+Data.Set 0xB05C01A4 %Long 0xA135331A
+
+RETURN
+
+
+CLK_CONFIG:
+
+// Now we are running on Fast-CR Clock
+// Release I/O-resets (3V, 3/5V domains)
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB0803415 %Byte 0x0
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB0803416 %Byte 0x0
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB060017C %Byte 0x0
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB0600604 %Long 0x0
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB0600508 %Long 0x60753
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB0600500 %Long 0x1
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB060060C %Long 0xFF
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB0600080 %Long 0x03F31100
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB0600084 %Long 0x000F0F07
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB0600094 %Long 0x00780100
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB0600610 %Long 0x00044801
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB0600098 %Long 0x00B40200
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB0600614 %Long 0x00044801
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB060009C %Long 0x00780100
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB0600618 %Long 0x00044801
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB06000A0 %Long 0x00780100
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB060061C %Long 0x00044801
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB06000A4 %Long 0x00780100
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB06000A8 %Long 0x00000029
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB0600620 %Long 0x00044801
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB06000AC %Long 0x00780100
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB06000B0 %Long 0x00000029
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB0600624 %Long 0x00044801
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB06000B4 %Long 0x00640100
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB06000B8 %Long 0x00000029
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB0600628 %Long 0x00044801
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB06000BC %Long 0x00B40100
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB06000C0 %Long 0x00000029
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB060062C %Long 0x00044801
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB0600088 %Long 0x00000005
+
+Data.Set 0xB0300000 %Long 0x5CACCE55
+Data.Set 0xB0300080 %Long 0x09000005
+
+Data.Set 0xB0300000 %Long 0x5CACCE55
+Data.Set 0xB0300084 %Long 0x060a050b
+
+Data.Set 0xB0300000 %Long 0x5CACCE55
+Data.Set 0xB0300088 %Long 0x00000607
+
+Data.Set 0xB0300000 %Long 0x5CACCE55
+Data.Set 0xB0300088 %Long 0xFFBF4FF1
+
+Data.Set 0xB0300000 %Long 0x5CACCE55
+Data.Set 0xB0300090 %Long 0x1F1F1F01
+
+Data.Set 0xB0300000 %Long 0x5CACCE55
+Data.Set 0xB0300094 %Long 0x00001F1F
+
+// MCU_FREQ_CLK_MAIN_PLL_HZ == MCU_FREQ_CLK_240MHZ
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB0600090 %Long 0x00000003
+
+Data.Set 0xB0300000 %Long 0x5CACCE55
+Data.Set 0xB0300098 %Long 0x01040100
+
+Data.Set 0xB0300000 %Long 0x5CACCE55
+Data.Set 0xB030009C %Long 0x11020022
+
+Data.Set 0xB0300000 %Long 0x5CACCE55
+Data.Set 0xB03000A0 %Long 0x05050552
+
+Data.Set 0xB0300000 %Long 0x5CACCE55
+Data.Set 0xB03000A4 %Long 0x05050303
+
+Data.Set 0xB0300000 %Long 0x5CACCE55
+Data.Set 0xB03000A8 %Long 0x00000001
+
+Data.Set 0xB0300000 %Long 0x5CACCE55
+Data.Set 0xB03000AC %Long 0x00020200
+
+Data.Set 0xB0300000 %Long 0x5CACCE55
+Data.Set 0xB03000B0 %Long 0x00000000
+
+Data.Set 0xB0300000 %Long 0x5CACCE55
+Data.Set 0xB03000B4 %Long 0x00000000
+
+Data.Set 0xB0300000 %Long 0x5CACCE55
+Data.Set 0xB03000B8 %Long 0x00000001
+
+Data.Set 0xB0300000 %Long 0x5CACCE55
+Data.Set 0xB03000BC %Long 0x00030100
+
+ // RUN Profile update enable
+Data.Set 0xB0300000 %Long 0x5CACCE55
+Data.Set 0xB03000FC %Byte 0xAB
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB06000FC %Byte 0xAB
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB0801484 %Byte 0x1
+
+ // Clock gear (Trigger)
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB0803081 %Byte 0x1
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB08030A1 %Byte 0x1
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB08030C1 %Byte 0x1
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB08030E1 %Byte 0x1
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB0803101 %Byte 0x1
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB0803121 %Byte 0x1
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB0803141 %Byte 0x1
+
+Data.Set 0xB0600000 %Long 0x5CACCE55
+Data.Set 0xB0803161 %Byte 0x1
+
+RETURN
+
+MPU_CONFIG:
+// Configure MPU
+PER.Set.SaveIndex C15:0x26 %Long 0x0B 0x0B C15:0x16 %Long 0x50200000
+PER.Set.SaveIndex C15:0x26 %Long 0x0B 0x0B C15:0x216 %Long 0x29
+PER.Set.SaveIndex C15:0x26 %Long 0x0B 0x0B C15:0x416 %Long 0x304
+PER.Set.simple C15:0x26 %Long 0xF
+PER.Set.SaveIndex C15:0x26 %Long 0x0 0x0 C15:0x216 %Long 0x2d
+PER.Set.SaveIndex C15:0x26 %Long 0x0 0x0 C15:0x416 %Long 0x303
+PER.Set.simple C15:0x1 %Long 0x9e72879
+
+RETURN
+
+
+PORT_CONFIG:
+SCREEN.OFF
+
+GOSUB PORT_WPREG_PPC    0xb4740046  0x1002         ; PPC_PCF  GR103 G_SSEL0
+GOSUB PORT_WPREG_GPIO   0xb473801C  0x00000008     ; GPIO_DDCR1
+
+GOSUB PORT_WPREG_PPC    0xB474003C  0x1002        ; PPC_PCF GR0030  G_SCLK0
+GOSUB PORT_WPREG_GPIO   0xB473800C  0x40000000    ; GPIO_DDCR1
+
+GOSUB PORT_WPREG_PPC    0xB474003E  0x1002        ; PPC_PCF GR0031  G_SDATA0
+GOSUB PORT_WPREG_GPIO   0xB473800C  0x80000000    ; GPIO_DDCR1
+
+GOSUB PORT_WPREG_PPC    0xB4740040  0x1002        ; PPC_PCF GR0100  G_SDATA1
+GOSUB PORT_WPREG_GPIO   0xB473801C  0x00000001    ; GPIO_DDCR1
+
+GOSUB PORT_WPREG_PPC    0xB4740042  0x1002        ; PPC_PCF GR0101  G_SDATA2
+GOSUB PORT_WPREG_GPIO   0xB473801C  0x00000002    ; GPIO_DDCR1
+
+GOSUB PORT_WPREG_PPC    0xB4740044  0x1002        ; PPC_PCF GR0102  G_SDATA3
+GOSUB PORT_WPREG_GPIO   0xB473801C  0x00000004    ; GPIO_DDCR1
+
+
+GOSUB PORT_WPREG_PPC    0xb4740048  0x1002        ; PPC_PCF  GR104  M_SSEL0
+GOSUB PORT_WPREG_GPIO   0xb473801C  0x00000010    ; GPIO_DDCR1
+
+GOSUB PORT_WPREG_PPC    0xB474004A  0x1002        ; PPC_PCF GR0105  M_SDATA0
+GOSUB PORT_WPREG_GPIO   0xB473801C  0x80000020    ; GPIO_DDCR1
+
+GOSUB PORT_WPREG_PPC    0xB474004C  0x1002        ; PPC_PCF GR0106  M_SDATA1
+GOSUB PORT_WPREG_GPIO   0xB473801C  0x00000040    ; GPIO_DDCR1
+
+GOSUB PORT_WPREG_PPC    0xB474004E  0x1002        ; PPC_PCF GR0107  M_SDATA2
+GOSUB PORT_WPREG_GPIO   0xB473801C  0x00000080    ; GPIO_DDCR1
+
+GOSUB PORT_WPREG_PPC    0xB4740050  0x1002        ; PPC_PCF GR0108  M_SDATA3
+GOSUB PORT_WPREG_GPIO   0xB473801C  0x00000100    ; GPIO_DDCR1
+
+
+;GOSUB PORT_WPREG_PPC    0xB4740052  0x1002        ; PPC_PCF GR0109  M_SCLK0
+;GOSUB PORT_WPREG_GPIO   0xB473801C  0x00000200    ; GPIO_DDCR1
+
+GOSUB PORT_WPREG_GPIO   0xB4738400  0x00000001    ; PORT_WPREG_GPIO(GPIO_PORTEN, 0x00000001)
+
+SCREEN.ON
+
+RETURN
+
+
+PORT_WPREG_PPC:
+ENTRY &reg  &data
+
+&reg_low15=(&reg&0x3FFF)
+
+Data.Set  ((&reg&0xFFFFC000)|0x400)  %Long  (0x10000000|&reg_low15)   ;PPC_KEYCDR, 16bit access (01<<28.)
+Data.Set  ((&reg&0xFFFFC000)|0x400)  %Long  (0x50000000|&reg_low15)   ;PPC_KEYCDR, 16bit access (01<<28.)
+Data.Set  ((&reg&0xFFFFC000)|0x400)  %Long  (0x90000000|&reg_low15)   ;PPC_KEYCDR, 16bit access (01<<28.)
+Data.Set  ((&reg&0xFFFFC000)|0x400)  %Long  (0xD0000000|&reg_low15)   ;PPC_KEYCDR, 16bit access (01<<28.)
+
+Data.Set &reg %Word &data
+
+RETURN
+
+PORT_WPREG_GPIO:
+
+ENTRY &reg  &data
+
+&reg_low15=(&reg&0x3FFF)
+
+Data.Set  ((&reg&0xFFFFC000)|0x404)  %Long  (0x20000000|&reg_low15)   ;PPC_KEYCDR, 32bit access (01<<28.)
+Data.Set  ((&reg&0xFFFFC000)|0x404)  %Long  (0x60000000|&reg_low15)   ;PPC_KEYCDR, 32bit access (01<<28.)
+Data.Set  ((&reg&0xFFFFC000)|0x404)  %Long  (0xA0000000|&reg_low15)   ;PPC_KEYCDR, 32bit access (01<<28.)
+Data.Set  ((&reg&0xFFFFC000)|0x404)  %Long  (0xE0000000|&reg_low15)   ;PPC_KEYCDR, 32bit access (01<<28.)
+
+Data.Set &reg %Long &data
+
+RETURN
+
+
+DDRHSSPI_CONFIG:
+Data.Set &SPI_BASE+0x000  %Long 0x0  ; disable
+
+Data.Set &SPI_BASE+0x035 %Byte 0x0   ; unDMAEN
+Data.Set &SPI_BASE+0x03A %Byte 0x0   ; SS0 select, 0x1:SS1 select
+Data.Set &SPI_BASE+0x03B %Byte 0x0   ; unDMTRP
+Data.Set &SPI_BASE+0x034 %Byte 0x2
+Data.Set &SPI_BASE+0x03C %Word 0x0
+Data.Set &SPI_BASE+0x044 %Word 0x0807
+
+Data.Set &SPI_BASE+0x154 %Long 0x0   ; CS mode reset
+Data.Set &SPI_BASE+0x150 %Long 0xFFFF
+Data.Set &SPI_BASE+0x14C %Long 0x000F0004
+
+Data.Set &SPI_BASE+0x044 %Long 0x7
+Data.Set &SPI_BASE+0x028 %Long 0x20
+
+Data.Set &SPI_BASE+0x004 %Long 0x001F0420; [12:9] sclk Clock Division
+Data.Set &SPI_BASE+0x008 %Long 0x001F0420
+
+Data.Set &SPI_BASE+0x000  %Long 0x1; enable
+
+Data.Set &SPI_BASE+0x000  %Long 0x0  ; disable
+Data.Set &SPI_BASE+0x03B  %Byte 0xA  ; Setting to HsspiProtocolModeQuadTxOnly
+Data.Set &SPI_BASE+0x000  %Long 0x1; enable
+
+//Flush transmit and receive FIFOs
+Data.Set &SPI_BASE+0x044 %Long 0x00100807 ; TXFLSH
+Data.Set &SPI_BASE+0x044 %Long 0x00080807 ; TXFLSH
+
+RETURN
+
+
+
+READ_ID_TEST:
+(
+
+screen.off
+
+Data.Set &SPI_BASE %Long Data.Long(A:&SPI_BASE)&~0x1   ; Disable Module
+Data.Set &SPI_BASE+0x3B %Byte 0x0                      ; HsspiProtocolModeLegacy , Legacy mode(TX-and-RX)
+Data.Set &SPI_BASE %Long Data.Long(A:&SPI_BASE)|0x1   ; Enable Module
+
+//Flush fifo
+Data.Set &SPI_BASE+0x44 %Long Data.Long(A:&SPI_BASE+0x44)|0x100000   ;
+Data.Set &SPI_BASE+0x44 %Long Data.Long(A:&SPI_BASE+0x44)|0x080000   ;
+
+Data.Set &SPI_BASE+0x3C %Word 0x5         ; unDMBCC = Tx(1cmd)+Rx(4B read) Count
+
+Data.Set &SPI_BASE+0x44 %Long Data.Long(A:&SPI_BASE+0x44)&~0x40000  ; (TXCTRL[18]:0)
+
+Data.Set &SPI_BASE+0x48 %Long 0x9F  ; TxFIFO0
+Data.Set &SPI_BASE+0x48 %Long 0x00  ; TxFIFO0 ,dummy
+Data.Set &SPI_BASE+0x48 %Long 0x00  ; TxFIFO0 ,dummy
+Data.Set &SPI_BASE+0x48 %Long 0x00  ; TxFIFO0 ,dummy
+Data.Set &SPI_BASE+0x48 %Long 0x00  ; TxFIFO0 ,dummy
+
+Data.Set &SPI_BASE+0x38 %Byte 0x01  ;DMSTART
+Data.Set &SPI_BASE+0x1C %Long 0x02  ;TXC
+
+Data.Set &SPI_BASE+0x44 %Long Data.Long(A:&SPI_BASE+0x44)&~0x40000  ; (TXCTRL[18]:0)
+
+WAIT 100.ms
+
+PRINT "1st 0x" Data.Long(A:&SPI_BASE+0xA8) " (Dummy) "      ; //RXFIFO0
+PRINT "2nd 0x" Data.Long(A:&SPI_BASE+0xA8) " (Manufacture)"
+PRINT "3rd 0x" Data.Long(A:&SPI_BASE+0xA8) " (Device ID)"
+PRINT "4th 0x" Data.Long(A:&SPI_BASE+0xA8) 
+PRINT "5th 0x" Data.Long(A:&SPI_BASE+0xA8) 
+
+//Flush fifo
+Data.Set &SPI_BASE+0x44 %Long Data.Long(A:&SPI_BASE+0x44)|0x100000   
+Data.Set &SPI_BASE+0x44 %Long Data.Long(A:&SPI_BASE+0x44)|0x080000   
+
+screen.on
+
+RETURN
+)

@@ -1,0 +1,50 @@
+; --------------------------------------------------------------------------------
+; @Title: MetaWare C Example for SRAM
+; @Description:
+;   Simple C++ application for ARM targets
+;   compiled with the MetaWare compiler
+;   running from SRAM
+; @Author: -
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mwloop.cmm 15227 2019-11-06 11:57:41Z bschroefel $
+
+
+ WinCLEAR
+ SYStem.Down
+
+ IF hardware.ICD()||INTERFACE.SIM()
+ (
+  SYStem.Up
+  Data.Test 0--0ff
+  IF FOUND()
+  (
+   Register.RESet
+   Go.direct
+   WAIT 1.0s
+   Break.direct
+  )
+ )
+ IF hardware.ICE()||hardware.FIRE()
+ (
+  SYStem.Mode AloneInt
+  MAP.Ram 0x0--0x0ffff
+  MAP.Intern
+ )
+
+ Data.LOAD.Elf mwloop.elf /ALTBITFIELDS
+
+ IF INTERFACE.SIM()
+ (
+    Register.Set PC main
+    Register.Set CPSR 0x0013
+    Register.Set R13 0x1000
+ )
+
+; Open some windows
+ WinPOS 0% 0% 100% 50%
+ List
+ WinPOS 0% 50% 50% 50%
+ Frame /Caller
+ WinPOS 50% 50% 50% 50%
+ Var.Watch %SpotLight flags ast

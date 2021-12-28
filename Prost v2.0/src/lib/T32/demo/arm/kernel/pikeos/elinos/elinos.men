@@ -1,0 +1,136 @@
+; --------------------------------------------------------------------------------
+; @Title: PikeOS-ELinOS specific menu
+; @Description: -
+; @Author: DIE
+; @Copyright: (c) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: elinos.men 4942 2020-01-07 12:31:59Z kjmal $
+
+
+ADD
+MENU
+(
+  POPUP "&ELinOS"
+  (
+    DEFAULT
+    MENUITEM "Display &Processes"   "EXTension.ELProcess"
+    MENUITEM "Display &Threads"     "EXTension.ELThread"
+    MENUITEM "Display &Modules"     "EXTension.ELModule"
+    SEPARATOR
+    MENUITEM "Debug Process on entry..."
+    (
+      &extdir=TASK.GETDIR();
+      DO "&extdir/el_app_debug" /DIALOG
+    )
+    MENUITEM "Debug Module on init..."
+    (
+      &extdir=TASK.GETDIR();
+      DO "&extdir/el_mod_debug" /DIALOG
+    )
+  )
+)
+
+
+MENU "ext.elt"
+(
+  DEFAULT
+  MENUITEM "Display detailed"
+  (
+    &address=ADDRESS.OFFSET(TRACK.ADDRESS())
+    TASK.ELThread &address
+  )
+  MENUITEM "Display thread struct"
+  (
+    &address=TRACK.ADDRESS()
+    Var.View %Open %String (struct task_struct*)(&address)
+  )
+  SEPARATOR
+  MENUITEM "Load process symbols"
+  (
+    &pname=EXT.ELPROCESS.NAME(ADDRESS.OFFSET(TRACK.ADDRESS()))
+    sYmbol.AutoLOAD.CHECK
+    sYmbol.AutoLOAD.TOUCH "&pname"
+  )
+  SEPARATOR
+  //  MENUITEM "Display Stack Frame"
+  //(
+  //  &address=ADDRESS.OFFSET(TRACK.ADDRESS())
+  //  Var.Frame /Locals /Caller /TASK &address
+  //)
+  //MENUITEM "Display Registers"
+  //(
+  //  &address=ADDRESS.OFFSET(TRACK.ADDRESS())
+  //  Register.view /TASK &address
+  //)
+  //MENUITEM "Switch Context"    "Frame.TASK      ADDRESS.OFFSET(TRACK.ADDRESS())"
+  //SEPARATOR
+  //MENUITEM "Add to Stack Cov"  "TASK.STacK.ADD     ADDRESS.OFFSET(TRACK.ADDRESS())"
+  //MENUITEM "Rm from Stack Cov" "TASK.STacK.ReMove  ADDRESS.OFFSET(TRACK.ADDRESS())"
+  //SEPARATOR
+  MENUITEM "Dump thread entry"
+  (
+    &address=TRACK.ADDRESS()
+    Data.dump &address /DIALOG
+  )
+)
+
+
+MENU "ext.elm"
+(
+  DEFAULT
+  ;MENUITEM "Display detailed"
+  ;(
+  ;  &address=ADDRESS.OFFSET(TRACK.ADDRESS())
+  ;  TASK.ELModule &address
+  ;)
+  MENUITEM "Display module struct"
+  (
+    &address=TRACK.ADDRESS()
+    Var.View %Open %String (struct module*)(&address)
+  )
+  SEPARATOR
+  MENUITEM "Load module symbols"
+  (
+    &mname=EXT.ELMODULE.NAME(ADDRESS.OFFSET(TRACK.ADDRESS()))
+    &extdir=TASK.GETDIR();
+    DO "&extdir/el_autoload.cmm" "&mname" 3
+  )
+  SEPARATOR
+  MENUITEM "Dump module entry"
+  (
+    &address=TRACK.ADDRESS()
+    Data.dump &address /DIALOG
+  )
+)
+
+
+MENU "ext.ell"
+(
+  DEFAULT
+  ;MENUITEM "Display detailed"
+  ;(
+  ;  &address=ADDRESS.OFFSET(TRACK.ADDRESS())
+  ;  TASK.ELLibrary &address
+  ;)
+  MENUITEM "Display Library struct"
+  (
+    &address=TRACK.ADDRESS()
+    Var.View %Open %String (struct vm_area_struct*)(&address)
+  )
+  SEPARATOR
+  MENUITEM "Load Library Symbols"
+  (
+    &address=ADDRESS.OFFSET(TRACK.ADDRESS())
+    &lname=EXT.ELLIBRARY.NAME(&address)
+    &lsid=EXT.ELLIBRARY.SPACEID(&address)
+    &lcode=EXT.ELLIBRARY.ADDRESS(&address)
+    &extdir=TASK.GETDIR();
+    DO "&extdir/el_autoload.cmm" "&lname" 2 &lcode 0 &lsid
+  )
+  SEPARATOR
+  MENUITEM "Dump Library entry"
+  (
+    &address=TRACK.ADDRESS()
+    Data.dump &address /DIALOG
+  )
+)

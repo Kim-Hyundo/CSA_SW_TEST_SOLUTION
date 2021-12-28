@@ -1,0 +1,63 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for STM32MP157A-CA7 with Onchip-Trace (RAM, ETF)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Onchip-Trace (ETF).
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to J14
+;    * The demos are tested in Engineering boot mode:
+;      SW1[0..2]=ON,OFF,OFF
+; @Keywords: ARM, Cortex-A7, ETF, ETM
+; @Author: STK
+; @Board: STM32MP15X-EVAL
+; @Chip: STM32MP157A-CA7
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: stm32mp15x-eval_sieve_onchip_etf_trace_sram.cmm 14337 2019-04-26 15:41:57Z skrausse $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU STM32MP157A-CA7
+SYStem.JtagClock 10MHz
+CORE.ASSIGN 1.
+Trace.DISable
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_arm_v7.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; initialize ONCHIP trace (ETF, ETM)
+Trace.METHOD ONCHIP
+ETM.Trace ON
+ETM.ON
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

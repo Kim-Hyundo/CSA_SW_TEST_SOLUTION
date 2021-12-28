@@ -1,0 +1,329 @@
+; --------------------------------------------------------------------------------
+; @Title: PandaBoard General Setup Script 1
+; @Description: PandaBoard General Setup 1
+; @Keywords: OMAP4*, Panda*, Setup, TI
+; @Author: KJM
+; @Board: PandaBoard
+; @Chip: OMAP4430
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: panda_setup_1.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+&CkgenCm1Base="ANSD:0x4A004100"
+&CkgenCm2Base="ANSD:0x4A008100"
+
+DO ~~~~/panda_muxconf_regs.cmm
+
+// DMM Configuration
+&DmmBase="ANSD:0x4E000000"
+Data.Set &DmmBase+0x40 %LE %Long 0x80640300                ;DMM_LISA_MAP_0
+Data.Set &DmmBase+0x48 %LE %Long 0x00000000                ;DMM_LISA_MAP_2
+Data.Set &DmmBase+0x4C %LE %Long 0xFF020100                ;DMM_LISA_MAP_3
+
+// Configure core DPLL
+; Set the sysclk speed to 38.4 MHz, in case ROM code is bypassed
+Data.Set ANSD:0x4A306110 %LE %Long 0x00000007              ; CM_SYS_CLKSEL 
+; CORE_CLK=CORE_X2_CLK/2, L3_CLK=CORE_CLK/2, L4_CLK=L3_CLK/2
+Data.Set &CkgenCm1Base+0x00 %LE %Long 0x00000110           ; CM_CLKSEL_CORE
+; Unlock the core DPLL
+Data.Set &CkgenCm1Base+0x20 %LE %Long 0x00000004           ; CM_CLKMODE_DPLL_CORE
+WAIT ((Data.Long(ANSD:0x4A004124)&1)==0)
+
+// Program Core DPLL
+; Disable autoidle 
+Data.Set &CkgenCm1Base+0x28 %LE %Long 0x00000000              ; CM_AUTOIDLE_DPLL_CORE
+Data.Set &CkgenCm1Base+0x2C %LE %Long 0x00007D2F              ; CM_CLKSEL_DPLL_CORE
+Data.Set &CkgenCm1Base+0x2C %LE %Long 0x00007D05              ; CM_CLKSEL_DPLL_CORE
+Data.Set &CkgenCm1Base+0x30 %LE %Long 0x00000201              ; CM_DIV_M2_DPLL_CORE
+Data.Set &CkgenCm1Base+0x34 %LE %Long 0x00000005              ; CM_DIV_M3_DPLL_CORE
+Data.Set &CkgenCm1Base+0x38 %LE %Long 0x00000208              ; CM_DIV_M4_DPLL_CORE
+Data.Set &CkgenCm1Base+0x3C %LE %Long 0x00000204              ; CM_DIV_M5_DPLL_CORE
+Data.Set &CkgenCm1Base+0x40 %LE %Long 0x00000006              ; CM_DIV_M6_DPLL_CORE
+Data.Set &CkgenCm1Base+0x44 %LE %Long 0x00000005              ; CM_DIV_M7_DPLL_CORE
+
+Data.Set &CkgenCm1Base+0x30 %LE %Long 0x00000301              ; CM_DIV_M2_DPLL_CORE
+Data.Set &CkgenCm1Base+0x34 %LE %Long 0x00000105              ; CM_DIV_M3_DPLL_CORE
+Data.Set &CkgenCm1Base+0x38 %LE %Long 0x00000308              ; CM_DIV_M4_DPLL_CORE
+Data.Set &CkgenCm1Base+0x3C %LE %Long 0x00000304              ; CM_DIV_M5_DPLL_CORE
+Data.Set &CkgenCm1Base+0x40 %LE %Long 0x00000006              ; CM_DIV_M6_DPLL_CORE
+Data.Set &CkgenCm1Base+0x44 %LE %Long 0x00000105              ; CM_DIV_M7_DPLL_CORE
+
+Data.Set ANSD:0x4C000038 %LE %Long 0x00000000              ; EMIF_PWR_MGMT_CTRL
+Data.Set ANSD:0x4D000038 %LE %Long 0x00000000              ; EMIF_PWR_MGMT_CTRL
+
+// Configure the extended memory interface
+DO ~~~~/panda_emif_config.cmm
+
+// Lock the core dpll using freq update method
+Data.Set &CkgenCm1Base+0x20 %LE %Long 0x0000000A           ; CM_CLKMODE_DPLL_CORE
+
+; CM_SHADOW_FREQ_CONFIG1: DLL_OVERRIDE = 1(hack), DLL_RESET = 1,
+; DPLL_CORE_M2_DIV =1, DPLL_CORE_DPLL_EN = 0x7, FREQ_UPDATE = 1
+Data.Set ANSD:0x4A004260 %LE %Long 0xF0D
+
+WAIT 100.ms
+
+; Set DLL_OVERRIDE to zero
+Data.Set ANSD:0x4A004110  %LE %Long 0x00000000             ; CM_DLL_CTRL
+
+WAIT ((Data.Long(ANSD:0x4C000004)&4)==4)                   ; Check for DDR PHY ready for EMIF1 & EMIF2
+WAIT ((Data.Long(ANSD:0x4D000004)&4)==4)
+
+WAIT 200.ms
+
+Data.Set ANSD:0x4A008B30 %LE %Long 0x00000001              ; CM_MEMIF_EMIF_1_CLKCTRL
+Data.Set ANSD:0x4A008B38 %LE %Long 0x00000001              ; CM_MEMIF_EMIF_2_CLKCTRL
+
+
+Data.Set ANSD:0x4C000038 %LE %Long 0x80000000              ; EMIF_PW_MGMT_CTR
+Data.Set ANSD:0x4D000038 %LE %Long 0x80000000              ; EMIF_PW_MGMT_CTR
+
+Data.Set ANSD:0x4C000054 %LE %Long 0x80000000              ; EMIF_L3_CONFIG
+Data.Set ANSD:0x4D000054 %LE %Long 0x80000000              ; EMIF_L3_CONFIG
+
+Data.Set ANSD:0x4C000060 %LE %Long 0x00002411              ; reset emif1
+Data.Set ANSD:0x4D000060 %LE %Long 0x00002411              ; reset emif2
+
+
+// Scale vcores
+Data.Set ANSD:0x4A307BA8 %LE %Long 0x00000000              ; PRM_VC_CFG_I2C_MODE
+Data.Set ANSD:0x4A307BAC %LE %Long 0x00006026              ; PRM_VC_CFG_I2C_CLK
+; set VCORE1 force VSEL
+Data.Set ANSD:0x4A307BA0 %LE %Long 0x003A5512              ; PRM_VC_CFG_I2C_CLK
+Data.Set ANSD:0x4A307BA0 %LE %Long Data.Long(ANSD:0x4A307BA0)|0x01000000  ; PRM_VC_VAL_BYPASS
+WAIT ((Data.Long(ANSD:0x4A307BA0)&0x01000000)==0)
+
+Data.Set ANSD:0x4A306010 %LE %Long Data.Long(ANSD:0x4A306010)             ;PRM_IRQSTATUS_MPU
+
+Data.Set ANSD:0x4A307BA0 %LE %Long 0x00295B12                             ; PRM_VC_VAL_BYPASS
+Data.Set ANSD:0x4A307BA0 %LE %Long Data.Long(ANSD:0x4A307BA0)|0x01000000  ; PRM_VC_VAL_BYPASS
+WAIT ((Data.Long(ANSD:0x4A307BA0)&0x01000000)==0)
+
+Data.Set ANSD:0x4A306010 %LE %Long Data.Long(ANSD:0x4A306010)             ;PRM_IRQSTATUS_MPU
+
+Data.Set ANSD:0x4A307BA0 %LE %Long 0x002A6112                             ; PRM_VC_VAL_BYPASS
+Data.Set ANSD:0x4A307BA0 %LE %Long Data.Long(ANSD:0x4A307BA0)|0x01000000
+WAIT ((Data.Long(ANSD:0x4A307BA0)&0x01000000)==0)
+
+Data.Set ANSD:0x4A306010 %LE %Long Data.Long(ANSD:0x4A306010)             ;PRM_IRQSTATUS_MPU
+
+
+// prcm init
+Data.Set ANSD:0x4A306110 %LE %Long 0x00000007              ; CM_SYS_CLKSEL
+
+; Configure MPU DPLL
+; Unlock the MPU DPLL
+Data.Set &CkgenCm1Base+0x60 %LE %Long 0x00000004           ; CM_CLKMODE_DPLL_MPU
+WAIT ((Data.Long(&CkgenCm1Base+0x64)&0x1)==0)
+Data.Set &CkgenCm1Base+0x68 %LE %Long 0x00000000           ; CM_AUTOIDLE_DPLL_MPU
+Data.Set &CkgenCm1Base+0x6C %LE %Long 0x00807D00           ; CM_CLKSEL_DPLL_MPU
+Data.Set &CkgenCm1Base+0x6C %LE %Long 0x00807D07           ; CM_CLKSEL_DPLL_MPU
+Data.Set &CkgenCm1Base+0x70 %LE %Long 0x00000201           ; CM_DIV_M2_DPLL_MPU
+Data.Set &CkgenCm1Base+0x70 %LE %Long 0x00000301           ; CM_DIV_M2_DPLL_MPU
+; Lock the MPU DPLL
+Data.Set &CkgenCm1Base+0x60 %LE %Long 0x00000017           ; CM_CLKMODE_DPLL_MPU
+WAIT ((Data.Long(&CkgenCm1Base+0x64)&0x1)==1)
+
+; Configure IVA DPLL
+; Unlock the IVA DPLL
+Data.Set &CkgenCm1Base+0xA0 %LE %Long 0x00000004           ; CM_CLKMODE_DPLL_IVA
+WAIT ((Data.Long(&CkgenCm1Base+0xA4)&0x1)==0)
+Data.Set &CkgenCm1Base+0xDC %LE %Long 0x00000001           ; CM_BYPCLK_DPLL_IVA
+Data.Set &CkgenCm1Base+0xA8 %LE %Long 0x00000000           ; CM_AUTOIDLE_DPLL_IVA
+Data.Set &CkgenCm1Base+0xAC %LE %Long 0x00006100           ; CM_CLKSEL_DPLL_IVA
+Data.Set &CkgenCm1Base+0xAC %LE %Long 0x00006103           ; CM_CLKSEL_DPLL_IVA
+Data.Set &CkgenCm1Base+0xB8 %LE %Long 0x00000004           ; CM_DIV_M4_DPLL_IVA
+Data.Set &CkgenCm1Base+0xB8 %LE %Long 0x00000104           ; CM_DIV_M4_DPLL_IVA
+Data.Set &CkgenCm1Base+0xBC %LE %Long 0x00000104           ; CM_DIV_M5_DPLL_IVA
+Data.Set &CkgenCm1Base+0xBC %LE %Long 0x00000007           ; CM_DIV_M5_DPLL_IVA
+Data.Set &CkgenCm1Base+0xBC %LE %Long 0x00000107           ; CM_DIV_M5_DPLL_IVA
+; Lock the IVA DPLL
+Data.Set &CkgenCm1Base+0xA0 %LE %Long 0x00000007           ; CM_CLKMODE_DPLL_IVA
+WAIT ((Data.Long(&CkgenCm1Base+0xA4)&0x1)==1)
+
+; Configure PER DPLL
+; Unlock the PER DPLL
+Data.Set &CkgenCm2Base+0x40 %LE %Long 0x00000004           ; CM_CLKMODE_DPLL_PER
+WAIT ((Data.Long(&CkgenCm2Base+0x44)&0x1)==0)
+Data.Set &CkgenCm2Base+0x48 %LE %Long 0x00000008           ; CM_AUTOIDLE_DPLL_PER
+Data.Set &CkgenCm2Base+0x4C %LE %Long 0x00000008           ; CM_CLKSEL_DPLL_PER  
+Data.Set &CkgenCm2Base+0x4C %LE %Long 0x00001400           ; CM_CLKSEL_DPLL_PER
+Data.Set &CkgenCm2Base+0x50 %LE %Long 0x00000828           ; CM_DIV_M2_DPLL_PER
+Data.Set &CkgenCm2Base+0x54 %LE %Long 0x00000026           ; CM_DIV_M3_DPLL_PER
+Data.Set &CkgenCm2Base+0x58 %LE %Long 0x0000000C           ; CM_DIV_M4_DPLL_PER
+Data.Set &CkgenCm2Base+0x5C %LE %Long 0x00000009           ; CM_DIV_M5_DPLL_PER
+Data.Set &CkgenCm2Base+0x60 %LE %Long 0x00000004           ; CM_DIV_M6_DPLL_PER
+Data.Set &CkgenCm2Base+0x64 %LE %Long 0x00000005           ; CM_DIV_M7_DPLL_PER
+Data.Set &CkgenCm2Base+0x50 %LE %Long 0x00000928           ; CM_DIV_M2_DPLL_PER
+Data.Set &CkgenCm2Base+0x54 %LE %Long 0x00000126           ; CM_DIV_M3_DPLL_PER
+Data.Set &CkgenCm2Base+0x58 %LE %Long 0x0000010C           ; CM_DIV_M4_DPLL_PER
+Data.Set &CkgenCm2Base+0x5C %LE %Long 0x00000109           ; CM_DIV_M5_DPLL_PER
+Data.Set &CkgenCm2Base+0x60 %LE %Long 0x00000004           ; CM_DIV_M6_DPLL_PER
+Data.Set &CkgenCm2Base+0x64 %LE %Long 0x00000105           ; CM_DIV_M7_DPLL_PER
+; Lock the PER DPLL
+Data.Set &CkgenCm2Base+0x40 %LE %Long 0x00000007           ; CM_CLKMODE_DPLL_PER
+WAIT ((Data.Long(&CkgenCm2Base+0x44)&0x1)==1)
+
+; Configute ABE DPLL
+; Select sys_clk as ref clk for ABE DPLL
+Data.Set ANSD:0x4A30610C    %LE %Long 0x00000000           ; CM_ABE_PLL_REF_CLKSEL
+; Enable slimbus and pad clocks
+Data.Set &CkgenCm1Base+0x08 %LE %Long 0x00000500           ; CM_CLKSEL_ABE
+; Unlock the ABE DPLL
+Data.Set &CkgenCm1Base+0xE0 %LE %Long 0x00000004           ; CM_CLKMODE_DPLL_ABE
+WAIT ((Data.Long(&CkgenCm1Base+0xE4)&0x1)==0)
+Data.Set &CkgenCm1Base+0xE8 %LE %Long 0x00000000           ; CM_AUTOIDLE_DPLL_ABE
+Data.Set &CkgenCm1Base+0xEC %LE %Long 0x00804000           ; CM_CLKSEL_DPLL_ABE
+Data.Set &CkgenCm1Base+0xEC %LE %Long 0x00804018           ; CM_CLKSEL_DPLL_ABE
+Data.Set &CkgenCm1Base+0xF0 %LE %Long 0x00000500           ; CM_DIV_M2_DPLL_ABE  
+Data.Set &CkgenCm1Base+0xF0 %LE %Long 0x00000F01           ; CM_DIV_M2_DPLL_ABE
+Data.Set &CkgenCm1Base+0xF0 %LE %Long 0x00000F01           ; CM_DIV_M2_DPLL_ABE
+Data.Set &CkgenCm1Base+0xF4 %LE %Long 0x00000100           ; CM_DIV_M3_DPLL_ABE
+Data.Set &CkgenCm1Base+0xF4 %LE %Long 0x00000101           ; CM_DIV_M3_DPLL_ABE
+Data.Set &CkgenCm1Base+0xF4 %LE %Long 0x00000101           ; CM_DIV_M3_DPLL_ABE
+; Lock the ABE DPLL
+Data.Set &CkgenCm1Base+0xE0 %LE %Long 0x00000007           ; CM_CLKMODE_DPLL_ABE
+WAIT ((Data.Long(&CkgenCm1Base+0xE4)&0x1)==1)
+
+; Configure USB DPLL
+; Select the 60Mhz clock 480/8 = 60
+Data.Set &CkgenCm2Base+0x04 %LE %Long 0x00000001           ; CM_CLKSEL_USB_60MHz
+; Unlock the USB
+Data.Set &CkgenCm2Base+0x80 %LE %Long 0x00000004           ; CM_CLKMODE_DPLL_USB
+WAIT ((Data.Long(&CkgenCm1Base+0x84)&0x1)==0)
+Data.Set &CkgenCm2Base+0x88 %LE %Long 0x00000000           ; CM_AUTOIDLE_DPLL_USB
+Data.Set &CkgenCm2Base+0x8C %LE %Long 0x00003200           ; CM_CLKSEL_DPLL_USB
+Data.Set &CkgenCm2Base+0x8C %LE %Long 0x00003201           ; CM_CLKSEL_DPLL_USB
+Data.Set &CkgenCm2Base+0x90 %LE %Long 0x00000100           ; CM_DIV_M2_DPLL_USB
+Data.Set &CkgenCm2Base+0x90 %LE %Long 0x00000302           ; CM_DIV_M2_DPLL_USB
+Data.Set &CkgenCm2Base+0x90 %LE %Long 0x00000302           ; CM_DIV_M2_DPLL_USB
+Data.Set &CkgenCm2Base+0xB4 %LE %Long 0x00000100           ; CM_CLKDCOLDO_DPLL_USB
+; Lock the USB DPLL
+Data.Set &CkgenCm2Base+0x80 %LE %Long 0x00000007           ; CM_CLKMODE_DPLL_USB
+WAIT ((Data.Long(&CkgenCm2Base+0x84)&0x1)==1)
+; Force enable the CLKDCOLDO clock
+Data.Set &CkgenCm2Base+0xB4 %LE %Long 0x00000100           ; CM_CLKCOLDO_DPLL_USB
+
+// Enable all clock
+; Enable Ducati clocks
+Data.Set ANSD:0x4A008920 %LE %Long 0x00000001              ; CM_DUCATI_DUCATI_CLKCTRL
+Data.Set ANSD:0x4A008900 %LE %Long 0x00000002              ; CM_DUCATI_CLKSTCTRL
+; Enable IVAHD and SL2 clocks
+Data.Set ANSD:0x4A008F20 %LE %Long 0x00000001              ; IVAHD_IVAHD_CLKCTRL
+Data.Set ANSD:0x4A008F28 %LE %Long 0x00000001              ; IVAHD_SL2_CLKCTRL
+Data.Set ANSD:0x4A008F00 %LE %Long 0x00000002              ; IVAHD_CLKSTCTRL  
+; Enable Tesla clocks
+Data.Set ANSD:0x4A004420 %LE %Long 0x00000001              ; DSP_DSP_CLKCTRL
+Data.Set ANSD:0x4A004400 %LE %Long 0x00000001              ; DSP_CLKSTCTRL
+; Enable ABE clocks
+Data.Set ANSD:0x4A004500 %LE %Long 0x00000003              ; CM1_ABE_CLKSTCTRL
+Data.Set ANSD:0x4A004528 %LE %Long 0x00000002              ; CM1_ABE_AESS_CLKCTRL
+Data.Set ANSD:0x4A004530 %LE %Long 0x00000002              ; CM1_ABE_PDM_CLKCTRL
+Data.Set ANSD:0x4A004538 %LE %Long 0x00000002              ; CM1_ABE_DMIC_CLKCTRL
+Data.Set ANSD:0x4A004540 %LE %Long 0x00000002              ; CM1_ABE_MCASP_CLKCTRL
+Data.Set ANSD:0x4A004548 %LE %Long 0x08000002              ; CM1_ABE_MCBSP1_CLKCTRL
+Data.Set ANSD:0x4A004550 %LE %Long 0x08000002              ; CM1_ABE_MCBSP2_CLKCTRL
+Data.Set ANSD:0x4A004558 %LE %Long 0x08000002              ; CM1_ABE_MCBSP3_CLKCTRL
+Data.Set ANSD:0x4A004560 %LE %Long 0x00000F02              ; CM1_ABE_SLIMBUS_CLKCTRL
+Data.Set ANSD:0x4A004568 %LE %Long 0x00000002              ; CM1_ABE_TIMER5_CLKCTRL
+Data.Set ANSD:0x4A004570 %LE %Long 0x00000002              ; CM1_ABE_TIMER6_CLKCTRL
+Data.Set ANSD:0x4A004578 %LE %Long 0x00000002              ; CM1_ABE_TIMER7_CLKCTRL
+Data.Set ANSD:0x4A004580 %LE %Long 0x00000002              ; CM1_ABE_TIMER8_CLKCTRL
+Data.Set ANSD:0x4A004588 %LE %Long 0x00000002              ; CM1_ABE_WDT3_CLKCTRL
+Data.Set ANSD:0x4A004500 %LE %Long 0x00000000              ; CM1_ABE_CLKSTCTRL
+; Enable L4PER clocks
+Data.Set ANSD:0x4A009400 %LE %Long 0x00000002              ; CM_L4PER_CLKSTCTRL  
+Data.Set ANSD:0x4A009428 %LE %Long 0x00000002              ; CM_L4PER_DMTIMER10_CLKCTRL
+Data.Set ANSD:0x4A009430 %LE %Long 0x00000002              ; CM_L4PER_DMTIMER11_CLKCTRL
+Data.Set ANSD:0x4A009438 %LE %Long 0x00000002              ; CM_L4PER_DMTIMER2_CLKCTRL
+Data.Set ANSD:0x4A009440 %LE %Long 0x00000002              ; CM_L4PER_DMTIMER3_CLKCTRL
+Data.Set ANSD:0x4A009448 %LE %Long 0x00000002              ; CM_L4PER_DMTIMER4_CLKCTRL
+Data.Set ANSD:0x4A009450 %LE %Long 0x00000002              ; CM_L4PER_DMTIMER9_CLKCTRL
+; Enable GPIO clocks
+Data.Set ANSD:0x4A009460 %LE %Long 0x00000001              ; CM_L4PER_GPIO2_CLKCTRL
+Data.Set ANSD:0x4A009468 %LE %Long 0x00000001              ; CM_L4PER_GPIO3_CLKCTRL
+Data.Set ANSD:0x4A009470 %LE %Long 0x00000001              ; CM_L4PER_GPIO4_CLKCTRL
+Data.Set ANSD:0x4A009478 %LE %Long 0x00000001              ; CM_L4PER_GPIO5_CLKCTRL
+Data.Set ANSD:0x4A009480 %LE %Long 0x00000001              ; CM_L4PER_GPIO6_CLKCTRL
+
+Data.Set ANSD:0x4A009488 %LE %Long 0x00000002              ; CM_L4PER_HDQ1W_CLKCTRL
+
+; Enable I2C clocks
+Data.Set ANSD:0x4A0094A0 %LE %Long 0x00000002              ; CM_L4PER_I2C1_CLKCTRL
+Data.Set ANSD:0x4A0094A8 %LE %Long 0x00000002              ; CM_L4PER_I2C2_CLKCTRL
+Data.Set ANSD:0x4A0094B0 %LE %Long 0x00000002              ; CM_L4PER_I2C3_CLKCTRL
+Data.Set ANSD:0x4A0094B8 %LE %Long 0x00000002              ; CM_L4PER_I2C4_CLKCTRL
+
+Data.Set ANSD:0x4A0094E0 %LE %Long 0x00000002              ; CM_L4PER_MCBSP4_CLKCTRL
+
+; Enable MCSPI clocks
+Data.Set ANSD:0x4A0094F0 %LE %Long 0x00000002              ; CM_L4PER_MCSPI1_CLKCTRL
+Data.Set ANSD:0x4A0094F8 %LE %Long 0x00000002              ; CM_L4PER_MCSPI2_CLKCTRL
+Data.Set ANSD:0x4A009500 %LE %Long 0x00000002              ; CM_L4PER_MCSPI3_CLKCTRL
+Data.Set ANSD:0x4A009508 %LE %Long 0x00000002              ; CM_L4PER_MCSPI4_CLKCTRL
+; Enable MMC clocks
+Data.Set ANSD:0x4A009328 %LE %Long 0x01040002              ; CM_L3INIT_HSMMC1_CLKCTRL  
+Data.Set ANSD:0x4A009328 %LE %Long 0x01040002              ; CM_L3INIT_HSMMC1_CLKCTRL
+Data.Set ANSD:0x4A009330 %LE %Long 0x00070002              ; CM_L3INIT_HSMMC2_CLKCTRL
+Data.Set ANSD:0x4A009330 %LE %Long 0x01040002              ; CM_L3INIT_HSMMC2_CLKCTRL
+Data.Set ANSD:0x4A009520 %LE %Long 0x00000002              ; CM_L4PER_MMCSD3_CLKCTRL
+Data.Set ANSD:0x4A009528 %LE %Long 0x00000002              ; CM_L4PER_MMCSD4_CLKCTRL
+Data.Set ANSD:0x4A009560 %LE %Long 0x00000002              ; CM_L4PER_MMCSD5_CLKCTRL
+; Enable UART clocks
+Data.Set ANSD:0x4A009540 %LE %Long 0x00000002              ; CM_L4PER_UART1_CLKCTRL
+Data.Set ANSD:0x4A009548 %LE %Long 0x00000002              ; CM_L4PER_UART2_CLKCTRL
+Data.Set ANSD:0x4A009550 %LE %Long 0x00000002              ; CM_L4PER_UART3_CLKCTRL
+Data.Set ANSD:0x4A009558 %LE %Long 0x00000002              ; CM_L4PER_UART4_CLKCTRL
+; Enable WKUP clocks
+Data.Set ANSD:0x4A307838 %LE %Long 0x00000001              ; CM_WKUP_GPIO1_CLKCTRL  
+Data.Set ANSD:0x4A307840 %LE %Long 0x01000002              ; CM_WKUP_TIMER1_CLKCTRL
+Data.Set ANSD:0x4A307878 %LE %Long 0x00000002              ; CM_WKUP_KEYBOARD_CLKCTRL
+
+Data.Set ANSD:0x4A008A00 %LE %Long 0x00000000              ; CM_SDMA_CLKSTCTRL
+Data.Set ANSD:0x4A008B00 %LE %Long 0x00000003              ; CM_MEMIF_CLKSTCTRL
+Data.Set ANSD:0x4A008B30 %LE %Long 0x00000001              ; CM_MEMIF_EMIF_1_CLKCTRL
+Data.Set ANSD:0x4A008B38 %LE %Long 0x00000001              ; CM_MEMIF_EMIF_2_CLKCTRL
+Data.Set ANSD:0x4A008C00 %LE %Long 0x00000003              ; CM_D2D_CLKSTCTRL
+Data.Set ANSD:0x4A008828 %LE %Long 0x00000001              ; CM_L3_2_GPMC_CLKCTRL
+Data.Set ANSD:0x4A008E20 %LE %Long 0x00000001              ; CM_L3INSTR_L3_3_CLKCTRL
+Data.Set ANSD:0x4A008E28 %LE %Long 0x00000001              ; CM_L3INSTR_L3_INSTR_CLKCTRL
+Data.Set ANSD:0x4A008E40 %LE %Long 0x00000001              ; CM_L3INSTR_OCP_WP1_CLKCTRL
+
+; Enable WDT clocks
+Data.Set ANSD:0x4A307830 %LE %Long 0x00000002              ; CM_WKUP_WDT2_CLKCTRL
+; Enable Camera clocks
+Data.Set ANSD:0x4A009000 %LE %Long 0x00000003              ; CM_CAM_CLKSTCTRL
+Data.Set ANSD:0x4A009020 %LE %Long 0x00000102              ; CM_CAM_ISS_CLKCTRL
+Data.Set ANSD:0x4A009028 %LE %Long 0x00000002              ; CM_CAM_FDIF_CLKCTRL
+Data.Set ANSD:0x4A009000 %LE %Long 0x00000000              ; CM_CAM_CLKSTCTRL
+; Enable DSS clocks
+Data.Set ANSD:0x4A307100 %LE %Long 0x00000007              ; DSS_PRM
+Data.Set ANSD:0x4A009100 %LE %Long 0x00000002              ; CM_DSS_CLKSTCTRL
+Data.Set ANSD:0x4A009120 %LE %Long 0x00000F02              ; CM_DSS_DSS_CLKCTRL
+Data.Set ANSD:0x4A009128 %LE %Long 0x00000002              ; CM_DSS_DEISS_CLKCTRL
+Data.Set ANSD:0x4A009100 %LE %Long 0x00000003              ; CM_DSS_CLKSTCTRL
+; Enable SGX clocks
+Data.Set ANSD:0x4A009200 %LE %Long 0x00000002              ; CM_SGX_CLKSTCTRL
+Data.Set ANSD:0x4A009220 %LE %Long 0x00000002              ; CM_SGX_SGX_CLKCTRL
+; Enable HSI/UNIPRO/USB clocks
+Data.Set ANSD:0x4A009338 %LE %Long 0x00000001              ; CM_L3INIT_HSI_CLKCTRL
+Data.Set ANSD:0x4A009340 %LE %Long 0x00000002              ; CM_L3INIT_UNIPRO1_CLKCTRL
+Data.Set ANSD:0x4A009358 %LE %Long 0x00000002              ; CM_L3INIT_HSUSBHOST_CLKCTRL
+Data.Set ANSD:0x4A009360 %LE %Long 0x00000001              ; CM_L3INIT_HSUSBOTG_CLKCTRL
+Data.Set ANSD:0x4A009368 %LE %Long 0x00000001              ; CM_L3INIT_HSUSBTLL_CLKCTRL
+Data.Set ANSD:0x4A0093D0 %LE %Long 0x00000002              ; CM_L3INIT_FSUSB_CLKCTRL
+Data.Set ANSD:0x4A0093E0 %LE %Long 0x00000301              ; CM_L3INIT_USBPHY_CLKCTRL
+
+// Enable software ioreq
+Data.Set ANSD:0x4A30A31C %LE %Long 0x00000100              ; AUXCLK3
+// Set for sys_clk (38.4MHz)
+Data.Set ANSD:0x4A30A31C %LE %Long 0x00000100              ; AUXCLK3
+// Set divisor to 2
+Data.Set ANSD:0x4A30A31C %LE %Long 0x00010100              ; AUXCLK3
+// Set the clock source to active
+Data.Set ANSD:0x4A30A110 %LE %Long 0x00000001              ; ALTCLKSRC
+// Enable clocks
+Data.Set ANSD:0x4A30A110 %LE %Long 0x0000000D              ; ALTCLKSRC
+
+ENDDO

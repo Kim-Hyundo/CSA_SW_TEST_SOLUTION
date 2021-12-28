@@ -1,0 +1,120 @@
+; --------------------------------------------------------------------------------
+; @Title: STM32F765II Serial FLASH Programming Script
+; @Description:
+; Serial FLASH(ST, S25FL164K) is connected the SPI5(Serial Peripheral Interface)
+; The Serial Flash CS is connected to GPIO F6
+;   PH7 -- SPI5_MISO
+;   PF9 -- SPI5_MOSI
+;   PH6 -- SPI5_SCK
+;   PF6 -- SPI5_NSS
+;
+; SRAM: 0x20000000
+; Serial FLASH Controller Addr: 0x40015000
+; 
+; @Props: Template
+; @Author: jjeong
+; @Chip: STM32F765II
+; @Keywords: ST S25FL164K
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: stm32f765-spi.cmm 7602 2019-11-05 15:02:25Z bschroefel $
+
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+
+&SPI_BASE=0x40015000
+
+
+RESet
+SYStem.RESet
+SYStem.CPU STM32F765II
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+SYStem.Up
+
+
+////////////////////
+// clk enable,  0x4002_3800 (RCC base address)
+////////////////////
+Data.Set AD:0x40023830 %Long Data.Long(A:0x40023830)|(0xA0)  ;RCC->APB1ENR |= RCC_APB1Periph , GPIOH & GPIOF Enable
+Data.Set AD:0x40023844 %Long Data.Long(A:0x40023844)|(0x100000)  ;RCC->APB2ENR |= RCC_APB2Periph, SPI5 Enable
+
+////////////////////
+// pin mux setting (alternative function setting),  0x4002_1C00 (GPIOH Base Address), 0x4002_1400 (GPIOF Base Address)
+////////////////////
+Data.Set  AD:0x40021C00+0x00  %Long 0yxxxxxxxxxxxxxxxx1010xxxxxxxxxxxx ; PH7=AF and PH6=AF MODE
+Data.Set  AD:0x40021C00+0x20  %Long 0x55000000  ; PH7/6 for SPI5_MISO/SPI5_SCK
+Data.Set  AD:0x40021400+0x00  %Long 0yxxxxxxxxxxxx10xxxx01xxxxxxxxxxxx ; PF9=AF and PF6=Input MODE
+Data.Set  AD:0x40021400+0x20  %Long 0x00500000  ; PF5 for SPI_NSS SPI5_NSS
+Data.Set  AD:0x40021400+0x24  %Long 0x00000050  ; PF9 for SPI_NSS SPI5_MOSI
+
+
+////////////////////
+// SPI setting, 0x4001_5000 (SPI5 base Address)
+////////////////////
+Data.Set AD:&SPI_BASE+0x00 %LE %Long 0x30F  ; slower clock 0x32F
+Data.Set AD:&SPI_BASE+0x04 %LE %Long 0x1700  ; 8bit data & 8bit read fifo threshold
+Data.Set AD:&SPI_BASE+0x08 %LE %Long 0x2
+Data.Set AD:&SPI_BASE+0x10 %LE %Long 0x7
+
+Data.Set AD:&SPI_BASE+0x00 %LE %Long data.long(A:&SPI_BASE)|0x40    ; enable
+
+GOSUB READ_ID_TEST
+
+FLASHFILE.RESet
+// For the Serial FLASH CS connected  GPIOF.6 
+//FLASFILE.CONFIG <Tx Reg>       <Rx Reg>          <CS Reg, GPIOx_ODR>    <Port Num>
+FLASHFILE.CONFIG &SPI_BASE+0x0C &SPI_BASE+0x0C   0x40021414             0x6
+
+FLASHFILE.TARGET 0x20000000++0x1FFF 0x20002000++0x1FFF ~~/demo/arm/flash/byte/spi64_stm.bin  /KEEP
+
+//Read FLASH Manufacture and Device ID
+FLASHFILE.GETID
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+ENDDO
+
+
+//Dump window for Serial FLASH
+FLASHFILE.DUMP 0x0 
+
+//Write Serial FLASH
+;FLASHFILE.ERASE 0x00--0xFFFFF
+
+//Write Serial FLASH
+;FLASHFILE.LOAD  * 0x00
+;FLASHFILE.LOAD  * 0x00  /ComPare
+
+ENDDO
+
+READ_ID_TEST:
+(
+  Data.Set AD:0x40021418 %Word (0x1<<6.)     ;CS_HIGH , set
+  Data.Set AD:0x4002141A %Word (0x1<<6.)     ;CS_LOW , reset
+
+  //cmd write 0x9F
+  Data.Set AD:&SPI_BASE+0x0C %Byte 0x9F
+  PRINT "read 1st : 0x" Data.Byte(AD:&SPI_BASE+0x0C)
+
+  Data.Set AD:&SPI_BASE+0x0C %Byte 0x00
+  PRINT "read 2nd : 0x" Data.Byte(AD:&SPI_BASE+0x0C)
+
+  Data.Set AD:&SPI_BASE+0x0C %Byte 0x00
+  PRINT "read 3rd : 0x" Data.Byte(AD:&SPI_BASE+0x0C)
+
+  Data.Set AD:&SPI_BASE+0x0C %Byte 0x00
+  PRINT "read 4th : 0x" Data.Byte(AD:&SPI_BASE+0x0C)
+
+  Data.Set AD:0x40021418 %Word (0x1<<6.)    ;CS_HIGH , set
+
+  RETURN
+)

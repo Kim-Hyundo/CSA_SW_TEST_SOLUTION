@@ -1,0 +1,155 @@
+; --------------------------------------------------------------------------------
+; @Title: Generic script for Microsemi M2S internal flash
+;
+; @Description:
+;
+; Example for flash declaration and programming of Microsemi M2S internal flash.
+;
+; Script arguments:
+;
+;   DO m2s [CPU=<cpu>] [PREPAREONLY]
+;
+;     CPU=<cpu> selects CPU derivative <cpu>
+;
+;     PREPAREONLY only declares flash but does not execute flash programming
+;
+; For example:
+;
+;   DO ~~/demo/arm/flash/m2s CPU=M2S010 PREPAREONLY
+;
+; List of M2S derivatives and their configuration:
+;
+;   CPU-Type   ProgFlash   RamSize    Reserved Flash range
+;                [Byte]     [Byte]          pages
+;   ------------------------------------------------------
+;   M2S005        128kB    64+16kB        1008-1023
+;   M2S010        256kB    64+16kB        2032-2047
+;   M2S025        256kB    64+16kB        2032-2047
+;   M2S050        256kB    64+16kB        2032-2047
+;   M2S050T_ES    256kB    64+16kB        2015-2047
+;   M2S060        256kB    64+16kB        1984-2047
+;   M2S080        512kB    64+16kB       (4032-4095)
+;   M2S090        512kB    64+16kB        4032-4095
+;   M2S100        512kB    64+16kB       (4032-4095)
+;   M2S120        512kB    64+16kB       (4032-4095)
+;   M2S150        512kB    64+16kB        4032-4095
+;
+; @Author: WRD
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; @Chip: M2S*
+; --------------------------------------------------------------------------------
+; $Rev: 8572 $
+; $Id: m2s.cmm 8572 2020-08-03 10:03:08Z mmauser $
+;
+
+  LOCAL &parameters
+  ENTRY %LINE &parameters
+
+  LOCAL &param_prepareonly &param_cpu
+  &param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+  &param_cpu=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CPU=","")
+
+  ; --------------------------------------------------------------------------------
+  ; Setup CPU
+
+  IF (SYStem.MODE()<5)
+  (
+    SYStem.RESet
+
+    IF "&param_cpu"!=""
+      SYStem.CPU &param_cpu
+    IF !CPUIS(M2S*)
+      SYStem.CPU M2S*
+
+    SYStem.Option.ResBreak OFF
+    SYStem.Option.DUALPORT ON
+    SYStem.MemAccess DAP
+    SYStem.Option.WaitIDCode ON
+    SYStem.Up
+
+    ; Init internal SRAM
+    Data.Set 0x20000000--0x2000FFFF %Long 0x0
+  )
+
+  ; --------------------------------------------------------------------------------
+  ; Flash declaration
+
+  FLASH.RESet
+  GOSUB FlashDeclaration
+
+  ; Flash script ends here if called with parameter PREPAREONLY
+  IF &param_prepareonly
+    ENDDO PREPAREDONE
+
+  ; --------------------------------------------------------------------------------
+  ; Flash programming example
+
+  DIALOG.YESNO "Program flash memory?"
+  LOCAL &progflash
+  ENTRY &progflash
+  IF &progflash 
+  (
+    FLASH.ReProgram.ALL /Erase
+    Data.LOAD.auto *
+    FLASH.ReProgram.off
+
+    ; Reset device
+    SYStem.Down
+    SYStem.Up
+  )
+
+  ENDDO
+
+
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU 
+
+FlashDeclaration:
+  ; Setup configuration values
+  LOCAL &PFlashSize &ReservedPageFirst
+
+  IF CPUIS("M2S005")
+  (
+    &PFlashSize=0x20000
+    &ReservedPageFirst=1008.
+  )
+  ELSE IF CPUIS("M2S010")||CPUIS("M2S025")||CPUIS("M2S050")
+  (
+    &PFlashSize=0x40000
+    &ReservedPageFirst=2032.
+  )
+  ELSE IF CPUIS("M2S050T_ES")
+  (
+    &PFlashSize=0x40000
+    &ReservedPageFirst=2015.
+  )
+  ELSE IF CPUIS("M2S060")
+  (
+    &PFlashSize=0x40000
+    &ReservedPageFirst=1984.
+  )
+  ELSE IF CPUIS("M2S080")||CPUIS("M2S090")||CPUIS("M2S1*")
+  (
+    &PFlashSize=0x80000
+    &ReservedPageFirst=4032.
+  )
+  ELSE
+  (
+    PRINT %ERROR "FLASH size of CPU type is not supported by the script"
+    ENDDO
+  )
+
+  ; Program Flash
+  IF &PFlashSize<0x80000
+    FLASH.Create 1. 0x60000000--(0x60000000+(&ReservedPageFirst*0x80)-1.) 0x80 TARGET Long 0x60080000
+  IF &PFlashSize>=0x80000
+  (
+    FLASH.Create 1. 0x60000000--0x6003FFFF 0x80 TARGET Long 0x60080000
+    FLASH.Create 1. 0x60040000--(0x60000000+(&ReservedPageFirst*0x80)-1.) 0x80 TARGET Long 0x600C0000
+  )
+
+  FLASH.CreateALIAS 0x00000000--((&ReservedPageFirst*0x80)-1.) 0x60000000
+
+  FLASH.TARGET 0x20000000 0x20001000 0x400 ~~/demo/arm/flash/long/m2s.bin
+
+  RETURN

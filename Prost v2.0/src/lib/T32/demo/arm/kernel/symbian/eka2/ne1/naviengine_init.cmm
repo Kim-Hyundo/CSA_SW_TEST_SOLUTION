@@ -1,0 +1,107 @@
+; --------------------------------------------------------------------------------
+; @Title: Initialization Script for NE1_TB board (NEC NaviEngine)
+; @Description: -
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: naviengine_init.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+; print "initialize system control coprocessor..."
+
+; <MCR|MRC> p15, <op1>, Rd, CRn, CRm, <op2>
+; BIT0-3:CRn
+; BIT4-7:CRm
+; BIT8-10:<op2>
+; BIT12-14:<op1>
+
+;*CPU Init
+;*MMU/D-cache/I-cache disabled
+; c1, 0, c0, 0
+Data.Set C15:0x0001 %LE %Long 0x00054078
+
+;*Invalidate both caches
+; c7, 0, c7, 0
+Data.Set C15:0x0077 %LE %Long 0x0
+
+;*Invalidate TLBs
+; c8, 0, c7, 0
+Data.Set C15:0x0078 %LE %Long 0x0
+
+
+;print "resetting target..."
+SYStem.RESetTarget
+
+
+;print "initialize bus controller and peripherals..."
+;*DDR2 Init
+Data.Set sd:0x18021044 %LE %Long 0x30022123
+Data.Set sd:0x18021058 %LE %Long 0x00000001
+Data.Set sd:0x18021008 %LE %Long 0x00000020
+
+wait.1s
+
+;*delay(Memo Register dummy write)
+Data.Set sd:0x18037C00 %LE %Long 0x00000000
+Data.Set sd:0x18021008 %LE %Long 0x10000004
+Data.Set sd:0x18021008 %LE %Long 0x00010002
+Data.Set sd:0x18021008 %LE %Long 0x00018002
+Data.Set sd:0x18021008 %LE %Long 0x00008002
+Data.Set sd:0x18021008 %LE %Long 0X1D480002
+Data.Set sd:0x18021008 %LE %Long 0x10000004
+Data.Set sd:0x18021008 %LE %Long 0x00000001
+Data.Set sd:0x18021008 %LE %Long 0x00000001
+
+;*delay(Memo Register dummy write)
+Data.Set sd:0x18037C00 %LE %Long 0x00000000
+Data.Set sd:0x18037C00 %LE %Long 0x00000000
+Data.Set sd:0x18037C00 %LE %Long 0x00000000
+Data.Set sd:0x18021008 %LE %Long 0x19480002
+Data.Set sd:0x18021008 %LE %Long 0x01308002
+Data.Set sd:0x18021008 %LE %Long 0x00000100
+Data.Set sd:0x18021040 %LE %Long 0x1485A912
+Data.Set sd:0x18021034 %LE %Long 0x00000121
+
+;*SysCon Init
+;*  .word 0x18037C80 %LE %LONG 0x007F0103
+Data.Set sd:0x18037C80 %LE %Long 0x00000000
+Data.Set sd:0x18037C14 %LE %Long 0x00000000
+
+;*ExBus Init
+Data.Set sd:0x1801A000 %LE %Long 0x0000004A
+Data.Set sd:0x1801A004 %LE %Long 0x08000049
+Data.Set sd:0x1801A008 %LE %Long 0x0600004E
+Data.Set sd:0x1801A00C %LE %Long 0x0400004B
+Data.Set sd:0x1801A010 %LE %Long 0x1000004A
+Data.Set sd:0x1801A014 %LE %Long 0x1400000A
+Data.Set sd:0x1801A020 %LE %Long 0x10388E7F
+Data.Set sd:0x1801A024 %LE %Long 0x10388E7E
+Data.Set sd:0x1801A028 %LE %Long 0x10388E7E
+Data.Set sd:0x1801A02C %LE %Long 0x10388E7F
+Data.Set sd:0x1801A030 %LE %Long 0x10388E7E
+Data.Set sd:0x1801A034 %LE %Long 0x10388E7E
+
+;*ExBus PCS5 UART-EX Init
+Data.Set SD:0x14020003 %LE %Byte 0x00
+Data.Set SD:0x14020001 %LE %Byte 0x00
+Data.Set SD:0x14020002 %LE %Byte 0x07
+Data.Set SD:0x14020003 %LE %Byte 0x80
+Data.Set SD:0x14020000 %LE %Byte 0x1E
+Data.Set SD:0x14020001 %LE %Byte 0x00
+Data.Set SD:0x14020003 %LE %Byte 0x03
+Data.Set SD:0x14020004 %LE %Byte 0x03
+
+;*ExBus PCS5 CharLED
+Data.Set SD:0x14000000 %LE %Byte 0x59
+Data.Set SD:0x14000001 %LE %Byte 0x45
+Data.Set SD:0x14000002 %LE %Byte 0x53
+Data.Set SD:0x14000003 %LE %Byte 0x21
+Data.Set SD:0x14000004 %LE %Byte 0x21
+Data.Set SD:0x14000005 %LE %Byte 0x20
+Data.Set SD:0x14000006 %LE %Byte 0x20
+Data.Set SD:0x14000007 %LE %Byte 0x20
+
+;*ExBus PCS4 LED
+Data.Set SD:0x10000030 %LE %Word 0x00AA
+
+ENDDO

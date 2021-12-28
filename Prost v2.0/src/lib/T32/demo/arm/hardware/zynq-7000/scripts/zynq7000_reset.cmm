@@ -1,0 +1,38 @@
+; --------------------------------------------------------------------------------
+; @Title: Software Reset for the Zynq-7000
+; @Description:
+;   On most ZYNQ platforms the nRESET signal of the debugger is not wired to
+;   the PS-RST signal of the ZYNQ-7000.
+;   This script enables to do a software/debugger based reset of a ZYNQ-7000.
+;   Usage:
+;     DO zynq7000_reset
+;   Prerequisites:
+;     * Debug session is connected to ZYNQ-7000
+;     * the first core must be connected
+; @Keywords: ZYNQ
+; @Author: AME
+; @Chip: Zynq-7000
+; @Board: -
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: zynq7000_reset.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+IF OS.FILE.SIZE("~~~~/zynq7000_reset.cmx")!=3736.
+(
+  PRINT %ERROR "Installation inconsistent!"
+  AREA
+  PLIST
+  STOP
+)
+
+PRIVATE &result
+DO ~~~~/zynq7000_reset.cmx
+RETURNVALUES &result
+IF !&result
+(
+  AREA
+  STOP
+)
+
+ENDDO
+

@@ -1,0 +1,132 @@
+; --------------------------------------------------------------------------------
+; @Title: Serial FLASH Programming Script for MEC1503
+; @Description:
+; Serial FLASH (WINBOND, 25Q128) is connected to SHD_CS0(GPIO55)
+;
+;       pin# - SPI Flash
+;       GPIO002-SHD_CS1
+;       GPIO055-SHD_CS0
+;       GPIO056-SHD_CLK
+;       GPIO223-SHD_IO0
+;       GPIO224-SHD_IO1
+;       GPIO227-SHD_IO2
+;       GPIO016-SHD_IO3
+;
+; @Keywords: ARM, Cortex-M4
+; @Author: JIM
+; @Board: Everglades-EVB
+; @Chip: MEC1503
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mec1503-spi.cmm 8359 2020-06-02 13:31:36Z jjeong $
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+&SPI_BASE=0x40070000
+; ------------------------------------------------------------------------------
+; Setup CPU
+SYStem.RESet
+SYStem.CPU MEC1503
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF hardware.COMBIPROBE()||hardware.UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock 10MHz
+Trace.DISable
+SYStem.Up
+
+; ------------------------------------------------------------------------------
+; Flash Power & Clock Enable
+
+; ------------------------------------------------------------------------------
+; Flash Pin Mux Configuration
+GOSUB PINMUX_CONFIG
+
+; ------------------------------------------------------------------------------
+; Flash Controller Init
+PER.Set.simple ASD:&SPI_BASE+0x018 %Long -1          ;enable all interrupt
+PER.Set.simple ASD:&SPI_BASE+0x000 %Long 0x00020001  ;enable CS0 & clock_div for QMSPI 
+PER.Set.simple ASD:&SPI_BASE+0x008 %Long 0x6         ;clear tx buffer
+
+GOSUB READ_ID_TEST
+
+; ------------------------------------------------------------------------------
+; Flash declaration
+Break.RESet
+FLASHFILE.RESet
+
+//FLASHFILE.CONFIG   <QMSPI Base>  <0>     <0>
+FLASHFILE.CONFIG     &SPI_BASE     0x0     0x0
+
+// FLASHFILE.TARGET <code range>    <data range>           <Algorithm file>
+FLASHFILE.TARGET 0x0E0000++0x1FFF    E:0x0E2000++0x24FF   ~~/demo/arm/flash/byte/spi64_mecqm.bin  /keep /dualport /stacksize 0x200
+
+FLASHFILE.GETID   ; Read FLASH Manufacture and Device ID
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+  ENDDO
+
+FLASHFILE.DUMP 0x0  ; Read out from the serial flash
+
+//FLASHFILE.ERASE 0x0--0xFFFFF   ; Erase the serial flash 0x0--0xFFFFF
+//FLASHFILE.LOAD uboot.bin 0x0   ; Write uboot.bin to 0x0 on the serial flash
+//FLASHFILE.LOAD uboot.bin 0x0  /ComPare  ; Verify
+
+ENDDO
+
+PINMUX_CONFIG:
+;GPIO002-SHD_CS1
+PER.Set.simple ASD:0x40081008 %Long 0xA240  ;output
+;GPIO055-SHD_CS0
+PER.Set.simple ASD:0x400810B4 %Long 0xA240  ;output
+;GPIO056-SHD_CLK
+PER.Set.simple ASD:0x400810B8 %Long 0xA240  ;output
+;GPIO223-SHD_IO0
+PER.Set.simple ASD:0x4008124C %Long 0x1040  ;mux 1 for SHD_IO0
+;GPIO224-SHD_IO1
+PER.Set.simple ASD:0x40081250 %Long 0x2040  ;mux 2 for SHD_IO1
+;GPIO227-SHD_IO2
+PER.Set.simple ASD:0x4008125C %Long 0x1040  ;mux 1 for SHD_IO2
+;GPIO016-SHD_IO3
+PER.Set.simple ASD:0x40081038 %Long 0x2040  ;mux 2 for SHD_IO3
+
+RETURN
+
+READ_ID_TEST:
+
+PER.Set.simple ASD:&SPI_BASE+0x018 %Long -1  ;enable all interrupt
+PER.Set.simple ASD:&SPI_BASE+0x000 %Long 0x00020001  ;enable...QMSPI
+PER.Set.simple ASD:&SPI_BASE+0x008 %Long 0x6  ;clear tx buffer
+PER.Set.simple ASD:&SPI_BASE+0x010 %Long -1   ;status clear
+
+PER.Set.simple ASD:&SPI_BASE+0x004 %Long 0x100044  ;tx/rx eanble
+PER.Set.simple ASD:&SPI_BASE+0x008 %Long 0x4  //clear data buffer
+
+PER.Set.simple ASD:&SPI_BASE+0x020 %Byte 0x9F  ;tx buffer
+PER.Set.simple ASD:&SPI_BASE+0x008 %Long 0x1  //start
+PRINT "1st 0x" Data.Byte(A:&SPI_BASE+0x024)
+
+PER.Set.simple ASD:&SPI_BASE+0x020 %Byte 0x00  ;tx buffer
+PER.Set.simple ASD:&SPI_BASE+0x008 %Long 0x1  //start
+PRINT "2nd 0x" Data.Byte(A:&SPI_BASE+0x024)  " (Manufacture)"
+
+PER.Set.simple ASD:&SPI_BASE+0x020 %Byte 0x00  ;tx buffer
+PER.Set.simple ASD:&SPI_BASE+0x008 %Long 0x1  //start
+PRINT "3rd 0x" Data.Byte(A:&SPI_BASE+0x024)  " (Device ID)"
+
+PER.Set.simple ASD:&SPI_BASE+0x020 %Byte 0x00  ;tx buffer
+PER.Set.simple ASD:&SPI_BASE+0x008 %Long 0x1  //start
+PRINT "4th 0x" Data.Byte(A:&SPI_BASE+0x024)
+
+//last byte access
+PER.Set.simple ASD:&SPI_BASE+0x004 %Long 0x100044|0x200  ;tx/rx eanble , terminate
+PER.Set.simple ASD:&SPI_BASE+0x020 %Byte 0x00  ;tx buffer
+PER.Set.simple ASD:&SPI_BASE+0x008 %Long 0x1  //start
+PRINT "5th 0x" Data.Byte(A:&SPI_BASE+0x024)
+
+RETURN

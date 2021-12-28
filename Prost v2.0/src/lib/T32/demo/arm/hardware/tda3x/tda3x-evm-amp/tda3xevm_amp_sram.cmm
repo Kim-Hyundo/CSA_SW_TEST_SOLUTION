@@ -1,0 +1,210 @@
+; --------------------------------------------------------------------------------
+; @Title: AMP-Demo script for TDA3XIPU0&1 on TDA3X EVM (AMP, RAM)
+; @Description:
+;   Setup a AMP debug session using a single script approach.
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   Use this script to test the AMP-Debugging of both IPU cores.
+;   Prerequisites:
+;    * Connect Debug Cable to J17 using Adapter
+;        Spectrum Digital 701282-0001 (TI20Compact -> MIPI60)
+;        Lauterbach LA-3780 (ARM20 -> TI20Compact) please do not use TI-14!
+;      or
+;      Connect Debug Cable to J17 using Adapter
+;        Lauterbach LA-3818 (ARM20/Mictor38 -> MIPI60)
+;    * The RESET line must be wired to the EVM, using the TI20Compact/MIPI60
+;      header this is possible.
+;    * TRACE32 is started using the .bat/.sh file in this directory
+; @Keywords: ARM
+; @Author: AME
+; @Board: TDA3X EVM
+; @Chip: TDA3X
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tda3xevm_amp_sram.cmm 16561 2020-09-21 05:52:38Z cmorgenstern $
+
+PRIVATE &currPath &rclPort &remoteCmd
+&currPath=OS.PPD()
+&rclPort=FORMAT.DecimalU(1.,RCL.PORT(0))+"."
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF SYStem.INSTANCE()<1.
+(
+  PRINT %ERROR "TRACE32 is not running in AMP mode! Use .bat/.sh file in this directory."
+  ENDDO
+)
+IF VERSION.BUILD.BASE()<76582.
+(
+  PRINT %ERROR "Please use more recent Software! Contact support@lauterbach.com."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; enable INTERCOM if not already specified and prepare related variables
+IF (INTERCOM.PORT()==0)
+(
+  InterCom.ENable MASTER
+)
+&remoteCmd="InterCom.execute SLAVE1"
+
+; --------------------------------------------------------------------------------
+; close any existing REMOTE GUI
+INTERCOM.execute OTHERS QUIT
+
+; --------------------------------------------------------------------------------
+; open SLAVE GUI with or without enabled remote API
+IF (RCL.PORT(0)!=0)
+(
+  TargetSystem.NewInstance SLAVE1 /ARCHitecture ARM /ChipIndex 2. /APIPORT &rclPort+1. /ONCE
+)
+ELSE
+(
+  TargetSystem.NewInstance SLAVE1 /ARCHitecture ARM /ChipIndex 2. /ONCE
+)
+
+TITLE "TRACE32 for ARM - TDA3XIPU-CORE0 - MASTER"
+&remoteCmd TITLE "TRACE32 for ARM - TDA3XIPU-CORE1 - SLAVE1"
+
+; --------------------------------------------------------------------------------
+; common SYStem settings
+RESet
+&remoteCmd RESet
+SYStem.RESet
+&remoteCmd SYStem.RESet
+SYStem.CPU TDA3XIPU-CORE0
+SYStem.CONFIG CORE 1. 1.
+SYStem.CONFIG SLAVE OFF
+SYStem.Option EnReset ON
+SYStem.Option ResBreak ON
+SYStem.Option SYSRESETREQ OFF
+SYStem.Option VECTRESET OFF
+SYStem.JtagClock CTCK 10MHz
+&remoteCmd SYStem.CPU TDA3XIPU-CORE1
+&remoteCmd SYStem.CONFIG CORE 2. 1.
+&remoteCmd SYStem.CONFIG SLAVE ON
+&remoteCmd SYStem.JtagClock CTCK 10MHz
+
+SYStem.Up
+
+; clear the ROM_AUXBOOT0 and reset again
+Data.Set AD:0x4A003CA8 %Long 0x00
+SYStem.Up
+
+; core should be halted now at reset vector
+IF TRUE()
+(
+  ; Method 1:
+  ; preboot the BOOTROM now till the IPU_UNICACHE_MMU gets initialized
+  ; wait till the CPU writes to the Channel0-Large register
+  Go 0x55080800 /Write
+  WAIT !STATE.RUN() 1.s
+  IF STATE.RUN()
+  (
+    PRINT %ERROR "Preboot failed!"
+    ENDDO
+  )
+  ; now leave this function using SYStem.Up
+  Go.Up
+  WAIT !STATE.RUN() 1.s
+  IF STATE.RUN()
+  (
+    PRINT %ERROR "Preboot failed!"
+    ENDDO
+  )
+  ; now the BootROM initialized the MMU and did some basic setup
+  ; - should be safe now to run simple code!
+)
+ELSE
+(
+  ; Method 2:
+  ; create MMU entries manually
+  ; simple  mapping channel=0, size=medium, 0x00300000->0x40300000
+  GOSUB SetMmuEntry "0." "1." "0x00300000" "0x40300000" "0x1"
+)
+
+; --------------------------------------------------------------------------------
+; load demo code both cores (use internal RAM only)
+Data.LOAD.Elf ~~~~/master/sieve_ram_thumb_ii_v7m.elf
+
+; set start address "_start_secondary" for IPU1
+; ensure it's a THUMB address
+Data.Set AD:0x4A003CAC %Long ADDRESS.OFFSET(sYmbol.BEGIN(_start_secondary))|0x1
+Data.Set AD:0x4A003CA8 %Long 0xf0
+
+; --------------------------------------------------------------------------------
+; do a SYStem.Up on IPU1
+; - issues a SYSRESETREQ, core only is reset and stops at ROM RESET Vector
+&remoteCmd SYStem.Mode.Up
+
+; --------------------------------------------------------------------------------
+; load symbols on all sessions (use internal RAM only)
+Data.LOAD.Elf ~~~~/master/sieve_ram_thumb_ii_v7m.elf /NoCODE
+&remoteCmd ChDir &currPath
+&remoteCmd Data.LOAD.Elf ./master/sieve_ram_thumb_ii_v7m.elf /NoCODE
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main\1
+WAIT !STATE.RUN()
+&remoteCmd Go.direct background\1
+&remoteCmd WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+&remoteCmd WinCLEAR
+&remoteCmd Mode.Hll
+&remoteCmd WinPOS 0. 0.
+&remoteCmd List.auto
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+
+SetMmuEntry: ;(channel, small=2/med=1/large=0, virt, phys, policy)
+(
+  PRIVATE &base
+  PARAMETERS &channel &size &virt &phys &policy
+  &base=0x55080800
+  &base=&base+&channel*0x4
+  IF (&size==0.) ; large
+  (
+    ; ADDR
+    Data.Set AD:&base+0x00 %Long &virt
+    ; XLTE
+    Data.Set AD:&base+0x20 %Long &phys
+    ; POLICY
+    Data.Set AD:&base+0x40 %Long &policy
+  )
+  ELSE IF (&size==1.) ; medium
+  (
+    ; ADDR
+    Data.Set AD:&base+0x60 %Long &virt
+    ; XLTE
+    Data.Set AD:&base+0xA0 %Long &phys
+    ; POLICY
+    Data.Set AD:&base+0xE0 %Long &policy
+  )
+  ELSE IF (&size==2.)
+  (
+    ; ADDR
+    Data.Set AD:&base+0x120 %Long &virt
+    ; XLTE
+    Data.Set AD:&base+0x1A0 %Long &phys
+    ; POLICY
+    Data.Set AD:&base+0x220 %Long &policy
+  )
+  ELSE
+  (
+    PRINT %ERROR "Wrong Usage"
+    STOP
+    ENDDO
+  )
+  RETURN
+)

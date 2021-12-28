@@ -1,0 +1,11 @@
+COPTS = -c -W3 -D_X86_=1 -DWIN32 -DMS_WINDOWS -Z7 -O2 -Gs
+
+all: pproto32.dll
+
+pproto32.dll: pproto.obj pipeproto.obj mypipe.obj pipeproto.h mypipe.h
+	link -dll -out:pproto32.dll pproto.obj mypipe.obj pipeproto.obj -def:pproto32.def
+
+.c.obj: ; cl $(COPTS) $*.c
+
+clean:
+	del /F *.obj *.exp *.ilk *.lib *.pdb

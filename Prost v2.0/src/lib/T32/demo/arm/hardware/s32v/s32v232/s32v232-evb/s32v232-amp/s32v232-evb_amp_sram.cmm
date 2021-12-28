@@ -1,0 +1,160 @@
+; --------------------------------------------------------------------------------
+; @Title: AMP-Demo script for S32V232 on S32V232-EVB (AMP, RAM)
+; @Description:
+;   Setup a AMP debug session using a single script approach.
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   Use this script to test the AMP-Debugging.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to J17
+;    * set Bootmode to SD-Card, remove SD-Card
+; @Keywords: ARM
+; @Author: AME
+; @Board: S32V234-EVB
+; @Chip: S32V232
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: s32v232-evb_amp_sram.cmm 16225 2020-06-25 14:27:47Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF SYStem.INSTANCE()!=1.
+(
+  PRINT %ERROR "This script must be called from MASTER GUI!"
+  ENDDO
+)
+
+; store current script path in &ppd
+PRIVATE &ppd
+&ppd=OS.PPD()
+
+; --------------------------------------------------------------------------------
+; [optional] close any existing REMOTE GUIs
+; IC OTHERS QUIT
+
+; --------------------------------------------------------------------------------
+; open all SLAVE GUIs
+IF !INTERCOM.PING(A53)
+  TargetSystem.NewInstance A53 /ARCHitecture ARM64
+IF !INTERCOM.PING(SEQ)
+  TargetSystem.NewInstance SEQ /ARCHitecture ARM
+
+; --------------------------------------------------------------------------------
+; set titles for SLAVE GUIs
+TITLE "TRACE32 for ARM - S32V232-CM4 - MASTER"
+InterCom A53 TITLE "TRACE32 for ARM64 - S32V232 - SLAVE1"
+InterCom SEQ TITLE "TRACE32 for ARM - S32V232-CM0+ - SLAVE2"
+
+; --------------------------------------------------------------------------------
+; common SYStem settings
+RESet
+InterCom A53 RESet
+InterCom SEQ RESet
+SYStem.RESet
+InterCom A53 SYStem.RESet
+InterCom SEQ SYStem.RESet
+SYStem.CPU S32V232-CM4
+SYStem.CONFIG CORE 1. 1.
+SYStem.CONFIG SLAVE OFF
+SYStem.Option AHBHPROT 0x3
+SYStem.Option ResBreak OFF
+InterCom A53 SYStem.CPU S32V232
+InterCom A53 SYStem.CONFIG CORE 2. 1.
+InterCom A53 SYStem.CONFIG SLAVE ON
+InterCom A53 SYStem.Option AHBHPROT 0x3
+InterCom SEQ SYStem.CPU S32V232-CM0+
+InterCom SEQ SYStem.CONFIG CORE 3. 1.
+InterCom SEQ SYStem.CONFIG SLAVE ON
+InterCom SEQ SYStem.Option AHBHPROT 0x3
+
+; disable Trace for connection phase - TPIU may be unclocked
+ETM.OFF
+ITM.OFF
+HTM.OFF
+Trace.DISable
+
+InterCom A53 ETM.OFF
+InterCom A53 ITM.OFF
+InterCom A53 Trace.DISable
+
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; kick secondary cores
+DO ~~~~/../../scripts/kick_cores "A53_1 A53_2"
+DO ~~~~/../../scripts/kick_cores "M0_SEQ"
+
+; --------------------------------------------------------------------------------
+; attach to all cores on all sessions
+
+InterCom A53 CORE.ASSIGN 1. 2.
+InterCom A53 SYStem.Mode.Up
+InterCom SEQ SYStem.Mode.Up
+
+GOSUB InitEcc
+
+; --------------------------------------------------------------------------------
+; load demo program on all sessions (use internal RAM only)
+Data.LOAD.Elf &(ppd)/master/sieve_ram_thumb_ii_v7m.elf
+InterCom A53 CORE.select 0.
+InterCom A53 Data.LOAD.Elf &(ppd)/slave1/sieve_ram_aarch64_v8.elf
+InterCom SEQ Data.LOAD.Elf &(ppd)/slave2/sieve_ram_thumb_v6m.elf
+
+InterCom A53 Register.Set PC _start_secondary /CORE 1.
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main\1
+WAIT !STATE.RUN()
+InterCom A53 Go.direct main\1
+InterCom A53 WAIT !STATE.RUN()
+InterCom SEQ Go.direct main\1
+InterCom SEQ WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+InterCom A53 WinCLEAR
+InterCom A53 Mode.Hll
+InterCom A53 WinPOS 0. 0. 116. 26.
+InterCom A53 List.auto
+InterCom SEQ WinCLEAR
+InterCom SEQ Mode.Hll
+InterCom SEQ WinPOS 0. 0. 116. 26.
+InterCom SEQ List.auto
+
+ENDDO
+
+DisableWatchdog:
+(
+  ; use the AHB access port to disable the WDOG before the actual connection
+  Data.Set EAHB:0x40086010 %Long 0xc520
+  Data.Set EAHB:0x40086010 %Long 0xd928
+  Data.Set EAHB:0x40086000 %Long Data.Long(EAHB:0x40086000)&~0x1
+  Data.Set EAHB:0x40086000 %Long Data.Long(EAHB:0x40086000)|0x40
+  RETURN
+)
+
+InitEcc:
+(
+  Data.Set 0x3e000000++0x7fff %Long 0x0
+
+  ; ECC init of SRAM with use eDMA TCD1
+  Data.Set EAHB:0x40003020 %Long 0x6230
+  Data.Set EAHB:0x40003024 %Long 0x03030000
+  Data.Set EAHB:0x40003028 %Long 0x00400000
+  Data.Set EAHB:0x40003030 %Long 0x3e800000
+  Data.Set EAHB:0x40003034 %Long 0x00010008
+  Data.Set EAHB:0x4000303C %Long 0x00010001
+  WAIT (Data.Word(EAHB:0x4000303C)&0x0080)==0x0080
+  RETURN
+)
+

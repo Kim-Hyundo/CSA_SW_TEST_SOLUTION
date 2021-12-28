@@ -1,0 +1,33 @@
+# Should be called with
+#
+# nmake -f make_win32
+
+COPTS = -c -W3 -D_X86_=1 -DWIN32 -DMS_WINDOWS -Z7 -O2 -Gs
+
+all: pread_tcp.exe pproto_tcp32.dll
+
+pread_tcp.exe: pread_tcp.obj tcpsimple.obj mypipe.obj
+	link -debugtype:cv -out:pread_tcp.exe pread_tcp.obj tcpsimple.obj mypipe.obj ws2_32.lib
+
+
+pproto_tcp32.dll: pproto_tcp.obj pipeproto.obj tcpsimple.obj mypipe.obj
+	link -dll -debugtype:cv -def:pproto_tcp32.def -out:pproto_tcp32.dll pproto_tcp.obj pipeproto.obj tcpsimple.obj mypipe.obj ws2_32.lib
+
+pread_tcp.obj: pread_tcp.c tcpsimple.h mypipe.h messages.h
+	cl $(COPTS) pread_tcp.c
+
+pproto_tcp.obj: pproto_tcp.c pipeproto.h tcpsimple.h mypipe.h messages.h
+	cl $(COPTS) pproto_tcp.c
+
+pipeproto.obj: pipeproto.c pipeproto.h
+	cl $(COPTS) pipeproto.c
+
+tcpsimple.obj: tcpsimple.c tcpsimple.h
+	cl $(COPTS) tcpsimple.c
+
+mypipe.obj: mypipe.c mypipe.h
+	cl $(COPTS) mypipe.c
+
+
+clean:
+	del /F *.obj *.exp *.ilk *.pdb *.lib

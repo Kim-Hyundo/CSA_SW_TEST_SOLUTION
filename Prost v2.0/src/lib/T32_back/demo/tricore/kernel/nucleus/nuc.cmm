@@ -1,0 +1,43 @@
+; --------------------------------------------------------------------------------
+; @Title: Nucleus Plus Demo for TRACE32 OS Awareness
+; @Description:
+;   This script loads all necessary files to demonstrate
+;   the RTOS-Debugger for Nucleus Plus in stand-alone-mode.
+; @Keywords: Infineon, kernel, nucleus, RTOS, TriCore
+; @Author: DIE
+; @Chip: tc10gp
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: nuc.cmm 13125 2018-09-11 14:03:01Z rdienstbeck $
+
+
+ SCREEN.ON
+
+; Emulator reset
+ PRINT "resetting..."
+ RESet
+ WinPAGE.RESet
+
+ PRINT "initializing..."
+
+; System settings for TC10GP
+ SYStem.CPU tc10gp
+
+; Stand alone internal mode
+ SYStem.Up
+
+; load sample application
+ PRINT "loading sample application..."
+ Data.LOAD.Ieee nucleus_demo.abs /LPATH
+
+; initialize mutitasking support
+ PRINT "initializing RTOS support..."
+ SCREEN.OFF
+ DO pnuc
+ MENU.ReProgram nuc
+
+; term T32OUT T32IN
+ task.ts
+ List.auto
+
+ PRINT "load complete."

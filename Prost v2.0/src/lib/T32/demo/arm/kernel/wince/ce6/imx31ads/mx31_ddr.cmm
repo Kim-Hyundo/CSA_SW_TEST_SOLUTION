@@ -1,0 +1,107 @@
+; --------------------------------------------------------------------------------
+; @Title: Setup Script for iMX31ADS Board
+; @Description: This script configures basic peripheral and RAM access
+; @Author: DIE
+; @Keywords: i.MX31
+; @Board: iMX31ADS
+; @Chip: IMX31
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mx31_ddr.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+PER.Set.simple c15:0x1 %Long 0x00050078
+
+// configuring CP15 for enabling the peripheral bus
+PER.Set.simple c15:0x42f %Long 0x40000015
+
+Data.Set 0x53FC0000 %Long 0x040
+Data.Set 0x53F80000 %Long 0x074B0B7D
+
+//532-133-66.5
+//data.set 0x53F80004 %Long  0xFF871D58
+//data.set 0x53F80010 %Long  0x0033280C
+
+// 399MHz - 26MHz input, PD%Long 1,MFI%Long 7, MFN%Long 27, MFD%Long 40
+Data.Set 0x53F80004 %Long 0xFF871D50
+Data.Set 0x53F80010 %Long 0x00271C1B
+
+// 208-104-52
+//data.set 0x53F80004 %Long  0xFF871D48
+//data.set 0x53F80010 %Long  0x04002000
+
+
+// Configure PSRAM on CS5 
+//data.set 0xb8002050 %Long  0x0000dcf6
+//data.set 0xb8002054 %Long  0x444a4541
+//data.set 0xb8002058 %Long  0x44443302
+//data.set 0xB6000000 %Long 0xCAFECAFE 
+
+// Start 16 bit NorFlash Initialization on CS0
+Data.Set 0xb8002000  %Long  0x0000CC03
+Data.Set 0xb8002004  %Long  0xa0330D01
+Data.Set 0xb8002008 %Long  0x00220800
+
+// Configure CPLD on CS4 
+Data.Set 0xb8002040 %Long  0x0000D843
+Data.Set 0xb8002044 %Long  0x22252521
+Data.Set 0xb8002048 %Long  0x22220A00
+
+
+// Initialization script for 32 bit DDR on Tortola EVB 
+
+// SDCLK
+Data.Set 0x43FAC26C %Long 0
+
+// CAS
+Data.Set 0x43FAC270 %Long 0
+
+// RAS
+Data.Set 0x43FAC274 %Long 0
+
+// CS2 (CSD0)
+Data.Set 0x43FAC27C %Long 0x1000
+    
+// DQM3
+Data.Set 0x43FAC284 %Long 0
+
+// DQM2, DQM1, DQM0, SD31-SD0, A25-A0, MA10 (0x288..0x2DC)
+Data.Set 0x43FAC288 %Long 0
+Data.Set 0x43FAC28C %Long 0
+Data.Set 0x43FAC290 %Long 0
+Data.Set 0x43FAC294 %Long 0
+Data.Set 0x43FAC298 %Long 0
+Data.Set 0x43FAC29C %Long 0
+Data.Set 0x43FAC2A0 %Long 0
+Data.Set 0x43FAC2A4 %Long 0
+Data.Set 0x43FAC2A8 %Long 0
+Data.Set 0x43FAC2AC %Long 0
+Data.Set 0x43FAC2B0 %Long 0
+Data.Set 0x43FAC2B4 %Long 0
+Data.Set 0x43FAC2B8 %Long 0
+Data.Set 0x43FAC2BC %Long 0
+Data.Set 0x43FAC2C0 %Long 0
+Data.Set 0x43FAC2C4 %Long 0
+Data.Set 0x43FAC2C8 %Long 0
+Data.Set 0x43FAC2CC %Long 0
+Data.Set 0x43FAC2D0 %Long 0
+Data.Set 0x43FAC2D4 %Long 0
+Data.Set 0x43FAC2D8 %Long 0
+Data.Set 0x43FAC2DC %Long 0
+
+
+Data.Set 0xB8001010 %Long 0x00000004
+Data.Set 0xB8001004 %Long 0x006ac73a
+Data.Set 0xB8001000 %Long 0x92100000
+Data.Set 0x80000f00 %Long 0x12344321
+Data.Set 0xB8001000 %Long 0xa2100000
+Data.Set 0x80000000 %Long 0x12344321
+Data.Set 0x80000000 %Long 0x12344321
+Data.Set 0xB8001000 %Long 0xb2100000
+Data.Set 0x80000033 %Byte 0xda
+Data.Set 0x81000000 %Byte 0xff
+Data.Set 0xB8001000 %Long 0x82226080
+Data.Set 0x80000000 %Long 0xDEADBEEF
+Data.Set 0xB8001010 %Long 0x0000000c
+
+ENDDO

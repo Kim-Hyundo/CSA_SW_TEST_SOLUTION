@@ -1,0 +1,105 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux Demo for TRACE32 OS Awareness on the ZC702
+; @Description: 
+;   This script is supposed to attach to a running Linux on ZC702 board. 
+;   The Task Awareness + Debugger Address Translation are prepared as for the 
+;   GSRD. After execution of this script the debugger is ready for Process, 
+;   Kernel, optional Module and optional Library debugging.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+; @Keywords: awareness, CortexA9, Linux, RTOS, SMP, XILINX, ZC70*, ZYNQ*
+; @Board: ZC702
+; @Chip: ZYNQ-7000
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: zc702_linux_attach.cmm 16019 2020-05-06 08:47:23Z kjmal $
+
+
+  LOCAL &ka_path &awareness
+  SCREEN.ALways
+ 
+ 
+ ; Debugger Reset
+ 
+  WinPAGE.RESet
+  AREA.RESet
+  WinPOS 0. 25. 75. 8.
+  AREA.view
+  
+  PRINT "resetting..."
+ 
+  RESet
+    
+  DO ~~/demo/etc/terminal/serial/term.cmm COM3 115200.
+  
+  TERM.view
+  
+ ; setup of ICD
+  
+  SYStem.CPU ZYNQ-7000
+  
+  SYStem.CONFIG.DAPIRPRE 6.
+  SYStem.CONFIG.DAPIRPOST 0.
+  SYStem.CONFIG.DAPDRPRE 1.
+  SYStem.CONFIG.DAPDRPOST 0.
+ 
+  SYStem.Option DACR ON          ; give Debugger global write permissions
+  TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+  TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+  TrOnchip.Set UNDEF OFF         ; my be used by Linux for FPU detection
+  TrOnchip.Set RESET OFF
+  SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+ 
+  Trace.METHOD Onchip
+ 
+  SYStem.Attach
+  Break.direct
+  WAIT !STATE.RUN()
+
+  SETUP.IMASKASM ON          ; lock interrupts while single stepping
+  
+ ; Load the Linux kernel symbols into the debugger
+  ; use /strippart and /path to map source paths, if necessary
+  
+  PRINT "loading Linux kernel symbols..."
+  Data.LOAD.Elf vmlinux /gnu /NoCODE /StripPART "ZC702"
+  
+ 
+ ; Open a Code Window -- we like to see something
+ 
+  WinPOS 0. 0. 75. 20.
+  List.auto
+  SCREEN.display
+
+  
+ 
+ ; Declare the MMU format to the debugger
+  ; - table format is "LINUX"
+  ; - table base address is at label "swapper_pg_dir"
+  ; - kernel address translation
+  ; Map the virtual kernel symbols to physical addresses to give 
+  ; the debugger access to it before CPU MMU is initialized
+ 
+  PRINT "initializing debugger MMU..."
+  MMU.FORMAT LINUX swapper_pg_dir 0xc0000000--0xdfffffff 0x00000000
+  TRANSlation.COMMON 0bf000000--0ffffffff            ; common area for kernel and processes
+  TRANSlation.TableWalk ON   ; debugger uses a table walk to decode virtual addresses
+  TRANSlation.ON           ; switch on debugger(!) address translation 
+  
+ ; Initialize Linux Awareness
+   ; Note that the Linux awareness needs the kernel symbols to work 
+   PRINT "initializing RTOS support..."
+   ; Choose the correct Linux major version below
+   ;TASK.CONFIG ~~/demo/arm/kernel/linux/linux-2.x/linux.t32     ; loads Linux awareness for linux-2.x
+   ;MENU.ReProgram ~~/demo/arm/kernel/linux/linux-2.x/linux.men  ; loads Linux menu  for linux-2.x
+   TASK.CONFIG ~~/demo/arm/kernel/linux/linux-3.x/linux3.t32     ; loads Linux awareness for linux-3.x
+   MENU.ReProgram ~~/demo/arm/kernel/linux/linux-3.x/linux.men  ; loads Linux menu  for linux-3.x
+   
+ ; Group kernel area to be displayed with red bar
+   GROUP.Create "kernel" 0xc0000000--0xffffffff /RED
+ 
+   Go.direct
+ 
+   Mode.Hll
+ 
+  ENDDO

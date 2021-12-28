@@ -1,0 +1,48 @@
+; -------------------------------------------------------------------------------
+; @Title: Wrtie CMM
+; Script arguments:
+;
+;   DO write.cmm [INPUT Variable Name]=[INPUT Value]
+;
+; --------------------------------------------------------------------------------
+B::
+
+LOCAL &parameters &param_input_name &param_input_value &param_input_cnt &idx_cnt &input_value_type &tmp_symbol_name &tmp_symbol_value
+ENTRY %LINE &parameters
+
+
+//------------Input Value Counting------------//
+&param_input_cnt=STRing.COUNT("&parameters","=")
+
+//------------Input Value Write------------//
+&idx_cnt=1.
+while &idx_cnt<=&param_input_cnt
+(
+	&parsed_part=string.split("&parameters",",",&idx_cnt-1)
+
+	;(ex) a_1=15
+	&param_input_name=string.split("&parsed_part","=",0)
+	&param_input_value=string.split("&parsed_part","=",1)
+
+//------------Get Input value type------------//
+        &input_value_type=Var.TYPEOF(&param_input_name)
+
+        if "&input_value_type"=="float"
+        (
+          &tmp_symbol_name="&param_input_name"+"_prost"
+          sYmbol.CREATE.Var &tmp_symbol_name VM:0x70000000 float
+          sYmbol.CREATE.Done
+          Var.set &tmp_symbol_name=&param_input_value //vfloat_prost=1.0000
+		  &tmp_symbol_value=Var.VALUE(&tmp_symbol_name)
+		  Var.set &param_input_name=&tmp_symbol_value
+          sYmbol.Delete &tmp_symbol_name
+        )
+        else
+        (
+          Var.set &param_input_name=&param_input_value
+        )
+
+    &idx_cnt=&idx_cnt+1.
+)
+Trace.Init
+ENDDO

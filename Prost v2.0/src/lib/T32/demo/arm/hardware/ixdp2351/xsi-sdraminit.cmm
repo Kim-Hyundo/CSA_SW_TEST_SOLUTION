@@ -1,0 +1,116 @@
+; --------------------------------------------------------------------------------
+; @Title: XSI SDRAM initialization of the IXP2350
+; @Description: 
+;   Script to initialize the XSI SDRAM of the IXP2350.
+;   We assume here that the debugger is already in Up mode.
+; @Keywords: RCMP, XSCALE
+; @Author: WRD
+; @Board: IXDP2351
+; @Chip: IXP2350
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: xsi-sdraminit.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+; 
+
+;
+; Setup RCMP registers 
+;
+Data.Set 0xC800D200 %Long 0x000000C0
+Data.Set 0xC800D230 %Long 0x339CE739
+Data.Set 0xC800D238 %Long 0x00000001
+Data.Set 0xC800D240 %Long 0x00000001
+Data.Set 0xC800D248 %Long 0x00000001
+Data.Set 0xC800D250 %Long 0x00000001
+Data.Set 0xC800D258 %Long 0x00000001
+Data.Set 0xC800D260 %Long 0x00000001
+Data.Set 0xC800D268 %Long 0x00000001
+Data.Set 0xC800D270 %Long 0x00000001
+Data.Set 0xC800D280 %Long 0x00003333
+Data.Set 0xC800D288 %Long 0x00007643
+Data.Set 0xC800D290 %Long 0x0000AA97
+Data.Set 0xC800D298 %Long 0x0000AAAA
+Data.Set 0xC800D2A0 %Long 0x00004444
+Data.Set 0xC800D2A8 %Long 0x00007444
+Data.Set 0xC800D2B0 %Long 0x0000EEB8
+Data.Set 0xC800D2B8 %Long 0x0000EEEE
+Data.Set 0xC800D2C0 %Long 0x00003333
+Data.Set 0xC800D2C8 %Long 0x00007643
+Data.Set 0xC800D2D0 %Long 0x0000AA97
+Data.Set 0xC800D2D8 %Long 0x0000AAAA
+Data.Set 0xC800D2E0 %Long 0x00004444
+Data.Set 0xC800D2E8 %Long 0x00007444
+Data.Set 0xC800D2F0 %Long 0x0000EEB8
+Data.Set 0xC800D2F8 %Long 0x0000EEEE
+Data.Set 0xC800D300 %Long 0x00003333
+Data.Set 0xC800D308 %Long 0x00007643
+Data.Set 0xC800D310 %Long 0x0000AA97
+Data.Set 0xC800D318 %Long 0x0000AAAA
+Data.Set 0xC800D320 %Long 0x00004444
+Data.Set 0xC800D328 %Long 0x00007444
+Data.Set 0xC800D330 %Long 0x0000EEB8
+Data.Set 0xC800D338 %Long 0x0000EEEE
+Data.Set 0xC800D340 %Long 0x00003333
+Data.Set 0xC800D348 %Long 0x00007643
+Data.Set 0xC800D350 %Long 0x0000AA97
+Data.Set 0xC800D358 %Long 0x0000AAAA
+Data.Set 0xC800D360 %Long 0x00004444
+Data.Set 0xC800D368 %Long 0x00007444
+Data.Set 0xC800D370 %Long 0x0000EEB8
+Data.Set 0xC800D378 %Long 0x0000EEEE
+Data.Set 0xC800D380 %Long 0x00003333
+Data.Set 0xC800D388 %Long 0x00007643
+Data.Set 0xC800D390 %Long 0x0000AA97
+Data.Set 0xC800D398 %Long 0x0000AAAA
+Data.Set 0xC800D3A0 %Long 0x00004444
+Data.Set 0xC800D3A8 %Long 0x00007444
+Data.Set 0xC800D3B0 %Long 0x0000EEB8
+Data.Set 0xC800D3B8 %Long 0x0000EEEE
+Data.Set 0xC800D3C0 %Long 0x00003333
+Data.Set 0xC800D3C8 %Long 0x00007643
+Data.Set 0xC800D3D0 %Long 0x0000AA97
+Data.Set 0xC800D3D8 %Long 0x0000AAAA
+Data.Set 0xC800D3E0 %Long 0x00004444
+Data.Set 0xC800D3E8 %Long 0x00007444
+Data.Set 0xC800D3F0 %Long 0x0000EEB8
+Data.Set 0xC800D3F8 %Long 0x0000EEEE
+Data.Set 0xC800D478 %Long 0x00000001
+Data.Set 0xC800D480 %Long 0x00000001
+Data.Set 0xC800D488 %Long 0x00000001
+Data.Set 0xC800D490 %Long 0x00000001
+Data.Set 0xC800D4A8 %Long 0x00000006
+Data.Set 0xC800D650 %Long 0x00000000
+Data.Set 0xC800D688 %Long 0x0000000F
+Data.Set 0xC800D690 %Long 0x00000000
+;
+; Setting SDRAM registers 
+;
+Data.Set 0xFFFFE504 %Long 0x73310102
+Data.Set 0xFFFFE508 %Long 0x5550C6A3
+Data.Set 0xFFFFE50C %Long 0x00000000
+Data.Set 0xFFFFE510 %Long 0x00000004
+Data.Set 0xFFFFE514 %Long 0x00000008
+Data.Set 0xFFFFE548 %Long 0x00000000
+WAIT 5.ms
+Data.Set 0xFFFFE500 %Long 0x00000003
+WAIT 5.ms
+Data.Set 0xFFFFE500 %Long 0x00000002
+WAIT 5.ms
+Data.Set 0xFFFFE500 %Long 0x00000004
+WAIT 5.ms
+Data.Set 0xFFFFE500 %Long 0x00000001
+WAIT 5.ms
+Data.Set 0xFFFFE500 %Long 0x00000002
+WAIT 5.ms
+Data.Set 0xFFFFE500 %Long 0x00000002
+WAIT 5.ms
+Data.Set 0xFFFFE500 %Long 0x00000006
+WAIT 5.ms
+Data.Set 0xFFFFE500 %Long 0x00000006
+WAIT 5.ms
+Data.Set 0xFFFFE500 %Long 0x00000000
+WAIT 5.ms
+Data.Set 0xFFFFE548 %Long 0x000000F0
+
+ENDDO

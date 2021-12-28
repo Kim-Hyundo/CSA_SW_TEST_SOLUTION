@@ -1,0 +1,87 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux debug demo on raspberry pi 2 board
+; @Description: 
+;   This script serve as a demo for debugging Linux kernel on RASPI2 board
+;   Prerequisites : 
+;     The board requires a special adaption and a program running on the target
+;     to enable the JTAG port. Please follow steps in enclosed readme.txt
+;
+; @Keywords: awareness, linux, raspi2, RTOS
+; @Author: YDA
+; @Board: Raspberry Pi 2
+; @Chip: BCM2836
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: raspberry_pi2_linux.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+  LOCAL &ka_path &awareness
+  
+  WinCLEAR
+  RESet
+  AREA.CLEAR
+  
+  PRINT "initializing..." 
+  SYStem.CPU BCM2836
+  SYStem.Option DACR ON                 ; give Debugger global write permissions
+  TrOnchip.Set DABORT OFF               ; used by Linux for page miss!
+  TrOnchip.Set PABORT OFF               ; used by Linux for page miss!
+  TrOnchip.Set UNDEF OFF                ; my be used by Linux for FPU detection
+  SYStem.Option MMUSPACES ON            ; enable space ids to virtual addresses
+  SYStem.Mode.Attach
+  Break.direct
+   
+  DO ~~/demo/etc/terminal/serial/term.cmm COM1 115200.     ; Open a serial terminal window
+  
+  SETUP.IMASKASM ON                                        ; lock interrupts while single stepping
+
+  ; load kernel into ram mamory  
+  Data.LOAD.Elf vmlinux ASD:0x8000-0x80008000 /gnu /NoSymbol /NoREG
+  
+  Register.RESet 
+  Register.Set PC 0x8000
+  Register.Set CPSR 0x600001DA
+  
+  ; load the device tree blob to the memory and set R2 to the start of the DTB
+  Data.LOAD.Binary bcm2709-rpi-2-b.dtb 0x2FFFC000
+  Register.Set R2 0x2FFFC000
+  
+  ; Set machine type in R1; see arch/arm/tools/mach-types
+  Register.Set R1 0x00000C42
+
+  ; Load the Linux kernel symbols into the debugger
+  PRINT "loading Linux kernel symbols..."
+  Data.LOAD.Elf vmlinux /gnu /NoCODE /StripPART 3. 
+  
+  ; Open a Code Window -- we like to see something 
+  WinPOS 0. 0. 75. 20.
+  Data.List
+  SCREEN.display
+   
+  PRINT "initializing debugger MMU..."
+  MMU.FORMAT LINUX swapper_pg_dir 0x80000000--0xbfffffff 0x0
+  TRANSlation.COMMON 07f000000--0ffffffff                        ; common area for kernel and processes
+  TRANSlation.TableWalk ON                                       ; debugger uses a table walk to decode virtual addresses
+  TRANSlation.ON
+  
+ 
+  ; check linux major version
+  IF STRing.SCAN(Data.STRing(linux_banner), "Linux version 2.", 0)==0
+  (
+      &ka_path="~~/demo/arm/kernel/linux/linux-2.x"
+      &awareness="linux.t32"
+  )
+  ELSE
+  (
+      &ka_path="~~/demo/arm/kernel/linux/linux-3.x"
+      &awareness="linux3.t32"  
+  )
+ 
+  PRINT "initializing RTOS support..."
+  TASK.CONFIG &ka_path/&awareness               ; loads Linux awareness 
+  MENU.ReProgram &ka_path/linux                 ; loads Linux menu 
+  HELP.FILTER.Add rtoslinux                     ; add linux awareness manual to help filter
+  
+  Go start_kernel /Onchip
+  WAIT !STATE.RUN()
+  Break
+  

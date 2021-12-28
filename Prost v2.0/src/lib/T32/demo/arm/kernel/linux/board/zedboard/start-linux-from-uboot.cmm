@@ -1,0 +1,101 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to start Linux on the ZedBoard from U-Boot Prompt
+; @Description: 
+;   Boot from U-Boot Prompt into Linux.
+;   Use e.g. the start-uboot.cmm beforehand.
+;   The scripts is designed for a ZedBoard configured for JTAG Boot and
+;   Cascaded JTAG configuration (MIO[2-6]=0y00000).
+;   Please connect JTAG to the 14-pin JTAG connector (next to the power
+;   socket). In case the FMC-105-DEBUG board is connected, please short TDI
+;   and TDO using a jumper.
+;   In case the OFF-CHIP Trace is connected we don't disable the "unused clocks".
+; @Keywords: awareness, zynq
+; @Author: AME
+; @Board: ZedBoard
+; @Chip: ZYNQ-7000
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: start-linux-from-uboot.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+IF SYStem.MODE()<5.
+(
+        PRINT "not connected ... cancel"
+        ENDDO
+)
+
+IF STATE.RUN()
+        Break.direct
+        
+; open the terminal
+TERM.RESet
+TERM.METHOD COM COM3 115200. 8 NONE 1STOP NONE 
+TERM.SIZE 80. 1000.
+TERM.Mode VT100 
+TERM.SCROLL ON
+WinPOS 76.0 25.0 80. 24. 0. 0. TermWin
+TERM.view
+        
+; linux specific system options
+SYStem.Option MMUSPACES ON
+SYStem.Option DACR ON
+TrOnchip.Set DABORT OFF
+TrOnchip.Set PABORT OFF
+TrOnchip.Set UNDEF OFF
+TrOnchip.Set RESet OFF
+
+; load uImage, DTB & RAMDISK
+PRINT "Load uImage, DTB, ramdisk ..."
+Data.LOAD.Binary ~~~~/uImage 0x30000000 /NoClear
+Data.LOAD.Binary ~~~~/zynq-zed.dtb 0x2a000000 /NoClear
+Data.LOAD.Binary ~~~~/ramdisk.gz 0x1f000000 /NoClear
+
+; set a breakpoint to the kernels entry point
+; invoke bootm command ...
+PRINT "Set U-Boot Environment ..."
+Break.Set 0x8000 /Onchip /COUNT 2.
+Go.direct
+TERM.Out "setenv bootargs console=ttyPS0,115200 root=/dev/ram rw earlyprintk initrd=0x1f000000,8M" 0xa
+WAIT 0.1s
+TERM.Out "bootm 0x30000000 - 0x2a000000" 0xa
+
+WAIT !STATE.RUN() 3.s
+WAIT !STATE.RUN() 1.s
+
+; load kernel symbols to virtual addresses
+PRINT "Go the virtual start_kernel entry ..."
+Data.LOAD.Elf ~~~~/vmlinux /NoCODE /LowerPATH
+Go.direct start_kernel /Onchip
+
+SYStem.Down
+CORE.ASSIGN 1,2
+SYStem.Mode.Attach
+Break.Delete
+// in order to trace we make sure all clock settings are preserved
+IF Analyzer()
+(
+        Break.Set clk_disable_unused\1 /DISableHIT /CMD "Var.ASSIGN clk_ignore_unused=1" /RESUME 
+)
+
+;setup address translation
+; virtual address space: 0xc0000000--0xdfffffff (512MB)
+; absolute base address: 0x0
+; table format LINUXSWAP3
+; kernel module range: 0xbf000000--0xbfffffff
+; resulting common range: 0xbf0000000--0xffffffff (Modules, Kernel, Vectors)
+MMU.FORMAT LINUXSWAP3 swapper_pg_dir 0xc0000000--0xdfffffff 0x0
+TRANSlation.COMMON 0xbf000000--0xffffffff
+TRANSlation.TableWalk ON
+TRANSlation.ON
+
+; load linux awareness
+PRINT "Load Linux Awareness ..."
+TASK.CONFIG ~~/demo/arm/kernel/linux/linux-3.x/linux3.t32
+MENU.ReProgram ~~/demo/arm/kernel/linux/linux-3.x/linux.men
+
+PRINT "Booting Linux... 10s"
+Go.direct
+WAIT 10.s
+Break.direct
+
+PRINT "Linux booted."

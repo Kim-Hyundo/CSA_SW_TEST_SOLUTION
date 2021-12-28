@@ -1,0 +1,49 @@
+; --------------------------------------------------------------------------------
+; @Title: PikeOS hardware virtualization (hwvirt) specific menu
+; @Description: -
+; @Keywords: PikeOS hypervisor menu awareness
+; @Author: DIE
+; @Copyright: (c) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: pikeos-hwvirt.men 3620 2018-09-04 14:23:50Z rweiss $
+
+add
+menu
+(
+  popup "&PikeOS_Host"
+  (
+    SEPARATOR
+    MENUITEM "Display &VMs"             "TASK.VMList"
+    MENUITEM "Display Task Tree"        "TASK.List.TREE"
+    MENUITEM "Display Core Activity"    "CORE.List"
+  )
+  //popup "&Help"
+  //(
+  //  MENUITEM "[:manual]OS Awareness Manual PikeOS hwvirt" "HELP __RTOS_rtos_"
+  //)
+)
+
+add
+menu "task.vml"
+(
+  default
+  menuitem "Display detailed"
+  (
+    LOCAL &address
+    &address=address.offset(track.address())
+    TASK.VMList &address
+  )
+  menuitem "Display guest struct"
+  (
+    LOCAL &address
+    &address=track.address()
+    Var.View %Open (P4hwvirt_int_t*)(&address)
+  )
+  menuitem "List intermediate page table"
+  (
+    LOCAL &address
+    &address=address.offset(track.address())
+    &address=ext.vm.vttb(&address)
+    MMU.List IntermedPageTable 0x0 A:&address
+  )
+)

@@ -1,0 +1,53 @@
+; --------------------------------------------------------------------------------
+; @Title: Freescale MQX Demo for TRACE32 OS Awareness
+; @Description:
+;   This batchfile loads all necessary files to demonstrate
+;   the Awareness for Freescale MQX.
+; @Keywords: awareness, mqx, RTOS, v3xx
+; @Author: DIE
+; @Chip: MK40DX256VMD10
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mqx.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+ SCREEN.ON
+ AREA.RESet
+ WinPAGE.RESet
+ WinPOS 0 24. 70. 8. 0. 0. W000
+ AREA.view
+
+; Debugger reset
+ PRINT "resetting..."
+ RESet
+
+; initialize system
+ PRINT "initializing..."
+ SYStem.CPU MK40DX256VMD10
+ SYStem.Up
+
+; load sample application
+ PRINT "loading sample application..."
+ Data.LOAD.Elf hello2_twrk40x256.out
+ sYmbol.CLEANUP.sYmbols     ; clean multiple type entries
+
+; initialize RTOS support
+ PRINT "initializing MQX support..."
+ TASK.CONFIG mqx.t32        ; load MQX awareness
+ MENU.ReProgram mqx.men     ; load MQX menu
+ TASK.STacK.PATtern "kats"      ; stack is initialized with "stak"
+ HELP.FILTER.Add rtosmqx
+
+ PRINT "load complete."
+
+; open some windows
+ WinPOS 0. 0. 70. 21.
+ List.auto
+ WinPOS 40. 10. 55. 11.
+ TASK.TASK
+
+; start application
+ Go hello_task
+
+ ENDDO
+

@@ -1,0 +1,229 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux Demo for TRACE32 OS Awareness on the MEP-6410 Board
+; @Description: 
+;   This batchfile demonstrates the use of the OS Awareness for Linux
+;   The example is generated for the MDS M6R2 (MEP-6410) board using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   Linux is downloaded to the board via ICD.
+; @Keywords: awareness, M6R2, MDS
+; @Author: DIE
+; @Board: MEP-6410
+; @Chip: S3C6410
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mep6410_linux.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; Starting Linux example with TRACE32:
+; - Connect NULL modem cable to UART0
+;   - 115200 baud, 8/N/1, no(!) handshake
+; - Start TRACE32
+; - Switch on the board
+; - TRACE32: "do linux"
+; - terminal: start "hello"
+
+LOCAL &ka_path &awareness
+
+ SCREEN.ALways      ; permanent update for internal terminal window
+ ; screen.on        ; if you use external terminal
+
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 25. 75. 8. 0. 0. W000
+ AREA.view
+ 
+ PRINT "resetting..."
+
+ RESet
+
+
+; Initializing Debugger
+ 
+ PRINT "initializing..."
+ SYStem.RESet
+ SYStem.CPU ARM1176JZF
+; deprecated   SYStem.MultiCore IRPRE     4
+; deprecated   SYStem.MultiCore DRPRE     1
+; deprecated   SYStem.MultiCore ETBIRPOST 5
+; deprecated   SYStem.MultiCore ETBDRPOST 1
+ SYStem.CONFIG.IRPRE     4
+ SYStem.CONFIG.DRPRE     1
+ SYStem.CONFIG.ETBIRPOST 5
+ SYStem.CONFIG.ETBDRPOST 1
+ SYStem.JtagClock RTCK
+ SYStem.Option ResBreak OFF     ; hardware dependent (see manual)
+ SYStem.Option PWRDWN ON        ; hardware dependent (see manual)
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set UNDEF OFF         ; my be used by Linux for FPU detection
+ SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+  
+ SYStem.Up
+
+ SETUP.IMASKASM ON          ; lock interrupts while single stepping
+ 
+
+; Open serial terminal window on COM1
+ 
+ DO ~~/demo/etc/terminal/serial/term.cmm COM1 115200.
+ 
+
+; Target Setup: initialize DRAM controller and peripherals
+ 
+ ; Either let the boot monitor setup the board
+    Go.direct
+    PRINT "target setup..."
+    WAIT 2.s
+    Break.direct
+ ; or use the debugger to initialize it
+    ;print "target setup..."
+    ;do init_m6r2      ; do basic setup
+
+
+; Load the Linux kernel
+
+ ; If you are using a flashed kernel, or if you're loading 
+ ; your kernel via TFTP, use the boot monitor to do so.
+ 
+ ; Use the next lines (loading the kernel, setting registers
+ ; and boot parameters) only to load the kernel into
+ ; RAM using the debugger.
+
+ ; vmlinux starts physically at RAM start (=0x50000000) + 0x8000 
+ ; We have to adjust it from the virtual start address at the label
+ ; "stext" from the System.map ("nm vmlinux | sort")
+ ; i.e.: Data.LOAD.Elf vmlinux <physical start>-<virtual start>
+
+ PRINT "loading Linux kernel..."
+ Data.LOAD.Elf vmlinux 0x50008000-0xc0008000 /NosYmbol
+ 
+ Register.RESet
+
+ ; Set PC on start address of image
+ Register.Set PC 0x50008000
+
+ ; Set machine type in R1; see arch/arm/tools/mach-types
+ Register.Set R1 2001.      ; MEP6410
+ 
+ ; Set parameter tags for linux boot
+ DO atag-list
+
+
+; Loading initial ram disk (initrd)
+
+ ; Use the next lines only, if you want to use an initrd,
+ ; and if you want to download this with the debugger.
+
+ ; Load rom file system image into ram disk
+ ; The load address is either hardcoded in arch/arm/<board>/arch.c,
+ ; or must be passed by a boot parameter, or as command line option
+ 
+ PRINT "loading ram disk..."
+ Data.LOAD.Binary ramdisk-mep6410-32M.gz 0x50800000 /NoClear /NosYmbol
+ 
+
+; Load the Linux kernel symbols into the debugger
+ ; use /strippart and /path to map source paths, if necessary
+ 
+ PRINT "loading Linux kernel symbols..."
+ Data.LOAD.Elf vmlinux /NoCODE /StripPART "/mnt/develop" /PATH "S:\"
+
+
+; Open a Code Window -- we like to see something
+
+ WinPOS 0. 0. 75. 20.
+ List.auto
+ 
+ Go.direct start_kernel
+ WAIT !STATE.RUN()
+
+
+; Declare the MMU format to the debugger
+ ; - table format is "LINUX"
+ ; - table base address is at label "swapper_pg_dir"
+ ; - kernel address translation
+ ; Map the virtual kernel symbols to physical addresses to give 
+ ; the debugger access to it before CPU MMU is initialized
+
+ PRINT "initializing debugger MMU..."
+ MMU.FORMAT LINUX swapper_pg_dir 0xc0000000--0xc7ffffff 0x50000000
+
+ ; prepare debugger translation
+ TRANSlation.COMMON 0xc0000000--0xffffffff              ; common area for kernel and processes
+ TRANSlation.TableWalk ON       ; debugger uses a table walk to decode virtual addresses
+ TRANSlation.ON                 ; switch on debugger(!) address translation 
+
+
+; Initialize Linux Awareness
+
+ ; Note that the Linux awareness needs the kernel symbols to work
+ 
+ ; check linux major version
+ IF STRing.SCAN(Data.STRing(linux_banner), "Linux version 2.", 0)==0
+ (
+     &ka_path="~~/demo/arm/kernel/linux/linux-2.x"
+     &awareness="linux.t32"
+ )
+ ELSE
+ (
+     &ka_path="~~/demo/arm/kernel/linux/linux-3.x"
+     &awareness="linux3.t32"  
+ )
+ 
+ PRINT "initializing RTOS support..."
+ TASK.CONFIG &ka_path/&awareness               ; loads Linux awareness 
+ MENU.ReProgram &ka_path/linux            ; loads Linux menu 
+  
+ TASK.ACCESS D:
+ 
+ ; Group kernel area to be displayed with red bar
+ GROUP.Create "kernel" 0xc0000000--0xffffffff /RED
+
+
+; Ok, we're done, let's start Linux
+ 
+ WinTOP TERM.view        ; set terminal window to front
+ Go.direct
+ PRINT "starting Linux... (please wait)"
+ WAIT 16.s
+ Break.direct
+ 
+ PRINT "done."     ; done with loading and starting Linux
+
+ 
+; --------------------------------------------------------------------------------
+; Application Debugging 
+; e.g. "hello"
+; --------------------------------------------------------------------------------
+
+ ; activate autoloader for processes:
+ TASK.sYmbol.Option AutoLoad Process
+
+ PRINT "please log in and start 'hello'"
+
+ ; script based
+   ; using the script based application debugging
+   ; gives more control over the single commands
+   ; see file "app_debug.cmm"
+   
+   LOCAL &extdir
+   &extdir=TASK.GETDIR()
+   DO &extdir/app_debug hello
+   
+ ; process watch system
+   ; the process watch system automates the actions
+   ; for application debugging
+   
+   ;WINPOS 55. 24. 40. 4.
+   ;TASK.Watch.View "hello"
+   
+   ;Go
+
+
+ ENDDO
+ 

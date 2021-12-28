@@ -1,0 +1,33 @@
+; --------------------------------------------------------------------------------
+; @Title: PIPE Demo Setup Script
+; @Description: -
+; @Keywords: PIPE, PROTO
+; @Chip: OMAP3503
+; @Author: ING
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: setup.cmm 15209 2019-11-04 10:07:55Z bschroefel $
+
+
+; Demo with DLL
+
+; bring up board, load application etc.
+DO common
+
+; Influence speed of application
+Var.set timerReload = 19.
+
+
+; Start program, which will read from windows PIPE
+&a="pproto00"
+
+OS.screen ./pread.exe \\.\pipe\&a
+WAIT 500.ms
+
+; Load DLL, which will connect to windows PIPE
+CAnalyzer.PipePROTO dll/pproto &a
+
+; ARM CombiProbe
+CAnalyzer.Arm
+
+

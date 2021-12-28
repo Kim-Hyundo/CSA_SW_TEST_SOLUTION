@@ -1,0 +1,49 @@
+; --------------------------------------------------------------------------------
+; @Title: Sample Based Profiling (PERF) for the DCC
+; @Description: 
+;   This Demo 
+; @Keywords: PERF
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: perf_linux_dcc.cmm 16019 2020-05-06 08:47:23Z kjmal $
+
+  LOCAL &corenumber
+  
+  IF !SYSTEM.UP()
+  (
+      DIALOG.OK "System must be UP to run this demo"
+      ENDDO
+  )
+  IF STATE.RUN()
+      Break.direct
+      
+  IF (TASK.CONFIG(magic)&0xFFFFFFFF)==0xFFFFFFFF
+  (
+      PRINT "Symbols not loaded or Linux Awareness error!"
+      ENDDO
+  )   
+  
+
+  PERF.RESet
+  PERF.METHOD StopAndGo
+  PERF.Mode MEMory
+  PERF.METHOD DCC
+  PERF.SnoopSize Word
+  PERF.OFF
+  PERF.AutoArm ON
+
+  WinCLEAR  
+  WinPOS 50% 0%
+  PERF
+
+  
+  WinPOS 50% 50%
+  PERF.ListDistriB
+  
+  Go.direct
+  TERM.MEthod COM COM3. 115200.
+  TERM.Out 3.
+  TERM.Out "perf_linux_dcc"
+  TERM.Out 10.
+  wait 2.s
+  Break.direct

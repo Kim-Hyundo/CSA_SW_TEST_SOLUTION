@@ -1,0 +1,51 @@
+﻿<!-- 테스트케이스만 파싱작업 시 작업 여부 표시 Dialog -->
+    <UserControl x:Class="ProstMain.Dialog.TestSpecConvertWarningDialogView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:wpf="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
+             FocusManager.FocusedElement="{Binding ElementName=BUTTON_OK}"
+             mc:Ignorable="d" Background="DarkGray" Height="160" Width="250" DataContext="{Binding Source={StaticResource Locator},Path=PopupTestCaseParsingVM}">
+
+    <Grid>
+        <GroupBox>
+            <GroupBox.Header>
+                <StackPanel Orientation="Horizontal">
+                    <wpf:PackIcon Kind="WarningCircle" Foreground="Orange"/>
+                    <TextBlock Text="PROST" Foreground="{DynamicResource ResourceKey=GroupBoxHeaderForeground}" Margin="8,0,0,0" FontWeight="Bold"/>
+                </StackPanel>
+            </GroupBox.Header>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2.5*"/>
+                    <RowDefinition Height="2.5*"/>
+                    <RowDefinition Height="3.7*"/>
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="5*"/>
+                    <ColumnDefinition Width="5*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" Text="Create Test Case?" TextWrapping="Wrap" TextAlignment="Center" Foreground="Black" FontSize="14" VerticalAlignment="Center"/>
+
+                <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="5*"/>
+                        <ColumnDefinition Width="5*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="BUTTON_OK" Grid.Column="0" Background="{DynamicResource ResourceKey=ButtonBackground}" Foreground="{DynamicResource ResourceKey=ButtonForeground}" Command="{Binding TestSpecConvertWarningDialogOKCommand}" Margin="0,0,5,0">OK</Button>
+                    <Button Grid.Column="1" Background="{DynamicResource ResourceKey=ButtonBackground}" Foreground="{DynamicResource ResourceKey=ButtonForeground}" Command="{Binding Source={StaticResource Locator},Path=MainVM.DialogCancelCommand}" Margin="5,0,0,0">Cancel</Button>
+                </Grid>
+            </Grid>
+
+        </GroupBox>
+    </Grid>
+
+</UserControl>
+
+
+
+
+

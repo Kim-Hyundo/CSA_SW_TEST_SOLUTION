@@ -1,0 +1,93 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to halt a new Symbian Applications on Entry Point
+; @Description: 
+;   
+;   Usage: appentry app-name (without .app)
+;          e.g.: appentry Calc
+;   
+;   This script runs ONLY for .app applications, NOT for .exe processes
+;   
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: appentry.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+ ENTRY &app
+ 
+; Check parameter
+ 
+ IF "&app"==""
+ (
+    PRINT "Please specify an application name"
+    ENDDO
+ )
+ 
+ SCREEN.ON
+
+; Halt target
+
+ IF STATE.RUN()
+    Break
+  
+; Check if app is already running
+  
+ PRINT "checking for application..."
+  
+ IF task.lib.codeaddr("&app.app")!=0xffffffff
+ (
+    sYmbol.AutoLOAD.CLEAR "*&app.app*"
+    sYmbol.AutoLOAD.TOUCH "*&app.app*"
+    sYmbol.CASE OFF
+    IF sYmbol.EXIST(\\&app\Global\NewApplication)
+      PRINT "Application &app already running. Symbols loaded."
+    ELSE
+      PRINT "Application &app already running. No symbol file found."
+    sYmbol.CASE ON
+    ENDDO
+ )
+ 
+; set breakpoint on kernel library load, break only if new app is loaded
+ 
+ &breakaddr=ADDRESS.OFFSET(ExecHandler::LibraryAttach)
+ Break.Set R:&breakaddr /CONDition task.lib.codeaddr("&app.app")!=0xffffffff
+ 
+; wait until app is loaded
+ 
+ Go
+ PRINT "waiting for application &app to be loaded..."
+ WAIT !STATE.RUN()
+
+ Break.Delete &breakaddr
+
+; app is loaded; load app symbols
+ 
+ PRINT "application loaded, loading symbols..."
+ 
+ sYmbol.AutoLOAD.CLEAR "*&app.app*"
+ sYmbol.AutoLOAD.TOUCH "*&app.app*"
+ 
+ sYmbol.CASE OFF    ; to allow case insensitive procnames
+
+ IF !sYmbol.EXIST(\\&app\Global\NewApplication)
+ (
+    PRINT "Symbol NewApplication of application &app not found."
+    sYmbol.CASE ON
+    ENDDO
+ )
+ 
+; set bp on app entry point
+
+ PRINT "waiting for application &app to be started..."
+
+ Break.Set \\&app\Global\NewApplication 
+ 
+ Go
+ WAIT !STATE.RUN()    ; waiting for app to be started
+ 
+ Break.Delete \\&app\Global\NewApplication 
+
+ PRINT "done."
+ 
+ ENDDO
+ 

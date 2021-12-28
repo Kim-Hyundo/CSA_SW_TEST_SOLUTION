@@ -1,0 +1,381 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash programmation script for the NXHX10 Board
+; @Description: This script opens a dialog to setup the flash parameters.
+; @Keywords: flash, Hilscher, NetX*
+; @Board: NXHX10
+; @Chip: ARM966E-S
+; @Author: Hilscher
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: flasher.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+DIALOG.view
+(
+	HEADER "Select flasher parameters"
+
+	POS 1. 1. 50.
+FILEEDIT:	EDIT "" ""
+		POS 50. 1. 5.
+		BUTTON "..."
+		(
+			DIALOG.SetFile FILEEDIT *.*
+		)
+
+	POS 1. 2. 15.
+TARGETCB:	PULLDOWN "SRamBus,SPI"
+		(
+		)
+
+	POS 1. 3. 15.
+OFFSET:		EDIT "0" "0"
+
+	POS 1. 6. 5.
+		DEFBUTTON "OK" "JUMPTO proceed"
+		CLOSE     "JUMPTO abort"
+)
+
+; Use global variables to save the seleced values over 2 calls to this script.
+GLOBAL &netx_flasher_binfile &netx_flasher_offset &netx_flasher_target
+
+IF "&netx_flasher_offset"!=""
+(
+	DIALOG.Set OFFSET "&netx_flasher_offset"
+)
+
+IF "&netx_flasher_binfile"!=""
+(
+	DIALOG.SetFile FILEEDIT "&netx_flasher_binfile"
+)
+
+IF ("&netx_flasher_target"!="")
+(
+	IF &netx_flasher_target==1
+	(
+		DIALOG.Set TARGETCB "SRamBus"
+	)
+	ELSE IF &netx_flasher_target==2
+	(
+		DIALOG.Set TARGETCB "SPI"
+	)
+)
+
+STOP
+
+; --------------------------------------------------------------------------------
+;
+; Flash
+;
+proceed:
+LOCAL  &binfile_size &target_string &flasher_file &binfile_offset
+
+&netx_flasher_binfile=DIALOG.STRing(FILEEDIT)
+&netx_flasher_offset=DIALOG.STRing(OFFSET)
+&flasher_file="flasher_netx10.bin"
+
+IF !OS.FILE("&netx_flasher_binfile")
+(
+	PRINT "Error opening file to flash! '&netx_flasher_binfile'"
+)
+ELSE IF !OS.FILE("&flasher_file")
+(
+	PRINT "Error opening flasher! '&flasher_file'"
+)
+ELSE IF !SYStem.UP()
+(
+	PRINT "Not connected to target. Please attach to the HW first!"
+)
+ELSE IF STATE.RUN()
+(
+	PRINT "Unable to flash while target is running. Please halt the CPU first!"
+)
+ELSE
+(
+	LOCAL &ulResult
+
+	&binfile_size=OS.FILE.SIZE(&netx_flasher_binfile)
+	&binfile_offset=&(netx_flasher_offset)
+	&target_string=DIALOG.STRing(TARGETCB)
+
+	;translate destination device pulldown box to flasher parameters
+	IF "&target_string"=="SRamBus"
+	(
+		&netx_flasher_target=1
+	)
+	ELSE IF "&target_string"=="SPI"
+	(
+		&netx_flasher_target=2
+	)
+
+	PRINT "Flash &netx_flasher_binfile with &binfile_size bytes to &target_string with offset &binfile_offset ."
+
+; This is for the SDRam buffer.
+;	; Activate the SDRam pins.
+;	data.set ASD:0x101c0070 %LONG data.long(ASD:0x101c0070)
+;	data.set ASD:0x101c0c40 %LONG 0x00000050
+;	; Setup the SDRam.
+;	data.set ASD:0x101c0140 %LONG 0x00000000
+;	data.set ASD:0x101c0144 %LONG 0x00a13262
+;	data.set ASD:0x101c0148 %LONG 0x00000033
+;	data.set ASD:0x101c0140 %LONG 0x030d0121
+
+
+; Use a smaller INTRAM buffer.
+	&netx_buffer_start=0x04038000
+	&netx_buffer_size=0x2000
+
+
+	; Load the flasher.
+	PRINT "Loading flasher tool 'flasher_netx10.bin'"
+	Data.LOAD.Binary &flasher_file 0x00020000
+
+	; write dummy serial vectors
+	; this is a "bx lr"
+	; TODO: point this to a DCC print routine and use the TRACE32 DCC terminal.
+	Data.Set 0x0400ffec %Long 0xe12fff1e
+	Data.Set 0x0400fff0 %Long 0x0000ffec
+	Data.Set 0x0400fff4 %Long 0x0000ffec
+	Data.Set 0x0400fff8 %Long 0x0000ffec
+	Data.Set 0x0400fffc %Long 0x0000ffec
+
+
+	; Detect the flash.
+	Data.Set 0x0400fd00 %Long 0xffffffff
+	Data.Set 0x0400fd04 %Long 0x0400fd0c
+	Data.Set 0x0400fd08 %Long 0x00000000
+	Data.Set 0x0400fd0c %Long 0x00020000				; parameter version: 2.0
+	Data.Set 0x0400fd10 %Long 5					; operation mode: detect
+	Data.Set 0x0400fd14 %Long &netx_flasher_target			; device
+	Data.Set 0x0400fd18 %Long 0					; SPI unit
+	Data.Set 0x0400fd1c %Long 0					; SPI chipselect
+	Data.Set 0x0400fd20 %Long 0x3e8					; initial speed in kHz (0x3e8 = 1MHz)
+	Data.Set 0x0400fd24 %Long 0x3f					; idle config
+	Data.Set 0x0400fd28 %Long 3					; mode 3
+	Data.Set 0x0400fd2c %Long 0xffffffff				; mmio config
+	Data.Set 0x0400fd30 %Long 0x0400fe00				; device description
+
+	; Set the parameter block.
+	Register.Set R0  0x0400fd00
+	; Set the stack pointer.
+	Register.Set R13 0x0401fffc
+	; Set the return address.
+	Register.Set R14 0x00001234
+	; Set the processor mode.
+	Register.Set CPSR 0xd3
+	; Set the program counter.
+	Register.Set PC 0x00020000
+	; Run Flasher.
+	Go.Up
+	WAIT !STATE.RUN()
+
+	&ulResult=Data.Long(ASD:0x0400fd00)
+	PRINT "Result: &ulResult"
+	IF &ulResult!=0
+	(
+		PRINT "Failed to detect the flash!"
+		PRINT "This means the flasher ran into some serious error and could not even start to detect the flash."
+	)
+	ELSE
+	(
+		&ulResult=Data.Long(ASD:0x0400fe00)
+		PRINT "Result: &ulResult"
+		IF &ulResult!=1
+		(
+			PRINT "No flash on bus &target_string found!"
+			PRINT "Possible reasons:"
+			PRINT "1) The flash must be enabled with some jumpers."
+			PRINT "2) You selected the wrong bus type."
+		)
+		ELSE
+		(
+			&netx_flasher_start=&binfile_offset
+			&netx_flasher_end=&binfile_offset+&binfile_size
+
+			; Get the erase area.
+			Data.Set 0x0400fd00 %Long 0xffffffff
+			Data.Set 0x0400fd04 %Long 0x0400fd0c
+			Data.Set 0x0400fd08 %Long 0x00000000
+			Data.Set 0x0400fd0c %Long 0x00020000				; parameter version: 2.0
+			Data.Set 0x0400fd10 %Long 7					; operation mode: get erase area
+			Data.Set 0x0400fd14 %Long 0x0400fe00				; device description
+			Data.Set 0x0400fd18 %Long &netx_flasher_start			; start offset in flash
+			Data.Set 0x0400fd1c %Long &netx_flasher_end			; end offset in flash
+
+			; Set the parameter block.
+			Register.Set R0  0x0400fd00
+			; Set the stack pointer.
+			Register.Set R13 0x0401fffc
+			; Set the return address.
+			Register.Set R14 0x00001234
+			; Set the processor mode.
+			Register.Set CPSR 0xd3
+			; Set the program counter.
+			Register.Set PC 0x00020000
+			; Run Flasher.
+			Go.Up
+			WAIT !STATE.RUN()
+
+			&ulResult=Data.Long(ASD:0x0400fd00)
+			PRINT "Result: &ulResult"
+			IF &ulResult!=0
+			(
+				PRINT "Failed to get the erase area!"
+			)
+			ELSE
+			(
+				&netx_flasher_start=Data.Long(ASD:0x0400fd18)
+				&netx_flasher_end=Data.Long(ASD:0x0400fd1c)
+
+				PRINT "erase start: &netx_flasher_start"
+				PRINT "erase end:   &netx_flasher_end"
+
+				; Is the area already erased?
+				Data.Set 0x0400fd00 %Long 0xffffffff
+				Data.Set 0x0400fd04 %Long 0x0400fd0c
+				Data.Set 0x0400fd08 %Long 0x00000000
+				Data.Set 0x0400fd0c %Long 0x00020000				; parameter version: 2.0
+				Data.Set 0x0400fd10 %Long 6					; operation mode: is erased?
+				Data.Set 0x0400fd14 %Long 0x0400fe00				; device description
+				Data.Set 0x0400fd18 %Long &netx_flasher_start			; start offset in flash
+				Data.Set 0x0400fd1c %Long &netx_flasher_end			; end offset in flash
+
+				; Set the parameter block.
+				Register.Set R0  0x0400fd00
+				; Set the stack pointer.
+				Register.Set R13 0x0401fffc
+				; Set the return address.
+				Register.Set R14 0x00001234
+				; Set the processor mode.
+				Register.Set CPSR 0xd3
+				; Set the program counter.
+				Register.Set PC 0x00020000
+				; Run Flasher.
+				Go.Up
+				WAIT !STATE.RUN()
+
+				&ulResult=Data.Long(ASD:0x0400fd00)
+				PRINT "Result: &ulResult"
+				IF &ulResult!=0
+				(
+					PRINT "Failed to check if the area is erased!"
+				)
+				ELSE
+				(
+					&ulResult=Data.Long(ASD:0x0400fd08)
+					PRINT "Result: &ulResult"
+					IF &ulResult==0xff
+					(
+						PRINT "The area is already erased."
+						; Nothing to do, pretend a success.
+						&ulResult=0
+					)
+					ELSE
+					(
+						PRINT "The area not erased, do this now."
+
+						; Erase the area.
+						Data.Set 0x0400fd00 %Long 0xffffffff
+						Data.Set 0x0400fd04 %Long 0x0400fd0c
+						Data.Set 0x0400fd08 %Long 0x00000000
+						Data.Set 0x0400fd0c %Long 0x00020000				; parameter version: 2.0
+						Data.Set 0x0400fd10 %Long 1					; operation mode: erase
+						Data.Set 0x0400fd14 %Long 0x0400fe00				; device description
+						Data.Set 0x0400fd18 %Long &netx_flasher_start			; start offset in flash
+						Data.Set 0x0400fd1c %Long &netx_flasher_end			; end offset in flash
+
+						; Set the parameter block.
+						Register.Set R0  0x0400fd00
+						; Set the stack pointer.
+						Register.Set R13 0x0401fffc
+						; Set the return address.
+						Register.Set R14 0x00001234
+						; Set the processor mode.
+						Register.Set CPSR 0xd3
+						; Set the program counter.
+						Register.Set PC 0x00020000
+						; Run Flasher.
+						Go.Up
+						WAIT !STATE.RUN()
+
+						&ulResult=Data.Long(ASD:0x0400fd00)
+						PRINT "Result: &ulResult"
+					)
+
+					IF &ulResult!=0
+					(
+						PRINT "Failed to erase the area!"
+					)
+					ELSE
+					(
+						; Get the step size.
+						&netx_page_size=Data.Long(ASD:0x0400fe28)
+						&netx_chunk_size_max=(&netx_buffer_size/&netx_page_size)*&netx_page_size
+						PRINT "Max chunk size: &netx_chunk_size_max"
+
+						&flasher_position=0
+						WHILE &flasher_position<&binfile_size
+						(
+							; Get the size of the next chunk.
+							&netx_chunk_size=&binfile_size-&flasher_position
+							IF &netx_chunk_size>&netx_chunk_size_max
+							(
+								&netx_chunk_size=&netx_chunk_size_max
+							)
+							PRINT "Flashing &netx_chunk_size bytes at offset &flasher_position"
+
+							PRINT "Download chunk ."
+							&tmp_netx_chunk_size_minus1=&netx_chunk_size-1
+							Data.LOAD.Binary &netx_flasher_binfile &netx_buffer_start++&tmp_netx_chunk_size_minus1 /SKIP &flasher_position
+
+							; Flash the area.
+							Data.Set 0x0400fd00 %Long 0xffffffff
+							Data.Set 0x0400fd04 %Long 0x0400fd0c
+							Data.Set 0x0400fd08 %Long 0x00000000
+							Data.Set 0x0400fd0c %Long 0x00020000				; parameter version: 2.0
+							Data.Set 0x0400fd10 %Long 0					; operation mode: flash
+							Data.Set 0x0400fd14 %Long 0x0400fe00				; device description
+							Data.Set 0x0400fd18 %Long &netx_flasher_start			; start offset in flash
+							Data.Set 0x0400fd1c %Long &netx_chunk_size				; data size
+							Data.Set 0x0400fd20 %Long &netx_buffer_start				; data buffer
+
+							; Set the parameter block.
+							Register.Set R0  0x0400fd00
+							; Set the stack pointer.
+							Register.Set R13 0x0401fffc
+							; Set the return address.
+							Register.Set R14 0x00001234
+							; Set the processor mode.
+							Register.Set CPSR 0xd3
+							; Set the program counter.
+							Register.Set PC 0x00020000
+							; Run Flasher.
+							Go.Up
+							WAIT !STATE.RUN()
+
+							&ulResult=Data.Long(ASD:0x0400fd00)
+							PRINT "Result: &ulResult"
+							IF &ulResult!=0
+							(
+								PRINT "Failed to flash the chunk!"
+							)
+							ELSE
+							(
+								PRINT "**** Ok! ****"
+							)
+
+							; Next chunk.
+							&flasher_position=&flasher_position+&netx_chunk_size
+							&netx_flasher_start=&netx_flasher_start+&netx_chunk_size
+						)
+					)
+				)
+			)
+		)
+	)
+)
+
+
+abort:
+DIALOG.END
+
+ENDDO

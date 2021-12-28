@@ -1,0 +1,45 @@
+; --------------------------------------------------------------------------------
+; @Title: ETM deactivation script for NETX500
+; @Description: This script initializes annd activates the ETM (Embedded Trace Macrocell)
+; @Keywords: Hilscher, NetX*
+; @Board: 
+;   NETX FPGA Board, NXHX500, NXHMI-BB, NXHMI-RE, NXDB500-SYS, NXEB500-HMI, NXSB100, NETPAC, Honeywell (Tower)
+; @Chip: NETX500
+; @Author: Hilscher
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: etm_init.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+LOCAL &ioconfig &restart
+
+&restart="0"
+
+IF STATE.RUN()
+(
+  &restart="1"
+  Break.direct
+)
+
+;Enable ETM Interface on netX
+&ioconfig=Data.Long(ASD:0x00100004)
+
+Data.Set ASD:0x00100070 %Long Data.Long(ASD:0x00100070)
+Data.Set ASD:0x00100004 %Long (&ioconfig|0x00800000)
+
+ETM.OFF
+;ETM.RESET
+ETM.PortMode NORMAL
+ETM.HalfRate ON
+ETM.PortSize 16
+ETM.FifoLevel 15.
+;ETM.DT READ 
+ETM.ON
+
+Analyzer.CLOCK 200MHz
+Analyzer.AutoFocus ASD:0x00000004--ASD:0x1FFFC
+
+IF "&restart"=="1"
+  Go.direct
+
+ENDDO

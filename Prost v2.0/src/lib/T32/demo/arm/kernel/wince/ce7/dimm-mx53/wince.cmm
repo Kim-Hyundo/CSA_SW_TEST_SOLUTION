@@ -1,0 +1,217 @@
+; --------------------------------------------------------------------------------
+; @Title: WinCE 7.0 Demo for TRACE32 OS Awareness on DIMM-MX53
+; @Description:
+;
+;   This batchfile demonstrates the use of the OS Awareness for CE7
+;
+;   The example is generated for an emtrion DIMM-MX53 using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   The Windows CE image is downloaded via the ICD.
+;   WinCE is started with the bootloader's "bootm" command
+;
+; @Keywords: awareness, Windows, i.MX51
+; @Author: DIE
+; @Chip: IMX53*
+; @Board:  DIMM-MX53
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: wince.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; Starting WinCE example with TRACE32:
+; - Start TRACE32
+; - Power on the board
+; - TRACE32: "do wince"
+; - Start "Start" -> "Settings..." -> "Control Panel" on target
+
+; For debugging with TRACE32 we recommend to disable demand paging
+; by setting bit one of ROMFLAGS in PLATFORM\NE1TB\FILES\config.bib
+
+; For boot loader and debug outputs:
+; Connect NULL serial cable to UART (J14)
+; - 115200 baud, 8/N/1, no(!) handshake
+
+
+&winceroot="C:\WINCE700"    ; typically C:\WINCE700
+&prjdir="&winceroot\OSDesigns\DIMM_MX53DevKit_CE700\DIMM_MX53DevKit_CE700"
+&reldir="&prjdir\RelDir\DIMM-MX53_ARMV7_Debug"
+
+
+ SCREEN.ALways      ; permanent update for internal terminal window
+ ; screen.on        ; if you use external terminal
+
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 24. 75. 8.
+ AREA.view
+
+ PRINT "resetting..."
+
+ RESet
+
+
+; Initializing Debugger
+
+ PRINT "initializing..."
+ SYStem.CPU iMX53
+ SYStem.JtagClock 20.MHz
+ SYStem.Option ResBreak OFF     ; hardware dependent, see documentation
+
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set UNDEF OFF         ; my be used by Linux for FPU detection
+ SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+
+ IF etm()
+   ETM.OFF
+
+ SYStem.Up
+
+ SETUP.IMASKASM ON             ; lock interrupts while single stepping
+
+
+; We'd like to see something, open a code window.
+ WinPOS 0. 0. 77. 22.
+ List.auto
+
+
+; Open serial terminal window on COM1
+
+ WinPOS 35. 0. ,,,,, TERM.view
+ ;TERM.METHOD COM COM1 115200. 8 NONE 1STOP NONE
+ TERM.METHOD COM COM4 115200. 8 NONE 1STOP NONE
+ TERM.SIZE 80. 1000.
+ TERM.Mode VT100
+ TERM.SCROLL ON
+ TERM.view
+
+
+; Target Setup: initialize DRAM controller and peripherals
+
+ ; let the bootloader initialize the board
+
+ Go                         ; start u-boot
+ PRINT "target setup..."
+ WAIT 2.s
+ TERM.Out 0x20              ; stop autoboot
+ WAIT 1.s
+ Break
+
+
+; Load the Windows CE image
+
+ ; Use the next lines only to load the image into
+ ; RAM using the debugger.
+
+ ; emtrion adds a 0x40 byte header to nk.nb0, so load the binaries
+ ; 0x40 bytes below the physical start address of the image
+
+ PRINT "loading Windows CE image..."
+ Data.LOAD.Binary &prjdir\misc\wce-dimm-mx53-Eval 0x70200000-0x40
+
+
+; we need to patch the OAL, so we have to set up
+; the awareness and symbols before starting WinCE
+GOTO setup_awareness
+ STOP
+
+
+; Start WinCE via U-Boot
+uboot_bootm:
+ Go
+ PRINT "booting WinCE..."
+ ; boot WinCE from memory: bootm <kernel>
+ TERM.Out "bootm 0x701FFFC0" 0x0a
+ GOTO patch_oal
+
+
+setup_awareness:
+; Declare the MMU format to the debugger
+
+ ; table format is "WINCE6"
+ ; skip root table (0)
+ ; declare default translation for kernel
+ MMU.FORMAT WINCE6 0 0x80000000--0x9fffffff 0x70000000
+
+ ; ROM DLL, shared heap and kernel addresses are common to all processes
+ TRANSlation.COMMON 0x40000000--0x5fffffff 0x70000000--0xffffffff
+
+ ; debugger uses a table walk to decode virtual addresses
+ TRANSlation.TableWalk ON
+
+ ; switch on debugger(!) address translation
+ TRANSlation.ON
+
+
+; Initialize RTOS Support
+
+ PRINT "initializing Windows CE support..."
+ TASK.CONFIG ~~\demo\arm\kernel\wince\ce7\wince7.t32      ; loads WinCE awareness
+ MENU.ReProgram ~~\demo\arm\kernel\wince\ce7\wince7.men   ; loads WinCE menu
+ HELP.FILTER.Add rtoswince6     ; add WinCE awareness manual to help
+
+ ; switch on autoloader and add path to symbol files to source path list
+ sYmbol.AutoLoad.CHECKWINCE "do ~~\demo\arm\kernel\wince\ce7\autoload "
+ sYmbol.SourcePATH.Set &reldir
+
+ ; Group kernel area to be displayed with red bar
+ GROUP.Create "winceos" 0x80000000--0xffffffff /RED
+
+ ; adapt source paths if necessary (case sensitive!)
+ sYmbol.SourcePATH.Translate "c:\wince700" "&winceroot"
+ sYmbol.SourcePATH.Translate "d:\chelanrtm14" "&winceroot"
+ sYmbol.SourcePATH.Set .    ; add current directory to search path
+
+
+; To be able to patch the OAL, we need to load the OAL symbols
+; and set the breakpoint *before* WinCE is booted
+
+ PRINT "setting breakpoint into OAL..."
+ TASK.ROM.PA 0x70200000                 ; specify physical address of image
+ TASK.sYmbol.Option AutoLoad NoProcess  ; no processes yet to handle
+ TASK.sYmbol.LOADRM "nk.exe"            ; load symbols of OEM
+ TASK.ROM.VA                            ; switch awareness back to virtual addressing
+
+ Break.Set OALPowerInit /Onchip     ; set onchip breakpoint when WinCE starts
+ GOTO uboot_bootm                   ; boot WinCE with bootloader
+
+
+patch_oal:
+; Patch OAL for work with JTAG Debugger
+
+ ; The OAL switches off JTAG and enables WFI.
+ ; Both have to be nop'ed out for working with JTAG
+
+ WAIT !STATE.RUN()
+ PRINT "patching OAL..."
+ Data.Assemble OALPowerInit+290 nop     ; patch switch off of JTAG
+ Data.Assemble OALCPUEnterWFI nop       ; path WFI instruction
+
+
+; Now let's boot and start Windows CE!
+
+ wintop TERM.view
+ Go
+ PRINT "booting Windows EC7... (please wait)"
+ WAIT 10.s
+ Break
+
+
+ PRINT "done."
+
+
+; --------------------------------------------------------------------------------
+; Application Debugging
+; e.g. "ETCHA.exe"
+
+ PRINT "start control panel by selecting"
+ PRINT """Start""->""Settings...""->""Control Panel"""
+
+ DO ~~\demo\arm\kernel\wince\ce7\app_debug control
+
+ ENDDO

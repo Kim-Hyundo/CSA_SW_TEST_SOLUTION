@@ -1,0 +1,45 @@
+
+; --------------------------------------------------------------------------------
+; @Title: Example for PortSHaRing with VX1000
+; @Description:
+;   Script to initialize TRACE32 for simultaneous usage with VX1000.
+;   TRACE32 must be connected to Vector VX1993A adapter
+; @Keywords: AURIX, Infineon, TriCore, PortSHaRing, Vector, VX1000
+; @Author: MEI
+; @Board: TriBoard-TC2x7
+; @Chip: TC277T*
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; @Copyright: (C) 2016 Vector Informatik GmbH
+; --------------------------------------------------------------------------------
+; $Id: tc277t.cmm 10211 2016-11-24 14:46:08Z meick $
+
+PRIVATE &elfFile &cpu
+
+; The CPU must be set to the PD variant, e.g., TC277T instead of TC277TE
+; to avoid conflicts of the trace resources between TRACE32 and VX1000
+&cpu="TC277T"
+
+; Adapt path to your ELF-file
+&elfFile="DAQ_OLDA_simple_measurement.elf"
+
+SYStem.CPU &cpu
+SYStem.CONFIG DEBUGPORTTYPE DAP2
+SYStem.CONFIG PortSHaRing ON
+
+; maximum DAP frequency is 5MHz
+SYStem.JtagClock 5.MHz
+; Workaround for VX1000
+DIAG 0x3107 50.
+
+SYStem.Option DUALPORT ON
+AREA.view
+
+Data.LOAD.Elf &elfFile /NoCODE
+
+; connect VX hardware
+DIALOG.OK "start VX measurement"
+SYStem.Mode Attach
+
+Var.Watch gVX1000
+
+ENDDO

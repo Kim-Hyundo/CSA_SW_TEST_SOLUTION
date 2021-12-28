@@ -1,0 +1,83 @@
+; --------------------------------------------------------------------------------
+; @Title: FAMOS Demo for TRACE32 OS Awareness
+; @Description:
+;   This batchfile loads all necessary files to demonstrate
+;   the OS Awareness for FAMOS.
+; @Keywords: FAMOS, awareness, RTOS
+; @Author: DIE
+; @Chip: ARM1176JZF-S
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: famos.cmm 15227 2019-11-06 11:57:41Z bschroefel $
+
+
+; debugger reset
+ PRINT "resetting..."
+ RESet
+ WinPAGE.RESet
+ WinPOS 0 24. 70. 8. 0. 0. W000
+ AREA.view
+
+
+; debugger initializations
+ PRINT "initializing..."
+
+ ; without USB Debug Reset
+ SYStem.Option EnReset ON    ; let JTAG do system reset
+ SYStem.Option ResBreak OFF  ; let CPU start for 3ms after reset to enable JTAG
+ ;SYStem.Option WaitReset ON  ; wait for Reset end or 1 second
+
+ ; with USB Debug Reset ("cd applications/av_demo; make debug")
+ ;SYStem.Option EnReset OFF   ; JTAG must not reset the board
+ ;SYStem.Option ResBreak ON   ; halt CPU immediately after System.Up
+
+ SYStem.CPU ARM1176JZF
+ SYStem.CONFIG.IRPOST    0
+ SYStem.CONFIG.IRPRE     4
+ SYStem.CONFIG.DRPRE     1
+ SYStem.CONFIG ETBIRPOST 5
+ SYStem.CONFIG ETBIRPRE  8
+ SYStem.CONFIG ETBDRPOST 1
+
+ SYStem.Up
+ Register.RESet
+
+
+; load sample application
+ PRINT "loading sample application..."
+ Data.LOAD.Elf av_demo-g.axf
+
+
+; initialize RTOS support
+ PRINT "initializing FAMOS support..."
+ TASK.CONFIG famos.t32      ; load FAMOS awareness
+ MENU.ReProgram famos.men   ; load FAMOS specific menu
+ HELP.FILTER.Add rtosfamos  ; add FAMOS awareness manual to help filter
+
+ PRINT "load complete."
+
+
+; open some windows
+ WinPOS 0 0 80. 20. 0. 1. W001
+ TASK.Thread
+ WinPOS 50. 6. 70. 21. 11. 1. W002
+ List.auto
+
+
+; open terminal window
+ IF hardware.ICD()
+ (
+    TERM.RESet
+    TERM.METHOD com com1 115200.
+    TERM.SIZE 80. 1000.
+    TERM.SCROLL ON
+    TERM.LocalEcho ON
+    TERM.view
+ )
+
+
+; start application
+ Go appStartThreadFunction
+
+
+ ENDDO

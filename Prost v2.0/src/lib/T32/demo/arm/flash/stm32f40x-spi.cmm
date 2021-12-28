@@ -1,0 +1,110 @@
+; --------------------------------------------------------------------------------
+; @Title: STM32F40x Serial FLASH Programming Script
+; @Description:
+; Serial FLASH(ST, S25FL164K) is connected the SPI1(Serial Peripheral Interface)
+; The Serial Flash CS is connected to GPIO.A4
+;   PA4 -- SPI1_NSS
+;   PA5 -- SPI1_SCK
+;   PA6 -- SPI1_MISO
+;   PA7 -- SPI1_MOSI
+;
+; SRAM: 0x20000000
+; Serial FLASH Controller Addr: 0x40013000
+; 
+; @Props: Template
+; @Author: jjeong
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; @Chip: STM32F407ZE
+; @Keywords: SPI ST S25FL164K
+; --------------------------------------------------------------------------------
+; $Id: stm32f40x-spi.cmm 7602 2019-11-05 15:02:25Z bschroefel $
+
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+
+&SPI_BASE=0x40013000
+
+SYStem.RESet
+SYStem.CPU STM32F407ZE
+SYStem.Up
+
+////////////////////
+// clk enable,  0x4002_3800 (RCC base address)
+////////////////////
+Data.Set A:0x40023844 %Long 0x5010    ;RCC->APB2ENR |= RCC_APB2Periph  ,  /*!< Enable the SPI clock */
+Data.Set A:0x40023830 %Long 0x10001B  ;RCC->AHB1ENR |= RCC_AHB1Periph ,  /*!< Enable GPIO clocks */
+
+////////////////////
+// pin mux setting (alternative function setting),  0x4002_0000 (GPIOA Base Address)
+////////////////////
+Data.Set A:0x40020000 %LE %Long 0xa828A900
+Data.Set A:0x40020008 %LE %Long 0x0c3cAA00
+Data.Set A:0x4002000C %LE %Long 0x6400A800
+Data.Set A:0x40020020 %LE %Long 0x55500000   ;SCK/MISO/MOSI
+
+////////////////////
+// SPI setting, 0x4001_3000 (SPI1 base Address)
+////////////////////
+Data.Set AD:&SPI_BASE+0x00 %LE %Long 0x30F  ; slower clock 0x32F
+Data.Set AD:&SPI_BASE+0x08 %LE %Long 0x2
+Data.Set AD:&SPI_BASE+0x10 %LE %Long 0x7
+
+Data.Set AD:&SPI_BASE+0x00 %LE %Long Data.Long(A:&SPI_BASE)|0x40    ; enable
+
+GOSUB READ_ID_TEST
+
+Break.RESet
+
+FLASHFILE.RESet
+
+// For the Serial FLASH CS connected GPIO PA.4 (Group A, PA4 is NSS )
+// GPIO A.4 Data Output register 0x40020014
+//FLASFILE.CONFIG <Tx Reg>   <Rx Reg>   <CS Reg, GPIOx_ODR>    <Port Num>
+FLASHFILE.CONFIG &SPI_BASE+0x0C &SPI_BASE+0x0C  0x40020014     0x4
+
+FLASHFILE.TARGET 0x20000000++0x1FFF 0x20002000++0x1FFF ~~/demo/arm/flash/byte/spi64_stm.bin  /KEEP
+
+//Read FLASH Manufacture and Device ID
+FLASHFILE.GETID
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+ENDDO
+
+
+//Dump window for Serial FLASH
+FLASHFILE.DUMP 0x0 
+
+//Write Serial FLASH
+;FLASHFILE.ERASE 0x00--0xFFFFF
+
+//Write Serial FLASH
+;FLASHFILE.LOAD  * 0x00
+;FLASHFILE.LOAD  * 0x00  /ComPare
+
+ENDDO
+
+
+READ_ID_TEST:
+(
+  Data.Set AD:0x4002001A %Word (0x1<<4.)   ;CS_LOW , reset
+
+  //cmd write 0x9F
+  Data.Set AD:&SPI_BASE+0x0C %Word 0x9F
+  PRINT "read 1st : 0x" Data.Long(AD:&SPI_BASE+0x0C)
+
+  Data.Set AD:&SPI_BASE+0x0C %Word 0x00
+  PRINT "read 2nd : 0x" Data.Long(AD:&SPI_BASE+0x0C)
+
+  Data.Set AD:&SPI_BASE+0x0C %Word 0x00
+  PRINT "read 3rd : 0x" Data.Long(AD:&SPI_BASE+0x0C)
+
+  Data.Set AD:&SPI_BASE+0x0C %Word 0x00
+  PRINT "read 4th : 0x" Data.Long(AD:&SPI_BASE+0x0C)
+
+  Data.Set AD:0x40020018 %Word (0x1<<4.)    ;CS_HIGH , set
+
+  RETURN
+)

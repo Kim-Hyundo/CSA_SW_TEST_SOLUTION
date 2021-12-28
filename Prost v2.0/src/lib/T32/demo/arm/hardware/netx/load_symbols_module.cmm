@@ -1,0 +1,100 @@
+; --------------------------------------------------------------------------------
+; @Title: Load symbols for a given module
+; @Description: Load symbols for a given module
+; @Keywords: NetX*
+; @Board: NetX
+; @Chip: ARM966E-S, NETX100, NETX500
+; @Author: Hilscher
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: load_symbols_module.cmm 6797 2014-04-11 11:03:55Z kjmal $
+
+
+ENTRY &ElfFile &ModuleNumber
+
+LOCAL &ModuleName
+
+LOCAL &RelocString
+LOCAL &CurSection
+LOCAL &SectionCnt
+
+LOCAL &ActSectionAddr &ActSectionName &ActSectionSize &ActSectionFlags
+
+LOCAL &TotalSectionOffset &AllocFlag
+
+; Check Parameters
+IF "&ElfFile"==""
+(
+  PRINT "Elf File name not given, using script defaults"
+  &ElfFile="netx.unstripped"
+)
+
+IF "&ModuleNumber"==""
+(
+  PRINT "Module Number not given, defaulting to Module0"
+  &ModuleNumber=0
+)
+
+; Get relocation information of module key sections.
+IF 0==Var.VALUE(aptChannelModules[&ModuleNumber])
+(
+
+  PRINT "No Module loaded on channel " &ModuleNumber
+)
+ELSE
+(
+  &RelocString=" "
+  &CurSection=0
+  &TotalSectionOffset=0
+
+  &ModuleName=Var.VALUE(aptChannelModules[&ModuleNumber]->pszModuleName)
+  &ModuleName=Data.STRing(D:&ModuleName)
+  &SectionCnt=Var.VALUE("((RX_ELF_MODULE_INFO_T*)aptChannelModules[&ModuleNumber])->uiNumSections")
+
+  PRINT "Loading Module '&ModuleName' with " &SectionCnt " sections"
+
+  WHILE &CurSection<&SectionCnt
+  (
+    &ActSectionAddr=Var.VALUE("((RX_ELF_MODULE_INFO_T*)aptChannelModules[&ModuleNumber])->patLoadSections[&CurSection]->pbSectionAddr")
+    &ActSectionName=Var.VALUE("((RX_ELF_MODULE_INFO_T*)aptChannelModules[&ModuleNumber])->patLoadSections[&CurSection]->pszName")
+    &ActSectionFlags=Var.VALUE("((RX_ELF_MODULE_INFO_T*)aptChannelModules[&ModuleNumber])->patLoadSections[&CurSection]->ulFlags")
+    &ActSectionSize=Var.VALUE("((RX_ELF_MODULE_INFO_T*)aptChannelModules[&ModuleNumber])->patLoadSections[&CurSection]->ulSize")
+    &ActSectionName=Data.STRing(D:&ActSectionName)
+
+    &AllocFlag=&ActSectionFlags&0x10
+
+;   Only process sections with (0x10) set
+    IF &AllocFlag==0x0
+    (
+        PRINT "Skipping non-allocated Section &ActSectionName with LoadAddress of &ActSectionAddr "
+    )
+    ELSE
+    (
+      IF &ActSectionAddr==0
+      (
+        PRINT "Ignoring Section &ActSectionName with LoadAddress of 0"
+      )
+      ELSE
+      (
+        IF STRing.LENgth("&ActSectionName")>16
+        (
+          PRINT "Ignoring Section &ActSectionName with too long name for T32"
+        )
+        ELSE
+        (
+          PRINT "Found Section '&ActSectionName' @ " &ActSectionAddr
+
+          &ActSectionAddr=&ActSectionAddr+&TotalSectionOffset
+          &RelocString="&RelocString"+"/RELOC &ActSectionName AT &ActSectionAddr "
+        )
+        &TotalSectionOffset=&TotalSectionOffset+&ActSectionSize
+      )
+    )
+    &CurSection=&CurSection+1
+  )
+
+  PRINT "Loading module with the following relocations : &RelocString"
+  Data.LOAD.Elf "&ElfFile" /CYGDRIVE /NoCODE /NoClear &RelocString
+)
+
+ENDDO

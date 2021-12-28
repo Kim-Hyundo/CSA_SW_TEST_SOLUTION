@@ -1,0 +1,100 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple sieve demo running from flash for Kinetis-E series
+; @Description: 
+;   This is a small demo how to setup a SWD debug session on Cortex-M0
+;   for Kinetis-E series. The sieve demo is loaded on flash using the 
+;   board support scripts of the TRACE32 installation.
+;
+; @Keywords: Cortex-M0, debug, Flash, Freescale, KE0, Kinetis, SWD
+; @Author: HDA
+; @Board: FRDM-KE02Z
+; @Chip: MKE0*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: frdm_ke02z_sieve_flash.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+; Basic setup
+  RESet
+  SYStem.RESet
+  ;SYStem.CPU MKE0*
+  SYStem.CPU MKE02Z64VQH4
+  SYStem.CONFIG.CONNECTOR MIPI20T 
+  SYStem.CONFIG.DEBUGPORTTYPE SWD
+  SYStem.MemAccess DAP
+  SYStem.Option DUALPORT ON
+  SYStem.Up
+
+; Flash programming warning
+  DIALOG.YESNO "This demo will program flash memory. Do you want to continue?"
+  LOCAL &progflash
+  ENTRY &progflash
+  IF !&progflash
+  (
+    ENDDO
+  )
+  GOSUB DisableWatchdog
+  ; Setup flash configuration using the board support scripts of the TRACE32 installation
+  DO ~~/demo/arm/flash/mke0.cmm PREPAREONLY DUALPORT=1
+
+  ; Program the internal flash
+  FLASH.ReProgram.ALL /Erase
+  Data.LOAD.Elf ~~~~/demo_flash.axf /NosYmbol
+  FLASH.ReProgram.off
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+
+  GOSUB DisableWatchdog
+  Register.Init
+
+
+  ; Loading symbol information
+  Data.LOAD.Elf ~~~~/demo_flash.axf /NoCODE
+
+  Go.direct
+
+  ; open some windows
+  WinCLEAR
+
+  WinPOS 0% 0% 50% 50%
+  List.auto
+
+  WinPOS 50% 0% 50% 50%
+  Register.view /SpotLight
+
+  WinPOS 0% 50% 50% 30%
+  Frame /Locals /Caller
+
+  WinPOS 0% 80% 50% 20%
+  Var.Watch %E %SpotLight.on flags
+  Var.AddWatch ast
+
+  WinPOS 50% 50% 50% 50%
+  Var.DRAW sinewave
+
+  ENDDO
+
+DisableWatchdog:
+  Data.Set VM:0x20000000++0x2F %Long 0
+  Data.Assemble VMT:0x20000000 adr     r0,0x20000014
+  Data.Assemble ,              ldm     r0,{r0-r4}
+  Data.Assemble ,              movs    r5,0
+  Data.Assemble ,              strb r5, [r0, #1]
+  Data.Assemble ,              strh r1, [r0, #2]
+  Data.Assemble ,              strh r2, [r0, #2]
+  Data.Assemble ,              strh r3, [r0, #4]
+  Data.Assemble ,              strh r4, [r0, #0]
+  Data.Assemble ,              bkpt    #0x0
+  Data.Set VM:0x20000014 %Long 0x40052000
+  Data.Set VM:0x20000018 %Long 0x20c5
+  Data.Set VM:0x2000001C %Long 0x28D9
+  Data.Set VM:0x20000020 %Long 0xFFFF
+  Data.Set VM:0x20000024 %Long 0x20
+  Data.COPY SD:0x20000000++0x2F VM:0x20000030
+  Data.COPY VM:0x20000000++0x2F SD:0x20000000
+  Register.Set PC 0x20000000
+  Go.direct
+  WAIT !STATE.RUN()
+  Data.COPY VM:0x20000030++0x2F SD:0x20000000
+  RETURN

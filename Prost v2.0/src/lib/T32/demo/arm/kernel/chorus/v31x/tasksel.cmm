@@ -1,0 +1,59 @@
+; --------------------------------------------------------------------------------
+; @Title: Perform a task selective Analyzer tracing (Chorus)
+; @Description: This example traces all write accesses of ONE specific task
+; @Keywords: chorus, Emulator, ICE, v31x
+; @Props: NoWelcome
+; @Author: -
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tasksel.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+  E::
+
+  IF (STATE.RUN())
+    Break
+
+; specify the magic value of the desired task
+&task=018a3c
+
+; delete all predefined Alpha breakpoints
+  Break.Delete /Alpha
+
+; set Alpha Breakpoint on magic address
+  Break.Set task.config(magic)++(task.config(magicsize)-0x1) /Alpha
+
+; program the analyzer to record all writes of task x
+  Analyzer.ReProgram
+  (
+    DATA.L0  TSK  &task        ; magic value of desired task
+
+    Sample.Enabled IF (AB&&WRITE)       ; record all task switches
+
+    LVL0:
+     GOTO LVL1 if AB&&TSK    ; wait for desired task running
+
+    LVL1:
+     Sample.Enabled IF WRITE             ; record write accesses while task is running
+     GOTO LVL0 if AB&&!TSK  ; jump back if task is no longer running
+  )
+
+; configure analyzer to trace one task
+  Analyzer.Mode prepost OFF
+  Analyzer.Mode stack
+  Analyzer.SIZE 5000.
+  Analyzer.Init
+  Analyzer.Arm
+
+; start the application for 10 sec
+  SCREEN.ALways
+  PRINT "program running for 10 sec -- please wait"
+  Go
+  WAIT 10.s
+  Break
+  PRINT ""
+  SCREEN.OFF
+
+; now display the recorded analyzer data
+  Analyzer.OFF
+  Analyzer.List l.task DEFault

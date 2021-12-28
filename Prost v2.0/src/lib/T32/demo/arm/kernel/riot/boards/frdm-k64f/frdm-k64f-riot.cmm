@@ -1,0 +1,115 @@
+; --------------------------------------------------------------------------------
+; @Title: RIOT Demo for TRACE32 OS Awareness
+; @Description: 
+;   
+;   This batchfile loads all necessary files to demonstrate
+;   the OS Awareness for RIOT on FRDM-K64F.
+;   
+; @Keywords: awareness, RTOS, RIOT, FRDM-K64F
+; @Author: RIC
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: frdm-k64f-riot.cmm 15237 2019-11-08 08:25:07Z bschroefel $
+
+LOCAL &image &srcpath 
+
+&image=""
+&srcpath=""
+
+
+DIALOG.view
+(
+  HEADER "Image Selection"
+  POS 0. 0. 25. 6.
+  BOX "Choose Target Demo"
+  POS 1. 1. 20. 1.
+A.A: CHOOSEBOX "Simple Demo"
+  (
+    &image="~~~~/../riot/t32demo/frdm-k64/t32demo.elf"
+    &srcpath="~~~~/../riot/t32demo"
+  )
+  POS 1. 2. 20. 1
+A.B: CHOOSEBOX "Message Passing Demo"
+  (
+    &image="~~~~/../riot/t32msgdemo/frdm-k64/t32msgdemo.elf"
+    &srcpath="~~~~/../riot/t32msgdemo"
+  )
+  POS 1. 3. 20. 1
+A.C: CHOOSEBOX "Mutex Demo"
+  (
+    &image="~~~~/../riot/t32mutex/frdm-k64/t32mutex.elf"
+    &srcpath="~~~~/../riot/t32mutex"
+  )
+  POS 1. 4. 20. 1
+A.D: CHOOSEBOX "Semaphore Demo"
+  (
+    &image="~~~~/../riot/t32sema/frdm-k64/t32sema.elf"
+    &srcpath="~~~~/../riot/t32sema"
+  )
+  POS 20. 6. 5. 1.
+B1: BUTTON "OK" "CONTinue"
+)
+STOP
+DIALOG.END
+
+RESet
+SYStem.RESET
+SYStem.CPU MK64FN1M0VLL12
+SYStem.Config CORE 1. 1.
+SYStem.MemAccess DAP
+SYStem.MemAccess Denied
+SYStem.JTAGClock 10.MHz
+SYStem.Option CORTEXMAHB ON
+SYStem.CONFIG TRISTATE OFF
+SYStem.CONFIG SLAVE OFF
+SYStem.CONFIG TAPSTATE 7.
+SYStem.CONFIG TCKLEVEL 0.
+SYStem.CONFIG.DEBUGPORT DebugCableA
+IF HARDWARE.COMBIPROBE()||HARDWARE.UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.CONFIG DEBUGPORTTYPE SWD
+SYStem.CONFIG DEBUGACCESSPORT 0.
+SYStem.CONFIG SWDP ON
+SYStem.Up
+
+Data.Load.Elf "&image" /DIFF
+if FOUND()
+(
+  ; Program FLASH
+  DO "~~/demo/arm/flash/mk60.cmm" PREPAREONLY
+  FLASH.ReProgram ALL
+  Data.Load.Elf "&image"
+  FLASH.ReProgram OFF
+
+  ; Reset target after FLASH update
+  SYStem.Up
+)
+
+
+; Set source path to find main.c
+sYmbol.SourcePATH.RESet
+sYmbol.SourcePATH.Set "&srcpath"
+
+
+;g idle_thread
+;go main
+;wait !STATE.RUN()
+
+TASK.CONFIG "~~/demo/arm/kernel/riot/riot.t32"
+MENU.ReProgram "~~/demo/arm/kernel/riot/riot.men"
+
+; Open some windows
+WinCLEAR
+List.Auto
+
+Mode.HLL
+
+; Go until main
+GO.direct main
+
+ENDDO
+
+
+

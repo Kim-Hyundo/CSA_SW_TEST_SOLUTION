@@ -1,0 +1,111 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux debugging & trace script for MB86R1x Emerald
+; @Description: 
+;  This script boots an MB86R1x Emerald
+;  running with linux. It expects that u-boot boots the target
+;  and tries to start an arbitrary linux kernel. This kernel is
+;  overwritten using the debugger. The boot arguments are not
+;  replaced by this script.
+;  The script uses an onchip breakpoint to patch the PINMUX1
+;  register. Please adapt the PINMUX1 register initialization
+;  to your needs.
+;   
+;  Prerequisites:
+;  - Set SW10.Pin4 to 1 JTAG DFT mode
+;  - U-Boot boots a uImage file
+;  - vmlinux file is available
+;  - AutoFocusII trace is connected
+;   
+; @Keywords: awareness, Fujitsu, Linux, MB86R1*, Trace, Emerald
+; @Author: DIE
+; @Board: SK-86R12-01
+; @Chip: MB86R11, MB86R12
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: emerald_linux_boot_trace.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; system configuration
+RESet
+SYStem.RESet
+SYStem.CPU MB86R12
+
+; Prepare Linux specific settings. 
+; Don't stop DABORT/PABORT (MMU FAIL)
+; Don't stop on UNDEF Instr (FPU Emulation)
+; Overwrite DACR register -> full debugger access
+TrOnchip.Set DABORT OFF
+TrOnchip.Set PABORT OFF
+TrOnchip.Set UNDEF OFF
+SYStem.Option DACR ON
+SYStem.Option MMUSPACES ON
+
+; reset the system
+SYStem.Up
+
+; setup off-chip trace
+IF Analyzer()
+(
+        ; set PINMUX1(=0x3D100200), PMUX_B=3
+        ; the PINMUX1 register can be written only ONCE!
+        ; set a BreakPoint onto the register and enable the trace
+        ; The USER value needs also to be written
+        Break.Set A:0x3D100200 /Write
+        Go.direct
+        PRINT "Wait till PINMUX1 Register gets initialized"
+        WAIT !STATE.RUN()
+        Break.Delete 
+
+        Data.Set A:0x3D100200 %Long Data.Long(A:0x3D100200)&(~0x80000000)
+        Data.Set A:0x3D100200 %Long Data.Long(A:0x3D100200)&(~0x38)
+        ; USER VALUE - PMUX_I=1
+        Data.Set A:0x3D100200 %Long Data.Long(A:0x3D100200)|(0x02000000)
+        ; Enable ETM TRACE - PMUX_B=3
+        Data.Set A:0x3D100200 %Long Data.Long(A:0x3D100200)|(0x18)
+        Data.Set A:0x3D100200 %Long Data.Long(A:0x3D100200)|(0x80000000)
+
+        ETM.PortSize 16
+        ETM.PortMode Continuous
+        ETM.ON
+        Analyzer.AutoFocus
+)
+
+Go 0x80008000 /Onchip /COUNT 2.
+
+WAIT !STATE.RUN() 10.s
+WAIT !STATE.RUN() 1.s
+
+; load symbols
+PRINT "Load vmlinux symbols&code ..."
+Data.LOAD.Elf "~~~~/vmlinux" /NoRegister 
+sYmbol.SourcePATH.Translate "/home/.../linux-3..." "C:\path\on\remote\pc"
+
+Go start_kernel /Onchip 
+WAIT !STATE.RUN()
+
+; setup debugger address translation
+; PageTableFormat: LINUXSWAP3
+; Virtual Kernel Range: 0xc0000000++0x0FFFFFFF
+; Physical Kernel Start: 0x00000000
+; Section 0xbf000000--0xbfffffff + 0xc0000000--0xffffffff
+; are used by the kernel itself
+PRINT "Setup Debugger Address Translation ..."
+MMU.FORMAT LINUXSWAP3 swapper_pg_dir 0x80000000++0x0fffffff 0x80000000
+TRANSlation.COMMON 0x80000000--0xffffffff
+TRANSlation.TableWalk ON
+TRANSlation.ON
+
+; load awareness for Linux 3.x
+PRINT "Load Linux Awareness 3.x ..."
+TASK.CONFIG ~~/demo/arm/kernel/linux/linux-3.x/linux3.t32
+MENU.ReProgram ~~/demo/arm/kernel/linux/linux-3.x/linux.men
+
+; open some windows
+WinPOS 1% 1%
+List.auto
+
+ENDDO
+
+
+
+

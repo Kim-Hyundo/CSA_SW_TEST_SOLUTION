@@ -1,0 +1,153 @@
+; --------------------------------------------------------------------------------
+; @Title: VxWorks Demo for TRACE32 OS Awareness on ARM Simulator
+; @Description: 
+;   
+;   This batchfile loads all necessary files to demonstrate
+;   the OS Awareness for VxWorks on the TRACE32 ARM Simulator.
+;   
+; @Keywords: Awareness, RTOS, VxWorks
+; @Author: DIE
+; @Chip: ZYNQ-7000
+; @Board: ARM Simulator
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: vxworks.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; Reset debugger
+
+RESet
+WinPAGE.RESet
+SCREEN.ALways
+
+
+; Open Area window
+  
+WinPOS 0. 32. 80. 17.
+AREA.view
+PRINT
+PRINT "=== VxWorks 7 Demo on ARM Simulator ==="
+PRINT "resetting debugger..."
+
+
+; Configure debugger
+
+PRINT "initializing debugger..."
+
+SYStem.CPU ZYNQ-7000
+CORE.ASSIGN 1               ; use only one core in simulation
+Trace.SIZE 13107200.        ; enlarge trace buffer of simulator
+
+SYStem.Option DACR ON          ; give Debugger global write permissions
+TrOnchip.Set DABORT OFF        ; used by VxWorks!
+TrOnchip.Set PABORT OFF        ; used by VxWorks!
+TrOnchip.Set UNDEF OFF         ; may be used by VxWorks
+
+SYStem.Option.IMASKASM ON   ; disable insterrupts for assembler single steps
+
+
+; "Power up target"
+
+SYStem.Up
+
+
+; Open List window -- we like to see something
+
+WinPOS 0. 0. 86. 26.
+List.auto
+
+
+; Download VxWorks image
+
+print "downloading VxWorks image..."
+Data.LOAD.Elf C:\WindRiver\workspace\ARMSimVIP\default\vxWorks
+
+;sYmbol.SourcePATH.Translate "C:\WindRiver\workspace\" "&workspace/"
+
+
+; Adjust periphery calls to simulator
+  
+Data.Assemble R:vxbPl310CacheInit+0x1dc nop
+Data.Assemble R:pl310L2CacheOperateAll+0x68 nop
+Data.Assemble R:vxbZynqSioInitChannel+0x78 nop
+Data.Assemble R:genPhyInit+0x40 cmp r10,#0x0a
+Data.Assemble R:vxbZynqSioIoctl+0x114 nop
+Data.Assemble R:ipcom_random_bingo_lotto+0x18 nop
+
+; Patch "taskDelay" until ticker task is running     
+  
+&origTaskDelay=Data.Long(taskDelay)
+Data.Assemble taskDelay bx r14
+
+  
+; Initialize kernel
+
+Go usrRoot
+PRINT "starting VxWorks..."
+WAIT !STATE.RUN()
+
+
+; Load VxWorks support
+
+PRINT "loading VxWorks Support..." 
+TASK.CONFIG ~~/demo/arm/kernel/vxworks/vxworks.t32      ; load VxWorks awareness
+  
+
+; Open terminal window
+  
+screen.always
+PRINT "starting terminal"
+TERM.METHOD SingleE T32ConOut T32ConIn
+TERM.SIZE 80. 1000.
+TERM.Mode VT100
+TERM.SCROLL ON
+WinPOS 91. 0. 80. 25.  
+TERM.view
+
+
+; Open task list window
+
+WinPOS 86. 28. 85. 23.
+TASK.TaskInfo
+
+
+; Open task chart window
+  
+WinPOS 0. 32. 81. 17. 15. 2.
+Trace.Chart.TASK
+
+
+; Patch stdio output
+  
+Go usrBanner
+WAIT !STATE.RUN()
+Var.set _func_kwrite = t32DebugOut
+Var.set _func_consoleOut = t32ConsoleOut
+  
+Data.Assemble taskFromShellInOutSet bx r14
+Data.Assemble tyWrite b t32ConsoleOut
+
+
+; Start application
+    
+Go usrAppInit
+PRINT "starting application..."
+WAIT !STATE.RUN()
+
+
+; Restore taskDelay patch
+  
+Data.Set taskDelay %Long &origTaskDelay
+  
+  
+; Start demo
+  
+PRINT "starting demo..."
+Go usrDemo
+
+
+; That's it
+
+PRINT "done."
+
+ENDDO

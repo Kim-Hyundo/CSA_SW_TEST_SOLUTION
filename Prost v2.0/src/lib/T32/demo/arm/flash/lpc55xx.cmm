@@ -1,0 +1,125 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash declaration for NXP LPC55xx Cortex-M33 internal flash
+; @Description:
+;   Reprogam internal Flash of NXP LPC55xx.
+;   Script arguments:
+;     DO lpc54xx [PREPAREONLY] [CPU=<cpu>] [DUALPORT=<0|1>]
+;       PREPAREONLY    only declares flash but does not execute flash programming
+;       CPU=<cpu>      selects CPU derivative <cpu>
+;       DUALPORT=<0|1> use dual port memory access, default 1
+;   Example:
+;   DO ~~/demo/arm/flash/lpc55xx CPU=LPC55S69JBD100-CPU0 PREPAREONLY
+;   Note : Flash programming must be done from a Cortex-M33
+;     This file must NOT be modified.
+;     This file is intended to stay within TRACE32 installation.
+;     Usage examples are available in the ~~/demo/arm/hardware/... subdirectories.
+;
+;   List of LPC55xx derivatives and their configuration:
+;   CPU-Type          Flash   RamSize
+;                      [kB]    [kB]  
+; --------------------------------------------------------------------------------
+;   LPC55S66JBD100		256		144
+;   LPC55S66JEV98		256		144
+;   LPC55S69JBD100		640		320
+;   LPC55S69JEV98		640		320
+;
+; @Chip: LPC55*
+; @Author: MAM
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 7642 $
+; $Id: lpc55xx.cmm 7642 2019-11-15 13:20:24Z mmauser $
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+PRIVATE &param_prepareonly &param_cpu &param_dualport
+
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CPU=","")
+&param_dualport=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"DUALPORT=","1")
+
+
+; --------------------------------------------------------------------------------
+; Initialize and start the debugger
+
+IF !SYStem.Up()
+(
+  SYStem.RESet
+
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  IF !CPUIS(LPC55*)
+    SYStem.CPU LPC55*
+
+  SYStem.MemAccess DAP
+  SYStem.JtagClock 10MHz
+  SYStem.Option WaitReset 20ms
+  SYStem.Up
+)
+
+; ------------------------------------------------------------------------------
+; Flash declaration
+
+FLASH.RESet
+GOSUB FlashDeclaration "&param_dualport"
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+
+; --------------------------------------------------------------------------------
+; Flash programming example
+
+DIALOG.YESNO "Program flash memory?"
+PRIVATE &progflash
+ENTRY &progflash
+
+IF &progflash
+(
+  FLASH.Erase.ALL
+  FLASH.ReProgram.ALL
+  Data.LOAD.auto * /Long
+  FLASH.ReProgram.off
+)
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+; SUBROUTINES
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU
+;
+;   Please do NOT modify the TRACE32 flash declaration.
+;
+;   Modifications can result in unpredictable behavior.
+;   Please contact support@lauterbach.com for any changes.
+FlashDeclaration: ;(param_dualport)
+(
+  PARAMETERS &param_dualport
+  PRIVATE &FlashSize
+
+  IF CPUIS("LPC55S69*")
+    &FlashSize=0xA0000
+  ELSE IF CPUIS("LPC55S66*")
+    &FlashSize=0x40000
+  ELSE
+  (
+    PRINT %ERROR "FLASH size of CPU type is unknown"
+    ENDDO
+  )
+
+  FLASH.Create 1. 0x00000000--(&FlashSize-0x8001) 0x8000 TARGET Long 
+  FLASH.Create 2. (&FlashSize-0x8000)--(&FlashSize-(0x8000+1-0x5e00)) 0x5e00 TARGET Long
+  FLASH.Create 3. (&FlashSize-(0x8000-0x5e00))--(&FlashSize-1) (0x8000-0x5e00)  NOP
+
+  IF (("&param_dualport"=="0")||SYStem.ACCESS.DENIED())
+    FLASH.TARGET 0x30000000 0x30001000 0x1000 ~~/demo/arm/flash/long/lpc55xx.bin /STACKSIZE 0x200
+  ELSE
+    FLASH.TARGET E:0x30000000 0x30001000 0x1000 ~~/demo/arm/flash/long/lpc55xx.bin /DualPort /STACKSIZE 0x200
+  
+//  FLASH.CLocK.AUTO
+
+  RETURN
+)

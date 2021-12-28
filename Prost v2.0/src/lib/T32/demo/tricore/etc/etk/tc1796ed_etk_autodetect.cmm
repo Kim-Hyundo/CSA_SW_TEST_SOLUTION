@@ -1,0 +1,86 @@
+; --------------------------------------------------------------------------------
+; @Title: Startup demo script for ETK arbitration with TC1796 on TriBoard TC1796
+; @Description:
+;   The script shows a setup for TRACE32 versions with ETK autodetection,
+;   depending whether the debugger is connected to the target directly or
+;   via an ETK.
+;
+;   The debugger will hold the target in reset as long as SYStem.Mode NoDebug
+;   is not reached. Asserting the reset will prevent the ETK tool from
+;   accessing the target.
+;   There are several strategies possible for setting up the debugger for use
+;   with an ETK, depending on the user's requirements.
+;
+;   Hints:
+;   - for using SYStem.Up, SYStem.CONFIG SLAVE ON is required
+;   - for information about known issues see the demo scripts in
+;     demo/tricore/hardware/
+;
+; @Keywords: etk, Infineon, TriCore
+; @Author: MAX
+; @Board: TriBoard-TC1796
+; @Chip: TC1796ED
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc1796ed_etk_autodetect.cmm 7580 2014-08-27 15:28:49Z mobermeir $
+
+
+; --------------------------------------------------------------------------------
+; performed tests
+; Dip Switch S301:      SW1=ON,  SW2=OFF, SW3=ON,  SW4=ON,
+;                       SW5=OFF, SW6=ON,  SW7=OFF, SW8=OFF
+; TriBoard TC1766.300 TC1766ED EES-BB 2005-11-14 MAX
+;
+; --------------------------------------------------------------------------------
+; Memory mappings:
+; processor internal RAM (LDRAM)      56 KB 0xD0000000--0xD000DFFF
+; processor internal RAM (SPRAM)      16 KB 0xD4000000--0xD4003FFF
+; processor internal program flash   1.5 MB 0xA0000000--0xA0177FFF
+; processor internal data flash       16 KB 0xAFE00000--0xAFE03FFF (Bank 0)
+;                                     16 KB 0xAFE10000--0xAFE13FFF (Bank 1)
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+
+RESet
+SYStem.CPU TC1796ED
+SYStem.Option DUALPORT ON            ; enable realtime memory access
+//SYStem.Option WDTFIX ON            ; only required for A-Step devices
+//SYStem.JtagClock 10.0MHz           ; default, recommended minimum
+
+; configure for arbitration with ETK
+SYStem.DETECT PortSHaRing
+IF PORTSHARING()==1
+(
+  ; ETK detected
+  SYStem.Mode NoDebug
+
+  ; recommendation is to set SYStem.CONFIG values to defaults
+  //SYStem.CONFIG TRISTATE OFF    ; do not tristate debug cable when not
+  //                              ; accessing target (recommended)
+  //SYStem.CONFIG SLAVE ON        ; prevent debugger from performing
+  //                              ; any reset (optional)
+  //SYStem.CONFIG TCKLEVEL 0.     ; pulldown on TCK (required)
+  //SYStem.CONFIG TAPSTATE 12.    ; Run-Test/ Idle  (required)
+
+  SYStem.Mode Attach                 ; connect to target
+
+  ; Memory accesses to invalid addresses should be avoided,
+  ; otherwise ETK may be blocked too long.
+)
+ELSE
+(
+  ; no ETK detected
+  SYStem.Up
+)
+
+IF !STATE.RUN()
+  Go    ; restart program execution
+
+; --------------------------------------------------------------------------------
+; open a window
+
+WinCLEAR
+Data.dump 0xD0000000
+
+ENDDO

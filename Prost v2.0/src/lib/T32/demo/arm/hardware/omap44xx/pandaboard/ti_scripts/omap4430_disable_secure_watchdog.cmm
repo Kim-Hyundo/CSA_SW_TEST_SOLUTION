@@ -1,0 +1,41 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags
+; @Author: TI
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: omap4430_disable_secure_watchdog.cmm 8886 2015-11-18 18:06:51Z mobermeir $
+
+ENTRY
+
+AREA.Select results
+PRINT " ENTERING DISABLE SECURE WATCHDOG ..."
+
+; Enable Clock
+; Data.Set NSR:0x4A307830 %l 0x02
+
+;PRINT " WD1 ..."
+
+; Check that module is IDLE
+; while ((Data.Long(NSR:0x4A307830)&0x20000)==0x20000) 
+
+;PRINT " WD2 ..."
+
+; Wait until reset complete 
+; while ((Data.Long(NSR:0x4A314014)&0x01)!=0x1)
+
+;PRINT " WD3 ..."
+
+;Disable watchdog timer
+Data.Set SR:0x4A322048 %LE %Long 0x0000AAAA;
+WHILE ((Data.Long(SR:0x4A322034)&0x10)==0x10)
+
+;PRINT " WD4 ..."
+
+Data.Set SR:0x4A322048 %LE %Long 0x00005555;
+WHILE ((Data.Long(SR:0x4A322034)&0x10)==0x10)
+
+;PRINT " WD5 ..."
+
+;PRINT " EXITING DISABLE SECURE WATCHDOG ..."
+
+ENDDO

@@ -1,0 +1,17 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags, NoIndex
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: clear_vic.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; Clear all enable bits
+Data.Set ASD:0x001ff014 %Long 0xFFFFFFFF
+
+; Clear all interrupt handlers
+Data.Set ASD:0x001ff034 %Long 0
+Data.Set ASD:0x001ff100--ASD:0x001ff13F %Long 0
+
+; Disable all vectored interrupts
+Data.Set ASD:0x001ff200--ASD:0x001ff23F %Long 0
+
+ENDDO

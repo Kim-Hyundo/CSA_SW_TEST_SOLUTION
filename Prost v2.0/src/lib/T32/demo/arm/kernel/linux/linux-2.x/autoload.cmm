@@ -1,0 +1,325 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux autoload script, called by TRACE32 if symbols are to be loaded
+; @Description:
+;   This script is part of the TRACE32 Linux Awareness
+;
+; @Keywords: Linux autoloader awareness
+; @Author: DIE
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: autoload_linux.cmm 5821 2020-11-11 07:15:59Z amerkle $
+
+// define local macros
+PRIVATE &filename &basename &progname &progpath &filepath &code &data &space &type &machine
+PRIVATE &symfilename1 &symfilename2 &loadparam1 &loadparam2 &loadparam &sInfix
+&loadparam=""
+&loadparam1=""
+&loadparam2=""
+
+// get filename and relocation information
+// these parameters are passed from TRACE32 when calling this skript
+
+ENTRY &filename &type &code &data &space &machine
+
+//print "autoload: " &filename " " &type " " &code " " &data " " &space " " &machine
+
+// &filename:      name of process/file
+// &type:          type of file: 1=process, 2=library, 3=kernel module
+// &code:          text segment address
+// &data:          data segment address
+// &space:         space id of process
+// &machine:       machine id of process
+
+&sInfix=""
+IF "&machine"!=""
+  &sInfix=TASK.MACHINE.EXTNAME(&machine,0.)+"."
+
+// get symbol file name and program name
+&filepath=""
+IF ((&type&0xffff)==2)
+(
+  &basename=&filename
+  RePeAT
+  (
+    &basename=STRing.CUT("&basename",-STRing.LENgth(OS.FILE.EXTENSION(&basename)))
+  )
+  WHILE OS.FILE.EXTENSION(&basename)!=""
+)
+ELSE
+(
+  &basename=STRing.Replace("&filename", ":", ".", 0)  ; FIX: some android process names contain a ":"
+  &basename=STRing.CUT(&basename,-STRing.LENgth(OS.FILE.EXTENSION(&basename)))
+)
+IF (&type==1)
+(
+  // processes
+  PRIVATE &nMagic
+
+  IF STATE.RUN()
+  (
+    GOSUB postponeAutoloader "&type" "&space" "&machine" "&code"
+    ENDDO
+  )
+
+  &nMagic=TASK.&(sInfix)PROC.SID2MAGIC(&space)
+  IF TASK.&(sInfix)O.ALOAD.ProcessName()==0
+  (
+    // use cleaned up TaskName as filename
+    &symfilename1="&basename"      // without extension
+  )
+  ELSE
+  (
+    // use INODE name as filename
+    &symfilename1=TASK.&(sInfix)PROCess.FILENAME(&nMagic)
+    &loadparam1="/NAME &"+"progname"
+  )
+  &symfilename2=&filename          // as given in parameter
+  IF TASK.&(sInfix)Y.O.S(rootpath)!=""
+  (
+    // root path option set, use target path
+    &filepath=TASK.&(sInfix)Y.O.S(rootpath)+TASK.&(sInfix)PROC.PATH(&nMagic)
+  )
+)
+IF ((&type&0xffff)==2||(&type&0xffff)==4)
+(
+  // libraries
+  &symfilename1=&filename
+  &symfilename2="&basename"+".so"
+  IF TASK.&(sInfix)Y.O.S(rootpath)!=""
+  (
+    IF STATE.RUN()
+    (
+      GOSUB postponeAutoloader "(&type&0xffff)" "&space" "&machine" "&code"
+      ENDDO
+    )
+    // root path option set, use target path
+    PRIVATE &magic
+    &magic=TASK.&(sInfix)PROC.SID2MAGIC(&type>>16.)
+    &filepath=TASK.&(sInfix)Y.O.S(rootpath)+TASK.&(sInfix)LIB.PATH(&filename,&magic)
+  )
+)
+IF (&type==3)
+(
+  PRIVATE &symfilename3
+  // kernel modules
+  &symfilename1="&basename"+".ko"
+  // Linux converts dashes to underlines - try to reverse this
+  &symfilename2=STRing.Replace("&basename"+".ko","_","-",0.)
+  &symfilename3=STRing.Replace("&basename"+".ko","_","?",0.)
+  IF (TASK.&(sInfix)Y.O.S(rootpath)!="")||(TASK.&(sInfix)Y.O.S(modpath)!="")
+  (
+    PRIVATE &sBasePath &sUnameR &sPath
+    IF STATE.RUN()
+    (
+      GOSUB postponeAutoloader "(&type&0xffff)" "&space" "&machine" "&code"
+      ENDDO
+    )
+    &sUnameR=TASK.&(sInfix)OS.UNAME("r")
+    &sBasePath=TASK.&(sInfix)Y.O.S(modpath)
+    IF ("&sBasePath"!="")
+    (
+      &sPath=OS.FILE.JOINPATH("&sBasePath","/**/")
+      &filepath=OS.FIRSTFILE("&(sPath)/&(symfilename1)")
+      IF "&filepath"==""
+        &filepath=OS.FIRSTFILE("&(sPath)/&(symfilename2)")
+      IF "&filepath"==""
+        &filepath=OS.FIRSTFILE("&(sPath)/&(symfilename3)")
+      IF "&filepath"!=""
+        &filepath=OS.FILE.JOINPATH("&sBasePath","&filepath")
+    )
+    &sBasePath=TASK.&(sInfix)Y.O.S(rootpath)
+    IF (("&sBasePath"!="")&&("&filepath"==""))
+    (
+      &sPath=OS.FILE.JOINPATH("&sBasePath","lib/modules/","&(sUnameR)","/**/")
+      &filepath=OS.FIRSTFILE("&(sPath)/&(symfilename1)")
+      IF "&filepath"==""
+        &filepath=OS.FIRSTFILE("&(sPath)/&(symfilename2)")
+      IF "&filepath"==""
+        &filepath=OS.FIRSTFILE("&(sPath)/&(symfilename3)")
+      IF "&filepath"!=""
+        &filepath=OS.FILE.JOINPATH("&sBasePath","/lib/modules/","&(sUnameR)","&filepath")
+    )
+  )
+)
+
+// get program name
+&progname=OS.FILE.NAME("&basename")
+
+// set space id to zero if not given
+IF "&space"==""
+  &space=0
+
+// delete symbols if they already exist
+IF sYmbol.EXIST("\\&progname")
+(
+  // create program path - due to possible special characters
+  &progpath="`"+"\\"+"&progname"+"`"
+  sYmbol.Delete &progpath
+)
+GROUP.Delete "&progname"
+
+// check if preset file path is valid
+IF !OS.FILE("&filepath")
+(
+  &filepath=sYmbol.SEARCHFILE("&symfilename1")
+  IF OS.FILE("&filepath")
+    &&loadparam="&loadparam1"
+)
+// search file in source search path and open dialog when not there
+IF !OS.FILE("&filepath")
+(
+  &filepath=sYmbol.SEARCHFILE("&symfilename2")
+  IF OS.FILE("&filepath")
+    &&loadparam="&loadparam2"
+)
+IF !OS.FILE("&filepath")
+(
+  LOCAL &file &spath
+
+  IF task.&(sInfix)y.o(dialog)==0
+    ENDDO
+
+  &file=OS.FILE.NAME("&symfilename1")
+  WinPOS ,,,,,, filebox normal "Searching symbols for &filename"
+  DIALOG.File "*&file*"
+  ENTRY %LINE &filepath
+  IF "&filepath"==""
+    ENDDO
+  &spath=OS.FILE.PATH("&filepath")
+  sYmbol.SourcePATH.Set "&spath"
+)
+
+// load symbol file (options for sourcepath, e.g. /STRIPPART may need to be added when required)
+
+; --------------------------------------------------------------------------------
+;                                   PROCESS
+; --------------------------------------------------------------------------------
+
+IF (&type==1)  // processes
+(
+  LOCAL &locateat &sAccess
+  GOSUB getAccess "&type" "&space" "&machine"
+  RETURNVALUES &sAccess
+
+
+  Data.LOAD.Elf "&filepath" &sAccess /NoCODE /NoClear &loadparam &locateat
+
+  IF TASK.&(sInfix)Y.O(vm)==1
+  (
+    TRANSlation.SHADOW ON
+    Data.LOAD.Elf "&filepath" &sAccess /NoClear /NosYmbol &loadparam /locateat &code /VM
+  )
+  IF TASK.&(sInfix)Y.O(mmuscan)==1      // scan only if TRANSlation.TABLEWALK not configured
+    MMU.TaskPageTable.SCAN &access
+  PRIVATE &sRange
+  &sRange="&sAccess"+"--0xffffffffffffffff"
+  GROUP.Create "&progname" &sRange /GREEN
+)
+
+; --------------------------------------------------------------------------------
+;                                   MODULE
+; --------------------------------------------------------------------------------
+IF (&type==3)  // modules
+(
+  PRIVATE &sAccess
+  GOSUB getAccess "&type" "&space" "&machine"
+  RETURNVALUES &sAccess
+  Data.LOAD.Elf "&filepath" &sAccess /NoCODE /NoClear /NAME &progname /reloctype &type
+  GROUP.Create "&progname" sYmbol.SECRANGE(\\&progname\.text) /YELLOW
+)
+
+; --------------------------------------------------------------------------------
+;                                   LIBRARY
+; --------------------------------------------------------------------------------
+
+IF ((&type&0xffff)==2) // libraries
+(
+  PRIVATE &locateat &sAccess
+  GOSUB getAccess "(&type&0xffff)" "&space" "&machine"
+  RETURNVALUES &sAccess
+  Data.LOAD.Elf "&filepath" &sAccess /NoCODE /NoClear /locateat &code
+)
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+
+
+getAccess: ;(type, space, machine, [nOffset])
+(
+  PRIVATE &sAccess
+  PARAMETERS &nType &nSpace &nMachine &nOffset
+
+  IF "&nOffset"==""
+    &nOffset=0x0
+
+  IF (&nType==(1.||2.))
+  (
+    ; Process OR Library
+    IF "&nMachine"!=""
+    (
+      &sAccess=TASK.MACHINE.ACCESS(&nMachine)
+      IF STR.COUNT("&sAccess", "H")==0
+      (
+        IF STR.COUNT("&sAccess", "Z")!=0
+          &sAccess="ZU"
+        ELSE
+          &sAccess="NU"
+      )
+      SPRINTF &sAccess "%s:%#x:::" "&sAccess" &nMachine
+    )
+    ELSE
+    (
+      IF STATE.MONITOR.RUN()
+        &sAccess="U:"
+      ELSE IF PRACTICE.FUNCtion.AVAILable(TASK.ACCESS.ZONE)
+        &sAccess=TASK.ACCESS.ZONE()+"U:"
+      ELSE
+        &sAccess="U:"
+    )
+    IF (&nType==(2.))&&("&nSpace"=="")
+      SPRINTF &sAccess "%s%#x" "&sAccess" &nOffset
+    ELSE
+      SPRINTF &sAccess "%s%#x::%#x" "&sAccess" &nSpace &nOffset
+  )
+  ELSE IF (&nType==3.)
+  (
+    ; Modules
+    IF "&nMachine"!=""
+    (
+      &sAccess=TASK.MACHINE.ACCESS(&nMachine)
+      IF STR.COUNT("&sAccess", "H")==0
+      (
+        IF STR.COUNT("&sAccess", "Z")!=0
+          &sAccess="ZS"
+        ELSE
+          &sAccess="NS"
+      )
+      SPRINTF &sAccess "%s:%#x:::" "&sAccess" &nMachine
+    )
+    ELSE
+    (
+      IF PRACTICE.FUNCtion.AVAILable(TASK.ACCESS.ZONE)
+        &sAccess=TASK.ACCESS.ZONE()+"S:"
+      ELSE
+        &sAccess="S:"
+    )
+    SPRINTF &sAccess "%s0x0::%#x" "&sAccess" &nOffset
+  )
+
+  RETURN "&sAccess"
+)
+
+
+; --------------------------------------------------------------------------------
+
+postponeAutoloader: ;(type, space, machine, [nOffset])
+(
+  PRIVATE &sAccess
+  PARAMETERS &nType &nSpace &nMachine &nOffset
+  GOSUB getAccess "&nType" "&nSpace" "&nMachine" "&nOffset"
+  RETURNVALUES &sAccess
+  sYmbol.AutoLOAD.CLEAR &sAccess
+  sYmbol.AutoLOAD.Touch &sAccess /ONPBREAK
+  RETURN
+)

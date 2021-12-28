@@ -1,0 +1,75 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC298TU on TriBoard-TC2x8 (SMP, waveform app)
+; @Description:
+;   Loads the waveform generation demo application (multi-core) into RAM and
+;   sets up a demo debug scenario for SMP debugging. Further information is
+;   available in in the Tricore Processor Architecture Manual
+;   (pdf/debugger_tricore.pdf), chapter "SMP Debugging - Quick Start". More
+;   information about the demo application can be found in "waveform.c".
+; @Keywords: AURIX, Infineon, multi-core, TriCore, waveform
+; @Author: MEI
+; @Board: TriBoard-TC2x8
+; @Chip: TC298TU
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc298tu_smp_demo_waveform.cmm 15579 2020-01-27 15:08:53Z sltaief $
+
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.CPU TC298TU
+CORE.ASSIGN 1. 2. 3. // assign cores to the SMP system
+SYStem.Up
+
+; optional settings:
+SYStem.Option DUALPORT ON
+SETUP.Var %SpotLight
+MAP.BOnchip 0x0--0xffffffff // force onchip-breakpoints
+
+; --------------------------------------------------------------------------------
+; Load elf file
+; - uses internal RAM only
+; - uses global addressing (core-local addressing of SPRAM is not recommended)
+Data.LOAD.Elf "~~~~/triboard-tc29x_waveform_intmem.elf"
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+WinPOS 0% 0% 33% 33%
+TargetSystem.state
+WinPOS 33% 0% 33% 33%
+List.auto
+WinPOS 66% 0% 33% 33%
+Var.Watch
+WinPOS 0% 33% 33% 33%
+List.auto /CORE 0.
+IF (CORENUMBER()>1.)
+(
+  WinPOS 33% 33% 33% 33%
+  List.auto /CORE 1.
+  IF (CORENUMBER()>2.)
+  (
+    WinPOS 66% 33% 33% 33%
+    List.auto /CORE 2.
+  )
+)
+
+WinPOS 0% 66% 33% 33%
+Var.DRAW inputA inputB 10000.0 -1500000.0
+
+WinPOS 33% 66% 33% 33%
+Var.DRAW mixed 10000.0 -1500000.0
+
+WinPOS 66% 66% 33% 33%
+Var.DRAW bins 2.0 /Impulses
+
+Var.AddWatch inputA inputB
+Var.AddWatch %Decimal %Bin.OFF mixed
+Var.AddWatch %Bin %Decimal.OFF nFlagsUncached
+Var.AddWatch %Decimal %Bin.OFF nAbsSmall nAbsAverage nAbsLarge nPos nNeg
+Var.AddWatch %Decimal %Bin.OFF bins
+
+Go.direct main
+
+ENDDO

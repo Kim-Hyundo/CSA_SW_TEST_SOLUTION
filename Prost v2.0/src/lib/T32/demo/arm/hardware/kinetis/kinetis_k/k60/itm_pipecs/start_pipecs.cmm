@@ -1,0 +1,81 @@
+; --------------------------------------------------------------------------------
+; @Title: Sorting Demo with PIPE mode decoding
+; @Description:
+;   This script loads a sorting demo, which is instrumented
+;   by employing the ITM.
+; @Keywords: Cortex-M4, Freescale, k60, Kinetis
+; @Props: NoIndex, NoWelcome, NoFullText
+; @Author: ING
+; @Board: TWR-K60N512
+; @Chip: MK60DN512VMD10*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: start_pipecs.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+// create settings for setup script
+  OPEN #1 "sboard_settings.txt" /Create
+  WRITE #1 "MK60DN512VMD10"   // Device Type
+  WRITE #1 "0x1"              // Turn On Serial Wire Debug
+  WRITE #1 "75Mhz"            // Set clock to 75Mhz
+  WRITE #1 "sort.elf"         // ELF file
+  WRITE #1 "0x1"              // go to main
+  WRITE #1 ""                 // do not turn on external ram
+  WRITE #1 ""                 // do not turn on extrnal flash
+  WRITE #1 "0x0"              // do not use cJTAG
+  WRITE #1 "0x0"              // use 1st whisker
+  WRITE #1 "0x0"              // do not use SWV
+  CLOSE #1
+
+// start board, load elf, go to main
+  DO ~~~~/../setup start_board_no_gui
+
+  SYStem.JtagClock CTCK 10Mhz
+
+  ITM.PortSize 4
+  ITM.PortMode CONTINUOUS
+  ITM.OFF
+  ETM.OFF
+  ITM.ON
+
+  WinCLEAR
+  WinPOS 0. 0. 100. 25.
+  area.
+
+  WinPOS 105. 0.
+  ca.
+
+  ca.init
+  ca.mode fifo
+  ca.pproto
+  ca.af
+
+  LOCAL &dllname
+  IF OS.NAME()=="Linux"
+  (
+    &dllname="dll/linux32/tpiu_print.so"
+    IF SOFTWARE.64BIT()
+    (
+      &dllname="dll/linux64/tpiu_print.so"
+    )
+  )
+  ELSE
+  (
+    &dllname="dll/vs32/tpiu_print.dll"
+    IF SOFTWARE.64BIT()
+    (
+      &dllname="dll/vs64/tpiu_print.dll"
+    )
+  )
+
+  Break.DELETE
+  Break.Set _start\22
+  Data.Set count %LONG 8.
+
+  ITM.TraceID 5.
+
+  ca.mode pipe
+  ca.ctl "itmp" &dllname
+
+  IF OS.FILE("dump.txt")
+    DEL dump.txt
+  ca.ct.itmp.command itmopen dump.txt

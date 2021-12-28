@@ -1,0 +1,337 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script showing BMC trace analysis
+; @Description:
+;   CPU: TC399X
+;
+;   This demo shows how to write benchmark counter (BMC) to the trace and the
+;   available analysis commands.
+;
+;   Requires TRACE32 Version N.2020.yy.xxx or newer.
+;
+; @Keywords: TriCore, BMC, trace
+; @Author: MEI
+; @Chip: TC399X
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: bmc_trace_demo.cmm 16261 2020-07-02 10:49:49Z meick $
+
+PMACRO.EXPLICIT
+
+PARAMETERS &cmd &p1
+
+IF "&cmd"==""
+  GOSUB Init ""
+ELSE IF "&cmd"=="view.init"
+  GOSUB Init "&p1"
+ELSE IF "&cmd"=="analysis.run"
+  GOSUB AnalysisRun
+ELSE IF "&cmd"=="analysis.load"
+  GOSUB AnalysisLoad
+ELSE IF "&cmd"=="view.load"
+  GOSUB ViewLoad
+ELSE IF "&cmd"=="analysis.refresh"
+  GOSUB AnalysisRefresh
+ELSE IF "&cmd"=="view.refresh"
+  GOSUB ViewRefresh
+ELSE IF "&cmd"=="analysis.save"
+  GOSUB AnalysisSave 
+ELSE
+  PRINT %ERROR "invalid cmd '&cmd'"
+
+ENDDO
+
+Init:
+(
+  PARAMETERS &dataDir
+  PRIVATE &mode &lb1Text
+  
+  IF VERSION.BUILD.BASE()<122586.
+  (
+    PRINT %ERROR "Demo requires at least N.2020.06.122586 or R.2020.09"
+    ENDDO
+  )
+
+  IF ICD()
+  (
+    &mode="analysis"
+    &lb1Text="Implementation:"
+    SYStem.DETECT CPU
+
+    IF !CPUIS("TC39*")
+    (
+      PRINT %ERROR "demo requires TC39x"
+      ENDDO
+    )
+
+    CORE.ASSIGN 1 2  
+
+  )
+  ELSE IF SIMULATOR()
+  (
+    &mode="view"
+    &lb1Text="Saved States:"
+  )
+  ELSE
+  (
+    PRINT %ERROR "Current TRACE32 operation mode not supported by this demo"
+    ENDDO
+  )
+
+  PRIVATE &ppd &ppf
+  &ppf=OS.PPF()
+  &ppd=OS.PPD()
+  
+  IF ("&dataDir"=="")&&("&mode"=="analysis")
+    &dataDir=OS.PresentTemporaryDirectory()
+  ELSE IF ("&dataDir"=="")&&("&mode"=="view")
+    &dataDir="&ppd/example_states"
+
+  DIALOG.view
+  (&+
+    HEADER "BMC trace demo"
+    POS 1. 0. 10. 1.
+    TEXT "&lb1Text"
+    POSX 0. 30. 1.
+  cbFiles: DYNPULLDOWN "" ""
+    POSX 0. 10. 1.
+  btRefresh: BUTTON "[:jumpto] Refresh" "DO &ppf ""&mode.refresh"""
+    POSX 0. 10. 1.
+  btLoad: BUTTON "[:eload] Load" "DO &ppf ""&mode.load""" 
+
+    POS 1.  1. 10. 1.
+    TEXT "Analysis:"
+    POSX 0. 30. 1.
+  cbProfile: PULLDOWN "core1-overview,core1-detail" ""
+
+    POSX 0. 10. 1.
+  btRun:  BUTTON "[:apugo]Run" "DO &ppf ""&mode.run"""
+
+    POS  1. 3. 62. 3.
+    BOX "view"
+    POS  2. 4. 10. 1.
+    TEXT "Source:"
+    POSX 0. 25. 1.
+  btL: BUTTON "[:list]List TC1_computeSensorMetrics" "List TC1_computeSensorMetrics"
+
+    POS  1. 6. 62. 6.
+    BOX "trace analysis"
+    POS 2. 7. 10. 1.
+    TEXT ""
+    POSX 0. 25. 1.
+  btTL: BUTTON "[:alist]Trace.List" "Trace.List PMN0 PMN1 PMN2 PMN4 DEFault /Track"  
+    POSX 0. 25. 1.
+  btTCF: BUTTON "[:achartnest]Trace.Chart.Func" "Trace.Chart.Func /ZoomTrack"  
+    POS 2. 8. 10. 1.
+    TEXT ""
+    POSX 0. 25. 1.
+  btTStatTree: BUTTON "[:perf]Trace.STATistic.TREE" "Trace.STATistic.TREE"
+    POS 2. 9. 10. 1.
+    TEXT ""
+    POSX 0. 25. 1.
+  btTPROC0: BUTTON "[:aprochart]Trace.PROfileChart.COUNTER PMN0" "Trace.PROfileChart.COUNTER PMN0 /CORE 1 /Steps /ZoomTrack"
+    POSX 0. 25. 1.
+  btTPROC1: BUTTON "[:aprochart]Trace.PROfileChart.COUNTER PMN1" "Trace.PROfileChart.COUNTER PMN1 /CORE 1 /Steps /ZoomTrack"
+    POS 2. 10. 10. 1.
+    TEXT ""
+    POSX 0. 25. 1.
+  btTPROC2: BUTTON "[:aprochart]Trace.PROfileChart.COUNTER PMN2" "Trace.PROfileChart.COUNTER PMN2 /CORE 1 /Steps /ZoomTrack"
+    POSX 0. 25. 1.
+  btTPROC4: BUTTON "[:aprochart]Trace.PROfileChart.COUNTER PMN4" "Trace.PROfileChart.COUNTER PMN4 /CORE 1 /Steps /ZoomTrack"  
+
+    POS 1. 12. 62. 4.
+    BOX "BMC analysis"
+    POS 2. 13. 10. 1.
+    TEXT "BMC.SELect"  
+    POSX  0. 25. 1.
+  cbCounter: DYNPULLDOWN ""
+    (
+      PRIVATE &item &cnt
+      ENTRY %LINE &item
+      &cnt=STRing.SPLIT("&item",":",0)
+      BMC.SELect &cnt
+    )
+    POSX 0. 25. 1.
+  btBMC: BUTTON "[:bmc]BMC" "BMC"
+
+    POS 2. 14. 10. 1.
+    TEXT ""
+    POSX 0. 25. 1.
+  btBmcStatTree: BUTTON "[:perf]BMC.STATistic.TREE" "BMC.STATistic.TREE"
+
+    POS 1. 16. 62. 5.
+    BOX "comparison"
+    POS 2. 17. 10. 1.
+    TEXT "directory"
+    POSX 0. 45. 1.
+  edDir: EDIT "&dataDir" ""
+    POSX 0. 3. 1.
+  btDir: BUTTON "..."
+    (
+      DIALOG.SetDIR edDir
+      IF "&mode"=="view"
+        DO &ppf "view.refresh"
+    )
+    POS 2. 18. 10. 1.
+    TEXT "Trace.SAVE "
+    POSX 0. 45. 1.
+  edSave: EDIT "" ""
+    POSX 0. 5. 1.
+  btSave: BUTTON "[:esave]" "DO &ppf ""&mode.save"""
+    POS 2. 19. 10. 1.
+    TEXT ""
+    POSX 0. 25. 1.
+  btSim: BUTTON "start simulator to view results"
+    (
+      PRIVATE &exe &dir
+      &exe=OS.PEF()
+      &dir=DIALOG.STRing(edDir)
+      OS &exe -c &ppd/config_sim.t32 -s &ppf "\""view.init\""" "\""&dir\"""
+    )  
+  )
+
+  IF "&mode"=="analysis"
+  (
+    GOSUB AnalysisRefresh
+  )
+  ELSE IF "&mode"=="view"
+  (
+    GOSUB ViewRefresh
+    DIALOG.DISable cbProfile
+    DIALOG.DISable btRun
+    DIALOG.DISable edSave
+    DIALOG.DISable btSave
+    DIALOG.DISable btSim
+  )
+  DIALOG.EXecute btRefresh
+  DIALOG.Disable btL
+  DIALOG.Disable btTL
+  DIALOG.Disable btTCF
+  DIALOG.Disable btTStatTree
+  DIALOG.Disable btTPROC0
+  DIALOG.Disable btTPROC1
+  DIALOG.Disable btTPROC2
+  DIALOG.Disable btTPROC4
+  DIALOG.Disable cbCounter
+  DIALOG.Disable btBmcStatTree
+  RETURN
+)
+
+AnalysisRun:
+(
+  PRIVATE &elf &prof &cnt &ppd
+  &ppd=OS.PPD()  
+  &prof=DIALOG.STRING(cbProfile)
+  &elf=DIALOG.STRing(cbFiles)
+  DO &ppd/analyze.cmm "&ppd/&(elf).elf" "&prof"
+  RETURNVALUES &cnt
+  GOSUB PostLoad "&cnt"
+  DIALOG.Set edSave "&(elf)-&(prof)"
+  RETURN
+)
+
+AnalysisLoad:
+(
+  PRIVATE &file &ppd
+  &ppd=OS.PPD()  
+  &file=DIALOG.STRing(cbFiles)
+  SYStem.Up
+  Data.LOAD.Elf "&ppd/&(file).elf"
+  DIALOG.Enable btL
+  RETURN
+)
+
+ViewLoad:
+(
+  PRIVATE &file &ptd &cnt &dir
+  &dir=DIALOG.STRing(edDir)
+  &file=DIALOG.STRing(cbFiles)
+  DO "&dir/bmc_trace_demo-&(file)-state.cmm"  
+  RETURNVALUES &cnt
+  GOSUB PostLoad "&cnt"
+  RETURN
+)
+
+PostLoad:
+(
+  PARAMETERS &cnt &cntSel 
+  DIALOG.Enable btL
+  DIALOG.Enable btTL
+  DIALOG.Enable btTCF
+  DIALOG.Enable btTStatTree
+  DIALOG.Enable cbCounter
+  DIALOG.Enable btBmcStatTree
+  IF "&cnt"!=DIALOG.STRing2(cbCounter)
+  (
+    &cntSel=STRing.SPLIT("&cnt",",",0.)
+    DIALOG.Set cbCounter "&cntSel" "&cnt"
+    &cntSel=STRing.SPLIT("&cntSel",":",0)
+    BMC.SELect &cntSel      
+  )
+  IF STRing.SCAN("&cnt","PMN0",0.)>=0
+    DIALOG.Enable btTPROC0
+  ELSE
+    DIALOG.Disable btTPROC0
+  IF STRing.SCAN("&cnt","PMN1",0.)>=0
+    DIALOG.Enable btTPROC1
+  ELSE
+    DIALOG.Disable btTPROC1
+  IF STRing.SCAN("&cnt","PMN2",0.)>=0
+    DIALOG.Enable btTPROC2
+  ELSE
+    DIALOG.Disable btTPROC2
+  IF STRing.SCAN("&cnt","PMN4",0.)>=0
+    DIALOG.Enable btTPROC4
+  ELSE
+    DIALOG.Disable btTPROC4
+  RETURN
+)
+
+AnalysisRefresh:
+(
+  PRIVATE &ppd
+  &ppd=OS.PPD()
+  GOSUB Refresh "&ppd" "" ".elf"
+  RETURN
+)
+
+ViewRefresh:
+(
+  PRIVATE &ptd
+  &ptd=DIALOG.STRing(edDir)
+  GOSUB Refresh "&ptd" "bmc_trace_demo-" "-state.cmm"
+  RETURN
+)
+
+Refresh:
+(
+  PRIVATE &file &files &firstFile
+  PARAMETERS &dir &prefix &suffix
+  &file=OS.FIRSTFILE("&dir/&(prefix)*&(suffix)")
+  &firstFile=""
+  WHILE "&file"!=""
+  (
+    &file=STRing.REPLACE("&file","&suffix","",0.)
+    &file=STRing.REPLACE("&file","&prefix","",0.)
+    &files="&(files)&file,"
+    IF "&firstFile"==""
+      &firstFile="&file"
+    &file=OS.NEXTFILE()
+  )  
+  DIALOG.Set cbFiles "&firstFile" "&files"
+  RETURN
+)
+
+AnalysisSave:
+(
+  PRIVATE &name &items &file &bmcFile &elf &dir &ppd &cnt
+  &name=DIALOG.STRing(edSave)
+  &dir=DIALOG.STRing(edDir)
+
+  
+  &ppd=OS.PPD()
+  &elf=DIALOG.STRing(cbFiles)
+  &cnt=DIALOG.STRing2(cbCounter)
+  DO &ppd/save.cmm "&dir" "&name" "&ppd/&(elf).elf" "&cnt"
+)
+
+ENDDO

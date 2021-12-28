@@ -1,0 +1,1066 @@
+; --------------------------------------------------------------------------------
+; @Title: GNU C Example for SRAM
+; @Description:
+;   Simple C application for ARM targets
+;   compiled with GNU GCC compiler
+;   running from SRAM
+;
+;   Supported Targets:
+;       OMAP4430 PandaBoard     (Cortex-A9)
+;       Zynq-7000 ZC702 board   (Cortex-A9)
+;       TWR-VF65GS10 Vybrid     (Cortex-A5)
+;       EPXA1  Altera Excalibur (ARM922T)
+;       EPXA10 Altera Excalibur (ARM922T)
+;       ARM920T core module     (ARM920T)
+;       ARM966E core modul      (ARM966E-S)
+;       STM3210D-EVAL board     (STM32F107VC, Cortex-M3)
+;       STM32F2                 (STM32F205ZE, Cortex-M3)
+;       STM32F4-Discovery       (STM32F407VG, Cortex-M4)
+;       KEIL MCBSTM32F400       (STM32F407IG, Cortex-M4)
+;       TRACE32 Instruction Set Simulator
+;
+; @Author: HLG
+; @Board: OMAP4430 PandaBoard; ZC702 Zynq; TWR-VF65GS10 Vybrid
+;   ARM920T core module; ARM966E core modul; EPXA1/EPXA10 Excalibur
+;   STM3210D-EVAL; STM32F4-Discovery; Keil-MCBSTM32400; TRACE32 Simulator
+; @Chip: ARM920T, ARM966E-S, EPXA1, EPXA10, OMAP4430, STM32F107VC, STM32F205ZE
+;   STM32F407*, VF6*, ZYNQ-7000
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo_sram.cmm 15309 2019-11-22 19:14:20Z hlohn $
+
+
+LOCAL &param
+ENTRY %LINE &param
+&param=STRing.LoWeR("&param")
+
+WinCLEAR
+AREA.CLEAR
+SYStem.RESet
+Break.RESet
+TRANSlation.RESet
+sYmbol.RESet
+MAP.RESet
+IF INTERFACE.SIM()
+	SIM.RESet
+SNOOPer.RESet
+IF Analyzer()&&(SYStem.INSTANCE()<2)
+(
+	Analyzer.RESet
+)
+
+IF SYStem.INSTANCE()<2
+	FramePOS ,,,,Maximized DEFault
+ELSE
+	FramePOS ,,,,Maximized Auto
+
+IF !STATE.POWER()
+(
+	PRINT %ERROR "Please power your target board!"
+	ENDDO
+)
+
+SYStem.CPU ARM922T
+AREA.CLEAR
+IF ETM()&&(SYStem.INSTANCE()<2)
+	ETM.RESet
+SYStem.Option BigEndian OFF
+SYStem.Option IMASKASM ON
+SYStem.Option IMASKHLL ON
+SYStem.Option INTDIS ON
+SYStem.JtagClock CTCK 1MHz
+
+IF CAnalyzer.BOTHCables()
+(
+	// Just add text to the title of the PowerView main window
+	LOCAL &cable
+	&cable="DebugCable"+CAnalyzer.DebugCable()
+	IF STRing.SCAN(TITLE(),"&cable",0)<0
+		TITLE TITLE()+" (&cable)"
+)
+
+LOCAL &dev0 &dev1
+IF STRing.SCAN("&param","panda",0)>=0
+(
+	&dev0=0x0B95C02F
+)
+ELSE
+(
+	SYStem.DETECT IDCode
+	&dev0=IDCODE(0)&0x0fffffff
+	&dev1=IDCODE(1)&0x0fffffff
+)
+
+IF &dev0==0x0B95C02F
+(
+	// TI OMAP4430 PandaBoard : http://en.wikipedia.org/wiki/PandaBoard
+	// Script-Parameter: "panda" to force the configuration of a Pandaboard (for Pandaboard A6)
+	//                   "smp" for Symmetric Multicore Debug Demo
+	//                   "notrace" for a demo without ETM trace, although PowerTrace hardware is available
+	//                   "noicache" for disabling the instruction cache
+	//                   "dcache" for enabling the data cache
+
+	LOCAL &CONTROL_ID_CODE
+
+	SYStem.CPU OMAP4430APP1
+	IF STRing.SCAN("&param","smp",0)>=0 // SMP multicore debugging ?
+	(
+		SYStem.CPU OMAP4430
+	)
+	IF SYStem.INSTANCE()>1 // 2nd PowerView instance for AMP multicore debugging ?
+	(
+		SYStem.CPU OMAP4430APP2
+		SYStem.CONFIG SLAVE ON
+		SYStem.CONFIG CORE 2 1
+		FramePOS ,,,,Normal Auto
+	)
+	SYStem.JtagClock CTCK 20.MHz
+	SYStem.MemAccess Denied    // Could cause spooky problems on this board
+	SYStem.CONFIG CTIBASE 0xd4148000
+	SYStem.Option ResBreak ON
+	SYStem.Mode Up
+	Register.Init
+
+	&CONTROL_ID_CODE=Data.Long(ASD:0x4A002204)
+	PRINT "OMAP Control ID: 0x" FORMAT.HEX(8,&CONTROL_ID_CODE)
+
+	IF ((&CONTROL_ID_CODE&0x0fffffff)!=0x0B95C02F)&&hardware.POWERDEBUG()
+	(
+		PRINT %ERROR "ERROR ! This is not a PandaBoard"
+		ENDDO
+	)
+
+	SYnch.OFF
+	IF INTERCOM.PORT()!=0 // PowerView GUI was started with activated Intercom support ?
+	(
+		LOCAL &port
+		&port="localhost:"+FORMAT.Decimal(1,INTERCOM.PODPORT(SYStem.INSTANCE()%2)) // Get UDP/IP socket of the other PowerView instance
+		IF INTERCOM.PING(&port) // other PowerView instance rechabel via Intercom ?
+			SYnch.Connect &port // activating synchronization via Intercom (requires Intercom setting in config.t32)
+		SYnch.MasterGo    ON
+		SYnch.MasterBreak ON
+		SYnch.MasterStep  ON
+		SYnch.SlaveGo     ON
+		SYnch.SlaveBreak  ON
+		SYnch.SlaveStep   ON
+	)
+
+	IF Analyzer()&&!(STRing.SCAN("&param","notrace",0)>=0)
+	(
+		IF SYStem.INSTANCE()<2
+		(
+			// configure PAD: EMU[2:19] for 16-bit TPIU (PADx_DPM_EMUx)
+			Data.Set A:0x4A1001B0 %Long Data.Long(A:0x4A1001B0)&0x0000FFFF
+			Data.Set A:0x4A1001B4 %Long 0
+			Data.Set A:0x4A1001B8 %Long 0
+			Data.Set A:0x4A1001BC %Long 0
+			Data.Set A:0x4A1001C0 %Long 0
+			Data.Set A:0x4A1001C4 %Long 0
+			Data.Set A:0x4A1001C8 %Long 0
+			Data.Set A:0x4A1001CC %Long 0
+			Data.Set A:0x4A1001D0 %Long 0
+			Data.Set A:0x4A1001d4 %Long 0
+
+			// initialize ETM and preprocessor
+			ETM.RESet
+			ETM.PortSize 16a
+			ETM.PortMode Wrapped
+			ETM.TImeMode ExternalInterpolated
+			Analyzer.RESet
+			Analyzer.OFF
+			Analyzer.THreshold VCC
+			Analyzer.TERMination ON
+			IF hardware.POWERDEBUG()
+			(
+				Analyzer.TestFocus // test trace port
+				IF FOUND() // if trace port test failed...
+				(
+					PRINT "Performing AutoFocus..."
+					Analyzer.AutoFocus
+				)
+			)
+			Analyzer.AutoArm  ON
+			Analyzer.AutoInit ON
+			Analyzer.Mode Fifo
+			Analyzer.TraceCLOCK 38.4MHz
+			Analyzer.CLOCK 38.4MHz
+		)
+		ELSE  // 2nd PowerView instance for AMP multicore debugging ?
+		(
+			// Most Analyzer and ETM settings are taken from 1st PowerView instance
+			// (but some have to be set still manually again)
+			ETM.PortSize 16
+			ETM.PortMode Wrapped
+			ETM.TImeMode ExternalInterpolated
+			Analyzer.OFF
+			Analyzer.AutoArm  ON
+			Analyzer.AutoInit ON
+			Analyzer.CLOCK 38.4MHz
+		)
+		CTS.UseReadCycle  OFF
+		CTS.UseWriteCycle OFF
+		Trace.METHOD Analyzer
+	)
+	ELSE
+	(
+		Trace.METHOD Onchip
+		Trace.OFF
+		Trace.AutoArm  ON
+		Trace.AutoInit ON
+		ETM.ON
+	)
+	IF hardware.POWERDEBUG()
+	(
+		// Configure the MMU to map 46KiB of SRAM at physical address 0x40300000 to virtual address 0x0000--0xB7ff
+		LOCAL &dcache &i
+		&dcache=0
+		IF STRing.SCAN("&param","dcache",0)>=0
+			&dcache=0y1000 // Cache in write-through mode
+
+		Data.Set c15:1 %Long Data.Long(c15:1)&~1 // disable MMU
+		Data.Set SD:0x40300000++0x3fff %Long 0   // clear 16KiB Translation Table
+		Data.Set SD:0x40300000 %Long 0x4A327011  // create level one entry, which points to Coarse Page Table
+		Data.Set SD:0x4A327000++0x03ff %Long 0   // clear 1KiB Coarse Page Table in SAR_RAM 2
+		&i=0
+		WHILE &i<10.                             // creating Small Page entries in Coarse Page Table
+		(                                        // mapping upper 40KiB of OCM_RAM to address 0x0000
+			Data.Set SD:0x4A327000+(&i*4) %Long 0x40304032+(&i*0x1000)+&dcache
+			&i=&i+1
+		)
+		Data.Set SD:0x4A327028 %Long 0x4A326032|&dcache  // mapping SAR_RAM 1 to address 0xA000
+		Data.Set SD:0x4A32702C %Long 0x4A328032|&dcache  // mapping SAR_RAM 3 to address 0xB000
+		Data.Set c15:0x0002 %Long 0x40300000     // set Translation Table Base register 0
+		Data.Set c15:0x0102 %Long 0x40300000     // set Translation Table Base register 1
+		Data.Set c15:0x0003 %Long 0x00000003     // set domain 0 access to Manager
+
+		IF STRing.SCAN("&param","dcache",0)>=0
+			GOSUB InvalidateDCache 0x40300000+0x4000
+		Data.Set C15:0x01 %Long Data.Long(C15:0x01)|0x1005 // Enable MMU & caches
+
+		IF STRing.SCAN("&param","smp",0)>=0
+		(
+			CORE.select 1
+			Data.Set c15:0x0002 %Long 0x40300000 // set Translation Table Base register 0
+			Data.Set c15:0x0102 %Long 0x40300000 // set Translation Table Base register 1
+			Data.Set c15:0x0003 %Long 0x00000003 // set domain 0 access to Manager
+			IF STRing.SCAN("&param","dcache",0)>=0
+				GOSUB InvalidateDCache 0x40300000+0x4000
+			Data.Set C15:0x01 %Long Data.Long(C15:0x01)|0x1005 // Enable MMU & caches
+			CORE.select 0
+		)
+
+		// Adding translation table for debugger to get memory access with logical addresses via DAP during runtime
+		TRANSlation.Create C:0x0000++0x9FFF A:0x40304000++0x9FFF
+		TRANSlation.Create C:0xA000++0x0FFF A:0x4A326000++0x0FFF
+		TRANSlation.Create C:0xB000++0x0FFF A:0x4A328000++0x0FFF
+		TRANSlation.SHADOW ON  // use VM with logical addresses (instead of translating VM to VMA)
+		TRANSlation.ON
+	)
+	IF INTERFACE.SIM()
+		SYStem.MemAccess Enable
+	ELSE
+		SYStem.MemAccess DAP
+
+	Register.Set CPSR 0x1F3   // enable supervisor mode, thumb mode and disable interrupts
+	IF SYStem.INSTANCE()>1 // 2nd PowerView instance for AMP multicore debugging ?
+	(
+		Data.LOAD.Elf "~~~~/sieve.elf" /RelPath /MACRO /VM  // Code was already downloaded by 1st, thus load code only to VM
+		Register.Set PC background
+		Register.Set R13 0x7000
+	)
+	ELSE
+	(
+		Data.Set 0x00--0x3ff %Long 0xEAFFFFFE  // init exception vectors
+		GOSUB LoadElf "~~~~/sieve.elf"
+
+		IF CORE.NUMBER()>1 // SMP multicore debugging ?
+		(
+			Register.Set CPSR 0x1F3    /CORE 1.
+			Register.Set PC background /CORE 1.
+			Register.Set R13 0xA000    /CORE 1.
+			GOSUB SmpColor
+		)
+	)
+
+	// Enable instruction cache via System Control Register (SCTLR)
+	IF STRing.SCAN("&param","noicache",0)>=0
+		Data.Set C15:0x0001 %Long Data.Long(C15:0x01)&~0x1000  // Disable ICache
+	ELSE
+		Data.Set C15:0x0001 %Long Data.Long(C15:0x01)|0x1000   // Enable ICache
+)
+ELSE IF &dev0==0x049220DD
+(
+	// Altera Excalibur : http://www.altera.com/products/devices/excalibur
+	// Script-Parameter: "snoop" for Snooper-Demo
+	//                   "dcache" for setting up also the data cache
+
+	LOCAL &EXC_REGBASE &exc_id &epxa &addr
+	&EXC_REGBASE=0x7fffc000
+
+	SYStem.CPU EPXA
+	SYStem.JtagClock CTCK 10.MHz
+	SYStem.Option CFLUSH ON
+	ON ERROR GOTO
+	(
+		AREA.view
+		PRINT
+		PRINT %ERROR "Can't connect to CPU (SYStem.Up failed)"
+		IF Analyzer()
+			PRINT "Please plug the debug cable into the preprocessor (and connect only the preprocessor with the target board)"
+		ENDDO
+	)
+	SYStem.Mode Up
+	ON ERROR inherit
+	Register.Init
+
+	Data.Set C15:0x01 %Long Data.Long(C15:0x01)&~0x1005 // Disable MMU & caches
+
+	&exc_id=Data.Long(AD:(&EXC_REGBASE+0x8)) // read Excalibur-ID
+	PRINT "Excalibur ID: " &exc_id
+
+	IF &exc_id==0x090010DD
+		&epxa=10.
+	ELSE IF &exc_id==0x081010DD
+		&epxa=1.
+	ELSE
+	(
+		PRINT %ERROR "ERROR ! This is not an EPXA1 or EPXA10 target board"
+		ENDDO
+	)
+	PRINT "Detected EPXA"+FORMAT.Decimal(0,&epxa)
+
+	// Turn off all memories except the SRAM
+	Data.Set AD:(&EXC_REGBASE+0x0) %Long 0x00000001 // Turn off default boot mapping
+	&addr=(&EXC_REGBASE+0xA0)
+	WHILE &addr<=(&EXC_REGBASE+0xDC)
+	(
+		Data.Set AD:&addr %Long 0
+		&addr=&addr+4
+	)
+
+	IF &epxa==1.
+	(
+		Data.Set AD:(&EXC_REGBASE+0x90) %Long 0x00000681 // Map SRAM0 to Address 0x0000 with a size of 16KB
+		Data.Set AD:(&EXC_REGBASE+0x94) %Long 0x00004681 // Map SRAM1 to Address 0x4000 with a size of 16KB
+	)
+	ELSE
+	(
+		Data.Set AD:(&EXC_REGBASE+0x90) %Long 0x00000803 // Map SRAM1 to Address 0x000000 with a size of 128KB
+		Data.Set AD:(&EXC_REGBASE+0x94) %Long 0x00020803 // Map SRAM0 to Address 0x020000 with a size of 128KB
+
+		IF Analyzer()
+		(
+			Data.Set AD:(&EXC_REGBASE+0x04c) %LE %Long 0x00000006 // enable trace if not already done (BE SHURE THAT THE REGISTER IS NOT LOCKED !)
+			IF ((Data.Long(AD:(&EXC_REGBASE+0x4C)))>>1)%2==0 // Check if trace of Excalibur is accessible
+			(
+				AREA.view
+				PRINT "Warning: Can't enable ETM on Target (Maybe you have locked register IOCR_TRACE)"
+			)
+			// initialize ETM and preprocessor
+			ETM.RESet
+			ETM.DataTrace OFF
+			ETM.PortSize 16
+			ETM.PortMode Normal
+			ETM.HalfRate ON
+			ETM.STALL ON  // Stall CPU when ETM FiFo gets full (basically useless here, because ignored by ARM922T core)
+			ETM.TImeMode External
+			Analyzer.RESet
+			Analyzer.OFF
+			Analyzer.THreshold  1.65
+			Analyzer.TERMination ON
+			Analyzer.TestFocus // test trace port
+			IF FOUND() // if trace port test failed...
+			(
+				PRINT "Performing AutoFocus..."
+				Analyzer.AutoFocus
+			)
+			Analyzer.AutoArm ON
+			Analyzer.AutoInit ON
+			Analyzer.Mode Fifo
+			Analyzer.TraceCLOCK 24.MHz
+			Analyzer.CLOCK 24.MHz
+			Analyzer.ACCESS AutoVM
+
+			// Setup MMU to enable Data Cache
+			IF STRing.SCAN("&param","dcache",0)>=0
+			(
+				LOCAL &TlbBase
+				&TlbBase=0x10000
+				Data.Set C15:0x01 %Long Data.Long(C15:0x1)&~0x1005 // Disable MMU & caches
+
+				Data.Set c15:3 0xffffffff  // all domains accessible
+				Data.Set (&TlbBase)++0x3fff %Long 0 // initialize TLB
+				Data.Set (&TlbBase) %Long 0y0110000011010 // entry in TLB (1MB 1:1), Cache in write-through mode
+				Data.Set (&TlbBase)+(4*(&EXC_REGBASE/0x100000)) %Long ((&EXC_REGBASE&0xfff00000)|0y0110000010010) // uncached entry in TLB (1MB 1:1) to access Excalibur configuration and control registers
+				Data.Set c15:2 &TlbBase // Translation Table Base Register (TTBA) points to TLB
+
+				GOSUB InvalidateDCache &TlbBase+0x4000
+
+				Data.Set C15:0x01 %Long Data.Long(C15:0x01)|0x1005 // Enable MMU & caches
+			)
+		)
+	)
+
+	Register.Set CPSR 0x33   // enable supervisor mode, thumb mode and enable interrupts
+	Data.Set 0x00--0x3ff %Long 0xeafffffe  // init exception vectors
+	GOSUB LoadElf "~~~~/sieve.elf"
+
+	// Setting up Timer0 to call monitor for run-mode memory access
+	Data.Set AD:(&EXC_REGBASE+0x200) %Long 0        // disable timer
+	Data.Set AD:(&EXC_REGBASE+0x210) %Long 0        // no pre-scaler
+	Data.Set AD:(&EXC_REGBASE+0x220) %Long 0x7A12C  // call interrupt handler every 10.ms
+	Data.Set AD:(&EXC_REGBASE+0x200) %Long 0x1C     // start timer in free running mode with interrupts enabled
+
+	// Setting up interrupt controller for monitor base run-mode memory access
+	Data.Set AD:(&EXC_REGBASE+0xc04) %Long 0x3ffff // ignore all interrupt sources
+	Data.Set AD:(&EXC_REGBASE+0xc00) %Long 0x00100 // enable interrupts from Timer0
+	Register.Set R13_IRQ 0x7000     // init stack pointer for interrupt service routines
+	Data.Assemble  R:0x18 b exc_isr // Point to interrupt service routine which calls monitor
+
+	// Copy table of interrupt & exception vectors to VM for trace decoding
+	Data.Copy R:0++0x1f  VM:0
+
+	SYStem.Option INTDIS OFF  // Enable interrupts
+	SYStem.MemAccess TSMON3   // Enable monitor base run-mode memory access
+
+	Data.Set C15:0x01 %Long Data.Long(C15:0x1)|0x1000 // Enable instruction cache
+
+	IF STRing.SCAN("&param","snoop",0)>=0
+	(	// Use SNOOPer to sample "Program Counter" via DCC by help of Timer0
+		SYStem.MemAccess Denied
+		Data.Assemble  R:0x18 b exc_snoop
+		Data.Assemble VM:0x18 b exc_snoop // (add also to VM for trace decoding)
+		SNOOPer.Mode DCC
+		SNOOPer.Mode AddressTrace ON
+		SNOOPer.Mode Changes ON
+		SNOOPer.Rate 9.ms
+		SNOOPer.OFF
+		SNOOPer.AutoArm ON
+	)
+)
+ELSE IF (&dev0==0x0BA00477)&&(&dev1==0x03727093) // ARM DAP + Xilinx
+(
+	// XILINX Zynq-7000 [ZC702 board] (Cortex-A9) : http://www.xilinx.com/products/boards-and-kits/EK-Z7-ZC702-G.htm
+	// -> Connect the JTAG cable to J58 (JTAG)
+	// -> Set both switches SW10.1 and SW10.2 to ON
+	// -> Set SW16 all to OFF (JTAG BOOT)
+	// -> For trace, please plug extension board "XILINX HW_FMC-105-DEBUG" to J3-FMC1 and short TDI-TDO at J5 on the extension board.
+	// Script-Parameter: "snoop" for Snooper-Demo
+	//                   "smp" for Symmetric Multicore Debug Demo
+	//                   "notrace" for a demo without ETM trace, although PowerTrace hardware is available
+
+	SYStem.CPU ZYNQ-7000CORE0
+	IF STRing.SCAN("&param","smp",0)>=0 // SMP multicore debugging ?
+	(
+		SYStem.CPU ZYNQ-7000
+	)
+	IF SYStem.INSTANCE()>1 // 2nd PowerView instance for AMP multicore debugging ?
+	(
+		SYStem.CPU ZYNQ-7000CORE1
+		SYStem.CONFIG SLAVE ON
+		SYStem.CONFIG CORE 2 1
+		FramePOS ,,,,Normal Auto
+	)
+	SYStem.JtagClock CTCK 10.MHz
+	SYStem.CONFIG DAPIRPRE  6.
+	SYStem.CONFIG DAPIRPOST 0.
+	SYStem.CONFIG DAPDRPRE  1.
+	SYStem.CONFIG DAPDRPOST 0.
+	SYStem.MemAccess DAP
+	SYStem.Option EnReset OFF
+	SYStem.Mode Up
+
+	SYnch.OFF
+	IF INTERCOM.PORT()!=0 // PowerView GUI was started with activated Intercom support ?
+	(
+		LOCAL &port
+		&port="localhost:"+FORMAT.Decimal(1,INTERCOM.PODPORT(SYStem.INSTANCE()%2)) // Get UDP/IP socket of the other PowerView instance
+		IF INTERCOM.PING(&port) // other PowerView instance rechabel via Intercom ?
+			SYnch.Connect &port // activating synchronization via Intercom (requires Intercom setting in config.t32)
+		SYnch.MasterGo    ON
+		SYnch.MasterBreak ON
+		SYnch.MasterStep  ON
+		SYnch.SlaveGo     ON
+		SYnch.SlaveBreak  ON
+		SYnch.SlaveStep   ON
+	)
+
+	IF Analyzer()&&!(STRing.SCAN("&param","notrace",0)>=0)
+	(
+		IF SYStem.INSTANCE()<2
+		(
+			//  On the ZC702 board the only way to use the TRACE port is to attach the
+			//  XILINX HW_FMC-105-DEBUG board to J3-FMC1 connector.
+			//  A design that routes TRACECLK, TRACECTRL and TRACEDATA[15:0] signals has
+			//  to be programmed to the FPGA.
+			IF Data.Quad(ZSD:0x10000)!=0xC8D3EB8AE4D70461
+			(
+				PRIVATE &zynqpath &fpga
+				&zynqpath=OS.FILE.ABSPATH("~~/demo/arm/hardware/zynq-7000")
+				&fpga="&zynqpath/zc702/zynq_wrapper.bit.bin"
+
+				// load & execute the FSBL - FirstStageBootloader (sets both cores to the Entry Point (0x0))
+				Data.LOAD.Elf "&zynqpath/zc702/fsbl.elf"
+				Go Loop
+				WAIT !STATE.RUN() 0.5s
+				Break
+				IF Register(PC)!=ADDRESS.OFFSET(Loop)
+					STOP %ERROR "Boot fail!"
+
+				// load FPGA Design (see also ~~/pdf/app_xilinx_zynq.pdf)
+				IF !OS.FILE("&fpga")
+					UNZIP   "&fpga.gz" "&fpga"
+				DO "&zynqpath/scripts/zynq_bitstream.cmm" "&fpga" 0x00100000
+
+				Data.Set ZSD:0x10000 %Quad 0xC8D3EB8AE4D70461 // Write magic pattern in SRAM to remember that FPGA is configured
+			)
+
+			// initialize ETM and preprocessor
+			ETM.RESet
+			ITM.RESet
+			ETM.PortSize 16
+			ETM.PortMode Continuous
+			ETM.TImeMode ExternalInterpolated
+			ITM.ON
+			Analyzer.OFF
+			IF OS.FILE("~~~/t32-af-zynq.cmm")
+			(
+				PRINT "Loading AutoFocus Config..."
+				DO "~~~/t32-af-zynq.cmm"
+			)
+			Analyzer.TestFocus // test trace port
+			IF FOUND() // if trace port test failed...
+			(
+				PRINT "Performing AutoFocus..."
+				Analyzer.AutoFocus
+				STOre "~~~/t32-af-zynq.cmm" AnalyzerFocus
+			)
+			Analyzer.AutoArm  ON
+			Analyzer.AutoInit ON
+			Analyzer.Mode Fifo
+			Analyzer.TraceCLOCK 226.MHz
+			Analyzer.CLOCK 600.MHz
+			WinCLEAR
+		)
+		ELSE  // 2nd PowerView instance for AMP multicore debugging ?
+		(
+			// Most Analyzer and ETM settings are taken from 1st PowerView instance
+			// (but some have to be set still manually again)
+			ETM.PortSize 16
+			ETM.PortMode Wrapped
+			ETM.TImeMode ExternalInterpolated
+			Analyzer.OFF
+			Analyzer.AutoArm  ON
+			Analyzer.AutoInit ON
+			Analyzer.TraceCLOCK 200.MHz
+		)
+		CTS.UseReadCycle  OFF
+		CTS.UseWriteCycle OFF
+		Trace.METHOD Analyzer
+
+		// Configure Cross Trigger Interfaces (CTI) to use ETM trace trigger
+		LOCAL &debug_cpu_cti0 &debug_cpu_cti1 &debug_cti_etb_tpiu
+		&debug_cpu_cti0="APB:0x80098000"
+		&debug_cpu_cti1="APB:0x80099000"
+		&debug_cti_etb_tpiu="APB:0x80002000"
+		Data.Set &debug_cpu_cti0+0x00     %Long 1  // Enable CTI of 1st core (CTICONTROL.GLBEN = 1)
+		Data.Set &debug_cpu_cti0+0x38     %Long Data.Long(&debug_cpu_cti0+0x38)|4     // Connect CTIINEN[6] (PTM Trigger Out) of first core to trigger channel 2
+		Data.Set &debug_cpu_cti1+0x00     %Long 1  // Enable CTI of 2nd core (CTICONTROL.GLBEN = 1)
+		Data.Set &debug_cpu_cti1+0x38     %Long Data.Long(&debug_cpu_cti1+0x38)|4     // Connect CTIINEN[6] (PTM Trigger Out) of first core to trigger channel 2
+		Data.Set &debug_cti_etb_tpiu+0x00 %Long 1  // Enable CTI of Trace Port (TPIU) (CTICONTROL.GLBEN = 1)
+		Data.Set &debug_cti_etb_tpiu+0xac %Long Data.Long(&debug_cti_etb_tpiu+0xac)|4 // Connect trigger channel 2 to CTIOUTEN[3] of TPIU
+		// per "~~/percti.per" 0x80098000
+		// per "~~/percti.per" 0x80002000
+	)
+	ELSE
+	(
+		Trace.METHOD Onchip
+		Trace.OFF
+		Trace.AutoArm  ON
+		Trace.AutoInit ON
+		ETM.ON
+	)
+
+	Register.Init
+	Register.Set NS 0
+	IF SYStem.INSTANCE()>1 // 2nd PowerView instance for AMP multicore debugging ?
+	(
+		Data.LOAD.Elf "~~~~/sieve.elf" /RelPath /MACRO /VM  // Code was already downloaded by 1st, thus load code only to VM
+		Register.Set CPSR 0x1F3
+		Register.Set PC background
+		Register.Set R13 0x7000
+	)
+	ELSE
+	(
+		Data.Set C15:0x00C %Long 0  // Init Vector Base Register
+		Data.Set C15:0x10C %Long 0  // Init Monitor Vector Base Register
+		Register.Set CPSR 0x1F3   // enable supervisor mode, thumb mode and disable interrupts
+		Data.Set 0x00--0x3ff %Long 0xeafffffe  // init exception vectors
+		GOSUB LoadElf "~~~~/sieve.elf"
+		Data.Set monHook %Long ADDRESS.OFFSET(ItmMessage)|1 // add ITM demo
+
+		IF CORE.NUMBER()>1 // SMP multicore debugging ?
+		(
+			Register.Set CPSR 0x1F3    /CORE 1.
+			Register.Set PC background /CORE 1.
+			Register.Set R13 0x7000    /CORE 1.
+			GOSUB SmpColor
+		)
+	)
+
+	// Enable instruction cache via System Control Register (SCTLR)
+	Data.Set C15:0x0001 %Long Data.Long(C15:0x01)|0x1000
+)
+ELSE IF (&dev0==0x0BA00477) // ARM DAP (that's no enough to identify a board - but let's assume here it's a Vybrid)
+(
+	// Freescale TWR-VF65GS10  Vybrid Controller Solutions Tower System Module (Cortex-A5) : http://www.freescale.com/webapp/sps/site/prod_summary.jsp?code=TWR-VF65GS10&tid=vanTWR-VF65GS10
+	SYStem.CPU VF6xx-CA5
+	SYStem.JtagClock CTCK 8.MHz
+	ETM.OFF
+	WAIT 5.ms
+	SYStem.Mode Up
+	Register.Init
+	Register.Set NS 0
+
+	Data.Set C15:0x0001 %Long Data.Long(C15:0x0001)&~0x1005 // Disable MMU & caches via System Control Register (SCTLR)
+
+	// Avoid touching areas which react badly
+	MAP.DenyAccess 0x30000000--0x3effffff  // FlexBus
+	MAP.DenyAccess 0x80000000--0xffffffff  // DDR
+
+	// Un-gate trace module clocks
+	Data.Set AD:0x4006B048 %Long 0xFFFFFFFF
+	Data.Set AD:0x4006B04C %Long 0xFFFFFFFF
+	Data.Set AD:0x4006B008 %Long 0x01000000
+
+	// Wake-up the Cortex-M4 core
+	Data.Set AD:0x4006B08C %Long 0x00015a5a
+
+	// Enable trace clock and SWO and set divider
+	Data.Set AD:0x4006B01c %Long 0x14000000
+
+	// Configure the MMU to map 512KiB of SRAM (OCRAM-SysRAM0) at physical address 0x3f000000 to virtual address 0x0000--0xFFFF
+	PRIVATE &dcache
+	&dcache=0
+	IF STRing.SCAN("&param","dcache",0)>=0
+	(
+		IF STRing.SCAN("&param","writeback",0)>=0
+			&dcache=0y1100 // Cache in write-back mode
+		else
+			&dcache=0y1000 // Cache in write-through mode
+	)
+	Data.Set AD:0x3F020000++0x3fff %Long 0   // clear 16KiB Translation Table
+	Data.Set AD:0x3F020000 %Long (0x3F000000|0y0110000010010|&dcache) // Create level one entry, which points to 1 MiB Section.
+	Data.Set c15:0x0002 %Long 0x3F020000     // set Translation Table Base register 0
+	Data.Set c15:0x0102 %Long 0x3F020000     // set Translation Table Base register 1
+	Data.Set c15:0x0003 %Long 0x00000003     // set domain 0 access to Manager
+
+	// Invalidate DCache
+	GOSUB InvalidateDCache 0x3F000000
+
+	// Enable MMU & caches via System Control Register (SCTLR)
+	Data.Set C15:0x0001 %Long Data.Long(C15:0x01)|0x1005 // Enable MMU & caches
+
+	// Copy translation table to debugger to get memory access with logical addresses via DAP during runtime
+	MMU.SCAN PageTable
+	TRANSlation.SHADOW ON  // use VM with logical addresses (instead of translating VM to VMA)
+	TRANSlation.ON
+	SYStem.MemAccess DAP
+
+	Data.Set C15:0x00C %Long 0  // Init Vector Base Register
+	Data.Set C15:0x10C %Long 0  // Init Monitor Vector Base Register
+	Register.Set CPSR 0x1F3   // enable supervisor mode, thumb mode and disable interrupts
+	Data.Set 0x00--0x3ff %Long 0xeafffffe  // init exception vectors
+	GOSUB LoadElf "~~~~/sieve.elf"
+
+	IF Analyzer()&&!(STRing.SCAN("&param","notrace",0)>=0)
+	(
+		// initialize ETM and preprocessor
+		ETM.RESet
+		ETM.PortSize 16
+		ETM.PortMode Continuous
+		ETM.TImeMode ExternalInterpolated
+		ETM.DataSuppress ON
+		ETM.DataTrace OFF
+		Analyzer.OFF
+
+		// Configure pin-muxing for the usage of the trace pins
+		Data.Set AD:0x40048014       %Long 0x1031C2 // IOMUXC_PTA12     (TRACECK)
+		Data.Set AD:0x40048018++0x3F %Long 0x1031C2 // IOMUXC_PTA16..31 (TRACED[0..15])
+		Data.Set AD:0x40048058       %Long 0x3031C2 // IOMUXC_PTB0      (TRACECTL)
+
+		Analyzer.TestFocus /TESTCODE // test trace port
+		IF FOUND() // if trace port test failed...
+		(
+			PRINT "Performing AutoFocus..."
+			Analyzer.AutoFocus
+		)
+		Analyzer.AutoArm  ON
+		Analyzer.AutoInit ON
+		Analyzer.Mode Fifo
+		Analyzer.TraceCLOCK 12.MHz
+		Analyzer.CLOCK 12.MHz
+
+		// Note: Trace trigger not possible since CTI interface at TPIU is not availalbe on Vybrid chips.
+	)
+	ELSE
+	(
+		Trace.METHOD Onchip
+		Trace.OFF
+		Trace.AutoArm  ON
+		Trace.AutoInit ON
+		ETM.ON
+	)
+)
+ELSE IF (&dev0==0x06418041)&&(&dev1==0x0BA00477) // SGS/Thomson + ARM DAP
+(
+	// STM32F107VC (Cortex-M3) : http://www.st.com/web/catalog/mmc/FM141/SC1169/SS1031/LN1564/PF221020
+
+	SYStem.CPU STM32F107VC
+	SYStem.JtagClock CTCK 10.MHz
+	SYStem.MemAccess DAP
+	IF Analyzer()
+	(
+		Trace.METHOD Analyzer
+		Analyzer.TERMination OFF
+	)
+	IF CAnalyzer()
+	(
+		Trace.METHOD CAnalyzer
+		GOSUB SetupCompactAnalyzer
+	)
+	SYStem.Mode Up
+	Register.Init
+	IF Analyzer()||hardware.COMBIPROBE()||hardware.UTRACE()
+	(
+		ETM.RESet
+		ETM.TImeMode ExternalInterpolated
+		ITM.RESet
+		ITM.ON
+		ITM.DataTrace Data  // Note: The data trace of a Cortex-M3 r1p1 (and earlier) can't distinguish between read and write access.
+		TPIU.PortMode Continuous
+		TPIU.PortSize 4
+		Trace.ACCESS DualPort
+		Trace.AutoArm ON
+		Trace.AutoInit ON
+		Trace.THreshold 1.5
+		Trace.CLOCK 8.MHz
+		Trace.TraceCLOCK 8.MHz
+	)
+
+	GOSUB LoadElf "~~~~/sieve_cm.elf"
+)
+ELSE IF (&dev0==0x06411041)&&(&dev1==0X0BA00477) // SGS/Thomson + ARM DAP
+(
+	// STM32F205ZET7 (Cortex-M3) : http://www.st.com/web/catalog/mmc/FM141/SC1169/SS1575/LN1433/PF245090
+
+	SYStem.CPU STM32F205ZE
+	SYStem.JtagClock CTCK 10.MHz
+	SYStem.MemAccess DAP
+	IF Analyzer()
+	(
+		Trace.METHOD Analyzer
+		Analyzer.TERMination OFF
+	)
+	IF CAnalyzer()
+	(
+		Trace.METHOD CAnalyzer
+		GOSUB SetupCompactAnalyzer
+	)
+	IF CABLE.TWOWIRE()&&(SYStem.INSTANCE()<2)&&!CAnalyzer.BOTHCables()
+	(
+		SYStem.CONFIG DEBUGPORTTYPE SWD
+	)
+	SYStem.Mode Up
+	Register.Init
+	IF Analyzer()||hardware.COMBIPROBE()||hardware.UTRACE()
+	(
+		Data.Set E:0x40023830 %Long 0yXXXXxxxxXXXXxxxxXXXXxxxxXXX1xxxx  // RCC_AHB1ENR : IO port E clock enable
+		Data.Set E:0x40021000 %Long 0yXXXXxxxxXXXXxxxxXX1010101010xxxx  // GPOIE_PORTMODE : Enable "alternate funtion" on trace pins (PE2..PE6)
+		Data.Set E:0x40021020 %Long 0yXXXX00000000000000000000XXXXxxxx  // GPIOE_AFRL : Use ETM as "alternate funtion" for trace pins (PE2..PE6)
+		Data.Set E:0x40021008 %Long 0yXXXXxxxxXXXXxxxxXX0101010101xxxx  // GPOIE_PORTSPEED : Use "Medium speed" for trace pins (PE2..PE6)
+		// Data.Set E:0x40021008 %Long 0yXXXXxxxxXXXXxxxxXX1111111111xxxx  // GPOIE_PORTSPEED : Use "High speed" for trace pins (PE2..PE6)
+		ETM.RESet
+		ETM.TImeMode ExternalInterpolated
+		ITM.RESet
+		ITM.ON
+		ITM.DataTrace CorrelatedData
+		TPIU.PortMode Continuous
+		TPIU.PortSize 4
+		Trace.ACCESS DualPort
+		Trace.AutoArm ON
+		Trace.AutoInit ON
+		Trace.THreshold 1.5
+		Trace.CLOCK 16.MHz
+		Trace.TraceCLOCK 16.MHz
+	)
+	IF (STRing.SCAN("&param","itm",0)>=0)
+	(
+		Data.Set D:0xE0000E00 %Long 0yxxxxxxxxxxxxxxxxxxxxxxxxxxxx1111
+	)
+	GOSUB LoadElf "~~~~/sieve_cm.elf"
+)
+ELSE IF (&dev0==0x06413041)&&(&dev1==0x0BA00477) // SGS/Thomson + ARM DAP
+(
+	// KEIL MCBSTM32F400 : http://www.keil.com/mcbstm32f400
+	//  with STM32F407IG (Cortex-M4) : http://www.st.com/web/catalog/mmc/FM141/SC1169/SS1577/LN11/PF252134
+
+	// STM32F4DISCOVERY : http://www.st.com/web/catalog/tools/FM116/SC959/SS1532/PF252419
+	//  with STM32F407VGT6 (Cortex-M4) : http://www.st.com/web/catalog/mmc/FM141/SC1169/SS1577/LN11/PF252140
+
+	SYStem.CPU STM32F407IG
+	SYStem.JtagClock CTCK 10.MHz
+	SYStem.MemAccess DAP
+	IF Analyzer()
+	(
+		Trace.METHOD Analyzer
+		Analyzer.TERMination OFF
+	)
+	IF CAnalyzer()
+	(
+		Trace.METHOD CAnalyzer
+		GOSUB SetupCompactAnalyzer
+	)
+	IF CABLE.TWOWIRE()&&(SYStem.INSTANCE()<2)&&!CAnalyzer.BOTHCables()
+	(
+		SYStem.CONFIG DEBUGPORTTYPE SWD
+	)
+	SYStem.Mode Up
+	Register.Init
+	IF Analyzer()||CAnalyzer()
+	(
+		ETM.RESet
+		ITM.RESet
+		TPIU.RESet
+		Trace.RESet
+		IF Analyzer()||CAnalyzer.FEATURE(TPIU)
+		(
+			Data.Set E:0x40023830 %Long 0yXXXXxxxxXXXXxxxxXXXXxxxxXXX1xxxx  // RCC_AHB1ENR : IO port E clock enable
+			Data.Set E:0x40021000 %Long 0yXXXXxxxxXXXXxxxxXX1010101010xxxx  // GPOIE_PORTMODE : Enable "alternate funtion" on trace pins (PE2..PE6)
+			Data.Set E:0x40021020 %Long 0yXXXX00000000000000000000XXXXxxxx  // GPIOE_AFRL : Use ETM as "alternate funtion" for trace pins (PE2..PE6)
+			Data.Set E:0x40021008 %Long 0yXXXXxxxxXXXXxxxxXX0101010101xxxx  // GPOIE_PORTSPEED : Use "Medium speed" for trace pins (PE2..PE6)
+			ETM.TImeMode ExternalInterpolated
+			ITM.ON
+			ITM.DataTrace CorrelatedData
+			TPIU.PortMode Continuous
+			TPIU.PortSize 4
+		)
+		ELSE IF CAnalyzer.FEATURE(SWV)
+		(
+			ITM.ON
+			ITM.DataTrace ON
+			TPIU.PortSize SWV
+			TPIU.PortMode Continuous
+		)
+		Trace.ACCESS DualPort
+		Trace.AutoArm ON
+		Trace.AutoInit ON
+		Trace.THreshold 1.5
+		Trace.CLOCK 16.MHz
+		Trace.TraceCLOCK 16.MHz
+	)
+	IF (STRing.SCAN("&param","pll",0)>=0)
+	(
+		// high speed external clock signal (HSE) == 8.Mhz
+		Data.Set D:0x40023808 %Long 0x00199400  // RCC_CFGR Use HSI , trim RTC divider
+		Data.Set D:0x40023800 %Long 0yxxxxxxx0xxxxxxx0xxxxxxxxxxxxxxxx  // RCC_CR <- PLLON:=0 HSE_ON:=0
+		Data.Set D:0x40023800 %Long 0yxxxxxxxxxxxxx0xxxxxxxxxxxxxxxxxx  // RCC_CR <- HSE_BYP := 0,
+		Data.Set D:0x40023800 %Long 0yxxxxxxxxxxxxxxx1xxxxxxxxxxxxxxxx  // RCC_CR <- HSE_ON := 1
+		Data.Set D:0x40023804 %Long 0x26404819  // RCC_PLLCFGR : PLL SYSCLK == 46Mhz
+		Data.Set D:0x40023884 %Long 0x46434819  // RCC_PLLI2SCFGR
+		Data.Set D:0x40023800 %Long 0yxxxxxxx1xxxxxxxxxxxxxxxxxxxxxxxx  // RCC_CR <- PLLON:=1
+		Data.Set D:0x40023808 %Long 0yxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx10  // RCC_CFGR switch to PLL
+		Trace.CLOCK 46.MHz
+		Trace.TraceCLOCK 46.MHz
+	)
+	IF (STRing.SCAN("&param","itm",0)>=0)
+	(
+		Data.Set D:0xE0000E00 %Long 0yxxxxxxxxxxxxxxxxxxxxxxxxxxxx1111
+	)
+	GOSUB LoadElf "~~~~/sieve_cm.elf"
+	Data.Set monHook %Long ADDRESS.OFFSET(LED_Blink)|1 // add LEDs demo, which blinks all four LEDs on the Discovery board
+)
+ELSE IF (&dev0==0x00920F0F) // ARM920T core module
+(
+	SYStem.CPU ARM920T
+	SYStem.JtagClock CTCK 10.MHz
+	SYStem.Option CFLUSH ON
+	SYStem.Mode Up
+	Register.Init
+	Data.Set C15:0x01 %Long Data.Long(C15:0x1)|0x1000 // Enable instruction cache
+
+	IF Analyzer()
+	(
+		ETM.RESet
+		ETM.DataTrace OFF
+		ETM.PortSize 16
+		ETM.PortMode Normal
+		ETM.HalfRate OFF
+		ETM.TImeMode External
+		Analyzer.RESet
+		Analyzer.OFF
+		Analyzer.THreshold  VCC
+		Analyzer.TERMination ON
+		Analyzer.TestFocus // test trace port
+		IF FOUND() // if trace port test failed...
+		(
+			PRINT "Performing AutoFocus..."
+			Analyzer.AutoFocus
+		)
+		Analyzer.AutoArm ON
+		Analyzer.AutoInit ON
+		Analyzer.Mode Fifo
+		Analyzer.TraceCLOCK 20.MHz
+		Analyzer.CLOCK 20.MHz
+		Analyzer.ACCESS AutoVM
+	)
+	GOSUB LoadElf "~~~~/sieve.elf"
+)
+ELSE IF (&dev0==0x05966F0F) // ARM966E-S core module
+(
+	SYStem.CPU ARM966E
+	SYStem.JtagClock RTCK
+	SYStem.Mode Up
+	Register.Init
+
+	IF Analyzer()
+	(
+		ETM.RESet
+		ETM.DataTrace OFF
+		ETM.PortSize 16
+		ETM.PortMode Normal
+		ETM.HalfRate OFF
+		ETM.STALL ON
+		ETM.TImeMode External
+		Analyzer.RESet
+		Analyzer.OFF
+		Analyzer.THreshold  VCC
+		Analyzer.TERMination ON
+		Analyzer.TestFocus // test trace port
+		IF FOUND() // if trace port test failed...
+		(
+			PRINT "Performing AutoFocus..."
+			Analyzer.AutoFocus
+		)
+		Analyzer.AutoArm ON
+		Analyzer.AutoInit ON
+		Analyzer.Mode Fifo
+		Analyzer.TraceCLOCK 80.MHz
+		Analyzer.CLOCK 80.MHz
+		Analyzer.ACCESS AutoVM
+	)
+	GOSUB LoadElf "~~~~/sieve.elf"
+)
+ELSE
+(
+	IF (STRing.SCAN("&param","stm32",0)>=0)
+		SYStem.CPU CortexM3
+
+	ON ERROR GOTO
+	(
+		AREA.view
+		PRINT
+		PRINT %ERROR "Don't know how to talk with your chip, which is not supported by this demo."
+		IF &dev0==0
+			PRINT "If you are using a OMAP3530 ""Mistral"" please RUN demo_mistral.cmm"
+		ENDDO
+	)
+	SYStem.Mode Up
+	ON ERROR inherit
+
+	IF Analyzer()||hardware.COMBIPROBE()||hardware.UTRACE()
+	(
+		Trace.OFF
+		Trace.AutoArm  ON
+		Trace.AutoInit ON
+	)
+
+	Register.Init
+	IF (STRing.SCAN("&param","stm32",0)>=0)
+		GOSUB LoadElf "~~~~/sieve_cm.elf"
+	ELSE
+		GOSUB LoadElf "~~~~/sieve.elf"
+)
+
+
+Mode.Hll
+IF ((SYStem.INSTANCE()<2)||(CAnalyzer.BOTHCables()))&&(STRing.SCAN("&param","start",0)<0)
+	Go.direct main
+
+
+WinPOS 0% 0% 100% 48%
+List.auto
+
+WinPOS 64% 50% 36% 48%
+Var.Watch
+Var.AddWatch mcount; flags; ast;
+IF CORE.NUMBER()>1
+	Var.AddWatch %E %Fixed mcount; bcnt2; bcnt1;
+
+
+IF (Analyzer.STATE()<5||((hardware.COMBIPROBE()||hardware.UTRACE())&&CAnalyzer.STATE()<5))&&(!INTERFACE.SIM())&&!(STRing.SCAN("&param","notrace",0)>=0)
+(
+	WinPOS 0% 50% 64% 48%
+	Trace.List List.ADDRESS DEFault
+)
+ELSE
+(
+	WinPOS 0% 50% 36% 48%
+	Var.Ref %Hex %Decimal
+
+	WinPOS 36% 50% 28% 48% ,, 5.
+	Frame.view /Args /Locals
+)
+
+ENDDO
+
+
+LoadElf:
+	LOCAL &elf
+	ENTRY &elf
+
+	Data.LOAD.Elf &elf /RelPath /MACRO /PlusVM
+	Data.LOAD.Elf &elf /DIFF /NosYmbol
+	IF FOUND()
+	(
+		AREA.view
+		PRINT %ERROR "ERROR ! Failed to download the code of the example. Please check the memory settings of your target."
+		Data.LOAD.Elf &elf /ComPare /NosYmbol
+		ENDDO
+	)
+	RETURN
+
+SmpColor:
+	SETUP.COLOR 55.+0. 255. 202. 202.	// Set CORE 0 background colors for stronger contrast
+	SETUP.COLOR 55.+1. 202. 255. 202.	// Set CORE 1 background colors for stronger contrast
+	;SETUP.COLOR 3.     37.  37.  37.	// opcode of List.auto window dark gray
+	;SETUP.COLOR 4.     34.  85.  85.	// disassembler
+	SETUP.COLOR 41.    123. 172. 172.	// shadowed disassembler
+	LOCAL &pcf
+	&pcf=OS.PCF()
+	EDIT.QUIT "&pcf" // Avoid storing of color change in config.t32 file by closing the file handle at once
+	RETURN
+
+InvalidateDCache:
+	LOCAL &addr
+	ENTRY &addr
+	Frame.COPY
+	Register.Set T 0
+	Register.Set PC P:(&addr)
+	Data.Assemble   P:(&addr)   mov r3,#0  mcr p15,0,r3,c7,c6,0  b $+0  // Invalidate DCache
+	Step.single 2
+	Frame.SWAP
+	RETURN
+
+SetupCompactAnalyzer:
+	IF CAnalyzer()
+	(
+		IF hardware.COMBIPROBE()||hardware.UTRACE()
+		(
+			SYStem.CONFIG CONNECTOR MIPI20T
+			IF CAnalyzer.BOTHCables()
+				SYStem.CONFIG Slave OFF
+		)
+		Trace.METHOD CAnalyzer
+	)
+	RETURN

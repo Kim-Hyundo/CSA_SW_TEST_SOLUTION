@@ -1,0 +1,787 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="t32transform.xsl"?>
+<TRACE32 file="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Gen\20210524_TRACE32_20_02\Failsafe-TestSpec_RS4_Temp4_210518\Report\Failsafe_v28_UID_001\Test\FS_CANTimeout\func-p-8000313e-80003255.xml">
+	<coverage>
+		<COVerage.EXPORT.ListLine ts="1621823163" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE" metric="object">
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\Rte_SWC_Diag</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>-</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>0</never>
+				<bytes>638</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\FS_HWFailure</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>16</never>
+				<bytes>236</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\SWC_Failsafe</tree>
+				<cov>partial</cov>
+				<exec metric="object">0.600%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>16</never>
+				<bytes>1666</bytes>
+				<bytesok>10</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80002DEA</addrFrom>
+				<addrTo>P:80002F83</addrTo>
+				<tree>\\Test\FS_BatteryVoltage</tree>
+				<cov>partial</cov>
+				<exec metric="object">59.512%</exec>
+				<branches>52.000%</branches>
+				<ok>8</ok>
+				<taken>3</taken>
+				<nottaken>7</nottaken>
+				<never>7</never>
+				<bytes>410</bytes>
+				<bytesok>244</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80002F84</addrFrom>
+				<addrTo>P:800030BB</addrTo>
+				<tree>\\Test\FS_CANBusOff</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>17</never>
+				<bytes>312</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\FS_CANTimeout</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>350</never>
+				<bytes>2458</bytes>
+				<bytesok>0</bytesok>
+				<function>
+					<addrFrom>P:8000313E</addrFrom>
+					<addrTo>P:80003255</addrTo>
+					<tree uid="p-8000313e-80003255">\\Test\FS_CANTimeout\FS_SetDiagsta_CANTimeout</tree>
+					<cov>never</cov>
+					<exec metric="object">0.000%</exec>
+					<branches>0.000%</branches>
+					<ok>0</ok>
+					<taken>0</taken>
+					<nottaken>0</nottaken>
+					<never>4</never>
+					<bytes>280</bytes>
+					<bytesok>0</bytesok>
+					<line>
+						<addrFrom>P:8000313E</addrFrom>
+						<addrTo>P:80003153</addrTo>
+						<tree>FS_CANTimeout.c \498--507</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>22</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003154</addrFrom>
+						<addrTo>P:80003161</addrTo>
+						<tree>FS_CANTimeout.c \508--510</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>14</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003162</addrFrom>
+						<addrTo>P:8000316D</addrTo>
+						<tree>FS_CANTimeout.c \511--528</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000316E</addrFrom>
+						<addrTo>P:8000317F</addrTo>
+						<tree>FS_CANTimeout.c \529--531</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003180</addrFrom>
+						<addrTo>P:8000318D</addrTo>
+						<tree>FS_CANTimeout.c \532--534</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>14</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000318E</addrFrom>
+						<addrTo>P:8000319B</addrTo>
+						<tree>FS_CANTimeout.c \535--537</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>14</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000319C</addrFrom>
+						<addrTo>P:800031A9</addrTo>
+						<tree>FS_CANTimeout.c \538--540</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>14</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800031AA</addrFrom>
+						<addrTo>P:800031B9</addrTo>
+						<tree>FS_CANTimeout.c \541--543</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800031BA</addrFrom>
+						<addrTo>P:800031C7</addrTo>
+						<tree>FS_CANTimeout.c \544--546</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>14</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800031C8</addrFrom>
+						<addrTo>P:800031D5</addrTo>
+						<tree>FS_CANTimeout.c \547--549</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>14</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800031D6</addrFrom>
+						<addrTo>P:800031E3</addrTo>
+						<tree>FS_CANTimeout.c \550--552</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>14</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800031E4</addrFrom>
+						<addrTo>P:800031F1</addrTo>
+						<tree>FS_CANTimeout.c \553--555</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>14</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800031F2</addrFrom>
+						<addrTo>P:800031FF</addrTo>
+						<tree>FS_CANTimeout.c \556--558</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>14</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003200</addrFrom>
+						<addrTo>P:8000320B</addrTo>
+						<tree>FS_CANTimeout.c \559--561</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000320C</addrFrom>
+						<addrTo>P:80003219</addrTo>
+						<tree>FS_CANTimeout.c \562--564</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>14</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000321A</addrFrom>
+						<addrTo>P:80003227</addrTo>
+						<tree>FS_CANTimeout.c \565--567</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>14</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003228</addrFrom>
+						<addrTo>P:80003231</addrTo>
+						<tree>FS_CANTimeout.c \568--596</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>10</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003232</addrFrom>
+						<addrTo>P:80003243</addrTo>
+						<tree>FS_CANTimeout.c \597--597</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>0.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>2</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003244</addrFrom>
+						<addrTo>P:80003255</addrTo>
+						<tree>FS_CANTimeout.c \598--598</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>0.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>2</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<total>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>0.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>4</never>
+						<bytes>280</bytes>
+						<bytesok>0</bytesok>
+					</total>
+				</function>
+				<total>
+					<cov>never</cov>
+					<exec metric="object">0.000%</exec>
+					<branches>0.000%</branches>
+					<ok>0</ok>
+					<taken>0</taken>
+					<nottaken>0</nottaken>
+					<never>4</never>
+					<bytes>280</bytes>
+					<bytesok>0</bytesok>
+				</total>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\FS_InvalidSignal</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>350</never>
+				<bytes>6758</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\FS_SWFailure</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>17</never>
+				<bytes>304</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_cstart</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>5</never>
+				<bytes>806</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_cstart_tc1</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>402</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_cstart_tc2</tree>
+				<cov>partial</cov>
+				<exec metric="object">81.094%</exec>
+				<branches>87.500%</branches>
+				<ok>3</ok>
+				<taken>0</taken>
+				<nottaken>1</nottaken>
+				<never>0</never>
+				<bytes>402</bytes>
+				<bytesok>326</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_cstart_tc3</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_main</tree>
+				<cov>partial</cov>
+				<exec metric="object">27.835%</exec>
+				<branches>31.818%</branches>
+				<ok>1</ok>
+				<taken>4</taken>
+				<nottaken>1</nottaken>
+				<never>5</never>
+				<bytes>388</bytes>
+				<bytesok>108</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:800065B6</addrFrom>
+				<addrTo>P:8000674B</addrTo>
+				<tree>\\Test\prost_cstart_tc4</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:8000674C</addrFrom>
+				<addrTo>P:800068E1</addrTo>
+				<tree>\\Test\prost_cstart_tc5</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80006A62</addrFrom>
+				<addrTo>P:80006A91</addrTo>
+				<tree>\\Test\prost_stubs</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>2</never>
+				<bytes>48</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<total>
+				<cov>partial</cov>
+				<exec metric="object">4.287%</exec>
+				<branches>2.412%</branches>
+				<ok>12</ok>
+				<taken>7</taken>
+				<nottaken>9</nottaken>
+				<never>801</never>
+				<bytes>16046</bytes>
+				<bytesok>688</bytesok>
+			</total>
+		</COVerage.EXPORT.ListLine>
+	</coverage>
+	<marker>
+		<BookMark.EXPORT ts="1621823163" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE">
+		</BookMark.EXPORT>
+	</marker>
+	<listing>
+		<List.EXPORT ts="1621823163" t32ver="R.2020.09.000128638" t32pv="TRICORE" order="source">
+			<mixed module="\\Test\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>498</line><src></src></hll>
+				<hll><line>499</line><src>void FS_SetDiagsta_CANTimeout(void)</src></hll>
+				<hll><line>500</line><src>{</src></hll>
+				<hll><line>501</line><src>    /* Chassis CAN */</src></hll>
+				<hll><line>502</line><src>    uint32 ecan_mask;</src></hll>
+				<hll><line>503</line><src></src></hll>
+				<hll><line>504</line><src>#if CCAN == CANFD</src></hll>
+				<hll><line>505</line><src>#if VEH_TYPE == NORMAL</src></hll>
+				<hll><line>506</line><src>    ecan_mask = BIT(EMS_01_10ms_POS) | BIT(EMS_02_10ms_POS) | BIT(EMS_03_10ms_POS) | BIT(EMS_05_100ms_POS);</src></hll>
+				<hll><cov>never</cov><line>507</line><src>    SET_DTC(C161187, can_timeout_fault[CHASSIS_0] &amp; ecan_mask);</src></hll>
+				<asm><cov>never</cov><addr>P:8000313E</addr><code>F9004091</code><label>FS_SetDiagsta_CANTimeout:                                                                                                                                                                                                                                       </label><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003142</addr><code>1030FFD9</code><mnemonic>lea       a15,[a15]0x70</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003146</addr><code>FF54</code><mnemonic>ld16.w    d15,[a15]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003148</addr><code>F11E0F8F</code><mnemonic>and       d15,d15,#0x1E0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000314C</addr><code>42200F8B</code><mnemonic>ne        d4,d15,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003150</addr><code>F92CFF6D</code><mnemonic>call      0x800023A8</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C161187_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>508</line><src></src></hll>
+				<hll><line>509</line><src>    ecan_mask = BIT(TCU_01_10ms_POS);</src></hll>
+				<hll><cov>never</cov><line>510</line><src>    SET_DTC(C161287, can_timeout_fault[CHASSIS_0] &amp; ecan_mask);</src></hll>
+				<asm><cov>never</cov><addr>P:80003154</addr><code>FF54</code><mnemonic>ld16.w    d15,[a15]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003156</addr><code>0040003B</code><mnemonic>mov       d0,#0x400</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000315A</addr><code>FFC9FF61</code><mnemonic>fcall     0x800030EC</mnemonic><comment>.cocofun_30</comment></asm>
+				<asm><cov>never</cov><addr>P:8000315E</addr><code>F939FF6D</code><mnemonic>call      0x800023D0</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C161287_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>511</line><src></src></hll>
+				<hll><line>512</line><src>#elif VEH_TYPE == EV</src></hll>
+				<hll><line>513</line><src>    ecan_mask = BIT(VCU_01_10ms_POS) | BIT(VCU_03_100ms_POS);</src></hll>
+				<hll><line>514</line><src>    SET_DTC(C161487, can_timeout_fault[CHASSIS_0] &amp; ecan_mask);</src></hll>
+				<hll><line>515</line><src></src></hll>
+				<hll><line>516</line><src>#elif VEH_TYPE == HEV</src></hll>
+				<hll><line>517</line><src>    ecan_mask = BIT(EMS_07_POS) | BIT(EMS_11_POS);</src></hll>
+				<hll><line>518</line><src>    SET_DTC(C161187, can_timeout_fault[CHASSIS_0] &amp; ecan_mask);</src></hll>
+				<hll><line>519</line><src></src></hll>
+				<hll><line>520</line><src>    ecan_mask = BIT(HCU_03_POS) | BIT(HCU_05_POS);</src></hll>
+				<hll><line>521</line><src>    SET_DTC(C161487, can_timeout_fault[CHASSIS_0] &amp; ecan_mask);</src></hll>
+				<hll><line>522</line><src></src></hll>
+				<hll><line>523</line><src>    ecan_mask = BIT(HTCU_04_POS);</src></hll>
+				<hll><line>524</line><src>    SET_DTC(C161287, can_timeout_fault[CHASSIS_0] &amp; ecan_mask);</src></hll>
+				<hll><line>525</line><src>#endif /* VEH_TYPE */</src></hll>
+				<hll><line>526</line><src></src></hll>
+				<hll><line>527</line><src>    ecan_mask = BIT(CLU_01_20ms_POS) | BIT(CLU_02_100ms_POS);</src></hll>
+				<hll><cov>never</cov><line>528</line><src>    SET_DTC(C162887, can_timeout_fault[CHASSIS_0] &amp; ecan_mask);</src></hll>
+				<asm><cov>never</cov><addr>P:80003162</addr><code>FF54</code><mnemonic>ld16.w    d15,[a15]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003164</addr><code>1816</code><mnemonic>and16     d15,#0x18</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003166</addr><code>42200F8B</code><mnemonic>ne        d4,d15,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000316A</addr><code>F9B3FF6D</code><mnemonic>call      0x800024D0</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C162887_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>529</line><src></src></hll>
+				<hll><line>530</line><src>    ecan_mask = BIT(ABS_ESC_01_10ms_POS) | BIT(ESC_01_10ms_POS) | BIT(ESC_03_20ms_POS) | BIT(WHL_01_10ms_POS);</src></hll>
+				<hll><cov>never</cov><line>531</line><src>    SET_DTC(C162587, can_timeout_fault[CHASSIS_0] &amp; ecan_mask);</src></hll>
+				<asm><cov>never</cov><addr>P:8000316E</addr><code>FF54</code><mnemonic>ld16.w    d15,[a15]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003170</addr><code>0180103B</code><mnemonic>mov       d0,#0x1801</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003174</addr><code>0200009B</code><mnemonic>addih     d0,d0,#0x2000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003178</addr><code>FFBAFF61</code><mnemonic>fcall     0x800030EC</mnemonic><comment>.cocofun_30</comment></asm>
+				<asm><cov>never</cov><addr>P:8000317C</addr><code>F992FF6D</code><mnemonic>call      0x800024A0</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C162587_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>532</line><src></src></hll>
+				<hll><line>533</line><src>    ecan_mask = BIT(MDPS_01_10ms_POS);</src></hll>
+				<hll><cov>never</cov><line>534</line><src>    SET_DTC(C168787, !!(can_timeout_fault[CHASSIS_0] &amp; ecan_mask));</src></hll>
+				<asm><cov>never</cov><addr>P:80003180</addr><code>FF54</code><mnemonic>ld16.w    d15,[a15]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003182</addr><code>0008007B</code><mnemonic>movh      d0,#0x80</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003186</addr><code>FFB3FF61</code><mnemonic>fcall     0x800030EC</mnemonic><comment>.cocofun_30</comment></asm>
+				<asm><cov>never</cov><addr>P:8000318A</addr><code>F97BFF6D</code><mnemonic>call      0x80002480</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C168787_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>535</line><src></src></hll>
+				<hll><line>536</line><src>    ecan_mask = BIT(SAS_01_10ms_POS);</src></hll>
+				<hll><cov>never</cov><line>537</line><src>    SET_DTC(C162387, can_timeout_fault[CHASSIS_0] &amp; ecan_mask);</src></hll>
+				<asm><cov>never</cov><addr>P:8000318E</addr><code>FF54</code><mnemonic>ld16.w    d15,[a15]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003190</addr><code>0020007B</code><mnemonic>movh      d0,#0x200</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003194</addr><code>FFACFF61</code><mnemonic>fcall     0x800030EC</mnemonic><comment>.cocofun_30</comment></asm>
+				<asm><cov>never</cov><addr>P:80003198</addr><code>F970FF6D</code><mnemonic>call      0x80002478</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C162387_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>538</line><src></src></hll>
+				<hll><line>539</line><src>    ecan_mask = BIT(ICU_02_200ms_POS) | BIT(ICU_04_200ms_POS) | BIT(ICU_06_200ms_POS) | BIT(ICU_07_200ms_POS);</src></hll>
+				<hll><cov>never</cov><line>540</line><src>    SET_DTC(C181287, can_timeout_fault[CHASSIS_0] &amp; ecan_mask);</src></hll>
+				<asm><cov>never</cov><addr>P:8000319C</addr><code>FF54</code><mnemonic>ld16.w    d15,[a15]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000319E</addr><code>0007807B</code><mnemonic>movh      d0,#0x78</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800031A2</addr><code>FFA5FF61</code><mnemonic>fcall     0x800030EC</mnemonic><comment>.cocofun_30</comment></asm>
+				<asm><cov>never</cov><addr>P:800031A6</addr><code>F8E1FF6D</code><mnemonic>call      0x80002368</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C181287_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>541</line><src></src></hll>
+				<hll><line>542</line><src>    ecan_mask = BIT(HU_MON_PE_01_POS) | BIT(HU_CLU_PE_05_POS) | BIT(HU_GW_PE_01_POS);</src></hll>
+				<hll><cov>never</cov><line>543</line><src>    SET_DTC(C167A87, can_timeout_fault[CHASSIS_0] &amp; ecan_mask);</src></hll>
+				<asm><cov>never</cov><addr>P:800031AA</addr><code>FF54</code><mnemonic>ld16.w    d15,[a15]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800031AC</addr><code>7082</code><mnemonic>mov16     d0,#0x7</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800031AE</addr><code>0000E08F</code><mnemonic>sh        d0,d0,#0x0E</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800031B2</addr><code>FF9DFF61</code><mnemonic>fcall     0x800030EC</mnemonic><comment>.cocofun_30</comment></asm>
+				<asm><cov>never</cov><addr>P:800031B6</addr><code>F951FF6D</code><mnemonic>call      0x80002458</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C167A87_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>544</line><src></src></hll>
+				<hll><line>545</line><src>    ecan_mask = BIT(MFSW_01_200ms_POS);</src></hll>
+				<hll><cov>never</cov><line>546</line><src>    SET_DTC(C185087, can_timeout_fault[CHASSIS_0] &amp; ecan_mask);</src></hll>
+				<asm><cov>never</cov><addr>P:800031BA</addr><code>FF54</code><mnemonic>ld16.w    d15,[a15]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800031BC</addr><code>0010007B</code><mnemonic>movh      d0,#0x100</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800031C0</addr><code>FF96FF61</code><mnemonic>fcall     0x800030EC</mnemonic><comment>.cocofun_30</comment></asm>
+				<asm><cov>never</cov><addr>P:800031C4</addr><code>F9F6FF6D</code><mnemonic>call      0x800025B0</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C185087_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>547</line><src></src></hll>
+				<hll><line>548</line><src>    ecan_mask = BIT(YRS_01_10ms_POS);</src></hll>
+				<hll><cov>never</cov><line>549</line><src>    SET_DTC(C166987, can_timeout_fault[CHASSIS_0] &amp; ecan_mask);</src></hll>
+				<asm><cov>never</cov><addr>P:800031C8</addr><code>FF54</code><mnemonic>ld16.w    d15,[a15]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800031CA</addr><code>0400007B</code><mnemonic>movh      d0,#0x4000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800031CE</addr><code>FF8FFF61</code><mnemonic>fcall     0x800030EC</mnemonic><comment>.cocofun_30</comment></asm>
+				<asm><cov>never</cov><addr>P:800031D2</addr><code>F913FF6D</code><mnemonic>call      0x800023F8</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C166987_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>550</line><src></src></hll>
+				<hll><line>551</line><src>    ecan_mask = BIT(SWRC_03_20ms_POS);</src></hll>
+				<hll><cov>never</cov><line>552</line><src>    SET_DTC(C28AC87, can_timeout_fault[CHASSIS_0] &amp; ecan_mask);</src></hll>
+				<asm><cov>never</cov><addr>P:800031D6</addr><code>FF54</code><mnemonic>ld16.w    d15,[a15]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800031D8</addr><code>0100007B</code><mnemonic>movh      d0,#0x1000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800031DC</addr><code>FF88FF61</code><mnemonic>fcall     0x800030EC</mnemonic><comment>.cocofun_30</comment></asm>
+				<asm><cov>never</cov><addr>P:800031E0</addr><code>F8CCFF6D</code><mnemonic>call      0x80002378</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C28AC87_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>553</line><src></src></hll>
+				<hll><line>554</line><src>    ecan_mask = BIT(ICSC_02_100ms_POS);</src></hll>
+				<hll><cov>never</cov><line>555</line><src>    SET_DTC(C186687, can_timeout_fault[CHASSIS_0] &amp; ecan_mask);</src></hll>
+				<asm><cov>never</cov><addr>P:800031E4</addr><code>FF54</code><mnemonic>ld16.w    d15,[a15]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800031E6</addr><code>0000407B</code><mnemonic>movh      d0,#0x4</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800031EA</addr><code>FF81FF61</code><mnemonic>fcall     0x800030EC</mnemonic><comment>.cocofun_30</comment></asm>
+				<asm><cov>never</cov><addr>P:800031EE</addr><code>F8D5FF6D</code><mnemonic>call      0x80002398</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C186687_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>556</line><src></src></hll>
+				<hll><line>557</line><src>    ecan_mask = BIT(HU_NAVI_V2_POS_PE_POS);</src></hll>
+				<hll><cov>never</cov><line>558</line><src>    SET_DTC(C186387, can_timeout_fault[CHASSIS_0] &amp; ecan_mask);</src></hll>
+				<asm><cov>never</cov><addr>P:800031F2</addr><code>FF54</code><mnemonic>ld16.w    d15,[a15]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800031F4</addr><code>0000207B</code><mnemonic>movh      d0,#0x2</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800031F8</addr><code>FF7AFF61</code><mnemonic>fcall     0x800030EC</mnemonic><comment>.cocofun_30</comment></asm>
+				<asm><cov>never</cov><addr>P:800031FC</addr><code>F8BAFF6D</code><mnemonic>call      0x80002370</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C186387_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>559</line><src></src></hll>
+				<hll><line>560</line><src>    ecan_mask = BIT(BCM_02_200ms_POS) | BIT(BCM_10_200ms_POS);</src></hll>
+				<hll><cov>never</cov><line>561</line><src>    SET_DTC(C225387, can_timeout_fault[CHASSIS_0] &amp; ecan_mask);</src></hll>
+				<asm><cov>never</cov><addr>P:80003200</addr><code>FF54</code><mnemonic>ld16.w    d15,[a15]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003202</addr><code>0616</code><mnemonic>and16     d15,#0x6</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003204</addr><code>42200F8B</code><mnemonic>ne        d4,d15,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003208</addr><code>F8CCFF6D</code><mnemonic>call      0x800023A0</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C225387_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>562</line><src></src></hll>
+				<hll><line>563</line><src>    ecan_mask = BIT(SBCM_AST_03_200ms_POS);</src></hll>
+				<hll><cov>never</cov><line>564</line><src>    SET_DTC(C185287, can_timeout_fault[CHASSIS_0] &amp; ecan_mask);</src></hll>
+				<asm><cov>never</cov><addr>P:8000320C</addr><code>FF54</code><mnemonic>ld16.w    d15,[a15]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000320E</addr><code>0040007B</code><mnemonic>movh      d0,#0x400</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003212</addr><code>FF6DFF61</code><mnemonic>fcall     0x800030EC</mnemonic><comment>.cocofun_30</comment></asm>
+				<asm><cov>never</cov><addr>P:80003216</addr><code>F9A1FF6D</code><mnemonic>call      0x80002558</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C185287_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>565</line><src></src></hll>
+				<hll><line>566</line><src>    ecan_mask = BIT(SBCM_DRV_02_200ms_POS);</src></hll>
+				<hll><cov>never</cov><line>567</line><src>    SET_DTC(C185187, can_timeout_fault[CHASSIS_0] &amp; ecan_mask); </src></hll>
+				<asm><cov>never</cov><addr>P:8000321A</addr><code>FF54</code><mnemonic>ld16.w    d15,[a15]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000321C</addr><code>0080007B</code><mnemonic>movh      d0,#0x800</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003220</addr><code>FF66FF61</code><mnemonic>fcall     0x800030EC</mnemonic><comment>.cocofun_30</comment></asm>
+				<asm><cov>never</cov><addr>P:80003224</addr><code>F986FF6D</code><mnemonic>call      0x80002530</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C185187_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><line>568</line><src></src></hll>
+				<hll><line>569</line><src>#elif CCAN == HSCAN</src></hll>
+				<hll><line>570</line><src>    ecan_mask = BIT(CLU11_POS) | BIT(CLU13_POS);</src></hll>
+				<hll><line>571</line><src>    SET_DTC(C162887, can_timeout_fault[CHASSIS_0] &amp; ecan_mask);</src></hll>
+				<hll><line>572</line><src></src></hll>
+				<hll><line>573</line><src>    ecan_mask = BIT(TCS11_POS) | BIT(TCS13_POS) | BIT(ESP12_POS) | BIT(VSM11_POS) | BIT(WHL_SPD11_POS);</src></hll>
+				<hll><line>574</line><src>    SET_DTC(C162587, can_timeout_fault[CHASSIS_0] &amp; ecan_mask);</src></hll>
+				<hll><line>575</line><src></src></hll>
+				<hll><line>576</line><src>    ecan_mask = BIT(MDPS11_POS) | BIT(MDPS12_POS);</src></hll>
+				<hll><line>577</line><src>    SET_DTC(C168787, can_timeout_fault[CHASSIS_0] &amp; ecan_mask);</src></hll>
+				<hll><line>578</line><src></src></hll>
+				<hll><line>579</line><src>    ecan_mask = BIT(SAS11_POS);</src></hll>
+				<hll><line>580</line><src>    SET_DTC(C162387, can_timeout_fault[CHASSIS_0] &amp; ecan_mask);</src></hll>
+				<hll><line>581</line><src></src></hll>
+				<hll><line>582</line><src>    ecan_mask = BIT(CGW1_POS) | BIT(CGW2_POS) | BIT(CGW8_POS) | BIT(CGW_PC4_POS) | BIT(CGW_PC5_POS) | BIT(P_STS_POS);</src></hll>
+				<hll><line>583</line><src>    SET_DTC(C181287, can_timeout_fault[CHASSIS_0] &amp; ecan_mask);</src></hll>
+				<hll><line>584</line><src></src></hll>
+				<hll><line>585</line><src>    ecan_mask = BIT(HU_MON_PE_01_POS) | BIT(HU_CLU_PE_05_POS) | BIT(HU_GW_PE_01_POS);</src></hll>
+				<hll><line>586</line><src>    SET_DTC(C167A87, can_timeout_fault[CHASSIS_0] &amp; ecan_mask);</src></hll>
+				<hll><line>587</line><src></src></hll>
+				<hll><line>588</line><src>    ecan_mask = BIT(EMS12_POS) | BIT(EMS16_POS);</src></hll>
+				<hll><line>589</line><src>    SET_DTC(C161187, !!(can_timeout_fault[CHASSIS_0] &amp; ecan_mask) || EMS11_indir.fault || EMS_H12_indir.fault);</src></hll>
+				<hll><line>590</line><src></src></hll>
+				<hll><line>591</line><src>    SET_DTC(C186387, NAVI_V2_POS_indir.fault);</src></hll>
+				<hll><line>592</line><src>    SET_DTC(C161287, TCU11_indir.fault);</src></hll>
+				<hll><line>593</line><src>#endif /* CCAN */</src></hll>
+				<hll><line>594</line><src></src></hll>
+				<hll><line>595</line><src>    /* Local CAN */</src></hll>
+				<hll><cov>never</cov><line>596</line><src>    SET_DTC(C28AA87, can_timeout_fault[A_FR_CMR_0]);</src></hll>
+				<asm><cov>never</cov><addr>P:80003228</addr><code>2F48</code><mnemonic>ld16.w    d15,[a15]0x8</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000322A</addr><code>42200F8B</code><mnemonic>ne        d4,d15,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000322E</addr><code>F931FF6D</code><mnemonic>call      0x80002490</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C28AA87_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>597</line><src>    SET_DTC(C28AB87, !!(can_timeout_fault[A_FR_RDR_0]) || !!(can_timeout_fault[A_FR_RDR_1]));</src></hll>
+				<asm><cov>never</cov><addr>P:80003232</addr><code>3F48</code><mnemonic>ld16.w    d15,[a15]0x0C</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003234</addr><code>03EE</code><mnemonic>jnz16     d15,0x8000323A</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003236</addr><code>4F48</code><mnemonic>ld16.w    d15,[a15]0x10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003238</addr><code>036E</code><mnemonic>jz16      d15,0x8000323E</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000323A</addr><code>1482</code><mnemonic>mov16     d4,#0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000323C</addr><code>023C</code><mnemonic>j16       0x80003240</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000323E</addr><code>0482</code><mnemonic>mov16     d4,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003240</addr><code>F93CFF6D</code><mnemonic>call      0x800024B8</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C28AB87_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_CANTimeout" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_CANTimeout.c">
+				<hll><cov>never</cov><line>598</line><src>    SET_DTC(C188087, !!(can_timeout_fault[A_FR_C_RDR_0]) || !!(can_timeout_fault[A_FR_C_RDR_1]));</src></hll>
+				<asm><cov>never</cov><addr>P:80003244</addr><code>5F48</code><mnemonic>ld16.w    d15,[a15]0x14</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003246</addr><code>03EE</code><mnemonic>jnz16     d15,0x8000324C</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003248</addr><code>6F48</code><mnemonic>ld16.w    d15,[a15]0x18</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000324A</addr><code>036E</code><mnemonic>jz16      d15,0x80003250</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000324C</addr><code>1482</code><mnemonic>mov16     d4,#0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000324E</addr><code>023C</code><mnemonic>j16       0x80003252</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003250</addr><code>0482</code><mnemonic>mov16     d4,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003252</addr><code>F8DBFF1D</code><mnemonic>j         0x80002408</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C188087_SetEventStatus</comment></asm>
+			</mixed>
+		</List.EXPORT>
+	</listing>
+</TRACE32>

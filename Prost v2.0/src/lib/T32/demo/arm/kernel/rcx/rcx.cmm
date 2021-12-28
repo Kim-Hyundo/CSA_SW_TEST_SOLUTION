@@ -1,0 +1,14 @@
+; --------------------------------------------------------------------------------
+; @Title: RCX Demo for TRACE32 OS Awareness
+; @Description: Load rcX awareness and menu
+; @Keywords: awareness, rcx
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: rcx.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+ TASK.CONFIG rcx.t32
+ MENU.ReProgram rcx.men
+
+ENDDO

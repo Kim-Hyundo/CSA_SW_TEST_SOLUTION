@@ -1,0 +1,177 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for CY8C6347BZI-BLD53 CortexM4 with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The Offchip Trace using a Combiprobe/uTrace or PowerTrace is set up.
+;   Use this script for testing the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Combiprobe/uTrace to P6
+;      or
+;      Connect AutoFocus Preprocessor to P6 using adapter LA-3809
+;      and connect DebugCable to Preprocessor
+; @Keywords: ARM, Cortex-M4, ETM, ITM
+; @Author: AME
+; @Board: CY8CKIT-062-BLE, PSoC6 BLE Pioneer Kit
+; @Chip: CY8C6*-BLD* CY8C6*-D*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: psoc6dual-m4_sieve_offchip_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU CY8C6347BZI-BLD53-M4
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+IF FALSE()
+(
+  ; in case we are sure the M4 is already started, connect to it
+  SYStem.Mode.Attach
+  IF STATE.RUN()
+    Break
+)
+ELSE
+(
+  ; kick the M4 core using the M0+
+  SYStem.CPU CY8C6347BZI-BLD53-M0+
+  SYStem.Mode Up
+  ; wait till the M0+ boot completes
+  WAIT 0.5s
+  ; ensure CortexM4 is started
+  ; DO ~~/demo/arm/hardware/psoc/psoc6/scripts/disable_m4
+  DO ~~~~/../../scripts/disable_m4
+  ; set initial SP, initial PC and create a endless loop
+  Data.Set A:0x08010000 %Long 0x08010100 0x08010009 0xE7FEE7FE
+  ; DO ~~/demo/arm/hardware/psoc/psoc6/scripts/enable_m4 "0x08010000"
+  DO ~~~~/../../scripts/enable_m4 "0x08010000"
+
+  SYStem.CPU CY8C6347BZI-BLD53-M4
+  SYStem.Mode.Attach
+  IF STATE.RUN()
+    Break
+)
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace (ETM, ITM)
+IF COMBIPROBE()||UTRACE()||Analyzer()
+(
+  ; set PinMux and enable Clocks
+  ; assign CPUSS_CLOCK_TRACE_IN to clock-divider 1
+  Data.Set AD:0x40010CD8 %Long 0x00000001
+  ; enable clock-divider 1
+  Data.Set AD:0x40010400 %Long 0x8000FF01
+  ; GPIO_PRT7     ((GPIO_PRT_Type*) &GPIO->PRT[7])     0x40320380
+  ; HSIOM_PRT7    ((HSIOM_PRT_Type*) &HSIOM->PRT[7])   0x40310070
+  ; GPIO_PRT9     ((GPIO_PRT_Type*) &GPIO->PRT[7])     0x40320480
+  ; HSIOM_PRT9    ((HSIOM_PRT_Type*) &HSIOM->PRT[9])   0x40310090
+  ; TRACECLK = P7.0 - ACT14, drive strength
+  Data.Set AD:0x403203a8 %Long (Data.Long(AD:0x403203a8)&0xfffffff0)|0x0000000e
+  Data.Set AD:0x40310070 %Long (Data.Long(AD:0x40310070)&0xffffff00)|0x0000001a
+
+  ; TRACEDATA[0] = P7.7 - ACT15, drive strength
+  ; Data.Set AD:0x403203a8 %Long (Data.Long(AD:0x403203a8)&0x0fffffff)|0xe0000000
+  ; Data.Set AD:0x40310074 %Long (Data.Long(AD:0x40310074)&0x00ffffff)|0x1b000000
+  ; TraceDATA[0] = P9.3 - ACT15, drive stength
+  Data.Set AD:0x403204a8 %Long (Data.Long(AD:0x403204a8)&0xffff0fff)|0x0000e000
+  Data.Set AD:0x40310090 %Long (Data.Long(AD:0x40310090)&0x00ffffff)|0x1b000000
+
+  ; TRACEDATA[1] = P7.6 - ACT15, drive strength
+  Data.Set AD:0x403203a8 %Long (Data.Long(AD:0x403203a8)&0xf0ffffff)|0x0e000000
+  Data.Set AD:0x40310074 %Long (Data.Long(AD:0x40310074)&0xff00ffff)|0x001b0000
+  ; TraceDATA[1] = P9.2 - ACT15, drive stength
+  ; Data.Set AD:0x403204a8 %Long (Data.Long(AD:0x403204a8)&0xfffff0ff)|0x00000e00
+  ; Data.Set AD:0x40310090 %Long (Data.Long(AD:0x40310090)&0xff00ffff)|0x001b0000
+
+  ; TRACEDATA[2] = P7.5 - ACT15, drive strength
+  Data.Set AD:0x403203a8 %Long (Data.Long(AD:0x403203a8)&0xff0fffff)|0x00e00000
+  Data.Set AD:0x40310074 %Long (Data.Long(AD:0x40310074)&0xffff00ff)|0x00001b00
+  ; TraceDATA[2] = P9.1 - ACT15, drive stength
+  ; Data.Set AD:0x403204a8 %Long (Data.Long(AD:0x403204a8)&0xffffff0f)|0x000000e0
+  ; Data.Set AD:0x40310090 %Long (Data.Long(AD:0x40310090)&0xffff00ff)|0x00001b00
+
+  ; TRACEDATA[3] = P7.4 - ACT15, drive strength
+  Data.Set AD:0x403203a8 %Long (Data.Long(AD:0x403203a8)&0xfff0ffff)|0x000e0000
+  Data.Set AD:0x40310074 %Long (Data.Long(AD:0x40310074)&0xffffff00)|0x0000001b
+  ; TraceDATA[3] = P9.0 - ACT15, drive stength
+  ; Data.Set AD:0x403204a8 %Long (Data.Long(AD:0x403204a8)&0xfffffff0)|0x0000000e
+  ; Data.Set AD:0x40310090 %Long (Data.Long(AD:0x40310090)&0xffffff00)|0x0000001b
+
+  TPIU.PortSize 4
+  TPIU.PortMode Continuous
+  ITM.DataTrace CorrelatedData
+  ITM.ON
+  ETM.Trace ON
+  ETM.ON
+)
+IF COMBIPROBE()||UTRACE()
+(
+  Trace.METHOD CAnalyzer
+  Trace.AutoInit ON
+  CAnalyzer.AutoFocus
+)
+ELSE IF Analyzer()
+(
+  Trace.METHOD Analyzer
+  Trace.AutoInit ON
+  Trace.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+
+DisableWatchdog: ;()
+(
+  ; Unlock and disable WDT
+  ; SRSS->WDT_CTL = ((SRSS->WDT_CTL & (uint32_t)(~SRSS_WDT_CTL_WDT_LOCK_Msk)) | CY_WDT_LOCK_BIT0);
+  ; SRSS->WDT_CTL = (SRSS->WDT_CTL | CY_WDT_LOCK_BIT1);
+  ; SRSS->WDT_CTL &= (~ (uint32_t) SRSS_WDT_CTL_WDT_EN_Msk);
+
+  Data.Set A:0x40260180 %Long (Data.Long(A:0x40260180)&~0xC0000000)|0x40000000
+  Data.Set A:0x40260180 %Long Data.Long(A:0x40260180)|0x80000000
+  Data.Set A:0x40260180 %Long Data.Long(A:0x40260180)&~0x1
+  RETURN
+)

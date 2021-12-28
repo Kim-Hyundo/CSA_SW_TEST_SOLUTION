@@ -1,0 +1,56 @@
+; --------------------------------------------------------------------------------
+; @Title: Osedelta symbol autoloader script
+; @Description: Autoload script, called by TRACE32 if symbols are to be loaded
+; @Keywords: osedelta
+; @Author: DIE
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: autoload.cmm 1377 2015-06-30 09:27:54Z mobermeir $
+
+
+// define local macros
+ LOCAL &module &type &code &data &space &filename &basename &filepath
+
+// get name and relocation information
+ // these parameters are passed from TRACE32 when calling this skript
+ 
+ ENTRY &module &type &code &data &space
+ 
+ //print "autoload: " &module " " &type " " &code " " &data
+ 
+ // &module:        name of module
+ // &type:          type of file: 1 = load module
+ // &code:          code address
+ // &data:          data address
+ 
+// get filename of module
+&filename=task.lm.filename(&module)
+&basename=STRing.CUT("&filename",-STRing.LENgth(OS.FILE.EXTENSION("&filename")))
+ 
+// delete symbols if they already exist
+ IF sYmbol.EXIST("\\&basename")
+   sYmbol.Delete \\&basename
+
+// search file in source search path and open dialog when not there
+ &filepath=sYmbol.SEARCHFILE("&filename")
+ IF !OS.FILE("&filepath")               // not found
+ (
+   LOCAL &file &spath
+   &file=OS.FILE.NAME("&filename")
+   WinPOS ,,,,,, filebox normal "Searching symbols for &filename"
+   DIALOG.File "*\&file*"
+   ENTRY %LINE &filepath
+   IF "&filepath"==""
+     ENDDO
+   &spath=OS.FILE.PATH("&filepath")
+   sYmbol.SourcePATH.Set &spath
+ )
+
+// load symbol file (options for sourcepath, e.g. /STRIPPART may need to be added when required)
+
+ IF (&type==1)  // load modules
+ (
+   Data.LOAD.Elf "&filepath" /NoCODE /NoClear /reloctype 1 /name &basename
+ )
+ 
+ ENDDO

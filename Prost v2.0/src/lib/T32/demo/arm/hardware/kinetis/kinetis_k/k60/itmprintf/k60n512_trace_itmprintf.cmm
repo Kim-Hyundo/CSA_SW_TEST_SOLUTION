@@ -1,0 +1,164 @@
+; --------------------------------------------------------------------------------
+; @Title: ITM printf trace script for MK60N512VMD10 on TWR-K60N512 board
+; @Description:
+;   This is a very simple demo to show how to extend the TRACE32 tracing
+;   functionality via your own DLL. Printf traces are exported on TPIU.
+; @Keywords: Cortex-M4, DLL, Freescale, ITM, k60, Kinetis, printf, SWD
+; @Author: HDA
+; @Board: TWR-K60N512
+; @Chip: MK60DN512VMD10*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: k60n512_trace_itmprintf.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+  ; basic setup
+  RESet
+  SYStem.RESet
+  SYStem.CPU MK60DN512VMD10
+  SYStem.CONFIG.CONNECTOR MIPI20T
+  SYStem.CONFIG.DEBUGPORTTYPE SWD
+
+  WinCLEAR
+
+  ; Init CombiProbe if available
+  IF CANALYZER()
+  (
+    CAnalyzer.RESet
+    SYStem.CONFIG.CONNECTOR MIPI20T
+    CAnalyzer.THreshold 1.4
+  )
+
+  ; Bring up the system
+  SYStem.Up
+
+  GOSUB disable_watchdog
+  GOSUB pll_setup
+
+  ; Load elf file if requested
+  Data.LOAD.Elf ~~~~/printfk60.elf /RELPATH /PlusVM
+  Go.direct main
+  WAIT !STATE.RUN()
+
+  IF ANALYZER()
+  (
+    GOSUB enable_tpiu
+    Trace.Method Analyzer
+    ETM.PortMode CONTINUOUS
+    ETM.PortSize 4.
+    Analyzer.Init
+    Analyzer.AutoFocus
+  )
+
+  IF CANALYZER()
+  (
+    GOSUB enable_tpiu
+    CAnalyzer.Init
+    Trace.METHOD CAnalyzer
+    ITM.PortSize 4.
+    ITM.PortMode CONTINUOUS
+    CAnalyzer.CLOCKDelay Small
+    CAnalyzer.Init                    ; Resync to TPIU stram
+  )
+
+  ETM.OFF
+  ITM.ON
+
+  ;load custom trace dll
+  IF (OS.VERSION(0)>=0x20)||(OS.VERSION(0)==0x0)
+  (
+    PRINT "Demo unsupported for this OS"
+    ENDDO
+  )
+  ELSE IF OS.VERSION(0)>=0x10
+  (
+    Trace.CustomTraceLoad "printf" dll/viewprintf
+  )
+  ELSE
+  (
+    IF SOFTWARE.64BIT()
+      Trace.CustomTraceLoad "printf" ~~~~/dll/viewprintf64.dll
+    ELSE
+      Trace.CustomTraceLoad "printf" ~~~~/dll/viewprintf32.dll
+  )
+
+  Trace.Mode PIPE
+  Trace.PipePROTO.LOG
+
+  Go.direct
+  ;Trace.CustomTrace.printf.List
+  ENDDO
+
+; --------------------------------------------------------------------------------
+;    Disable Watchdog for K60N512
+; --------------------------------------------------------------------------------
+disable_watchdog:
+  ; Disable watchdog
+  ; The watchdog has a restrictive timing. It has to be configured and unlocked within a peripod
+  ; of 20+256 cycles. Therefor the unlock sequence needs to be done by a small target program.
+  Data.Assemble ST:0x20000000  strh r1,[r0]  ;SD:0x4005200E = 0xC520   (Key 1)
+  Data.Assemble ,              strh r2,[r0]  ;SD:0x4005200E = 0xD928   (Key 2)
+  Data.Assemble ,              strh r4,[r3]  ;SD:0x40052000 = 0x0000   (Config register)
+  Data.Assemble ,              bkpt #0       ;breakpoint, stop
+  Register.Set PC 0x20000000
+  Register.Set R0 0x4005200E
+  Register.Set R1 0xC520
+  Register.Set R2 0xD928
+  Register.Set R3 0x40052000
+  Register.Set R4 0x0000
+  Go.direct
+  WAIT !STATE.RUN()
+  RETURN
+
+; --------------------------------------------------------------------------------
+;    Enable Trace Pins for MK60N512
+; --------------------------------------------------------------------------------
+enable_tpiu:
+  ; Enable Trace Pins
+  Data.Set SD:0x40048038 %Long 0x0000FFFF                        ; PORTA_CLK
+  Data.Set SD:0x40048004 %Long 0x00001000                        ; TRACE_CLK
+  Data.Set SD:0x40049018 %Long 0x00000740                        ; TRACECLK
+  Data.Set SD:0x4004901C %Long 0x00000740                        ; TRACED3
+  Data.Set SD:0x40049020 %Long 0x00000740                        ; TRACED2
+  Data.Set SD:0x40049024 %Long 0x00000740                        ; TRACED1
+  Data.Set SD:0x40049028 %Long 0x00000740                        ; TRACED0
+  RETURN
+
+; --------------------------------------------------------------------------------
+;    PLL Setup for MK60N512
+; --------------------------------------------------------------------------------
+pll_setup:
+
+  ; Switches to PLL with 75Mhz, external OSC(50MHz) / 16 * 24 = 75Mhz
+  ; Core Clock    75 Mhz
+  ; Bus/FlexBus  37.5Mhz
+  ; Flash         25 Mhz
+  Data.Set SD:0x40064001 %Byte 0x00          ; MCG_C2: Default, select EXTAL mode (external clock provided)
+  Data.Set SD:0x40064004 %Byte 0x0F          ; MCG_C5: PRDIV = 16
+  Data.Set SD:0x40064005 %Byte 0x00          ; MCG_C6: VDIV = /24
+  Data.Set SD:0x40048044 %Long 0x01120000    ; SIM: CLKDIV1 Core = /1, Bus = /2, FlexBus = /2, FlashClock = /3
+
+  Data.Set SD:0x40064000 %Byte 0x84          ; MCG_C1: Switch to external clock
+  Data.Set SD:0x40064004 %Byte 0x4F          ; Engage PLL.
+  ; Wait for Lock of PLL
+  LOCAL &h
+  &h=0
+  WHILE ((&h)&0x40)==0
+  (
+    &h=Data.Byte(sd:0x40064006)
+  )
+  Data.Set SD:0x40064005 %Byte 0x40          ; MCG_C6: Feed PLL to clock selector
+  ; Wait until PLL is feed to clock selector
+  &h=0
+  WHILE ((&h)&0x20)==0
+  (
+    &h=Data.Byte(sd:0x40064006)
+  )
+  Data.Set SD:0x40064000 %Byte 0x04          ; MCG_C1: Switch to PLL clock
+  ; Wait until PLL is feed to clock selector
+  &h=0
+  WHILE ((&h)&0x0C)!=0x0C
+  (
+    &h=Data.Byte(sd:0x40064006)
+  )
+  RETURN

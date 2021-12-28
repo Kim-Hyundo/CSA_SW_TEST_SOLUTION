@@ -1,0 +1,58 @@
+; --------------------------------------------------------------------------------
+; @Title: PTM Trace demo start-up script for PandaBoard
+; @Description:
+;  This script start the OMAP4430APP1 and loads a demo, if an off-chip trace port
+;  analyzer (preprocessor) is connected it will capture 16-bit wide program trace
+; @Author: PEG
+; @Keywords: PandaBoard OMAP4430 STM AutoFocus Analyzer trace
+; @Board: PandaBoard
+; @Chip: OMAP4430
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo_ptm.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; connect debugger with first Cortex-A9
+  RESet
+  SYStem.CPU OMAP4430APP1
+  SYStem.Up
+
+; load demo program to SAR-RAM
+  Data.LOAD.Elf ~~~~/demo.axf
+  Register.Set PC main
+  Register.Set CPSR 0x1d3
+  Register.Set R13 0x4a327000
+
+; off-chip trace port analyzer (preprocessor) is connected to capture 16-bit wide program trace
+IF Analyzer()
+(
+; configure PAD: EMU[2:19] for 16-bit TPIU (PADx_DPM_EMUx)
+  Data.Set 0x4A1001B0 %Long Data.Long(SD:0x4A1001B0)&0x0000FFFF
+  Data.Set 0x4A1001B4 %Long 0
+  Data.Set 0x4A1001B8 %Long 0
+  Data.Set 0x4A1001BC %Long 0
+  Data.Set 0x4A1001C0 %Long 0
+  Data.Set 0x4A1001C4 %Long 0
+  Data.Set 0x4A1001C8 %Long 0
+  Data.Set 0x4A1001CC %Long 0
+  Data.Set 0x4A1001D0 %Long 0
+  Data.Set 0x4A1001d4 %Long 0
+
+; initialize trace tool for 16-bit program trace
+  ETM.PortSize 16a
+  Analyzer.AutoFocus
+
+; open some windows
+  WinCLEAR
+  WinPOS 0% 0% 100% 50%
+  List.auto
+  WinPOS 0% 50% 50% 50%
+  Register.view /SpotLight
+  WinPOS 50% 50% 50% 50%
+  Analyzer.List
+)
+ELSE
+(
+	PRINT "Hardware not supported"
+)
+
+ENDDO

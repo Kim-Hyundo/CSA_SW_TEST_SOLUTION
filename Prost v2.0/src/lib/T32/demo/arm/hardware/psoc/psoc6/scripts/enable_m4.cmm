@@ -1,0 +1,29 @@
+; --------------------------------------------------------------------------------
+; @Title: Enable the M4 on PSOC6
+; @Description:
+;   Enable the M4 on PSOC6
+; @Keywords: ARM
+; @Author: AME
+; @Board: -
+; @Chip: CY8C6*-BLD* CY8C6*-D*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: enable_m4.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+PARAMETERS &param
+
+GOSUB EnableM4 "&param"
+
+ENDDO
+
+EnableM4:
+(
+  PARAMETERS &vtorBase
+  &CPUSS=0x40210000
+  &CM4_PWR_CTL=0x80
+  &CM4_VECTOR_TABLE=0x2C0
+  Data.Set EAHB:&CPUSS+&CM4_VECTOR_TABLE %Long &vtorBase
+  Data.Set EAHB:&CPUSS+&CM4_PWR_CTL %Long 0x05fa0003
+  RETURN
+)
+

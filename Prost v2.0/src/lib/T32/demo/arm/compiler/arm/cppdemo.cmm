@@ -1,0 +1,144 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple C++ Demo compiled with ARM RealView Compiler
+; @Description:
+;   Simple C++ Demo compiled with ARM RealView compiler
+;   for ARM7, ARM9, ARM10, ARM11 and Cortex-A/R cores.
+;   This demo cannot be used for Cortex-M cores.
+;
+;   Supported Targets:
+;       OMAP4430 PandaBoard
+;       ARM922T Excalibur (EPXA10)
+;       TRACE32 Instruction Set Simulator
+;
+; @Board: OMAP4430 PandaBoard; EPXA10 Excalibur; TRACE32 Simulator
+; @Chip: EPXA1, EPXA10, OMAP4430
+; @Author: STK
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: cppdemo.cmm 15271 2019-11-13 12:30:49Z bschroefel $
+
+
+WinCLEAR
+AREA.CLEAR
+SYStem.RESet
+Break.RESet
+FramePOS ,,,,Maximized
+
+SYStem.CPU ARM7TDMI
+SYStem.Option BigEndian off
+SYStem.Option IMASKASM ON
+SYStem.Option IMASKHLL ON
+SYStem.JtagClock CTCK 1MHz
+
+local &device
+SYStem.DETECT IDCode
+&device=idcode(0)&0x0fffffff;
+
+if &device==0x0B95C02F
+(
+	// TI PandaBoard : http://en.wikipedia.org/wiki/PandaBoard
+
+	local &CONTROL_ID_CODE &EmifBase &cs
+
+	SYStem.CPU OMAP4430APP1
+	SYStem.JtagClock CTCK 20.MHz
+	SYStem.CONFIG CTIBASE 0xd4148000
+	SYStem.Option ResBreak ON
+	SYStem.Mode Up
+
+	&CONTROL_ID_CODE=data.long(ASD:0x4A002204)
+	print "OMAP Control ID: 0x" format.hex(8,&CONTROL_ID_CODE);
+
+	if &CONTROL_ID_CODE!=0x3B95C02F
+	(
+		print %error "ERROR ! This is not a PandaBoard"
+		ENDDO
+	)
+
+	Data.Set c15:1 %Long data.long(c15:1)&~1 ;disable MMU
+
+	// Configure the MMU to map 46KiB of SRAM at physical address 0x40300000 to virtual address 0x0000--0xB7ff
+	Data.Set c15:1 %Long data.long(c15:1)&~1 ;disable MMU
+	Data.Set SD:0x40300000++0x3fff %Long 0   ;clear 16KiB Translation Table
+	Data.Set SD:0x40300000 %Long 0x4A327011  ;create level one entry, which points to Coarse Page Table
+	Data.Set SD:0x4A327000++0x03ff %Long 0   ;clear 1KiB Coarse Page Table in SAR_RAM 2
+	&i=0
+	while &i<10.                             ;creating Small Page entries in Coarse Page Table
+	(                                        ;mapping upper 40KiB of OCM_RAM to address 0x0000
+		Data.Set SD:0x4A327000+(&i*4) %Long 0x40304002+(&i*0x1000)
+		&i=&i+1
+	)
+	Data.Set SD:0x4A327028 %Long 0x4A326002  ;mapping SAR_RAM 1 to address 0xA000
+	Data.Set SD:0x4A32702C %Long 0x4A328002  ;mapping SAR_RAM 3 to address 0xB000
+	Data.Set c15:0x0002 %Long 0x40300000     ;set Translation Table Base register 0
+	Data.Set c15:0x0102 %Long 0x40300000     ;set Translation Table Base register 1
+	Data.Set c15:0x0003 %Long 0x00000003     ;set domain 0 access to Manager
+	Data.Set c15:0x0001 %Long 0x00000079     ;enable MMU
+)
+else if &device==0x049220DD
+(
+	 // Altera Excalibur : http://www.altera.com/products/devices/excalibur
+
+	local &EXC_REGISTERS_BASE &exc_id
+	&EXC_REGISTERS_BASE=0x7fffc000
+
+	SYStem.CPU EPXA
+	SYStem.JtagClock CTCK 10.MHz
+	SYStem.Mode Up
+
+	&exc_id=data.long(D:(&EXC_REGISTERS_BASE+0x8)) ; read Excalibur-ID
+	print "Excalibur ID: " &exc_id
+
+	if &exc_id!=0x090010DD
+	(
+		print %ERROR "ERROR ! This is not an EPXA10 target board"
+		ENDDO
+	)
+	print "Detected EPXA10"
+
+	; Turn off all memories except the SRAM
+	Data.Set (&EXC_REGISTERS_BASE+0x0) %Long 0x00000001	; Turn off default boot mapping
+	&addr=(&EXC_REGISTERS_BASE+0xA0)
+	while &addr<=(&EXC_REGISTERS_BASE+0xDC)
+	(
+		Data.Set &addr %Long 0
+		&addr=&addr+4
+	)
+
+	Data.Set (&EXC_REGISTERS_BASE+0x90) %Long 0x00020803 ; Map SRAM0 to Address 0x0000 with a size of 128KB
+	Data.Set (&EXC_REGISTERS_BASE+0x94) %Long 0x00000803 ; Map SRAM1 to Address 0x0000 with a size of 128KB
+)
+else
+(
+	SYStem.Mode Up
+)
+
+; Download the code
+Register.Reset
+Register.Set CPSR 0x0013
+Data.Set 0x00--0x3ff %long 0xeafffffe
+
+Data.LOAD.Elf "~~~~/cppdemo.axf"
+Data.LOAD.Elf "~~~~/cppdemo.axf" /diff
+if found()
+(
+	area
+	print %ERROR "ERROR ! Failed to download the code of the example. Please check the memory settings of your target."
+	Data.LOAD.Elf "~~~~/cppdemo.axf" /compare
+	ENDDO
+)
+
+Mode.Hll
+
+Go main
+
+; Open some windows
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch %SpotLight flags ast
+
+ENDDO
+

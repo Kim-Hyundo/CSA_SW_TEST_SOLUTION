@@ -1,0 +1,10 @@
+//CAN Timeout 회복조건 확인
+B::
+//&para3 : 10ms -> 1cycle
+ENTRY &para1 &para2 &para3
+
+//ALL messages set Fault
+d.set Var.RANGE(can_timeout_fault) 0xFF
+
+v msg_received_flags[&para1]|=msg_received_flags[&para1]|(1<<&para2)
+ENDDO

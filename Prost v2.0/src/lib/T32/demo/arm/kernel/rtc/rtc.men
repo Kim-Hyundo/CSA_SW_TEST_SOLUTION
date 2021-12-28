@@ -1,0 +1,86 @@
+; --------------------------------------------------------------------------------
+; @Title: OSE specific menu
+; @Description: -
+; @Author: DIE
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: rtc.men 7320 2014-07-03 08:57:49Z kjmal $
+
+; OSE specific menu
+
+add
+menu
+(
+  popup "RTC"
+  (
+    default
+    menuitem "&Task"      "TASK.TASK"
+    menuitem "&Mailbox"   "TASK.MBX"
+    menuitem "&Semaphore" "TASK.SEM"
+    menuitem "&Delay"     "TASK.DLY"
+    separator
+    popup "&Stack Coverage"
+    (
+      menuitem "&List Stacks"    "TASK.STacK.view"
+      menuitem "Add Task"        "TASK.STK.ADD"
+      menuitem "Remove Task"     "TASK.STK.RM"
+      menuitem "&Reset Coverage" "TASK.STK.RES"
+    )
+  )
+  popup "Trace"
+  (
+    popup "List"
+    (
+      separator
+      menuitem "&Task Switches"     "Trace.List list.task"
+      menuitem "&Default and Tasks" "Trace.List list.task def"
+    )
+  )
+  popup "Perf"
+  (
+    separator
+    popup "&Task Runtime"
+    (
+        menuitem "&Prepare"
+	(
+          a.rp
+          (
+            s.e if alphab:a:write
+          )
+	  b.d /a
+	  b.s task.config(magic)++3 /a
+	)
+        menuitem "Show &Numerical" "Trace.STATistic.TASK"
+        menuitem "Show as &Timing" "Trace.CHART.TASK"
+    )
+    popup "Task &Function Runtime"
+    (
+        menuitem "&Prepare"            "DO men_ptfp.cmm"
+        menuitem "Show &Numerical"     "Trace.STATistic.TASKFUNC"
+        menuitem "Show as &Tree"       "Trace.STATistic.TASKTREE"
+        menuitem "Show &Detailed Tree" "Trace.STATistic.TASKTREE ALL"
+        menuitem "Show as &Timing"     "Trace.CHART.TASKFUNC"
+        menuitem "Show N&esting"       "Trace.List l.task FUNC TI.FUNC"
+    )
+    popup "Task &State"
+    (
+        menuitem "&Prepare"
+	(
+          a.rp
+          (
+            s.e if alphab:a:write
+          )
+	  b.d /a
+	  b.s task.config(magic)++3 /a
+	  task.taskstate
+	)
+        menuitem "Show &Numerical" "Trace.STATistic.TASKSTATE"
+        menuitem "Show as &Timing" "Trace.CHART.TASKSTATE"
+    )
+  )
+  popup "&Help"
+  (
+    menuitem "RTC Manual" "HELP __RTOS_RTC_"
+  )
+)
+

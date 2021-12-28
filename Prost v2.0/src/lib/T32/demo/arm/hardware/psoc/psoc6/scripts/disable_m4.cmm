@@ -1,0 +1,23 @@
+; --------------------------------------------------------------------------------
+; @Title: Disable the M4 on PSOC6
+; @Description:
+;   Disable the M4 on PSOC6
+; @Keywords: ARM
+; @Author: AME
+; @Board: -
+; @Chip: CY8C6*-BLD* CY8C6*-D*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: disable_m4.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+GOSUB DisableM4
+
+ENDDO
+
+DisableM4:
+(
+  &CPUSS=0x40210000
+  &CM4_PWR_CTL=0x80
+  Data.Set EAHB:&CPUSS+&CM4_PWR_CTL %Long 0x05fa0000
+  RETURN
+)

@@ -1,0 +1,424 @@
+; --------------------------------------------------------------------------------
+; @Title: Zephyr specific menu
+; @Description: -
+; @Author: DIE
+; @Copyright: (c) 1989-2016 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: zephyr.men 3620 2018-09-04 14:23:50Z rweiss $
+
+add
+menu
+(
+  popup "&Zephyr"
+  (
+    default
+    menuitem "Display &Contexts"    "TASK.Context"
+    popup "&Nanokernel"
+    (
+      menuitem "Display &Fibers"    "TASK.Fiber"
+      menuitem "Display &Semaphore"
+      (
+        dialog
+        (
+          header "Display Semaphore"
+          pos 0. 0. 22. 3.
+          box "nano_sem variable:"
+          pos 1. 1. 20. 1.
+semname:  defedit "" ""
+          pos 3. 3. 7.
+          defbutton "Ok"
+          (
+            local &semname
+            &semname=dialog.string(semname)
+            TASK.NanoSem "&semname"
+            dialog.end
+          )
+          pos 12. 3. 7.
+          button "Cancel"
+          (
+            dialog.end
+          )
+        )
+      )
+      menuitem "Display &Fifos"
+      (
+        dialog
+        (
+          header "Display Fifo"
+          pos 0. 0. 22. 3.
+          box "nano_fifo variable:"
+          pos 1. 1. 20. 1.
+fifoname: defedit "" ""
+          pos 3. 3. 7.
+          defbutton "Ok"
+          (
+            local &fifoname
+            &fifoname=dialog.string(fifoname)
+            TASK.NanoFifo "&fifoname"
+            dialog.end
+          )
+          pos 12. 3. 7.
+          button "Cancel"
+          (
+            dialog.end
+          )
+        )
+      )
+      menuitem "Display &Lifos"
+      (
+        dialog
+        (
+          header "Display Lifo"
+          pos 0. 0. 22. 3.
+          box "nano_lifo variable:"
+          pos 1. 1. 20. 1.
+lifoname: defedit "" ""
+          pos 3. 3. 7.
+          defbutton "Ok"
+          (
+            local &lifoname
+            &lifoname=dialog.string(lifoname)
+            TASK.NanoLifo "&lifoname"
+            dialog.end
+          )
+          pos 12. 3. 7.
+          button "Cancel"
+          (
+            dialog.end
+          )
+        )
+      )
+      menuitem "Display &Stacks"
+      (
+        dialog
+        (
+          header "Display Stack"
+          pos 0. 0. 22. 3.
+          box "nano_stack variable:"
+          pos 1. 1. 20. 1.
+stkname:  defedit "" ""
+          pos 3. 3. 7.
+          defbutton "Ok"
+          (
+            local &stkname
+            &stkname=dialog.string(stkname)
+            TASK.NanoSTacK "&stkname"
+            dialog.end
+          )
+          pos 12. 3. 7.
+          button "Cancel"
+          (
+            dialog.end
+          )
+        )
+      )
+    )
+    popup "&Microkernel"
+    (
+      menuitem "Display &Tasks"         "TASK.Task"
+      menuitem "Display &Fifos"         "TASK.Fifo"
+      menuitem "Display &Mailboxes"     "TASK.MailBoX"
+      menuitem "Display &Semaphores"    "TASK.Semaphore"
+      menuitem "Display &Events"        "TASK.Event"
+      menuitem "Display &Mutexes"       "TASK.MuTeX"
+      menuitem "Display &Memory Maps"   "TASK.Map"
+      menuitem "Display &Memory Pools"  "TASK.Pool"
+      menuitem "Display &Timers"        "TASK.TIMer"
+      menuitem "Display &Pipes"         "TASK.PIPE"
+    )
+    separator
+    popup "&Stack Coverage"
+    (
+      menuitem "&List Stacks"    "TASK.STacK.view"
+      menuitem "Add Task"        "TASK.STacK.ADD"
+      menuitem "Remove Task"     "TASK.STacK.RM"
+      enable ice()||fire()
+      menuitem "Reset Coverage"
+      (
+        if icd()||simulator()
+        (
+          dialog.yesno "Overwrite unused stack space" "with stack fill pattern?"
+          entry &yes
+          if !&yes
+            enddo
+        )
+        TASK.STacK.Init
+      )
+    )
+  )
+  popup "Trace"
+  (
+    popup "[:alist]List"
+    (
+      separator
+      menuitem "&Task Switches"     "Trace.List List.TASK"
+      menuitem "&Default and Tasks" "Trace.List List.TASK DEFault"
+    )
+  )
+  popup "Perf"
+  (
+    separator
+    popup "&Task Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+        )
+        if ice()&&!trace.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak&&Write
+          )
+          Break.Delete /Alpha
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+        )
+        if fire()&&!trace.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak
+          )
+          Break.Delete /Alpha
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha /Write
+        )
+        if trace.flow()
+        (
+          Break.Delete /TraceEnable
+          Break.Set task.config(magic) /Write /TraceEnable
+        )
+        Trace.Init
+      )
+      menuitem "[:perf]Show &Numerical"   "Trace.STATistic.TASK"
+      menuitem "[:achart]Show as &Timing" "Trace.CHART.TASK"
+      menuitem "[:achart]Tracking with Trace &List"
+      (
+        Trace.List List.TASK DEFault /Track
+        Trace.CHART.TASK /Track
+      )
+    )
+    popup "Task &Function Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+          Analyzer.STATistic.PreFetch on
+        )
+        if ice()&&!trace.flow()
+        (
+          if a.config.hac()
+          (
+            Analyzer.ReProgram
+            (
+              Sample.Enable if AlphaBreak
+              Sample.Enable if BetaBreak
+              Mark.A        if AlphaBreak
+              Mark.B        if BetaBreak
+            )
+          )
+          else
+          (
+            Analyzer.ReProgram
+            (
+              Sample.Enable if AlphaBreak||BetaBreak
+              Mark.A if AlphaBreak
+              Mark.B if BetaBreak
+              Mark.C if CharlyBreak
+            )
+          )
+          Break.Delete /Alpha /Beta /Charly
+          Break.SetFunc
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+        )
+        if fire()&&!trace.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak||BetaBreak||CharlyBreak
+            Mark.A if AlphaBreak
+            Mark.B if BetaBreak
+            Mark.C if CharlyBreak
+          )
+          Break.Delete /Alpha /Beta /Charly
+          Break.SetFunc
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha /Write
+        )
+        if trace.flow()
+        (
+          Break.Delete /TraceData
+          Break.Set task.config(magic) /Write /TraceData
+        )
+        Trace.Init
+      )
+      menuitem "[:perf]Show &Numerical"     "Trace.STATistic.TASKFUNC"
+      menuitem "[:perf]Show as &Tree"       "Trace.STATistic.TASKTREE"
+      menuitem "[:perf]Show &Detailed Tree" "Trace.STATistic.TASKTREE ALL"
+      menuitem "[:achart]Show as &Timing"   "Trace.CHART.TASKFUNC"
+      menuitem "[:alist]Show N&esting"      "Trace.List List.TASK FUNC TI.FUNC"
+    )
+    popup "Task &Status"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+        )
+        if ice()&&!trace.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak&&Write
+          )
+          Break.Delete /Alpha
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+          TASK.TASKState
+        )
+        if fire()&&!trace.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak
+          )
+          Break.Delete /Alpha
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha /Write
+          TASK.TASKState
+        )
+      )
+      menuitem "[:perf]Show &Numerical"   "Trace.STATistic.TASKSTATE"
+      menuitem "[:achart]Show as &Timing" "Trace.CHART.TASKSTATE"
+      menuitem "[:achart]Tracking with Trace &List"
+      (
+        Trace.List List.TASK DEFault /Track
+        Trace.CHART.TASKSTATE /Track
+      )
+    )
+  )
+  popup "&Help"
+  (
+    MENUITEM "[:manual]OS Awareness Manual Zephyr" "HELP __RTOS_ZEPHYR_"
+  )
+)
+
+
+menu "task.c"
+(
+  default
+  ;menuitem "Display detailed"
+  ;(
+  ;  &address=address.offset(track.address())
+  ;  TASK.Context &address
+  ;)
+  menuitem "Display context struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %Open (struct tcs*)&address
+  )
+  separator
+  menuitem "Dump context entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /Long /Dialog
+  )
+)
+
+
+menu "task.f"
+(
+  default
+  ;menuitem "Display detailed"
+  ;(
+  ;  &address=address.offset(track.address())
+  ;  TASK.Fiber &address
+  ;)
+  menuitem "Display fiber struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %Open (struct tcs*)&address
+  )
+  separator
+  menuitem "Display Stack Frame"
+  (
+    &address=address.offset(track.address())
+    Var.Frame /Locals /Caller /Task &address
+  )
+  menuitem "Display Registers"
+  (
+    &address=address.offset(track.address())
+    Register /Task &address
+  )
+  menuitem "Switch Context"       "Register.TASK address.offset(track.address())"
+  separator
+  menuitem "Add to Stack Cov"  "TASK.STK.ADD address.offset(track.address())"
+  menuitem "Rm from Stack Cov" "TASK.STK.RM  address.offset(track.address())"
+  separator
+  menuitem "Dump fiber entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+
+menu "task.t"
+(
+  default
+  ;menuitem "Display detailed"
+  ;(
+  ;  &address=address.offset(track.address())
+  ;  TASK.Task &address
+  ;)
+  menuitem "Display task struct"
+  (
+    &address=address.offset(track.address())
+    &address=task.struct(&address)
+    Var.View %Open (struct k_task*)&address
+  )
+  separator
+  menuitem "Display Stack Frame"
+  (
+    &address=address.offset(track.address())
+    Var.Frame /Locals /Caller /Task &address
+  )
+  menuitem "Display Registers"
+  (
+    &address=address.offset(track.address())
+    Register /Task &address
+  )
+  menuitem "Switch Context"       "Register.TASK address.offset(track.address())"
+  separator
+  menuitem "Add to Stack Cov"  "TASK.STK.ADD address.offset(track.address())"
+  menuitem "Rm from Stack Cov" "TASK.STK.RM  address.offset(track.address())"
+  separator
+  menuitem "Dump task entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+
+menu "task.dtim"
+(
+  default
+  menuitem "Display detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.DTIMer &address
+  )
+  menuitem "Display timer struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %m %s (struct timer*)&address
+  )
+  separator
+  menuitem "Dump timer entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)

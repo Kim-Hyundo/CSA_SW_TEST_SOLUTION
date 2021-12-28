@@ -1,0 +1,111 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC1766ED on TriBoard TC1766 (Flash)
+; @Description:
+;   Initializes the TriCore and loads the Sieve-Demo into memory.
+; @Keywords: Flash, Infineon, TriCore
+; @Author: MAX
+; @Board: TriBoard-TC1766
+; @Chip: TC1766ED
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc1766ed_flash.cmm 7659 2014-09-24 08:50:29Z mobermaier $
+
+
+; --------------------------------------------------------------------------------
+; Performed tests:
+; TriBoard TC1766.102A TC1766 EES-AC 2005-01-26 MAX
+; TriBoard TC1766.102A TC1766 EES-BA 2005-01-26 MAX
+;
+; A-steps: Since the watchdog is not suspended in debug mode, do not use a
+; low JTAG clock frequency in case the watchdog is not already disabled by
+; the target program. Otherwise the debugger is possibly to slow to disable
+; the watchdog in time. Minimum JTAG clock depends on the core clock. Default
+; JTAG clock should be fine.
+;
+; TriBoard Bugfix: Triboards-TC1766 older than Revision 300 have two trace
+; signal lines swappend. For OCDS-L2 tracing on these boards, use
+; SYStem.Option TB1766FIX ON.
+;
+; Requirements to use OCDS-1:
+; Set jumper JP501 to 2-3 (= disable on-board wiggler)
+;
+; If onchip flash is not functional: DIP Switch S401 SW5=ON
+;
+; Memory mappings:
+; flash is not declared - see flash.cmm
+; processor internal RAM (LDRAM)      56 KB 0xD0000000--0xD000DFFF
+; processor internal RAM (SPRAM)      16 KB 0xD4000000--0xD4003FFF
+; processor internal program flash   1.5 MB 0xA0000000--0xA0177FFF
+; processor internal data flash       16 KB 0xAFE00000--0xAFE03FFF (Bank 0)
+;                                     16 KB 0xAFE10000--0xAFE13FFF (Bank 1)
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+
+RESet
+WinCLEAR
+SYStem.CPU TC1766ED
+SYStem.Up
+
+Data.Set 0xF0000024 %Long 0x00000008  ; disable watchdog
+
+; --------------------------------------------------------------------------------
+; flash declaration
+FLASH.RESet
+
+; flash declaration for processor internal flash - uncached address segment
+; check chip ID and RT ID for size of last sector
+&chipid=Data.Long(D:0xF0000074)
+&rtid=Data.Long(D:0xF0000078)
+
+; processor internal program flash
+IF &chipid<0x00008B02||(&chipid==0x00008B02&&(&rtid==0x00000000))
+(
+  ; TC1766 revision Ax and BA chips do not support last 32 KB of last sector
+  FLASH.Create 1. 0xA0000000--0xA001FFFF 0x4000  TARGET Long
+  FLASH.Create 2. 0xA0020000--0xA003FFFF 0x20000 TARGET Long
+  FLASH.Create 2. 0xA0040000--0xA007FFFF 0x40000 TARGET Long
+  FLASH.Create 2. 0xA0080000--0xA00FFFFF 0x80000 TARGET Long
+  FLASH.Create 2. 0xA0100000--0xA016FFFF 0x70000 TARGET Long
+  FLASH.Create 2. 0xA0170000--0xA0177FFF 0x8000  NOP    Long
+)
+ELSE
+(
+  FLASH.Create 1. 0xA0000000--0xA001FFFF 0x4000  TARGET Long
+  FLASH.Create 2. 0xA0020000--0xA003FFFF 0x20000 TARGET Long
+  FLASH.Create 2. 0xA0040000--0xA007FFFF 0x40000 TARGET Long
+  FLASH.Create 2. 0xA0080000--0xA00FFFFF 0x80000 TARGET Long
+  FLASH.Create 2. 0xA0100000--0xA0177FFF 0x78000 TARGET Long
+)
+; processor internal data flash
+FLASH.Create 3. 0xAFE00000--0xAFE03FFF 0x4000  TARGET Long
+FLASH.Create 4. 0xAFE10000--0xAFE13FFF 0x4000  TARGET Long
+FLASH.TARGET 0xD4000000 0xD0000000 0x1000 ~~/demo/tricore/flash/long/tc1796.bin
+
+; flash declaration for cached address segments
+FLASH.CreateALIAS 0x80000000--0x8FFFFFFF 0xA0000000
+
+; show flash declaration
+WinPOS 0% 0%
+FLASH.List
+
+; --------------------------------------------------------------------------------
+; example download to processor internal flash
+;
+; FLASH.AUTO is required for flash programming of unsorted files.
+; Each write page can only be written once after it was erased.
+
+DIALOG.YESNO "Program internal flash memory?"
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram ALL /Erase
+  Data.LOAD.auto *
+  FLASH.ReProgram off
+)
+
+; open some window
+WinPOS 0% 50%
+List.auto
+
+ENDDO

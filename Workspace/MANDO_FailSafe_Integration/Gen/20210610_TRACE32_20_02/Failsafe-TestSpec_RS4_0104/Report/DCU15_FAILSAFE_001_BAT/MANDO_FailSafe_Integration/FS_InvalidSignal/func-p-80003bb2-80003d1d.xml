@@ -1,0 +1,860 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="t32transform.xsl"?>
+<TRACE32 file="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Gen\20210610_TRACE32_20_02\Failsafe-TestSpec_RS4_0104\Report\DCU15_FAILSAFE_001_BAT\MANDO_FailSafe_Integration\FS_InvalidSignal\func-p-80003bb2-80003d1d.xml">
+	<coverage>
+		<COVerage.EXPORT.ListLine ts="1623300793" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE" metric="object">
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\Rte_SWC_Diag</tree>
+				<cov>partial</cov>
+				<exec metric="object">50.847%</exec>
+				<branches>-</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>0</never>
+				<bytes>590</bytes>
+				<bytesok>300</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_HWFailure</tree>
+				<cov>partial</cov>
+				<exec metric="object">16.831%</exec>
+				<branches>10.000%</branches>
+				<ok>0</ok>
+				<taken>1</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>202</bytes>
+				<bytesok>34</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\SWC_Failsafe</tree>
+				<cov>partial</cov>
+				<exec metric="object">67.441%</exec>
+				<branches>-</branches>
+				<ok>4</ok>
+				<taken>11</taken>
+				<nottaken>21</nottaken>
+				<bytes>1548</bytes>
+				<bytesok>1044</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80002C38</addrFrom>
+				<addrTo>P:80002DC9</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\FS_BatteryVoltage</tree>
+				<cov>partial</cov>
+				<exec metric="object">83.582%</exec>
+				<branches>68.750%</branches>
+				<ok>12</ok>
+				<taken>3</taken>
+				<nottaken>6</nottaken>
+				<never>3</never>
+				<bytes>402</bytes>
+				<bytesok>336</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_CANBusOff</tree>
+				<cov>partial</cov>
+				<exec metric="object">45.736%</exec>
+				<branches>1.215%</branches>
+				<ok>0</ok>
+				<taken>6</taken>
+				<nottaken>2</nottaken>
+				<never>321</never>
+				<bytes>258</bytes>
+				<bytesok>118</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_CANTimeout</tree>
+				<cov>partial</cov>
+				<exec metric="object">37.582%</exec>
+				<branches>16.413%</branches>
+				<ok>8</ok>
+				<taken>82</taken>
+				<nottaken>10</nottaken>
+				<never>229</never>
+				<bytes>2432</bytes>
+				<bytesok>914</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_InvalidSignal</tree>
+				<cov>partial</cov>
+				<exec metric="object">54.381%</exec>
+				<branches>34.650%</branches>
+				<ok>3</ok>
+				<taken>130</taken>
+				<nottaken>92</nottaken>
+				<never>104</never>
+				<bytes>5866</bytes>
+				<bytesok>3190</bytesok>
+				<function>
+					<addrFrom>P:80003BB2</addrFrom>
+					<addrTo>P:80003D1D</addrTo>
+					<tree uid="p-80003bb2-80003d1d">\\MANDO_FailSafe_Integration\FS_InvalidSignal\FS_SetDiagsta_InvalidSignal</tree>
+					<cov>partial</cov>
+					<exec metric="object">95.604%</exec>
+					<branches>50.000%</branches>
+					<ok>0</ok>
+					<taken>2</taken>
+					<nottaken>2</nottaken>
+					<never>0</never>
+					<bytes>364</bytes>
+					<bytesok>348</bytesok>
+					<line>
+						<addrFrom>P:80003BB2</addrFrom>
+						<addrTo>P:80003BBD</addrTo>
+						<tree>FS_InvalidSignal.c \1607--1614</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>12</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003BBE</addrFrom>
+						<addrTo>P:80003BCD</addrTo>
+						<tree>FS_InvalidSignal.c \1615--1616</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>16</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003BCE</addrFrom>
+						<addrTo>P:80003BDD</addrTo>
+						<tree>FS_InvalidSignal.c \1617--1629</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>16</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003BDE</addrFrom>
+						<addrTo>P:80003BED</addrTo>
+						<tree>FS_InvalidSignal.c \1630--1631</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>16</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003BEE</addrFrom>
+						<addrTo>P:80003BFD</addrTo>
+						<tree>FS_InvalidSignal.c \1632--1633</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>16</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003BFE</addrFrom>
+						<addrTo>P:80003C09</addrTo>
+						<tree>FS_InvalidSignal.c \1634--1634</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>12</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003C0A</addrFrom>
+						<addrTo>P:80003C15</addrTo>
+						<tree>FS_InvalidSignal.c \1635--1635</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>12</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003C16</addrFrom>
+						<addrTo>P:80003C21</addrTo>
+						<tree>FS_InvalidSignal.c \1636--1636</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>12</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003C22</addrFrom>
+						<addrTo>P:80003C2D</addrTo>
+						<tree>FS_InvalidSignal.c \1637--1637</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>12</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003C2E</addrFrom>
+						<addrTo>P:80003C39</addrTo>
+						<tree>FS_InvalidSignal.c \1638--1638</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>12</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003C3A</addrFrom>
+						<addrTo>P:80003C49</addrTo>
+						<tree>FS_InvalidSignal.c \1639--1640</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>16</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003C4A</addrFrom>
+						<addrTo>P:80003C59</addrTo>
+						<tree>FS_InvalidSignal.c \1641--1642</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>16</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003C5A</addrFrom>
+						<addrTo>P:80003C6D</addrTo>
+						<tree>FS_InvalidSignal.c \1643--1643</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>partial</cov>
+						<exec metric="object">60.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>1</nottaken>
+						<never>0</never>
+						<bytes>20</bytes>
+						<bytesok>12</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003C6E</addrFrom>
+						<addrTo>P:80003C7D</addrTo>
+						<tree>FS_InvalidSignal.c \1644--1645</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>16</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003C7E</addrFrom>
+						<addrTo>P:80003C8F</addrTo>
+						<tree>FS_InvalidSignal.c \1646--1647</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>18</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003C90</addrFrom>
+						<addrTo>P:80003C99</addrTo>
+						<tree>FS_InvalidSignal.c \1648--1648</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>10</bytes>
+						<bytesok>10</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003C9A</addrFrom>
+						<addrTo>P:80003CA9</addrTo>
+						<tree>FS_InvalidSignal.c \1649--1650</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>16</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003CAA</addrFrom>
+						<addrTo>P:80003CB9</addrTo>
+						<tree>FS_InvalidSignal.c \1651--1652</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>16</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003CBA</addrFrom>
+						<addrTo>P:80003CC9</addrTo>
+						<tree>FS_InvalidSignal.c \1653--1654</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>16</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003CCA</addrFrom>
+						<addrTo>P:80003CDB</addrTo>
+						<tree>FS_InvalidSignal.c \1655--1678</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>18</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003CDC</addrFrom>
+						<addrTo>P:80003CED</addrTo>
+						<tree>FS_InvalidSignal.c \1679--1679</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>partial</cov>
+						<exec metric="object">55.555%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>1</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>10</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003CEE</addrFrom>
+						<addrTo>P:80003CFD</addrTo>
+						<tree>FS_InvalidSignal.c \1680--1682</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>16</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003CFE</addrFrom>
+						<addrTo>P:80003D0D</addrTo>
+						<tree>FS_InvalidSignal.c \1683--1683</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>16</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003D0E</addrFrom>
+						<addrTo>P:80003D1D</addrTo>
+						<tree>FS_InvalidSignal.c \1684--1684</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>16</bytesok>
+					</line>
+					<total>
+						<cov>partial</cov>
+						<exec metric="object">95.604%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>2</taken>
+						<nottaken>2</nottaken>
+						<never>0</never>
+						<bytes>364</bytes>
+						<bytesok>348</bytesok>
+					</total>
+				</function>
+				<total>
+					<cov>partial</cov>
+					<exec metric="object">95.604%</exec>
+					<branches>50.000%</branches>
+					<ok>0</ok>
+					<taken>2</taken>
+					<nottaken>2</nottaken>
+					<never>0</never>
+					<bytes>364</bytes>
+					<bytesok>348</bytesok>
+				</total>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_SWFailure</tree>
+				<cov>partial</cov>
+				<exec metric="object">36.224%</exec>
+				<branches>1.215%</branches>
+				<ok>0</ok>
+				<taken>7</taken>
+				<nottaken>1</nottaken>
+				<never>321</never>
+				<bytes>392</bytes>
+				<bytesok>142</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>5</never>
+				<bytes>806</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80005B2A</addrFrom>
+				<addrTo>P:80005CBB</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc1</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>402</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80005CBC</addrFrom>
+				<addrTo>P:80005E4D</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc2</tree>
+				<cov>partial</cov>
+				<exec metric="object">79.104%</exec>
+				<branches>75.000%</branches>
+				<ok>2</ok>
+				<taken>1</taken>
+				<nottaken>1</nottaken>
+				<never>0</never>
+				<bytes>402</bytes>
+				<bytesok>318</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc3</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc4</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_main</tree>
+				<cov>partial</cov>
+				<exec metric="object">24.691%</exec>
+				<branches>25.000%</branches>
+				<ok>1</ok>
+				<taken>1</taken>
+				<nottaken>1</nottaken>
+				<never>5</never>
+				<bytes>324</bytes>
+				<bytesok>80</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80006180</addrFrom>
+				<addrTo>P:80006315</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc5</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80006456</addrFrom>
+				<addrTo>P:80006485</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_stubs</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>2</never>
+				<bytes>48</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<total>
+				<cov>partial</cov>
+				<exec metric="object">43.492%</exec>
+				<branches>15.740%</branches>
+				<ok>30</ok>
+				<taken>242</taken>
+				<nottaken>134</nottaken>
+				<never>979</never>
+				<bytes>14890</bytes>
+				<bytesok>6476</bytesok>
+			</total>
+		</COVerage.EXPORT.ListLine>
+	</coverage>
+	<marker>
+		<BookMark.EXPORT ts="1623300793" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE">
+		</BookMark.EXPORT>
+	</marker>
+	<listing>
+		<List.EXPORT ts="1623300793" t32ver="R.2020.09.000128638" t32pv="TRICORE" order="source">
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1607</line><src></src></hll>
+				<hll><line>1608</line><src>void FS_SetDiagsta_InvalidSignal(void)</src></hll>
+				<hll><line>1609</line><src>{</src></hll>
+				<hll><line>1610</line><src>    /* Chassis CAN */</src></hll>
+				<hll><line>1611</line><src>#if CCAN == CANFD</src></hll>
+				<hll><line>1612</line><src>#if VEH_TYPE == NORMAL</src></hll>
+				<hll><line>1613</line><src>    /* EMS */</src></hll>
+				<hll><cov>ok</cov><line>1614</line><src>    SET_DTC(C161386, ems[EMS_C161386_0].fault || ems[EMS_C161386_1].fault || ems[EMS_C161386_2].fault);</src></hll>
+				<asm><cov>ok</cov><addr>P:80003BB2</addr><code>FF13FF61</code><label>FS_SetDiagsta_InvalidSignal:                                                                                                                                                                                                                                    </label><mnemonic>fcall     0x800039D8</mnemonic><comment>.cocofun_48</comment></asm>
+				<asm><cov>ok</cov><addr>P:80003BB6</addr><code>FEBFFF61</code><mnemonic>fcall     0x80003934</mnemonic><comment>.cocofun_34</comment></asm>
+				<asm><cov>ok</cov><addr>P:80003BBA</addr><code>F40BFF6D</code><mnemonic>call      0x800023D0</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C161386_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1615</line><src>    /* TCU */</src></hll>
+				<hll><cov>ok</cov><line>1616</line><src>    SET_DTC(C164686, tcu[TCU_C164686_0].fault);</src></hll>
+				<asm><cov>ok</cov><addr>P:80003BBE</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003BC2</addr><code>305AFF39</code><mnemonic>ld.bu     d15,[a15]0x4DA</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003BC6</addr><code>42200F8B</code><mnemonic>ne        d4,d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003BCA</addr><code>F3C7FF6D</code><mnemonic>call      0x80002358</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C164686_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1617</line><src>#elif VEH_TYPE == EV</src></hll>
+				<hll><line>1618</line><src>    /* VCU */</src></hll>
+				<hll><line>1619</line><src>    SET_DTC(C161C86, vcu[VCU_C161C86_0].fault || vcu[VCU_C161C86_1].fault);</src></hll>
+				<hll><line>1620</line><src>#elif VEH_TYPE == HEV</src></hll>
+				<hll><line>1621</line><src>    /* EMS */</src></hll>
+				<hll><line>1622</line><src>    SET_DTC(C161386, ems[EMS_C161386_0].fault);</src></hll>
+				<hll><line>1623</line><src>    /* HCU */</src></hll>
+				<hll><line>1624</line><src>    SET_DTC(C161C86, hcu[HCU_C161C86_0].fault || hcu[HCU_C161C86_1].fault);</src></hll>
+				<hll><line>1625</line><src>    /* HTCU */</src></hll>
+				<hll><line>1626</line><src>    SET_DTC(C164686, htcu[HTCU_C164686_0].fault);</src></hll>
+				<hll><line>1627</line><src>#endif /* VEH_TYPE */</src></hll>
+				<hll><line>1628</line><src>    /* CLU */</src></hll>
+				<hll><cov>ok</cov><line>1629</line><src>    SET_DTC(C165686, clu[CLU_C165686_0].fault || clu[CLU_C165686_1].fault);</src></hll>
+				<asm><cov>ok</cov><addr>P:80003BCE</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003BD2</addr><code>2070FFD9</code><mnemonic>lea       a15,[a15]0x4B0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003BD6</addr><code>FEA0FF61</code><mnemonic>fcall     0x80003916</mnemonic><comment>.cocofun_32</comment></asm>
+				<asm><cov>ok</cov><addr>P:80003BDA</addr><code>F3CFFF6D</code><mnemonic>call      0x80002378</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C165686_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1630</line><src>    /* BCM */</src></hll>
+				<hll><cov>ok</cov><line>1631</line><src>    SET_DTC(C181281, bcm[BCM_C181281_0].fault || bcm[BCM_C181281_1].fault || bcm[BCM_C181281_2].fault); </src></hll>
+				<asm><cov>ok</cov><addr>P:80003BDE</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003BE2</addr><code>1048FFD9</code><mnemonic>lea       a15,[a15]0x448</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003BE6</addr><code>FEA7FF61</code><mnemonic>fcall     0x80003934</mnemonic><comment>.cocofun_34</comment></asm>
+				<asm><cov>ok</cov><addr>P:80003BEA</addr><code>F4C3FF6D</code><mnemonic>call      0x80002570</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C181281_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1632</line><src>    /* ESC */</src></hll>
+				<hll><cov>ok</cov><line>1633</line><src>    SET_DTC(C164286, esc[ESC_C164286_0].fault || esc[ESC_C164286_1].fault || esc[ESC_C164286_2].fault);</src></hll>
+				<asm><cov>ok</cov><addr>P:80003BEE</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003BF2</addr><code>E00CFFD9</code><mnemonic>lea       a15,[a15]0x38C</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003BF6</addr><code>FE9FFF61</code><mnemonic>fcall     0x80003934</mnemonic><comment>.cocofun_34</comment></asm>
+				<asm><cov>ok</cov><addr>P:80003BFA</addr><code>F4B7FF6D</code><mnemonic>call      0x80002568</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C164286_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>ok</cov><line>1634</line><src>    SET_DTC(C16B881, esc[ESC_C16B881_0].fault);</src></hll>
+				<asm><cov>ok</cov><addr>P:80003BFE</addr><code>0858FF09</code><mnemonic>ld.bu     d15,[a15]0x18</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C02</addr><code>42200F8B</code><mnemonic>ne        d4,d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C06</addr><code>F455FF6D</code><mnemonic>call      0x800024B0</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C16B881_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>ok</cov><line>1635</line><src>    SET_DTC(C136081, esc[ESC_C136081_0].fault);</src></hll>
+				<asm><cov>ok</cov><addr>P:80003C0A</addr><code>085EFF09</code><mnemonic>ld.bu     d15,[a15]0x1E</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C0E</addr><code>42200F8B</code><mnemonic>ne        d4,d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C12</addr><code>F483FF6D</code><mnemonic>call      0x80002518</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C136081_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>ok</cov><line>1636</line><src>    SET_DTC(C163881, esc[ESC_C163881_0].fault);</src></hll>
+				<asm><cov>ok</cov><addr>P:80003C16</addr><code>086AFF09</code><mnemonic>ld.bu     d15,[a15]0x2A</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C1A</addr><code>42200F8B</code><mnemonic>ne        d4,d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C1E</addr><code>F459FF6D</code><mnemonic>call      0x800024D0</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C163881_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>ok</cov><line>1637</line><src>    SET_DTC(C164282, esc[ESC_C164282_0].fault);</src></hll>
+				<asm><cov>ok</cov><addr>P:80003C22</addr><code>0870FF09</code><mnemonic>ld.bu     d15,[a15]0x30</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C26</addr><code>42200F8B</code><mnemonic>ne        d4,d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C2A</addr><code>F48FFF6D</code><mnemonic>call      0x80002548</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C164282_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>ok</cov><line>1638</line><src>    SET_DTC(C164281, esc[ESC_C164281_0].fault);</src></hll>
+				<asm><cov>ok</cov><addr>P:80003C2E</addr><code>0876FF09</code><mnemonic>ld.bu     d15,[a15]0x36</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C32</addr><code>42200F8B</code><mnemonic>ne        d4,d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C36</addr><code>F475FF6D</code><mnemonic>call      0x80002520</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C164281_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1639</line><src>    /* ICU */</src></hll>
+				<hll><cov>ok</cov><line>1640</line><src>    SET_DTC(C183E86, icu[ICU_C183E86_0].fault);</src></hll>
+				<asm><cov>ok</cov><addr>P:80003C3A</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C3E</addr><code>3060FF39</code><mnemonic>ld.bu     d15,[a15]0x4E0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C42</addr><code>42200F8B</code><mnemonic>ne        d4,d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C46</addr><code>F439FF6D</code><mnemonic>call      0x800024B8</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C183E86_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1641</line><src>    /* MDPS */</src></hll>
+				<hll><cov>ok</cov><line>1642</line><src>    SET_DTC(C168886, mdps[MDPS_C168886_0].fault || mdps[MDPS_C168886_1].fault);</src></hll>
+				<asm><cov>ok</cov><addr>P:80003C4A</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C4E</addr><code>F030FFD9</code><mnemonic>lea       a15,[a15]0x3F0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C52</addr><code>FE62FF61</code><mnemonic>fcall     0x80003916</mnemonic><comment>.cocofun_32</comment></asm>
+				<asm><cov>ok</cov><addr>P:80003C56</addr><code>F419FF6D</code><mnemonic>call      0x80002488</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C168886_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>partial</cov><line>1643</line><src>    SET_DTC(C223986, mdps[MDPS_C223986_0].fault || mdps[MDPS_C223986_1].fault);</src></hll>
+				<asm><cov>ok</cov><addr>P:80003C5A</addr><code>CF08</code><mnemonic>ld16.bu   d15,[a15]0x0C</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:80003C5C</addr><code>04EE</code><mnemonic>jnz16     d15,0x80003C64</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C5E</addr><code>0852FF09</code><mnemonic>ld.bu     d15,[a15]0x12</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003C62</addr><code>036E</code><mnemonic>jz16      d15,0x80003C68</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003C64</addr><code>1482</code><mnemonic>mov16     d4,#0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003C66</addr><code>023C</code><mnemonic>j16       0x80003C6A</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C68</addr><code>0482</code><mnemonic>mov16     d4,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C6A</addr><code>F3DFFF6D</code><mnemonic>call      0x80002428</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C223986_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1644</line><src>    /* SAS */</src></hll>
+				<hll><cov>ok</cov><line>1645</line><src>    SET_DTC(C181486, sas[SAS_C181486_0].fault);</src></hll>
+				<asm><cov>ok</cov><addr>P:80003C6E</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C72</addr><code>3066FF39</code><mnemonic>ld.bu     d15,[a15]0x4E6</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C76</addr><code>42200F8B</code><mnemonic>ne        d4,d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C7A</addr><code>F383FF6D</code><mnemonic>call      0x80002380</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C181486_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1646</line><src>    /* SBCM */</src></hll>
+				<hll><cov>ok</cov><line>1647</line><src>    SET_DTC(C185481, sbcm[SBCM_C185481_0].fault);</src></hll>
+				<asm><cov>ok</cov><addr>P:80003C7E</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C82</addr><code>207CFFD9</code><mnemonic>lea       a15,[a15]0x4BC</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C86</addr><code>FF14</code><mnemonic>ld16.bu   d15,[a15]</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C88</addr><code>42200F8B</code><mnemonic>ne        d4,d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C8C</addr><code>F476FF6D</code><mnemonic>call      0x80002578</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C185481_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>ok</cov><line>1648</line><src>    SET_DTC(C185381, sbcm[SBCM_C185381_0].fault);</src></hll>
+				<asm><cov>ok</cov><addr>P:80003C90</addr><code>6F08</code><mnemonic>ld16.bu   d15,[a15]0x6</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C92</addr><code>42200F8B</code><mnemonic>ne        d4,d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C96</addr><code>F461FF6D</code><mnemonic>call      0x80002558</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C185381_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1649</line><src>    /* YRS */</src></hll>
+				<hll><cov>ok</cov><line>1650</line><src>    SET_DTC(C184286, yrs[YRS_C184286_0].fault);</src></hll>
+				<asm><cov>ok</cov><addr>P:80003C9A</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003C9E</addr><code>306CFF39</code><mnemonic>ld.bu     d15,[a15]0x4EC</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003CA2</addr><code>42200F8B</code><mnemonic>ne        d4,d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003CA6</addr><code>F41DFF6D</code><mnemonic>call      0x800024E0</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C184286_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1651</line><src>    /* SWRC */</src></hll>
+				<hll><cov>ok</cov><line>1652</line><src>    SET_DTC(C183D82, swrc[SWRC_C183D82_0].fault);</src></hll>
+				<asm><cov>ok</cov><addr>P:80003CAA</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003CAE</addr><code>3072FF39</code><mnemonic>ld.bu     d15,[a15]0x4F2</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003CB2</addr><code>42200F8B</code><mnemonic>ne        d4,d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003CB6</addr><code>F3EDFF6D</code><mnemonic>call      0x80002490</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C183D82_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1653</line><src>    /* ICSC */</src></hll>
+				<hll><cov>ok</cov><line>1654</line><src>    SET_DTC(C187002, icsc[ICSC_C187002_0].fault);</src></hll>
+				<asm><cov>ok</cov><addr>P:80003CBA</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003CBE</addr><code>3078FF39</code><mnemonic>ld.bu     d15,[a15]0x4F8</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003CC2</addr><code>42200F8B</code><mnemonic>ne        d4,d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003CC6</addr><code>F381FF6D</code><mnemonic>call      0x800023C8</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C187002_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1655</line><src></src></hll>
+				<hll><line>1656</line><src>#elif CCAN == HSCAN</src></hll>
+				<hll><line>1657</line><src>    /*CGW*/</src></hll>
+				<hll><line>1658</line><src>    SET_DTC(C181786, cgw[CGW_C181786_0].fault);</src></hll>
+				<hll><line>1659</line><src>    /*CLU*/</src></hll>
+				<hll><line>1660</line><src>    SET_DTC(C165686, clu[CLU_C165686_0].fault || clu[CLU_C165686_1].fault);</src></hll>
+				<hll><line>1661</line><src>    /*ESC*/</src></hll>
+				<hll><line>1662</line><src>    SET_DTC(C164286, esc[ESC_C164286_0].fault || esc[ESC_C164286_1].fault);</src></hll>
+				<hll><line>1663</line><src>    SET_DTC(C16B881, esc[ESC_C16B881_0].fault);</src></hll>
+				<hll><line>1664</line><src>    SET_DTC(C136081, esc[ESC_C136081_0].fault);</src></hll>
+				<hll><line>1665</line><src>    SET_DTC(C163881, esc[ESC_C163881_0].fault);</src></hll>
+				<hll><line>1666</line><src>    /*MDPS*/</src></hll>
+				<hll><line>1667</line><src>    SET_DTC(C168886, mdps[MDPS_C168886_0].fault || mdps[MDPS_C168886_1].fault);</src></hll>
+				<hll><line>1668</line><src>    SET_DTC(C223986, mdps[MDPS_C223986_0].fault);</src></hll>
+				<hll><line>1669</line><src>    /*SAS*/</src></hll>
+				<hll><line>1670</line><src>    SET_DTC(C181486, sas[SAS_C181486_0].fault);</src></hll>
+				<hll><line>1671</line><src>    /*EMS*/</src></hll>
+				<hll><line>1672</line><src>    SET_DTC(C161386, ems[EMS_C161386_0].fault || ems[EMS_C161386_1].fault);</src></hll>
+				<hll><line>1673</line><src>    /*TCU*/</src></hll>
+				<hll><line>1674</line><src>    SET_DTC(C164686, tcu[TCU_C164686_0].fault);</src></hll>
+				<hll><line>1675</line><src>#endif /* CCAN */</src></hll>
+				<hll><line>1676</line><src></src></hll>
+				<hll><line>1677</line><src>    /* Navi */</src></hll>
+				<hll><cov>ok</cov><line>1678</line><src>    SET_DTC(C174686, navi[NAVI_C174686_0].fault);</src></hll>
+				<asm><cov>ok</cov><addr>P:80003CCA</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003CCE</addr><code>105AFFD9</code><mnemonic>lea       a15,[a15]0x45A</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003CD2</addr><code>FF14</code><mnemonic>ld16.bu   d15,[a15]</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003CD4</addr><code>42200F8B</code><mnemonic>ne        d4,d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003CD8</addr><code>F428FF6D</code><mnemonic>call      0x80002528</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C174686_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>partial</cov><line>1679</line><src>    SET_DTC(C183186, navi[NAVI_C183186_0].fault || navi[NAVI_C183186_1].fault);</src></hll>
+				<asm><cov>ok</cov><addr>P:80003CDC</addr><code>6F08</code><mnemonic>ld16.bu   d15,[a15]0x6</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:80003CDE</addr><code>03EE</code><mnemonic>jnz16     d15,0x80003CE4</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003CE0</addr><code>CF08</code><mnemonic>ld16.bu   d15,[a15]0x0C</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003CE2</addr><code>036E</code><mnemonic>jz16      d15,0x80003CE8</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003CE4</addr><code>1482</code><mnemonic>mov16     d4,#0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003CE6</addr><code>023C</code><mnemonic>j16       0x80003CEA</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003CE8</addr><code>0482</code><mnemonic>mov16     d4,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003CEA</addr><code>F38BFF6D</code><mnemonic>call      0x80002400</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C183186_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1680</line><src></src></hll>
+				<hll><line>1681</line><src>    /* ADAS CAN */</src></hll>
+				<hll><cov>ok</cov><line>1682</line><src>    SET_DTC(C28B086, fr_cmr[FR_CMR_28B086_0].fault || fr_cmr[FR_CMR_28B086_1].fault);</src></hll>
+				<asm><cov>ok</cov><addr>P:80003CEE</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003CF2</addr><code>106CFFD9</code><mnemonic>lea       a15,[a15]0x46C</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003CF6</addr><code>FE10FF61</code><mnemonic>fcall     0x80003916</mnemonic><comment>.cocofun_32</comment></asm>
+				<asm><cov>ok</cov><addr>P:80003CFA</addr><code>F3E3FF6D</code><mnemonic>call      0x800024C0</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C28B086_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>ok</cov><line>1683</line><src>    SET_DTC(C28B186, fr_rdr[FR_RDR_C28B186_0].fault);</src></hll>
+				<asm><cov>ok</cov><addr>P:80003CFE</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003D02</addr><code>3048FF39</code><mnemonic>ld.bu     d15,[a15]0x4C8</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003D06</addr><code>42200F8B</code><mnemonic>ne        d4,d15,#0x0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003D0A</addr><code>F3EFFF6D</code><mnemonic>call      0x800024E8</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C28B186_SetEventStatus</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>ok</cov><line>1684</line><src>    SET_DTC(C188186, fr_c_rdr[FR_C_RDR_C188186_0].fault || fr_c_rdr[FR_C_RDR_C188186_1].fault);</src></hll>
+				<asm><cov>ok</cov><addr>P:80003D0E</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003D12</addr><code>0048FFD9</code><mnemonic>lea       a15,[a15]0x408</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003D16</addr><code>FE00FF61</code><mnemonic>fcall     0x80003916</mnemonic><comment>.cocofun_32</comment></asm>
+				<asm><cov>ok</cov><addr>P:80003D1A</addr><code>F377FF1D</code><mnemonic>j         0x80002408</mnemonic><comment>Rte_Call_SWC_DiagnosticMonitor_Event_DEM_E_UDS_DTC_C188186_SetEventStatus</comment></asm>
+			</mixed>
+		</List.EXPORT>
+	</listing>
+</TRACE32>

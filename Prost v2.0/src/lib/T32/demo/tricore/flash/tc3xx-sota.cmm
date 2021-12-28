@@ -1,0 +1,951 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash script file for TC3xx SOTA (Software Over The Air).
+; @Description:
+;   Script for programming of Infineon TriCore TC3xx SOTA support.
+;   Enable the SOTA feature and configure address map. Script will NOT perform any
+;   reset for saftey reasons. Check programming manually before triggering a reset.
+; @Keywords: AURIX2G, FLASH, Infineon, TriCore, SOTA, SWAP
+; @Author: MAX
+; @Chip: TC3*
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc3xx-sota.cmm 7868 2020-01-31 18:20:04Z mobermaier $
+
+
+; Important information, read this before using this script:
+;
+;   Do not edit this script. Instead, call this script from your project using the
+;   command line arguments described below. See the triboard demo scripts for an
+;   example.
+;
+;   This script checks the programmed application to avoid permanent locking of the
+;   device. This script is constantly improved, but it is not guaranteed that all
+;   cases are covered.
+;
+;   It is assumed that you fully understand the SOTA concept as well as the UCB
+;   concept. In case of any questions, please refer to the Infineon documentation
+;   and your assigned Infineon FAE to prevent permanent locking of your device.
+;
+; Preconditions:
+;
+;  Run CPU specific flash declaration script before with parameter PREPAREONLY.
+;  Example:
+;    DO ~~/demo/tricore/flash/tc39x PREPAREONLY
+;
+; Script arguments:
+;
+;  DO tc3xx-sota [[SOTA=<status>] [OTP=<otp>]]
+;                [[MAP=<address map>] [SWAP_PASSWORD=<pw>]]
+;                [VERBOSE]
+;
+;    SOTA=<state> Enable or disable SOTA. You may also need to specify OTP=<otp>.
+;    <state> :=   ON | OFF | KEEP
+;                 Default: KEEP
+;
+;    OTP=<otp> Define to which OTP (ORIG and COPY) UCB the SOTA state is to be
+;              programmed. Only relevant for SOTA=<state>.
+;    <otp> :=  OTP0 | OTP1 | ... | OTP7
+;              Default: OTP0.
+;
+;    MAP=<address map> Configure address map to be used.
+;                      You may also need to specify SWAP_PASSWORD=<pw> to unlock
+;                      SWAP_ORIG and SPWAP_COPY UCBs.
+;    <address map> :=  ALTERNATE | STANDARD | SWAP | KEEP
+;                      Default: KEEP
+;
+;    SWAP_PASSWORD=<pwd> Specify the 256-bit password for unlocking the SWAP UCBs.
+;    <pwd> :=            <pwd0>_<pwd1>_<pwd2>_<pwd3>_<pwd4>_<pwd5>_<pwd6>_<pwd7>
+;                        Default: 0x0_0x0_0x0_0x0_0x0_0x0_0x0_0x0
+;
+;    VERBOSE Enable output of status and diagnostic information.
+;
+; Example:
+;
+;   DO ~~/demo/tricore/flash/tc3xx-sota.cmm SOTA=ON MAP=ALTERNATE
+;
+; Supported devices:
+;
+;   All TC3xx devices supporting SOTA, e.g. TC39x, TC38x, ...
+;
+; CAUTION:
+;
+;   Configuring the SOTA feaute can permanently prohibit debug access to your device and
+;   prevent it from booting. Make sure you fully understand the INFINEON documentation
+;   before enable SOTA or change the mapping.
+;   Especially be aware that enabling HSM OTP protection for one bank is also mirrored to
+;   the other bank. So when installing HSM OTP protection, ensure that valid HSM content
+;   is programmed to both banks. Otherwise chip may be locked on the next change of the
+;   address map.
+
+
+; --------------------------------------------------------------------------------
+; parameter processing
+
+LOCAL &parameters
+ENTRY %LINE &parameters
+
+LOCAL &param_sota &param_sotaotp &param_swapmap &param_swappw &param_verbose
+&param_sota=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"SOTA=","KEEP")
+&param_sotaotp=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"OTP=","OTP0")
+&param_swapmap=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"MAP=","KEEP")
+&param_swappw=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"SWAP_PASSWORD=","0x0_0x0_0x0_0x0_0x0_0x0_0x0_0x0")
+&param_verbose=(STRing.SCAN(STRing.UPpeR("&parameters"),"VERBOSE",0)!=-1)
+
+LOCAL &OTP_Number
+&OTP_Number=STRing.MID("&param_sotaotp",3.,1.)
+
+; --------------------------------------------------------------------------------
+; global settings and variables
+
+; chip configuration
+LOCAL &SWAP_EN &SWAP_ACTIVE &Marker_FirstUnusedSet
+&SWAP_EN=FALSE()
+&SWAP_ACTIVE=FALSE()
+&Marker_FirstUnusedSet=-1.
+
+; helper scripts
+LOCAL &UCB_HelperScript
+&UCB_HelperScript="~~/demo/tricore/flash/tc3xx-ucb.cmm"
+
+; UCB related settings
+; tbd.MAX extend tc3xx-ucb to get these parameters
+LOCAL &OTP_Base &SWAP_Base
+&OTP_Base=D:0xAF404000 ; base address of OTP0_ORIG
+&SWAP_Base=D:0xAF402E00 ; base address of SWAP_ORIG
+
+LOCAL &DMU_HF_CONFIRM1 &DMU_HF_CONFIRM2
+&DMU_HF_CONFIRM1=D:0xF8040024
+&DMU_HF_CONFIRM2=D:0xF8040028
+
+LOCAL &ConfirmationCode
+&ConfirmationCode=0x57B5327F ; marker confirmation code of SWAP UCB
+
+; result handling
+PRIVATE &result
+&result="OK"
+
+; --------------------------------------------------------------------------------
+; check parameters
+; this is already done here to prevent that parts of the intended configuration
+; are already programmed when the script is aborted due to formal issues, probably
+; resulting in a bricked device
+
+; check parameters for SOTA state
+IF ("&param_sota"!="ON")&&("&param_sota"!="OFF")&&("&param_sota"!="KEEP")
+(
+  PRINT %ERROR "unknown SOTA state &param_sota"
+  ENDDO FAIL
+)
+
+; check parameters for SOTA OTP
+&OTP_Number=STRing.MID("&param_sotaotp",3.,1.)
+IF (STRING.MID("&param_sotaotp",0.,3.)!="OTP")||(&OTP_Number<0.)||(&OTP_Number>7.)
+(
+  PRINT %ERROR "&param_sotaotp is not an OTP UCB"
+  ENDDO FAIL
+)
+
+; check parameters for address mapping
+IF ("&param_swapmap"!="ALTERNATE")&&("&param_swapmap"!="STANDARD")&&("&param_swapmap"!="SWAP")&&("&param_swapmap"!="KEEP")
+(
+  PRINT %ERROR "&param_swapmap is not an address map"
+  ENDDO FAIL
+)
+
+; check password for SWAP UCB
+; only a rough test is performed, UCB helper script will finally tell whether it is OK
+&param_swappw=STRing.LoWeR("&param_swappw")
+IF ("&param_swappw"!="")&&(STRing.COUNT("&param_swappw","_")!=7.)
+(
+  PRINT %ERROR "&param_swappw is a formally incorrect UCB password"
+  ENDDO FAIL
+)
+
+; print summary
+IF &param_verbose
+(
+  PRINT "Configuration parameters:"
+  PRINT "  SOTA state:      &param_sota -> &param_sotaotp"
+  PRINT "  Address mapping: &param_swapmap, SWAP password: &param_swappw"
+)
+
+; --------------------------------------------------------------------------------
+; check device under debug
+; never apply to unrelated devices to avoid bricking
+
+; check for correct CPU
+IF !CPUIS("TC3*")
+(
+  PRINT %ERROR "AURIX2G supported only"
+  ENDDO UNSUPPORTED
+)
+IF CPUIS("TC31*")||CPUIS("TC32*")||CPUIS("TC33*")
+(
+  PRINT %ERROR CPU()+" does not support SOTA"
+  ENDDO UNSUPPORTED
+)
+
+IF !SYStem.Up()
+(
+  PRINT %ERROR "system not up"
+  ENDDO FAIL
+)
+
+; check if UCB helper script is available
+; required for safe access and manipulation of UCBs
+IF !OS.FILE.readable("&UCB_HelperScript")
+(
+  PRINT %ERROR "can not execute &UCB_HelperScript (inconsistent TRACE32 installation)"
+  ENDDO FAIL
+)
+
+; check if related UCBs can be programmed
+; do not program anything if related UCB can not be accessed
+
+; check OTP_ORIG, OTP_COPY
+GOSUB UCB_VerifyContent "&param_sotaotp"
+RETURNVALUES &result
+IF "&result"!="OK"
+  ENDDO UCBFAIL
+GOSUB UCB_VerifyDeclaration "&OTP_Base+(&OTP_Number*0x200)"
+RETURNVALUES &result
+IF "&result"!="OK"
+  ENDDO FLASHFAIL
+
+; check SWAP_ORIG, SWAP_COPY
+GOSUB UCB_VerifyContent "SWAP"
+RETURNVALUES &result
+IF "&result"!="OK"
+  ENDDO UCBFAIL
+GOSUB UCB_VerifyDeclaration "&SWAP_Base"
+RETURNVALUES &result
+IF "&result"!="OK"
+  ENDDO FLASHFAIL
+
+; check for protection and disable if required
+GOSUB UCB_CheckDisableProtection
+RETURNVALUES &result
+IF "&result"!="OK"
+  ENDDO PROTECTIONFAIL
+
+; --------------------------------------------------------------------------------
+; evaluate current target programming
+
+; get current chip configuration
+GOSUB ReadChipConfig
+
+; --------------------------------------------------------------------------------
+; program depending on arguments
+; Infineon recommends to program the address mapping before enabling SOTA
+
+IF ("&param_sota"=="KEEP")&&("&param_swapmap"=="KEEP")
+  ENDDO OK ; nothing to program
+
+; configure address map
+GOSUB SetAddressMap "&param_swapmap"
+RETURNVALUES &result
+IF "&result"!="OK"
+  ENDDO &result
+
+; configure SOTA
+GOSUB SetSWAP "&param_sota"
+RETURNVALUES &result
+IF "&result"!="OK"
+  ENDDO &result
+
+
+ENDDO OK
+
+; --------------------------------------------------------------------------------
+; helper functions for reading status
+; --------------------------------------------------------------------------------
+
+; --------------------------------------------------------------------------------
+; Get current chip configuration.
+; Read results to script-local macros.
+;
+; Parameters:    none
+; Return values: none
+
+ReadChipConfig:
+(
+  GOSUB ReadSOTAConfig
+  GOSUB ReadOTPConfiguration
+  GOSUB ReadMappingConfiguration
+
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Read the current SOTA configuration from target.
+; Writes results to script-local macros &SWAP_EN and &SWAP_ACTIVE.
+;
+; Parameters:    none
+; Return values: none
+
+ReadSOTAConfig:
+(
+  PRIVATE &DMU_HF_PROCONTP &SCU_SWAPCTRL
+  &DMU_HF_PROCONTP=D:0xF8040084
+  &SCU_SWAPCTRL=D:0xF003614C
+  &SWAP_EN=(Data.Long(&DMU_HF_PROCONTP)&(0x30000))==0x30000 ; DMU_HF_PROCONTP.SWAPEN
+  &SWAP_ACTIVE=(Data.Long(&SCU_SWAPCTRL)&(0x3))==0x2 ; SCU_SWAPCTRL.ADDRCONFIG
+
+  IF &param_verbose
+  (
+    PRIVATE &SOTA_STATUS &SWAP_STATUS
+
+    IF &SWAP_EN
+      &SOTA_STATUS="SOTA enabled"
+    ELSE
+      &SOTA_STATUS="SOTA disabled"
+    IF &SWAP_ACTIVE
+      &ADDRESS_MAP="alternate address map"
+    ELSE
+      &ADDRESS_MAP="standard address map"
+
+    PRINT "Current target state (as defined by SSW):"
+    PRINT "  DMU_HF_PROCONTP.SWAPEN  -> &SOTA_STATUS"
+    PRINT "  SCU_SWAPCTRL.ADDRCONFIG -> &ADDRESS_MAP"
+  )
+
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Read the current SWAP configuration from OTP UCBs.
+; Prints the results to the AREA window
+;
+; Parameters:    none
+; Return values: none
+
+ReadOTPConfiguration:
+(
+  IF &param_verbose
+    PRINT "PROCONTP.SWAPEN configuration:"
+
+  PRIVATE &OTP_Set
+  &OTP_Set=0
+  WHILE (&OTP_Set<=7.)
+  (
+    PRIVATE &OTPx_Base &OTP_PROCONTP &SWAPEN_ORIG &SWAPEN_COPY
+    &OTPx_Base=&OTP_Base+(&OTP_Set*0x200)
+    &OTP_PROCONTP=&OTPx_Base+0x1E8
+    &SWAPEN_ORIG=FALSE()
+    &SWAPEN_COPY=FALSE()
+    IF (Data.Long(&OTP_PROCONTP)&(0x30000))==0x30000 ; PROCONTP.SWAPEN
+      &SWAPEN_ORIG=TRUE()
+    IF (Data.Long(&OTP_PROCONTP+0x1000)&(0x30000))==0x30000 ; PROCONTP.SWAPEN
+      &SWAPEN_COPY=TRUE()
+
+    IF &param_verbose
+    (
+      PRIVATE &OTPx_StateORIG &OTPx_StateCOPY
+      &witdh=8.
+      &OTPx_StateORIG=FORMAT.STRing("disabled",&witdh,' ')
+      &OTPx_StateCOPY=FORMAT.STRing("disabled",&witdh,' ')
+      IF &SWAPEN_ORIG
+        &OTPx_StateORIG=FORMAT.STRing("enabled",&witdh,' ')
+      IF &SWAPEN_ORIG
+        &OTPx_StateCOPY=FORMAT.STRing("enabled",&witdh,' ')
+
+      PRIVATE &OTP_Set_Name
+          &OTP_Set_Name="OTP"+FORMAT.Decimal(1.,&OTP_Set)
+      PRINT "  &OTP_Set_Name"+"_ORIG: &OTPx_StateORIG  &OTP_Set_Name"+"_COPY: &OTPx_StateCOPY"
+    )
+    &OTP_Set=&OTP_Set+1.
+  )
+
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Read the current mapping configuration from SWAP UCBs.
+; Prints the results to the AREA window and returns the first unused marker set.
+;
+; Parameters:    none
+; Return values: none
+
+ReadMappingConfiguration:
+(
+  IF &param_verbose
+    PRINT "MARKER configuration:"
+
+  PRIVATE &Search_State &Marker_Set &Marker_CurrentState
+  &Search_State="not found"
+  &Marker_Set=0
+  &Marker_FirstUnusedSet=-1.
+  &Marker_CurrentState="invalid"
+  WHILE (&Marker_Set<=15.)
+  (
+    PRIVATE &Marker_Base
+    &Marker_Base=&SWAP_Base+(&Marker_Set*0x10)
+
+    PRIVATE &Marker_State &Marker_State_ORIG &Marker_State_COPY
+    &Marker_State_ORIG="unknown"
+    &Marker_State_COPY="unknown"
+
+    ; evaluate SWAP_ORIG
+    GOSUB EvaluateMarkerSet "&Marker_Base"
+    RETURNVALUES &Marker_State_ORIG
+
+    ; evaluate SWAP_COPY
+    &Marker_Base=&Marker_Base+0x1000
+    GOSUB EvaluateMarkerSet "&Marker_Base"
+    RETURNVALUES &Marker_State_COPY
+
+    ; print marker state
+    IF &param_verbose
+    (
+      PRIVATE &width
+      &width=9.
+      &ORIG="ORIG: "+FORMAT.STRing("&Marker_State_ORIG",&width,' ')
+      &COPY="COPY: "+FORMAT.STRing("&Marker_State_COPY",&width,' ')
+      PRINT "  Marker set "+FORMAT.Decimal(2.,&Marker_Set)+": &ORIG  &COPY"
+    )
+
+    ; evaluate state
+    IF "&Marker_State_ORIG"=="&Marker_State_COPY"
+    (
+      IF ("&Marker_State_ORIG"=="available")&&("&Search_State"=="not found")
+      (
+        ; this marker set is suitable for programming
+        &Search_State="found"
+        &Marker_FirstUnusedSet=&Marker_Set
+
+        ; check if new marker needs to be programmed
+        IF STRing.UPpeR("&Marker_CurrentState")=="&param_swapmap"
+        (
+          ; selected address mapping is already programmed
+          &Search_State="reuse"
+          &param_swapmap="KEEP"
+        )
+      )
+      IF ("&Search_State"=="not found")
+        &Marker_CurrentState="&Marker_State_ORIG"
+    )
+
+    &Marker_Set=&Marker_Set+1.
+  )
+
+  IF ("&param_swapmap"=="SWAP")
+  (
+    ; program other address map
+    IF (STRing.UPpeR("&Marker_CurrentState")=="STANDARD")
+      &param_swapmap="ALTERNATE"
+    ELSE IF (STRing.UPpeR("&Marker_CurrentState")=="ALTERNATE")
+      &param_swapmap="STANDARD"
+  )
+
+  IF &param_verbose
+  (
+    ; print UCB state
+    IF "&Search_State"=="found"
+      PRINT "  -> First usable marker set: "+FORMAT.Decimal(1.,&Marker_FirstUnusedSet)
+    ELSE IF "&Search_State"=="reuse"
+      PRINT "  -> Re-use marker set: "+FORMAT.Decimal(1.,(&Marker_FirstUnusedSet-1.))
+    ELSE
+      PRINT "  -> No free marker set found, UCB erase required"
+    PRINT "  -> Programming command for SWAP UCB: &param_swapmap"
+  )
+
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Read a marker set from SWAP UCB and evaluate content.
+; Prints the results to the AREA window
+;
+; Parameters:    &Marker_Base Base address of marker to evaluate.
+; Return values: Marker state, as string.
+
+EvaluateMarkerSet:
+(
+  PARAMETERS &Marker_Base
+
+  PRIVATE &Marker_State
+  &Marker_State="unknown"
+
+  PRIVATE &MarkerL &MarkerH &ConfirmL &ConfirmH
+  &MarkerL=Data.Long(&Marker_Base+0x0)
+  &MarkerH=Data.Long(&Marker_Base+0x4)
+  &ConfirmL=Data.Long(&Marker_Base+0x8)
+  &ConfirmH=Data.Long(&Marker_Base+0xC)
+
+  IF &ConfirmL==0xFFFFFFFF
+  (
+    ; marker set has previously been used and was replaced with another marker set
+    ; other content does not matter any more
+    &Marker_State="invalid"
+  )
+  ELSE IF &ConfirmL==0x00000000
+  (
+    ; could be available...
+    &Marker_State="invalid"
+    IF (&MarkerL==0x00000000)&&(&MarkerH==0x00000000)&&(&ConfirmH==0x00000000)
+    (
+      ; marker set can be used for a new mapping
+      &Marker_State="available"
+    )
+  )
+  ELSE IF &ConfirmL==&ConfirmationCode
+  (
+    ; confirmation code is there, let's see if the other entries match
+    &Marker_State="invalid"
+    IF (&MarkerH==ADDRESS.OFFSET(&Marker_Base))&&(&ConfirmH==ADDRESS.OFFSET(&Marker_Base+0x8))
+    (
+      ; now check what address mapping is selected
+      IF &MarkerL==0x000000AA
+        &Marker_State="alternate"
+      ELSE IF &MarkerL==0x00000055
+        &Marker_State="standard"
+    )
+  )
+  ELSE
+  (
+    ; anything else
+    &Marker_State="invalid"
+  )
+
+  RETURN "&Marker_State"
+)
+
+; --------------------------------------------------------------------------------
+; helper functions for programming
+; --------------------------------------------------------------------------------
+
+; --------------------------------------------------------------------------------
+; Enable or disable SOTA feature.
+; Currently only OTP0 supported.
+; Changes will have effect on next reset.
+;
+; Parameters: &SOTA New SOTA status:
+;                   ON   Enable SOTA feature.
+;                   OFF  Disable SOTA feature.
+;                   KEEP Do not change current configuration.
+; Return values: OK on success, any other on failure.
+
+SetSWAP:
+(
+  PARAMETERS &SOTA
+
+  IF &param_verbose
+    PRINT "programming SOTA state &SOTA"
+
+  ; check arguments
+  IF "&SOTA"=="KEEP"
+  (
+    ; keep current state, don't program UCB
+    RETURN "OK"
+  )
+  ELSE IF ("&SOTA"!="ON")&&("&SOTA"!="OFF")
+  (
+    ; illegal argument
+    PRINT %ERROR "unknown SOTA state &SOTA"
+    RETURN "UNKNOWN"
+  )
+
+  ; program OTPx_COPY and OTPx_ORIG UCB as recommended by Infineon:
+  ; - first program the COPY UCB
+  ; - then program the ORIG UCB
+  LOCAL &OTP_Name &result
+  &result="OK"
+
+  &OTP_Name="OTP0_COPY"
+  GOSUB UCB_OTP_SetSWAP "&OTP_Name" "&SOTA"
+  RETURNVALUES &result
+  IF "&result"!="OK"
+    RETURN "&result"
+
+  &OTP_Name="OTP0_ORIG"
+  GOSUB UCB_OTP_SetSWAP "&OTP_Name" "&SOTA"
+  RETURNVALUES &result
+  IF "&result"!="OK"
+    RETURN "&result"
+
+  RETURN "OK"
+)
+
+; --------------------------------------------------------------------------------
+; Set address map to be used when SOTA is enabled.
+; When SOTA is disabled, standard address map will be used.
+; Changes will have effect on next reset.
+;
+; Parameters: &MAP Which address map to program:
+;                  ALTERNATE Use alternate address map (Bank B)
+;                  STANDARD  Use standard address map (Bank A)
+;                  KEEP      Do not change current configuration.
+; Return values: OK on success, any other on failure.
+
+SetAddressMap:
+(
+  PARAMETERS &MAP
+
+  IF "&MAP"=="KEEP"
+  (
+    ; keep current address map, don't program UCB
+    RETURN "OK"
+  )
+  ELSE IF ("&MAP"!="ALTERNATE")&&("&MAP"!="STANDARD")
+  (
+    ; unknown address map
+    PRINT %ERROR "unknown address map &MAP"
+    RETURN "UNKNOWN"
+  )
+
+  ; program SWAP_COPY and SWAP_OTIG UCB as recommended by Infineon:
+  ; - first program the COPY UCB
+  ; - then program the ORIG UCB
+  LOCAL  &result &MarkerSet &SWAP_Name
+  &result="OK"
+  &MarkerSet=&Marker_FirstUnusedSet
+  IF &MarkerSet==-1.
+    &MarkerSet=0. ; no marker set free, erase all and use first
+  &SWAP_Name="SWAP_COPY"
+  GOSUB UCB_SWAP_SetMap "&SWAP_Name" "&MAP" "&MarkerSet"
+  RETURNVALUES &result
+  IF "&result"!="OK"
+    RETURN "&result"
+
+  &SWAP_Name="SWAP_ORIG"
+  GOSUB UCB_SWAP_SetMap "&SWAP_Name" "&MAP" "&MarkerSet"
+  RETURNVALUES &result
+  IF "&result"!="OK"
+    RETURN "&result"
+
+  RETURN "OK"
+)
+
+; --------------------------------------------------------------------------------
+; Program the PROCONTOP.SWAP setting of an OTP UCB.
+; This generally enables or disables the SOTA feature.
+;
+; Parameters: &OTP_Name Which OTP UCB to program:
+;                       OTP<x>_ORIG | OTP<x>_COPY
+;                       <x> := 0 | 1| 2 | 3 | 4 | 5 | 6 | 7
+;             &SWAP enable or disable SWAP:
+;                   ON  Enable SWAP
+;                   OFF Disable SWAP
+; Return values: OK on success, any other on failure.
+
+UCB_OTP_SetSWAP:
+(
+  PARAMETERS &OTP_Name &SWAP
+  PRIVATE &result
+  &result="OK"
+
+  ; check if given UCB does exist
+  PRIVATE &OTPx_Base &OTPx_Valid
+  &OTPx_Base=&OTP_Base
+  &OTPx_Valid=FALSE() ; not yet valid
+  IF STRing.ComPare("&OTP_Name","OTP*")
+  (
+    PRIVATE &OTP_Number
+    &OTP_Number=STRing.MID("&OTP_Name",3.,1.)
+    IF (&OTP_Number>=0.)&&(&OTP_Number<=7.)
+    (
+      IF STRing.ComPare(STRing.MID("&OTP_Name",4.,6.),"_ORIG")
+      (
+        &OTPx_Base=&OTP_Base+(0x200*&OTP_Number)
+        &OTPx_Valid=TRUE()
+      )
+      ELSE IF STRing.ComPare(STRing.MID("&OTP_Name",4.,6.),"_COPY")
+      (
+        &OTPx_Base=&OTP_Base+0x1000+(0x200*&OTP_Number)
+        &OTPx_Valid=TRUE()
+      )
+    )
+  )
+  IF !(&OTPx_Valid)
+  (
+    ; UCB not existing
+    PRINT %ERROR "no such OTP UCB: &OTP_Name"
+    RETURN "ILLEGAL"
+  )
+
+  ; set enable or disable
+  LOCAL &SWAPEN
+  IF "&SWAP"=="ON"
+    &SWAPEN=0x3
+  ELSE IF "&SWAP"=="OFF"
+    &SWAPEN=0x0
+  ELSE
+  (
+    PRINT %ERROR "illegal state &SWAP"
+    RETURN "FAIL"
+  )
+
+  ; install error handler to catch programming errors
+  ON ERROR GOSUB
+  (
+    PRINT %ERROR "programming &OTP_Name failed, check AREA and UCB manually to avoid locking"
+    RETURN "FLASHFAIL"
+  )
+
+  ; program UCB
+  FLASH.CHANGEtype &OTPx_Base++0x1FF TARGET
+  FLASH.AUTO &OTPx_Base++0x1FF
+  PER.Set.Field &OTPx_Base+0x1E8 %Long 0x00030000 &SWAPEN ; PROCONTP.SWAPEN
+  FLASH.AUTO OFF
+  FLASH.CHANGEtype &OTPx_Base++0x1FF NOP
+
+  ON ERROR DEFault
+
+  ; verify new UCB content
+  DO &UCB_HelperScript UCB=&OTP_Name CHECKUCB
+  ENTRY &result
+  IF "&result"!="UCBOK"
+    RETURN "&result"
+
+  RETURN "OK"
+)
+
+; --------------------------------------------------------------------------------
+; Program a marker set of a SWAP UCB.
+; This configures the active address mapping of the SOTA feature.
+; Currently only marker set 0 is programmed.
+;
+; Parameters: &SWAP_Name Which SWAP UCB to program:
+;                        SWAP_ORIG | SWAP_COPY
+;             &Map Which adrress map to program:
+;                   ALTERNATE Configure alternate address map.
+;                   STANDARD  Configure standard address map.
+;             &MarkerSet Which marker set to program:
+;                        0:     Program marker set 0 and erase UCB if not yet
+;                               erased.
+;                        1..15: Program the marker in given set and invalidate
+;                               the previous set by overprogramming the
+;                               confirmation config of the previous set with -1.
+;                               UCB is not erased.
+;
+; Return values: OK on success, any other on failure.
+
+UCB_SWAP_SetMap:
+(
+  PARAMETERS &SWAP_Name &Map &MarkerSet
+  PRIVATE &result
+  &result="OK"
+
+  ; check if given UCB does exist
+  LOCAL &SWAP_Valid &UCB_Base &MarkerSet_Base
+  &UCB_Base=&SWAP_Base
+  &MarkerSet_Base=&UCB_Base
+  &SWAP_Valid=FALSE() ; not yet valid
+  IF STRing.ComPare("&SWAP_Name","SWAP*")
+  (
+    IF STRing.ComPare(STRing.MID("&SWAP_Name",4.,6.),"_ORIG")
+      &SWAP_Valid=TRUE()
+    ELSE IF STRing.ComPare(STRing.MID("&SWAP_Name",4.,6.),"_COPY")
+    (
+      &UCB_Base=&UCB_Base+0x1000
+      &SWAP_Valid=TRUE()
+    )
+  )
+  IF !(&SWAP_Valid)
+  (
+    ; UCB not existing
+    PRINT %ERROR "no such SWAP UCB &SWAP_Name"
+    RETURN "ILLEGAL"
+  )
+  IF (&MarkerSet<0.)||(&MarkerSet>15.)
+  (
+    ; illegal marker set
+    PRINT %ERROR "illegal marker entry &MarkerSet (out of range)"
+    RETURN "ILLEGAL"
+  )
+  &MarkerSet_Base=&UCB_Base+(&MarkerSet*0x10)
+
+  ; set mapping
+  LOCAL &MarkerL &MarkerH &ConfirmL &ConfirmH
+  &MarkerL=0x00000000
+  &MarkerH=ADDRESS.OFFSET(&MarkerSet_Base)
+  &ConfirmL=&ConfirmationCode
+  &ConfirmH=ADDRESS.OFFSET(&MarkerSet_Base)+0x8
+  IF "&Map"=="ALTERNATE"
+    &MarkerL=0x000000AA
+  ELSE IF "&Map"=="STANDARD"
+    &MarkerL=0x00000055
+  ELSE
+  (
+    PRINT %ERROR "illegal map &Map"
+    RETURN "FAIL"
+  )
+
+  ; install error handler to catch programming errors
+  ON ERROR GOSUB
+  (
+    PRINT %ERROR "programming &UCB_Base failed, check AREA and UCB manually to avoid locking"
+    RETURN "FLASHFAIL"
+  )
+
+  ; program UCB
+  PRIVATE &FlashProgrammingMode
+  IF &MarkerSet==0.
+    &FlashProgrammingCommand="FLASH.AUTO" ; erase all marker entries but keep other UCB settings
+  ELSE
+      &FlashProgrammingCommand="FLASH.Program" ; just modify markers, avoid erase
+  FLASH.CHANGEtype &UCB_Base++0x1FF TARGET
+
+  ; enable FLASH programming and prevent hook-script from complaining because of FLASH.Program
+  LOCAL &TC_PreFlashCheckConfig
+  &TC_PreFlashCheckConfig="&TC_PreFlashCheckConfig WPROGRAM=ALLOW"
+  &FlashProgrammingCommand &UCB_Base++0x0FF
+
+  ; invalidate or clear old/unrelated markers
+  IF &MarkerSet==0.
+    Data.Set &UCB_Base++0x0FF %Long 0x00000000 ; clear all markers
+  ELSE
+    Data.Set (&MarkerSet_Base-0x10)++0x00F %Long 0xFFFFFFFF ; invalidate previous marker set
+
+  ; program new marker
+  Data.Set &MarkerSet_Base %Long &MarkerL &MarkerH &ConfirmL &ConfirmH
+
+  ; program FLASH to target and clean up
+  &FlashProgrammingCommand OFF
+  FLASH.CHANGEtype &UCB_Base++0x1FF NOP
+
+  ; error handler not needed any more
+  ON ERROR DEFault
+
+  ; verify new UCB content
+  DO &UCB_HelperScript UCB=&SWAP_Name CHECKUCB
+  ENTRY &result
+  IF "&result"!="UCBOK"
+    RETURN "&result"
+
+  RETURN "OK"
+)
+
+; --------------------------------------------------------------------------------
+; helper functions for UCB handling
+; --------------------------------------------------------------------------------
+
+; --------------------------------------------------------------------------------
+; Verify if UCB content is formally correct for UCB ORIG and COPY.
+; Uses the TRACE32 standard script tc3xx-ucb.cmm
+;
+; Parameters: &UCB_Name Which UCB to check:
+;                       See tc3xx-ucb.cmm for supported UCBs.
+; Return values: OK on success, any other on failure.
+
+UCB_VerifyContent:
+(
+  PARAMETERS &UCB_Name
+  PRIVATE &result
+
+  PRIVATE &UCB
+  &UCB=""
+
+  ; check UCB ORIG
+  &UCB="&UCB_Name"+"_ORIG"
+  DO &UCB_HelperScript UCB=&UCB CHECKUCB
+    ENTRY &result
+  IF "&result"!="UCBOK"
+    RETURN "&result"
+
+  ; check UCB COPY
+  &UCB="&UCB_Name"+"_COPY"
+  DO &UCB_HelperScript UCB=&UCB CHECKUCB
+    ENTRY &result
+  IF "&result"!="UCBOK"
+    RETURN "&result"
+
+  RETURN "OK"
+)
+
+; --------------------------------------------------------------------------------
+; Check if FLASH is configured for UCB ORIG and COPY.
+; Checks if the FLASH is correctly declared for a given UCB.
+;
+; Parameters:    &UCB_Base Base address of UCB ORIG to be checked
+; Return values: OK on success, any other on failure.
+
+UCB_VerifyDeclaration:
+(
+  PARAMETERS &UCB_Base
+  PRIVATE &result
+
+  PRIVATE &offset ; offset 0x0000: ORIG, 0x1000: COPY
+  &offset=0x0000
+  WHILE (&offset<=0x1000)
+  (
+    PRIVATE &UCB_Address
+    &UCB_Address=&UCB_Base+&offset
+
+    IF !FLASH.SECTOR.EXIST(&UCB_Address)
+    (
+      PRINT %ERROR "FLASH not declared for &UCB_Address"
+      RETURN "FLASHNOTDECLARED"
+    )
+
+    IF !FLASH.SECTOR.BEGIN(&UCB_Address)==&UCB_Address
+    (
+      PRINT %ERROR "invalid FLASH declaration: start of sector does not match UCB base address"
+      RETURN "FLASHNOTDECLARED"
+    )
+
+    IF FLASH.SECTOR.SIZE(&UCB_Address)!=0x200
+    (
+      PRINT %ERROR "wrong FLASH sector size for &UCB_Address"
+      RETURN "FLASHNOTDECLARED"
+    )
+
+    &offset=&offset+0x1000
+  )
+
+  RETURN "OK"
+)
+
+; --------------------------------------------------------------------------------
+; Check if OTPx and SWAP UCBs are protected and disable if required.
+;
+; Parameters:    none
+; Return values: OK on success, any other on failure.
+
+UCB_CheckDisableProtection:
+(
+  ;get UCB status
+  PRIVATE &PROINOTPxO &PROINOTPxC
+  &PROINOTPxO=(Data.Long(&DMU_HF_CONFIRM1)>>(&OTP_Number+2.))&0x3
+  &PROINOTPxC=(Data.Long(&DMU_HF_CONFIRM1)>>((&OTP_Number+2.)+16.))&0x3
+
+  PRIVATE &PROINSWAPO &PROINSWAPC
+  &PROINSWAPO=(Data.Long(&DMU_HF_CONFIRM1)>>14.)&0x3
+  &PROINSWAPC=(Data.Long(&DMU_HF_CONFIRM1)>>30.)&0x3
+
+  IF &param_verbose
+  (
+    PRINT "Protection Status:"
+    PRINT "  SWAP: ORIG: &PROINSWAPO  Copy: &PROINSWAPC"
+    PRINT "  OTP"+FORMAT.Decimal(1.,&OTP_Number)+": ORIG: &PROINOTPxO  Copy: &PROINOTPxC"
+  )
+
+  IF (&PROINOTPxO!=0x1)&&(&PROINOTPxC!=0x1)
+  (
+    PRINT %ERROR "OTP"+FORMAT.Decimal(1.,&OTP_Number)+" not unlocked"
+    RETURN "UCBLOCKED"
+  )
+  IF (&PROINSWAPO!=0x1)&&(&PROINSWAPC!=0x1)
+  (
+    LOCAL &result
+    &result="UNLOCKED"
+    IF (&PROINSWAPO==0x2)
+    (
+        DO &UCB_HelperScript UCB=SWAP_ORIG UNLOCK PWD=&param_swappw
+        ENTRY &result
+    )
+    IF ("&result"=="UNLOCKED")&&(&PROINSWAPC==0x2)
+    (
+      PRIVATE &result
+        DO &UCB_HelperScript UCB=SWAP_COPY UNLOCK PWD=&param_swappw
+        ENTRY &result
+    )
+    IF "&result"!="UNLOCKED"
+    (
+      PRINT %ERROR "SWAP not unlocked"
+      RETURN "UCBLOCKED"
+    )
+  )
+
+  RETURN "OK"
+)

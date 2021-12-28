@@ -1,0 +1,141 @@
+; --------------------------------------------------------------------------------
+; @Title: Chorus Demo for TRACE32 OS Awareness
+; @Description: 
+;   This batchfile loads all necessary files to demonstrate
+;   the RTOS-Debugger for Chorus micro on ARM (arm mode)
+;   in stand-alone-mode.
+; @Keywords: RTOS
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: chorusma.cmm 15227 2019-11-06 11:57:41Z bschroefel $
+
+;   Created by Rudolf Dienstbeck / Lauterbach GmbH at 25.02.97
+
+; Emulator reset
+ PRINT "resetting..."
+ SYStem.RESet
+ MAP.RESet
+ RESet
+ SYStem.Mode AloneInt
+ SYStem.Option dm access
+ IF hardware.ICE()
+ (
+  SYStem.Access cs
+  VCO.Clock 3.
+ )
+ IF hardware.FIRE()
+ (
+  SYStem.Access ws
+ )
+ MAP.RESet
+ WinPAGE.RESet
+
+ PRINT "initializing..."
+
+ IF hardware.ICE()
+ (
+; define workbenches
+ MAP.PRE  0x0++0x0fffff
+ MAP.PRE  0x1000000++0x0fffff
+ MAP.PRE  0x2000000++0x0fffff
+ MAP.PRE  0x0a000000++0x0fffff
+
+ MAP.Ram 0x0++0x0fffff
+ MAP.Ram 0x1000000++0x1ffff
+ MAP.Ram 0x2000000++0x0ffff
+ MAP.Ram 0xa000000++0x0ffff
+
+; internal
+ MAP.Intern
+ )
+
+ IF hardware.FIRE()
+ (
+  MAP.Ram 0x0++0x0fffff
+  MAP.Ram 0x01000000++0x1ffff
+  MAP.Ram 0x02000000++0xffff
+  MAP.Ram 0x0a000000++0xffff
+  MAP.Intern
+ )
+
+; Stand alone internal mode
+ SYStem.Mode AloneInt
+
+; load sample application
+ PRINT "loading sample application..."
+ Data.LOAD.AIF coresa
+ Register.Set PC 0x2000
+
+; switch on C++ demangler
+ sYmbol.DEMangle ON OFF
+
+; simulate SWI
+ DO swi 0x70000
+
+; patch PutChar routine
+; d.a armpidPutChar stmdb r13!,{r1,r2,r14}
+  Data.Set armpidPutChar %Long 0x0e92d4006
+; d.a , mov  r1,#80000
+  Data.Set armpidPutChar+0x4 %Long 0x0e3a01702
+; d.a , ldrb r2,[r1,#1]
+  Data.Set armpidPutChar+0x8 %Long 0x0e5d12001
+; d.a , cmp  r2,#0
+  Data.Set armpidPutChar+0x0c %Long 0x0e3520000
+; d.a , bne  $-6
+  Data.Set armpidPutChar+0x10 %Long 0x01afffffc
+; d.a , strb r0,[r1,#1]
+  Data.Set armpidPutChar+0x14 %Long 0x0e5c10001
+; d.a , ldmia r13!,{r1,r2,pc}
+  Data.Set armpidPutChar+0x18 %Long 0x0e8bd8006
+
+; set "interrupt controller status register" to timer int
+  Data.Set 0x0a000000 %Byte 0x10
+
+; configure timer
+  IF hardware.ICE()||hardware.FIRE()
+  (
+   eXception.Pulse irq
+   eXception.PERiod  5.ms
+   eXception.OFF
+  )
+; start timer later !
+
+; initialize mutitasking support
+ PRINT "initializing RTOS support..."
+ 
+; START OS Awareness
+
+; task.config:
+; 1st argument is name of configuration file (chorusm.t32)
+; 2nd argument is memory location, at which the running process is specified
+; 3rd argument is patch address for suspend call -- not used here!
+; 4th argument is thread pool descriptor address
+; 5th argument is thread defered free list
+; 6th argument is offset of the thread name string
+
+; manual configuration
+;  task.config chorusm CPU_CONTEXT_BASE 0 Thread::thrPool Thread::thrFreeList
+; automatic configuration
+ TASK.CONFIG chorusm 0x2000000 0x0 
+
+; create menu
+ MENU.ReProgram chorusm
+
+;create windows
+ TERM.view 0x80001 0x80002
+ List.auto
+ task.lt
+
+ PRINT "load complete, start with 'g' and 'x.on'"
+
+ ENDDO
+
+
+
+
+
+
+
+
+

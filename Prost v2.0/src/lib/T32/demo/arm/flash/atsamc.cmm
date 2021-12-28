@@ -1,0 +1,151 @@
+; --------------------------------------------------------------------------------
+; @Title: Example for flash declaration of Atmel ATSAMC internal flash
+; @Description:
+;   Script arguments:
+;
+;    DO atsamc [PREPAREONLY] [CPU=<cpu>]
+;
+;      PREPAREONLY only declares flash but does not execute flash programming
+;
+;      CPU=<cpu> selects CPU derivative <cpu>
+;
+;   Example:
+;
+;   DO ~~/demo/arm/flash/atsamc CPU=ATSAMC21J18A PREPAREONLY
+;
+;   List of ATSAMC* derivatives and their configuration:
+;
+;     CPU-Type        Flash size   Page size    SRAM size
+;                        [Byte]      [Byte]       [Byte]
+;     ATSAMC20E15A       0x8000       0x40        0x1000
+;     ATSAMC20E16A      0x10000       0x40        0x2000
+;     ATSAMC20E17A      0x20000       0x40        0x4000
+;     ATSAMC20E18A      0x40000       0x40        0x8000
+;     ATSAMC20G15A       0x8000       0x40        0x1000
+;     ATSAMC20G16A      0x10000       0x40        0x2000
+;     ATSAMC20G17A      0x20000       0x40        0x4000
+;     ATSAMC20G18A      0x40000       0x40        0x8000
+;     ATSAMC20J15A       0x8000       0x40        0x1000
+;     ATSAMC20J16A      0x10000       0x40        0x2000
+;     ATSAMC20J17A      0x20000       0x40        0x4000
+;     ATSAMC20J18A      0x40000       0x40        0x8000
+;     ATSAMC21E15A       0x8000       0x40        0x1000
+;     ATSAMC21E16A      0x10000       0x40        0x2000
+;     ATSAMC21E17A      0x20000       0x40        0x4000
+;     ATSAMC21E18A      0x40000       0x40        0x8000
+;     ATSAMC21G15A       0x8000       0x40        0x1000
+;     ATSAMC21G16A      0x10000       0x40        0x2000
+;     ATSAMC21G17A      0x20000       0x40        0x4000
+;     ATSAMC21G18A      0x40000       0x40        0x8000
+;     ATSAMC21J15A       0x8000       0x40        0x1000
+;     ATSAMC21J16A      0x10000       0x40        0x2000
+;     ATSAMC21J17A      0x20000       0x40        0x4000
+;     ATSAMC21J18A      0x40000       0x40        0x8000
+;     ATSAMC21N17A      0x20000       0x40        0x4000
+;     ATSAMC21N18A      0x40000       0x40        0x8000
+;
+; @Author: AME
+; @Chip: ATSAMC*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 7577 $
+; $Id: atsamc.cmm 7577 2019-10-30 15:30:31Z bschroefel $
+
+
+LOCAL &parameters
+ENTRY %LINE &parameters
+
+LOCAL &param_prepareonly &param_cpu
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CPU=","")
+
+; ------------------------------------------------------------------------------
+; Setup CPU
+
+IF !SYStem.Up()
+(
+  SYStem.RESet
+
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  IF !CPUIS(ATSAMC*)
+    SYStem.CPU ATSAMC*
+  SYStem.CONFIG.DEBUGPORTTYPE SWD
+  SYStem.Option.ResBreak OFF
+  SYStem.Up
+)
+
+; ------------------------------------------------------------------------------
+; Flash declaration
+
+FLASH.RESet
+GOSUB FlashDeclaration
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; -------------------------------------------------------------------------------
+; Flash programming example
+
+DIALOG.YESNO "Program flash memory?"
+LOCAL &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram.ALL
+  Data.LOAD.auto *
+  FLASH.ReProgram.off
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+)
+
+ENDDO
+
+
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU
+
+FlashDeclaration:
+(
+  PRIVATE &FlashSize &EEPROMSize &FlashDriver
+
+  IF CPUIS("ATSAMC???15*")
+  (
+    &FlashSize=0x8000
+    &FlashDriver="atsamc.bin"
+  )
+  ELSE IF CPUIS("ATSAMC???16*")
+  (
+    &FlashSize=0x10000
+    &FlashDriver="atsamc.bin"
+  )
+  ELSE IF CPUIS("ATSAMC???17*")
+  (
+    &FlashSize=0x20000
+    &FlashDriver="atsamc.bin"
+  )
+  ELSE IF CPUIS("ATSAMC???18*")
+  (
+      &FlashSize=0x40000
+      &FlashDriver="atsamc.bin"
+  )
+  ELSE
+  (
+    PRINT %ERROR "FLASH size of CPU type is unknown"
+    ENDDO
+  )
+
+  ; FlashSize is lowered by the EEPROM Size
+  &EEPROMSize=(64.>>((Data.Quad(E:0x804000)>>4.)&0x7))*0x100
+  FLASH.Create  1. 0x00000000--(&FlashSize-&EEPROMSize-1.) 0x100 TARGET Quad
+
+  ; User configuration row
+  FLASH.Create 2. 0x00804000--0x00804007  TARGET QUAD /CENSORSHIP 0x00804000--0x00804007
+
+  FLASH.TARGET 0x20000000 0x20000400 0x400 ~~/demo/arm/flash/quad/&FlashDriver
+
+  RETURN
+)

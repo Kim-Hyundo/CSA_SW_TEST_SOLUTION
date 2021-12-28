@@ -1,0 +1,223 @@
+; --------------------------------------------------------------------------------
+; @Title: Windows Embedded Compact 2013 Demo for TRACE32 OS Awareness
+; @Description:
+;
+;   This batchfile demonstrates the use of the OS Awareness for EC2013
+;
+;   The example is generated for a Sabre Automotive board using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   The Windows EC image is downloaded via the ICD.
+;
+;   This script uses the onboard bootloader to initialize the board
+;
+; @Keywords: WinCE, EC2013, awareness, i.MX6
+; @Author: DIE
+; @Board: Sabre Automotive
+; @Chip: IMX6*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: wince.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; Starting WinCE example with TRACE32:
+; - Start TRACE32
+; - Power on the board
+; - TRACE32: "do wince"
+
+; For debugging with TRACE32 we recommend to disable demand paging
+; by setting bit one of ROMFLAGS in PLATFORM\Opal\FILES\config.bib
+
+; Connect STRAIGHT modem cable to RS232
+; - 115200 baud, 8/N/1, no(!) handshake
+
+
+ LOCAL &winceroot &reldir &term
+
+; set the paths to WinCE
+ &winceroot="C:\WINCE800"    ; typically C:\WINCE800
+ &reldir="&winceroot\OSDesigns\iMX6_SABRE_SDP_WEC2013\RelDir\_3_Debug_iMX6_SABRE_SD_ARMV7"
+
+ &term="COM3"   ; COM port to which the serial debug output is connected
+
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 24. 75. 8.
+ AREA.view
+
+ PRINT "resetting debugger..."
+
+ RESet
+
+
+; open serial terminal window
+
+ IF "&term"!=""
+ (
+    PRINT "starting terminal on &term..."
+    WinPOS 85. 0. ,,,,, term
+    TERM.METHOD COM &term 115200. 8 NONE 1STOP NONE
+    TERM.SIZE 80. 1000.
+    TERM.Mode VT100
+    TERM.SCROLL ON
+    TERM.view
+    SCREEN.ALways      ; permanent update for internal terminal window
+ )
+
+
+; Initializing Debugger for WinEC2013
+
+ PRINT "initializing..."
+ SYStem.CPU iMX6Quad
+ ; At reset, iMX6Quad starts only with one core
+ CORE.ASSIGN 1
+ SYStem.JtagClock CTCK 20MHz
+ SYStem.Option ResBreak OFF
+ SYStem.Option WaitReset 1.3s   ; let bootloader setup the CPU
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ TrOnchip.Set DABORT OFF        ; used by Windows CE for page miss!
+ TrOnchip.Set PABORT OFF        ; used by Windows CE for page miss!
+ TrOnchip.Set UNDEF OFF         ; my be used by Windows CE for FPU detection
+ SETUP.IMASKASM ON              ; lock interrupts while single stepping
+ SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+
+ Trace.METHOD Onchip
+
+
+; Reset and connect to target
+
+ PRINT "resetting target and connecting..."
+ SYStem.Up
+
+
+; Prepare for direct download of WinEC image
+
+ PRINT "prepare for download..."
+ Register.RESet
+
+ MAP.DenyAccess     ; prevent accesses to non-existent memory
+ MAP.NoDenyAccess 0x02000000--0x021fffff    ; internal periphery
+ MAP.NoDenyAccess 0x10000000--0x4fffffff    ; RAM
+
+ ; disable caches and MMU!
+ Data.Set C15:1 Data.Long(c15:1)&~0x1005    ; SCTLR: I/C/M; L1 cache and MMU
+ Data.Set C15:101 Data.Long(C15:101)&~2     ; ACTLR: L2EN;  L2 cache
+
+
+; Load the Windows CE image
+
+ ; Use the next lines only to load the image into
+ ; RAM using the debugger.
+
+ PRINT "loading Windows EC2013 image..."
+
+ ; Download the image to physical address.
+
+ ; See config.bib:
+
+ ; RAMIMAGE entry specifies virtual load address, here 0x80200000
+ ; physical is usually RAM start plus the offset;
+ ; RAM starts at 0x10000000, so physical load address is 0x10200000
+
+ ; ROMSTART entry specifies the start address, here 0x80200000
+ ; IMPORTANT: do *not* add 4k page to ROMSTART - we need the TOC!
+
+ ; ROMOFFSET adds an offset to RAMIMAGE for flash load addresses,
+ ; here 0x1F470400
+ ; then load eboot to <phys. addr.> - (RAMIMAGE+ROMOFFSET)
+
+ Data.LOAD.eXe "&reldir\nk.bin" 0x10200000-0x80200000               ; Debug
+ ;Data.LOAD.EXE "&reldir\nk.bin" 0x10200000-(0x80200000+0x1F470400)  ; Retail
+
+ ; set PC to physical start address
+ Register.Set PC 0x10200000
+
+ ; We'd like to see something, open a code window.
+ WinPOS 0. 0. 77. 22.
+ Data.List
+
+
+; Declare the MMU format to the debugger
+
+ PRINT "preparing debugger MMU translation..."
+
+ ; table format is "WINCE6"
+ ; skip root table (0)
+ ; declare default translation for kernel
+ MMU.FORMAT WINCE6 0 0x80000000--0x9cffffff 0x10000000
+
+ ; ROM DLL, shared heap and kernel addresses are common to all processes
+ TRANSlation.COMMON 0x40000000--0x5fffffff 0x70000000--0xffffffff
+
+ ; debugger uses a table walk to decode virtual addresses
+ TRANSlation.TableWalk ON
+
+  ; switch on debugger(!) address translation
+ TRANSlation.ON
+
+
+; Initialize RTOS Support
+
+ PRINT "initializing Windows EC2013 support..."
+ TASK.CONFIG ~~\demo\arm\kernel\wince\ec2013\wince8.t32     ; loads WinCE awareness
+ MENU.ReProgram ~~\demo\arm\kernel\wince\ec2013\wince8.men  ; loads WinCE menu
+ HELP.FILTER.Add rtoswince6     ; add WinCE awareness manual to help
+
+ ; switch on autoloader and add path to symbol files to source path list
+ sYmbol.AutoLoad.CHECKWINCE "do ~~\demo\arm\kernel\wince\ec2013\autoload "
+ sYmbol.SourcePATH.Set &reldir
+
+ ; Group kernel area to be displayed with red bar
+ GROUP.Create "winceos" 0x80000000--0xffffffff /RED
+
+ ; adapt source paths if necessary (case sensitive!)
+ ;sYmbol.SourcePATH.Translate "c:\wince800" "&winceroot"
+ sYmbol.SourcePATH.Translate "d:\bt\1301" "&winceroot"
+ sYmbol.SourcePATH.Set .    ; add current directory to search path
+
+
+; Start kernel and assign to all cores
+
+ PRINT "loading OAL and kernel symbols..."
+ TASK.ROM.PA 0x10200000     ; set physical access mode for awareness
+ TASK.sYmbol.Option AutoLoad NoProcess  ; no processes loaded yet
+ TASK.sYmbol.Option AutoLoad RomMod     ; check for ROM modules
+ sYmbol.AutoLOAD.CHECK                  ; check for modules
+ sYmbol.AutoLOAD.TOUCH "nk.exe"         ; load OAL symbols
+ sYmbol.AutoLOAD.TOUCH "kernel.dll"     ; load kernel symbols
+
+ Go \\kernel\Global\KernelStart         ; start kernel
+ PRINT "waiting for other cores to start..."
+ WAIT !STATE.RUN()
+ TASK.ROM.VA        ; set virtual access mode for awareness
+
+ ; Assign to all cores
+ PRINT "assign to all cores..."
+ SYStem.Down
+ CORE.ASSIGN 1 2 3 4
+ SYStem.Mode Attach
+
+
+; Now let's boot and start Windows CE!
+
+ Go
+ WinTOP term
+ PRINT "booting Windows CE... (please wait)"
+ WAIT 2.s
+ Break
+
+
+ PRINT "done."
+
+
+; --------------------------------------------------------------------------------
+; Application Debugging
+; e.g. "appstarter.exe"
+
+ DO ~~\demo\arm\kernel\wince\ec2013\app_debug appstarter
+
+
+ ENDDO

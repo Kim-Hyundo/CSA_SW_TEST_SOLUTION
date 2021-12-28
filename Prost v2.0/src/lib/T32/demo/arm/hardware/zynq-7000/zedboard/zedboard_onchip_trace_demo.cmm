@@ -1,0 +1,83 @@
+; --------------------------------------------------------------------------------
+; @Title: On-chip Trace demo script for the ZedBoard
+; @Description:
+;   Loads the sieve demo into RAM and sets up a demo debug scenario 
+;   for SMP debugging.
+;   The Onchip Trace is configured.
+;   Prerequisites:
+;     * Debugger or Combiprobe is connected to 
+;       14pin JTAG header using LA-3881 adapter
+;     *  MIO[6..2]=0y00000 - JTAG BOOT
+;       or
+;        MIO[6..2]=0y01100 - SD BOOT and remove the SD-Card
+; @Keywords: Cortex-A9, ETM, PTM, Trace, Xilinx, Zynq, Zynq7000
+; @Board: ZedBoard
+; @Chip: Zynq-7000
+; @Author: KJM
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: zedboard_onchip_trace_demo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+; Changelog:
+; * 26.08.2013, Alexander Merkle, Lauterbach - added initialization for level-shifters PS<->PL
+
+LOCAL &ppd
+&ppd=OS.PPD()
+
+WinCLEAR
+RESet
+SYStem.RESet
+
+AREA.CLEAR
+WinPOS 0.14286 32.167 80. 25. 0. 0. W002
+AREA.view
+
+SYStem.CPU ZYNQ-7000
+; set DaisyChaining Parameters of the board
+; check e.g. SYStem.DETECT.ShowCHAIN
+SYStem.CONFIG DAPIRPRE  6.
+SYStem.CONFIG DAPIRPOST 0.
+SYStem.CONFIG DAPDRPRE  1.
+SYStem.CONFIG DAPDRPOST 0.
+
+; trigger a soft-reset using the AHB Bus -> we loose the connection
+SYStem.Mode.Prepare
+ON ERROR CONTinue
+Data.Set EAHB:0xF8000008 %Long 0xDF0D
+Data.Set EAHB:0xF8000200 %Long 0x1
+WAIT 0.1s
+PRINT ""
+ON ERROR inherit
+
+SYStem.Mode.Attach
+
+IF STATE.RUN()
+  Break
+
+PRINT "initializing the target"
+DO "~~/demo/arm/hardware/zynq-7000/scripts/trace/ps7_init.cmm" "&ppd/ps7_init.tcl"
+
+; in case the Debug Clock was not running - it's now running
+Trace.METHOD Onchip
+ETM.ON				; Turn ETM on
+
+; load code
+Data.LOAD.Elf "~~~~/sieve_ram_arm_v7.elf"
+Register.Set PC _start /CORE 1.
+
+; run to main
+Go main
+WAIT !STATE.RUN() 
+
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0% 0%
+List.auto
+WinPOS 0% 50% 
+Register.view /SpotLight
+WinPOS 50% 0% 
+Trace.List
+
+ENDDO

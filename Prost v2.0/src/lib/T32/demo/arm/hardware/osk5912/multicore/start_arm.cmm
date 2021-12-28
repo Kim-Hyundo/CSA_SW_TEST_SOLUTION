@@ -1,0 +1,97 @@
+; --------------------------------------------------------------------------------
+; @Title: Start-Up Script for ARM9 on OMAP5912
+; @Description:
+;   ARM9 on OSK5912 beagle board startup.
+;   - Create two start links for a C54x debugger and an ARM debugger
+;   - Assign to the start link the configuration files config_dsp.t32
+;     and config_arm.t32
+;   - Start the debuggers: At first the ARM debugger (master) and the
+;     DSP debugger (slave)
+;   - Run first the script start_arm.cmm in the ARM debugger and than
+;     the script start start_dsp.cmm
+;   - In the Synch window of each debugger you can controll the master
+;     slave behaviour during debugging
+; @Keywords: AMP
+; @Author: PEG
+; @Board: OSK5912
+; @Chip: OMAP5912
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: start_arm.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+; PEG, June 2005
+
+; try to establish intercom connection to DSP debugger if started
+  ON ERROR GOSUB
+  (
+    RETURN
+  )
+  SYnch.Connect LOCALHOST:20002
+  ON ERROR
+
+; start-up debugger
+  SYStem.Reset
+  SYStem.CPU OMAP5912
+  SYStem.JtagClock RTCK
+  SYStem.Option ResBreak OFF
+  SYStem.Option WaitReset ON
+  SYStem.Up
+
+; disable MMU
+  Data.Set c15:1 %Long 0x00050078
+
+; soft reset of ARM and DSP core
+  Data.Set 0xfffece10 %Word 0x000c     ; ARM_RSTCT1
+  Data.Set 0xfffece10 %Word 0x0004     ; ARM_RSTCT1
+
+; request the DPLL to enter the lock mode
+  Data.Set 0xfffecf00 %Word 0x0010     ; DPLL1_CTL_REG
+
+; disable ARM watchdog
+  Data.Set 0xfffec808 %Word 0x00f5     ; MPU_WDT_TIMER_MODE
+  Data.Set 0xfffec808 %Word 0x00a0     ; MPU_WDT_TIMER_MODE
+
+; allow access to DSP memory
+  Data.Set 0xfffece08 %Word 0x0040     ; ARM_IDLECT2
+  Data.Set 0xfffec900 %Long 0x0000ff1b ; CTRL_REG
+
+; patch branch to itself for DSP to get a defined behaviour after reset release
+  Data.Set 0xe0010000 %Long 0x4a7e4a7e
+
+; DSP reset release; now the start-up script for the DSP will work; DSP boots from 0x10000 byte address
+  Data.Set 0xfffec918 %Long 0x00000005 ; DSP_Boot_Config
+  Data.Set 0xfffece10 %Word 0x0000     ; ARM_RSTCT1
+  Data.Set 0xfffece10 %Word 0x0006     ; ARM_RSTCT1
+
+; load demo program for ARM
+  Data.LOAD.ELF ~~~~/demo.axf
+  Register.Set PC main
+  Register.Set R13 0x10010000
+  Register.Set CPSR 0x600000d3
+
+; enable ETM pins
+; ETM pin multiplexing - normal mode
+  Data.Set 0xfffe1014 %Long 0x09200000 ; FUNC_MUX_CTRL_4
+  Data.Set 0xfffe1018 %Long 0x09249249 ; FUNC_MUX_CTRL_5
+; ETM pin multiplexing - demux mode
+  Data.Set 0xfffe101c %Long 0x00b40000 ; FUNC_MUX_CTRL_6
+  Data.Set 0xfffe1020 %Long 0x0000002d ; FUNC_MUX_CTRL_7
+
+; open some windows
+  WinCLEAR
+  WinPOS 0% 0% 100% 50%
+  List.auto
+  WinPOS 0% 50% 50% 50%
+  Frame /Locals /Caller
+  WinPOS 50% 50% 50% 50%
+  Var.Watch
+  Var.AddWatch ast; flags;
+
+  ENDDO
+
+
+
+
+
+

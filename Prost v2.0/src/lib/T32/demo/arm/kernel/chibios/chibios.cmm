@@ -1,0 +1,80 @@
+; --------------------------------------------------------------------------------
+; @Title: ChibiOS/RT Demo for TRACE32 OS Awareness
+; @Description: 
+;   
+;   This batchfile loads all necessary files to demonstrate
+;   the OS Awareness for ChibiOS/RT.
+;   
+; @Keywords: RTOS, ChibiOS
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: chibios.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+ SCREEN.ON                    ; all messages are displayed
+ AREA.RESet
+ WinPAGE.RESet
+ WinPOS 0 24. 70. 8. 0. 0. W000
+ AREA.view
+
+; Debugger reset
+ PRINT "resetting..."         ; send to message line
+ RESet                        ; reset Instrument
+   
+; Debugger initializations
+ PRINT "initializing..."      ; send to message line
+ SYStem.CPU STM32F101
+ if INTERFACE.SIM()
+ (
+   SIM.LOAD ~~\demo\arm\simul\intc_cortexm3\nvic.dll
+ )
+ SYStem.Up
+ 
+; print "loading application..."
+ Data.LOAD.Elf ch.elf
+ Register.Set PC ResetHandler
+ 
+; initialize RTOS support
+ PRINT "initializing ChibiOS support..."
+ TASK.CONFIG ~~/demo/arm/kernel/chibios/chibios.t32     ; load ChibiOS/RT Awareness
+ MENU.ReProgram ~~/demo/arm/kernel/chibios/chibios.men  ; load ChibiOS/RT Menu
+ HELP.FILTER.Add rtoschibios
+ TASK.STacK.PATtern 0x55
+
+; the example contains a memory mapped terminal emulation
+ print "opening terminal..."
+ winpos 65. 9. ,,,,, term
+ TERM.METHOD SingleE T32_OUT 0
+ TERM
+   
+; open source window
+ WinPOS 0. 0. 70. 21.
+ List.auto
+
+; Go over initializations
+ Go main
+ print "initializing ChibiOS..."
+ wait !STATE.RUN()
+ 
+; Set symbols on thread's work area for thread naming
+ sYmbol.NEW test1 v.value(wa[1])
+ sYmbol.NEW test2 v.value(wa[2])
+ sYmbol.NEW test3 v.value(wa[3])
+ sYmbol.NEW test4 v.value(wa[4])
+
+; open threads window
+ WinPOS 75. 0. 50. 6.
+ TASK.Thread
+
+; let the system run 
+ 
+ wintop term
+ Go TestThread
+ print "initializing application..."
+ wait !STATE.RUN()
+ 
+ Go _default_exit
+ print "running application."
+ 
+ ENDDO
+  

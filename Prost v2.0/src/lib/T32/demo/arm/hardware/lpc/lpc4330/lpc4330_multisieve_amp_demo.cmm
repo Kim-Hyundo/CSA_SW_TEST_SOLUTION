@@ -1,0 +1,164 @@
+; --------------------------------------------------------------------------------
+; @Title: Run a Multi Sieve demo in SRAM for the LPC4330-Xplorer Board
+; @Description:
+;   This demo shows how to connect TRACE32 to the LPC4330-Xplorer Board
+;   and load a multisieve SRAM demo on the Cortex-M4F and Cortex-M0
+;   and start an AMP debugging session.
+;
+; @Keywords: Cortex-M4F, Cortex-M0, AMP, Multisieve
+; @Author: MSA
+; @Board: LPC4330-Xplorer
+; @Chip: LPC4330FET100*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: lpc4330_multisieve_amp_demo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+  LOCAL &CM0_start_addr &curr_dir &exec_name
+  LOCAL &portGUI0 &portGUI1
+  LOCAL &addrGUI0 &addrGUI1
+
+  &curr_dir=OS.PPD()
+  &pcf=OS.PCF()
+  &configpath=OS.FILE.PATH(&pcf)
+  &configfile=OS.FILE.NAME(&pcf)
+
+  IF (OS.VERSION(0)>=0x20)||(OS.VERSION(0)==0x0)
+  (
+    PRINT "Demo unsupported for this OS"
+    ENDDO
+  )
+  ELSE IF OS.VERSION(0)>=0x10
+  (
+    &exec_name="t32marm-qt"
+  )
+  ELSE
+  (
+    &exec_name="t32marm"
+  )
+
+  GOSUB setup_intercom
+  GOSUB QuitSlaveGui "&portGUI1"
+  WAIT 0.5s
+  GOSUB StartSlaveGui "&exec_name" "&configfile" "&portGUI1" "LPC4430" "2"
+
+  ON CMD CM4 GOSUB coreCM4
+  ON CMD CM0 GOSUB coreCM0
+  ON CMD COREALL GOSUB coreAll
+
+
+  COREALL  "RESet"
+  COREALL  "SYStem.RESet"
+  CM4      "SYStem.CPU LPC4330FET100"
+  CM0      "SYStem.CPU LPC4330FET100-M0"
+  COREALL  "SYStem.Option.ResBreak OFF"
+
+
+  CM4 "SYStem.Up"
+
+  CM4 "Data.Set SD:0x40051478 %Long 0x00000007"
+
+  CM0 "SYStem.Mode Attach"
+
+  ; Release Reset
+  CM4  "Data.Set SD:0x40053104 %Long 0x00000000"
+  WAIT 2.s
+
+  CM4  "Data.LOAD.Elf ""&(curr_dir)/sieve_ram_thumb_ii_v7.elf"""
+  CM0  "Register.RESet"
+  CM0  "Data.LOAD.Elf ""&(curr_dir)/sieve_ram_thumb_v6m.elf"""
+
+  ; open some windows
+  COREALL  "WinCLEAR"
+
+  COREALL  "WinPOS 0% 0% 50% 50%"
+  COREALL  "List.auto"
+
+  COREALL  "WinPOS 50% 0% 50% 50%"
+  COREALL  "Register.view /SpotLight"
+
+  COREALL  "WinPOS 0% 50% 50% 50%"
+  COREALL  "Frame /Locals /Caller"
+
+  COREALL  "WinPOS 50% 50% 50% 50%"
+  COREALL  "Var.DRAW sinewave"
+
+  CM4  "GO"
+  CM4  "WAIT 2.s"
+  CM4  "Break.direct"
+  CM0  "GO"
+  CM0  "WAIT 2.s"
+  CM0  "Break.direct"
+
+  COREALL  "ENDDO"
+
+
+; --------------------------------------------------------------------------------
+  ; Intercom helper routines
+setup_intercom:
+  (
+    &portGUI0=FORMAT.Decimal(1.,INTERCOM.PORT())
+    &portGUI1=FORMAT.Decimal(1.,INTERCOM.PORT()+1.)
+    &addrGUI0="127.0.0.1:&portGUI0"
+    &addrGUI1="127.0.0.1:&portGUI1"
+    RETURN
+  )
+
+QuitSlaveGui: ;(SlaveIntercomPort)
+  (
+    LOCAL &SlaveIntercomPort
+    PARAMETERS &SlaveIntercomPort
+    IF INTERCOM.PING(localhost:&SlaveIntercomPort)
+    (
+      INTERCOM.executeNoWait localhost:&SlaveIntercomPort QUIT
+    )
+    RETURN
+  )
+
+StartSlaveGui: ;(ExecFile, ConfigFile, SlaveIntercomPort, Name, Index)
+  (
+    LOCAL &ExecFile &ConfigFile &SlaveIntercomPort &Name &Index &patht32m &pathconfig
+    PARAMETERS &ExecFile &ConfigFile &SlaveIntercomPort &Name &Index
+    &pathsys=OS.PSD()
+    &patht32m=OS.PED()+"/"+"&ExecFile"
+    &pathconfig=OS.PPD()+"/"+"&ConfigFile"
+
+    IF OS.VERSION(0)>=0x10
+    (
+      OS &patht32m -c &pathconfig &pathsys &SlaveIntercomPort &Name CORE=&Index &
+    )
+    ELSE
+    (
+      OS &patht32m -c &pathconfig &pathsys &SlaveIntercomPort &Name CORE=&Index
+    )
+
+    WAIT 3.s
+    INTERCOM.WAIT localhost:&SlaveIntercomPort
+
+    RETURN
+  )
+
+coreCM4:
+  (
+    LOCAL &params
+    PARAMETERS &params
+    &params ; ;execute on this gui
+    RETURN
+  )
+
+coreCM0:
+  (
+    LOCAL &params
+    PARAMETERS &params
+    INTERCOM.EXECUTE &addrGUI1 &params ; execute on remote gui1
+    RETURN
+  )
+
+coreAll:
+  (
+    LOCAL &params
+    PARAMETERS &params
+    GOSUB coreCM4 "&params"
+    GOSUB coreCM0 "&params"
+    RETURN
+  )
+

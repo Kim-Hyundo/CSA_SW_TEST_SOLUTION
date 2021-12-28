@@ -1,0 +1,122 @@
+; --------------------------------------------------------------------------------
+; @Title: WinCE 5.0 Application Debugging Script
+; @Description: 
+;   This script waits for an application to be started,
+;   loads the symbols and halts the application at main()
+;   NOTE: Windows CE and the Windows CE awareness must be up.
+;   start this script with the following arguments:
+;   first argument:    symbol file; the file name MUST match the process name
+;   further arguments: additional load options, if necessary
+;   examples: do app_debug hello
+;             do app_debug ping /strippart "c:\macallan"
+;   start this script with the process name as argument
+;   e.g.: do app_debug hello
+; @Keywords: awareness, Windows
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: app_debug.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+ ENTRY &process &opt1 &opt2
+ LOCAL &spaceid &proccreate
+ 
+; delete possibly existing symbols, breakpoints and groups
+ 
+ IF sYmbol.EXIST("\\&process")
+ (
+   Break.Delete sYmbol.SECRANGE(\\&process\.text)
+   sYmbol.Delete \\&process
+ )
+ GROUP.Delete "&process"
+
+; Wait for process to be loaded.
+; The process must be started by executing it
+; in the WinCE user interface.
+
+ ; we cannot load process symbols as long as we don't
+ ; know the address translation. The MMU for the new
+ ; process is set up, right before it is started
+ ; at MDCreateMainThread1() (WinCE4) or LoadSwitch (WinCE5)
+
+ IF STATE.RUN()
+   Break
+   
+ IF sYmbol.EXIST(MDCreateMainThread1)
+   &proccreate=ADDRESS.OFFSET(MDCreateMainThread1)
+ ELSE IF sYmbol.EXIST(LoadSwitch)
+   &proccreate=ADDRESS.OFFSET(LoadSwitch)
+ ELSE
+ (
+    PRINT "Error: process creation location not found!"
+    ENDDO
+ )
+ 
+ ; The process creation is called for every process to start -
+ ; the conditional breakpoint halts only, if the desired process
+ ; is found in the process table.
+ 
+ Break.Set &proccreate /CONDition task.proc.spaceid("&process")!=0xffffffff
+ Go
+ PRINT "waiting for &process to be started..."
+ WAIT !STATE.RUN()
+ Break.Delete &proccreate
+ 
+ ; Yep! The process is loaded and we found it.
+ ; Now scan the MMU for the new process memory space
+
+ &spaceid=task.proc.spaceid("&process")
+
+ PRINT "scanning process mmu tables..."
+ task.mmu.scan &spaceid     ; scan only the process' MMU
+ 
+ ; We've got the MMU table for the process, now we're
+ ; loading the process symbols to the space id of the 
+ ; process and set a breakpoint at it's main entry point.
+ 
+ ; Set the breakpoint on the second instruction of the
+ ; entry point, so that WinCE loads the page!
+ 
+ ; Entry point for command line tools: main() or wmain()
+ ; Entry point for window based programs: WinMain()
+
+ PRINT "loading &process.exe symbols..."
+ Data.LOAD.eXe &process.exe &spaceid:0 /NoCODE /NoClear &opt1 &opt2
+
+ ; Group the process' area to be displayed with green bar
+
+ GROUP.Create "&process" &spaceid:0x0--0x7fffffff /GREEN
+ 
+ ; Now set a breakpoint at it's main entry point.
+ 
+ IF sYmbol.EXIST(main)
+   &entry=ADDRESS.OFFSET(main)
+ ELSE IF sYmbol.EXIST(wmain)
+   &entry=ADDRESS.OFFSET(wmain)
+ ELSE IF sYmbol.EXIST(WinMain)
+   &entry=ADDRESS.OFFSET(WinMain)
+ ELSE
+ (
+    PRINT "Error: main routine of process not found!"
+    ENDDO
+ )
+ 
+ Break.Set &entry+4 /Onchip 
+
+ ; Let the system run. As soon as the process
+ ; is started at main(), it halts.
+
+ Go
+ PRINT "starting &process..."
+ WAIT !STATE.RUN()
+ Break.Delete &entry+4
+
+ PRINT "done."
+ 
+ ; NOTE: if finished debugging with a process, or if restarting
+ ; the process, you have to delete the symbols and restart the
+ ; application debugging. Delete the symbols with
+ ; sYmbol.Delete \\<module_name>
+
+ ENDDO
+ 

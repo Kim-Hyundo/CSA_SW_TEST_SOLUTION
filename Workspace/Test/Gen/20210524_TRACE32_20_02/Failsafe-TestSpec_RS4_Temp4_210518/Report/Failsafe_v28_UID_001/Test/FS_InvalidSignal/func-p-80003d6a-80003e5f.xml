@@ -1,0 +1,657 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="t32transform.xsl"?>
+<TRACE32 file="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Gen\20210524_TRACE32_20_02\Failsafe-TestSpec_RS4_Temp4_210518\Report\Failsafe_v28_UID_001\Test\FS_InvalidSignal\func-p-80003d6a-80003e5f.xml">
+	<coverage>
+		<COVerage.EXPORT.ListLine ts="1621823166" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE" metric="object">
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\Rte_SWC_Diag</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>-</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>0</never>
+				<bytes>638</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\FS_HWFailure</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>16</never>
+				<bytes>236</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\SWC_Failsafe</tree>
+				<cov>partial</cov>
+				<exec metric="object">0.600%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>16</never>
+				<bytes>1666</bytes>
+				<bytesok>10</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80002DEA</addrFrom>
+				<addrTo>P:80002F83</addrTo>
+				<tree>\\Test\FS_BatteryVoltage</tree>
+				<cov>partial</cov>
+				<exec metric="object">59.512%</exec>
+				<branches>52.000%</branches>
+				<ok>8</ok>
+				<taken>3</taken>
+				<nottaken>7</nottaken>
+				<never>7</never>
+				<bytes>410</bytes>
+				<bytesok>244</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80002F84</addrFrom>
+				<addrTo>P:800030BB</addrTo>
+				<tree>\\Test\FS_CANBusOff</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>17</never>
+				<bytes>312</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\FS_CANTimeout</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>350</never>
+				<bytes>2458</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\FS_InvalidSignal</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>350</never>
+				<bytes>6758</bytes>
+				<bytesok>0</bytesok>
+				<function>
+					<addrFrom>P:80003D6A</addrFrom>
+					<addrTo>P:80003E5F</addrTo>
+					<tree uid="p-80003d6a-80003e5f">\\Test\FS_InvalidSignal\FS_Clear_InvalidSignal</tree>
+					<cov>never</cov>
+					<exec metric="object">0.000%</exec>
+					<branches>-</branches>
+					<ok>0</ok>
+					<taken>0</taken>
+					<nottaken>0</nottaken>
+					<never>0</never>
+					<bytes>246</bytes>
+					<bytesok>0</bytesok>
+					<line>
+						<addrFrom>P:80003D6A</addrFrom>
+						<addrTo>P:80003D77</addrTo>
+						<tree>FS_InvalidSignal.c \3093--3098</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>14</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003D78</addrFrom>
+						<addrTo>P:80003D87</addrTo>
+						<tree>FS_InvalidSignal.c \3099--3099</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003D88</addrFrom>
+						<addrTo>P:80003D97</addrTo>
+						<tree>FS_InvalidSignal.c \3100--3107</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003D98</addrFrom>
+						<addrTo>P:80003DA3</addrTo>
+						<tree>FS_InvalidSignal.c \3108--3108</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003DA4</addrFrom>
+						<addrTo>P:80003DB1</addrTo>
+						<tree>FS_InvalidSignal.c \3109--3109</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>14</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003DB2</addrFrom>
+						<addrTo>P:80003DC1</addrTo>
+						<tree>FS_InvalidSignal.c \3110--3110</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003DC2</addrFrom>
+						<addrTo>P:80003DD1</addrTo>
+						<tree>FS_InvalidSignal.c \3111--3111</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003DD2</addrFrom>
+						<addrTo>P:80003DDF</addrTo>
+						<tree>FS_InvalidSignal.c \3112--3112</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>14</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003DE0</addrFrom>
+						<addrTo>P:80003DEF</addrTo>
+						<tree>FS_InvalidSignal.c \3113--3113</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003DF0</addrFrom>
+						<addrTo>P:80003DFB</addrTo>
+						<tree>FS_InvalidSignal.c \3114--3114</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003DFC</addrFrom>
+						<addrTo>P:80003E0B</addrTo>
+						<tree>FS_InvalidSignal.c \3115--3115</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003E0C</addrFrom>
+						<addrTo>P:80003E1B</addrTo>
+						<tree>FS_InvalidSignal.c \3116--3116</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003E1C</addrFrom>
+						<addrTo>P:80003E2B</addrTo>
+						<tree>FS_InvalidSignal.c \3117--3128</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003E2C</addrFrom>
+						<addrTo>P:80003E3D</addrTo>
+						<tree>FS_InvalidSignal.c \3129--3129</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003E3E</addrFrom>
+						<addrTo>P:80003E4D</addrTo>
+						<tree>FS_InvalidSignal.c \3130--3130</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003E4E</addrFrom>
+						<addrTo>P:80003E5F</addrTo>
+						<tree>FS_InvalidSignal.c \3131--3131</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<total>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>246</bytes>
+						<bytesok>0</bytesok>
+					</total>
+				</function>
+				<total>
+					<cov>never</cov>
+					<exec metric="object">0.000%</exec>
+					<branches>-</branches>
+					<ok>0</ok>
+					<taken>0</taken>
+					<nottaken>0</nottaken>
+					<never>0</never>
+					<bytes>246</bytes>
+					<bytesok>0</bytesok>
+				</total>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\FS_SWFailure</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>17</never>
+				<bytes>304</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_cstart</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>5</never>
+				<bytes>806</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_cstart_tc1</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>402</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_cstart_tc2</tree>
+				<cov>partial</cov>
+				<exec metric="object">81.094%</exec>
+				<branches>87.500%</branches>
+				<ok>3</ok>
+				<taken>0</taken>
+				<nottaken>1</nottaken>
+				<never>0</never>
+				<bytes>402</bytes>
+				<bytesok>326</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_cstart_tc3</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_main</tree>
+				<cov>partial</cov>
+				<exec metric="object">27.835%</exec>
+				<branches>31.818%</branches>
+				<ok>1</ok>
+				<taken>4</taken>
+				<nottaken>1</nottaken>
+				<never>5</never>
+				<bytes>388</bytes>
+				<bytesok>108</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:800065B6</addrFrom>
+				<addrTo>P:8000674B</addrTo>
+				<tree>\\Test\prost_cstart_tc4</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:8000674C</addrFrom>
+				<addrTo>P:800068E1</addrTo>
+				<tree>\\Test\prost_cstart_tc5</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80006A62</addrFrom>
+				<addrTo>P:80006A91</addrTo>
+				<tree>\\Test\prost_stubs</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>2</never>
+				<bytes>48</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<total>
+				<cov>partial</cov>
+				<exec metric="object">4.287%</exec>
+				<branches>2.412%</branches>
+				<ok>12</ok>
+				<taken>7</taken>
+				<nottaken>9</nottaken>
+				<never>801</never>
+				<bytes>16046</bytes>
+				<bytesok>688</bytesok>
+			</total>
+		</COVerage.EXPORT.ListLine>
+	</coverage>
+	<marker>
+		<BookMark.EXPORT ts="1621823166" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE">
+		</BookMark.EXPORT>
+	</marker>
+	<listing>
+		<List.EXPORT ts="1621823166" t32ver="R.2020.09.000128638" t32pv="TRICORE" order="source">
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>3093</line><src></src></hll>
+				<hll><line>3094</line><src>void FS_Clear_InvalidSignal(void)</src></hll>
+				<hll><line>3095</line><src>{</src></hll>
+				<hll><line>3096</line><src>#if CCAN == CANFD</src></hll>
+				<hll><line>3097</line><src>#if VEH_TYPE == NORMAL</src></hll>
+				<hll><cov>never</cov><line>3098</line><src>    memset(ems, 0, sizeof(ems));</src></hll>
+				<asm><cov>never</cov><addr>P:80003D6A</addr><code>FF89FF61</code><label>FS_Clear_InvalidSignal:                                                                                                                                                                                                                                         </label><mnemonic>fcall     0x80003C7C</mnemonic><comment>.cocofun_69</comment></asm>
+				<asm><cov>never</cov><addr>P:80003D6E</addr><code>0482</code><mnemonic>mov16     d4,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003D70</addr><code>5001203B</code><mnemonic>mov       d5,#0x12</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003D74</addr><code>1005006D</code><mnemonic>call      0x80005D7E</mnemonic><comment>memset</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>never</cov><line>3099</line><src>    memset(tcu, 0, sizeof(tcu));</src></hll>
+				<asm><cov>never</cov><addr>P:80003D78</addr><code>0482</code><mnemonic>mov16     d4,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003D7A</addr><code>49004091</code><mnemonic>movh.a    a4,#0x9004</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003D7E</addr><code>6582</code><mnemonic>mov16     d5,#0x6</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003D80</addr><code>407244D9</code><mnemonic>lea       a4,[a4]0x532</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003D84</addr><code>0FFD006D</code><mnemonic>call      0x80005D7E</mnemonic><comment>memset</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>3100</line><src>#elif VEH_TYPE == EV</src></hll>
+				<hll><line>3101</line><src>    memset(vcu, 0, sizeof(vcu));</src></hll>
+				<hll><line>3102</line><src>#elif VEH_TYPE == HEV</src></hll>
+				<hll><line>3103</line><src>    memset(ems, 0, sizeof(ems));</src></hll>
+				<hll><line>3104</line><src>    memset(hcu, 0, sizeof(hcu));</src></hll>
+				<hll><line>3105</line><src>    memset(htcu, 0, sizeof(htcu));</src></hll>
+				<hll><line>3106</line><src>#endif /* VEH_TYPE */</src></hll>
+				<hll><cov>never</cov><line>3107</line><src>    memset(bcm, 0, sizeof(bcm));</src></hll>
+				<asm><cov>never</cov><addr>P:80003D88</addr><code>49004091</code><mnemonic>movh.a    a4,#0x9004</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003D8C</addr><code>306244D9</code><mnemonic>lea       a4,[a4]0x4E2</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003D90</addr><code>FF9BFF61</code><mnemonic>fcall     0x80003CC6</mnemonic><comment>.cocofun_76</comment></asm>
+				<asm><cov>never</cov><addr>P:80003D94</addr><code>0FF5006D</code><mnemonic>call      0x80005D7E</mnemonic><comment>memset</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>never</cov><line>3108</line><src>    memset(clu, 0, sizeof(clu));</src></hll>
+				<asm><cov>never</cov><addr>P:80003D98</addr><code>FF59FF61</code><mnemonic>fcall     0x80003C4A</mnemonic><comment>.cocofun_64</comment></asm>
+				<asm><cov>never</cov><addr>P:80003D9C</addr><code>FF95FF61</code><mnemonic>fcall     0x80003CC6</mnemonic><comment>.cocofun_76</comment></asm>
+				<asm><cov>never</cov><addr>P:80003DA0</addr><code>0FEF006D</code><mnemonic>call      0x80005D7E</mnemonic><comment>memset</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>never</cov><line>3109</line><src>    memset(esc, 0, sizeof(esc));</src></hll>
+				<asm><cov>never</cov><addr>P:80003DA4</addr><code>FF62FF61</code><mnemonic>fcall     0x80003C68</mnemonic><comment>.cocofun_67</comment></asm>
+				<asm><cov>never</cov><addr>P:80003DA8</addr><code>0482</code><mnemonic>mov16     d4,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DAA</addr><code>5003C03B</code><mnemonic>mov       d5,#0x3C</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DAE</addr><code>0FE8006D</code><mnemonic>call      0x80005D7E</mnemonic><comment>memset</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>never</cov><line>3110</line><src>    memset(icu, 0, sizeof(icu));</src></hll>
+				<asm><cov>never</cov><addr>P:80003DB2</addr><code>0482</code><mnemonic>mov16     d4,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DB4</addr><code>49004091</code><mnemonic>movh.a    a4,#0x9004</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DB8</addr><code>6582</code><mnemonic>mov16     d5,#0x6</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DBA</addr><code>407844D9</code><mnemonic>lea       a4,[a4]0x538</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DBE</addr><code>0FE0006D</code><mnemonic>call      0x80005D7E</mnemonic><comment>memset</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>never</cov><line>3111</line><src>    memset(icsc, 0, sizeof(icsc));</src></hll>
+				<asm><cov>never</cov><addr>P:80003DC2</addr><code>0482</code><mnemonic>mov16     d4,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DC4</addr><code>49004091</code><mnemonic>movh.a    a4,#0x9004</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DC8</addr><code>6582</code><mnemonic>mov16     d5,#0x6</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DCA</addr><code>505044D9</code><mnemonic>lea       a4,[a4]0x550</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DCE</addr><code>0FD8006D</code><mnemonic>call      0x80005D7E</mnemonic><comment>memset</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>never</cov><line>3112</line><src>    memset(mdps, 0, sizeof(mdps));</src></hll>
+				<asm><cov>never</cov><addr>P:80003DD2</addr><code>FF50FF61</code><mnemonic>fcall     0x80003C72</mnemonic><comment>.cocofun_68</comment></asm>
+				<asm><cov>never</cov><addr>P:80003DD6</addr><code>0482</code><mnemonic>mov16     d4,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DD8</addr><code>5001E03B</code><mnemonic>mov       d5,#0x1E</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DDC</addr><code>0FD1006D</code><mnemonic>call      0x80005D7E</mnemonic><comment>memset</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>never</cov><line>3113</line><src>    memset(sas, 0, sizeof(sas));</src></hll>
+				<asm><cov>never</cov><addr>P:80003DE0</addr><code>0482</code><mnemonic>mov16     d4,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DE2</addr><code>49004091</code><mnemonic>movh.a    a4,#0x9004</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DE6</addr><code>6582</code><mnemonic>mov16     d5,#0x6</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DE8</addr><code>407E44D9</code><mnemonic>lea       a4,[a4]0x53E</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DEC</addr><code>0FC9006D</code><mnemonic>call      0x80005D7E</mnemonic><comment>memset</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>never</cov><line>3114</line><src>    memset(sbcm, 0, sizeof(sbcm));</src></hll>
+				<asm><cov>never</cov><addr>P:80003DF0</addr><code>FF5CFF61</code><mnemonic>fcall     0x80003CA8</mnemonic><comment>.cocofun_73</comment></asm>
+				<asm><cov>never</cov><addr>P:80003DF4</addr><code>FF69FF61</code><mnemonic>fcall     0x80003CC6</mnemonic><comment>.cocofun_76</comment></asm>
+				<asm><cov>never</cov><addr>P:80003DF8</addr><code>0FC3006D</code><mnemonic>call      0x80005D7E</mnemonic><comment>memset</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>never</cov><line>3115</line><src>    memset(yrs, 0, sizeof(yrs));</src></hll>
+				<asm><cov>never</cov><addr>P:80003DFC</addr><code>0482</code><mnemonic>mov16     d4,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DFE</addr><code>49004091</code><mnemonic>movh.a    a4,#0x9004</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E02</addr><code>6582</code><mnemonic>mov16     d5,#0x6</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E04</addr><code>504444D9</code><mnemonic>lea       a4,[a4]0x544</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E08</addr><code>0FBB006D</code><mnemonic>call      0x80005D7E</mnemonic><comment>memset</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>never</cov><line>3116</line><src>    memset(swrc, 0, sizeof(swrc));</src></hll>
+				<asm><cov>never</cov><addr>P:80003E0C</addr><code>0482</code><mnemonic>mov16     d4,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E0E</addr><code>49004091</code><mnemonic>movh.a    a4,#0x9004</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E12</addr><code>6582</code><mnemonic>mov16     d5,#0x6</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E14</addr><code>504A44D9</code><mnemonic>lea       a4,[a4]0x54A</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E18</addr><code>0FB3006D</code><mnemonic>call      0x80005D7E</mnemonic><comment>memset</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>3117</line><src></src></hll>
+				<hll><line>3118</line><src>#elif CCAN == HSCAN</src></hll>
+				<hll><line>3119</line><src>    memset(ems, 0, sizeof(ems));</src></hll>
+				<hll><line>3120</line><src>    memset(tcu, 0, sizeof(tcu));</src></hll>
+				<hll><line>3121</line><src>    memset(cgw, 0, sizeof(cgw));</src></hll>
+				<hll><line>3122</line><src>    memset(clu, 0, sizeof(clu));</src></hll>
+				<hll><line>3123</line><src>    memset(esc, 0, sizeof(esc));</src></hll>
+				<hll><line>3124</line><src>    memset(mdps, 0, sizeof(mdps));</src></hll>
+				<hll><line>3125</line><src>    memset(sas, 0, sizeof(sas));</src></hll>
+				<hll><line>3126</line><src>#endif /* CCAN */</src></hll>
+				<hll><line>3127</line><src></src></hll>
+				<hll><cov>never</cov><line>3128</line><src>    memset(navi, 0, sizeof(navi));</src></hll>
+				<asm><cov>never</cov><addr>P:80003E1C</addr><code>49004091</code><mnemonic>movh.a    a4,#0x9004</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E20</addr><code>405244D9</code><mnemonic>lea       a4,[a4]0x512</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E24</addr><code>FF51FF61</code><mnemonic>fcall     0x80003CC6</mnemonic><comment>.cocofun_76</comment></asm>
+				<asm><cov>never</cov><addr>P:80003E28</addr><code>0FAB006D</code><mnemonic>call      0x80005D7E</mnemonic><comment>memset</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>never</cov><line>3129</line><src>    memset(fr_cmr, 0, sizeof(fr_cmr));</src></hll>
+				<asm><cov>never</cov><addr>P:80003E2C</addr><code>0482</code><mnemonic>mov16     d4,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E2E</addr><code>49004091</code><mnemonic>movh.a    a4,#0x9004</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E32</addr><code>5001203B</code><mnemonic>mov       d5,#0x12</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E36</addr><code>206E44D9</code><mnemonic>lea       a4,[a4]0x4AE</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E3A</addr><code>0FA2006D</code><mnemonic>call      0x80005D7E</mnemonic><comment>memset</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>never</cov><line>3130</line><src>    memset(fr_rdr, 0, sizeof(fr_rdr));</src></hll>
+				<asm><cov>never</cov><addr>P:80003E3E</addr><code>49004091</code><mnemonic>movh.a    a4,#0x9004</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E42</addr><code>405E44D9</code><mnemonic>lea       a4,[a4]0x51E</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E46</addr><code>FF40FF61</code><mnemonic>fcall     0x80003CC6</mnemonic><comment>.cocofun_76</comment></asm>
+				<asm><cov>never</cov><addr>P:80003E4A</addr><code>0F9A006D</code><mnemonic>call      0x80005D7E</mnemonic><comment>memset</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>never</cov><line>3131</line><src>    memset(fr_c_rdr, 0, sizeof(fr_c_rdr));</src></hll>
+				<asm><cov>never</cov><addr>P:80003E4E</addr><code>0482</code><mnemonic>mov16     d4,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E50</addr><code>49004091</code><mnemonic>movh.a    a4,#0x9004</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E54</addr><code>5007803B</code><mnemonic>mov       d5,#0x78</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E58</addr><code>D00044D9</code><mnemonic>lea       a4,[a4]0x340</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E5C</addr><code>0F91001D</code><mnemonic>j         0x80005D7E</mnemonic><comment>memset</comment></asm>
+			</mixed>
+		</List.EXPORT>
+	</listing>
+</TRACE32>

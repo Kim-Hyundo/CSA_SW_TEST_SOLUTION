@@ -1,0 +1,29 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: men_asfp.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+; program analyzer with focus on alpha and beta breakpoints: 
+  Analyzer.ReProgram 
+  (
+    Sample.Enabled    IF (AB||BB)
+    Mark.A IF AB
+    Mark.B IF BB
+  )
+  Analyzer.STATistic.PreFetch ON
+  Analyzer.STATistic.Sort symbol
+
+; delete all predefined Alpha and Beta breakpoints
+  Break.Delete /Alpha  /Beta 
+
+; set Alpha Breakpoint on magic address
+  Break.Set task.config(magic)++(task.config(magicsize)-0x1) /Alpha
+
+; set Alpha and Beta breakpoints on Function Entries/Exits
+  Break.SetFunc
+
+
+
+

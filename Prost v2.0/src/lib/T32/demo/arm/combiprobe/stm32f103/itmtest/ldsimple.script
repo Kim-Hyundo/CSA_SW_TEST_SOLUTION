@@ -1,0 +1,44 @@
+OUTPUT_FORMAT("elf32-littlearm", "elf32-littlearm","elf32-littlearm")
+OUTPUT_ARCH(arm)
+ENTRY(_start)
+
+MEMORY
+{
+         SRAM (RWX) : ORIGIN = 0x20000000, LENGTH = 0x4000
+}
+
+SECTIONS 
+{
+  _sp = ORIGIN(SRAM) + LENGTH(SRAM) - 16 ;
+
+  .text :
+  {
+    *(.text .text.*)
+  } > SRAM
+
+  .data :
+  {
+     *(.data .data.* .gnu.linkonce.d.* )
+     KEEP (*(.gnu.linkonce.d.*personality*))
+     *(.rodata)
+     *(.sdata .sdata.* .gnu.linkonce.s.*)
+  } > SRAM
+  
+  _bss_start = .;
+
+  .bss :
+  {
+     *(.sbss .sbss.* .gnu.linkonce.sb.*)
+     *(.scommon)
+     *(.bss .bss.* .gnu.linkonce.b.*)
+     *(COMMON)
+  } > SRAM
+
+  _bss_end = .;
+
+  .vectortable ALIGN(0x400) :
+  {
+    *(.vectortable)
+  } > SRAM
+
+}

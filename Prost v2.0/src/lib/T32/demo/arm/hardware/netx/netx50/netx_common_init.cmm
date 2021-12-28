@@ -1,0 +1,43 @@
+; --------------------------------------------------------------------------------
+; @Title: Setup up a connection (SYStem.Up) to the NETX50
+; @Description: This script setup up a connection to the NETX50
+; @Keywords: Hilscher, NetX*
+; @Board: NX50TEST, NXH50, COMX-CCLS
+; @Chip: NETX50
+; @Author: Hilscher
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: netx_common_init.cmm 15237 2019-11-08 08:25:07Z bschroefel $
+
+
+;setup ROM to let the software decide about how to set breakpoints
+MAP.BOnchip 0x08200000--0x0820FFFF
+MAP.BOnchip 0xFF200000--0xFF20FFFF
+
+SYStem.Down
+SYStem.JtagClock 10MHz
+SYStem.CPU NETX50
+SYStem.MemAccess Denied
+SYStem.Option EnReset ON
+SYStem.Option ResBreak OFF
+SYStem.Option WAITRESET ON
+SYStem.Up
+
+ETM.RESet
+
+;Reset DMA controller to allow complete usage of SDRAM
+Data.Set ASD:0x1c005830 %Long 0x00000001
+
+Data.Set ASD:0x1c005104 %Long 0xBFFFFFFC
+Data.Set ASD:0x1c00510c %Long 0x00480001
+Data.Set ASD:0x1c005110 %Long 0x00000001
+
+WAIT 10ms
+
+Data.Set ASD:0x1c00510c %Long 0
+Data.Set ASD:0x1c005110 %Long 0
+Data.Set ASD:0x1c005830 %Long 0x00000000
+
+     
+                    
+ENDDO

@@ -1,0 +1,100 @@
+; --------------------------------------------------------------------------------
+; @Title: AMP-Demo script for STM32H755ZI on NUCLEO-H755ZI (AMP, RAM)
+; @Description:
+;   Setup a AMP debug session using a single script approach.
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   Use this script to test the AMP-Debugging.
+;   Prerequisites:
+;    * Use this script, if M7 and M4 core are booting (BCM4/BCM7 = 1)
+;    * Connect Debug Cable to CN5 using Adapter LA-3770
+;      or
+;      Connect Combiprobe/uTrace to CN5
+; @Keywords: ARM
+; @Author: STK
+; @Board: NUCLEO-H755ZI
+; @Chip: STM32H755ZI
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: nucleo-h755zi_amp_sram.cmm 15519 2020-01-14 09:05:23Z skrausse $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF SYStem.INSTANCE()!=1.
+(
+  PRINT %ERROR "This script must be called from MASTER GUI!"
+  ENDDO
+)
+
+; store current script path in &ppd
+PRIVATE &ppd
+&ppd=OS.PPD()
+
+; --------------------------------------------------------------------------------
+; [optional] close any existing REMOTE GUIs
+; IC OTHERS QUIT
+
+; --------------------------------------------------------------------------------
+; open all SLAVE GUIs
+IF !INTERCOM.PING(M4)
+  TargetSystem.NewInstance M4 /ARCHitecture ARM
+
+; --------------------------------------------------------------------------------
+; set titles for SLAVE GUIs
+TITLE "TRACE32 for ARM - STM32H755ZI-CM7 - MASTER"
+InterCom M4 TITLE "TRACE32 for ARM - STM32H755ZI-CM4 - SLAVE1"
+
+; --------------------------------------------------------------------------------
+; common SYStem settings
+InterCom ALL RESet
+SYStem.CPU STM32H755ZI-CM7
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.CONFIG CORE 1. 1.
+SYStem.CONFIG SLAVE OFF
+
+
+InterCom M4 SYStem.CPU STM32H755ZI-CM4
+InterCom M4 SYStem.CONFIG CORE 2. 1.
+InterCom M4 SYStem.CONFIG SLAVE ON
+
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; attach to all cores on all sessions
+InterCom M4 SYStem.Mode.Up
+
+; --------------------------------------------------------------------------------
+; load demo program on all sessions (use internal RAM only)
+Data.LOAD.Elf &(ppd)/master/sieve_ram_thumb_ii_v7m.elf
+InterCom M4 Data.LOAD.Elf &(ppd)/slave1/sieve_ram_thumb_ii_v7m.elf
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main\1
+WAIT !STATE.RUN()
+InterCom M4 Go.direct main\1
+InterCom M4 WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+InterCom ALL WinCLEAR
+InterCom ALL Mode.Hll
+InterCom ALL WinPOS 0. 0. 116. 26.
+InterCom ALL List.auto
+
+; Synchronize all TRACE32 instances
+InterCom ALL SYnch.ON
+InterCom ALL SYnch.CONNECT OTHERS
+InterCom ALL SYnch.MasterBreak ON
+InterCom ALL SYnch.SlaveBreak  ON
+InterCom ALL SYnch.MasterGo    ON
+InterCom ALL SYnch.SlaveGo     ON
+
+ENDDO

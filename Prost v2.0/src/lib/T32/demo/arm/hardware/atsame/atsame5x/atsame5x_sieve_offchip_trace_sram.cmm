@@ -1,0 +1,114 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for ATSAME54P20A with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The Offchip Trace using a Combiprobe/uTrace or PowerTrace is set up.
+;   Use this script for testing the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Combiprobe/uTrace to TRACE
+;      or
+;      Connect AutoFocus Preprocessor to TRACE using Adapter LA-3809
+;      and connect DebugCable to Preprocessor
+; @Keywords: ARM, Cortex-M4, ETM, ITM
+; @Author: AME
+; @Board: ATSAME54XPlained
+; @Chip: ATSAME54P20A
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: atsame5x_sieve_offchip_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU ATSAME54P20A
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock 10MHz
+Trace.DISable
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace (ETM, ITM)
+IF COMBIPROBE()||UTRACE()||Analyzer()
+(
+  ; set PinMux and enable Clocks
+  ; PCHCTRL47.Enable =1
+  Data.Set AD:0x40001D3C %Long Data.Long(AD:0x40001D3C)|0x40
+  ; PORTC.24 = TraceData[3]
+  ; PORTC.25 = TraceData[2]
+  ; PORTC.26 = TraceData[1]
+  ; PORTC.27 = TraceClk
+  ; PORTC.28 = TraceData[0]
+  ; PORTC.DIR_SET - set output
+  Data.Set AD:0x41008108 %Long 0x1F000000
+  ; PORTC.PMUX - set alternate mode H=0x7
+  Data.Set AD:0x4100813C %Byte 0x77
+  Data.Set AD:0x4100813D %Byte 0x77
+  Data.Set AD:0x4100813E %Byte (Data.Byte(AD:0x4100813E)&0xf0)|0x07
+  ; PORTC.PINCFG - set DriveStrength=Strong, PMUX=Enable
+  Data.Set AD:0x41008158 %Byte 0x41
+  Data.Set AD:0x41008159 %Byte 0x41
+  Data.Set AD:0x4100815A %Byte 0x41
+  Data.Set AD:0x4100815B %Byte 0x41
+  Data.Set AD:0x4100815C %Byte 0x41
+
+  TPIU.PortSize 4
+  TPIU.PortMode Continuous
+  ITM.DataTrace CorrelatedData
+  ITM.ON
+  ETM.Trace ON
+  ETM.ON
+)
+IF COMBIPROBE()||UTRACE()
+(
+  Trace.METHOD CAnalyzer
+  Trace.AutoInit ON
+  CAnalyzer.AutoFocus
+)
+IF Analyzer()
+(
+  Trace.METHOD Analyzer
+  Trace.AutoInit ON
+  Trace.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO

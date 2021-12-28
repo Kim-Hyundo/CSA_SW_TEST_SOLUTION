@@ -1,0 +1,41 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for loading HighTec object file (v4.6.2.0) in ELF format
+; @Description:
+;   Platform: TriCore Development Platform v4.6.2.0
+;   Compiler: GNU C version 3.4.5 built for Win32 on 2009-02-13 Tool Version
+;             v2.10 (tricore)
+;   CPU: TC277T
+;
+;   Application is linked to internal scratch pad ram.
+;   Use the simulator to avoid conflicts with undecleared memory.
+;
+;   There are several elf files available, covering all available
+;   compiler opimization levels.
+;
+; @Keywords: compiler, hightec, Infineon, sieve, TriCore, v4.6.2.0
+; @Author: MEI
+; @Chip: TC277T
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: sieve.cmm 7822 2014-10-29 13:57:15Z kjmal $
+
+
+WinCLEAR
+
+SYStem.RESet
+SYStem.CPU TC277T
+SYStem.Up
+
+Data.LOAD.Elf "~~~~/sieve.elf"    // compiler optimization level -Os "size"
+
+Go.direct main
+
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch
+Var.AddWatch ast flags
+
+ENDDO

@@ -1,0 +1,63 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to disable Linux kernel watchdog and stall detection
+; @Description: -
+; @Keywords: Linux watchdog rcu stall lockup kpti
+; @Author: kjmal
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: disable_watchdogs.cmm 4730 2019-10-29 11:44:30Z kjmal $
+
+PARAMETERS &path
+
+IF "&path"==""
+  &path="\\vmlinux"
+
+IF sYmbol.EXIST(&path\\nmi_watchdog_enabled)
+(
+    print "disabling nmi_watchdog_enabled..."
+    Var.set &path\\nmi_watchdog_enabled = 0
+)
+IF sYmbol.EXIST(&path\\rcu_cpu_stall_suppress)
+(
+    print "activating rcu_cpu_stall_suppress..."
+    Var.set &path\\rcu_cpu_stall_suppress = 1
+)
+IF sYmbol.EXIST(&path\\watchdog_enabled)
+(
+    print "disabling watchdog..."
+    Var.set &path\\watchdog_enabled = 0
+)
+IF sYmbol.EXIST(&path\\watchdog_user_enabled)
+(
+    print "disabling watchdog_user..."
+    Var.set &path\\watchdog_user_enabled = 0
+)
+IF sYmbol.EXIST(&path\\watchdog_running)
+(
+    print "setting watchdog_running to zero..."
+    Var.set &path\\watchdog_running = 0
+)
+IF sYmbol.EXIST(&path\\soft_watchdog_enabled)
+(
+    print "disabling soft lockup watchdog..."
+    Var.set &path\\soft_watchdog_enabled = 0
+)
+IF sYmbol.EXIST(&path\\softlockup_panic)
+(
+    print "disabling soft lockup panic..."
+    Var.set &path\\softlockup_panic = 0
+)
+IF sYmbol.EXIST(&path\\sysctl_hung_task_warnings)
+(
+    print "disabling hung task panic..."
+    Var.set &path\\sysctl_hung_task_warnings = 0
+    Var.set &path\\sysctl_hung_task_panic = 0
+)
+
+IF sYmbol.EXIST(&path\\__kpti_forced)
+(
+    print "disabling KPTI..."
+    Var.set &path\\__kpti_forced = -1
+)
+
+ENDDO

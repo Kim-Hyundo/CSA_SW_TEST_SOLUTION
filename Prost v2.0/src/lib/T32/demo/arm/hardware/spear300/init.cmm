@@ -1,0 +1,222 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags, NoIndex
+; @Author: MSA
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: init.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+data.set 0xFCA00000 %long 0x00000002    ; SCCTRL slow mode
+data.set 0xFCA00014 %long 0x0FFFFFF8    ; SCPLLCTRL time out
+
+
+; programming PLL1
+data.set 0xFCA8000C %long 0xa600010f                    ; PLL1_FREQ_REG set
+data.set 0xFCA80008 %long 0x1c0a                        ; PLL1_CNTL_REG
+data.set 0xFCA80008 %long 0x1c0e                        ; PLL1_CNTL_REG
+data.set 0xFCA80008 %long 0x1c06                        ; PLL1_CNTL_REG
+data.set 0xFCA80008 %long 0x1c0e                        ; PLL1_CNTL_REG
+wait 1s                                                                                                                         ; Wait for lock
+data.in 0xFCA80008 /long                                                        ; Test Pll1 locked
+
+
+; programming PLL2 
+data.set 0xFCA80018 %long 0x8500010f    ; PLL2_FRQ_REG set
+data.set 0xFCA80014 %long 0x1c0a                        ; PLL2_CNTL_REG
+data.set 0xFCA80014 %long 0x1c0e                        ; PLL2_CNTL_REG enable Pll2
+data.set 0xFCA80014 %long 0x1c06                        ; PPLL2_CNTL_REG strobe
+data.set 0xFCA80014 %long 0x1c0e                        ; PLL2_CNTL_REG
+;wait 1s                                                                                                                                ; wait for lock
+data.in 0xFCA80014 /long                                                        ; Test Pll2 locked
+
+
+; enable plltimeen
+data.set 0xFCA80028 %long 0x082                         ; set PERIPHCLK_CFG             
+
+
+; enable peripherals
+data.set 0xFCA8002C %long 0xAFFFFFFA    ; Armando (Enable periphs)      
+
+
+; set pclkdiv & hclkdiv for 
+data.set 0xFCA80024 %long 0x555                         ; set AMBA_CLK_CFG
+
+
+; setting SYSCTL to NORMAL mode
+data.set 0xFCA00000 %long 0x00000004    ; SCCTRL Normal mode    
+
+
+; wait for Normal mode
+wait 1s                                                                                                                         
+data.in 0xFCA00000 /long                                                        ; Test Normal mode Ok
+
+
+; remove reset on all IPs
+data.set 0xFCA80038 %long 0x00000000    ; PERIPH1_RST
+
+
+;; Sequence to be included
+d.s 0xfca8002c %long ((d.l(A:0xfca8002c)&0x9fffffff)|0x40000000)  ; PER1_CLKEN
+d.s 0xfca80020 %long ((d.l(A:0xfca80020)&0x8fffffff)|0x10000000)  ; DDR_PLL_REG : DDR clock = PLL1 CLOCK (333MHz)
+d.s 0xfca8002c %long ((d.l(A:0xfca8002c)&0xDfffffff)|0x20000000)  ; PER1_CLKEN
+d.s 0xFCA800F0 %long ((d.l(A:0xfca800f0)&0xffff0000)|0x0000EAAb)  ; DDR_PAD_REG Register for memory stability
+;d.s 0xfca800f0 %long ((d.l(A:0xfca800f0)&0xffff0000)|0x0000EAA5)  ; DDR_PAD_REG
+d.s 0xfca800ec %long ((d.l(A:0xfca800ec)&0x8080ffe0)|0x78000002)  ; DDR_3V3_REG
+d.s 0xfca800e4 %long ((d.l(A:0xfca800e4)&0x8080ffc0)|0x78000004)  ; DDR_1V8_REG
+d.s 0xfca800e8 %long ((d.l(A:0xfca800e8)&0x8080ffc0)|0x78000004)  ; DDR_2V5_REG
+data.in 0xfca800f0 /long                                                                                                                                                                        
+d.s 0xfca800e8 %long ((d.l(A:0xfca800e8)&0x8080ffc0)|0x78000003)  ; DDR_2V5_REG
+d.s 0xfca800e4 %long ((d.l(A:0xfca800e4)&0x8080ffc0)|0x78000010)  ; DDR_1V8_REG
+
+
+;; Init of Denali Register      
+
+
+data.set 0xFC600000 %long 0x02020201
+data.set 0xFC600004 %long 0x02020202
+data.set 0xFC600008 %long 0x01000000
+data.set 0xFC60000C %long 0x00000101
+; mem4_ctl
+;data.set 0xFC600010 %long 0x00000100   ;with mem55=0x47c20000
+data.set 0xFC600010 %long 0x00000101    ;with mem55=0x43c20000
+
+
+;data.set 0xFC600014 %long 0x01000000
+data.set 0xFC600014 %long 0x01010000    ; mem5 bit 16 to 1 recommended
+data.set 0xFC600018 %long 0x00010001
+data.set 0xFC60001C %long 0x00000100
+data.set 0xFC600020 %long 0x01010001
+
+
+data.set 0xFC600024 %long 0x00000201    ; mem9_ctl - chip selects parameter
+;data.set 0xFC600028 %long 0x01000101   ; mem10_ctl -  75 Ohms
+data.set 0xFC600028 %long 0x02000101    ; mem10_ctl - 150 Ohms
+;data.set 0xFC60002C %long 0x03000001   ; mem11_ctl - 75 Ohms
+data.set 0xFC60002C %long 0x03000002    ; mem11_ctl - 150 Ohms
+
+
+data.set 0xFC600030 %long 0x03030103
+data.set 0xFC600034 %long 0x03030302
+data.set 0xFC600038 %long 0x03040303
+data.set 0xFC60003C %long 0x03030503
+data.set 0xFC600040 %long 0x02020206
+data.set 0xFC600044 %long 0x03000405    ;mem17_ctl - CAS latency (caslat):5 cycles
+data.set 0xFC600048 %long 0x03040202
+data.set 0xFC60004C %long 0x04000305
+data.set 0xFC600050 %long 0x0707073f
+data.set 0xFC600054 %long 0x07070707
+data.set 0xFC600058 %long 0x06060607
+data.set 0xFC60005C %long 0x06060606
+data.set 0xFC600060 %long 0x05050506
+data.set 0xFC600064 %long 0x05050505
+data.set 0xFC600068 %long 0x04040405
+data.set 0xFC60006C %long 0x04040404
+data.set 0xFC600070 %long 0x03030304
+data.set 0xFC600074 %long 0x03030303
+data.set 0xFC600078 %long 0x02020203
+data.set 0xFC60007C %long 0x02020202
+data.set 0xFC600080 %long 0x01010102
+data.set 0xFC600084 %long 0x01010101
+data.set 0xFC600088 %long 0x0a0a0a01   ;mem34_ctl - [28:24]: caslat_lin_gate 5 cycles
+                                       ;          - [20:16]: caslat_lin 5 cycles
+data.set 0xFC60008C %long 0x0000023f
+data.set 0xFC600090 %long 0x00050a00
+data.set 0xFC600094 %long 0x11000000   ;mem37 - OCD not supported - default param set
+data.set 0xFC600098 %long 0x00001302
+
+
+;data.set 0xFC60009C %long 0x00000202   ; mem39_ctl: DLL 2x6 bit value. 
+;data.set 0xFC6000A0 %long 0x38000000   ; mem40_ctl: DLL 1x6 bit value
+;data.set 0xFC6000A4 %long 0x00180000   ; mem41_ctl: DLL 1x6 bit value
+data.set 0xFC60009C %long 0x00000202    ; mem39_ctl: DLL 2x6 bit value. 
+data.set 0xFC6000A0 %long 0x72000000    ; mem40_ctl: DLL 1x6 bit value
+data.set 0xFC6000A4 %long 0x00550000    ; mem41_ctl: DLL 1x6 bit value
+
+
+data.set 0xFC6000A8 %long 0x2b050e86
+data.set 0xFC6000AC %long 0x00640064
+data.set 0xFC6000B0 %long 0x00640064
+data.set 0xFC6000B4 %long 0x00640064
+data.set 0xFC6000B8 %long 0x00000064
+data.set 0xFC6000BC %long 0x00200020
+data.set 0xFC6000C0 %long 0x00200020
+data.set 0xFC6000C4 %long 0x00200020
+data.set 0xFC6000C8 %long 0x00200020
+data.set 0xFC6000CC %long 0x00200020
+data.set 0xFC6000D0 %long 0x00200020
+data.set 0xFC6000D4 %long 0x00200020
+data.set 0xFC6000D8 %long 0x00000a24
+
+
+;mem55_ctl
+;data.set 0xFC6000DC %long 0x47c20000   ;with mem4 b0=0
+data.set 0xFC6000DC %long 0x43c20000    ;with mem4 b0=1
+
+
+data.set 0xFC6000E0 %long 0x5b1c00c8
+data.set 0xFC6000E4 %long 0x00c8002e
+data.set 0xFC6000E8 %long 0x00000000
+data.set 0xFC6000EC %long 0x0001046b
+data.set 0xFC6000F0 %long 0x00000000
+data.set 0xFC6000F4 %long 0x03030100
+data.set 0xFC6000F8 %long 0x03030303
+data.set 0xFC6000FC %long 0x03030303
+data.set 0xFC600100 %long 0x03030303
+data.set 0xFC600104 %long 0x00210000
+;data.set 0xFC600108 %long 0x001d0021   ; 66
+data.set 0xFC600108 %long 0x00010021    ; 66
+;data.set 0xFC60010C %long 0x006c0000   ; 67
+data.set 0xFC60010C %long 0x00200000    ; 67
+data.set 0xFC600110 %long 0x006c0090
+data.set 0xFC600114 %long 0x003fffff
+data.set 0xFC600118 %long 0x003fffff
+data.set 0xFC60011C %long 0x00000000
+data.set 0xFC600120 %long 0x00000000
+data.set 0xFC600124 %long 0x003fffff
+data.set 0xFC600128 %long 0x003fffff
+data.set 0xFC60012C %long 0x00000000
+data.set 0xFC600130 %long 0x00000000
+data.set 0xFC600134 %long 0x003fffff
+data.set 0xFC600138 %long 0x003fffff
+data.set 0xFC60013C %long 0x00000000
+data.set 0xFC600140 %long 0x00000000
+data.set 0xFC600144 %long 0x003fffff
+data.set 0xFC600148 %long 0x003fffff
+data.set 0xFC60014C %long 0x00000000
+data.set 0xFC600150 %long 0x00000000
+data.set 0xFC600154 %long 0x003fffff
+data.set 0xFC600158 %long 0x003fffff
+data.set 0xFC60015C %long 0x00000000
+data.set 0xFC600160 %long 0x00000000
+data.set 0xFC600164 %long 0x003fffff
+data.set 0xFC600168 %long 0x003fffff
+data.set 0xFC60016C %long 0x00000000
+data.set 0xFC600170 %long 0x00000000
+data.set 0xFC600174 %long 0x003fffff
+data.set 0xFC600178 %long 0x003fffff
+data.set 0xFC60017C %long 0x00000000
+data.set 0xFC600180 %long 0x00000000
+data.set 0xFC600184 %long 0x00000000
+data.set 0xFC600188 %long 0x00000000
+data.set 0xFC60018C %long 0x00000000    
+
+
+; Init of UART1 register for test
+;data.set 0xD0000024 %long 0x0000001A     
+;data.set 0xD0000028 %long 0x00000003     
+;data.set 0xD0000030 %long 0x00000301     
+;data.set 0xD000002C %long 0x00000070     
+
+
+data.set 0xfc60001c %long 0x01000100
+
+
+
+wait 1s
+data.in 0xFCA80020 /long        ; PLL status
+data.in 0xFCA8011C /long        ; SYSERR_CFG status b15, b27. 
+data.in 0xFC600098 /long        ; last byte = status of controller. 
+
+ENDDO
+
+; End of script  

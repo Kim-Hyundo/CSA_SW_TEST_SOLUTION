@@ -1,0 +1,182 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for AWR1642 on awr1642evm with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Offchip-Trace. Pinmuxing and Clock
+;   setup is handled in the script.
+;   Use this script to test the Offchip-Trace.
+;   Prerequisites:
+;    * The board consists of two PCBs. Connect both PCBs with flat cable
+;      having 60 pin connector.
+;    * Use a 5V power supply connected to P6 and power via MicroUSB connector J1.
+;    * Disconnect JTAG lines from on-board XDS110 by removing R30, R69,
+;      R70 and R71.
+;    * Connect Debug Cable to P8 using LA-7748
+;    * Connect AutoFocus Preprocessor to J3 (MIPI60 header)
+;    * DO NOT connect debug cable to the AutoFocus Preprocessor, otherwise
+;      JTAG communication doesn't work.
+; @Keywords: ARM, Cortex-R4, ETM
+; @Author: STK
+; @Board: awr1642evm
+; @Chip: AWR1642
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: awr1642evm_sieve_offchip_trace_sram.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+LOCAL &rom_break_addr &rom_cont_addr
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU AWR1642
+SYStem.Option EnReset OFF    ; Disable driving nReset and use soft resets instead
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+SYStem.Up
+
+;---------------------------------------------------------------------------------
+; Execute boot ROM, but skip triggering the BIST by executing a WFI.
+; The BIST causing a reset of the debug registers, which blocks setting
+; breakpoints in the user code before jumping into it.
+; The following sequence tries to skip the BIST call.
+; If the script matches the ROM code is checked by its CRC32 value.
+
+IF Register(PC)!=0x0
+(
+  ; SYStem.Up was not able to stop on the boot ROM reset vector, but this is neccesary
+  ; for the further steps. We don't know the state of the chip, so abort here.
+  PRINT %ERROR "SYStem.Up cannot stop on the reset vector!"
+  ENDDO
+)
+
+; Check CRC over the ROM code for a known version
+Data.SUM 0x00000000++0xFFFF /CRC32
+&checksum=Data.SUM()
+IF (&checksum==0x4BF554EB)
+(
+  ; ROM code V1
+  &rom_break_addr=0x00000E0E    ; Address, where to break inthe ROM code
+  &rom_cont_addr=0x00000F2A     ; Address, where to continue in the ROM code
+)
+ELSE IF (&checksum==0x81A890D1)
+(
+  ; ROM code V2
+  &rom_break_addr=0x00003352    ; Address, where to break inthe ROM code
+  &rom_cont_addr=0x00003354     ; Address, where to continue in the ROM code
+)
+ELSE
+(
+  ; ROM check sum code does not match,
+  ; maybe due to a different ROM code version or derivative.
+  PRINT %ERROR "ROM code content does not match!"
+  ENDDO
+)
+
+; Execute boot code, but skip enabling the BIST
+Go.direct T:&rom_break_addr
+PRINT "Run boot ROM code..."
+WAIT !STATE.RUN() 1s
+IF STATE.RUN()
+(
+  ; Core does not stop on expected location.
+  PRINT %ERROR "Core does not stop!"
+  ENDDO
+)
+IF Register(PC)!=&rom_break_addr
+(
+  ; Core stopped somewhere else than on expected location.
+  PRINT %ERROR "Core does not stop on expected location!"
+  ENDDO
+)
+
+; Skip BIST and run to user code entry
+Register.Set PC &rom_cont_addr
+TrOnchip.Set RESET ON
+Go.direct
+
+WAIT !STATE.RUN() 1s
+IF STATE.RUN()
+(
+  ; Core does not enter user code.
+  PRINT %ERROR "Core does not enter user code!"
+  ENDDO
+)
+IF Register(PC)!=0x0
+(
+  ; Core stopped somewhere else than on expected location.
+  PRINT %ERROR "Core does not stop user code reset vector!"
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_arm_v7r_le.elf"
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace (ETM) if Analyzer is plugged
+IF Analyzer()
+(
+  ; A part of the clock setup is already done by the boot ROM
+
+  ; configure TPIU export clock to /3 (fastest)
+  Data.Set 0xffffe3dc %Long 0x00000003
+
+  ; unlock IO muxing
+  Data.Set 0xffffebf8 %Long 0x83e70b13 ; MSS_IOMUX_IOCFGKICK0
+  Data.Set 0xffffebfc %Long 0x95a4f1e0 ; MSS_IOMUX_IOCFGKICK1
+
+  ; configure IO pins for 16-bit trace port
+  Data.Set 0xffffeabc %Long 0x00000040 ; MSS_IOMUX_PADBV_CFG_REG, TRACECLK   
+  Data.Set 0xffffeac0 %Long 0x00000040 ; MSS_IOMUX_PADBW_CFG_REG, TRACECTL   
+  Data.Set 0xffffea7c %Long 0x00000040 ; MSS_IOMUX_PADBF_CFG_REG, TRACEDATA0 
+  Data.Set 0xffffea80 %Long 0x00000040 ; MSS_IOMUX_PADBG_CFG_REG, TRACEDATA1 
+  Data.Set 0xffffea84 %Long 0x00000040 ; MSS_IOMUX_PADBH_CFG_REG, TRACEDATA2 
+  Data.Set 0xffffea88 %Long 0x00000040 ; MSS_IOMUX_PADBI_CFG_REG, TRACEDATA3 
+  Data.Set 0xffffea8c %Long 0x00000040 ; MSS_IOMUX_PADBJ_CFG_REG, TRACEDATA4 
+  Data.Set 0xffffea90 %Long 0x00000040 ; MSS_IOMUX_PADBK_CFG_REG, TRACEDATA5 
+  Data.Set 0xffffea94 %Long 0x00000040 ; MSS_IOMUX_PADBL_CFG_REG, TRACEDATA6 
+  Data.Set 0xffffea98 %Long 0x00000040 ; MSS_IOMUX_PADBM_CFG_REG, TRACEDATA7 
+  Data.Set 0xffffea9c %Long 0x00000040 ; MSS_IOMUX_PADBN_CFG_REG, TRACEDATA8 
+  Data.Set 0xffffeaa0 %Long 0x00000040 ; MSS_IOMUX_PADBO_CFG_REG, TRACEDATA9 
+  Data.Set 0xffffeaa4 %Long 0x00000040 ; MSS_IOMUX_PADBP_CFG_REG, TRACEDATA10
+  Data.Set 0xffffeaa8 %Long 0x00000040 ; MSS_IOMUX_PADBQ_CFG_REG, TRACEDATA11
+  Data.Set 0xffffeaac %Long 0x00000040 ; MSS_IOMUX_PADBR_CFG_REG, TRACEDATA12
+  Data.Set 0xffffeab0 %Long 0x00000040 ; MSS_IOMUX_PADBS_CFG_REG, TRACEDATA13
+  Data.Set 0xffffeab4 %Long 0x00000040 ; MSS_IOMUX_PADBT_CFG_REG, TRACEDATA14
+  Data.Set 0xffffeab8 %Long 0x00000040 ; MSS_IOMUX_PADBU_CFG_REG, TRACEDATA15
+
+  ETM.DataTrace OFF          ; FIFOOVERFLOW otherwise
+  ETM.Trace ON
+  ETM.ON
+  TPIU.PortSize 16           ; maximum size
+  TPIU.PortMode Wrapped
+  Trace.METHOD Analyzer
+  Trace.AutoFocus
+
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+ENDDO

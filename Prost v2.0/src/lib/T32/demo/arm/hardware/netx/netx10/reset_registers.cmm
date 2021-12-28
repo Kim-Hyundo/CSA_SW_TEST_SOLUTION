@@ -1,0 +1,40 @@
+; --------------------------------------------------------------------------------
+; @Title: Reset the NetX10 Registers
+; @Description: 
+;   This script resets the VIC and set the CPU registers PC, CPSR, SPSR,
+;   R0 and R1 to defined values
+; @Keywords: Hilscher, NetX*
+; @Board: NXHX10
+; @Chip: ARM966E-S
+; @Author: Hilscher
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: reset_registers.cmm 6831 2014-04-15 10:03:39Z kjmal $
+
+
+LOCAL &vic_raw_irq_status &arm_mode
+
+; Read the VIC IRQ Status Register and check if a IRQ is present
+&vic_raw_irq_status=Data.Long(ASD:0x101ff000)
+&arm_mode=Register(cpsr)&0x1F
+
+IF (&vic_raw_irq_status!=0)&&(&arm_mode==0x12)
+(
+  PRINT "IRQ present and not yet handled, resetting VIC"
+
+  ; Now we write to the VIC Interrupt Enable Clear Register
+  Data.Set ASD:101ff014 %Long 0xFFFFFFFF
+  ; Now we write to the VIC Vector Address Register
+  Data.Set ASD:101ff030 %Long 0xFFFFFFFF
+) 
+ELSE
+(
+  PRINT "No IRQ present"
+)
+
+; set the programm counter to the elf's start symbol
+Register.Set PC start
+Register.Set CPSR 0x000000d3
+Register.Set SPSR 0x000000d3
+Register.Set R0   0x00000000
+Register.Set R1   0x00000000

@@ -1,0 +1,82 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for NETX51 on NXHX51 with Offchip-Trace (SRAM)
+; @Description:
+;   Loads the sieve demo application into SRAM and sets up a demo debug
+;   scenario.
+;   Use this script for testing the Offchip-Trace using Power Trace
+;   Prerequisites:
+;    * Connect AutoFocus Preprocessor to X9
+;    * Connect Debug Cable via AutoFocus Preprocessor
+;    * Do not connect X7 (UART) and X8 (USB)
+;    * Set SW30 (MMIO) all off
+; @Keywords: ARM, ARM966E-S
+; @Author: STK
+; @Board: NXHX51
+; @Chip: NETX51
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: nxhx51_sieve_offchip_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.CPU NETX51
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 20.ms
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (position independend code) into SRAM
+Register.Init
+Data.LOAD.Elf ~~/demo/arm/compiler/gnu-pic/sieve_arm.elf 0x08000000 /RelPATH
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace (ETM)
+
+IF Analyzer()
+(
+  ; Setup pin multiplexing
+  PRIVATE &ioconfig
+  &ioconfig=Data.Long(ASD:0x1018C108)
+  Data.Set ASD:0x1018C17C %Long Data.Long(ASD:0x1018C17C)
+  Data.Set ASD:0x1018C108 %Long (&ioconfig|0x00400000)
+
+  Trace.METHOD Analyzer
+  
+  ETM.HalfRate ON
+  ETM.PortSize 16.
+  ETM.ON
+  
+  Trace.AutoInit ON
+  Trace.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO

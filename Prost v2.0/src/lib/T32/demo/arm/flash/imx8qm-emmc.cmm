@@ -1,0 +1,311 @@
+; --------------------------------------------------------------------------------
+; @Title: eMMC Flash program script for IMX8QuadMax_CM4_Core0
+; @Description:
+;   Prerequisites:
+;
+; @Keywords: ARM, Cortex-M4
+; @Author: JIM
+; @Board: MCIMX8QM-CPU
+; @Chip: IMX8QM-CM4-0
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx8qm-emmc.cmm 8027 2020-03-05 10:03:46Z jjeong $
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF VERSION.BUILD.BASE()<108683.
+(
+  PRINT %ERROR "Please use more recent Software! Contact support@lauterbach.com."
+  ENDDO
+)
+IF !((CPUFAMILY()=="ARM")&&!CPUIS64BIT())
+(
+  PRINT %ERROR "Please use TRACE32 for ARM for this script."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU IMX8QM-CM4-0
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+; see readme.txt
+Data.EPILOG.SEQuence SET EA:0xE0080480 %LE %Long 0x00300001
+Data.EPILOG.ON
+; assertion of nRESET power cycles the board -> use ResetOut, wait, connect
+SYStem.RESetOut
+WAIT 200ms ; boot time depends on size of bootimage!
+SYStem.Mode.Attach
+Break
+
+GOSUB DisableWatchdog_M4_0
+
+IF !SYStem.Up()
+  END
+
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+&MMC_BASE=0x5b010000  ;SDHC1
+&ipc_addr=0x41480000  ; CM4_0_MU1_A_BASE , Messaging Unit
+
+GOSUB Config_SDHC1
+
+GOSUB READ_ID_TEST
+
+  FLASHFILE.RESet
+
+;FLASHFILE.CONFIG  <eMMC controller> <#partition>  <0x0>
+  FLASHFILE.CONFIG  &MMC_BASE         0x0
+
+;FLASHFILE.TARGET <<code range>> <<data range>> <<algorithm file>>
+  FLASHFILE.TARGET  0x20010000++0x2fff   0x20013000++0x1fff  ~~/demo/arm/flash/byte/emmc_imx8.bin  /KEEP
+
+  Data.Set &MMC_BASE+0x2C %LE %Long 0x8e8018 ; 400KHz clk
+
+  FLASHFILE.GETID
+
+  Data.Set &MMC_BASE+0x2C %LE %Long 0x008E0408  ; 25Mhz clk
+
+ FLASHFILE.GETEXTCSD
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+ENDDO
+
+  FLASHFILE.DUMP 0x0
+
+ENDDO
+
+Config_SDHC1:
+(
+; --------------------------------------------------------------------------------
+; IO Mux for SDHC1
+; --------------------------------------------------------------------------------
+
+Data.Set A:&ipc_addr+0x24 %Long 0x0  ; /* Clear GIEn, RIEn, TIEn, GIRn and ABFn. */
+
+//     SC_PAD_SET    &padNum &mux &ctrl &cfg
+GOSUB  SC_PAD_SET    0xD1    0x0   0x21  0x3  ;//SC_P_EMMC0_CLK, 209.==0xD1
+GOSUB  SC_PAD_SET    0xD2    0x0   0x21  0x0  ;//SC_P_EMMC0_CMD
+GOSUB  SC_PAD_SET    0xD3    0x0   0x21  0x0  ;//SC_P_EMMC0_DATA0
+GOSUB  SC_PAD_SET    0xD4    0x0   0x21  0x0  ;//SC_P_EMMC0_DATA1
+GOSUB  SC_PAD_SET    0xD5    0x0   0x21  0x0  ;//SC_P_EMMC0_DATA2
+GOSUB  SC_PAD_SET    0xD6    0x0   0x21  0x0  ;//SC_P_EMMC0_DATA3
+GOSUB  SC_PAD_SET    0xD7    0x0   0x21  0x0  ;//SC_P_EMMC0_DATA4
+GOSUB  SC_PAD_SET    0xD8    0x0   0x21  0x0  ;//SC_P_EMMC0_DATA5
+GOSUB  SC_PAD_SET    0xD9    0x0   0x21  0x0  ;//SC_P_EMMC0_DATA6
+GOSUB  SC_PAD_SET    0xDA    0x0   0x21  0x0  ;//SC_P_EMMC0_DATA7
+GOSUB  SC_PAD_SET    0xDB    0x0   0x40  0x0  ;//SC_P_EMMC0_STROBE
+GOSUB  SC_PAD_SET    0xDC    0x0   0x60  0x0  ;//SC_P_EMMC0_RESET_B
+
+; --------------------------------------------------------------------------------
+; Power ON SDHC1
+; --------------------------------------------------------------------------------
+//    SC_POWER_ON_SET  &resource &mode
+GOSUB SC_POWER_ON_SET  0xF8      0x03
+
+; --------------------------------------------------------------------------------
+; CLK Enable SDHC1
+; --------------------------------------------------------------------------------
+//    SC_CLK_ENABLE    &resource  &clk 
+GOSUB SC_CLK_ENABLE    0xF8       0x02
+
+
+; --------------------------------------------------------------------------------
+; Config SDHC1
+; --------------------------------------------------------------------------------
+Data.Set A:&MMC_BASE+0x04 %LE %Long 0x00010200  ; blk size,cnt
+Data.Set A:&MMC_BASE+0x28 %LE %Long 0x08800020  ; bus width, endian
+Data.Set A:&MMC_BASE+0x2C %LE %Long 0x008E1088  ; 400KHz clk
+Data.Set A:&MMC_BASE+0x34 %LE %Long 0x007F0037  ; BRR,BWR, TCI, CCI interrupt enable
+Data.Set A:&MMC_BASE+0x38 %LE %Long 0x007F0037  ; BRR,BWR, TCI, CCI interrupt enable
+Data.Set A:&MMC_BASE+0x44 %LE %Long 0x00100010  ;read/write fifo threshold level 64bytes
+
+RETURN
+)
+
+READ_ID_TEST:
+(
+//CMD0
+RePeaT 2.
+(
+Data.Set &MMC_BASE+0x30 %Long 0xFFFFFFFF ;clear status
+Data.Set &MMC_BASE+0x8 %Long 0x0  ;arg
+Data.Set &MMC_BASE+0xc %Long 0x0  ;cmd
+WAIT 10.ms
+)
+
+//CMD1
+RePeaT 10.
+(
+Data.Set &MMC_BASE+0x30 %Long 0xFFFFFFFF ;clear status
+Data.Set &MMC_BASE+0x8 %Long 0x40FF8000 ;arg
+Data.Set &MMC_BASE+0xc %Long 0x01020000 ;cmd1
+WAIT 10.ms
+&resp=Data.Long(A:(&MMC_BASE+0x10))
+//print "CMD1 resp: 0x" &resp
+IF (&resp&0x80000000)==0x80000000
+(
+GOTO jump_cmd2
+)
+)
+
+PRINT "CMD1 fail"
+END
+
+jump_cmd2:
+//CMD2
+Data.Set &MMC_BASE+0x30 %Long 0xFFFFFFFF ;clear status
+Data.Set &MMC_BASE+0x8 %Long 0x0     ;arg
+Data.Set &MMC_BASE+0xc %Long 0x02010000 ;cmd2
+WAIT 10.ms
+
+//CMD3
+Data.Set &MMC_BASE+0x30 %Long 0xFFFFFFFF ;clear status
+Data.Set &MMC_BASE+0x8 %Long 0x00010000  ; arg, MMC RCA is (0x0001<<16.)
+Data.Set &MMC_BASE+0xc %Long 0x03020000  ;cmd3
+WAIT 10.ms
+
+//CMD10
+Data.Set &MMC_BASE+0x30 %Long 0xFFFFFFFF ;clear status
+Data.Set &MMC_BASE+0x8 %Long 0x00010000 ; arg, MMC RCA is (0x0001<<16.)
+Data.Set &MMC_BASE+0xc %Long 0x0A010000  ;cmd10
+WAIT 10.ms
+
+//Response2
+PRINT "CID register"
+PRINT "[127:104] 0x" Data.Long(A:(&MMC_BASE+0x1c))
+PRINT "[103:72]  0x" Data.Long(A:(&MMC_BASE+0x18))
+PRINT "[71:40]   0x" Data.Long(A:(&MMC_BASE+0x14))
+PRINT "[39:8]    0x" Data.Long(A:(&MMC_BASE+0x10))
+
+RETURN
+)
+
+SC_PAD_SET:
+(
+ENTRY  &padNum &mux &ctrl &cfg
+
+&data=0x00000001        ;version
+&data=&data|0x00000400  ;message size
+&data=&data|0x00060000  ;svc_pad
+&data=&data|0x05000000  ;func
+
+;wait until Tx buffer empty
+Data.Set A:&ipc_addr     %Long  &data 
+Data.Set A:&ipc_addr+0x4 %Long  &ctrl
+
+&data=&padNum
+&data=&data|(&mux<<16.)
+&data=&data|(&cfg<<24.)
+Data.Set A:&ipc_addr+0x8 %Long  &data
+
+Data.Set A:&ipc_addr+0xC %Long 0x00
+
+&status=Data.Long(A:&ipc_addr+0x20)
+&rxBuff=(&ipc_addr+0x10)
+WHILE (((&status>>24.)&0xF)!=0)
+(
+&data=Data.Long(A:&rxBuff)
+&rxBuff=&rxBuff+0x4
+&status=Data.Long(A:&ipc_addr+0x20)
+)
+RETURN
+)
+
+//Power_ON_SDHC1
+SC_POWER_ON_SET:
+(
+ENTRY  &resource &mode
+
+&data=0x00000001        ;version
+&data=&data|0x00000200  ;message size
+&data=&data|0x00020000  ;svc_pm
+&data=&data|0x03000000  ;func, POWER_MODE
+
+;wait until Tx buffer empty
+Data.Set A:&ipc_addr     %Long  &data 
+
+&data=&resource
+&data=&data|(&mode<<16.)
+&data=&data|0x07000000
+Data.Set A:&ipc_addr+0x4 %Long  &data
+
+&status=Data.Long(A:&ipc_addr+0x20)
+&rxBuff=(&ipc_addr+0x10)
+WHILE (((&status>>24.)&0xF)!=0)
+(
+&data=Data.Long(A:&rxBuff)
+&rxBuff=&rxBuff+0x4
+&status=Data.Long(A:&ipc_addr+0x20)
+)
+
+wait  200.ms ;dummy wait
+
+RETURN
+)
+
+//Clock_Enable_SDHC1
+SC_CLK_ENABLE: 
+(
+ENTRY  &resource &clk 
+
+&data=0x00000001        ;version
+&data=&data|0x00000300  ;message size
+&data=&data|0x00020000  ;svc_pm
+&data=&data|0x07000000  ;func, POWER_MODE
+
+;wait until Tx buffer empty
+Data.Set A:&ipc_addr     %Long  &data 
+
+&data=&resource
+&data=&data|(&clk<<16.)
+&data=&data|0x01000000
+Data.Set A:&ipc_addr+0x4 %Long  &data
+
+&data=0x00CA0001
+Data.Set A:&ipc_addr+0x8 %Long  &data
+
+&status=Data.Long(A:&ipc_addr+0x20)
+&rxBuff=(&ipc_addr+0x10)
+WHILE (((&status>>24.)&0xF)!=0)
+(
+&data=Data.Long(A:&rxBuff)
+&rxBuff=&rxBuff+0x4
+&status=Data.Long(A:&ipc_addr+0x20)
+)
+
+wait  200.ms ;dummy wait
+
+RETURN
+)
+
+DisableWatchdog_M4_0:
+(
+  Data.Set AD:0x41420004 %Long 0xD928C520
+  Data.Set AD:0x41420008 %Long 0xFFFF
+  Data.Set AD:0x41420000 %Long 0y0X1Xxxxx ; (Data.Long(0x41420000)&~0x80)|0x20
+  ; Data.Assemble r(pc) movw r0,#0x0 movt r0,#0x4142 movw r1,#0xc520 movt r1,#0xd928 movw r2,#0xffff str r1,[r0,#0x4] str r2,[r0,#0x8] ldr r3,[r0] bic.w r3,r3,#0x80 orr r3,r3,#0x20 str r3,[r0] bkpt #0
+  ; Go
+  ; WAIT !STATE.RUN()
+  RETURN
+)
+
+DisableWatchdog_M4_1:
+(
+  Data.Set AD:0x41420004 %Long 0xD928C520
+  Data.Set AD:0x41420008 %Long 0xFFFF
+  Data.Set AD:0x41420000 %Long 0y0X1Xxxxx ; (Data.Long(0x41420000)&~0x80)|0x20
+  ; Data.Assemble r(pc) movw r0,#0x0 movt r0,#0x4142 movw r1,#0xc520 movt r1,#0xd928 movw r2,#0xffff str r1,[r0,#0x4] str r2,[r0,#0x8] ldr r3,[r0] bic.w r3,r3,#0x80 orr r3,r3,#0x20 str r3,[r0] bkpt #0
+  ; Go
+  ; WAIT !STATE.RUN()
+  RETURN
+)

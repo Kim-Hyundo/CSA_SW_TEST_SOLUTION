@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="../../t32transform.xsl"?>
+<TRACE32 file="D:\svn\demo\demo\coverage\multi_file_report\example_report\sieve\sieve\func-p-120c-126b.xml">
+	<coverage>
+		<COVerage.EXPORT.ListLine ts="1539005269" t32ver="S.2018.10.000101728" t32pv="ARM">
+			<module>
+				<addrFrom>P:0x4B0</addrFrom>
+				<addrTo>P:0x167B</addrTo>
+				<tree>\\sieve\sieve</tree>
+				<cov>partial</cov>
+				<exec>75.109%</exec>
+				<branches>78.125%</branches>
+				<ok>47</ok>
+				<taken>4</taken>
+				<nottaken>2</nottaken>
+				<never>11</never>
+				<bytes>4556</bytes>
+				<bytesok>3422</bytesok>
+				<function>
+					<addrFrom>P:0x120C</addrFrom>
+					<addrTo>P:0x126B</addrTo>
+					<tree uid="p-120c-126b">\\sieve\sieve\func28</tree>
+					<cov>never</cov>
+					<exec>0.000%</exec>
+					<branches>-</branches>
+					<ok>0</ok>
+					<taken>0</taken>
+					<nottaken>0</nottaken>
+					<never>-</never>
+					<bytes>96</bytes>
+					<bytesok>0</bytesok>
+					<line>
+						<addrFrom>P:0x120C</addrFrom>
+						<addrTo>P:0x1215</addrTo>
+						<tree>sieve.c \658--669</tree>
+						<srcpath>.\src</srcpath>
+						<cov>never</cov>
+						<exec>0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>-</never>
+						<bytes>10</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:0x1216</addrFrom>
+						<addrTo>P:0x1223</addrTo>
+						<tree>sieve.c \670--670</tree>
+						<srcpath>.\src</srcpath>
+						<cov>never</cov>
+						<exec>0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>-</never>
+						<bytes>14</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:0x1224</addrFrom>
+						<addrTo>P:0x1239</addrTo>
+						<tree>sieve.c \671--671</tree>
+						<srcpath>.\src</srcpath>
+						<cov>never</cov>
+						<exec>0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>-</never>
+						<bytes>22</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:0x123A</addrFrom>
+						<addrTo>P:0x125F</addrTo>
+						<tree>sieve.c \672--672</tree>
+						<srcpath>.\src</srcpath>
+						<cov>never</cov>
+						<exec>0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>-</never>
+						<bytes>38</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:0x1260</addrFrom>
+						<addrTo>P:0x126B</addrTo>
+						<tree>sieve.c \673--673</tree>
+						<srcpath>.\src</srcpath>
+						<cov>never</cov>
+						<exec>0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>-</never>
+						<bytes>12</bytes>
+						<bytesok>0</bytesok>
+					</line>
+				</function>
+			</module>
+		<total>
+			<cov>partial</cov>
+			<exec>75.109%</exec>
+			<branches>78.125%</branches>
+			<ok>47</ok>
+			<taken>4</taken>
+			<nottaken>2</nottaken>
+			<never>11</never>
+			<bytes>4556</bytes>
+			<bytesok>3422</bytesok>
+		</total>
+		</COVerage.EXPORT.ListLine>
+	</coverage>
+	<marker>
+		<BookMark.EXPORT ts="1539005269" t32ver="S.2018.10.000101728" t32pv="ARM">
+		</BookMark.EXPORT>
+	</marker>
+	<listing>
+		<List.EXPORT ts="1539005269" t32ver="S.2018.10.000101728" t32pv="ARM" cpu="ARM922T">
+			<mixed module="\\sieve\sieve\sieve.c">
+				<hll><src>...</src></hll>
+				<hll><line>661</line><src>{</src></hll>
+				<hll><line>662</line><src>    short x;</src></hll>
+				<hll><line>663</line><src>    short y;</src></hll>
+				<hll><line>664</line><src>};</src></hll>
+				<hll><line>665</line><src></src></hll>
+				<hll><line>666</line><src>struct shortrecord vshortrecord;</src></hll>
+				<hll><line>667</line><src></src></hll>
+				<hll><line>668</line><src>struct shortrecord func28( struct shortrecord x )</src></hll>
+				<hll><cov>never</cov><line>669</line><src>{</src></hll>
+				<asm><cov>never</cov><addr>ST:0000120C</addr><code>B580</code><label>func28:</label><mnemonic>push    {r7,r14}</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:0000120E</addr><code>B084</code><mnemonic>sub     sp,#0x10</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00001210</addr><code>AF00</code><mnemonic>add     r7,sp,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00001212</addr><code>1D3B</code><mnemonic>add     r3,r7,#0x4</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00001214</addr><code>6018</code><mnemonic>str     r0,[r3]</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\sieve\sieve.c">
+				<hll><cov>never</cov><line>670</line><src>    x.x++;</src></hll>
+				<asm><cov>never</cov><addr>ST:00001216</addr><code>1D3B</code><mnemonic>add     r3,r7,#0x4</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00001218</addr><code>881B</code><mnemonic>ldrh    r3,[r3]</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:0000121A</addr><code>3301</code><mnemonic>add     r3,#0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:0000121C</addr><code>041B</code><mnemonic>lsl     r3,r3,#0x10</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:0000121E</addr><code>0C1A</code><mnemonic>lsr     r2,r3,#0x10</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00001220</addr><code>1D3B</code><mnemonic>add     r3,r7,#0x4</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00001222</addr><code>801A</code><mnemonic>strh    r2,[r3]</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\sieve\sieve.c">
+				<hll><cov>never</cov><line>671</line><src>    x.y = (short) (x.x+1);</src></hll>
+				<asm><cov>never</cov><addr>ST:00001224</addr><code>1D3B</code><mnemonic>add     r3,r7,#0x4</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00001226</addr><code>881B</code><mnemonic>ldrh    r3,[r3]</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00001228</addr><code>041B</code><mnemonic>lsl     r3,r3,#0x10</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:0000122A</addr><code>0C1B</code><mnemonic>lsr     r3,r3,#0x10</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:0000122C</addr><code>3301</code><mnemonic>add     r3,#0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:0000122E</addr><code>041B</code><mnemonic>lsl     r3,r3,#0x10</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00001230</addr><code>0C1B</code><mnemonic>lsr     r3,r3,#0x10</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00001232</addr><code>041B</code><mnemonic>lsl     r3,r3,#0x10</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00001234</addr><code>0C1A</code><mnemonic>lsr     r2,r3,#0x10</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00001236</addr><code>1D3B</code><mnemonic>add     r3,r7,#0x4</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00001238</addr><code>805A</code><mnemonic>strh    r2,[r3,#0x2]</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\sieve\sieve.c">
+				<hll><cov>never</cov><line>672</line><src>    return x;</src></hll>
+				<asm><cov>never</cov><addr>ST:0000123A</addr><code>1C3B</code><mnemonic>mov     r3,r7</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:0000123C</addr><code>330C</code><mnemonic>add     r3,#0x0C</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:0000123E</addr><code>1D3A</code><mnemonic>add     r2,r7,#0x4</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00001240</addr><code>6812</code><mnemonic>ldr     r2,[r2]</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00001242</addr><code>601A</code><mnemonic>str     r2,[r3]</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00001244</addr><code>1C3A</code><mnemonic>mov     r2,r7</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00001246</addr><code>320C</code><mnemonic>add     r2,#0x0C</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00001248</addr><code>2300</code><mnemonic>mov     r3,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:0000124A</addr><code>8811</code><mnemonic>ldrh    r1,[r2]</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:0000124C</addr><code>0409</code><mnemonic>lsl     r1,r1,#0x10</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:0000124E</addr><code>0C09</code><mnemonic>lsr     r1,r1,#0x10</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00001250</addr><code>0C1B</code><mnemonic>lsr     r3,r3,#0x10</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00001252</addr><code>041B</code><mnemonic>lsl     r3,r3,#0x10</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00001254</addr><code>430B</code><mnemonic>orr     r3,r1</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00001256</addr><code>8852</code><mnemonic>ldrh    r2,[r2,#0x2]</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00001258</addr><code>0412</code><mnemonic>lsl     r2,r2,#0x10</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:0000125A</addr><code>041B</code><mnemonic>lsl     r3,r3,#0x10</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:0000125C</addr><code>0C1B</code><mnemonic>lsr     r3,r3,#0x10</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:0000125E</addr><code>4313</code><mnemonic>orr     r3,r2</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\sieve\sieve.c">
+				<hll><cov>never</cov><line>673</line><src>}</src></hll>
+				<asm><cov>never</cov><addr>ST:00001260</addr><code>1C18</code><mnemonic>mov     r0,r3</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00001262</addr><code>46BD</code><mnemonic>mov     r13,r7</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00001264</addr><code>B004</code><mnemonic>add     sp,#0x10</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00001266</addr><code>BC80</code><mnemonic>pop     {r7}</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00001268</addr><code>BC02</code><mnemonic>pop     {r1}</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:0000126A</addr><code>4708</code><mnemonic>bx      r1</mnemonic></asm>
+			</mixed>
+		</List.EXPORT>
+	</listing>
+</TRACE32>

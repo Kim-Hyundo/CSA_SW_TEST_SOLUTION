@@ -1,0 +1,209 @@
+; --------------------------------------------------------------------------------
+; @Title: XNG Demo with LithOS for TRACE32 RTOS Debugger
+; @Description:
+;
+;   This script demonstrates the use of the Hypervisor awareness for targets
+;   running the XtratuM NG Hypervisor (aka XNG) with LithOS guests from FentISS.
+;
+;   The example is generated for the Xilinx ZC702 evaluation board.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   XNG is downloaded to the board via ICD.
+;
+; @Keywords: Awareness, XNG, LithOS Hypervisor
+; @Author: DIE
+; @Board: ZC702
+; @Chip: ZYNQ-7000
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: xng_lithos_twohellos.cmm 16014 2020-05-05 06:31:27Z rdienstbeck $
+
+
+; Starting XNG LithOS "twohellos" example with TRACE32:
+; - Connect USB-UART cable
+; - Start TRACE32
+; - TRACE32: "do xng"
+; - Switch on the board
+
+
+; Script Setup
+
+PMACRO.EXPLICIT
+LOCAL &xngpath &ltepath &term
+
+; set path to XNG and LithOS
+&xngpath="./Fentiss/14-033.094.ops+armv7a-vmsa-tz+zynq7000.r14040"
+&ltepath="./Fentiss/LithOS/020.080.ops"
+
+; set terminal connection
+&term="COM5"
+
+
+; Open Area window
+
+WinPAGE.RESet
+WinPOS 0. 21. 70. 9.
+AREA.view
+PRINT
+PRINT "===== XNG on ZC702 ====="
+
+
+; Reset Debugger
+
+PRINT "resetting debugger..."
+RESet
+
+
+; Open serial terminal window
+
+PRINT "starting terminal on &term"
+SCREEN.ALways
+TERM.METHOD COM &term 115200. 8 NONE 1STOP NONE
+TERM.SIZE 80. 1000.
+TERM.Mode VT100
+TERM.SCROLL ON
+WinPOS 35. 0. ,,,,, TERM.view
+TERM.view
+
+
+; Repower target
+
+IF STATE.POWER()
+(
+    PRINT "please switch off power!"
+    WAIT !STATE.POWER()
+)
+PRINT "please switch on power!"
+WAIT STATE.POWER()
+
+
+; Initialize Target
+
+; let bootloader initialize everything
+PRINT "booting target..."
+TERM.TRIGGER "Hit any key"
+WAIT term.triggered(#1)
+TERM.OUT 0xa
+WAIT 1.s
+
+
+; Initialize debugger
+
+PRINT "initializing debugger..."
+
+SYStem.CPU ZYNQ-7000
+
+SYStem.CONFIG DAPIRPRE 6.
+SYStem.CONFIG DAPIRPOST 0.
+SYStem.CONFIG DAPDRPRE 1.
+SYStem.CONFIG DAPDRPOST 0.
+
+SYStem.Option DACR ON          ; give Debugger global write permissions
+TrOnchip.Set DABORT OFF        ; used by PikeOS for page miss!
+TrOnchip.Set PABORT OFF        ; used by PikeOS for page miss!
+TrOnchip.Set UNDEF OFF         ; my be used by PikeOS for FPU detection
+TrOnchip.Set RESet OFF
+
+SYStem.Option ZONESPACES ON    ; Hypervisor runs in Z:, partitions in N:
+SYStem.Option MACHINESPACES ON ; Partitions as "machines"
+;SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+
+MAP.DenyAccess 0x80000000--0x9fffffff  ; prevent bus error
+SETUP.IMASKASM ON          ; lock interrupts while single stepping
+
+
+; Attach to target and reset it
+
+PRINT "resetting target..."
+
+SYStem.Up
+
+Register.RESet
+CORE.select 0
+Register.RESet
+
+
+; Open List window
+
+WinPOS 0. 0. 75. 20.
+List.auto
+
+
+; Load kernel and partition
+
+; for load and entry addresses see the BSP's makefile, here: armv7a-vmsa-tz.mk
+
+; XNG kernel
+PRINT "loading XNG kernel and xcf..."
+Data.LOAD.Elf &xngpath/lib/xng.armv7a-vmsa-tz.elf Z:0:::0x100000
+Data.LOAD.Elf &ltepath/examples/01-twohellos/hello_world.xcf.xng-armv7a-vmsa-tz.elf Z:0:::0x400000 /noclear /noreg /name xcf
+DO ~~/demo/arm/kernel/xng/reloc_data.cmm
+
+; LithOS partitions
+PRINT "loading LithOS partitions..."
+Data.LOAD.Elf &ltepath/examples/01-twohellos/hello0.xng-armv7a-vmsa-tz.elf Z:0:::0 /nosymbol /noclear /noreg
+Data.LOAD.Elf &ltepath/examples/01-twohellos/hello1.xng-armv7a-vmsa-tz.elf Z:0:::0 /nosymbol /noclear /noreg
+
+; Set registers for start
+PRINT "setting registers to boot XNG..."
+Register.Set CPSR 0x01DF    ; see XNG BSP User Manual
+Register.Set R0 0x400000    ; set R0 to start address of XCF
+;Register.Set PC 0x100000    ; XNG kernel start address - set by loading kernel above
+
+
+; Initialize XNG support
+
+PRINT "initializing XNG support..."
+
+MMU.FORMAT STD
+TRANSlation.Create Z:0:::0--0xffffffff AZ:0x0
+TRANSlation.ON
+
+EXTension.LOAD ~~/demo/arm/kernel/xng/xng.t32 /MACHINE 0 /ACCESS Z:
+MENU.ReProgram ~~/demo/arm/kernel/xng/xng.men
+
+
+; Setup partitions
+
+PRINT "loading LithOS partition symbols..."
+Data.LOAD.Elf &ltepath/examples/01-twohellos/hello0.xng-armv7a-vmsa-tz.elf N:1:::0 /nocode /noclear
+GOSUB setupPartition Hello0 1
+Data.LOAD.Elf &ltepath/examples/01-twohellos/hello1.xng-armv7a-vmsa-tz.elf N:2:::0 /nocode /noclear
+GOSUB setupPartition Hello1 2
+
+
+; Initialize LithOS support
+
+PRINT "initializing LithOS support..."
+
+EXTension.LOAD ~~/demo/arm/kernel/lithos/lithos.t32 /MACHINE 1 /NAME Hello0
+DO ~~/demo/arm/kernel/xng/adjust_menu.cmm ~~/demo/arm/kernel/lithos/lithos.men Hello0
+EXTension.LOAD ~~/demo/arm/kernel/lithos/lithos.t32 /MACHINE 2 /NAME Hello1
+DO ~~/demo/arm/kernel/xng/adjust_menu.cmm ~~/demo/arm/kernel/lithos/lithos.men Hello1
+
+
+; Starting LithOS partition and application
+
+PRINT "starting LithOS partition..."
+Go \\hello0\\main
+WAIT !RUN()
+
+PRINT "=== DONE ==="
+ENDDO
+
+
+; Subroutine to setup MMU translation
+
+setupPartition:
+LOCAL &partname &mid
+ENTRY &partname &mid
+
+PRINT "setting translation of partition &partname..."
+LOCAL &magic &memarea &memsize &memabs
+&magic=ext.partition.magic("&partname")
+&memarea=ext.partition.memarea.start(&magic,0)
+&memsize=ext.partition.memarea.size(&magic,0)-1
+&memabs=mmu.physical(Z:0:::&memarea);
+TRANSlation.Create N:&mid:::&memarea++&memsize &memabs
+
+RETURN

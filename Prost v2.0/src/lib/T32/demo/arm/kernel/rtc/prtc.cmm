@@ -1,0 +1,47 @@
+; --------------------------------------------------------------------------------
+; @Title: PATCH for TRACE32 OS Awareness in Real Time Craft XEC
+; @Description: 
+;   
+;   
+;   Arguments:    (none)  ->      Full setup with kernel patching
+;                 NOPATCH ->      no patching, restricted functionality
+;   
+;   The patches require at least 0.5 kByte of memory at a free location
+;   in the target (use internal memory). To allow future extensions,
+;   reserve about 2 kByte. The patch location must be in a maximum distance
+;   of 32 kByte to the Kernel (patch uses BRA instructions with 16 Bit
+;   displacement).
+;   
+;   The start address of the patch area (if required) is specified by the
+;   macro '&patchaddr' below. The address for the magic number (used to
+;   identify tasks) is specified by the macro '&patchmagic' as an
+;   absolute address in the linear memory. Note that the patch needs
+;   48 Bytes for magic number amd System call trace.
+;   
+;   If "NOPATCH" is passed to this Script, "&patchaddr" and "&patchmagic_abs"
+;   are not used, that means no adaption is required.
+;   
+;   Attn: there are various sensible portions for Kernel version changes:
+;   - In Patch for Kernel Entry: the moved original code ("cmpi.w #29,d0")
+;   
+;   This script has been tested with following XEC versions:
+;   
+;   1995-04-25:    Version 3.03     Proc: 68332
+;   
+; @Keywords: rtc, RTOS
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: prtc.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+;   History:
+;       25.04.95: Created by Rudi Dienstbeck / Lauterbach GmbH
+
+ TASK.CONFIG rtc
+ 
+ ;additional RTC menu
+ PRINT "initializing RTC menu ..."
+ MENU.ReProgram rtc
+
+
+

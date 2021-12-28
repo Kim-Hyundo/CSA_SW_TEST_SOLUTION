@@ -1,0 +1,164 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags
+; @Author: TI
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: omap4430_cortexm3_reset.cmm 8886 2015-11-18 18:06:51Z mobermeir $
+
+ENTRY &reset_cpu
+
+IF (Var.VALUE(&reset_cpu)==0)
+( 
+  GOSUB reset_ducati_cortexM3_RTOS
+  ENDDO
+)
+
+IF (Var.VALUE(&reset_cpu)==1)
+( 
+  GOSUB reset_ducati_cortexM3_SIMCOP
+  ENDDO
+)
+
+IF (Var.VALUE(&reset_cpu)==2)
+( 
+  GOSUB reset_tesla_C64
+  ENDDO
+)
+
+IF (Var.VALUE(&reset_cpu)==3)
+( 
+  GOSUB reset_ivahd_iCont1
+  ENDDO
+)
+
+IF (Var.VALUE(&reset_cpu)==4)
+( 
+  GOSUB reset_ivahd_iCont2
+  ENDDO
+)
+
+reset_ducati_cortexM3_RTOS:
+(
+  ENTRY
+  PRINT "--->>> reset_ducati_cortexM3_RTOS <<<--- "
+
+  Data.Set NSR:0x4A306910 %Long 0x00000003
+
+  WHILE ((Data.Long(NSR:0x4A306914)&0x4)!=4) 
+
+  Data.Set NSR:0x4A306914 %Long 0x00000004
+
+  Data.Set NSR:0x4A306910 %Long 0x00000002
+
+  WHILE ((Data.Long(NSR:0x4A306914)&0x1)!=0x1)
+
+  Data.Set NSR:0x4A306914 %Long 0x00000001
+
+  // test that module is fully functional 
+  // while (((*(int*)0x4A008920) & 0x30000)& 0x30000);
+
+  PRINT "---<<< reset_ducati_cortexM3_RTOS >>>--- "
+
+  RETURN
+)
+
+reset_ducati_cortexM3_SIMCOP:
+(
+  ENTRY
+  PRINT "--->>> reset_ducati_cortexM3_SIMCOP <<<--- "
+
+  Data.Set NSR:0x4A306910 %Long 0x00000000
+
+  WHILE ((Data.Long(NSR:0x4A306914)&0x2)!=2) 
+
+  Data.Set NSR:0x4A306914 %Long 0x00000002
+
+  // test that module is fully functional 
+  // while (((*(int*)0x4A008920) & 0x30000)& 0x30000);
+
+  PRINT "---<<< reset_ducati_cortexM3_SIMCOP >>>--- "
+
+  RETURN
+)
+
+reset_tesla_C64:
+(
+  PRINT "--->>> reset_tesla_C64 <<<--- "
+    
+  Data.Set NSR:0x88000000 %Long 0
+  Data.Set NSR:0x88000004 %Long 0
+  Data.Set NSR:0x88000008 %Long 0
+  Data.Set NSR:0x8800000C %Long 0
+  Data.Set NSR:0x88000010 %Long 0
+  Data.Set NSR:0x88000014 %Long 0
+  Data.Set NSR:0x88000018 %Long 0
+  Data.Set NSR:0x8800001c %Long 0
+  Data.Set NSR:0x88000020 %Long 0x0FFfff12
+
+  // Set tesla boot address
+  //*(int*)0x4A002304 = 0x40200000;  
+  //*(int*)0x4A002304 = 0x40200000;  
+  Data.Set NSR:0x4A002304 %Long 0x88000000  
+
+  // DSP reset
+  // RM_TESLA_RSTCTRL (MMU and DSP RESET)
+  Data.Set NSR:0x4A306410 %Long 0x00000000;
+
+  // /*wait Tesla reset applied*/
+  WHILE ((Data.Long(NSR:0x4A306414)&0x0001)!=0x0001);
+
+  // /* Read 0x0 : test that module is fully functional */
+  //while (((*(int*)0x4A004420) & 0x30000)& ~0x30000);
+
+  PRINT "---<<< reset_tesla_C64 >>>--- "
+
+  RETURN
+)
+
+reset_ivahd_iCont1:
+(
+  PRINT "--->>> reset_IVAHD iCont1 <<<--- "
+
+  // Icont1 reset
+  Data.Set NSR:0x4A306F10 %Long 0x00000002;
+
+  // /* wait iCont1 reset applied
+  WHILE ((Data.Long(NSR:0x4A306F14)&0x0005)!=0x0005);
+
+  // Reset status cleared
+  Data.Set NSR:0x4A306F14 %Long 0x00000007;
+
+  // READ 0x0 : test that IVAHD IS fully functional
+  WHILE ((Data.Long(NSR:0x4A008F20)&0x30000)!=0x30000);
+
+  // READ 0x0 : test that SL2 IS fully functional
+  WHILE ((Data.Long(NSR:0x4A008F28)&0x30000)!=0x30000);
+
+  PRINT "---<<< reset_IVAHD iCont1 >>>--- "
+
+  RETURN
+)
+
+reset_ivahd_iCont2:
+(
+  PRINT "--->>> reset_IVAHD iCont2 <<<--- "
+
+  // Icont1 reset
+  Data.Set NSR:0x4A306F10 %Long 0x00000001;
+
+  // /* wait iCont1 reset applied */
+  WHILE ((Data.Long(NSR:0x4A306F14)&0x0006)!=0x0006);
+
+  // Reset status cleared
+  Data.Set NSR:0x4A306F14 %Long 0x00000007;
+
+  // READ 0x0 : test that IVAHD IS fully functional */
+  WHILE ((Data.Long(NSR:0x4A008F20)&0x30000)!=0x30000);
+
+  // READ 0x0 : test that SL2 IS fully functional */
+  WHILE ((Data.Long(NSR:0x4A008F28)&0x30000)!=0x30000);
+
+  PRINT "---<<< reset_IVAHD iCont2 >>>--- "
+
+  RETURN
+)

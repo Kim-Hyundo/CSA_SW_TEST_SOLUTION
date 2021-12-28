@@ -1,0 +1,108 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for 88Q5050 with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The Offchip Trace using a Combiprobe/uTrace or PowerTrace is set up.
+;   Use this script for testing the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Combiprobe/uTrace to P1103
+;      or
+;      Connect AutoFocus Preprocessor to P1103 using Adapter LA-3809
+;      and connect DebugCable to Preprocessor
+; @Keywords: ARM, Cortex-M7, ETM, ITM
+; @Author: AME
+; @Board: Willow
+; @Chip: 88Q5050
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: 88q5050_sieve_offchip_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+IF !CAnalyzer.FEATURE("TPIU.SAMPLE")
+(
+  ECHO %ERROR "For tracing this board you must use a MIPI20T-HS whisker cable."
+  ENDDO
+)
+SYStem.RESet
+SYStem.CPU 88Q5050
+SYStem.JtagClock CTCK 10MHz
+SYStem.MemAccess DAP
+; we use a 88Q5050 proprietary reset method
+; soft-reset using AIRCR register + LBU.SWRESET_EN
+SYStem.Option VECTRESET OFF
+SYStem.Option EnReset   OFF
+SYStem.Option DUALPORT  ON
+Trace.DISable
+SYStem.Mode Prepare
+; set LBU.SWRESET_EN
+Data.Set AD:0x5000f144 %Long Data.Long(AD:0x5000f144)|(1.<<20.)
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace (ETM, ITM)
+IF COMBIPROBE()||UTRACE()||Analyzer()
+(
+  ; set PinMux and enable Clocks
+  ; set 0x5000F1C0 Bit0 to 0x0
+  Data.Set AD:0x5000F1C0 %Long Data.Long(AD:0x5000F1C0)&(~0x1)
+
+  TPIU.PortSize 4
+  TPIU.PortMode Continuous
+  ITM.DataTrace CorrelatedData
+  ITM.ON
+  ETM.Trace ON
+  ETM.COND ALL
+  ETM.ON
+  IF COMBIPROBE()||UTRACE()
+  (
+    Trace.METHOD CAnalyzer
+  )
+  ELSE IF Analyzer()
+  (
+    TPIU.PortSize 2
+    Analyzer.Init
+    TPIU.PortSize 4
+    Trace.METHOD Analyzer
+  )
+  Trace.AutoFocus
+  Trace.AutoInit ON
+
+  ; setup ITM based datatrace of variable plot1
+  Var.Break.Set plot1 /Write /TraceData
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+IF COMBIPROBE()||UTRACE()||Analyzer()
+(
+  WinPOS 120. 25.
+  Trace.List
+  WinPOS 0. 32.
+  Trace.DRAW.Var %DEFault plot1
+)
+
+ENDDO

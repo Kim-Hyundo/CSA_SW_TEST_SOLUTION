@@ -1,0 +1,54 @@
+; --------------------------------------------------------------------------------
+; @Title:PikeOS-APEX specific menu
+; @Description: -
+; @Author: DIE
+; @Copyright: (c) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: apex.men 4942 2020-01-07 12:31:59Z kjmal $
+
+ADD
+MENU
+(
+  POPUP "&APEX"
+  (
+    DEFAULT
+    MENUITEM "Display &Processes"     "EXTension.AXProcess"
+  )
+)
+
+
+MENU "task.AXP"
+(
+  DEFAULT
+  MENUITEM "Display detailed"
+  (
+    &address=ADDRESS.OFFSET(TRACK.ADDRESS())
+    EXTension.AXProcess &address
+  )
+  MENUITEM "Display process struct"
+  (
+    &address=TRACK.ADDRESS()
+    Var.View %Open %String (proc_pcb_t*)(&address)
+  )
+  SEPARATOR
+  //  MENUITEM "Display Stack Frame"
+  //(
+  //  &address=ADDRESS.OFFSET(TRACK.ADDRESS())
+  //  Var.Frame /Locals /Caller /TASK &address
+  //)
+  //MENUITEM "Display Registers"
+  //(
+  //  &address=ADDRESS.OFFSET(TRACK.ADDRESS())
+  //  Register.view /TASK &address
+  //)
+  //MENUITEM "Switch Context"    "Frame.TASK     ADDRESS.OFFSET(TRACK.ADDRESS())"
+  //SEPARATOR
+  //MENUITEM "Add to Stack Cov"  "TASK.STacK.ADD    ADDRESS.OFFSET(TRACK.ADDRESS())"
+  //MENUITEM "Rm from Stack Cov" "TASK.STacK.ReMove ADDRESS.OFFSET(TRACK.ADDRESS())"
+  //SEPARATOR
+  MENUITEM "Dump process entry"
+  (
+    &address=TRACK.ADDRESS()
+    Data.dump &address /DIALOG
+  )
+)

@@ -1,0 +1,38 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to connect to the NXDB500-SYS Board
+; @Description:
+;   This script connects to the NXDB500-SYS Board by calling the
+;   netx_common_init.cmm and does some initialization using
+;   Data.Set commands
+; @Keywords: Hilscher, NetX*
+; @Board: NXDB500-SYS
+; @Chip: NETX500
+; @Author: Hilscher
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: nxdb500sys_init.cmm 12065 2018-02-07 12:26:30Z amerkle $
+
+
+DO ~~~~/netx_common_init.cmm
+
+&FLASH_PROGRAMMING_METHOD="TRACE32 Tool Based"
+FLASH.RESet
+;32MB Flash at 0xc0000000 with a sector size of 256kByte of type intel28FXXXJ3
+FLASH.Create 1. ASD:0xC0000000++0x1FFFFFF 0x40000 TARGET Long
+FLASH.TARGET ASD:0x00001000 ASD:0x00002000 0x1000 long/i28f200j3.bin
+
+
+MAP.BOnchip 0xC0000000++0x1FFFFFF
+
+;setup pflash timings on CS0
+Data.Set ASD:0x100100 %Long 0x0201000E
+
+;setup sram timings on CS1
+Data.Set ASD:0x100104 %Long 0x01030007
+
+;setup SDRam Timing
+Data.Set ASD:0x100140 %Long 0x0
+Data.Set ASD:0x100144 %Long 0x03C23151
+Data.Set ASD:0x100140 %Long 0x030D0121
+
+ENDDO

@@ -1,0 +1,176 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags
+; @Author: TI
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: omap4430_iva2_emulation_tests.cmm 8886 2015-11-18 18:06:51Z mobermeir $
+
+ENTRY &menu_type
+
+
+;GLOBAL &CMM_DIR &PROG_DIR_SIVAL &PROG_DIR_STANDALONE 
+GLOBAL &CMM_DIR &PROG_DIR_SIVAL
+&CMM_DIR="~~~~"
+;&PROG_DIR_STANDALONE="H:\tcChancock\TIF\emulation_plus_standalone_board\arm11_ape\arm11_ape_standalone_out"
+;&PROG_DIR_SIVAL="Q:\tcomap4430\tc_emu\emulation_plus_board"
+
+MENU.ReProgram
+(
+  ADD
+  MENU
+  (
+    POPUP "CMM"
+    (
+      POPUP "Wake UP"
+      (
+        ;MENUITEM "Cortex register accesses" 
+        ;(
+        ; do &CMM_DIR/H3G_omap3430_cortex_tests_basic_reg
+        ;)
+                ;MENUITEM "System Reset" 
+        ;(
+        ; do &CMM_DIR/H3G_omap3430_Resets
+        ;)
+
+        MENUITEM "Load_Asm_program_ITCM"
+        (
+          DO &CMM_DIR/omap4430_iva1_BasicEmulation 0x1
+        )
+        MENUITEM "Basic_Execution_control_ITCM"
+        (
+          DO &CMM_DIR/omap4430_iva1_BasicEmulation 0x2
+        )
+        MENUITEM "Load_Asm_program_DTCM"
+        (
+          DO &CMM_DIR/omap4430_iva1_BasicEmulation 0x3
+        )
+        //MENUITEM "Basic_Execution_control_DTCM"
+        //(
+        //  do &CMM_DIR/omap4430_iva1_BasicEmulation 0x4
+        //)
+        MENUITEM "Load_Asm_program_SL2_MEM"
+        (
+          DO &CMM_DIR/omap4430_iva1_BasicEmulation 0x5
+        )
+        MENUITEM "Basic_Execution_control_SL2_MEM"
+        (
+          DO &CMM_DIR/omap4430_iva1_BasicEmulation 0x6
+        )
+        MENUITEM "Load_Asm_program_icont1_DMEM"
+        (
+          DO &CMM_DIR/omap4430_iva1_BasicEmulation 0x7
+        )
+        //MENUITEM "Basic_Execution_control_icont1_DMEM"
+        //(
+        //  do &CMM_DIR/omap4430_iva1_BasicEmulation 0x8
+        //)
+        MENUITEM "Load_Asm_program_icont1_IMEM"
+        (
+          DO &CMM_DIR/omap4430_iva1_BasicEmulation 0x9
+        )
+        MENUITEM "Basic_Execution_control_icont1_IMEM"
+        (
+          DO &CMM_DIR/omap4430_iva1_BasicEmulation 0xA
+        )
+        MENUITEM "Load_Asm_program_icont2_DMEM"
+        (
+          DO &CMM_DIR/omap4430_iva1_BasicEmulation 0xB
+        )
+                //MENUITEM "Basic_Execution_control_icont2_DMEM"
+        //(
+        //  do &CMM_DIR/omap4430_iva1_BasicEmulation 0xC
+        //)
+        MENUITEM "Load_Asm_program_icont2_IMEM"
+        (
+          DO &CMM_DIR/omap4430_iva1_BasicEmulation 0xD
+        )
+        MENUITEM "Basic_Execution_control_icont2_IMEM"
+        (
+          DO &CMM_DIR/omap4430_iva1_BasicEmulation 0xE
+        )
+        MENUITEM "Load_Asm_program_ECD3_MEM"
+        (
+          DO &CMM_DIR/omap4430_iva1_BasicEmulation 0xF
+        )
+        MENUITEM "Basic_Execution_control_ECD3_MEM"
+        (
+          DO &CMM_DIR/omap4430_iva1_BasicEmulation 0x10
+        )
+        MENUITEM "Load_Asm_program_CALC3_MEM"
+        (
+          DO &CMM_DIR/omap4430_iva1_BasicEmulation 0x11
+        )
+        MENUITEM "Basic_Execution_control_CALC3_MEM"
+        (
+          DO &CMM_DIR/omap4430_iva1_BasicEmulation 0x12
+        )
+        MENUITEM "Load_Asm_program_MC3_MEM"
+        (
+          DO &CMM_DIR/omap4430_iva1_BasicEmulation 0x13
+        )
+        MENUITEM "Basic_Execution_control_MC3_MEM"
+        (
+          DO &CMM_DIR/omap4430_iva1_BasicEmulation 0x14
+        )
+        MENUITEM "Load_Asm_program_IPE3_MEM"
+        (
+          DO &CMM_DIR/omap4430_iva1_BasicEmulation 0x15
+        )
+        MENUITEM "Basic_Execution_control_IPE3_MEM"
+        (
+          DO &CMM_DIR/omap4430_iva1_BasicEmulation 0x16
+        )        
+      )
+      POPUP "MS6"
+      (
+        MENUITEM "Load Program_DDR_SIVAL"
+        (
+          ;Data.LOAD.Elf &PROG_DIR_SIVAL/ivahd_iCont1_iCont2_board_ES2_golden/arm9_iCont2/arm9_vdma_ape_silicon_image.axf /NoCODE /StripPART 7
+          List.auto
+        )
+      )
+      POPUP "MS7"
+      (
+        POPUP "Cross Triggering"
+        (
+          MENUITEM "ivaHd iCont2 Trigger 0"
+          ( 
+            ;trbus
+            ;trbus.Connect Out
+            ;trbus.Mode Falling
+            ;trbus.Out Break On
+            ;trbus.Set Break Off
+            DO &CMM_DIR/omap4430_ivahd_cross_triggering 0x2
+          )
+          MENUITEM "ivaHd iCont2 trigger 1"
+          ( 
+            ;trbus
+            ;trbus.Connect In
+            ;trbus.Mode Falling
+            ;trbus.Set Break On
+            ;trbus.Out Break Off
+            DO &CMM_DIR/omap4430_ivahd_cross_triggering 0x3
+          )
+          ;Menuitem "CortexA8 -> Master, Other cores -> Slave"
+          ;( 
+          ; do &CMM_DIR/H3G_omap3430_cortex_trigger_cortexAPE_to_other_cores_setting.cmm
+          ;)
+          ;Menuitem "CortexA8 -> Slave, IVA APE -> Master "
+          ;( 
+          ; do &CMM_DIR/H3G_omap3430_cortex_trigger_ivaAPE_to_cortexAPE_setting.cmm
+          ;)  
+          ;Menuitem "CortexA8 -> Slave, ARM9 MDM -> Master "
+          ;( 
+          ; do &CMM_DIR/H3G_omap3430_cortex_trigger_arm9MDM_to_cortexAPE_setting.cmm
+          ;)
+          ;Menuitem "CortexA8 -> Slave, C55 MDM -> Master "
+          ;( 
+          ; do &CMM_DIR/H3G_omap3430_cortex_trigger_c55MDM_to_cortexAPE_setting.cmm
+          ;)      
+        )     
+      )
+    )
+  )
+)
+  
+ENDDO

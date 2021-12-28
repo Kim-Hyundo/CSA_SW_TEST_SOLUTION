@@ -1,0 +1,115 @@
+; --------------------------------------------------------------------------------
+; @Title: Startup Script for Debugging Eboot on Sabre Automotive board
+; @Description: -
+; @Keywords: Eboot, awareness, i.MX6Quad
+; @Author: DIE
+; @Board: Sabre Automotive
+; @Chip: IMX6*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: eboot.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+ local &winceroot &reldir &eboot &term
+
+ &winceroot="C:\WINCE800"    ; typically C:\WINCE800
+ &reldir="&winceroot\OSDesigns\iMX6_SABRE_SDP_WEC2013\RelDir\_1_Retail_iMX6_SABRE_SD_ARMV7"
+ &eboot="eboot"
+
+ &term="COM3"
+
+ ; reset debugger
+
+ WinCLEAR
+ RESet
+
+; open serial terminal window
+
+ print "starting terminal on &term"
+ WinPOS 85. 0. ,,,,, term
+ TERM.METHOD COM &term 115200. 8 NONE 1STOP NONE
+ TERM.SIZE 80. 1000.
+ TERM.MODE VT100
+ TERM.SCROLL ON
+ TERM
+ SCREEN.ALWAYS      ; permanent update for internal terminal window
+
+; setup debugger
+
+ SYStem.CPU iMX6Quad
+ ; start with one core
+ CORE.ASSIGN 1
+ SYStem.Option ResBreak OFF
+ SYStem.Option WaitReset 1.3s   ; let bootloader setup the CPU
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ SETUP.IMASKASM ON              ; lock interrupts while single stepping
+
+ Trace.METHOD Onchip
+
+ ;MAP.DENYACCESS     ; prevent accesses to non-existent memory
+ ;MAP.NODENYACCESS 0x02000000--0x020fffff    ; internal periphery
+ ;MAP.NODENYACCESS 0x10000000--0x4fffffff    ; RAM
+
+; connect to target
+
+ SYStem.Up
+
+; disable watchdog
+ PER.Set ASD:0x20BC000 %W (d.w(ASD:0x20BC000)&~0x1)|0x0
+ PER.Set ASD:0x20BC000 %W (d.w(ASD:0x20BC000)&~0x4)|0x0
+
+; load eboot to physical memory
+
+ ; see platform/iMX6Q_SABRE_Lite/src/bootloader/eboot/eboot.bib:
+
+ ; RAMIMAGE entry specifies virtual load address, here 0x80040000
+ ; physical is usually RAM start plus the offset;
+ ; RAM starts at 0x10000000, so physical load address is 0x10040000
+
+ ; ROMSTART entry specifies the start address, here 0x80040000
+ ; IMPORTANT: do *not* add 4k page to ROMSTART - we need the TOC!
+
+ ; ROMOFFSET adds an offset to RAMIMAGE for flash load addresses,
+ ; here 1EFC0400
+ ; then load eboot to <phys. addr.> - (RAMIMAGE+ROMOFFSET)
+
+ Register.RESet
+ Data.LOAD.EXE "&reldir\&eboot.bin" 0x10040000-(0x80040000+1EFC0400)
+ Register.Set PC 0x10040000
+
+; We'd like to see something, open a code window.
+ WINPOS 0. 0. 77. 22. ,,, datalist
+ Data.List
+
+; load eboot awareness (eboot.t32) for section detection
+ ; specify physical address of image
+
+ EXTension.CONFIG ~~\demo\arm\kernel\wince\ec2013\eboot.t32 0x10040000
+
+; load eboot.exe symbols
+
+ &text=eboot.addr(0)    ; code segment
+ &data=eboot.addr(1)    ; data segment
+
+ Data.LOAD.EXE &reldir\&eboot.exe /nocode /noclear /thumb \
+   /reloc .text at &text /reloc .data at &data
+
+ ; adapt source paths if necessary (case sensitive!)
+ ;sYmbol.SourcePATH.Translate "c:\wince800" "&winceroot"
+ sYmbol.SourcePATH.Set .    ; add current directory to search path
+
+; start eboot
+
+ ; if you want to debug the tiny startup sequence, that is running
+ ; in physical address mode, you have to relocate code symbols to physical:
+
+ ;sYmbol.RELOC P:(0x10040000-0x80040000)
+ ;Go IPLStart
+
+ ; after switching to virtual address; re-relocate symbols
+
+ ;sYmbol.RELOC P:0x70000000
+
+ ; use onchip because we switch on MMU
+ Go BootloaderMain /Onchip
+
+ENDDO

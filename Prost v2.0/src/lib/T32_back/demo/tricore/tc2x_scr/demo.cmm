@@ -1,0 +1,17 @@
+; --------------------------------------------------------------------------------
+; @Title: Dummy script to redirect to TC2x_SCR demo scripts
+; @Description: Redirects to TC2x_SCR demos
+; @Keywords: AURIX, TC2x_SCR, Infineon, TriCore, Standby-Controller 
+; @Author: RAI
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo.cmm 8530 2015-07-14 06:47:43Z rsagerer $
+
+
+CD "~~~~/../../i51/hardware/tc2x_scr"
+
+DIALOG.OK "TC2x_SCR (Standby Controller) demos are located in" OS.PWD()
+
+DO *.cmm
+
+ENDDO

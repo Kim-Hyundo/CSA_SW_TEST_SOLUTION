@@ -1,0 +1,76 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for ATSAMA5D27 with Onchip-Trace (RAM, ETB)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Onchip-Trace (ETB).
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to J11 using adapter LA-3770
+; @Keywords: ARM, Cortex-A5, ETB, ETM
+; @Author: AME
+; @Board: ATSAMA5D2B-XULT
+; @Chip: ATSAMA5D27
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: atsama5d2_sieve_onchip_etb_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU ATSAMA5D27
+IF VERSION.BUILD()<84227.
+(
+  SYStem.CONFIG L2CACHE Type L2C-310
+  SYStem.CONFIG L2CACHE Base ANC:0xA00000
+)
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 30.ms
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_arm_v7.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; initialize ONCHIP trace (ETB, ETM)
+Trace.METHOD ONCHIP
+ETM.Trace ON
+ETM.ON
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO
+
+DisableWatchdog:
+(
+  ; disable the Watchdog
+  Data.Set AD:0xF8048044 %Long Data.Long(AD:0xF8048044)|0x8000
+  RETURN
+)

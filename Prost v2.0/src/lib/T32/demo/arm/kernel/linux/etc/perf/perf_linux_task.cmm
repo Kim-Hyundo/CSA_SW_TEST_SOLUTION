@@ -1,0 +1,56 @@
+; --------------------------------------------------------------------------------
+; @Title: Sample Based Profiling (PERF) for Linux Tasks - Stop And Go
+; @Description: 
+;   Sample the current task periodically using the stop and go method
+; @Author: KJM
+; @Keywords: PERF
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: perf_linux_task.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+  LOCAL &corenumber
+
+  IF !SYSTEM.UP()
+  (
+      DIALOG.OK "System must be UP to run this demo"
+      ENDDO
+  )
+  IF STATE.RUN()
+      Break
+  IF (TASK.CONFIG(magic)&0xFFFFFFFF)==0xFFFFFFFF
+  (
+      PRINT "Symbols not loaded or Linux Awareness error!"
+      ENDDO
+  )
+  PERF.RESet
+  PERF.METHOD StopAndGo
+  PERF.Mode TASK
+  PERF.Arm
+  WinCLEAR
+  
+  WinPOS 50% 0%
+  PERF
+  
+  &corenumber=CORE.NUMBER()
+  
+  IF &corenumber>1
+  (
+      WinPOS 0. 0. 50% 33%
+      PERF.List /CORE 0
+      WinPOS 0. 33% 50% 33%
+      PERF.List /CORE 1
+      WinPOS 0. 66% 50% 33%
+      PERF.List /SplitCORE
+      
+  )
+  ELSE
+  (
+      WinPOS 0. 0. 50% 33%
+      PERF.List
+  )
+  
+  
+
+  Go
+  

@@ -1,0 +1,39 @@
+; --------------------------------------------------------------------------------
+; @Title: Generic Demo for Cortex-M Cores
+; @Description: 
+;   When using a debugger the demo requires, that the debugger is
+;   already configured for the CPU and CONFIG settings.
+; @Author: STK
+; @Chip: Cortex-M?
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: cortexm.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+  WinCLEAR
+
+; start-up in case of simulator
+  IF INTERFACE.SIM()
+  (
+    RESet
+    SYStem.CPU CortexM3
+    SYStem.Up
+  )
+
+; Download the code
+  Data.LOAD.ELF thumbm3.axf /SPATH /LPATH
+  
+; Open some windows
+  WinPOS 0% 0% 100% 50%
+  List.auto
+  WinPOS 0% 50% 50% 50%
+  Frame /Locals /Caller
+  WinPOS 50% 50% 50% 50%
+  Var.Watch %SpotLight flags ast
+  
+; Init the target program
+  Register.RESet
+  Register.Set PC main
+  Register.Set R13 0x20008000
+  
+  ENDDO

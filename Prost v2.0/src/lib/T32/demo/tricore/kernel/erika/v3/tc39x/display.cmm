@@ -1,0 +1,169 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags
+; @Author: HDA
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: display.cmm 16280 2020-07-07 13:12:52Z hdammak $
+
+LOCAL &default
+TOOLBAR ON
+STATUSBAR ON
+FramePOS ,,,,Maximized
+WinPAGE.RESet
+
+GOSUB createwincpuload
+GOSUB createwintrace
+GOSUB createwinorti
+GOSUB createwindebug
+
+WinPAGE.select Debug
+&default=TRUE()
+
+WinPOS 66% 0% 15% 20%
+WinResist.DIALOG.view
+(
+  NAME "DiasplaySelect"
+  HEADER "ERIKA3 Demo"
+  POS 1. 0. 28.
+  LINE "Display selection:"
+  Demo.Debug: CHOOSEBOX "Debug" "CONTinue"
+  Demo.ORTI: CHOOSEBOX "ORTI" "CONTinue"
+  Demo.TASK: CHOOSEBOX "Task Trace" "CONTinue"
+  Demo.CPULOAD: CHOOSEBOX "CPU Load" "CONTinue"
+)
+
+IF &default
+(
+  &default=FALSE()
+  DIALOG.Set Demo.Debug TRUE()
+)
+wait_event:
+STOP
+
+IF DIALOG.BOOLEAN(Demo.Debug)
+(
+  WinPAGE.select Debug
+)
+ELSE IF DIALOG.BOOLEAN(Demo.ORTI)
+(
+  WinPAGE.select ORTI
+)
+ELSE IF DIALOG.BOOLEAN(Demo.TASK)
+(
+  GROUP.SEParate "other"
+  WinPAGE.select Trace
+)
+ELSE IF DIALOG.BOOLEAN(Demo.CPULOAD)
+(
+  GROUP.Merge "other"
+  GROUP.Merge "idle"
+  WinPAGE.select LOAD
+)
+
+GOTO wait_event
+DIALOG.END
+ENDDO
+
+; --------------------------------------------------------------------------------
+; SUBROUTINES
+; --------------------------------------------------------------------------------
+
+createwindebug:
+(
+   PRIVATE &x &dx &y &dy &core
+   
+   WinPAGE.Create Debug
+   
+   WinCLEAR
+   WinPOS 0% 0% 33% 33%
+   TargetSystem.state
+   WinPOS 33% 0% 33% 33%
+   List.auto
+ 
+   &x=0.
+   &y=33.
+   &dx=100./CORE.NUMBER()
+   &dy=33.
+   &core=0.
+   WHILE (&core<CORE.NUMBER())
+   (
+     GOSUB WinPosRelative "&x" "&y" "&dx" "&dy"
+     List.auto /CORE &core
+     GOSUB WinPosRelative "&x" "&y+&dy" "&dx" "&dy"
+     Register.view /CORE &core
+     &x=&x+&dx
+     &core=&core+1.
+   ) 
+   RETURN
+)
+
+createwinorti:
+(
+   WinPAGE.Create ORTI
+ 
+   WinCLEAR
+   WinPOS 0% 0% 66% 15%
+   TASK.DOS
+   WinPOS 0% 15% 66% 25%
+   TASK.DTASK
+   WinPOS 0% 40% 66% 40%
+   TASK.STacK.view
+   WinPOS 0% 80% 66% 20%
+   TASK.DALARM
+   WinPOS 66% 33% 33% 33%
+   TASK.DSTACK
+   WinPOS 66% 66% 33% 33%
+   TASK.DISR2
+   
+   RETURN
+)
+
+createwintrace:
+(
+   WinPAGE.Create Trace
+   
+   WinCLEAR
+   WinPOS 66% 28% 33% 28%
+   GROUP.List
+   WinPOS 0% 0% 66% 50%
+   Trace.Chart.TASK /Track
+   WinPOS 0% 50% 66% 50%
+   Trace.STATistic.TASK
+   WinPOS 66% 50% 33% 50%
+   Trace.List
+   RETURN
+)
+
+
+createwincpuload:
+(
+   WinPAGE.Create LOAD
+
+   WinCLEAR   
+   WinPOS 0% 0% 66% 28%
+   Trace.Chart.TASK /Track
+   WinPOS 0% 28% 66% 28%
+   Trace.STATistic.TASK
+   WinPOS 66% 28% 33% 28%
+   GROUP.List
+   WinPOS 0% 56% 33% 44%
+   Trace.PROfileChart.TASK /CORE 0. /ZoomTrack
+   WinPOS 33% 56% 33% 44%
+   Trace.PROfileChart.TASK /CORE 1. /ZoomTrack
+   WinPOS 66% 56% 33% 44%
+   Trace.PROfileChart.TASK /CORE 2. /ZoomTrack
+   RETURN
+)
+
+WinPosRelative:
+(
+  PARAMETERS &x &y &dx &dy
+
+  &x=FORMAT.Decimal(0.,&x)
+  &y=FORMAT.Decimal(0.,&y)
+  &dx=FORMAT.Decimal(0.,&dx)
+  &dy=FORMAT.Decimal(0.,&dy)
+  WinPOS &x% &y% &dx% &dy%
+
+  RETURN
+)

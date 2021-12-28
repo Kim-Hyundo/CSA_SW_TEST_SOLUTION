@@ -1,0 +1,492 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash script file for TC2xx UCB sectors
+; @Description:
+;   Script for programming of Infineon TriCore TC2xx UCBs.
+; @Keywords: AURIX1G, FLASH, Infineon, TriCore, UCB
+; @Author: MEI, MAX
+; @Chip: TC2*
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc2xx-ucb.cmm 8314 2020-05-18 14:16:17Z mobermaier $
+; $Rev: 8314 $
+
+
+; Important information, read this before using this script:
+;
+;   Do not edit this script. Instead, call this script from your project using the
+;   command line arguments described below. See the TriBoard demo scripts for an
+;   example.
+;
+;   See the Application Note FLASH Programming TriCore (app_tricore_flash.pdf) for
+;   more information on how to use this script.
+;
+;   This script checks the programmed application to avoid permanent locking of the
+;   device. This script is constantly improved, but it is not guaranteed that all
+;   cases are covered.
+;
+; Preconditions:
+;
+;   Run CPU specific FLASH declaration script before with parameter PREPAREONLY.
+;   Example:
+;     DO ~~/demo/tricore/flash/tc27x.cmm PREPAREONLY
+;
+; Script arguments:
+;
+;   DO tc2xx-ucb.cmm UCB=<ucb> [<action>] [<password>]
+;
+;     UCB=<ucb>   Set the UCB to perform <action> on.
+;                 Mandatory.
+;
+;     <ucb> :=    PFLASH | DFLASH | HSMCOTP | OTP | IFX | DBG | HSM
+;
+;     <action> := [ACTIVATE] | [PROGRAM] | [CHECKUCB] | [UNLOCK] | [PREPAREONLY]
+;                 Set what should be done with the selected UCB. Actions can not be combined.
+;                 Default: PREPAREONLY
+;
+;     ACTIVATE    Prepare selected UCB for programming:
+;                 1) Unlock UCB if either PWD or DLG is specified (see UNLOCK).
+;                 2) Check if UCB sector is specified in FLASH declaration (see PREPAREONLY).
+;                 3) Change the UCB sector from NOP to TARGET (see PREPAREONLY).
+;                 4) Enable FLASH.AUTO mode for UCB sector.
+;                 Now new data can be written to the UCB. Programming is performed and
+;                 finialized using the PROGRAM action.
+;
+;     PROGRAM     Verify new UCB content and program to UCB sector:
+;                 1) Verify new UCB content for formal correctness.
+;                 2) Program new UCB content to UCB sector.
+;                 3) Change the UCB sector from TARGET to NOP to prevent unintended
+;                    modification.
+;
+;     CHECKUCB    Check if the content of the UCB is formally correct.
+;                 The script returns: UCBOK on pass, UCBFAIL otherwise
+;
+;     UNLOCK      Unlock password protected UCB sectors.
+;                 Password can be be provided using option PWD or requested from the
+;                 user by option DIALOG.
+;                 The script returns: UCBUNLOCKED on pass, UCBFAIL otherwise
+;
+;     PREPAREONLY Enable the specified UCB for programming:
+;                 1) Check if UCB sector is specified in FLASH declaration.
+;                 2) Change the UCB sector from NOP to TARGET.
+;
+;     <password> := [PWD=<pwd0>_<pwd1>_ ... _ <pwd7>] | [DIALOG]
+;                 Specify password to unlock.
+;
+;     PWD=<pwd0>_<pwd1>_ ... _<pwd7>
+;                 Specify password to unlock. No unlocking if empty.
+;                 Default: no password (empty)
+;
+;     DIALOG      Open dialog and ask user for password to unlock.
+;                 The dialog expects eight 32-bit words of the password line by line.
+;
+; Example:
+;
+;   DO ~~/demo/tricore/flash/tc2xx-ucb.cmm UCB=DBG ACTIVATE PWD=0x0_0x1_0x2_0x3_0x4_0x5_0x6_0x7
+;
+; Supported devices:
+;
+;   All TC2xx devices, e.g. TC234LP, TC277T.
+;
+; CAUTION:
+;
+;   Reprogramming the UCB can permanently prohibit debug access to your device and
+;   prevent it from booting. Make sure you fully understand the Infineon documentation
+;   before changing UCBs.
+
+
+; process parameters
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+LOCAL &param_UCB &param_PWD &param_DLG
+&param_UCB=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"UCB=","")
+&param_PWD=STRing.Replace(STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"PWD=",""),"_"," ",0)
+&param_DLG=(STRing.SCAN("&parameters","DIALOG",0.)>=0)
+
+IF ("&param_UCB"=="")
+(
+  PRINT %ERROR "no UCB selected, abort"
+  ENDDO UCBFAIL
+)
+
+LOCAL &param_activate &param_program &param_checkucb &param_unlock &param_prepareonly
+&param_activate=(STRing.SCAN(STRing.UPpeR("&parameters"),"ACTIVATE",0)!=-1)
+&param_program=(STRing.SCAN(STRing.UPpeR("&parameters"),"PROGRAM",0)!=-1)
+&param_checkucb=(STRing.SCAN(STRing.UPpeR("&parameters"),"CHECKUCB",0)!=-1)
+&param_unlock=(STRing.SCAN(STRing.UPpeR("&parameters"),"UNLOCK",0)!=-1)
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+
+; script-global macros
+LOCAL &UCB_Index &UCB_BaseAddress &UCB_ProtectionSets &UCB_FPRO_IN_Mask &UCB_FPRO_DIS_Mask
+
+; sanity checks
+IF !CPUIS("TC2*")
+(
+  PRINT %ERROR "CPU not supported by this script, only TC2xx supported"
+  ENDDO UCBFAIL
+)
+IF !SYStem.Up()
+(
+  PRINT "system is not up"
+  ENDDO UCBFAIL
+)
+
+; --------------------------------------------------------------------------------
+; execute depending on arguments
+
+; --------------------------------------------------------------------------------
+; activate UCB for programming
+
+IF &param_activate
+(
+  ; select UCB and get parameters
+  GOSUB selectUCB "&param_UCB"
+
+  ; check if UCB requires a password and unlock if required
+  ; there is no auto-detection whether the UCB is locked or not, it just depends on whether the
+  ; user has specified PWD= or DIALOG as script parameter
+  IF &param_DLG
+    GOSUB passwordDlg
+  IF ("&param_PWD"!="")
+  (
+    ; there is a password specified, unlock UCB
+    PRIVATE &result
+    &result="UCBOK"
+
+    GOSUB unlockUCB &param_PWD
+    RETURNVALUES &result
+    IF ("&result"!="UCBUNLOCKED")
+      ENDDO &result
+    &result="UCBOK"
+  )
+
+  ; check if the UCB FLASH sector exists
+  IF !FLASH.SECTOR.EXIST(D:&UCB_BaseAddress)
+  (
+    PRINT %ERROR "UCB FLASH sector not declared, run CPU specific FLASH declaration script before"
+    ENDDO UCBFAIL
+  )
+
+  ; change type to target to allow programming UCB
+  FLASH.CHANGEtype &UCB_BaseAddress++0x3FF TARGET
+  FLASH.AUTO &UCB_BaseAddress++0x3FF
+
+  ENDDO UCBOK
+)
+
+; --------------------------------------------------------------------------------
+; check UCB and program new content to UCB sector
+
+IF &param_program
+(
+  PRIVATE &result
+  &result="UCBOK"
+
+  ; select UCB and get parameters
+  GOSUB selectUCB "&param_UCB"
+
+  ; check if new content is valid or may not result in unintended locking
+  GOSUB checkUCB
+  RETURNVALUES &result
+  IF ("&result"=="UCBOK")
+  (
+    ; the new content is formally correct, program the changes to the device
+    FLASH.AUTO off
+  )
+  ELSE
+  (
+    ; the check detected invalid content, abort FLASH programming
+    FLASH.AUTO CANCEL
+    PRINT "invalid UCB PFLASH configuration detected"
+  )
+
+  ; restore NOP protection for UCB sector
+  FLASH.CHANGEtype &UCB_BaseAddress++0x3FF NOP
+
+  ENDDO &result
+)
+
+; --------------------------------------------------------------------------------
+; check UCB
+
+IF &param_checkucb
+(
+  PRIVATE &result
+
+  GOSUB selectUCB "&param_UCB"
+  GOSUB checkUCB
+  RETURNVALUES &result
+
+  ENDDO &result
+)
+
+; --------------------------------------------------------------------------------
+; unlock UCB
+
+IF &param_unlock
+(
+  PRIVATE &result
+  &result="UCBOK"
+
+  IF &param_DLG
+    GOSUB passwordDlg
+  IF ("&param_PWD"=="")
+    PRINT "no password specified, skip unlocking UCB"
+  ELSE
+  (
+    GOSUB selectUCB "&param_UCB"
+    GOSUB unlockUCB &param_PWD
+    RETURNVALUES &result
+  )
+
+  ENDDO &result
+)
+
+; --------------------------------------------------------------------------------
+; enable UCB for programming (preparonly)
+; this is executed when &param_prepareonly is set or no other action is set (default)
+
+; select UCB and get parameters
+GOSUB selectUCB "&param_UCB"
+
+; check if the UCB FLASH sector exists
+IF !FLASH.SECTOR.EXIST(D:&UCB_BaseAddress)
+(
+  PRINT %ERROR "UCB FLASH sector not declared, run CPU specific FLASH declaration script before"
+  ENDDO UCBFAIL
+)
+
+; change type to target to allow programming UCB
+FLASH.CHANGEtype &UCB_BaseAddress++0x3FF TARGET
+
+ENDDO PREPAREDONE
+
+; --------------------------------------------------------------------------------
+; helper functions
+; --------------------------------------------------------------------------------
+
+; --------------------------------------------------------------------------------
+; Unlock protected UCB.
+;    expects local/global UCB variables to be set before, see "selectUCB"
+;    paramters:
+;       nPWD0 ... nPWD7:  the password values
+;    returns:  UNLOCKED on success, FAIL otherwise
+
+unlockUCB:
+(
+  IF (&UCB_FPRO_DIS_Mask==0x0)
+    RETURN "NOTSUPPORTED"
+
+  PRIVATE &nPWD0 &nPWD1 &nPWD2 &nPWD3 &nPWD4 &nPWD5 &nPWD6 &nPWD7
+  ENTRY &nPWD0 &nPWD1 &nPWD2 &nPWD3 &nPWD4 &nPWD5 &nPWD6 &nPWD7
+
+  ; clear PMU0_FSR
+  PER.Set.Field D:0xF8002010 %Long 0x3000 0x3
+
+  ; write unlock sequence
+  Data.Set D:0xAF00553C %Long &UCB_Index
+  Data.Set D:0xAF00553C %Long &nPWD0
+  Data.Set D:0xAF00553C %Long &nPWD1
+  Data.Set D:0xAF00553C %Long &nPWD2
+  Data.Set D:0xAF00553C %Long &nPWD3
+  Data.Set D:0xAF00553C %Long &nPWD4
+  Data.Set D:0xAF00553C %Long &nPWD5
+  Data.Set D:0xAF00553C %Long &nPWD6
+  Data.Set D:0xAF00553C %Long &nPWD7
+
+  ; check status
+  PRIVATE &PMU0_FSR
+  &PMU0_FSR=Data.Long(D:0xF8002010)
+  IF ((&PMU0_FSR&0x2000)>0.)
+  (
+    PRINT "unlock failed: invalid password, reset before retry required"
+    RETURN "UCBFAIL"
+  )
+  ELSE IF ((&PMU0_FSR&0x1000)>0.)
+  (
+    PRINT "unlock failed: sequence error"
+    RETURN "UCBFAIL"
+  )
+  ; check if unlocking was successful
+  PRIVATE &FLASH0_FPRO &PROIN &PRODIS
+  &FLASH0_FPRO=Data.Long(D:0xF800201C)
+  &PROIN=((&FLASH0_FPRO)&(&UCB_FPRO_IN_Mask))>0.
+  &PRODIS=((&FLASH0_FPRO)&(&UCB_FPRO_DIS_Mask))>0.
+  IF !(&PROIN)||(&PRODIS)
+  (
+    PRINT "unlock successful"
+    RETURN "UCBUNLOCKED"
+  )
+
+  PRINT "unknown error"
+  RETURN "UCBFAIL"
+)
+
+; --------------------------------------------------------------------------------
+; Show dialog for password entry.
+
+passwordDlg:
+(
+  LOCAL &lf
+  &lf=""+CONVert.CHAR(10.)
+
+  DIALOG.view
+  (&+
+    POS 1. 0. 25. 1.
+    TEXT "Enter password for &param_UCB"
+    POS 1. 1. 25. 6.
+    txtPwd: DEFMEDIT "" ""
+    POS 1. 8. 8. 1.
+    BUTTON "OK" "GOTO lOK"
+    POSX 1. 8. 1.
+    BUTTON "Cancel" "GOTO lCancel"
+    CLOSE "GOTO lCancel"
+  )
+
+  PRIVATE &txt
+  &txt=STRing.Replace("&param_PWD"," ","&lf",0.)
+  DIALOG.Set txtPwd "&txt"
+
+  STOP
+
+lCancel:
+  DIALOG.END
+  ENDDO CANCELED
+
+lOK:
+  &txt=DIALOG.STRing(txtPwd)
+  DIALOG.END
+  &param_PWD=STRing.Replace("&txt","&lf"," ",0.)
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Check UCB values for the currently selected UCB.
+;    expects local/global UCB variables to be set before, see "selectUCB"
+;    returns:   UCBOK if valid, UCBFAIL otherwise
+
+checkUCB:
+(
+  IF (&UCB_ProtectionSets==0.)
+  (
+    PRINT %ERROR "UCB check not supported"
+    RETURN "UNSUPPORTED"
+  )
+
+  PRIVATE &protectionSet
+  &protectionSet=0.
+  WHILE (&protectionSet<&UCB_ProtectionSets)
+  (
+    PRIVATE &protectionBase
+    &protectionBase=&UCB_BaseAddress+(&protectionSet*0x80)
+
+    ; check copies
+    Data.ComPare (&protectionBase++0xF) (&protectionBase+0x10)
+    IF FOUND()
+      GOTO fail
+    Data.ComPare (&protectionBase+0x20)++0x1F (&protectionBase+0x40)
+    IF FOUND()
+      GOTO fail
+    Data.ComPare (&protectionBase+0x70)++0x7 (&protectionBase+0x78)
+    IF FOUND()
+      GOTO fail
+
+    ; check values
+    PRIVATE &confirmationCodeAddress &confirmationCode
+    &confirmationCodeAddress=D:&protectionBase+0x70
+    &confirmationCode=Data.Long(&confirmationCodeAddress)
+    IF ((&confirmationCode!=0x57B5327F)&&(&confirmationCode!=0x43211234))
+    (
+      PRIVATE &
+      PRINT "UCB has invalid confirmation code at &confirmationCodeAddress"
+      GOTO fail
+    )
+
+    &protectionSet=&protectionSet+1.
+  )
+
+  PRINT "UCB check passed"
+  RETURN "UCBOK"
+
+fail:
+  PRINT "UCB check failed"
+  RETURN "UCBFAIL"
+)
+
+; --------------------------------------------------------------------------------
+; Select UCB.
+;    sets all variables for a specific UCB
+;    expects the following variables to be declared before as LOCAL or GLOBAL:
+;       &UCB_Index          index of the UCB, e.g., 0 for UCB0
+;       &UCB_ProtectionSets number of protection sets implemented.
+;       &UCB_FPRO_DIS_Mask  mask for the "DIS" flag for the UCB in the FLASH0_FPRO
+;                           register
+;       &UCB_BaseAddress    base address of the UCB
+;    parameters:
+;       &ucbName            the name of the UCB without the "UCB_" prefix
+;                           Examples: DBG for UCB_DBG
+;    returns:               nothing
+;    error handling:        will abort the script if the value given for &ucbName is
+;                           unknown
+
+selectUCB:
+(
+  PARAMETERS &ucbName
+
+  IF "&ucbName"=="PFLASH"
+  (
+    &UCB_Index=0x0
+    &UCB_ProtectionSets=1.
+    &UCB_FPRO_IN_Mask=0x1
+    &UCB_FPRO_DIS_Mask=0x2
+  )
+  ELSE IF "&ucbName"=="DFLASH"
+  (
+    &UCB_Index=0x1
+    &UCB_ProtectionSets=1.
+    &UCB_FPRO_IN_Mask=0x4
+    &UCB_FPRO_DIS_Mask=0x8
+  )
+  ELSE IF "&ucbName"=="HSMCOTP"
+  (
+    &UCB_Index=0x2
+    &UCB_ProtectionSets=2.
+    &UCB_FPRO_IN_Mask=0x0
+    &UCB_FPRO_DIS_Mask=0x0
+  )
+  ELSE IF "&ucbName"=="OTP"
+  (
+    &UCB_Index=0x3
+    &UCB_ProtectionSets=8.
+    &UCB_FPRO_IN_Mask=0x0
+    &UCB_FPRO_DIS_Mask=0x0
+  )
+  ELSE IF "&ucbName"=="IFX"
+  (
+    &UCB_Index=0x4
+    &UCB_ProtectionSets=0. ; not a COPY/ORIG protection set, disable checking
+    &UCB_FPRO_IN_Mask=0x0
+    &UCB_FPRO_DIS_Mask=0x0
+  )
+  ELSE IF "&ucbName"=="DBG"
+  (
+    &UCB_Index=0x5
+    &UCB_ProtectionSets=1.
+    &UCB_FPRO_IN_Mask=0x100
+    &UCB_FPRO_DIS_Mask=0x200
+  )
+  ELSE IF "&ucbName"=="HSM"
+  (
+    &UCB_Index=0x6
+    &UCB_ProtectionSets=1.
+    &UCB_FPRO_IN_Mask=0x0
+    &UCB_FPRO_DIS_Mask=0x0
+  )
+  ELSE
+  (
+    PRINT %ERROR "UCB_&ucbName not supported by this script"
+    ENDDO UNSUPPORTED
+  )
+  &UCB_BaseAddress=0xAF100000+&UCB_Index*0x400
+  RETURN
+)

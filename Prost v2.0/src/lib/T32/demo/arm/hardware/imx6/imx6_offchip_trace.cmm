@@ -1,0 +1,89 @@
+; --------------------------------------------------------------------------------
+; @Title: Off-chip Trace Script for the i.MX6 Solo/Dual/Quad
+; @Description:
+;   Simple off-chip trace demo for the iMX6. The pin-multiplexing for off-chip
+;   trace is setup by the script.
+;   The script uses the first core only and is thus valid for Solo/Dual/Quad
+;   core types.
+;   Connector J13 "JTAG" can be used with our MIPI connectors (CombiProbe
+;   or Debug Cable plus Converter LA-3770) if pin 7 and pin 9 will not be
+;   connected. We just bent them over on the J13 connector.
+;   A connector for the external trace port is not available on this board.
+;   WaitReset 1.3s: The required wait time depends on the boot loader.
+;   Further Note for NXP SabreAI/IMX6SABREAUTO
+;     * a adapter LA-3897 is available from Lauterbach
+;     * depending on the board revision R828 must be configured to position B
+; @Keywords: Cortex-A9, Freescale, imx6, sabrelite, sieve, SMP
+; @Author: KJM
+; @Board: iMX6-SabreLite Nitrogen6x Nitrogen6x-SOM WandBoard MCIMX6Q-SDB
+; @Chip: IMX6*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx6_offchip_trace.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; reset chip, connect to first core only
+  RESet
+  SYStem.RESet
+  SYStem.CPU iMX6Quad
+  SYStem.Option ResBreak OFF
+  SYStem.Option WaitReset 1.3s
+  Trace.METHOD Onchip
+  CORE.ASSIGN 1
+  SYStem.Up
+
+; load position independent example code
+  DO ~~/demo/arm/compiler/gnu-pic/demo_sieve 0x910000
+  Go main
+  WAIT !STATE.RUN()
+
+  IF Analyzer()
+  (
+    ; set the pin-multiplexing (IOMUXC) for the off-chip trace
+    ; use EZAHB - Runtime Secure AHB access (Trustzone)
+    Data.Set EZAHB:0x20E025C %Long 0x7
+    Data.Set EZAHB:0x20E0260 %Long 0x7
+    Data.Set EZAHB:0x20E0264 %Long 0x7
+    Data.Set EZAHB:0x20E0268 %Long 0x7
+    Data.Set EZAHB:0x20E026C %Long 0x7
+    Data.Set EZAHB:0x20E0270 %Long 0x7
+    Data.Set EZAHB:0x20E0274 %Long 0x7
+    Data.Set EZAHB:0x20E0278 %Long 0x7
+    Data.Set EZAHB:0x20E027C %Long 0x7
+    Data.Set EZAHB:0x20E0280 %Long 0x7
+    Data.Set EZAHB:0x20E0284 %Long 0x7
+    Data.Set EZAHB:0x20E0288 %Long 0x7
+    Data.Set EZAHB:0x20E028C %Long 0x7
+    Data.Set EZAHB:0x20E0290 %Long 0x7
+    Data.Set EZAHB:0x20E0294 %Long 0x7
+    Data.Set EZAHB:0x20E0298 %Long 0x7
+    Data.Set EZAHB:0x20E029C %Long 0x7
+    Data.Set EZAHB:0x20E02A0 %Long 0x7
+
+    Trace.METHOD Analyzer
+    TPIU.PortSize 16
+    ETM.Trace ON
+    ETM.ON
+    ; perform Autofocus calibration
+    Analyzer.AutoFocus
+
+    WinPOS 50% 50% 50% 50%
+    Analyzer.List
+  )
+
+; open some windows
+  WinCLEAR
+
+  WinPOS 0% 0% 50% 50%
+  List.auto
+
+  WinPOS 50% 0% 50% 50%
+  Register.view /SpotLight
+
+  WinPOS 0% 50% 50% 50%
+  Frame /Locals /Caller
+
+  WinPOS 50% 50% 50% 50%
+  Trace.List
+
+  ENDDO

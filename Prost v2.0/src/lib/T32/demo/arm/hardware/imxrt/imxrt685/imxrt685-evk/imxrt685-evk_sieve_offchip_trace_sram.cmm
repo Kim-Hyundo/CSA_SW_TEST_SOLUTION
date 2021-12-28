@@ -1,0 +1,104 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for IMXRT685-CM33 on IMXRT685-EVK with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The Offchip Trace using a Combiprobe/uTrace or PowerTrace is set up.
+;   Use this script for testing the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Combiprobe/uTrace to J19
+;      or
+;      Connect AutoFocus Preprocessor to J19
+;      and connect DebugCable to Preprocessor
+; @Keywords: ARM, Cortex-M7, ETM, ITM
+; @Author: STK
+; @Board: IMXRT685-EVK
+; @Chip: IMXRT685-CM33
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imxrt685-evk_sieve_offchip_trace_sram.cmm 15341 2019-11-29 12:41:17Z skrausse $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU IMXRT685-CM33
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock 10MHz
+ETM.OFF
+ITM.OFF
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace (ETM, ITM)
+IF COMBIPROBE()||UTRACE()||Analyzer()
+(
+  ; Enable clock for the trace sub system
+  Data.Set ASD:0x40001500 %Long 0x00000000   ; CLKCTL.PFC0DIV[RESET]=0
+
+  ; set PinMux and enable Clocks
+  Data.Set ASD:0x40004054 %Long 0x00000106   ; TRACE_CLK: IOPCTL.PIO0_21[FSEL]=0b0110
+  Data.Set ASD:0x40004058 %Long 0x00000106   ; TRACE_D0:  IOPCTL.PIO0_22[FSEL]=0b0110
+  Data.Set ASD:0x4000405C %Long 0x00000106   ; TRACE_D1:  IOPCTL.PIO0_23[FSEL]=0b0110
+  Data.Set ASD:0x40004060 %Long 0x00000106   ; TRACE_D2:  IOPCTL.PIO0_24[FSEL]=0b0110
+  Data.Set ASD:0x40004064 %Long 0x00000106   ; TRACE_D3:  IOPCTL.PIO0_25[FSEL]=0b0110
+
+  TPIU.PortSize 4
+  TPIU.PortMode Continuous
+  ITM.DataTrace CorrelatedData
+  ITM.ON
+  ETM.Trace ON
+  ETM.COND ALL
+  ETM.ON
+)
+IF Analyzer()
+(
+  Trace.METHOD Analyzer
+  Trace.AutoInit ON
+  Trace.AutoFocus
+)
+ELSE IF COMBIPROBE()||UTRACE()
+(
+  Trace.METHOD CAnalyzer
+  Trace.AutoInit ON
+  CAnalyzer.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO

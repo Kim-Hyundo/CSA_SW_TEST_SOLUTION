@@ -1,0 +1,215 @@
+// Note: this script is called by setup.cmm and not intended to be run standalone.
+// --------------------------------------------------------------------------------
+// @Props: NoMetaTags, NoIndex
+// @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+// --------------------------------------------------------------------------------
+// $Id: startboard.cmm 15227 2019-11-06 11:57:41Z bschroefel $
+
+
+  IF STRing.MID("&devtype",1.,7.)=="devtype"
+  (
+    PRINT %ERROR "CPU type not set. Start 'setup.cmm'"
+    END
+  )
+
+// First of all setup CPU
+  SYStem.CPU &devtype
+
+  IF VERSION.BUILD()>49300.
+  (
+    IF CAnalyzer.BothCABLES()&&!UTRACE()
+    (
+      IF &dcb==0
+        SYStem.CONFIG.DEBUGPORT DebugCableA
+      ELSE
+        SYStem.CONFIG.DEBUGPORT DebugCableB
+    )
+  )
+
+// Type of DebugPort : Serial Wire or JTAG
+  IF ((&swdpon)==0)&&((&cjtagon)==0)
+    SYStem.CONFIG.DEBUGPORTTYPE JTAG
+
+  IF (&swdpon)!=0
+    SYStem.CONFIG.DEBUGPORTTYPE SWD
+
+  IF (&cjtagon)!=0
+  (
+    SYStem.CONFIG.DEBUGPORTTYPE CJTAG
+    SYStem.CONFIG.CJTAGFLAGS 0x3
+  )
+
+  IF hardware.COMBIPROBE()||hardware.UTRACE()
+  (
+    SYStem.CONFIG.CONNECTOR MIPI20T
+  )
+// Init CombiProbe if available
+  IF CAnalyzer()
+  (
+    CAnalyzer.RESet
+    CAnalyzer.THreshold 1.6
+  )
+
+// Bring up the system
+  SYStem.Up
+
+  IF !INTERFACE.SIM()
+  (
+    GOSUB disable_watchdog
+    GOSUB pll_setup
+  )
+
+// Load elf file if requested
+  IF "&elffile"!=""
+  (
+    Data.LOAD.Elf "&elffile" /RELPATH /PlusVM
+    IF &gomain!=0
+    (
+      Go.direct main
+      WAIT !STATE.RUN()
+    )
+  )
+
+  IF hardware.POWERTRACE()
+  (
+    GOSUB enable_tpiu
+    ETM.OFF
+    ETM.ON
+  )
+
+  IF hardware.COMBIPROBE()||hardware.UTRACE()
+  (
+    GOSUB enable_tpiu
+    CAnalyzer.CLOCKDelay MED
+    CAnalyzer.Init
+// Re-Initialize ETM to make sure everything works
+    ETM.OFF
+    ETM.ON
+  )
+
+  IF CAnalyzer()&&((&swdpon)!=0)&&((&useswv)!=0)
+  (
+// Use SerialWireViewer if in SWD mode and SWV is requested
+    ETM.OFF
+    ITM.PortSize SWV
+    ITM.PortMode NRZ/2
+    IF "&cpufreq"=="100MHz"
+    (
+      CAnalyzer.TraceCLOCK 50.0MHz
+      ITM.ON
+    )
+    ELSE IF "&cpufreq"=="75MHz"
+    (
+      CAnalyzer.TraceCLOCK 37.5MHz
+      ITM.ON
+    )
+    ELSE
+    (
+      ITM.ON
+      CAnalyzer.AutoFocus
+    )
+  )
+
+  IF CAnalyzer()
+  (
+    CAnalyzer.Init
+  )
+  IF CIProbe()
+  (
+    cip.init
+  )
+
+  ENDDO
+
+// --------------------------------------------------------------------------------
+//    Disable Watchdog for MK60N512
+// --------------------------------------------------------------------------------
+disable_watchdog:
+// Disable watchdog
+  // The watchdog has a restrictive timing. It has to be configured and unlocked within a peripod
+  // of 20+256 cycles. Therefor the unlock sequence needs to be done by a small target program.
+  Data.Assemble ST:0x20000000  strh r1,[r0]  //SD:0x4005200E = 0xC520   (Key 1)
+  Data.Assemble ,              strh r2,[r0]  //SD:0x4005200E = 0xD928   (Key 2)
+  Data.Assemble ,              strh r4,[r3]  //SD:0x40052000 = 0x0000   (Config register)
+  Data.Assemble ,              bkpt #0       //breakpoint, stop
+  Register.Set PC 0x20000000
+  Register.Set R0 0x4005200E
+  Register.Set R1 0xC520
+  Register.Set R2 0xD928
+  Register.Set R3 0x40052000
+  Register.Set R4 0x0000
+  Go.direct
+  WAIT !STATE.RUN()
+  RETURN
+
+// --------------------------------------------------------------------------------
+//    Enable Trace Pins for MK60N512
+// --------------------------------------------------------------------------------
+enable_tpiu:
+// Enable Trace Pins
+  Data.Set SD:0x40048038 %Long 0x0000FFFF                        // PORTA_CLK
+  Data.Set SD:0x40048004 %Long 0x00001000                        // TRACE_CLK
+  Data.Set SD:0x40049018 %Long 0x00000740                        // TRACECLK
+  Data.Set SD:0x4004901C %Long 0x00000740                        // TRACED3
+  Data.Set SD:0x40049020 %Long 0x00000740                        // TRACED2
+  Data.Set SD:0x40049024 %Long 0x00000740                        // TRACED1
+  Data.Set SD:0x40049028 %Long 0x00000740                        // TRACED0
+  RETURN
+
+// --------------------------------------------------------------------------------
+//    PLL Setup for MK60N512
+// --------------------------------------------------------------------------------
+pll_setup:
+  IF "&cpufreq"=="75MHz"
+  (
+    // Switches to PLL with 75MHz, external OSC(50MHz) / 16 * 24 = 75MHz
+    // Core Clock    75 MHz
+    // Bus/FlexBus  37.5MHz
+    // Flash         25 MHz
+    Data.Set SD:0x40064001 %Byte 0x00          // MCG_C2: Default, select EXTAL mode (external clock provided)
+    Data.Set SD:0x40064004 %Byte 0x0F          // MCG_C5: PRDIV = 16
+    Data.Set SD:0x40064005 %Byte 0x00          // MCG_C6: VDIV = /24
+    Data.Set SD:0x40048044 %Long 0x01120000    // SIM: CLKDIV1 Core = /1, Bus = /2, FlexBus = /2, FlashClock = /3
+    Data.Set SD:0x40064000 %Byte 0x84          // MCG_C1: Switch to external clock
+    Data.Set SD:0x40064004 %Byte 0x4F          // Engage PLL.
+  )
+  ELSE IF "&cpufreq"=="100MHz"
+  (
+    // Switches to PLL with 100MHz, external OSC(50MHz) / 12 * 24 = 100MHz
+    // Core Clock   100 MHz
+    // Bus/FlexBus   50 MHz
+    // Flash         25 MHz
+    Data.Set SD:0x40064001 %Byte 0x00          // MCG_C2: Default, select EXTAL mode (external clock provided)
+    Data.Set SD:0x40064004 %Byte 0x0B          // MCG_C5: PRDIV = 12
+    Data.Set SD:0x40064005 %Byte 0x00          // MCG_C6: VDIV = /24
+    Data.Set SD:0x40048044 %Long 0x01130000    // SIM: CLKDIV1 Core = /1, Bus = /2, FlexBus = /2, FlashClock = /4
+    Data.Set SD:0x40064000 %Byte 0x84          // MCG_C1: Switch to external clock
+    Data.Set SD:0x40064004 %Byte 0x4B          // Engage PLL.
+  )
+  ELSE
+  (
+    RETURN
+  )
+
+  // Wait for Lock of PLL
+  LOCAL &h
+  &h=0
+  WHILE ((&h)&0x40)==0
+  (
+    &h=Data.Byte(sd:0x40064006)
+  )
+  Data.Set SD:0x40064005 %Byte 0x40          // MCG_C6: Feed PLL to clock selector
+  // Wait until PLL is feed to clock selector
+  &h=0
+  WHILE ((&h)&0x20)==0
+  (
+    &h=Data.Byte(sd:0x40064006)
+  )
+  Data.Set SD:0x40064000 %Byte 0x04          // MCG_C1: Switch to PLL clock
+  // Wait until PLL is feed to clock selector
+  &h=0
+  WHILE ((&h)&0x0C)!=0x0C
+  (
+    &h=Data.Byte(sd:0x40064006)
+  )
+  RETURN

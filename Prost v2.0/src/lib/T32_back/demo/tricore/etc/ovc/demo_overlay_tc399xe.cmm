@@ -1,0 +1,265 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC399XE on TriBoard-TC3x9 (OVERLAY, OVC)
+; @Description:
+;   Demonstrates SYStem.Option OVERLAY and programming of the OVC unit.
+; @Keywords: AURIX2G, Infineon, TriCore, overlay, OVC
+; @Author: MEI
+; @Board: TriBoard-TC3x9
+; @Chip: TC399XE
+; @Copyright: (C) 1989-2017 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo_overlay_tc399xe.cmm 15583 2020-01-28 16:50:30Z meick $
+
+
+LOCAL &EditHere
+
+RESet
+MENU.RESet
+WinCLEAR
+
+SYStem.CPU TC399XE
+; optional settings:
+SYStem.Option DUALPORT ON
+SETUP.Var %SpotLight
+MAP.BOnchip 0x0--0xffffffff // force onchip-breakpoints
+
+; connect to Core 0
+SYStem.Up
+
+LOCAL &elfFile
+&elfFile="tc39x_ovc.elf"
+
+; Check if data flash is programmed
+GOSUB InitRom
+
+Data.LOAD.Elf "&elfFile" /LOADSEC !.ovc /SingleLineAdjacent
+
+WinPOS 0% 00% 50% 30%
+Var.DRAW inputBufs[0].a inputBufs[0].b 10000.0 -1500000.0
+WinPOS 0% 30% 50% 30%
+Var.DRAW TC0_mixed 10000.0 -1500000.0
+WinPOS 0% 60% 50% 40%
+Data.ListHll TC0_mix
+WinPOS 50% 20% 50% 20%
+Per.view , "OVC (Data Access Overlay),OVC0,Register 0"
+WinPOS 50% 40% 50% 20%
+Per.view , "SCU (System Control Unit),OVC (Global Overlay Controls)"
+WinPOS 50% 60% 50% 40%
+Var.Watch
+
+
+WinPOS 60% 0%
+DIALOG.view
+(
+    HEADER "TriCore TC3xx Overlay Demo"
+
+    POS 1. 0. 24. 3.
+    BOX "Chip"
+    POS 2. 1. 10. 1.
+bEnableOverlayChip: BUTTON "[:btnok] Enable"
+    (
+        DIALOG.Disable bEnableOverlayChip
+        DIALOG.Enable bDisableOverlayChip
+        DIALOG.Disable bRomToRam
+        DIALOG.Disable bRamToRom        
+        ;SCU_OVCENABLE
+        PER.Set.simple ED:0xF00361E0 %Long 0x1
+        PRINT "Overlay started."
+    )
+    POS 13. 1. 10. 1.
+bDisableOverlayChip: BUTTON "[:btncancel] Disable"
+    (
+        DIALOG.Enable bEnableOverlayChip
+        DIALOG.Disable bDisableOverlayChip
+        DIALOG.Enable bRomToRam
+        DIALOG.Enable bRamToRom
+        ;SCU_OVCENABLE
+        PER.Set.simple ED:0xF00361E0 %Long 0x0
+        PRINT "Overlay stopped."
+    )
+    POS 2. 3. 20. 1.
+cbSysOptOverlay: CHECKBOX "SYStem.Option OVC"
+    (
+        PRIVATE &state
+        ENTRY &state
+        SYStem.Option OVC &state
+    )
+    POS 25. 0. 10. 5.
+    BOX "Update"
+    POS 28. 1. 3. 1.
+    TEXT "RAM"
+    POS 26. 2. 4. 1.
+bRomToRam: BUTTON "[:up]"
+    (
+        GOSUB UpdateRam
+    )
+    POS 30. 2. 4. 1.
+bRamToRom: BUTTON "[:flash]"
+    (
+        GOSUB UpdateRom
+    )
+    POS 28. 3. 3. 1.
+    TEXT "ROM"   
+    
+    POS 36. 0. 14. 5.
+    BOX "Script"
+    POS 37. 1. 12. 1.
+    BUTTON "[:program] PrepareOvc"
+    (
+        GOSUB EditScript "PrepareOvc"
+    )
+    POS 37. 2. 12. 1.
+    BUTTON "[:program] UpdateRom"
+    (
+        GOSUB EditScript "UpdateRom"
+    )
+    POS 37. 3. 12. 1.
+    BUTTON "[:program] UpdateRam"
+    (
+        GOSUB EditScript "UpdateRam"
+    )
+)
+
+DIALOG.Disable bDisableOverlayChip
+SYStem.Option OVC ON
+DIALOG.Set cbSysOptOverlay TRUE()
+
+sYmbol.NEW.Var TC0_mix_params_overlay sYmbol.SECADDRESS(.ovctgt) STC0_mix_params
+Var.AddWatch %E %LOCATION TC0_mix_params
+Var.AddWatch %E %LOCATION TC0_mix_params_overlay
+
+GOSUB PrepareOvc
+
+; Start CPU and wait for user interaction
+Go.direct
+
+WHILE TRUE()
+(
+    STOP
+)
+
+ENDDO
+
+; Prepare Overlay
+PrepareOvc:
+(
+  ; 1. Get memory addresses from ELF file
+
+  PRIVATE &srcAddress &srcOffset
+  PRIVATE &tgtAddress &tgtOffset
+
+  &tgtAddress=sYmbol.SECADDRESS(.ovctgt)
+  &tgtOffset=ADDRESS.OFFSET(&tgtAddress)
+
+  &srcAddress=sYmbol.SECADDRESS(.ovc)
+  &srcOffset=ADDRESS.OFFSET(&srcAddress)
+
+  IF (&tgtOffset&0xF0000000)!=0x70000000
+  (
+    PRINT %ERROR "Only DSPR0 as overlay target supported."
+    STOP
+  )
+
+  ; 2. Initialize memory copy
+  GOSUB UpdateRam
+
+  ; 3. Programm OVC module
+
+  ;OVC0 Register 0 OVC0_RABR0
+  PER.Set.simple D:0xF880FB10 %Long (&tgtOffset&0x3fffe0)|0x80000000
+
+  ; OVC0_OTAR0
+  PER.Set.simple D:0xF880FB14 %Long &srcOffset&0x0fffffe0
+  
+  RETURN
+
+)
+
+UpdateRam:
+(
+  Data.COPY sYmbol.SECRANGE(.ovc) sYmbol.SECADDRESS(.ovctgt)
+  RETURN
+)
+
+UpdateRom:
+(
+  PRIVATE &bWasRunning
+  &bWasRunning=STATE.RUN()
+  IF &bWasRunning
+  (
+    Break.direct
+  )
+  
+  ; prepare and enable flash programming
+  DO ~~/demo/tricore/flash/tc39x.cmm PREPAREONLY
+  FLASH.AUTO sYmbol.SECRANGE(.ovc)
+  
+  ; copy data
+  Data.COPY sYmbol.SECRANGE(.ovctgt) sYmbol.SECADDRESS(.ovc)
+  
+  ; program data
+  FLASH.AUTO.off
+  
+  IF &bWasRunning
+  (
+    Go.direct
+  )
+    
+  RETURN
+)
+
+InitRom:
+(
+  Data.LOAD.Elf "&elfFile" /LOADSEC .ovc /DIFF 
+  IF !FOUND()
+  (
+    PRINT "data flash up to date"
+    RETURN
+  )
+
+  DIALOG.YESNO "Initialize data flash for demo ?"
+  ENTRY &progFlash
+  IF (!&progFlash)
+  (
+    RETURN
+  )
+  
+  DO ~~/demo/tricore/flash/tc39x.cmm PREPAREONLY
+  
+  ; enable flash programming
+  FLASH.ReProgram sYmbol.SECRANGE(.ovc)
+
+  ; load demo data
+  Data.LOAD.Elf "&elfFile" /LOADSEC .ovc
+
+  FLASH.ReProgram OFF
+
+  ; verify programming 
+  Data.LOAD.Elf "&elfFile" /LOADSEC .ovc /DIFF
+  IF FOUND()
+  (
+    ; maybe some sections are still declared as NOP?
+    PRIVATE &diffAddress
+    &diffAddress=TRACK.ADDRESS()
+    DIALOG.MESSAGE "File &elfFile has not been fully flashed, difference found at address &diffAddress (check flash declaration)"
+  )
+  
+  RETURN
+)
+
+; helper function to open practice editor at reference text
+EditScript:
+(
+  PARAMETERS &refText
+  PRIVATE &ppf &line
+  &ppf=OS.PPF()
+  FIND &ppf 0. "&(refText):"
+  IF !FOUND()
+  (
+    PRINT %ERROR "Text: &refText not found"
+    RETURN
+  )
+  &line=TRACK.LINE()
+  PEDIT &ppf &line
+  RETURN
+)

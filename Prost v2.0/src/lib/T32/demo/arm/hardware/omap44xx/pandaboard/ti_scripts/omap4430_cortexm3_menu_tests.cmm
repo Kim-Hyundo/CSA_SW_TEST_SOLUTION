@@ -1,0 +1,50 @@
+; --------------------------------------------------------------------------------
+; @Title: Menu entry point Script for PandaBoard CortexM3
+; @Description: 
+;   This script add CMM menu that link to CortexM3 ti-script. 
+;   For description please take a look at (omap4430_lauterbach_startup_guide.doc)
+; @Keywords: OMAP4430 PandaBoard
+; @Author: TI
+; @Board: PandaBoard
+; @Chip: OMAP4430
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: omap4430_cortexm3_menu_tests.cmm 8886 2015-11-18 18:06:51Z mobermeir $
+
+ENTRY &menu_type
+
+GLOBAL &CMM_DIR
+&CMM_DIR="~~~~"
+
+MENU.ReProgram
+(
+  ADD
+  MENU
+  (
+    POPUP "CMM"
+    (
+      MENUITEM "release CORTEXM3 RTOS"
+      (
+        DO  &CMM_DIR/omap4430_cortexM3_reset 0x0
+      )
+      MENUITEM "release CORTEXM3 SIMCOP"
+      (
+        DO  &CMM_DIR/omap4430_cortexM3_reset 0x1
+      )
+      MENUITEM "release TESLA C64"
+      (
+        DO  &CMM_DIR/omap4430_cortexM3_reset 0x2
+      )
+      MENUITEM "release IVAHD iCont1"
+      (
+        DO  &CMM_DIR/omap4430_cortexM3_reset 0x3
+      )
+      MENUITEM "release IVAHD iCont2"
+      (
+        DO  &CMM_DIR/omap4430_cortexM3_reset 0x4
+      )
+    )
+  )
+)
+
+ENDDO

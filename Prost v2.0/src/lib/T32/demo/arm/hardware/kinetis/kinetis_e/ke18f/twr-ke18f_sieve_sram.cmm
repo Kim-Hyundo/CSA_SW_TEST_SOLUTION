@@ -1,0 +1,92 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo script for MKE18F512VLL16 on TWR-KE18F (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   Use this script for getting started.
+;   Prerequisites:
+;    * Connect Debug Cable to J10 using Adapter LA-3770
+;      or
+;      Connect Combiprobe/uTrace to J10
+;    * Remove jumper J11, J12 and J13 to disable onboard OpenSDA
+; @Keywords: ARM, Cortex-M4
+; @Author: STK
+; @Board: TWR-KE18F
+; @Chip: MKE18F512VLL16
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: twr-ke18f_sieve_sram.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU MKE18F512VLL16
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO
+
+DisableWatchdog:
+(
+  Frame.SWAP
+  Data.Set VM:0x20000000++0x2F %Long 0
+  Data.Assemble VMT:0x20000000 adr     r0,0x20000014
+  Data.Assemble ,              ldm     r0,{r0-r4}
+  Data.Assemble ,              str  r1, [r0, #4]
+  Data.Assemble ,              str  r2, [r0, #8]
+  Data.Assemble ,              ldr  r5, [r0, #0]
+  Data.Assemble ,              bics r5, r3
+  Data.Assemble ,              str  r5, [r0, #0]
+  Data.Assemble ,              bkpt    #0x0
+  Data.Set VM:0x20000014 %Long 0x40052000
+  Data.Set VM:0x20000018 %Long 0xD928C520
+  Data.Set VM:0x2000001C %Long 0xffff
+  Data.Set VM:0x20000020 %Long 0x80
+  Data.COPY SD:0x20000000++0x2F VM:0x20000030
+  Data.COPY VM:0x20000000++0x2F SD:0x20000000
+  Register.Set PC 0x20000000
+  Go.direct
+  WAIT !STATE.RUN()
+  Data.COPY VM:0x20000030++0x2F SD:0x20000000
+  Frame.SWAP
+  RETURN
+)

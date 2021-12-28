@@ -1,0 +1,136 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC1197 on TriBoard-TC179x (Flash)
+; @Description:
+;   Initializes TriCore, SRAM and Flash,
+;   declares flash and prepares for target based flashing.
+;
+;   CAUTION: Script erases all flash contents!
+; @Keywords: Flash, Infineon, TriCore
+; @Author: MAX
+; @Board: TriBoard-TC179x
+; @Chip: TC1197
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc1197_flash.cmm 7578 2014-08-27 14:53:19Z mobermeir $
+
+
+; --------------------------------------------------------------------------------
+; Memory mappings:
+; external SRAM                     mapped to 0xA1000000--0xA10FFFFF    1 MB
+; external Flash                    mapped to 0xA2000000--0xA23FFFFF    4 MB
+; processor internal program memory mapped to 0xD4000000--0xD4009FFF   40 KB
+; processor internal data memory    mapped to 0xD0000000--0xD001FFFF  128 KB
+; processor internal program flash  mapped to 0xA0000000--0xA03FFFFF    4 MB
+; processor internal data flash     mapped to 0xAFE00000--0xAFE07FFF   32 KB
+;                                             0xAFE10000--0xAFE17FFF   32 KB
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+WinCLEAR
+SYStem.CPU TC1197
+
+IF DAP.Available()
+(
+  ; Bi-Directional Debug Cable detected
+  SYStem.CONFIG.DEBUGPORTTYPE DAP2    ; instead of JTAG
+)
+
+SYStem.Up
+
+Data.Set 0xF00005F4 %Long 0x00000008    ; disable watchdog
+
+; --------------------------------------------------------------------------------
+; bugfixes and workarounds
+
+; DMA_TC.013
+; DMA-LMB-Master Access to Reserved Address Location
+; prevent the debugger from accessing certain target memory
+MAP.DenyAccess 0xC8000000++0x07FFFFFF
+
+; --------------------------------------------------------------------------------
+; flash declaration
+; Declaring TC1797 internal flash requires an additional parameter providing
+; the base address for the flash device to use (FLASH_0 or FLASH_1).
+; In case the parameter is omitted, the default is FLASH_0.
+;
+; Note: Only one FLASH.TARGET command at the same time is supported. In case
+;       two or more target algorithms are required on the same target, the
+;       appropriate FLASH.TARGET command has to be issued when switching to
+;       another flash type.
+FLASH.RESet
+
+; flash declaration for processor internal flash - uncached address segment
+; processor internal program flash
+FLASH.Create 1. 0xA0000000--0xA000FFFF 0x4000  TARGET Long 0xF8002000
+FLASH.Create 2. 0xA0010000--0xA001FFFF 0x4000  TARGET Long 0xF8002000
+FLASH.Create 3. 0xA0020000--0xA003FFFF 0x20000 TARGET Long 0xF8002000
+FLASH.Create 3. 0xA0040000--0xA01FFFFF 0x40000 TARGET Long 0xF8002000
+FLASH.Create 4. 0xA0200000--0xA020FFFF 0x4000  TARGET Long 0xF8004000
+FLASH.Create 5. 0xA0210000--0xA021FFFF 0x4000  TARGET Long 0xF8004000
+FLASH.Create 6. 0xA0220000--0xA023FFFF 0x20000 TARGET Long 0xF8004000
+FLASH.Create 6. 0xA0240000--0xA03FFFFF 0x40000 TARGET Long 0xF8004000
+; processor internal data flash
+FLASH.Create 7. 0xAFE00000--0xAFE07FFF 0x8000  TARGET Long 0xF8002000
+FLASH.Create 8. 0xAFE10000--0xAFE17FFF 0x8000  TARGET Long 0xF8002000
+//FLASH.TARGET 0xD4000000 0xD0000000 0x1000 ~~/demo/tricore/flash/long/tc1797.bin
+
+; flash declaration for external flash - uncached address segment
+; 2 AMD AM29BL162CB flash parallel to 32 bit data bus
+FLASH.Create 9. 0xA1000000--0xA1007FFF 0x8000  TARGET Long
+FLASH.Create 9. 0xA1008000--0xA100FFFF 0x4000  TARGET Long
+FLASH.Create 9. 0xA1010000--0xA107FFFF 0x70000 TARGET Long
+FLASH.Create 9. 0xA1080000--0xA13FFFFF 0x80000 TARGET Long
+//FLASH.TARGET 0xD4000000 0xD0000000 0x1000 ~~/demo/tricore/flash/long/am29lv100.bin
+
+; flash declaration for cached address segments
+FLASH.CreateALIAS 0x80000000--0x8FFFFFFF 0xA0000000
+
+; show flash declaration
+WinPOS 0% 0%
+FLASH.List
+
+; --------------------------------------------------------------------------------
+; example download to external flash
+
+DIALOG.YESNO "Program external flash memory?"
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.TARGET 0xD4000000 0xD0000000 0x1000 ~~/demo/tricore/flash/long/am29lv100.bin
+  FLASH.ReProgram 9. /Erase
+
+  ; load user program
+  Data.LOAD.auto *
+  FLASH.ReProgram off
+)
+
+; --------------------------------------------------------------------------------
+; example download to processor internal flash
+;
+; FLASH.AUTO or FLASH.ReProgram is required for flash programming of
+; unsorted files. FLASH.PROGRAM may result in incorrect CRCs.
+
+DIALOG.YESNO "Program internal flash memory?"
+ENTRY &execflash
+IF &execflash
+(
+  FLASH.TARGET 0xD4000000 0xD0000000 0x1000 ~~/demo/tricore/flash/long/tc1797.bin
+
+  ; using FLASH.ReProgram is more gentle than FLASH.AUTO
+  FLASH.ReProgram 0xA0000000--0xA03FFFFF /Erase
+  FLASH.ReProgram 0xAFE00000--0xAFE07FFF /Erase
+  FLASH.ReProgram 0xAFE10000--0xAFE17FFF /Erase
+  Data.LOAD.auto *
+  FLASH.ReProgram off
+)
+
+; use internal flash programming algorithm as default
+FLASH.TARGET 0xD4000000 0xD0000000 0x1000 ~~/demo/tricore/flash/long/tc1797.bin
+
+; --------------------------------------------------------------------------------
+; open some window
+WinPOS 0% 50%
+List.auto
+
+ENDDO

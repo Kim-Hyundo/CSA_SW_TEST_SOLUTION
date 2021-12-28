@@ -1,0 +1,139 @@
+; --------------------------------------------------------------------------------
+; @Title: i.MX6 SPI FLASH Programming Script
+; @Description:
+;   FLASH Type: SPI FLASH(SST, 25VF016) connected to eCSPI1_SS1
+;
+;   S(D)RAM: 0x900000
+;   eCSPI1 Tx Register : 0x2008004
+;   eCSPI1 Rx Register : 0x2008000
+;   eCSPI1 CS Register : 0x2008008
+;
+; @Author: jjeong
+; @Chip: IMX6QUAD
+; @Keywords: SST 25VF016
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx6quad-spi.cmm 7704 2019-12-05 09:08:54Z jjeong $
+
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+&eCSPI_BASE=0x2008000    ;eCSPI1, &eCSPI_BASE=0x2010000 for eCSPI3
+&eCSPI_Channel=1.        ;eCSPI1_SSn, n=[0:3]
+
+; reset chip, connect to core #0 only
+RESet
+SYStem.RESet
+SYStem.CPU iMX6Quad
+CORE.ASSIGN 1
+SYStem.Option ResBreak OFF
+IF VERSION.BUILD()<92177.
+(
+  SYStem.Option WaitReset 1.3s
+)
+ELSE
+(
+  SYStem.Option WaitIDCODE 1.5s
+)
+Trace.METHOD Onchip
+SYStem.Up
+
+Data.Set C15:0x1 %Long  (Data.Long(C15:0x1)&~(0x5))  ; disable interrupt and mmu
+
+Data.Set ASD:0x020d8000 %Long 0x01C00521
+
+//eCSPI_1
+//Configure corresponding IOMUX for ECSPI external signals
+Data.Set ASD:0x20E0090 %Long 0x01  ;IOMUXC_SW_MUX_CTL_PAD_EIM_D16
+Data.Set ASD:0x20E03A4 %Long 0x30  ;IOMUXC_SW_PAD_CTL_PAD_EIM_D16
+
+Data.Set ASD:0x20E0094 %Long 0x01  ;IOMUXC_SW_MUX_CTL_PAD_EIM_D17
+Data.Set ASD:0x20E03A8 %Long 0x30  ;IOMUXC_SW_PAD_CTL_PAD_EIM_D17
+
+Data.Set ASD:0x20E0098 %Long 0x01  ;IOMUXC_SW_MUX_CTL_PAD_EIM_D18
+Data.Set ASD:0x20E03AC %Long 0x30  ;IOMUXC_SW_PAD_CTL_PAD_EIM_D18
+
+Data.Set ASD:0x20E009C %Long 0x01  ;IOMUXC_SW_MUX_CTL_PAD_EIM_D19
+;Data.Set ASD:0x20E009C %LONG 0x05  ;IOMUXC_SW_MUX_CTL_PAD_EIM_D19
+Data.Set ASD:0x20E03B0 %Long 0x30  ;IOMUXC_SW_PAD_CTL_PAD_EIM_D19
+
+Data.Set ASD:0x20E07F4 %LE %Long 0x0  ;IOMUXC_IOMUXC_ECSPI1_IPP_CSPI_CLK_IN_SELECT_INPUT
+Data.Set ASD:0x20E07F8 %LE %Long 0x0  ;IOMUXC_IOMUXC_ECSPI1_IPP_IND_MISO_SELECT_INPUT
+Data.Set ASD:0x20E07FC %LE %Long 0x0  ;IOMUXC_IOMUXC_ECSPI1_IPP_IND_MOSI_SELECT_INPUT
+Data.Set ASD:0x20E0800 %LE %Long 0x0  ;IOMUXC_IOMUXC_ECSPI1_IPP_IND_SS_B_0_SELECT_INPUT
+
+//IOMUX CSPI3 -> eCSPI3
+Data.Set AD:0x020E0174 %Long 0x2      ;CSPI3_MOSI
+Data.Set AD:0x020E0488 %Long 0x1B0B0  ;CSPI3_MOSI
+
+Data.Set AD:0x020E0178 %Long 0x2      ;CSPI3_MISO
+Data.Set AD:0x020E048C %Long 0x1B0B0  ;CSPI3_MISO
+
+Data.Set AD:0x020E017C %Long 0x2      ;CSPI3_SS0
+Data.Set AD:0x020E0490 %Long 0x1B0B0  ;CSPI3_SS0
+
+Data.Set AD:0x020E0180 %Long 0x2      ;CSPI3_SS1
+Data.Set AD:0x020E0494 %Long 0x1B0B0  ;CSPI3_SS1
+
+Data.Set AD:0x020E018C %Long 0x2      ;CSPI3_RDY
+Data.Set AD:0x020E04A0 %Long 0x1B0B0  ;CSPI3_RDY
+
+Data.Set AD:0x020E0170 %Long 0x2      ;CSPI3_SCLK
+Data.Set AD:0x020E0484 %Long 0x1B0B0  ;CSPI3_SCLK
+
+Data.Set ASD:0x20C406C %Long 0xf0fc0033   ;enable clock for the eCSPI1
+
+Data.Set ASD:&eCSPI_BASE+0x0008 %Long 0x01F020F0|(&eCSPI_Channel<<18.)   ;eCSPIx_SS0/SS1/SS2/SS3 & master mode, [19:18] channel select 00=SS0, 01=SS1, 02=SS2, 03=SS3
+Data.Set ASD:&eCSPI_BASE+0x000C %Long 0x0
+
+GOSUB READ_ID_TEST
+
+Break.RESet
+
+FLASHFILE.RESet
+FLASHFILE.CONFIG  &eCSPI_BASE+0x004   &eCSPI_BASE+0x000    &eCSPI_BASE+0x008
+
+// FLASHFILE.TARGET <<code range>>    <<data range>>    <<algorithm file>>
+ FLASHFILE.TARGET 0x901000++0x1fff   0x903000++0x43ff   ~~/demo/arm/flash/byte/spi64p0_imx6.bin /KEEP /STACKSIZE 0x200 ; for SST25VF016
+;FLASHFILE.TARGET 0x901000++0x1fff   0x903000++0x43ff   ~~/demo/arm/flash/byte/spi64_imx6.bin   /KEEP /STACKSIZE 0x200 ; for N25Q256 spi flash
+
+//Read FLASH Manufacture and Device ID
+FLASHFILE.GETID
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+ENDDO
+
+;FLASHFILE.DUMP 0x0               ; Read
+
+;FLASHFILE.UNLOCK 0x0--0xFFFFF    ; Unlock
+;FLASHFILE.ERASE 0x0--0xFFFFF     ; Erase
+;FLASHFILE.LOAD * 0x0             ; Write
+
+ENDDO
+
+READ_ID_TEST:
+(
+LOCAL &temp
+
+&temp=Data.Long(A:&eCSPI_BASE+0x008)
+Data.Set A:&eCSPI_BASE+0x008 %Long (&temp)|0x1  ;spi enable
+
+Data.Set A:&eCSPI_BASE+0x004  %Long 0x9F000000
+
+&temp=(Data.Long(A:&eCSPI_BASE+0x008))&0xFFFFF
+&temp=&temp|(31.<<20.)|0x4
+
+Data.Set A:&eCSPI_BASE+0x008 %Long &temp
+
+&temp=Data.Long(A:&eCSPI_BASE+0x000)
+PRINT "1st 0x" (&temp>>16.)&0xFF   " (Manufacture)"
+PRINT "2nd 0x" (&temp>>8.)&0xFF    " (Device ID)"
+PRINT "3rd 0x" (&temp)&0xFF
+
+&temp=Data.Long(A:&eCSPI_BASE+0x008)
+Data.Set A:&eCSPI_BASE+0x008 %Long (&temp)&0xFFFFFFFE  ;spi disable
+
+RETURN
+)

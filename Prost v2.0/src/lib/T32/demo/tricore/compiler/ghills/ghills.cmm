@@ -1,0 +1,32 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for loading GREEN HILLS object file in ELF format
+; @Description:
+;   Compiler: GHS C 1.8.9
+;
+;   Use the simulator to avoid conflicts with non-existant memory.
+;   This script is intended for loading an object file only. There
+;   is no guarantee the application will work without hardware.
+;
+; @Keywords: compiler, ghills, green-hills, greenhills, Infineon, TriCore
+; @Author: MAX
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: ghills.cmm 7822 2014-10-29 13:57:15Z kjmal $
+
+
+WinCLEAR
+
+SYStem.RESet
+SYStem.Up
+
+Data.LOAD.Elf ghills
+
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch
+Var.AddWatch ast flags
+
+ENDDO

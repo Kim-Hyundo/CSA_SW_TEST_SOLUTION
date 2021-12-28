@@ -1,0 +1,107 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to halt new Symbian Process on Entry Point
+; @Description: 
+;   
+;   Usage: procentry process-name (without .exe)
+;   
+;   This script runs ONLY for .exe processes, NOT for .app applications
+;   
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: procentry.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+ ENTRY &process
+ 
+; Check parameter
+ 
+ IF "&process"==""
+ (
+    PRINT "Please specify a process name"
+    ENDDO
+ )
+ 
+ SCREEN.ON
+
+; Halt target
+
+ IF STATE.RUN()
+    Break
+  
+; Check if process is already running
+
+ PRINT "checking for process..."
+  
+ IF task.proc.codeaddr("&process")!=0xffffffff
+ (
+    sYmbol.AutoLOAD.CLEAR "*&process*"
+    sYmbol.AutoLOAD.CHECK
+    sYmbol.AutoLOAD.TOUCH "*&process*"
+    sYmbol.CASE OFF
+    IF sYmbol.EXIST(\\&process\Global\E32Main)
+      PRINT "Process &process already running. Symbols loaded."
+    ELSE
+      PRINT "Process &process already running. No symbol file found."
+    sYmbol.CASE ON
+    ENDDO
+ )
+ 
+; set breakpoint on kernel process load, break only if new proc is loaded
+ 
+ &breakaddr=ADDRESS.OFFSET(sYmbol.END(svProcessLoaded))&0xfffffffc
+ Break.Set R:0:&breakaddr /CONDition task.proc.codeaddr("&process")!=0xffffffff
+ 
+; wait until process is loaded
+
+ Go
+ PRINT "waiting for process &process to be loaded..."
+ WAIT !STATE.RUN()
+ 
+ Break.Delete &breakaddr
+
+; process is loaded; load process symbols
+
+ PRINT "process loaded, loading symbols..."
+ 
+ sYmbol.AutoLOAD.CLEAR "*&process*"
+ sYmbol.AutoLOAD.CHECK      ; check for new process
+ sYmbol.AutoLOAD.TOUCH "*&process*"
+ 
+ sYmbol.CASE OFF    ; to allow case insensitive procnames
+
+ IF !sYmbol.EXIST(\\&process\Global\E32Main)
+ (
+    PRINT "Symbol E32Main of process &process not found."
+    sYmbol.CASE ON
+    ENDDO
+ )
+ 
+; set bp on process entry point
+
+ PRINT "waiting for process to be started..."
+
+ Break.Set \\&process\Global\E32Main    ; or _E32Startup
+ 
+ Go
+ WAIT !STATE.RUN()    ; waiting for process to be started
+ 
+ Break.Delete \\&process\Global\E32Main
+ 
+ PRINT "process started, scanning mmu..."
+ 
+; rescanning MMU of process to get data access
+
+ &space=task.proc.spaceid("&process")   ; get space id of process
+ sYmbol.RELOCate.shift &space:0 \\&process    ; relocate process symbols to correct space id
+ sYmbol.RELOCate.shift 0:0 0x50000000--0x7fffffff ; relocate text symbols to space id 0 (global visibility)
+ TRANSlation.Delete &space:0--0xffffffff        ; remove previous entries
+ MMU.SCAN   &space:0--0xffffffff        ; rescan MMU of this process
+ TRANSlation.CLEANUP
+
+ sYmbol.CASE ON
+ 
+ PRINT "process started."
+ 
+ ENDDO
+ 

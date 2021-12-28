@@ -1,0 +1,84 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC1762 on TriBoard TC1766
+; @Description:
+;   Initializes the TriCore and loads the Sieve-Demo into memory.
+; @Keywords: Infineon, internal, intmem, memory, sieve, TriCore
+; @Author: MAX
+; @Board: TriBoard-TC1766
+; @Chip: TC1762
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc1762_demo.cmm 7666 2014-09-24 09:21:57Z mobermaier $
+
+
+; --------------------------------------------------------------------------------
+; Performed tests:
+; TriBoard TC1766.300 TC1762 EES-AA 2005-06-03 MAX
+;
+; Suggested board settings
+; DIP Switch S301:         SW1=ON,  SW2=OFF, SW3=ON,  SW4=ON,
+;                          SW5=OFF, SW6=ON,  SW7=OFF, SW8=OFF
+; DIP switches S401, S402: all off
+;
+; To use the TriBoard with a debugger the OCDS interface needs to be enabled.
+; This is done by the example program inside the external FLASH (set
+; OEC=0x10000).
+;
+; A-steps: Since the watchdog is not suspended in debug mode, do not use a
+; low JTAG clock frequency in case the watchdog is not already disabled by
+; the target program. Otherwise the debugger is possibly to slow to disable
+; the watchdog in time. Minimum JTAG clock depends on the core clock. Default
+; JTAG clock should be fine.
+;
+; Requirements to use OCDS-1:
+; Set jumper JP501 to 2-3 (= disable on-board wiggler)
+;
+; TriBoard Bugfix: Triboards-TC1766 older than Revision 300 have two trace
+; signal lines swappend. For OCDS-L2 tracing on these boards, use
+; SYStem.Option TB1766FIX ON
+;
+; If onchip flash is not functional: DIP Switch S401 SW5=ON
+;
+; Memory mappings:
+; flash is not declared - see flash.cmm
+; internal RAM (LDRAM)               32 KB  0xD0000000--0xD0007FFF
+; internal RAM (SPRAM)                4 KB  0xD4000000--0xD4000FFF
+; processor internal program flash    1 MB  0xA0000000--0xA0FFFFFF
+; processor internal data flash       8 KB  0xAFE00000--0xAFE01FFF (Bank 0)
+;                                     8 KB  0xAFE10000--0xAFE01FFF (Bank 1)
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+
+RESet
+SYStem.CPU TC1762
+SYStem.Up
+
+IF Analyzer()
+(
+  //SYStem.Option TB1766FIX ON ; only required for TriBoards with revision < 300
+
+  ; Port 5 pins set to OCDS-L2 function
+  Data.Set 0xF0001110 %Long 0xA0A0A0A0
+  Data.Set 0xF0001114 %Long 0xA0A0A0A0
+  Data.Set 0xF0001118 %Long 0xA0A0A0A0
+  Data.Set 0xF000111C %Long 0xA0A0A0A0
+)
+
+; --------------------------------------------------------------------------------
+; load demo program
+Data.LOAD.Elf "~~~~/triboard-tc1766_sieve_intmem.elf"
+Trace.Init
+Go.direct main
+
+; open some windows
+WinCLEAR
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame.view /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch
+Var.AddWatch ast flags
+
+ENDDO

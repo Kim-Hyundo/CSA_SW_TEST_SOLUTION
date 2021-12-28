@@ -1,0 +1,190 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC1793 on TriBoard-TC179X (Flash)
+; @Description:
+;   Initializes the TriCore and loads the Sieve-Demo into memory.
+; @Keywords: Flash, Infineon, TriCore
+; @Author: MAX
+; @Board: TriBoard-TC179X
+; @Chip: TC1793
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc1793_flash.cmm 7577 2014-08-27 14:51:11Z mobermeir $
+
+
+; --------------------------------------------------------------------------------
+; Memory mappings:
+; external SRAM                    mapped to 0xA3000000--0xA30FFFFF    1 MB
+; external Flash                   mapped to 0xA4000000--0xA41FFFFF    2 MB
+; internal program memory PSPR     mapped to 0xC0000000--0xC0007FFF   32 KB
+;                                            0xC0200000--0xC0203FFF   16 KB
+; internal data memory    DSPR     mapped to 0xD0000000--0xD001FFFF  128 KB
+;                                            0xD0200000--0xD0203FFF   16 KB
+;                         LMU SRAM mapped to 0xB0000000--0xB001FFFF  128 KB
+; internal program flash  PFLASH0  mapped to 0xA0000000--0xA01FFFFF    2 MB
+;                         PFLASH1  mapped to 0xA0800000--0xA09FFFFF    2 MB
+; internal data flash     DFLASH   mapped to 0xAF000000--0xAF017FFF   96 KB
+;                                            0xAF080000--0xAF097FFF   96 KB
+; Notes:
+; - memories mirrored in segment 8 (cached access):
+;   - external SRAM and Flash
+;   - internal PFLASH0, PFLASH1
+; - memories mirrored in segment 9 (cached access):
+;   - internal LMU SRAM
+; - memories mirrored within their segment
+;   - internal PSPR, DSPR with offset 0x08000000
+; - memories not mirrored
+;   - internal DFLASH0, DFLASH1
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+
+RESet
+SYStem.CPU TC1793
+
+IF DAP.Available()
+(
+  ; Bi-Directional Debug Cable detected
+  ; switch to DAP2 mode instead of using JTAG
+  SYStem.CONFIG.DEBUGPORTTYPE DAP2
+)
+ELSE
+(
+  ; Uni-Directional Debug Cable
+  ; use JTAG as default mode
+  SYStem.CONFIG.DEBUGPORTTYPE JTAG
+)
+
+SYStem.Up
+
+Data.Set 0xF00005F4 %Long 0x00000008    ; disable watchdog
+
+; --------------------------------------------------------------------------------
+; Memory initialzation
+; initialize external bus unit
+
+; enable debugger access to EBU configuration registers
+; this can only be done by the TriCore core and not by a debugger attached
+; via the Cerberus IO Client (e.g. JTAG/ DAP debugger)
+; see Errata EBU_TC.H010 for additional information
+&patchAddress="P:0xB0000000"
+; step 1: save target content
+&currentPC=Register(PC)
+&currentA0=Register(A0)
+&currentD0=Register(D0)
+&currentMemory=Data.Long(&patchAddress)
+; step 2: enable EBU
+Register.Set A0 0xF8000004    ; EBU_MODCON
+Register.Set D0 0x00000000    ; EBU_MODCON.ACCSINH=0
+Data.Assemble &patchAddress st16.w [A0],D0
+Register.Set PC &patchAddress
+Step.single
+; step 3: restore target content
+Register.Set D0 &currentD0
+Register.Set A0 &currentA0
+Register.Set PC &currentPC
+Data.Set &patchAddress %Long &currentMemory
+
+; setup External Bus Unit
+; using default CLC, EBU runs with CPU Clock/2
+PER.Set D:0xF8000004 %Long 0x870000D0    ; EBU_MODCON
+; /CS0: ST M58BW16FB4T3 FLASH
+PER.Set D:0xF8000018 %Long 0xA4000053    ; EBU_ADDRSEL0
+PER.Set D:0xF8000028 %Long 0x50D30040    ; EBU_BUSRCON0
+PER.Set D:0xF8000030 %Long 0x50D30000    ; EBU_BUSWCON0
+PER.Set D:0xF800002C %Long 0x00000400    ; EBU_BUSRAP0, 8 waitstates
+PER.Set D:0xF8000034 %Long 0x00000400    ; EBU_BUSWAP0, 8 waitstates
+; /CS1: ISSI IS61WV25616BL-10TLI SRAM
+PER.Set D:0xF800001C %Long 0xA3000073    ; EBU_ADDRSEL1
+PER.Set D:0xF8000038 %Long 0x40D30040    ; EBU_BUSRCON1
+PER.Set D:0xF8000040 %Long 0x40D30000    ; EBU_BUSWCON1
+PER.Set D:0xF800003C %Long 0x00000000    ; EBU_BUSRAP1, 1 waitstate
+PER.Set D:0xF8000044 %Long 0x00000000    ; EBU_BUSWAP1, 1 waitstate
+; /CS2, /CS3: unused
+
+; --------------------------------------------------------------------------------
+; flash declaration
+; Declaring TC1793 internal flash requires an additional parameter providing
+; the base address for the flash device to use (FLASH_0 or FLASH_1).
+; In case the parameter is omitted, the default is FLASH_0.
+;
+; Note: Only one FLASH.TARGET command at the same time is supported. If two
+;       or more target algorithms are required on the same target, the
+;       appropriate FLASH.TARGET command has to be issued when switching to
+;       another flash type.
+FLASH.RESet
+
+; flash declaration for processor internal flash - uncached address segment
+; processor internal program flash
+FLASH.Create 1. 0xA0000000--0xA000FFFF 0x4000  TARGET Long 0xF8002000
+FLASH.Create 2. 0xA0010000--0xA001FFFF 0x4000  TARGET Long 0xF8002000
+FLASH.Create 3. 0xA0020000--0xA003FFFF 0x20000 TARGET Long 0xF8002000
+FLASH.Create 3. 0xA0040000--0xA01FFFFF 0x40000 TARGET Long 0xF8002000
+FLASH.Create 4. 0xA0800000--0xA080FFFF 0x4000  TARGET Long 0xF8004000
+FLASH.Create 5. 0xA0810000--0xA081FFFF 0x4000  TARGET Long 0xF8004000
+FLASH.Create 6. 0xA0820000--0xA083FFFF 0x20000 TARGET Long 0xF8004000
+FLASH.Create 6. 0xA0840000--0xA09FFFFF 0x40000 TARGET Long 0xF8004000
+; processor internal data flash
+FLASH.Create 7. 0xAF000000--0xAF017FFF 0x18000 TARGET Long 0xF8002000
+FLASH.Create 8. 0xAF080000--0xAF097FFF 0x18000 TARGET Long 0xF8002000
+//FLASH.TARGET 0xC0000000 0xD0000000 0x1000 ~~/demo/tricore/flash/long/tc1798.bin
+
+; flash declaration for external flash - uncached address segment
+; ST M58BW16FB4T3 FLASH to 32 bit data bus
+//FLASH.Create 9. 0xA1000000--0xA1007FFF 0x8000  TARGET Long
+//FLASH.Create 9. 0xA1008000--0xA100FFFF 0x4000  TARGET Long
+//FLASH.Create 9. 0xA1010000--0xA107FFFF 0x70000 TARGET Long
+//FLASH.Create 9. 0xA1080000--0xA13FFFFF 0x80000 TARGET Long
+//FLASH.TARGET 0xC0000000 0xD0000000 0x1000 ~~/demo/tricore/flash/long/am29lv100.bin
+
+; flash declaration for cached address segments
+FLASH.CreateALIAS 0x80000000--0x8FFFFFFF 0xA0000000
+
+; show flash declaration
+WinPOS 0% 0%
+FLASH.List
+
+; --------------------------------------------------------------------------------
+; example download to external flash
+
+DIALOG.YESNO "Program external flash memory?"
+ENTRY &progflash
+IF &progflash
+(
+  //FLASH.TARGET 0xC0000000 0xD0000000 0x1000 ~~/demo/tricore/flash/long/am29lv100.bin
+  //FLASH.ReProgram 9. /Erase
+
+  ; load user program
+  //Data.LOAD *
+  //FLASH.ReProgram OFF
+)
+
+; --------------------------------------------------------------------------------
+; example download to processor internal flash
+;
+; FLASH.AUTO or FLASH.ReProgram is required for flash programming of
+; unsorted files. FLASH.PROGRAM may result in incorrect CRCs.
+
+DIALOG.YESNO "Program internal flash memory?"
+ENTRY &execflash
+IF &execflash
+(
+  FLASH.TARGET 0xC0000000 0xD0000000 0x1000 ~~/demo/tricore/flash/long/tc1798.bin
+
+  ; using FLASH.ReProgram is more gentle than FLASH.AUTO
+  FLASH.ReProgram 0xA0000000--0xA01FFFFF /Erase
+  FLASH.ReProgram 0xA0800000--0xA09FFFFF /Erase
+  FLASH.ReProgram 0xAF000000--0xAFE07FFF /Erase
+  FLASH.ReProgram 0xAF080000--0xAF097FFF /Erase
+  Data.LOAD.auto *
+  FLASH.ReProgram off
+)
+
+; use internal flash programming algorithm as default
+FLASH.TARGET 0xC0000000 0xD0000000 0x1000 ~~/demo/tricore/flash/long/tc1798.bin
+
+; --------------------------------------------------------------------------------
+; open some window
+WinPOS 0% 50%
+List.auto
+
+ENDDO

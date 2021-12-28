@@ -1,0 +1,44 @@
+; --------------------------------------------------------------------------------
+; @Title: Object browse dialog for ChibiOS
+; @Description: -
+; @Author: DIE
+; @Props: NoWelcome
+; @Copyright: (c) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: objdialog.cmm 16447 2020-08-21 07:09:21Z rdienstbeck $
+
+local &obj &cmd
+entry &obj &cmd
+
+dialog
+(&
+        header "Display &obj"
+        pos 1. 1. 20.
+obj:    defedit "" ""
+        pos 22. 1. 7.
+        button "Browse..."
+        (
+            local &wildcard
+            &wildcard=dialog.string(obj)
+            symbol.browse.v &wildcard * /c "dialog.set obj ""*""" /d
+        )
+        pos 5. 3. 7.
+        defbutton "Ok"
+        (
+            local &addr
+            &addr=dialog.string(obj)
+            ON ERROR goto enddlg
+            TASK.&cmd &addr
+enddlg:     ON ERROR
+            dialog.end
+        )
+        pos 18. 3. 7.
+        button "Cancel"
+        (
+            dialog.end
+        )
+        pos 0. 0. 30. 5.
+        box "&obj"
+)
+
+enddo

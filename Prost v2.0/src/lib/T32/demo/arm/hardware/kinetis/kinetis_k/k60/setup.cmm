@@ -1,0 +1,312 @@
+; --------------------------------------------------------------------------------
+; @Title: Startup dialog for K60 Kinetis board
+; @Description: Script to create dialog for starting Freescale K60 Kinetis board
+; @Keywords: Dialog, Kinetis, startup
+; @Props: NoIndex, NoWelcome, NoFullText, NoFullText
+; @Author: ING
+; @Board: TWR-K60N512
+; @Chip: MK60DN512VMD10*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: setup.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+; Practice MACROS used in this script
+  LOCAL &devtype &swdpon &cpufreq &elffile &clrwin &gomain &ramon &flashon
+  LOCAL &cjtagon &dcb &useswv
+
+  LOCAL &subfunc
+  ENTRY &subfunc
+  IF "&subfunc"!=""
+  (
+    GOSUB &subfunc
+    ENDDO
+  )
+
+  GLOBAL &firstsetup
+
+; Do not generate dialog if it already exists
+  IF WINdow.EXIST(_sboard_)
+  (
+    WINTop _sboard_
+    ENDDO
+  )
+
+
+; Create dialog
+  LOCAL &scriptname
+  &scriptname=OS.PPF()
+  WinPOS ,,,,,, _sboard_
+  DIALOG.view
+  (&+
+    HEADER "Start Board"
+    ICON ":atrigger"
+
+; Select Device to Debug
+
+    POS 8. 0. 20.
+WIN1:   CHECKBOX "Standard Windows" ""
+
+    POS  1.  1. 7.
+    TEXT "Device :"
+    POS  8.  1. 20.
+DEV1:   PULLDOWN "MK60DN512VMD10" ""
+
+    POS 8.  2.  10.
+SWDP1:  CHECKBOX "Serial Wire" "do ""&scriptname"" set_swdp"
+
+    POS 20.  2.  10.
+SWV1:  CHECKBOX "SWV" ""
+
+    POS 28.  2.  10.
+CJTAG1:  CHECKBOX "cJTAG" "do ""&scriptname"" set_cjtag"
+
+    POS 36.  2.  10.
+DCB1:  CHECKBOX "DebugCableB" ""
+
+    POS 1. 3. 7.
+    TEXT "CPU freq:"
+    POS 8. 3. 8.
+PLL1:   PULLDOWN "no,75MHz,100MHz" ""
+
+;        pos 8. 4. 30.
+;RAM1:   CHECKBOX "Enable ext. SRAM at 0x68000000" ""
+
+;        pos 8. 5. 30.
+;FLSH1:  CHECKBOX "Enable ext. NOR FLASH at 0x64000000" ""
+
+    POS  1.  6. 7.
+    TEXT "ELF File:"
+    POS  8.  6. 35.
+ELF1:   EDIT "" ""
+    POS 43.  6.  2.
+    BUTTON "..." "do ""&scriptname"" browse_elf"
+
+    POS 8.  7.  10.
+MAIN1:  CHECKBOX "Go to main" ""
+
+    POS 1. 9. 8. 1.
+STRT:   BUTTON "START" "do ""&scriptname"" start_board"
+
+    CLOSE "do ""&scriptname"" winclose"
+  )
+
+dialogready:
+; default settings for macros
+  &devtype="MK60DN512VMD10"
+  &swdpon=0
+  &cpufreq="no"
+  &elffile="sieve_orig/sieve.elf"
+  &clrwin=0
+  &gomain=1
+  &ramon=0
+  &flashon=0
+  &cjtagon=0
+  &dcb=0
+  &useswv=0
+
+; Read in previous settings for dialog entries
+  IF OS.FILE("sboard_settings.txt")
+    GOSUB read_settings
+
+; set dialog to macro values
+  GOSUB set_dialog
+
+; Now wait for User Input
+  ENDDO
+
+; Hitting the "X" (close) button will jump here:
+winclose:
+; copy values from dialog into local macros
+  GOSUB get_from_dialog
+
+; close dialog
+  DIALOG.END
+
+; store current dialog entries
+  GOSUB write_settings
+
+  RETURN
+
+start_board_no_gui:
+  LOCAL &ppd
+  &ppd=OS.PPD()
+  SYStem.Down
+  GOSUB read_settings
+  DO "&ppd"/startboard.cmm
+  ENDDO
+
+start_board:
+  SYStem.Down
+
+; copy settings from dialog into local macros
+  GOSUB get_from_dialog
+
+; close dialog
+  DIALOG.END
+
+; store current dialog entries
+  GOSUB write_settings
+
+; Now start script which does the real work
+  DO ~~~~/startboard.cmm
+
+; Store current windows if requested
+  IF "&firstsetup"==""
+  (
+    &firstsetup="NO"
+    IF ((&clrwin)==0)&&(OS.FILE("sboard_win.cmm"))
+    (
+      DO sboard_win.cmm
+    )
+  )
+  ELSE
+  (
+    IF ((&clrwin)==0)
+    (
+      STOre sboard_win.cmm WIN
+    )
+  )
+
+  IF ((&clrwin)==1)||(!(OS.FILE("sboard_win.cmm")))
+  (
+    IF OS.FILE("~~~~/sboard_win.cmm")
+    (
+      RM sboard_win.cmm
+    )
+    WinCLEAR
+
+    WinPOS 0. 0. 80. 6.
+    Var.Watch
+
+    WinPOS 0. 12. 80.
+    List.auto
+  )
+  END
+
+get_from_dialog:
+  &devtype=DIALOG.STRing(DEV1)
+  &swdpon=0
+  IF DIALOG.BOOLEAN(SWDP1)
+    &swdpon=1
+  &cjtagon=0
+  IF DIALOG.BOOLEAN(CJTAG1)
+    &cjtagon=1
+  &cpufreq=DIALOG.STRing(PLL1)
+  &elffile=DIALOG.STRing(ELF1)
+  &clrwin=0
+  IF DIALOG.BOOLEAN(WIN1)
+    &clrwin=1
+  &gomain=0
+  IF DIALOG.BOOLEAN(MAIN1)
+    &gomain=1
+  &dcb=0
+  IF DIALOG.BOOLEAN(DCB1)
+    &dcb=1
+  &useswv=0
+  IF DIALOG.BOOLEAN(SWV1)
+    &useswv=1
+  RETURN
+
+set_swdp:
+  IF DIALOG.BOOLEAN(SWDP1)
+  (
+    DIALOG.Set CJTAG1 FALSE()
+    DIALOG.Enable SWV1
+  )
+  ELSE
+  (
+    DIALOG.Disable SWV1
+    DIALOG.Set SWV1 FALSE()
+  )
+  RETURN
+
+set_cjtag:
+  IF DIALOG.BOOLEAN(CJTAG1)
+  (
+    DIALOG.Set SWDP1 FALSE()
+    DIALOG.Disable SWV1
+    DIALOG.Set SWV1 FALSE()
+  )
+  RETURN
+
+
+browse_elf:
+  LOCAL &str
+  &str=DIALOG.STRing(ELF1)
+  &str=OS.FILE.PATH("&str")
+  IF "&str"!=""
+    &str="&str/*.elf"
+  DIALOG.File "&str"
+  ENTRY &str
+  IF "&str"==""
+    RETURN
+  DIALOG.Set ELF1 "&str"
+  RETURN
+
+
+set_dialog:
+  DIALOG.Set DEV1 "&devtype"
+  DIALOG.Set SWDP1 (&swdpon)!=0
+  DIALOG.Set PLL1  "&cpufreq"
+  DIALOG.Set ELF1  "&elffile"
+  DIALOG.Set MAIN1 (&gomain)!=0
+  DIALOG.Set CJTAG1 (&cjtagon)!=0
+  DIALOG.Disable DCB1
+  DIALOG.Disable SWV1
+  DIALOG.Set SWV1 FALSE()
+  IF (&swdpon)!=0
+  (
+    DIALOG.Enable SWV1
+    DIALOG.Set SWV1 (&useswv)!=0
+  )
+  IF VERSION.BUILD()>49300.
+  (
+    IF CAnalyzer.BOTHCables()
+      DIALOG.Enable DCB1
+    ELSE
+      &dcb=0
+    DIALOG.Set DCB1 (&dcb)!=0
+  )
+  RETURN
+
+read_settings:
+  OPEN #1 "sboard_settings.txt" /Read
+  READ #1 %LINE &devtype
+  READ #1 %LINE &swdpon
+  READ #1 %LINE &cpufreq
+  READ #1 %LINE &elffile
+  READ #1 %LINE &gomain
+  READ #1 %LINE &ramon
+  READ #1 %LINE &flashon
+  READ #1 %LINE &cjtagon
+  READ #1 %LINE &dcb
+  READ #1 %LINE &useswv
+  CLOSE #1
+
+  IF "&cpufreq"=="75Mhz"
+  (
+    ; fix spelling in old config files
+    &cpufreq="75MHz"
+  )
+
+  RETURN
+
+write_settings:
+  OPEN #1 "sboard_settings.txt" /Create
+  WRITE #1 "&devtype"
+  WRITE #1 "&swdpon"
+  WRITE #1 "&cpufreq"
+  WRITE #1 "&elffile"
+  WRITE #1 "&gomain"
+  WRITE #1 "&ramon"
+  WRITE #1 "&flashon"
+  WRITE #1 "&cjtagon"
+  WRITE #1 "&dcb"
+  WRITE #1 "&useswv"
+  CLOSE #1
+  RETURN
+
+
+
+

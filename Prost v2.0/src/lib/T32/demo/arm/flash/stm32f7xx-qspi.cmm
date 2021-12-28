@@ -1,0 +1,191 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash declaration for ST STM32F7xx QSPI flash program (Memory Mapped)
+; @Description:
+;   Script arguments:
+;
+;    DO stm32f7xx-qspi [PREPAREONLY] [CPU=<cpu>] [DUALPORT=0|1]
+;
+;      PREPAREONLY only declares flash but does not execute flash programming
+;
+;      CPU=<cpu> selects CPU derivative <cpu>
+;
+;      DUALPORT=0|1 default value is 0 (disabled).
+;
+;   Example:
+;
+;   DO ~~/demo/arm/flash/stm32f7xx-qspi CPU=STM32F756NG PREPAREONLY DUALPORT=1
+;
+; @Author: JIM
+; @Chip: STM32F72* STM32F73* STM32F74* STM32F75* STM32F76* STM32F77*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 7602 $
+; $Id: stm32f7xx-qspi.cmm 7602 2019-11-05 15:02:25Z bschroefel $
+
+&QSPI_BASE=0xA0001000
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+PRIVATE &param_prepareonly &param_cpu &param_dualport
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CPU=","")
+&param_dualport=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"DUALPORT=","0")
+
+; ------------------------------------------------------------------------------
+; Setup CPU
+
+DO ~~/demo/arm/flash/stm32f7xx PREPAREONLY CPU=&param_cpu DUALPORT=&param_dualport
+
+; ------------------------------------------------------------------------------
+; Flash Power & Clock Enable
+Data.Set A:0x40023838 %LE %Long 0x2   ; RCC_AHB3ENR, Quad SPI memory controller clock enable
+
+Data.Set A:0x40023818 %LE %Long 0x2   ; RCC_AHB3RSTR, Quad SPI memory controller reset
+Data.Set A:0x40023818 %LE %Long 0x0   ; RCC_AHB3RSTR, release Quad SPI memory controller reset
+Data.Set A:0x40023858 %LE %Long 0x2   ; RCC_AHB3LPENR, QUADSPI memory controller clock enable during Sleep mode
+
+Data.Set A:0x40023830 %LE %Long 0x0010003A  ;GPIOB & GPIOD & GPIOE & GPIOF clk enable
+
+; ------------------------------------------------------------------------------
+; Flash Pin Mux Configuration
+GOSUB PINMUX_CONFIG
+
+; ------------------------------------------------------------------------------
+; Flash Controller Init
+Data.Set A:&QSPI_BASE+0x0000  %Long 0x04000311    ; QUADSPI_CR, QUADSPI control register, enable clk and prescaler (/4)
+Data.Set A:&QSPI_BASE+0x0004  %Long 0x00190100    ; QUADSPI_DCR, flash size 2^26 (64MBytes), 0x00170100==16Mbytes
+Data.Set A:&QSPI_BASE+0x000C  %Long 0xFF          ; QUADSPI_FCR, QUADSPI flag clear register
+
+//EXIT QUAD INPUT/OUTPUT MODE, to make the single spi mode
+GOSUB WRITEBYTE_QPI   0xF5
+
+GOSUB READ_ID_TEST
+
+//switch QSPI to the memory mapped mode
+Data.Set  A:&QSPI_BASE      %Long  (Data.Long(A:&QSPI_BASE)&~0x1)  ;disable
+Data.Set  A:&QSPI_BASE+0x14 %Long  0x0D003513   ; FMODE, READ cmd(0x13), ADSize 32b and so on...
+Data.Set  A:&QSPI_BASE      %Long  (Data.Long(A:&QSPI_BASE)|0x1)  ;enable
+
+; ------------------------------------------------------------------------------
+; Flash declaration
+GOSUB FlashDeclaration "&param_dualport"
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; -------------------------------------------------------------------------------
+; Flash programming example
+
+DIALOG.YESNO "Program flash memory?"
+LOCAL &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram.ALL
+  Data.LOAD.auto *
+  FLASH.ReProgram.off
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+)
+
+ENDDO
+
+
+PINMUX_CONFIG:
+(
+
+//pin mux,  please refer the STM32F756xx alternate function mapping (Pinouts and pin description)
+;C <-> GPIOB[2] en ALT 9,    (QUADSPI_CLK)
+;S# <-> GPIOB[6] en ALT 10,  (QUADSPI_BK1_NCS)
+;DQ0 <-> GPIOF[8] en ALT 10, (QUADSPI_BK1_IO0)
+;DQ1 <-> GPIOF[9] en ALT 10, (QUADSPI_BK1_IO1)
+;DQ2 <-> GPIOF[7] en ALT 9,  (QUADSPI_BK1_IO2)
+;DQ3 <-> GPIOF[6] en ALT 9.  (QUADSPI_BK1_IO3)
+
+Data.Set A:0x40020400 %LE %Long 0x000022A0 ;GPIOB_MODER
+Data.Set A:0x40020420 %LE %Long 0x0A000900 ;PB6 alt 10, PB2 alt 9
+Data.Set A:0x40020424 %LE %Long 0x00000000 ;
+
+//PD11 & PD12 alt9
+//Data.Set A:0x40020C00 %LE %Long 0x02800000   ; GPIOD_MODER
+//Data.Set A:0x40020C24 %LE %Long 0x00099000   ; PD11 & PD12 alt 9.
+
+Data.Set A:0x40021400 %LE %Long 0x000AA000   ; GPIOF_MODER
+Data.Set A:0x40021420 %LE %Long 0x99000000   ; PF7 & PF6 alt 9.
+Data.Set A:0x40021424 %LE %Long 0x000000AA   ; PF8 & PF9 alt 10.
+
+RETURN
+)
+
+READ_ID_TEST:
+(
+&QSPI_FCR=&QSPI_BASE+0xC
+&QSPI_CCR=&QSPI_BASE+0x14
+&QSPI_DLR=&QSPI_BASE+0x10
+&QSPI_DR=&QSPI_BASE+0x20
+
+Data.Set A:&QSPI_FCR %LE %Long 0x1F  ;clear status
+
+// 1 instruction , 4 read data
+Data.Set A:&QSPI_DLR  %Long 0x3  ; 4byte data read
+
+&ccr=0x19F             ; imode with insturction  1byte instruction write
+&ccr=&ccr|(0x1<<24.)   ; dmode single
+&ccr=&ccr|(0x1<<26.)   ; indirect read mode
+Data.Set A:&QSPI_CCR %LE %Long &ccr
+
+&read_data=Data.Long(A:&QSPI_DR)  ;read little endian
+
+PRINT "1st 0x" &read_data&0xFF        " (Manufacture)"
+PRINT "2nd 0x" (&read_data>>8.)&0xFF  " (Device ID)"
+PRINT "3rd 0x" (&read_data>>16.)&0xFF 
+PRINT "4th 0x" (&read_data>>24.)&0xFF 
+
+RETURN
+)
+
+
+WRITEBYTE_QPI:
+(
+ENTRY &wdata
+
+SCREEN.OFF
+
+Data.Set A:(&QSPI_BASE+0xC) %LE %Long 0x1F  ;clear status
+
+&ccr=(0x3<<8)|&wdata       ; imode with insturction  1byte instruction write
+Data.Set A:(&QSPI_BASE+0x14) %LE %Long &ccr
+
+SCREEN.ON
+
+RETURN 
+)
+
+; Flash declaration
+
+FlashDeclaration:
+(
+  PRIVATE &FlashSize &FlashDriver  &FlashBaseAddr
+  PARAMETERS &DualPort
+
+  &FlashDriver="snor_stm32f7.bin"
+  &FlashSize=0x4000000       ;64Mbytes
+  &FlashBaseAddr=0x90000000  ;SPI AHB base address
+  
+   FLASH.Create  2. &FlashBaseAddr++(&FlashSize-0x1)    0x10000   TARGET2   Byte
+
+  IF "&DualPort"=="0"
+    FLASH.TARGET2 0x20000000 0x20002000 0x4000 ~~/demo/arm/flash/byte/&FlashDriver
+  ELSE
+    FLASH.TARGET2 0x20000000 EAHB:0x20002000 0x4000 ~~/demo/arm/flash/byte/&FlashDriver /DualPort
+
+  FLASH.List
+
+  RETURN
+)
+
+

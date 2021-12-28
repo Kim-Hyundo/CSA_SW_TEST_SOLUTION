@@ -1,0 +1,33 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to load the symbols of a PikeOS system extension
+; @Description: 
+;
+;   This script loads the symbols of a PikeOS system extension.
+;   Start the script with the symbol file and load address as parameters.
+;   E.g. DO loadse /home/mypath/myse.unstripped 0x12340
+;   
+; @Keywords: pikeos
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: loadse.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+; In the integrator project, open the <project.rbx> file and add
+;   <tag key="UK_LOG_LEVEL" value="5"/>
+; to enable debug logging of the PSSW. When PSSW starts, it prints
+; out a lot of debug info. Watch for the loading of the system extension.
+; For our example:
+;    <SSW DEBUG INFO> System Extension "simple-pp" resides at virtual base 0x464960
+; Use this address to load the symbols of the system extension
+
+
+LOCAL &file &address
+ENTRY &file &address
+
+; Load symbols to the address space of PSSW (1:0), 
+; and relocate .text section to the given address
+
+Data.LOAD.Elf &file 1:0 /nocode /noclear /altreloc2 \
+    /reloc .text at &address /reloc .rodata after .text \
+    /reloc .ARM.extab after .rodata /reloc .ARM.exidx after .ARM.extab  /reloc ._vm_se_anchor after .ARM.exidx \
+    /reloc .data after ._vm_se_anchor /reloc .bss after .data

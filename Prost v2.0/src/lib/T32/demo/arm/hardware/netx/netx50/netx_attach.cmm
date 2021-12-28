@@ -1,0 +1,21 @@
+; --------------------------------------------------------------------------------
+; @Title: Attach to the NETX50 withou resetting the CPU
+; @Description: This script connects to a running NETX50
+; @Keywords: Hilscher, NetX*
+; @Board: NX50TEST, NXHX50, COMX-CCLS
+; @Chip: NETX50
+; @Author: Hilscher
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: netx_attach.cmm 15271 2019-11-13 12:30:49Z bschroefel $
+
+
+;setup ROM to let the software decide about how to set breakpoints
+MAP.BOnchip 0x08200000--0x0820FFFF
+MAP.BOnchip 0xFF200000--0xFF20FFFF
+
+SYStem.CPU NETX50
+SYStem.MemAccess UDMON3
+SYStem.Mode Attach
+
+ENDDO

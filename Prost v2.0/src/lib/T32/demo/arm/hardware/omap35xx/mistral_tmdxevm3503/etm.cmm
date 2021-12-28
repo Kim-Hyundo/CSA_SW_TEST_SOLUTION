@@ -1,0 +1,60 @@
+; --------------------------------------------------------------------------------
+; @Title: Off-chip Trace Initialization Script for the OMAP3503 TMDSEVM3503
+; @Description: Initialization for ETM trace.
+; @Keywords: ETM, mistral, TI
+; @Author: PEG
+; @Board: TMDSEVM3503
+; @Chip: OMAP3503
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: etm.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+Trace.METHOD Analyzer
+ 
+Data.Set a:0x5401d058 %l 0x40000000
+Data.Set a:0x5401d058 %l 0x80000000
+Data.Set a:0x5401d058 %l 0x80004444
+Data.Set a:0x5401d054 %l 0x40040000
+Data.Set a:0x5401d050 %l 0x00000400
+
+A.AI ON
+ETM.DataTrace OFF
+ETM.PORTSIZE 16
+ETM.CONTEXTID 32
+
+&PADCONFS_BASE=0x48002030
+&CONTROL_PADCONF_ETK_CLK=&PADCONFS_BASE+0x5A8	; 0x480025D8
+&CONTROL_PADCONF_ETK_D0=&PADCONFS_BASE+0x5AC
+&CONTROL_PADCONF_ETK_D2=&PADCONFS_BASE+0x5B0
+&CONTROL_PADCONF_ETK_D4=&PADCONFS_BASE+0x5B4
+&CONTROL_PADCONF_ETK_D6=&PADCONFS_BASE+0x5B8
+&CONTROL_PADCONF_ETK_D8=&PADCONFS_BASE+0x5BC
+&CONTROL_PADCONF_ETK_D10=&PADCONFS_BASE+0x5C0
+&CONTROL_PADCONF_ETK_D12=&PADCONFS_BASE+0x5C4
+&CONTROL_PADCONF_ETK_D14=&PADCONFS_BASE+0x5C8
+
+; CONTROL_PADCONF_ETK_CLK 
+Data.Set a:&CONTROL_PADCONF_ETK_CLK %LE %LONG ((0<<23.)|(0<<22.)|(0<<21)|(0<<2)|(0<<1)|(0<<0))  
+; CONTROL_PADCONF_ETK_D0 
+Data.Set a:&CONTROL_PADCONF_ETK_D0 %LE %LONG ((0<<23.)|(0<<22.)|(0<<21)|(0<<2)|(0<<1)|(0<<0))  
+; CONTROL_PADCONF_ETK_D2 
+Data.Set a:&CONTROL_PADCONF_ETK_D2 %LE %LONG ((0<<23.)|(0<<22.)|(0<<21)|(0<<2)|(0<<1)|(0<<0))  
+; CONTROL_PADCONF_ETK_D4 
+Data.Set a:&CONTROL_PADCONF_ETK_D4 %LE %LONG ((0<<23.)|(0<<22.)|(0<<21)|(0<<2)|(0<<1)|(0<<0))  
+; CONTROL_PADCONF_ETK_D6 
+Data.Set a:&CONTROL_PADCONF_ETK_D6 %LE %LONG ((0<<23.)|(0<<22.)|(0<<21)|(0<<2)|(0<<1)|(0<<0))  
+; CONTROL_PADCONF_ETK_D8 
+Data.Set a:&CONTROL_PADCONF_ETK_D8 %LE %LONG ((0<<23.)|(0<<22.)|(0<<21)|(0<<2)|(0<<1)|(0<<0))  
+; CONTROL_PADCONF_ETK_D10 
+Data.Set a:&CONTROL_PADCONF_ETK_D10 %LE %LONG ((0<<23.)|(0<<22.)|(0<<21)|(0<<2)|(0<<1)|(0<<0))  
+; CONTROL_PADCONF_ETK_D12 
+Data.Set a:&CONTROL_PADCONF_ETK_D12 %LE %LONG ((0<<23.)|(0<<22.)|(0<<21)|(0<<2)|(0<<1)|(0<<0))  
+; CONTROL_PADCONF_ETK_D14 
+Data.Set a:&CONTROL_PADCONF_ETK_D14 %LE %LONG ((0<<23.)|(0<<22.)|(0<<21)|(0<<2)|(0<<1)|(0<<0))  
+
+
+
+ENDDO
+
+

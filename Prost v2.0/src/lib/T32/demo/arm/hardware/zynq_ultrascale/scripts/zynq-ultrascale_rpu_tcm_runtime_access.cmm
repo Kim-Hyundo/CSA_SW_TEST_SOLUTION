@@ -1,0 +1,73 @@
+; --------------------------------------------------------------------------------
+; @Title: RPU-TCM Runtime Memory Access for ZYNQ-Ultrascale+
+; @Description:
+;   The R5-TCMs are accessible @0x0 and @0x20000 from R5 side. Variables linked
+;   to that address can not be accessed using access class E: or %E formatting
+;   flag without prior configuration of the remapping between TCM core local and
+;   global address. The remapping is dependent on the RPU cluster configuration.
+;   This script discovers the configuration from the hardware and configures
+;     SYStem.Option DAPREMAP
+;   accordingly.
+;   Prerequisites:
+;     * Debug session is connected to RPU
+;   Usage:
+;     DO <...>/zynq-ultrascale_rpu_tcm_runtime_access.cmm
+;     SYStem.MemAccess DAP
+;     Var.View %E <variable in TCM>
+;     Data.dump E:<address in TCM>
+; @Keywords: ZYNQ-Ultrascale+, DAP, RPU
+; @Author: AME
+; @Chip: ZYNQ-Ultrascale+*
+; @Board: -
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: zynq-ultrascale_rpu_tcm_runtime_access.cmm 15100 2019-10-16 09:52:56Z amerkle $
+
+PRIVATE &bSplit
+
+IF !CPUIS("ZYNQ-ULTRASCALE*RPU")
+(
+  PRINT %ERROR "Please select ZYNQ-ULTRASCALE+-RPU! Exiting ..."
+  ENDDO "FALSE()"
+)
+IF !SYStem.Up()
+(
+  PRINT %ERROR "SYStem.Mode must be Up! Exiting..."
+  ENDDO "FALSE()"
+)
+
+; check RPU_GLBL_CNTL.TCM_COMB -> TCM split or combined
+&bSplit=(Data.Long(ENAXI:0xFF9A0000)&(0x1<<6.))==0x0
+IF &bSplit
+(
+  ; Split Mode 128kB TCM per R5
+  IF CORE.ISASSIGNED(1.)&&CORE.ISASSIGNED(2.)
+  (
+    PRINT %ERROR "TCM split is not supported in SMP debug mode. Exiting ..."
+    ENDDO "FALSE()"
+  )
+  ELSE IF CORE.ISASSIGNED(1.)
+  (
+    ; R5_0: 64kB ATCM/BTCM
+    ; 0x00000++0xFFFF -> 0xFFE00000
+    ; 0x20000++0xFFFF -> 0xFFE20000
+    SYStem.Option DAPREMAP 0x00000++0x0FFFF 0xFFE00000 0x20000++0x0FFFF 0xFFE20000
+  )
+  ELSE
+  (
+    ; R5_1: 64kB ATCM/BTCM
+    ; 0x00000++0xFFFF -> 0xFFE90000
+    ; 0x20000++0xFFFF -> 0xFFEB0000
+    SYStem.Option DAPREMAP 0x00000++0x0FFFF 0xFFE90000 0x20000++0x0FFFF 0xFFEB0000
+  )
+)
+ELSE
+(
+  ; Combined Mode 256kB TCM
+  ; 128kB ATCM/BTCM
+  ; 0x00000++0x1FFFF -> 0xFFE00000
+  ; 0x20000++0x1FFFF -> 0xFFE20000
+  SYStem.Option DAPREMAP 0x00000++0x3FFFF 0xFFE00000
+)
+
+ENDDO "TRUE()"

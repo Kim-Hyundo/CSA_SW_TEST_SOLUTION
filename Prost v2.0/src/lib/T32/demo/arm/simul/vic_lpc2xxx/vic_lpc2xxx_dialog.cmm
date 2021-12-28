@@ -1,0 +1,230 @@
+; --------------------------------------------------------------------------------
+; @Title: Dialog for Philips LPC2xxx Vectorred Interrupt Controller Model
+; @Description: 
+;   Dialog for Philips LPC2xxx Vectorred Interrupt Controller Model
+;   LPC2119/2129/2194/2290/2292/2294
+; @Keywords: API, Model, Simulator
+; @Board: TRACE32 Simulator
+; @Chip: LPC2*
+; @Author: JER
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: vic_lpc2xxx_dialog.cmm 15209 2019-11-04 10:07:55Z bschroefel $
+
+
+LOCAL &port
+
+&port="p.wdint"
+
+DIALOG.view
+(
+	HEADER "LPC2xxx Vectored Interrupt Controller"
+
+	POS 0. 0. 32. 8.
+	BOX "Interrupt"
+
+	POS 1. 1. 30. 1.
+	TEXT "Interrupt source:"
+
+	POS 1. 2. 30. 1.
+	SIGNAL_COMBO: PULLDOWN "Watchdog,ARM Core 0,ARM Core 1,Timer 0,Timer 1,UART0,UART1,PWM0,I2C0,SPI0,SPI1,PLL,RTC,External 0,External 1,External 2,External 3,ADC0,I2C1,BOD,ADC1,USB/DMA,INT23,INT24,INT25,Timer 2,Timer 3,INT28,INT29,INT30,INT31" "gosub ON_INT_CHANGE"
+
+	POS 1. 4. 30. 1.
+	HINT: EDIT "" ""
+
+	POS 1. 6. 8. 1.
+	ASSERT: BUTTON "Assert"
+	(
+		Port.SET &port HIGH
+		DIALOG.Enable DEASSERT
+		DIALOG.Disable ASSERT
+	)
+
+	POS 11. 6. 8. 1
+	DEASSERT: BUTTON "Deassert"
+	(
+		Port.SET &port LOW
+		DIALOG.Disable DEASSERT
+		DIALOG.Enable ASSERT
+	)
+
+	CLOSE "goto ON_CLOSE_DIALOG"
+)
+	DIALOG.Disable HINT
+	GOSUB ON_INT_CHANGE
+	STOP
+
+ON_CLOSE_DIALOG:
+	DIALOG.END
+	ENDDO
+
+; --- dialog signal change ---
+
+ON_INT_CHANGE:
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="Watchdog")
+	(
+		DIALOG.Set HINT "Watchdog Interrupt (WDINT) (VIC channel 0)"
+		&port="p.wdint"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="ARM Core 0")
+	(
+		DIALOG.Set HINT "Embeeded ICE, DbgCommRX (VIC channel 2)"
+		&port="p.arm0int"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="ARM Core 1")
+	(
+		DIALOG.Set HINT "Embeeded ICE, DbgCommTX (VIC channel 3)"
+		&port="p.arm1int"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="Timer 0")
+	(
+		DIALOG.Set HINT "Timer 0 interrupts (VIC channel 4)"
+		&port="p.tim0int"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="Timer 1")
+	(
+		DIALOG.Set HINT "Timer 1 interrupts (VIC channel 5)"
+		&port="p.tim1int"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="UART0")
+	(
+		DIALOG.Set HINT "UART 0 interrupts (VIC channel 6)"
+		&port="p.uart0int"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="UART1")
+	(
+		DIALOG.Set HINT "UART 1 interrupts (VIC channel 7)"
+		&port="p.uart1int"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="PWM0")
+	(
+		DIALOG.Set HINT "PWM interrupts (VIC channel 8)"
+		&port="p.pwm0int"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="I2C0")
+	(
+		DIALOG.Set HINT "I2C0 state change (VIC channel 9)"
+		&port="p.i2c0int"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="SPI0")
+	(
+		DIALOG.Set HINT "SPI0 interrupts (VIC channel 10)"
+		&port="p.spi0int"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="SPI1")
+	(
+		DIALOG.Set HINT "SPI1 (SSP) interrupts (VIC channel 11)"
+		&port="p.spi1int"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="PLL")
+	(
+		DIALOG.Set HINT "PLL Lock (PLOCK) (VIC channel 12)"
+		&port="p.pllint"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="RTC")
+	(
+		DIALOG.Set HINT "Real Timer Clock interrupts (VIC channel 13)"
+		&port="p.rtcint"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="External 0")
+	(
+		DIALOG.Set HINT "External Interrupt 0 (EINT0) (VIC channel 14)"
+		&port="p.ext0int"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="External 1")
+	(
+		DIALOG.Set HINT "External Interrupt 1 (EINT1) (VIC channel 15)"
+		&port="p.ext1int"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="External 2")
+	(
+		DIALOG.Set HINT "External Interrupt 2 (EINT2) (VIC channel 16)"
+		&port="p.ext2int"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="External 3")
+	(
+		DIALOG.Set HINT "External Interrupt 3 (EINT3) (VIC channel 17)"
+		&port="p.ext3int"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="ADC0")
+	(
+		DIALOG.Set HINT "A/D Converter 0 end of conversion (VIC channel 18)"
+		&port="p.adc0int"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="I2C1")
+	(
+		DIALOG.Set HINT "SI (state change) (VIC channel 19)"
+		&port="p.i2c1int"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="BOD")
+	(
+		DIALOG.Set HINT "Brown Out detect (VIC channel 20)"
+		&port="p.bodint"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="ADC1")
+	(
+		DIALOG.Set HINT "A/D Converter 1 end of conversion (VIC channel 21)"
+		&port="p.adc1int"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="USB/DMA")
+	(
+		DIALOG.Set HINT "USB Interrupts, DMA Interrupt (VIC channel 22)"
+		&port="p.usbint"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="INT23")
+	(
+		DIALOG.Set HINT "VIC channel 23 (not used)"
+		&port="p.int23"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="INT24")
+	(
+		DIALOG.Set HINT "VIC channel 24 (not used)"
+		&port="p.int24"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="INT25")
+	(
+		DIALOG.Set HINT "VIC channel 25 (not used)"
+		&port="p.int25"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="Timer 2")
+	(
+		DIALOG.Set HINT "Timer 2 interrupts (VIC channel 26)"
+		&port="p.timer2int"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="Timer 3")
+	(
+		DIALOG.Set HINT "Timer 3 interrupts (VIC channel 27)"
+		&port="p.timer3int"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="INT28")
+	(
+		DIALOG.Set HINT "VIC channel 28 (not used)"
+		&port="p.int28"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="INT29")
+	(
+		DIALOG.Set HINT "VIC channel 29 (not used)"
+		&port="p.int29"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="INT30")
+	(
+		DIALOG.Set HINT "VIC channel 30 (not used)"
+		&port="p.int30"
+	)
+	IF (DIALOG.STRing(SIGNAL_COMBO)=="INT31")
+	(
+		DIALOG.Set HINT "VIC channel 31 (not used)"
+		&port="p.int31"
+	)
+
+	IF (p.get(&port)==0)
+	(
+		DIALOG.Enable ASSERT
+		DIALOG.Disable DEASSERT
+	)
+	ELSE
+	(
+		DIALOG.Disable ASSERT
+		DIALOG.Enable DEASSERT
+	)
+RETURN

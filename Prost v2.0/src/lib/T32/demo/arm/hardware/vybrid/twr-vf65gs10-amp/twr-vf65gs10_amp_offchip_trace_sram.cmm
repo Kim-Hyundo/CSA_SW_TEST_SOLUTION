@@ -1,0 +1,196 @@
+; --------------------------------------------------------------------------------
+; @Title: AMP-Demo script for VF6XX on TWR-VF65GS10 with Offchip-Trace (AMP, RAM)
+; @Description:
+;   Setup a AMP debug session using a single script approach.
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Offchip-Trace. Pinmuxing and Clock
+;   setup is handled in the script.
+;   Use this script to test the Offchip-Trace.
+;   Prerequisites:
+;    * To debug TWR-VF65GS10 revision H you have to solder a 10K resistor at R161.
+;    * Connect Debug Cable/Combiprobe to AutoFocus Preprocessor
+;    * Connect AutoFocus Preprocessor to J11 using Mictor38 cable
+;    * set J6 open
+;    * set BootMode to SD-Card J22[1..5]=0y10110
+;    * remove SD-Card - device will stop in BootROM
+;    * TRACE32 is started using the .bat/.sh file in this directory
+; @Keywords: ARM, ETM
+; @Author: AME
+; @Board: TWR-VF65GS10
+; @Chip: VF[67]*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: twr-vf65gs10_amp_offchip_trace_sram.cmm 15362 2019-12-03 14:50:48Z mschleinkofer $
+
+PRIVATE &currPath &rclPort &remoteCmd
+&currPath=OS.PPD()
+&rclPort=FORMAT.DecimalU(1.,RCL.PORT(0))+"."
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF SYStem.INSTANCE()<1.
+(
+  PRINT %ERROR "TRACE32 is not running in AMP mode! Use .bat/.sh file in this directory."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; enable INTERCOM if not already specified and prepare related variables
+IF (INTERCOM.PORT()==0)
+(
+  InterCom.ENable CA5
+)
+&remoteCmd="InterCom.execute CM4"
+
+; --------------------------------------------------------------------------------
+; close any existing REMOTE GUI
+INTERCOM.execute OTHERS QUIT
+; --------------------------------------------------------------------------------
+; open SLAVE GUI with or without enabled remote API
+IF (RCL.PORT(0)!=0)
+(
+  TargetSystem.NewInstance CM4 /ARCHitecture ARM /ChipIndex 2. /APIPORT &rclPort+1. /ONCE
+)
+ELSE
+(
+  TargetSystem.NewInstance CM4 /ARCHitecture ARM /ChipIndex 2. /ONCE
+)
+
+TITLE "TRACE32 for ARM - VF6XX-CA5 - MASTER"
+&remoteCmd TITLE "TRACE32 for ARM - VF6XX-CM4 - SLAVE1"
+
+; --------------------------------------------------------------------------------
+; common SYStem settings
+RESet
+&remoteCmd RESet
+SYStem.RESet
+&remoteCmd SYStem.RESet
+SYStem.CPU VF6XX-CA5
+SYStem.CONFIG CORE 1. 1.
+SYStem.CONFIG SLAVE OFF
+&remoteCmd SYStem.CPU VF6XX-CM4
+&remoteCmd SYStem.CONFIG CORE 2. 1.
+&remoteCmd SYStem.CONFIG SLAVE ON
+
+; disable Trace for connection phase - TPIU may be clock-gated
+ETM.OFF
+ITM.OFF
+Trace.DISable
+&remoteCmd ETM.OFF
+&remoteCmd ITM.OFF
+&remoteCmd Trace.DISable
+
+; Avoid touching areas which react badly
+MAP.DenyAccess 0x30000000--0x3effffff
+&remoteCmd MAP.DenyAccess 0x30000000--0x3effffff
+MAP.DenyAccess 0x80000000--0xdfffffff
+&remoteCmd MAP.DenyAccess 0x80000000--0xdfffffff
+
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; kick secondary cores
+GOSUB KickM4
+
+; --------------------------------------------------------------------------------
+; attach to M4 core
+&remoteCmd SYStem.Mode.Up
+
+; --------------------------------------------------------------------------------
+; load demo program on all sessions (use internal RAM only)
+Data.LOAD.Elf ~~~~/master/sieve_ram_arm_v7.elf
+&remoteCmd ChDir &currPath
+&remoteCmd Data.LOAD.Elf ./slave1/sieve_ram_thumb_ii_v7m.elf
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace if Analyzer is plugged (ETM)
+IF Analyzer()
+(
+  ; set PinMux and enable Clocks
+  GOSUB InitTraceClock
+  ; Set ETM IOMUX PADS
+  Data.Set AD:0x40048014 %Long 0x1031C2 ;PTA12 ==> TRACECK
+  Data.Set AD:0x40048018 %Long 0x1031C2 ;PTA16 ==> TRACED[0]
+  Data.Set AD:0x4004801C %Long 0x1031C2 ;PTA17 ==> TRACED[1]
+  Data.Set AD:0x40048020 %Long 0x1031C2 ;PTA18 ==> TRACED[2]
+  Data.Set AD:0x40048024 %Long 0x1031C2 ;PTA19 ==> TRACED[3]
+  Data.Set AD:0x40048028 %Long 0x1031C2 ;PTA20 ==> TRACED[4]
+  Data.Set AD:0x4004802C %Long 0x1031C2 ;PTA21 ==> TRACED[5]
+  Data.Set AD:0x40048030 %Long 0x1031C2 ;PTA22 ==> TRACED[6]
+  Data.Set AD:0x40048034 %Long 0x1031C2 ;PTA23 ==> TRACED[7]
+  Data.Set AD:0x40048038 %Long 0x1031C2 ;PTA24 ==> TRACED[8]
+  Data.Set AD:0x4004803C %Long 0x1031C2 ;PTA25 ==> TRACED[9]
+  Data.Set AD:0x40048040 %Long 0x1031C2 ;PTA26 ==> TRACED[10]
+  Data.Set AD:0x40048044 %Long 0x1031C2 ;PTA27 ==> TRACED[11]
+  Data.Set AD:0x40048048 %Long 0x1031C2 ;PTA28 ==> TRACED[12]
+  Data.Set AD:0x4004804C %Long 0x1031C2 ;PTA29 ==> TRACED[13]
+  Data.Set AD:0x40048050 %Long 0x1031C2 ;PTA30 ==> TRACED[14]
+  Data.Set AD:0x40048054 %Long 0x1031C2 ;PTA31 ==> TRACED[15]
+  Data.Set AD:0x4004808c %Long 0x6031C2 ;PTB13 ==> TRACECTL
+
+  Trace.Method Analyzer
+  &remoteCmd Trace.Method Analyzer
+
+  TPIU.PortSize 16
+  TPIU.PortMode Continuous
+  ETM.TraceID 1.
+  ETM.Trace ON
+  ETM.ON
+  &remoteCmd ETM.TraceID 2.
+  &remoteCmd ETM.Trace ON
+  &remoteCmd ETM.ON
+
+  ; use Autofocus based calibration
+  Analyzer.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main\1
+WAIT !STATE.RUN()
+&remoteCmd Go.direct main\1
+&remoteCmd WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 0. 32.
+Trace.List
+&remoteCmd WinCLEAR
+&remoteCmd Mode.Hll
+&remoteCmd WinPOS 0. 0.
+&remoteCmd List.auto
+&remoteCmd WinPOS 0. 32.
+&remoteCmd Trace.List
+
+ENDDO
+
+KickM4: ;()
+(
+  ; SRC_GPR2: set M4 Boot address 0x1f800000 (Thumb)
+  Data.Set AD:0x4006E028 %Long 0x1f800000+0x1
+  ; assemble a endless loop
+  Data.Assemble T:0x1f800000 b $+0x0 b $+0x0
+
+  ; Apply power and clock to M4
+  Data.Set AD:0x4006B08C %Long 0x00015a5a
+  RETURN
+)
+
+InitTraceClock: ;()
+(
+  ; CCM_CCGR2/3: Un-gate I/O MUX, Port Multiplexing
+  Data.Set AD:0x4006B048 %Long 0xFFFFFFFF
+  Data.Set AD:0x4006B04C %Long 0xFFFFFFFF
+
+  ; CCM_CSCDR3: Set SWO_EN and TRACE_EN
+  Data.Set AD:0x4006B01C %Long Data.Long(AD:0x4006B01C)|0x14000000
+  RETURN
+)
+

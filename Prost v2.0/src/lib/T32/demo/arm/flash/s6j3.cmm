@@ -1,0 +1,395 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash declaration for Cypress S6J3 internal flash
+; @Description:
+;   Script arguments:
+;     DO s6j3 [PREPAREONLY] [CPU=<cpu>] [DUALPORT=<0|1>]
+;       PREPAREONLY    only declares flash but does not execute flash programming
+;       CPU=<cpu>      selects CPU derivative <cpu>
+;       DUALPORT=<0|1> use dual port memory access, default 0
+;   Example:
+;     DO ~~/demo/arm/flash/s6j3 PREPAREONLY
+;   Note:
+;     This file must NOT be modified.
+;     This file is intended to stay within TRACE32 installation.
+;     Usage examples are available in the ~~/demo/arm/hardware/... subdirectories.
+;
+;   List of S6J3 derivatives and their configuration:
+;     CPU-Type       Program Flash with          Work Flash     RAM
+;               large sectors + small sectors
+; --------------------------------------------------------------------------------
+;   S6J311 series:
+;     S6J3118           512kB + 64kB              48KB          48KB
+;     S6J3119           768kB + 64kB              48KB          64KB
+;     S6J311A          1024kB + 64kB              48KB          80KB
+;     S6J311B          1536kB + 64kB             112KB         128KB
+;     S6J311C          2048kB + 64kB             112KB         192KB
+;     S6J311D          3072kB + 64kB             112KB         256KB
+;     S6J311E          4096kB + 64kB             112KB         320KB
+; --------------------------------------------------------------------------------
+;   S6J3120 series:
+;     S6J3128           512kB + 64kB             112KB          48KB
+;     S6J3129           768kB + 64kB             112KB          64KB
+;     S6J312A          1024kB + 64kB             112KB          80KB
+; --------------------------------------------------------------------------------
+;   S6J3200 series:
+;     S6J32AA          1024kB + 64kB             112KB         192KB
+;     S6J32BA          1024kB + 64kB             112KB         192KB
+;     S6J32CA          1024kB + 64kB             112KB         192KB
+;     S6J32DA          1024kB + 64kB             112KB         192KB
+;     S6J323C          2048kB + 64kB             112KB         256KB
+;     S6J324C          2048kB + 64kB             112KB         256KB
+;     S6J325C          2048kB + 64kB             112KB         256KB
+;     S6J326C          2048kB + 64kB             112KB         256KB
+;     S6J327C          2048kB + 64kB             112KB         256KB
+;     S6J328C          2048kB + 64kB             112KB         256KB
+;     S6J32EE          4096kB + 64kB             112KB         512KB
+;     S6J32FE          4096kB + 64kB             112KB         512KB
+;     S6J32GE          4096kB + 64kB             112KB         512KB
+;     S6J32KE          4096kB + 64kB             112KB         512KB
+;     S6J32LE          4096kB + 64kB             112KB         512KB
+;     S6J32ME          4096kB + 64kB             112KB         512KB
+;     S6J32NE          4096kB + 64kB             112KB         512KB
+; --------------------------------------------------------------------------------
+;   S6J3300 series:
+;   S6J331:
+;     S6J331B          1536kB + 64kB              112KB        512KB
+;     S6J331C          2048KB + 64kB              112KB        512KB
+;     S6J331D          3072KB + 64kB              112KB        512KB
+;     S6J331E          4096kB + 64kB              112KB        512KB
+;   S6J332:
+;     S6J332B          1536kB + 64kB              112KB        512KB
+;     S6J332C          2048KB + 64kB              112KB        512KB
+;     S6J332D          3072KB + 64kB              112KB        512KB
+;     S6J332E          4096kB + 64kB              112KB        512KB
+;   S6J333:
+;     S6J333B          1536kB + 64kB              112KB        512KB
+;     S6J333C          2048KB + 64kB              112KB        512KB
+;     S6J333D          3072KB + 64kB              112KB        512KB
+;     S6J333E          4096kB + 64kB              112KB        512KB
+;   S6J334:
+;     S6J334B          1536kB + 64kB              112KB        512KB
+;     S6J334C          2048KB + 64kB              112KB        512KB
+;     S6J334D          3072KB + 64kB              112KB        512KB
+;     S6J334E          4096kB + 64kB              112KB        512KB
+;   S6J335:
+;     S6J335D          3072KB + 64KB              112KB        384KB
+;     S6J335E          4096KB + 64KB              112KB        512KB
+;   S6J336:
+;     S6J336A          1024KB + 64KB              112KB        256KB
+;     S6J336B          1536KB + 64KB              112KB        256KB
+;     S6J336C          2048KB + 64KB              112KB        256KB
+;   S6J337:
+;     S6J337A          1024KB + 64KB              112KB        256KB
+;     S6J337B          1536KB + 64KB              112KB        256KB
+;     S6J337C          2048KB + 64KB              112KB        256KB
+; --------------------------------------------------------------------------------
+;   S6J3400 series:
+;     S6J3428F          512KB + 64KB              112KB         64KB
+;     S6J3428H          512KB + 64KB              112KB         64KB
+;     S6J3428J          512KB + 64KB              112KB         64KB
+;     S6J3429F          768KB + 64KB              112KB         80KB
+;     S6J3429H          768KB + 64KB              112KB         80KB
+;     S6J3429J          768KB + 64KB              112KB         80KB
+;     S6J342AF         1024KB + 64KB              112KB        128KB
+;     S6J342AH         1024KB + 64KB              112KB        128KB
+;     S6J342AJ         1024KB + 64KB              112KB        128KB
+; --------------------------------------------------------------------------------
+;   S6J3510 series:
+;     S6J351C          2048KB + 64KB              112KB        256KB
+; --------------------------------------------------------------------------------
+;
+;   The range 0x19F0000--0x19F014F is guarded against modification.
+;     Address-Range        Description
+; --------------------------------------------------------------------------------
+;     0x19F0000--0x19F014F BOOTROM Markers
+;
+;   Modifications can be done using the FLASH.AUTO command with /CENSORSHIP option.
+;
+; @Chip: S6J31* S6J32* S6J33* S6J34* S6J35*
+; @Keywords: Traveo Spansion
+; @Author: AME PHI
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 7295 $
+; $Id: s6j3.cmm 7295 2019-08-27 12:29:18Z amerkle $
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+PRIVATE &param_prepareonly &param_cpu &param_dualport
+&parameters=STRing.UPpeR("&parameters")
+&param_prepareonly=(STRing.SCAN("&parameters","PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract("&parameters","CPU=","")
+&param_dualport=STRing.SCANAndExtract("&parameters","DUALPORT=","0")
+
+; --------------------------------------------------------------------------------
+; Initialize and start the debugger
+IF !SYStem.Up()
+(
+  SYStem.RESet
+
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  IF !CPUIS(S6J3*)
+    SYStem.CPU S6J3*
+
+  SYStem.MemAccess DAP
+  SYStem.Option WATCHDOG OFF
+  SYStem.Option WaitIDCODE ON
+  SYStem.Option ResBreak OFF
+  SYStem.Up
+
+  GOSUB DisableWatchdog
+
+  GOSUB SetupMpuForFlashProgramming
+
+  ; Initialize ECC
+  Data.Set AD:0x00000000++0x3fff %Long 0x0
+)
+
+; --------------------------------------------------------------------------------
+; Flash declaration
+FLASH.RESet
+GOSUB FlashDeclaration "&param_dualport"
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; --------------------------------------------------------------------------------
+; Flash programming example
+DIALOG.YESNO "Program flash memory?"
+PRIVATE &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram ALL /Erase
+  Data.LOAD.auto *
+  FLASH.ReProgram OFF
+
+  ; Example to modify Censorship range
+  ; FLASH.AUTO 0x19F0000--0x19F014F /CENSORSHIP
+  ; Data.Set 0x19F0000--0x19F014F %Byte <value>
+  ; Data.LOAD.auto <file> 0x19F0000--0x19F014F
+  ; FLASH.AUTO OFF
+
+  ; Reset device - twice to ensure the jtag-detect works
+  SYStem.Down
+  ON ERROR CONTinue
+  SYStem.Up
+  ON ERROR inherit
+  SYStem.Up
+)
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+; SUBROUTINES
+
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU
+;
+;   Please do NOT modify the TRACE32 flash declaration.
+;
+;   Modifications can result in unpredictable behavior.
+;   Please contact support@lauterbach.com for any changes.
+FlashDeclaration: ;(param_dualport)
+(
+  PARAMETERS &param_dualport
+  PRIVATE &FlashDriver &TCFlashSectorSize &WFlashSectorSize &WFlashAlignment &WFlashNoEccWritable
+
+  IF (CPUIS("S6J31*")||CPUIS("S6J32*"))
+  (
+    &TCFlashSectorSize=0x10000
+    &WFlashSectorSize=0x2000
+    &WFlashAlignment="Quad"
+    &WFlashNoEccWritable=TRUE()
+    &FlashDriver="s6j3.bin"
+  )
+  ELSE IF (CPUIS("S6J33*")||CPUIS("S6J34*")||CPUIS("S6J35*"))
+  (
+    &TCFlashSectorSize=0x8000
+    &WFlashSectorSize=0x1000
+    &WFlashAlignment="Long"
+    &WFlashNoEccWritable=FALSE()
+    &FlashDriver="s6j33x.bin"
+  )
+  ELSE
+  (
+    PRINT %ERROR "Sector size CPU type is unknown"
+    ENDDO
+  )
+  ; Unit 1: small sectors
+  ; Unit 2: large sectors
+  ; Unit 3: large sectors
+  ; Unit 4: workflash
+
+  ; TC Flash large sectors (AXI address range)
+  IF CPUIS("S6J3??8*")
+  (
+    ; TC Flash
+    FLASH.Create 2. 0x01A00000--0x01A7FFFF &TCFlashSectorSize  TARGET Long
+    ; Work Flash
+    FLASH.Create 4. 0x0E000000--0x0E01BFFF &WFlashSectorSize   TARGET &WFlashAlignment
+    IF &WFlashNoEccWritable
+    (
+      FLASH.Create 4. 0x0E200000--0x0E21BFFF &WFlashSectorSize TARGET &WFlashAlignment
+    )
+    ; Map TCM address range to AXI address range
+    FLASH.CreateALIAS 0x009F0000--0x00A7FFFF 0x019F0000
+  )
+  ELSE IF CPUIS("S6J3??9*")
+  (
+    ; TC Flash
+    FLASH.Create 2. 0x01A00000--0x01ABFFFF &TCFlashSectorSize  TARGET Long
+    ; Work Flash
+    FLASH.Create 4. 0x0E000000--0x0E01BFFF &WFlashSectorSize   TARGET &WFlashAlignment
+    IF &WFlashNoEccWritable
+    (
+      FLASH.Create 4. 0x0E200000--0x0E21BFFF &WFlashSectorSize TARGET &WFlashAlignment
+    )
+    ; Map TCM address range to AXI address range
+    FLASH.CreateALIAS 0x009F0000--0x00ABFFFF 0x019F0000
+  )
+  ELSE IF CPUIS("S6J3??A*")
+  (
+    ; TC Flash
+    FLASH.Create 2. 0x01A00000--0x01AFFFFF &TCFlashSectorSize  TARGET Long
+    ; Work Flash
+    FLASH.Create 4. 0x0E000000--0x0E01BFFF &WFlashSectorSize   TARGET &WFlashAlignment
+    IF &WFlashNoEccWritable
+    (
+      FLASH.Create 4. 0x0E200000--0x0E21BFFF &WFlashSectorSize TARGET &WFlashAlignment
+    )
+    ; Map TCM address range to AXI address range
+    FLASH.CreateALIAS 0x009F0000--0x00AFFFFF 0x019F0000
+  )
+  ELSE IF CPUIS("S6J3??B*")
+  (
+    ; TC Flash
+    FLASH.Create 2. 0x01A00000--0x01B7FFFF &TCFlashSectorSize  TARGET Long
+    ; Work Flash
+    FLASH.Create 4. 0x0E000000--0x0E01BFFF &WFlashSectorSize   TARGET &WFlashAlignment
+    IF &WFlashNoEccWritable
+    (
+      FLASH.Create 4. 0x0E200000--0x0E21BFFF &WFlashSectorSize TARGET &WFlashAlignment
+    )
+    ; Map TCM address range to AXI address range
+    FLASH.CreateALIAS 0x009F0000--0x00B7FFFF 0x019F0000
+  )
+  ELSE IF CPUIS("S6J3??C*")
+  (
+    ; TC Flash
+    FLASH.Create 2. 0x01A00000--0x01BFFFFF &TCFlashSectorSize  TARGET Long
+    ; Work Flash
+    FLASH.Create 4. 0x0E000000--0x0E01BFFF &WFlashSectorSize   TARGET &WFlashAlignment
+    IF &WFlashNoEccWritable
+    (
+      FLASH.Create 4. 0x0E200000--0x0E21BFFF &WFlashSectorSize TARGET &WFlashAlignment
+    )
+    ; Map TCM address range to AXI address range
+    FLASH.CreateALIAS 0x009F0000--0x00BFFFFF 0x019F0000
+  )
+  ELSE IF CPUIS("S6J3??D*")
+  (
+    ; TC Flash
+    FLASH.Create 2. 0x01A00000--0x01BFFFFF &TCFlashSectorSize  TARGET Long
+    FLASH.Create 3. 0x01C00000--0x01CFFFFF &TCFlashSectorSize  TARGET Long
+    ; Work Flash
+    FLASH.Create 4. 0x0E000000--0x0E01BFFF &WFlashSectorSize   TARGET &WFlashAlignment
+    IF &WFlashNoEccWritable
+    (
+      FLASH.Create 4. 0x0E200000--0x0E21BFFF &WFlashSectorSize TARGET &WFlashAlignment
+    )
+    ; Map TCM address range to AXI address range
+    FLASH.CreateALIAS 0x009F0000--0x00CFFFFF 0x019F0000
+  )
+  ELSE IF CPUIS("S6J3??E*")
+  (
+    ; TC Flash
+    FLASH.Create 2. 0x01A00000--0x01BFFFFF &TCFlashSectorSize  TARGET Long
+    FLASH.Create 3. 0x01C00000--0x01DFFFFF &TCFlashSectorSize  TARGET Long
+    ; Work Flash
+    FLASH.Create 4. 0x0E000000--0x0E01BFFF &WFlashSectorSize   TARGET &WFlashAlignment
+    IF &WFlashNoEccWritable
+    (
+      FLASH.Create 4. 0x0E200000--0x0E21BFFF &WFlashSectorSize TARGET &WFlashAlignment
+    )
+    ; Map TCM address range to AXI address range
+    FLASH.CreateALIAS 0x009F0000--0x00DFFFFF 0x019F0000
+  )
+  ELSE
+  (
+    PRINT %ERROR "FLASH size of CPU type is not supported by the script"
+    ENDDO
+  )
+
+  ; TC Flash small sectors (AXI address range)
+  IF ((VERSION.BUILD()<57164.)||(FLASH.TARGET.BUILD(~~/demo/arm/flash/long/&FlashDriver)<3000.))
+  (
+    FLASH.Create 1. 0x019F0000--0x019F1FFF  NOP Long ; Security Markers
+  )
+  ELSE
+  (
+    FLASH.Create 1. 0x019F0000--0x019F1FFF  TARGET Long /CENSORSHIP 0x19F0000--0x19F014F ; Security Markers
+  )
+  FLASH.Create 1. 0x019F2000--0x019FFFFF  0x2000 TARGET Long
+
+  IF (("&param_dualport"!="1")||SYStem.ACCESS.DENIED())
+    FLASH.TARGET 0x1000 0x2000 0x1000 ~~/demo/arm/flash/long/&FlashDriver
+  ELSE
+    FLASH.TARGET 0x1000 E:0x2000 0x1000 ~~/demo/arm/flash/long/&FlashDriver /DualPort
+
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Disable onchip Watchdog
+DisableWatchdog:
+(
+  ; Mask Watchdog-RESET
+  LOCAL &scscu_content
+  &scscu_content=Data.Long(EAPB:0x000C01B4)|0x00010100
+  Data.Set EAPB:0x000C01A4 %Long 0x5ECACCE5     ; Unlock register write access
+  Data.Set EAPB:0x000C01B4 %Long &scscu_content ; Make user configuration (SCSCU_CNTL_JTAGCON bit and SCSCU_CNTL_WDGRSTMASK)
+  Data.Set EAPB:0x000C01A4 %Long 0xA135331A     ; Lock register write access again
+  RETURN
+)
+
+SetupMpuForFlashProgramming:
+(
+  ; disable MPU & Cache
+  Data.Set C15:0x1 %Long Data.Long(C15:0x1)&(~0x5)
+  ; disable all regions
+  PRIVATE &i
+  &i=0
+  RePeaT 16.
+  (
+    ; set MRNR
+    Data.Set C15:0x26 %Long &i
+    ; clear RSER
+    Data.Set C15:0x216 %Long 0x0
+    &i=&i+1.
+  )
+  ; setup regions for simplicity only region 0&1&2
+  ; region 0: 0x00000000--0xffffffff - Shareable Device - all permissions
+  Data.Set C15:0x26 %Long 0x0
+  Data.Set C15:0x16 %Long 0x0
+  Data.Set C15:0x216 %Long 0x3f
+  Data.Set C15:0x416 %Long 0x305
+  ; region 1: 0x00000000--0xffff - NonCacheable - all permissions
+  Data.Set C15:0x26 %Long 0x1
+  Data.Set C15:0x16 %Long 0x0
+  Data.Set C15:0x216 %Long 0x1f
+  Data.Set C15:0x416 %Long 0x308
+  ; region 2: 0xffff0000--0xffff - NonCacheable - all permissions
+  Data.Set C15:0x26 %Long 0x2
+  Data.Set C15:0x16 %Long 0xffff0000
+  Data.Set C15:0x216 %Long 0x1f
+  Data.Set C15:0x416 %Long 0x308
+
+  ; enable MPU
+  Data.Set C15:0x1 %Long Data.Long(C15:0x1)|0x1
+
+  RETURN
+)

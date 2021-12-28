@@ -1,0 +1,128 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple example for CYCLONEVSOC on SoCrates starting from QSPI flash
+; @Description:
+;   Loads the sieve demo application into QSPI flash
+;   and sets up a debug scenario.
+; @Keywords: ARM, Cortex-A9, SPI, QuadSPI
+; @Author: HLG
+; @Board: SoCrates
+; @Chip: CYCLONEVSOC
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: socrates_sieve_qspi-flash.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+PRIVATE     &args
+ENTRY %LINE &args
+&args=STRing.UPpeR("&args")  // e.g. SKIPTEST
+
+LOCAL &QSPI_BASE
+&QSPI_BASE=0xFF705000
+
+AREA.CLEAR
+AREA.view
+
+// Connect to CPU
+RESet
+SYStem.CPU CYCLONEVSOC
+CORE.ASSIGN 1
+SYStem.CONFIG.DAPIRPOST 0.
+SYStem.CONFIG.DAPIRPRE 10.
+SYStem.CONFIG.DAPDRPOST 0.
+SYStem.CONFIG.DAPDRPRE  1.
+SYStem.Up
+
+Data.Set C15:0x1 %Long  (Data.Long(C15:0x1)&~(0x1005))  ; disable interrupt and mmu
+Data.Set A:0xFFD05014 %LE %Long Data.Long(A:0xFFD05014)|(0x3<<6.)   ;reset watchdog module & disable
+
+IF (Data.Long(A:0xFFD08014)&0x7)!=7
+(
+	PRINT "BSEL[2:0] 0x" (Data.Long(A:0xFFD08014)&0x7)
+	PRINT %ERROR "Please set on your board switches 6 to 8 of P18 to ON to boot from QSPI"
+	END
+)
+
+
+// Load application to virtual memory in debugger and write boot header
+PRIVATE  &length
+Data.LOAD.Elf "~~~~/sieve_ram_arm_v7.elf" /VM
+&length=(sYmbol.SECEND(.data)-sYmbol.SECADDRESS(.isr_vector)+1+3+4)/4
+IF (4*&length)>0xF000
+(
+	PRINT %ERROR "Application to big (>60KB) to be loaded directly by the 1st level bood loader"
+	END
+)
+;Data.Set VM:0xFFFF0040 %LE %Long 0x31305341  // Second-stage boot loader header: Validation Word
+;Data.Set VM:0xFFFF0044 %Byte 0               // Second-stage boot loader header: Version
+;Data.Set VM:0xFFFF0045 %Byte 0               // Second-stage boot loader header: Flags
+Data.Set VM:0xFFFF0046 %LE %Word &length      // Second-stage boot loader header: Length in 32-bit words
+;Data.Set VM:0xFFFF0048 %LE %Word 0           // Second-stage boot loader header: reserved/zero
+Data.SUM VM:0xFFFF0040++9 /Byte
+Data.Set VM:0xFFFF004A %LE %Word Data.SUM()   // Second-stage boot loader header: Checksum
+
+Data.SUM VM:0xFFFF0000++(4*&length-5) /CRC 32. 0x04C11DB7 0 0 0xFFFFFFFF 0xFFFFFFFF
+Data.Set VM:(0xFFFF0000+4*&length-4) %Long %LE Data.SUM()   // CRC checksum
+
+
+// If we are already executing code from SRAM, compare current application in SRAM with new one
+IF (Register(PP)>=0xFFFF0000)&&(STRing.SCAN("&args","FORCE",0)<0)
+(
+	Data.ComPare sYmbol.SECADDRESS(.isr_vector)--sYmbol.SECEND(.rodata) VM:0xFFFF0000
+	IF !FOUND()
+	(
+		GOSUB openWindows
+		ENDDO
+	)
+)
+
+// Prepare QSPI flash programming
+Data.Set A:&QSPI_BASE %LE %Long 0x80583807   ; Enable Qspi: bit[0] and qspi clock configure bit[22:19]
+
+FLASHFILE.RESet
+FLASHFILE.CONFIG A:&QSPI_BASE 0x0 0x0
+FLASHFILE.TARGET AZSD:0xFFFFE000++0xFFF  AZSD:0xFFFFF000++0xFFF  "~~/demo/arm/flash/byte/spi4b64_cyclone5qspi.bin"
+
+FLASHFILE.GETID
+FLASHFILE.UNLOCK 0x0--0xFFFFFF
+
+WinPOS ,,,,,,FLASFHILE.Dump
+FLASHFILE.DUMP 0x0
+
+
+// Erase QSPI flash and write new application
+FLASHFILE.Erase 0x0--0xFFFF
+FLASHFILE.COPY VM:0xFFFF0000++(4*&length) 0x00
+
+AREA.view
+SCREEN.ALways
+PRINT %COLOR.BLUE "Programming DONE -> Please re-power board"
+SYStem.Mode NoDebug
+WAIT !STATE.POWER()
+WAIT STATE.POWER()
+WAIT 100.ms
+
+SYStem.Up
+Data.Set A:0xFFD05014 %LE %Long Data.Long(A:0xFFD05014)|(0x3<<6.)   ;reset watchdog module & disable
+GOSUB openWindows
+
+ENDDO
+
+openWindows:
+	WinCLEAR
+	Mode.Hll
+
+	WinPOS 0% 0% 100% 48%
+	List.auto
+
+	WinPOS 64% 50% 36% 48%
+	Var.Watch
+	Var.AddWatch mcount; flags; ast;
+	Var.AddWatch %E %Fixed mcount; plot1;
+
+	WinPOS 0% 50% 36% 48%
+	Var.Ref %Hex %Decimal
+
+	WinPOS 36% 50% 28% 48% ,, 5.
+	Frame.view /Args /Locals
+
+	RETURN
+

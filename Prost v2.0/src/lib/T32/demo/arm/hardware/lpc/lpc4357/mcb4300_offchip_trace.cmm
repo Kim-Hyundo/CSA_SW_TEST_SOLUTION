@@ -1,0 +1,83 @@
+; --------------------------------------------------------------------------------
+; @Title: Off chip ETM trace script for LPC4357 on MCB4357 board
+; @Description:
+;   This is a small demo how to setup off chip ETM trace on Cortex-M4 for
+;   LPC4357 on MCB4357 board
+; @Keywords: Cortex-M4, ETM, NXP, off-chip, trace
+; @Author: HDA
+; @Board: MCB4300
+; @Chip: LPC4357*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mcb4300_offchip_trace.cmm 15227 2019-11-06 11:57:41Z bschroefel $
+
+
+; Basic setup
+  Break.RESet
+  SYStem.RESet
+  SYStem.CPU LPC4357FET256
+  SYStem.CONFIG.DEBUGPORTTYPE SWD
+  SYStem.CONFIG.CONNECTOR MIPI20T
+  SYStem.Option EnReset OFF
+  SYStem.Up
+
+; Load the demo code into the SRAM
+  Data.LOAD.Elf ~~~~/demo.axf
+  Register.Set PC main
+  Register.Set R13 0x10005000
+
+  IF hardware.COMBIPROBE()||hardware.UTRACE()
+  (
+    GOSUB enable_tpiu
+    ETM.ON
+
+    ETM.PortMode Continuous
+    ETM.PortSize 4.
+    Trace.METHOD CAnalyzer   		; Using CombiProbe
+    Trace.THreshold 2.0
+    CAnalyzer.CLOCKDelay MEDium
+    Trace.OFF               	 	; Enable the trace and turn it off
+  )
+  ELSE IF hardware.POWERTRACE()
+  (
+    GOSUB enable_tpiu
+    ETM.PortMode Continuous
+    ETM.PortSize 4.
+    Trace.METHOD Analyzer   		; Using POWERTRACE
+    Analyzer.Autofocus
+    Trace.OFF
+  )
+
+  ;open some window
+  WinCLEAR
+
+  WinPOS 0% 0% 50% 50%
+  List.auto
+
+  WinPOS 50% 0% 50% 50%
+  Register.view /SpotLight
+
+  WinPOS 0% 50% 50% 50%
+  Frame /Locals /Caller
+
+  WinPOS 50% 50% 50% 50%
+  Trace.List
+
+  ;run for 3 seconds
+  Go.direct
+  WAIT 3.s
+  Break.direct
+
+  ENDDO
+
+; --------------------------------------------------------------------------------
+;    Enable Trace Pins
+; --------------------------------------------------------------------------------
+enable_tpiu:
+  ; Enable Trace Pins
+  Data.Set D:0x40086790 %Long 0x00000022 ; SFSPF_4 ==> TRACECLK
+  Data.Set D:0x40086794 %Long 0x00000023 ; SFSPF_5 ==> TRACEDATA[0]
+  Data.Set D:0x40086798 %Long 0x00000023 ; SFSPF_6 ==> TRACEDATA[1]
+  Data.Set D:0x4008679C %Long 0x00000023 ; SFSPF_7 ==> TRACEDATA[2]
+  Data.Set D:0x400867A0 %Long 0x00000023 ; SFSPF_8 ==> TRACEDATA[3]
+  RETURN

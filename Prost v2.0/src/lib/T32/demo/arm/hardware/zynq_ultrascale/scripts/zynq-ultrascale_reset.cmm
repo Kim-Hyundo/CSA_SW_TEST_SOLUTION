@@ -1,0 +1,46 @@
+; --------------------------------------------------------------------------------
+; @Title: Software Reset for ZYNQ-Ultrascale+
+; @Description:
+;   On some ZYNQ-Ultrascale+ platforms the nRESET signal of the debugger
+;   is not wired to the PS-RST signal..
+;   This script enables to do a software/debugger based reset equivalent to SRST.
+;   The optional parameter allows to temporariely override the bootmode to JTAG
+;   BOOTMODE.
+;   Parameters:
+;     OVERRIDE_BOOTMODE=0x0 - force JTAG_BOOTMODE -> APU + RPU OFF
+;   Usage:
+;     DO zynq-ultrascale_reset
+;     DO zynq-ultrascale_reset OVERRIDE_BOOTMODE=0x0
+;   Prerequisites:
+;     * Debug session is not connected
+; @Keywords: ZYNQ-Ultrascale+
+; @Author: AME
+; @Chip: ZYNQ-Ultrascale+*
+; @Board: -
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: zynq-ultrascale_reset.cmm 14755 2019-08-05 13:49:11Z amerkle $
+
+PRIVATE &sParams
+ENTRY %LINE &sParams
+
+IF OS.FILE.SIZE("~~~~/zynq-ultrascale_reset.cmx")!=2672.
+(
+  PRINT %ERROR "Installation inconsistent!"
+  AREA
+  PLIST
+  STOP
+)
+
+PRIVATE &result
+DO ~~~~/zynq-ultrascale_reset.cmx &sParams
+RETURNVALUES &result
+IF !&result
+(
+  AREA
+  STOP
+)
+
+ENDDO
+
+

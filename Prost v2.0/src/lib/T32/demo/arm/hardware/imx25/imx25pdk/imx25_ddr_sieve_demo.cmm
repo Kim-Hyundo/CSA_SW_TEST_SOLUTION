@@ -1,0 +1,64 @@
+; --------------------------------------------------------------------------------
+; @Title: startup script on SRAM for IMX25
+; @Description:
+;
+;   This demo demonstrates the debugging of the IMX25 ARM9
+;   using a simple sieve demo loaded on the DDR.
+;
+;   DDR  : 0x83F00000
+;
+; @Author: MSA
+; @Board: IMX25PDK
+; @Chip: IMX25
+; @Keywords: ARM926EJ–S, sieve, Freescale
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx25_ddr_sieve_demo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+  SYStem.RESet
+  SYStem.CPU IMX25
+  SYStem.JtagClock RTCK
+  SYStem.Option ResBreak OFF
+  SYStem.Option WaitReset ON
+  SYStem.Up
+
+//Disable MMU & Cache
+PER.Set.simple C15:0x1 %Long (Data.Long(C15:0x1)&~(0x5))
+
+do ~~~~/init_ddr
+
+Data.Set SD:0x83F00000++0xFFFF %LE %Long 0x0
+
+Data.LOAD.Elf ~~~~/sieve_ddr_arm.elf
+
+; open some windows
+  WinCLEAR
+
+  WinPOS 0% 0% 50% 50%
+  List.auto
+
+  WinPOS 50% 0% 50% 20%
+  Register.view /SpotLight
+
+  WinPOS 50% 20% 50% 30%
+  Frame /Locals /Caller
+
+  WinPOS 50% 50% 50% 50%
+  Var.Watch
+  Var.AddWatch ast; flags;
+
+  WinPOS 0% 50% 50% 50%
+  Var.DRAW sinewave
+
+
+  Go.direct
+  WAIT 500.ms
+  Break.direct
+
+
+
+
+
+
+  ENDDO

@@ -1,0 +1,165 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for NRF5340QKAA-APP on NRF5340-PDK (XIP, EXT. FLASH, QSPI)
+; @Description:
+;   Programs the sieve demo application into the external flash and sets up a
+;   demo debug scenario.
+;   Use this script to flash an application for execute-in-place (XIP) over
+;   the QSPI interface.
+;   Prerequisites:
+;    * Connect Debug Cable to P18/P25 using Adapter LA-3770
+;      or
+;      Connect Combiprobe/uTrace to P18/P25
+;    * The default QSPI solder bridges must be used: SB10--SB25
+; @Keywords: ARM, Cortex-M33, Flash, XIP
+; @Author: BWR
+; @Board: NRF5340-PDK
+; @Chip: NRF5340QKAA
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: nrf5340pdk_app_sieve_xip_qspi_flash.cmm 16424 2020-08-14 15:49:14Z bwright $
+
+
+PRIVATE &flash_dest &sram_src &byte_count
+&flash_dest = 0x00000000
+&xip_addr = 0x10000000
+&sram_src = 0x20000000
+&byte_count = 0x232C
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU NRF5340QKAA-APP
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.MemAccess DAP
+SYStem.JtagClock 10MHz
+Trace.DISable
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; set up QSPI subsystem
+; QSPI.PSEL                    
+PER.Set.simple AZSD:0x5002B524 %Long 0x00000011  ; SCK = P0.17
+PER.Set.simple AZSD:0x5002B528 %Long 0x00000012  ; CSN = P0.18
+PER.Set.simple AZSD:0x5002B52C %Long 0x0000000D  ; IO0 = P0.13
+PER.Set.simple AZSD:0x5002B530 %Long 0x0000000E  ; IO1 = P0.14
+PER.Set.simple AZSD:0x5002B534 %Long 0x0000000F  ; IO2 = P0.15
+PER.Set.simple AZSD:0x5002B538 %Long 0x00000010  ; IO3 = P0.16
+					
+; GPIO to high-drive (MCUSEL is set to "App")
+PER.Set.simple AZSD:0x50842734 %Long 0x00000302  ; PIN_CNF[13]
+PER.Set.simple AZSD:0x50842738 %Long 0x00000302  ; PIN_CNF[14]
+PER.Set.simple AZSD:0x5084273C %Long 0x00000302  ; PIN_CNF[15]
+PER.Set.simple AZSD:0x50842740 %Long 0x00000302  ; PIN_CNF[16]
+PER.Set.simple AZSD:0x50842744 %Long 0x00000302  ; PIN_CNF[17]
+PER.Set.simple AZSD:0x50842748 %Long 0x00000302  ; PIN_CNF[18]
+
+; configure QSPI interfaces
+PER.Set.simple AZSD:0x5002B544 %Long 0x00000000  ; single I/O, 24-bit addr
+PER.Set.simple AZSD:0x5002B600 %Long 0xF0040401  ; 6 MHz, mode 0, no DPM
+;TODO: ADDRCONF?
+
+PER.Set.simple AZSD:0x5002B100 %Long 0x0  ; Clear QSPI.EVENTS_READY
+PER.Set.simple AZSD:0x5002B54C %Long 0x0  ; Disable XIP
+PER.Set.simple AZSD:0x5002B500 %Long 0x1  ; Enable QSPI
+PER.Set.simple AZSD:0x5002B000 %Long 0x1  ; Activate QSPI
+
+WAIT 20ms
+IF (Data.Long(AZSD:0x5002B100)==1)
+  PRINT "QSPI ready"
+
+; configure external memory for quad mode
+PER.Set.simple AZSD:0x5002B100 %Long 0x0         ; Clear QSPI.EVENTS_READY
+PER.Set.simple AZSD:0x5002B634 %Long 0x0000F166  ; CMD RSTEN
+PER.Set.simple AZSD:0x5002B100 %Long 0x0         ; Clear QSPI.EVENTS_READY
+PER.Set.simple AZSD:0x5002B634 %Long 0x0000F199  ; CMD RST
+PER.Set.simple AZSD:0x5002B100 %Long 0x0         ; Clear QSPI.EVENTS_READY
+PER.Set.Field AZSD:0x5002B638 %Long 0xFF 0x40    ; BYTE0, tx buffer
+PER.Set.simple AZSD:0x5002B634 %Long 0x0000F201  ; CMD WRSR <- 0x40
+PER.Set.simple AZSD:0x5002B100 %Long 0x0         ; Clear QSPI.EVENTS_READY
+
+PER.Set.simple AZSD:0x5002B51C %Long 0x00000000  ; Start addr for ext mem erase
+PER.Set.simple AZSD:0x5002B520 %Long 0x1         ; Set 64kB block erase size
+;PER.Set.simple AZSD:0x5002B520 %Long 0x2         ; ERASE ALL EXTERNAL FLASH
+PER.Set.simple AZSD:0x5002B00C %Long 0x1         ; Erase
+WAIT 80ms
+IF (Data.Long(AZSD:0x5002B100)==1)
+  PRINT "            Erase successful"
+ELSE
+  PRINT "----- ERASE NOT FINISHED -----"
+  ; TODO: Better option is to check QSPI.STATUS for bit 3
+WAIT 300ms
+PER.Set.simple AZSD:0x5002B100 %Long 0x0         ; Clear QSPI.EVENTS_READY
+
+PER.Set.simple AZSD:0x5002B010 %Long 0x1  ; Deactivate QSPI
+PER.Set.simple AZSD:0x5002B600 %Long 0x30040401  ; 24 MHz
+PER.Set.simple AZSD:0x5002B544 %Long 0x0000001C  ; I/O quad data line SPI
+PER.Set.simple AZSD:0x5002B000 %Long 0x1  ; Activate QSPI
+PER.Set.simple AZSD:0x5002B100 %Long 0x0  ; Clear QSPI.EVENTS_READY
+
+; --------------------------------------------------------------------------------
+; Flash programming
+
+; copy SRAM to virtual memory until transfer is complete
+Data.COPY (&sram_src)++(&byte_count) VM:
+
+; load demo with flash addresses into SRAM for copying to external flash
+Data.LOAD.Elf "~~~~/application/sieve_ext_flash_xip_thumb_ii_v7m.elf" (&sram_src-&xip_addr)
+
+; copy from SRAM into external flash using QSPI subsystem
+PER.Set.simple AZSD:0x5002B510 %Long &flash_dest
+PER.Set.simple AZSD:0x5002B514 %Long &sram_src
+PER.Set.simple AZSD:0x5002B518 %Long &byte_count
+WAIT 200ms
+PER.Set.simple AZSD:0x5002B008 %Long 0x1  ; Write from SRAM to external flash
+WAIT 800ms
+PER.Set.simple AZSD:0x5002B100 %Long 0x0  ; Clear QSPI.EVENTS_READY
+
+; set MSP, PC, XIP offset
+Register.Init
+Register.Set PC Data.Long(AZSD:(&sram_src+4))
+Register.Set MSP Data.Long(AZSD:&sram_src)
+PER.Set.simple AZSD:0xE000ED08 %Long &xip_addr  ; Set VTOR to XIPOFFSET
+PER.Set.simple AZSD:0x5002B540 %Long &xip_addr  ; Set XIPOFFSET
+
+; restore SRAM and clear virtual memory
+Data.COPY VM:(&sram_src)++(&byte_count) E:
+Data.CLEARVM
+
+PER.Set.simple AZSD:0x5002B54C %Long 0x1  ; Enable XIP
+PER.Set.simple AZSD:0x5002B000 %Long 0x1  ; Activate QSPI
+PER.Set.simple AZSD:0x5002B100 %Long 0x0  ; Clear QSPI.EVENTS_READY
+
+SYStem.Option DUALPORT ON
+Data.LOAD.Elf "~~~~/application/sieve_ext_flash_xip_thumb_ii_v7m.elf" /NoCODE
+WAIT 20ms
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

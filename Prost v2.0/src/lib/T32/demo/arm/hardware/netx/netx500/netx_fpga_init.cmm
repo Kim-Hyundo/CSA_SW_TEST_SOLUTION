@@ -1,0 +1,59 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to connect to the NETX FPGA Board
+; @Description: 
+;   This script connects to the NETX FPGA Board by calling the
+;   netx_common_init.cmm and does some initialization using
+;   Data.Set commands
+; @Keywords: Hilscher, NetX*
+; @Board: NETX FPGA
+; @Chip: NETX500
+; @Author: Hilscher
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: netx_fpga_init.cmm 15237 2019-11-08 08:25:07Z bschroefel $
+
+
+;setup ROM to let the software decide about how to set breakpoints.
+;In these areas on chip breakpoints will be used
+MAP.BOnchip 0x0++3
+MAP.BOnchip 0x200000--0x300000
+
+SYStem.Down
+
+;we are using RTCK for frequency detection
+SYStem.JtagClock RTCK
+SYStem.CPU NETX500
+
+;no memory and CPU accesses during runtime
+SYStem.MemAccess Denied
+
+;Reset Board while System.UP
+SYStem.Option EnReset ON
+SYStem.Option ResBreak OFF
+SYStem.Option WAITRESET ON
+SYStem.Up
+
+ETM.RESet   
+
+;32MB Flash at 0xc0000000 with a sector size of 2x128kByte of type intel28FXXXJ3
+&FLASH_PROGRAMMING_METHOD="TRACE32 Tool Based"
+FLASH.RESet
+FLASH.Create 1. ASD:0xC0000000++0x1FFFFFF 0x40000 TARGET Long
+FLASH.TARGET ASD:0x00001000 ASD:0x00002000 0x1000 long/i28f200j3.bin
+;Setup Flash controller for 2xIntel Strata 2x16Bit on CS0 @0xc0000000
+Data.Set ASD:0x100100 %Long 0x0203030F
+;Flash is handled as ROM to use on chip breakpoints
+MAP.BOnchip 0xC0000000++0x1FFFFFF
+
+;setup SDRam Timing
+Data.Set ASD:0x100140 %Long 0x0
+Data.Set ASD:0x100144 %Long 0x03C13261
+Data.Set ASD:0x100140 %Long 0x030D0121
+
+Register.Set PC 0
+;disable MMU, etc
+PER.Set.simple C15:0x3 %Long 0
+PER.Set.simple C15:0x2 %Long 0
+PER.Set.simple C15:0x1 %Long 0x00050078
+
+ENDDO

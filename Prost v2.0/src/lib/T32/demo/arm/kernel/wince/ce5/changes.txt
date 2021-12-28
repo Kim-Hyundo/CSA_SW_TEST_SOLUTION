@@ -1,0 +1,25 @@
+
+Change Log Windows CE 4/5 Awareness
+
+2009-07-30
+- MMU.FORMAT WINCE5 supported
+
+2007-07-13
+- TASK.Event/Mutex/Semaphore added
+
+2006-03-27
+- ARM ETM Trace with VMA is translated to SpaceID:VA
+
+2006-03-08
+- TASK.sYmbol.LOAD/LOADDLL takes full path names
+
+2004-11-29
+- TASK.sYmbol.Option changed to TASK.sYmbol.Option LOAD<D>CMD (see WinCE Awareness Manual)
+- TASK.Watch uses load command of TASK.sYmbol
+- TASK.Watch.Option BreakOpt[C|M] added
+- TASK.WatchDLL added
+
+2004-11-15
+- Windows CE 5.0 support
+- OEM Address Table from OEMAddressTable or g_oalAddressTable or third argument to TASK.CONFIG
+- Process creation breakpoint on MDCreateMainThread1 or LoadSwitch

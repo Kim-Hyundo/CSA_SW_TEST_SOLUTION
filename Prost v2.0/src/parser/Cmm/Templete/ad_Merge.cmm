@@ -1,0 +1,83 @@
+; -------------------------------------------------------------------------------
+; @Title: Trace result(.ad) file load & save(.txt) CMM
+; Script arguments:
+;
+;   DO ad_load.cmm &tesecase_number
+;
+; --------------------------------------------------------------------------------
+LOCAL &adFilePath &testcase_number &reultFilePath &covFile &covCBAFile &timingFile
+ENTRY %line &parameter
+LOCAL &Delimeter
+&Delimeter="||"
+
+&parameter=STRing.CUT("&parameter",1)
+&parameter=STRing.CUT("&parameter",-1)
+
+&parameter_cnt=STRing.COUNT("&parameter","&Delimeter")
+
+if &parameter_cnt==0.
+   &parameter_cnt=1.
+
+
+&debug_path=string.split("&parameter","&Delimeter",1)
+&debug_path=string.trim("&debug_path")
+
+&Scenario=string.split("&parameter","&Delimeter",2)
+&Scenario=string.trim("&Scenario")
+
+
+&adFilePath="&debug_path\ad\&Scenario"
+&coveragePath="&debug_path\txt\coverage\&Scenario"
+&timingPath="&debug_path\txt\timing\&Scenario"
+&mcdc_coveragePath="&debug_path\txt\mcdc_cov\&Scenario"
+
+IF RUN()
+(
+  BREAK
+)
+
+&adFileListPath="&adFilePath\&Scenario.txt"
+
+print "&adFileListPath"
+
+//------------Merge testcase result save------------//
+
+Trace.Init
+COVerage.Init
+
+OPEN #1 "&adFileListPath" /READ
+READ #1 %LINE &ad_tmp
+while !EOF()
+(
+    IF !OS.FILE("&ad_tmp")
+    (
+        print "'&ad_tmp'"+" Not Found. Please check about the trace result file."
+    )
+
+    Trace.LOAD "&ad_tmp"
+
+    COVerage.ADD
+    READ #1 %LINE &ad_tmp
+)
+
+CLOSE #1
+
+
+COVerage.Option.SourceMetric.Statement
+&covMergeFile="&coveragePath"+"\cov"+"\cov_merge"+".txt"
+COVerage.EXPORT.ListFunc "&coveragePath\cov_merge.xml"
+PRinTer.FILE "&covMergeFile"
+WinTABS 100. 20. 20. 20.
+WinPrint.COVerage.ListFunc
+
+
+
+COVerage.Option.SourceMetric.MCDC
+&mcdc_covMergeFile="&mcdc_coveragePath"+"\cov"+"\cov_merge"+".txt"
+COVerage.EXPORT.ListFunc "&mcdc_coveragePath\cov_merge.xml"
+PRinTer.FILE "&mcdc_covMergeFile"
+WinTABS 100. 20. 20. 20.
+WinPrint.COVerage.ListFunc
+
+CLOSE #1
+ENDDO

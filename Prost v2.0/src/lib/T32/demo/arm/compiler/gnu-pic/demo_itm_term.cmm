@@ -1,0 +1,189 @@
+; --------------------------------------------------------------------------------
+; @Title: Load the Position Independent ITM Terminal Code
+; @Description:
+;   Load the position independent ITM Terminal code into RAM.
+;   The base address of the RAM is required. The instruction set supported by
+;   the CPU is automatically detected by the CORENAME().
+;   The ITM channel 0 is used to transfer terminal logs.
+;   Prerequisites:
+;    * System is connected
+;    * RAM is accessible Read/Write/Execute
+;    * 12k of RAM required
+;    * A valid trace-sink (Analyzer/Onchip/CAnalyzer) is already configured
+;
+;   Usage:
+;     DO ~~/demo/arm/compiler/gnu-pic/demo_itm_term 0x<codeoffset> STIMULUSBASE=0x<itmbase>
+;     e.g. DO ~~/demo/arm/compiler/gnu-pic/demo_itm_term 0x1000 STIMULUSBASE=0xfff05000
+;     e.g. for CORTEX-M
+;          DO ~~/demo/arm/compiler/gnu-pic/demo_itm_term 0x20000100 STIMULUSBASE=0xe0000000
+;
+; @Author: AME
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo_itm_term.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+PRIVATE &arm &armbe &thumbv4 &thumbv6m &thumb_ii_v7
+PRIVATE &param &offset &stimulusbase
+ENTRY %LINE &param
+
+IF INTERFACE.SIM()
+(
+  PRINT %ERROR "This script is not supported by the SIMULATOR."
+  ENDDO FALSE()
+)
+
+GOSUB ParseParameters &param
+RETURNVALUES &offset &stimulusbase
+
+GOSUB GetCpuModes
+RETURNVALUES &arm &armbe &thumbv4 &thumbv6m &thumb_ii_v7
+
+; --------------------------------------------------------------------------------
+; load the code depending on coretype
+IF CORE.NUMBER()>1.
+  CORE.select 0.
+
+IF &arm
+  Data.LOAD.Elf ~~~~/itm_stimulus_arm.elf          &offset /RelPATH /Verify
+ELSE IF &armbe
+  Data.LOAD.Elf ~~~~/itm_stimulus_armbe.elf        &offset /RelPATH /Verify
+ELSE IF &thumbv4
+  Data.LOAD.Elf ~~~~/itm_stimulus_thumb_v4.elf     &offset /RelPATH /Verify
+ELSE IF &thumbv6m
+  Data.LOAD.Elf ~~~~/itm_stimulus_thumb_v6m.elf    &offset /RelPATH /Verify
+ELSE IF &thumb_ii_v7
+  Data.LOAD.Elf ~~~~/itm_stimulus_thumb_ii_v7m.elf &offset /RelPATH /Verify
+ELSE
+(
+  PRINT %ERROR "Error: Coretype not supported by this script."
+  ENDDO FALSE()
+)
+
+; --------------------------------------------------------------------------------
+Go.direct main
+WAIT !STATE.RUN()
+
+; write pSTIMPORT variable
+Var.Assign pStimulusBase=&stimulusbase
+
+; for simplicity switch off Instruction Trace
+IF ETM()
+(
+  ETM.Trace OFF
+)
+
+; --------------------------------------------------------------------------------
+; initialize ITM trace
+IF Trace.METHOD.CAnalyzer()
+(
+  Trace.METHOD CAnalyzer
+  Trace.MODE PIPE
+)
+ELSE
+(
+  PRINT %ERROR "Unsupported Trace-Source selected."
+  ENDDO FALSE()
+)
+
+; configure ITM for Data Trace
+ITM.ON
+ITM.DataTrace ON
+IF (STRing.SCAN(CORENAME(),"CORTEXM",0.)>=0.)
+(
+  ; CortexM
+  IF (TPIU.PortSize()!="SWV")
+    ITM.PortMode Continuous
+)
+ELSE
+(
+  ; all others
+  ITM.PortMode WRAPPED
+)
+
+; enable ITM Trace Sinks: 0
+; check also ITM.Register -> ITMTRACEEN
+; write ITM_LAR key first to unlock registers
+Data.Set A:&stimulusbase+0xfb0 %Long 0xC5ACCE55
+Data.Set A:&stimulusbase+0xe00 %Long 0x1
+Data.Set A:&stimulusbase+0xfb0 %Long 0x0
+
+; --------------------------------------------------------------------------------
+; activate TermStimulus and open some windows
+Var.Assign pTerminalString = "Hello World!!!\n\r"
+
+; add second TERMinal source ITM channel #0
+TERM.METHOD2 ITM 0.
+TERM.view
+
+ENDDO TRUE()
+
+
+; --------------------------------------------------------------------------------
+; SUBROUTINES
+;
+ParseParameters: ;(param)
+(
+  PRIVATE &param &offset &itmbase &stimulusbase
+  ENTRY %LINE &param
+  &offset=STRing.SCANAndExtract("&param","0x","")
+  &itmbase=STRing.SCANAndExtract("&param","ITMBASE=0x","")
+  &stimulusbase=STRing.SCANAndExtract("&param","STIMULUSBASE=0x","")
+  IF ("&offset"=="")||("&itmbase&stimulusbase"=="")
+  (
+    PRINT %ERROR "Error: Missing Argument - Usage DO demo_itm_printf.cmm 0x<codeoffset> STIMULUSBASE=0x<itmbase>"
+    ENDDO FALSE()
+  )
+  IF "&stimulusbase"==""
+    &stimulusbase="&itmbase"
+  ; ensure parameter is HEX
+  &offset="0x&offset"
+  &offset=(&offset)&~0x3
+  ; ensure parameter is HEX and round down to 4k boundary
+  &stimulusbase="0x&stimulusbase"
+  &stimulusbase=(&stimulusbase)&~0xfff
+
+  IF !SYStem.Up()
+  (
+    PRINT %ERROR "Error: Not connected to target. - Please use SYStem.Up before."
+    ENDDO FALSE()
+  )
+
+  RETURN "&offset" "&stimulusbase"
+)
+
+GetCpuModes: ;()
+(
+  PRIVATE &arm &armbe &thumbv4 &thumbv6m &thumb_ii_v7
+
+  &arm=FALSE()
+  &armbe=FALSE()
+  &thumbv4=FALSE()
+  &thumbv6m=FALSE()
+  &thumb_ii_v7=FALSE()
+
+  &arm=&arm||(STRing.SCAN(CORENAME(),"CORTEXA",0)>=0)
+  &arm=&arm||(STRing.SCAN(CORENAME(),"CORTEXR",0)>=0)
+  &arm=&arm||(STRing.SCAN(CORENAME(),"ARM7",0)>=0)
+  &arm=&arm||(STRing.SCAN(CORENAME(),"ARM9",0)>=0)
+  &arm=&arm||(STRing.SCAN(CORENAME(),"ARM11",0)>=0)
+  if (&arm&&(STRing.SCAN(CORENAME(),"CORTEXR",0)>=0))
+  (
+    IF ((Data.Long(C15:0x1)&0x80000000)!=0x0)
+    (
+      &armbe=TRUE()
+      &arm=FALSE()
+    )
+  )
+
+  &thumbv6m=&thumbv6m||(STRing.SCAN(CORENAME(),"CORTEXM0",0)>=0)
+  &thumbv6m=&thumbv6m||(STRing.SCAN(CORENAME(),"CORTEXM1",0)>=0)
+  &thumbv6m=&thumbv6m||(STRing.SCAN(CORENAME(),"CORTEXM23",0)>=0)
+
+  &thumb_ii_v7=&thumb_ii_v7||(STRing.SCAN(CORENAME(),"CORTEXM3",0)>=0)
+  &thumb_ii_v7=&thumb_ii_v7||(STRing.SCAN(CORENAME(),"CORTEXM4",0)>=0)
+  &thumb_ii_v7=&thumb_ii_v7||(STRing.SCAN(CORENAME(),"CORTEXM7",0)>=0)
+  &thumb_ii_v7=&thumb_ii_v7||(STRing.SCAN(CORENAME(),"CORTEXM33",0)>=0)
+
+  RETURN "&arm" "&armbe" "&thumbv4" "&thumbv6m" "&thumb_ii_v7"
+)

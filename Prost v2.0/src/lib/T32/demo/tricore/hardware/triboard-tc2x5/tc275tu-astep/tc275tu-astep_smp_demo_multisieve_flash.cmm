@@ -1,0 +1,109 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC275TU-Astep on TriBoard-TC2x5 (SMP, Flash, multisieve)
+; @Description:
+;   Programs the multisieve demo application (multi-core) into the processor
+;   internal flash and sets up a demo debug scenario for SMP debugging. Further
+;   information is available in in the Tricore Processor Architecture Manual
+;   (pdf/debugger_tricore.pdf), chapter "SMP Debugging - Quick Start".
+; @Keywords: AURIX, flash, Infineon, multi-core, multisieve, TriCore
+; @Author: MOB
+; @Board: TriBoard-TC2x5
+; @Chip: TC275TU
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc275tu-astep_smp_demo_multisieve_flash.cmm 16184 2020-06-15 11:10:51Z sltaief $
+
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.CPU TC275TU-Astep
+CORE.ASSIGN 1. 2. 3. // assign cores to the SMP system
+SYStem.Up
+
+; optional settings:
+SYStem.Option DUALPORT ON
+SETUP.Var %SpotLight
+MAP.BOnchip 0x0--0xffffffff // force onchip-breakpoints
+
+; --------------------------------------------------------------------------------
+; Flash programming
+LOCAL &elfFile &progFlash &bmhdResult
+&elfFile="~~~~/triboard-tc275_multisieve_intflash.elf"
+
+; prepare flash programming (declarations)
+DO ~~/demo/tricore/flash/tc27x.cmm CPU=TC275TU-Astep PREPAREONLY
+
+; check if application is already in flash and load symbols
+Data.LOAD.Elf "&elfFile" /DIFF
+IF FOUND()
+(
+  DIALOG.YESNO "Program Lauterbach sieve demo into flash memory?"
+  ENTRY &progFlash
+  IF (&progFlash)
+  (
+    ; enable flash programming
+    FLASH.ReProgram ALL
+
+    ; load demo application
+    Data.LOAD.Elf "&elfFile"
+
+    ; check if there is at least one valid Boot Mode Header
+    DO ~~/demo/tricore/flash/tc27x.cmm CHECKBMHD
+    ENTRY &bmhdResult
+    IF ("&bmhdResult"=="BMHD_OK")
+    (
+      ; finally program flash memory
+      FLASH.ReProgram off
+
+      ; sanity check after flashing
+      Data.LOAD.Elf "&elfFile" /DIFF
+      IF FOUND()
+      (
+        ; maybe some sections are still declared as NOP?
+        PRIVATE &diffAddress
+        &diffAddress=TRACK.ADDRESS()
+        DIALOG.MESSAGE "File &elfFile has not been fully flashed, difference found at address &diffAddress (check flash declaration)"
+      )
+    )
+    ELSE
+    (
+      DIALOG.OK "No valid Boot Mode Header found!" "Reverting loaded data"
+      FLASH.ReProgram ALL
+      FLASH.ReProgram off
+      ENDDO
+    )
+  )
+)
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+WinPOS 0% 0% 33% 33%
+TargetSystem.state
+WinPOS 33% 0% 33% 33%
+List.auto
+WinPOS 66% 0% 33% 33%
+Var.Watch
+WinPOS 0% 33% 33% 33%
+List.auto /CORE 0.
+WinPOS 0% 66% 33% 33%
+Register.view /CORE 0.
+IF (CORENUMBER()>1.)
+(
+  WinPOS 33% 33% 33% 33%
+  List.auto /CORE 1.
+  WinPOS 33% 66% 33% 33%
+  Register.view /CORE 1.
+  IF (CORENUMBER()>2.)
+  (
+    WinPOS 66% 33% 33% 33%
+    List.auto /CORE 2.
+    WinPOS 66% 66% 33% 33%
+    Register.view /CORE 2.
+  )
+)
+
+Var.AddWatch %Hex flags flagsc flags0 flags1 flags2
+
+ENDDO

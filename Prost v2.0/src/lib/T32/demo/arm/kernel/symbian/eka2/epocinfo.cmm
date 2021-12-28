@@ -1,0 +1,71 @@
+; --------------------------------------------------------------------------------
+; @Title: Symbian EPOC Configuration Script
+; @Description: 
+;   This script adds information that is required to display EPOC descriptors
+;   and strings correctly in the debugger windows
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: epocinfo.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+// Clear any existing typeinfo
+
+ sYmbol.AddInfo.RESet
+
+
+// EPOC Descriptors
+//
+// The types TPtr16HBufC16 and TPtr8HBufC8 are types that do not exist on a standard EPOC build,
+// but they are required when descriptors of type 4 should be display correctly.
+
+ sYmbol.AddInfo.Type "TDes" descriptor 0x0xxxxxxx "TBufC<?1+1>" "TLitC<?1+1>"
+ sYmbol.AddInfo.Type "TDes" descriptor 0x1xxxxxxx "TPtrC16"
+ sYmbol.AddInfo.Type "TDes" descriptor 0x2xxxxxxx "TPtr16"
+ sYmbol.AddInfo.Type "TDes" descriptor 0x3xxxxxxx "TBuf<?2>"
+ sYmbol.AddInfo.Type "TDes" descriptor 0x4xxxxxxx "TPtr16HBufC16"
+ 
+ sYmbol.AddInfo.Type "TDesC" descriptor 0x0xxxxxxx "TBufC<?1+1>" "TLitC<?1+1>"
+ sYmbol.AddInfo.Type "TDesC" descriptor 0x1xxxxxxx "TPtrC16"
+ sYmbol.AddInfo.Type "TDesC" descriptor 0x2xxxxxxx "TPtr16"
+ sYmbol.AddInfo.Type "TDesC" descriptor 0x3xxxxxxx "TBuf<?2>"
+ sYmbol.AddInfo.Type "TDesC" descriptor 0x4xxxxxxx "TPtr16HBufC16"
+
+ sYmbol.AddInfo.Type "TDesC16" descriptor 0x0xxxxxxx "TBufC<?1+1>" "TLitC<?1+1>"
+ sYmbol.AddInfo.Type "TDesC16" descriptor 0x1xxxxxxx "TPtrC16"
+ sYmbol.AddInfo.Type "TDesC16" descriptor 0x2xxxxxxx "TPtr16"
+ sYmbol.AddInfo.Type "TDesC16" descriptor 0x3xxxxxxx "TBuf<?2>"
+ sYmbol.AddInfo.Type "TDesC16" descriptor 0x4xxxxxxx "TPtr16HBufC16"
+
+ sYmbol.AddInfo.Type "TDesC8" descriptor 0x0xxxxxxx "TBufC8<?1+1>" "TLitC8<?1+1>"
+ sYmbol.AddInfo.Type "TDesC8" descriptor 0x1xxxxxxx "TPtrC8"
+ sYmbol.AddInfo.Type "TDesC8" descriptor 0x2xxxxxxx "TPtr8"
+ sYmbol.AddInfo.Type "TDesC8" descriptor 0x3xxxxxxx "TBuf8<?2>"
+ sYmbol.AddInfo.Type "TDesC8" descriptor 0x4xxxxxxx "TPtr8HBufC8"
+
+
+// EPOC Strings
+
+ sYmbol.AddInfo.Type "TBufC<?>"  nstring 0x0xxxxxxx
+ sYmbol.AddInfo.Type "TBuf<?>"   nstring 0x0xxxxxxx
+ sYmbol.AddInfo.Type "TBufC8<?>" nstring 0x0xxxxxxx
+ sYmbol.AddInfo.Type "TBuf8<?>"  nstring 0x0xxxxxxx
+
+ sYmbol.AddInfo.Type "TLitC<?>" nstring 0x0xxxxxxx
+
+ sYmbol.AddInfo.Type "TPtrC"   nstring 0x0xxxxxxx
+ sYmbol.AddInfo.Type "TPtr"    nstring 0x0xxxxxxx
+ sYmbol.AddInfo.Type "TPtrC8"  nstring 0x0xxxxxxx
+ sYmbol.AddInfo.Type "TPtr8"   nstring 0x0xxxxxxx
+ sYmbol.AddInfo.Type "TPtrC16" nstring 0x0xxxxxxx
+ sYmbol.AddInfo.Type "TPtr16"  nstring 0x0xxxxxxx
+
+ ENDDO
+
+
+
+
+
+
+
+

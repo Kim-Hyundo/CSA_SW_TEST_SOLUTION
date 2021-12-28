@@ -1,0 +1,36 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to trigger on a DPSR-access via LMB.
+; @Description:
+;   A peripheral unintendedly writes to the TriCore data scratch-pad RAM. In this
+;   case the TriCore CPU will break. This example is only for illustrating the
+;   usage of the MCDS.SOURCE.Set commands. Using OCTL for MCDS trigger programming
+;   is preferred.
+; @Keywords: Infineon, LMB, MCDS, MCDS.SOURCE.Set, TriCore
+; @Author: MAX
+; @Chip: TC1797ED
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: trigger_lmb_write.cmm 10058 2016-09-30 16:52:43Z mobermaier $
+
+PRIVATE &ldram_address
+&ldram_address="D:0xD000A1EC++0x00000003" ; address in LDRAM
+
+MCDS.CLEAR                             ; delete other settings
+MCDS.Set LMB.EAddr0 &ldram_address     ; pretrigger on address
+MCDS.Set LMB.ACCess0 /Write            ; pretrigger on write
+MCDS.Set LMB.EVT0 EAddr0               ; ETV0 will AND both
+MCDS.Set LMB.EVT0 ACCess0              ; pretriggers
+MCDS.Set LMB.ACT MCX_TRG0 aisAUTO EVT0
+
+MCDS.SOURCE.NONE                       ; disable defaults
+MCDS.Set LMB.ACT DTU_WADR aisAUTO EVT0 ; show details of the
+MCDS.Set LMB.ACT DTU_WDAT aisAUTO EVT0 ; illegal LMB write
+
+MCDS.Set LMB.ACT MCX_TRG0 aisAUTO EVT0  ; route trigger to MCX
+MCDS.Set MCX.EVT0 LMB_TRG0              ; get trigger in MCX
+MCDS.Set MCX.ACT BREAK_OUT aisAUTO EVT0 ; generate break signal
+
+; enable TriCore to break on MCDS event
+TrOnchip.BreakOUT MCDS BreakBus0
+TrOnchip.BreakIN TriCore BreakBus0
+TrOnchip.EXTernal ON

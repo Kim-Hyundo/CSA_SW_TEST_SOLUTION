@@ -1,0 +1,41 @@
+; --------------------------------------------------------------------------------
+; @Title: Setup CoreSight components for MSR1.
+; @Description:
+;   Setup CoreSight components for MSR1.
+;
+;   Usage examples:
+;     DO coresight_enable
+;     DO coresight_enable "TPIU_CLK_DIV=4."
+;
+; @Keywords: ARM, MSR1-CR7, MSR1-ARPU
+; @Author: ALI
+; @Chip: MSR1*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: coresight_enable.cmm 14794 2019-08-12 13:22:33Z alintner $
+
+PRIVATE &parameters &tpiu_clk_div
+PARAMETERS &parameters
+
+&tpiu_clk_div=STRing.SCANAndExtract("&parameters","TPIU_CLK_DIV=","8.")
+
+Data.Set EAHB:0x41700100 %Long 0xC0000000 ; PRCCAPBCR
+Data.Set EAHB:0x41700118 %Long 0xC0000000 ; DAPAPBCR
+Data.Set EAHB:0x4170011C %Long 0xC0000000 ; DBGAPBCR
+Data.Set EAHB:0x41700120 %Long 0xC0000000 ; DGBATBCR
+
+IF &tpiu_clk_div==1.
+  Data.Set EAHB:0x41700124 %Long 0xC0000000 ; DBGTRCCR - TPIU clock division selector = 1
+ELSE IF &tpiu_clk_div==2.
+  Data.Set EAHB:0x41700124 %Long 0xC0000001 ; DBGTRCCR - TPIU clock division selector = 2
+ELSE IF &tpiu_clk_div==4.
+  Data.Set EAHB:0x41700124 %Long 0xC0000003 ; DBGTRCCR - TPIU clock division selector = 4
+ELSE IF &tpiu_clk_div==8.
+  Data.Set EAHB:0x41700124 %Long 0xC0000007 ; DBGTRCCR - TPIU clock division selector = 8
+ELSE
+  PRINT %WARNING "Unsupported TPIU clock division selector &(tpiu_clk_div)"
+
+Data.Set EAHB:0x41700A24 %Long 0xFF000000 ; G1LOWEMIR - disable low emission for trace pins
+Data.Set EAHB:0x41700840 %Long 0xC03fffff ; TRACEPADCR - enable trace pins
+
+ENDDO

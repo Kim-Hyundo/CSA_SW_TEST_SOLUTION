@@ -1,0 +1,53 @@
+; --------------------------------------------------------------------------------
+; @Title: Innovator 1510 development kit startup script
+; @Description: Innovator 1510 development kit startup script.
+; @Keywords: OMAP
+; @Author: PEG
+; @Board: Innovator 1510
+; @Chip: OMAP1510
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: innovator.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+;
+
+SYStem.CPU OMAP1510
+IF CPUFAMILY()=="ARM"
+(
+  SYStem.Mode Attach
+  IF STATE.RUN()
+    Break.direct
+  ; r.s r13 0x10010000
+  ; r.s cpsr 0x600000d3 
+)
+ELSE
+(
+  ENDDO
+)
+
+;*** Put in 1510 mode*/
+Data.Set 0xFFFE100C %LE %Long 0x0000EAEF
+
+;*** Set bits 27, 24 and 21 in FUNC_MUX_CONTROL_4 */
+Data.Set 0xFFFE1014 %LE %Long 0x09200000
+
+;*** Set bits 27, 24, 18, 15, 12, 9, 6, 3, and 0 in FUNC_MUX_CONTROL_5
+Data.Set 0xFFFE1018 %LE %Long 0x09249249 
+
+;Disable compression
+; to.tc OFF
+
+;set up memory interfaces
+Data.Set 0xFFFECC10 %LE %Long 0x000203339 		; EMIFS (nCS0) 
+Data.Set 0xFFFECC14 %LE %Long 0x000001139 		; EMIFS (nCS1) 
+Data.Set 0xFFFECC18 %LE %Long 0x000001139 		; EMIFS (nCS2) 
+Data.Set 0xFFFECC1C %LE %Long 0x000001139		; EMIFS (nCS3) 
+Data.Set 0xFFFECC20 %LE %Long 0x000010074 		; EMIFF (nCS4)
+Data.Set 0xFFFECC24 %LE %Long 0x000000037 		; MRS (nCS4)
+  
+;Disable Watchdog timer
+Data.Set 0xFFFEC808 %LE %Word 0x00F5
+Data.Set 0xFFFEC808 %LE %Word 0x00A0
+  
+ENDDO

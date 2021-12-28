@@ -1,0 +1,131 @@
+; --------------------------------------------------------------------------------
+; @Title: WinCE 5.0 Demo for TRACE32 OS Awareness on DBPXA250 Board
+; @Description: 
+;   
+;   This batchfile demonstrates the use of the OS Awareness for WinCE
+;   
+;   The example is generated for an intel DBPXA250 board using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   WinCE is assumed to reside in the onboard flash.
+;   See flash.cmm on how to program the flash.
+;   
+;   
+; @Keywords: awareness, Windows
+; @Author: DIE
+; @Board: DBPXA250
+; @Chip: PXA250
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: wince.cmm 15236 2019-11-08 07:27:03Z bschroefel $
+
+;   Created by Rudi Dienstbeck / Lauterbach GmbH at 07.02.2003
+
+; Starting WinCE example with TRACE32:
+; - Set S15 to DOT position
+; - Start TRACE32
+; - TRACE32: do wince
+; - on WinCE: start "ping.exe"
+
+; For EBoot communication:
+; Hyperterminal on FFUART (J43):
+; 38400, 8N1N
+
+ SCREEN.ON
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 26. 75. 8. 0. 0. W000
+ AREA.view
+ 
+ PRINT "resetting..."
+
+ SYStem.Down
+ TASK.RESet
+ Break.Delete
+ MAP.RESet
+ sYmbol.RESet
+ TRANSlation.RESet
+ GROUP.RESet
+
+; setup of ICD
+ 
+ PRINT "initializing..."
+ SYStem.CPU PXA250
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ SYStem.Option DynVector ON     ; WinCE reprograms vector table
+ TrOnchip.Set DABORT OFF        ; used by wince for page miss!
+ TrOnchip.Set PABORT OFF        ; used by wince for page miss!
+ TrOnchip.Set UNDEF OFF         ; used to detect not present FPU
+ SYStem.Option MMUSpaces ON     ; enable space ids to virtual addresses
+ SYStem.Up
+ 
+ SETUP.IMASKASM ON      ; block interrupts on assembler steps
+ SETUP.IMASKHLL OFF     ; allow interrupts on HLL steps
+
+; WinCE runs in flash --> use only Onchip Breakpoints
+ MAP.BOnchip 0--0x1ffffff
+ MAP.BOnchip 98300000++0x1ffffff
+ 
+; Load and Relocate Symbols of WinCE kernel (nk)
+
+; The WinCE Awareness needs the symbols contained in nk.exe!
+; Use the nk.exe file, which you used to build your WinCE system
+; (which resides in your build directory).
+; Please refer to the Windows CE Awareness Manual on how to download
+; and relocate kernel symbols
+
+ PRINT "loading kernel symbols..."
+ DO ../nk PCA1
+ DO loadnk
+ 
+; Run over MMU initialization
+
+ Go ARMInit     ; at this point the vector table is switched
+ PRINT "wait for init..."
+ WAIT !STATE.RUN()
+ 
+; Switch on debugger address translation
+ TRANSlation.COMMON 0x80000000--0xffffffff
+ TRANSlation.ON
+ SYStem.Option DynVector OFF        ; no longer needed; speed!
+
+; We'd like to see something, open a code window.
+ WinPOS 0. 0. 77. 22. 13. 1. W001
+ List.auto
+ 
+; Initialize RTOS Support
+
+ PRINT "initializing WinCE support..."
+ TASK.CONFIG ../wince       ; loads WinCE awareness (wince.t32)
+ MENU.ReProgram ../wince    ; loads WinCE menu (wince.men)
+ HELP.FILTER.Add rtoswince  ; add WinCE awareness manual to help
+ 
+; Group kernel area to be displayed with red bar
+
+ GROUP.Create "kernel" 0x80000000--0xffffffff /RED
+
+; Now let's boot and start WinCE!
+ 
+ PRINT "booting WinCE..."
+ Go
+ &count=25.
+ WHILE &count!=0
+ (
+    WAIT 1.s
+    PRINT &count
+    &count=&count-1
+ )
+ Break
+ 
+
+; --------------------------------------------------------------------------------
+; Application Debugging
+; e.g. "ping"
+
+ DO ../app_debug ping
+
+ ENDDO
+

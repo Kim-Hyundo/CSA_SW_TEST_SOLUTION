@@ -1,0 +1,54 @@
+;-----------------------------------------------------------------------------------
+; @Title: Simple sieve demo over SWD running from SRAM for IAR STM32F207ZG board
+; @Description:
+;   This is a small demo how to setup a SWD debug session on Cortex-M3
+;   for STM32F2xx derivatives. The sieve demo is loaded on SRAM.
+;
+; @Keywords: Cortex-M3, debug, STM32, SWD
+; @Author: HDA
+; @Board: IAR STM32F207ZG
+; @Chip: STM32F2*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: iar_stm32f207zg_sieve_sram_swd.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; memory map
+; 0x00000000 1024kB FLASH (aliased from 0x08000000)
+; 0x20000000  128kB SRAM
+
+; Basic setup
+  RESet
+  Break.Reset
+  SYStem.RESet
+  MAP.DENYACCESS 0x20020000--0x3FFFFFFF
+  SYStem.CPU STM32F207ZG
+  SYStem.CONFIG DEBUGPORTTYPE SWD
+  SYStem.CONFIG CONNECTOR MIPI20T
+  SYStem.Up
+
+  Data.LOAD.auto ~~~~/demo_sram.axf
+  Register.Set PC main
+  Register.Set R13 0x2000C000
+
+  Go.direct
+
+  ; open some windows
+  WinCLEAR
+
+  WinPOS 0% 0% 50% 50%
+  List.auto
+
+  WinPOS 50% 0% 50% 50%
+  Register.view /SpotLight
+
+  WinPOS 0% 50% 50% 30%
+  Frame /Locals /Caller
+
+  WinPOS 0% 80% 50% 20%
+  Var.Watch %E %SpotLight.on flags
+  Var.AddWatch ast
+
+  WinPOS 50% 50% 50% 50%
+  Var.DRAW sinewave
+
+  ENDDO

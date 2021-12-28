@@ -1,0 +1,134 @@
+; --------------------------------------------------------------------------------
+; @Title: AR1443/AR1642(TI) EVM QSPI FLASH Program script
+; @Description:
+;   SRAM: 0x200000
+;   FLASH: S25FL116K (2MBytes)
+;   QSPI Base Register Address : 0xC0800000 , CS0
+;   Prerequisites:
+;
+; @Keywords: QSPI
+; @Props: Template Confidential
+; @Author: JIM
+; @Board: AR1443EVM AR1632EVM
+; @Chip: AR1443 AR1642
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: ar1xxx-snor.cmm 7577 2019-10-30 15:30:31Z bschroefel $
+
+&QSPI_BASE=0xC0800000
+&RAM_BASE=0x200000
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+PRIVATE &param_prepareonly
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+
+PRIVATE &param_cpu
+&param_cpu=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CPU=","")
+
+; ------------------------------------------------------------------------------
+; Start debugging
+IF !SYStem.UP()
+(
+  SYStem.RESet
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  ELSE
+    SYStem.CPU AR1443-CORE0
+
+  SYStem.CONFIG.DEBUGPORTTYPE JTAG
+
+  SYStem.Up
+)
+
+; try to cleanup the cores state - Supervisor, MPU off
+Register.Init
+Data.Set C15:0x1 %Long 0xE70878
+
+// IOMUX for QSPI flash
+Data.Set A:0xFFFFEBF8  %LE %Long 0x83E70B13   ; IOCFGKICK0, unlock
+Data.Set A:0xFFFFEBFC  %LE %Long 0x95A4F1E0   ; IOCFGKICK1, unlock
+
+Data.Set A:0xFFFFEA2C %LE %Long 0x81   ;QSPI[0]
+Data.Set A:0xFFFFEA30 %LE %Long 0x81   ;QSPI[1]
+Data.Set A:0xFFFFEA34 %LE %Long 0x281  ;QSPI[2]
+Data.Set A:0xFFFFEA38 %LE %Long 0x281  ;QSPI[3]
+Data.Set A:0xFFFFEA3C %LE %Long 0x081  ;QSPI_CLK
+Data.Set A:0xFFFFEA40 %LE %Long 0x281  ;QSPI_CS
+
+
+Data.Set A:&QSPI_BASE+0x040 %LE %Long 0x80000009;SPI_CLOCK_CNTRL, SPI Clock Control Register
+Data.Set A:&QSPI_BASE+0x054 %LE %Long 0x20203   ;SPI_SETUP0, Memory Mapped SPI Setup0
+Data.Set A:&QSPI_BASE+0x058 %LE %Long 0x20203   ;SPI_SETUP1
+Data.Set A:&QSPI_BASE+0x05C %LE %Long 0x20203   ;SPI_SETUP2
+Data.Set A:&QSPI_BASE+0x060 %LE %Long 0x20203   ;SPI_SETUP3
+Data.Set A:&QSPI_BASE+0x064 %LE %Long 0x1       ;SPI_SWITCH, Enabled the Memory mapped the QSPI at 0xC000_0000
+
+;GOSUB READ_ID_TEST
+
+; ------------------------------------------------------------------------------
+; Flash declaration
+
+FLASH.RESet
+GOSUB FlashDeclaration
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; ------------------------------------------------------------------------------
+; Flash programming example
+
+DIALOG.YESNO "Program flash memory?"
+LOCAL &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram.ALL /Erase
+  Data.LOAD.auto *
+  FLASH.ReProgram.off
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+)
+
+ENDDO
+
+READ_ID_TEST:
+(
+  &QSPI_CMD_REG=&QSPI_BASE+0x48
+  &QSPI_DAT_REG=&QSPI_BASE+0x50
+  &QSPI_STAT_REG=&QSPI_BASE+0x4C
+
+  &RE=(0x1<<16.)  ; read
+  &WR=(0x2<<16.)  ; write
+  &END=(0x4<<16.) ;
+  &cmd_reg_def=0x0|(0x7<<19.)|(0x0<<28.)|0xFFF ;
+
+  Data.Set A:&QSPI_DAT_REG %Long 0x9F              ;write data reg
+  Data.Set A:&QSPI_CMD_REG %Long (&cmd_reg_def|&WR);cmd reg
+  //print "status 0x" data.long(A:&QSPI_STAT_REG)  ;read status reg
+
+  Data.Set A:&QSPI_CMD_REG %Long (&cmd_reg_def|&RE)                   ;cmd reg
+  PRINT "read 1st 0x" Data.Long(A:&QSPI_DAT_REG)  " (manufacture ID)" ; read data reg
+
+  Data.Set A:&QSPI_CMD_REG %Long (&cmd_reg_def|&RE)             ;cmd reg
+  PRINT "read 2nd 0x" Data.Long(A:&QSPI_DAT_REG) " (device ID)" ; read data reg
+
+  Data.Set A:&QSPI_CMD_REG %Long (&cmd_reg_def|&RE);cmd reg
+  PRINT "read 3rd 0x" Data.Long(A:&QSPI_DAT_REG)  ; read data reg
+
+  Data.Set A:&QSPI_BASE+0x48 %Long (&cmd_reg_def|&END)
+  WAIT 100.ms
+
+  RETURN
+)
+
+FlashDeclaration:
+(
+  FLASH.Create   0xC0000000++0x01fffff    0x10000   TARGET   Byte
+  FLASH.TARGET   &RAM_BASE   &RAM_BASE+0x2000    0x1000   ~~/demo/arm/flash/byte/snor3b_ar1xxx.bin
+  RETURN
+)

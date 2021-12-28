@@ -1,0 +1,514 @@
+/***************************************************************************
+ *
+ * ORTI: Declaration Section SMP Version ("2.3")
+ *
+ **************************************************************************/
+VERSION {
+  KOIL = "2.3";
+  OSSEMANTICS = "ORTI", "2.3";
+};
+
+IMPLEMENTATION ERIKA3 {
+  OS {
+    CTYPE "int" vs_SMP_NUMCPU, "Number of CPUs";
+
+    /* Here for each task a small description and its pointer */
+    TOTRACE ENUM "void *" [
+      "system_timer_cpu0" = "&osEE_tdb_array_core0[0U]",
+      "Cpu0Task1" = "&osEE_tdb_array_core0[1U]",
+      "Cpu0Task2" = "&osEE_tdb_array_core0[2U]",
+      "Cpu0Task3" = "&osEE_tdb_array_core0[3U]",
+      "Cpu0Task4" = "&osEE_tdb_array_core0[4U]",
+      "Cpu0Task5" = "&osEE_tdb_array_core0[5U]",
+      "system_timer_cpu1" = "&osEE_tdb_array_core1[0U]",
+      "Cpu1Task1" = "&osEE_tdb_array_core1[1U]",
+      "Cpu1Task2" = "&osEE_tdb_array_core1[2U]",
+      "Cpu1Task3" = "&osEE_tdb_array_core1[3U]",
+      "Cpu1Task4" = "&osEE_tdb_array_core1[4U]",
+      "Cpu1Task5" = "&osEE_tdb_array_core1[5U]",
+      "system_timer_cpu2" = "&osEE_tdb_array_core2[0U]",
+      "Cpu2Task1" = "&osEE_tdb_array_core2[1U]",
+      "Cpu2Task2" = "&osEE_tdb_array_core2[2U]",
+      "Cpu2Task3" = "&osEE_tdb_array_core2[3U]",
+      "Idle_Core0" = "&osEE_tdb_array_core0[6U]",
+      "Idle_Core1" = "&osEE_tdb_array_core1[6U]",
+      "Idle_Core2" = "&osEE_tdb_array_core2[4U]"
+    ] RUNNINGTASK[], "Running Task or ISR2 Identification";
+
+    ENUM  [ 
+      "BASIC" = 0,
+      "EXTENDED" = 1,
+      "ISR2" = 2,
+      "IDLE" = 3
+    ] RUNNININGTYPE[], "Running Entity Type";
+
+    ENUM "unsigned char" [
+      "Not Running (0)" = 0,
+      "1" = 1,
+      "2" = 2,
+      "ISR2 2" = 129
+    ] RUNNINGPRIORITY[], "Priority of Running Task";
+
+    TOTRACE ENUM "int" [
+      "ActivateTask" = 0,
+      "TerminateTask" = 2,
+      "ChainTask" = 4,
+      "Schedule" = 6,
+      "GetTaskID" = 8,
+      "GetTaskState" = 10,
+      "DisableAllInterrupts" = 12,
+      "EnableAllInterrupts" = 14,
+      "SuspendAllInterrupts" = 16,
+      "ResumeAllInterrupts" = 18,
+      "SuspendOSInterrupts" = 20,
+      "ResumeOSInterrupts" = 22,
+      "SetEvent" = 28,
+      "ClearEvent" = 30,
+      "GetEvent" = 32,
+      "WaitEvent" = 34,
+      "GetAlarmBase" = 36,
+      "GetAlarm" = 38,
+      "SetRelAlarm" = 40,
+      "SetAbsAlarm" = 42,
+      "CancelAlarm" = 44,
+      "IncrementCounter" = 46,
+      "GetCounterValue" = 48,
+      "GetElapsedValue" = 50,
+      "GetActiveApplicationMode" = 70,
+      "ShutdownOS" = 72,
+      "StartOS" = 74,
+      "ShutdownAllCores" = 76,
+      "TaskBody" = 78,
+      "ISR2Body" = 80,
+      "Action" = 82,
+      "Kernel" = 84,
+      "Invalid" = 86
+    ] SERVICETRACE[], "OS Services Watch";
+
+    /* Please note int and not unsigned char */
+    ENUM "int" [
+      "E_OK" = 0,
+      "E_OS_ACCESS" = 1,
+      "E_OS_CALLEVEL" = 2,
+      "E_OS_ID" = 3,
+      "E_OS_LIMIT" = 4,
+      "E_OS_NOFUNC" = 5,
+      "E_OS_RESOURCE" = 6,
+      "E_OS_STATE" = 7,
+      "E_OS_VALUE" = 8,
+      "E_OS_SERVICEID" = 9,
+      "E_OS_ILLEGAL_ADDRESS" = 10,
+      "E_OS_MISSINGEND" = 11,
+      "E_OS_DISABLEDINT" = 12,
+      "E_OS_STACKFAULT" = 13,
+      "E_OS_PARAM_POINTER" = 14,
+      "E_OS_PROTECTION_MEMORY" = 15,
+      "E_OS_PROTECTION_TIME" = 16,
+      "E_OS_PROTECTION_ARRIVAL" = 17,
+      "E_OS_PROTECTION_LOCKED" = 18,
+      "E_OS_PROTECTION_EXCEPTION" = 19,
+      "E_OS_SPINLOCK" = 20,
+      "E_OS_INTERFERENCE_DEADLOCK" = 21,
+      "E_OS_NESTING_DEADLOCK" = 22,
+      /* Multicore */
+      "E_OS_CORE" = 23,
+      /* Implementation specific errors: they must start with E_OS_SYS_ */
+      /* Error during StartOS */
+      "E_OS_SYS_INIT" = 24,
+      "E_OS_SYS_SUSPEND_NESTING_LIMIT" = 25,
+      /* Error Codes for Dynamic APIs */
+      "E_OS_SYS_TASK" = 26,
+      "E_OS_SYS_STACK" = 27,
+      "E_OS_SYS_ACT" = 28
+    ] LASTERROR[], "Last error";
+
+    ENUM "unsigned char" [
+      "OSDEFAULTAPPMODE" = 0
+    ] CURRENTAPPMODE[], "Current application mode";
+  }, "OS";
+
+  TASK {
+    ENUM [
+      "OS_CORE_ID_0" = "0",
+      "OS_CORE_ID_1" = "1",
+      "OS_CORE_ID_2" = "2"
+    ] CORE_ID, "Core ID";
+    ENUM "unsigned char" [
+      "Idle (0)" = 0,
+      "1" = 1,
+      "2" = 2,
+      "ISR2 2" = 129
+    ] PRIORITY , "Current priority";
+    ENUM [
+      "SUSPENDED" = 0,
+      "READY"     = 1,
+      "READY"     = 2, /* OSEE_TASK_READY_STACKED */
+      "WAITING"   = 3,
+      "RUNNING"   = 4,
+      "RUNNING"   = 5  /* OSEE_TASK_CHAINED */
+    ] STATE, "Task State";
+    CTYPE "unsigned int" EVENTMASK, "Event Mask";
+    CTYPE "unsigned int" WAITMASK, "Wait Mask";
+    ENUM "unsigned int" [
+      "Stack Cpu0Task1" : Stack_Cpu0Task1 = "1",
+      "Stack Cpu0Task2" : Stack_Cpu0Task2 = "2",
+      "System Stack Core0" : System_Stack_Core0 = "3"
+      "Stack Cpu1Task1" : Stack_Cpu1Task1 = "4",
+      "Stack Cpu1Task2" : Stack_Cpu1Task2 = "5",
+      "System Stack Core1" : System_Stack_Core1 = "6"
+      "Stack Cpu2Task1" : Stack_Cpu2Task1 = "7",
+      "Stack Cpu2Task2" : Stack_Cpu2Task2 = "8",
+      "Stack Cpu2Task3" : Stack_Cpu2Task3 = "9",
+      "System Stack Core2" : System_Stack_Core2 = "10"
+    ] STACK, "Task Stack";
+    CTYPE "int" CURRENTACTIVATIONS, "Current activations";
+  }, "TASKs";
+
+  ISR2 {
+    ENUM [
+      "OS_CORE_ID_0" = "0",
+      "OS_CORE_ID_1" = "1",
+      "OS_CORE_ID_2" = "2"
+    ] CORE_ID, "Core ID";
+    ENUM "unsigned char" [
+      "Idle (0)" = 0,
+      "ISR2 2" = 129
+    ] PRIORITY , "Current priority";
+    ENUM [
+      "SUSPENDED" = 0,
+      "READY"     = 1,
+      "READY"     = 2, /* OSEE_TASK_READY_STACKED */
+      "RUNNING"   = 4,
+    ] STATE, "Task State";
+    ENUM "unsigned int" [
+      "System Stack Core0" : System_Stack_Core0 = "3"
+      "System Stack Core1" : System_Stack_Core1 = "6"
+      "System Stack Core2" : System_Stack_Core2 = "10"
+    ] STACK, "ISR2 Stack";
+  }, "ISR2s";
+
+  STACK {
+    ENUM [
+      "OS_CORE_ID_0" = "0",
+      "OS_CORE_ID_1" = "1",
+      "OS_CORE_ID_2" = "2"
+    ] CORE_ID, "Core ID";
+    CTYPE SIZE, "Stack Size (Byte)";
+    CTYPE "unsigned int *" BASEADDRESS, "Base Address";
+    STRING STACKDIRECTION, "Stack Direction";
+    CTYPE "unsigned int" FILLPATTERN, "Stack Fill Pattern";
+  }, "Stacks";
+
+  ALARM {
+    ENUM [
+      "OS_CORE_ID_0" = "0",
+      "OS_CORE_ID_1" = "1",
+      "OS_CORE_ID_2" = "2"
+    ] CORE_ID, "Core ID";
+    CTYPE "unsigned int" ALARMTIME, "Alarm Time"; /* EE_TYPETICK */
+    CTYPE "unsigned int" CYCLETIME, "Cycle Time"; /* EE_TYPETICK */
+    ENUM [
+      "INACTIVE"  = 0,
+      "CANCELED"  = 1,
+      "ACTIVE"    = 2,
+      "EXPIRED"   = 3,
+      "REENABLED" = 4
+    ] STATE, "Alarm state";
+    STRING ACTION, "Action";
+    STRING COUNTER, "Counter";
+    CTYPE "unsigned int" COUNTERVALUE, "Counter Value";
+  }, "Alarms";
+}; /* END OF IMPLEMENTATION */
+
+/******************************************************************************
+ *
+ * ORTI: Information Section
+ *
+ *****************************************************************************/
+OS ERIKA3 {
+  vs_SMP_NUMCPU = "3"; /* SMP system */
+  RUNNINGTASK[0] = "osEE_ccb_var_core0.p_curr"; /* Running TASK or ISR2 of core 0 */
+  RUNNININGTYPE[0] = "osEE_ccb_var_core0.p_curr->task_type";
+  RUNNINGPRIORITY[0] = "osEE_ccb_var_core0.p_curr->p_tcb->current_prio";
+  SERVICETRACE[0] = "osEE_ccb_var_core0.service_id";
+  LASTERROR[0] = "osEE_ccb_var_core0.last_error";
+  RUNNINGTASK[1] = "osEE_ccb_var_core1.p_curr"; /* Running TASK or ISR2 of core 1 */
+  RUNNININGTYPE[1] = "osEE_ccb_var_core1.p_curr->task_type";
+  RUNNINGPRIORITY[1] = "osEE_ccb_var_core1.p_curr->p_tcb->current_prio";
+  SERVICETRACE[1] = "osEE_ccb_var_core1.service_id";
+  LASTERROR[1] = "osEE_ccb_var_core1.last_error";
+  RUNNINGTASK[2] = "osEE_ccb_var_core2.p_curr"; /* Running TASK or ISR2 of core 2 */
+  RUNNININGTYPE[2] = "osEE_ccb_var_core2.p_curr->task_type";
+  RUNNINGPRIORITY[2] = "osEE_ccb_var_core2.p_curr->p_tcb->current_prio";
+  SERVICETRACE[2] = "osEE_ccb_var_core2.service_id";
+  LASTERROR[2] = "osEE_ccb_var_core2.last_error";
+  CURRENTAPPMODE = "osEE_ccb_var_core0.app_mode";
+};
+
+/* TASKs & ISR2 */
+ISR2 system_timer_cpu0 {
+  CORE_ID  = "(0)";
+  PRIORITY = "osEE_tcb_array_core0[0].current_prio";
+  STATE = "osEE_tcb_array_core0[0].status";
+  STACK = "(3)";
+};
+
+TASK Cpu0Task1 {
+  CORE_ID  = "(0)";
+  PRIORITY = "osEE_tcb_array_core0[1].current_prio";
+  STATE = "osEE_tcb_array_core0[1].status";
+  CURRENTACTIVATIONS = "osEE_tcb_array_core0[1].current_num_of_act";  /* 1 = max activations */
+  STACK = "(1)";
+};
+
+TASK Cpu0Task2 {
+  CORE_ID  = "(0)";
+  PRIORITY = "osEE_tcb_array_core0[2].current_prio";
+  STATE = "osEE_tcb_array_core0[2].status";
+  CURRENTACTIVATIONS = "osEE_tcb_array_core0[2].current_num_of_act";  /* 1 = max activations */
+  STACK = "(2)";
+};
+
+TASK Cpu0Task3 {
+  CORE_ID  = "(0)";
+  PRIORITY = "osEE_tcb_array_core0[3].current_prio";
+  STATE = "osEE_tcb_array_core0[3].status";
+  CURRENTACTIVATIONS = "osEE_tcb_array_core0[3].current_num_of_act";  /* 1 = max activations */
+  STACK = "(3)";
+};
+
+TASK Cpu0Task4 {
+  CORE_ID  = "(0)";
+  PRIORITY = "osEE_tcb_array_core0[4].current_prio";
+  STATE = "osEE_tcb_array_core0[4].status";
+  CURRENTACTIVATIONS = "osEE_tcb_array_core0[4].current_num_of_act";  /* 1 = max activations */
+  STACK = "(3)";
+};
+
+TASK Cpu0Task5 {
+  CORE_ID  = "(0)";
+  PRIORITY = "osEE_tcb_array_core0[5].current_prio";
+  STATE = "osEE_tcb_array_core0[5].status";
+  CURRENTACTIVATIONS = "osEE_tcb_array_core0[5].current_num_of_act";  /* 1 = max activations */
+  STACK = "(3)";
+};
+
+ISR2 system_timer_cpu1 {
+  CORE_ID  = "(1)";
+  PRIORITY = "osEE_tcb_array_core1[0].current_prio";
+  STATE = "osEE_tcb_array_core1[0].status";
+  STACK = "(6)";
+};
+
+TASK Cpu1Task1 {
+  CORE_ID  = "(1)";
+  PRIORITY = "osEE_tcb_array_core1[1].current_prio";
+  STATE = "osEE_tcb_array_core1[1].status";
+  CURRENTACTIVATIONS = "osEE_tcb_array_core1[1].current_num_of_act";  /* 1 = max activations */
+  STACK = "(4)";
+};
+
+TASK Cpu1Task2 {
+  CORE_ID  = "(1)";
+  PRIORITY = "osEE_tcb_array_core1[2].current_prio";
+  STATE = "osEE_tcb_array_core1[2].status";
+  CURRENTACTIVATIONS = "osEE_tcb_array_core1[2].current_num_of_act";  /* 1 = max activations */
+  STACK = "(5)";
+};
+
+TASK Cpu1Task3 {
+  CORE_ID  = "(1)";
+  PRIORITY = "osEE_tcb_array_core1[3].current_prio";
+  STATE = "osEE_tcb_array_core1[3].status";
+  CURRENTACTIVATIONS = "osEE_tcb_array_core1[3].current_num_of_act";  /* 1 = max activations */
+  STACK = "(6)";
+};
+
+TASK Cpu1Task4 {
+  CORE_ID  = "(1)";
+  PRIORITY = "osEE_tcb_array_core1[4].current_prio";
+  STATE = "osEE_tcb_array_core1[4].status";
+  CURRENTACTIVATIONS = "osEE_tcb_array_core1[4].current_num_of_act";  /* 1 = max activations */
+  STACK = "(6)";
+};
+
+TASK Cpu1Task5 {
+  CORE_ID  = "(1)";
+  PRIORITY = "osEE_tcb_array_core1[5].current_prio";
+  STATE = "osEE_tcb_array_core1[5].status";
+  CURRENTACTIVATIONS = "osEE_tcb_array_core1[5].current_num_of_act";  /* 1 = max activations */
+  STACK = "(6)";
+};
+
+ISR2 system_timer_cpu2 {
+  CORE_ID  = "(2)";
+  PRIORITY = "osEE_tcb_array_core2[0].current_prio";
+  STATE = "osEE_tcb_array_core2[0].status";
+  STACK = "(10)";
+};
+
+TASK Cpu2Task1 {
+  CORE_ID  = "(2)";
+  PRIORITY = "osEE_tcb_array_core2[1].current_prio";
+  STATE = "osEE_tcb_array_core2[1].status";
+  CURRENTACTIVATIONS = "osEE_tcb_array_core2[1].current_num_of_act";  /* 1 = max activations */
+  STACK = "(7)";
+};
+
+TASK Cpu2Task2 {
+  CORE_ID  = "(2)";
+  PRIORITY = "osEE_tcb_array_core2[2].current_prio";
+  STATE = "osEE_tcb_array_core2[2].status";
+  CURRENTACTIVATIONS = "osEE_tcb_array_core2[2].current_num_of_act";  /* 1 = max activations */
+  STACK = "(8)";
+};
+
+TASK Cpu2Task3 {
+  CORE_ID  = "(2)";
+  PRIORITY = "osEE_tcb_array_core2[3].current_prio";
+  STATE = "osEE_tcb_array_core2[3].status";
+  CURRENTACTIVATIONS = "osEE_tcb_array_core2[3].current_num_of_act";  /* 1 = max activations */
+  STACK = "(9)";
+};
+
+/* Stacks */
+STACK Stack_Cpu0Task1 {
+  CORE_ID  = "(0)";
+  SIZE = "128";
+  STACKDIRECTION = "DOWN";
+  BASEADDRESS = "&osEE_task_stack_1[0]";
+  FILLPATTERN = "0xA5A5A5A5";
+};
+
+STACK Stack_Cpu0Task2 {
+  CORE_ID  = "(0)";
+  SIZE = "128";
+  STACKDIRECTION = "DOWN";
+  BASEADDRESS = "&osEE_task_stack_2[0]";
+  FILLPATTERN = "0xA5A5A5A5";
+};
+
+STACK System_Stack_Core0 {
+  CORE_ID  = "(0)";
+  SIZE = "(unsigned int)_lc_ue_ustack_tc0 - (unsigned int)_lc_ub_ustack_tc0";
+  STACKDIRECTION = "DOWN";
+  BASEADDRESS = "_lc_ub_ustack_tc0";
+  FILLPATTERN = "0xA5A5A5A5";
+};
+
+STACK Stack_Cpu1Task1 {
+  CORE_ID  = "(1)";
+  SIZE = "128";
+  STACKDIRECTION = "DOWN";
+  BASEADDRESS = "&osEE_task_stack_4[0]";
+  FILLPATTERN = "0xA5A5A5A5";
+};
+
+STACK Stack_Cpu1Task2 {
+  CORE_ID  = "(1)";
+  SIZE = "128";
+  STACKDIRECTION = "DOWN";
+  BASEADDRESS = "&osEE_task_stack_5[0]";
+  FILLPATTERN = "0xA5A5A5A5";
+};
+
+STACK System_Stack_Core1 {
+  CORE_ID  = "(1)";
+  SIZE = "(unsigned int)_lc_ue_ustack_tc1 - (unsigned int)_lc_ub_ustack_tc1";
+  STACKDIRECTION = "DOWN";
+  BASEADDRESS = "_lc_ub_ustack_tc1";
+  FILLPATTERN = "0xA5A5A5A5";
+};
+
+STACK Stack_Cpu2Task1 {
+  CORE_ID  = "(2)";
+  SIZE = "128";
+  STACKDIRECTION = "DOWN";
+  BASEADDRESS = "&osEE_task_stack_7[0]";
+  FILLPATTERN = "0xA5A5A5A5";
+};
+
+STACK Stack_Cpu2Task2 {
+  CORE_ID  = "(2)";
+  SIZE = "128";
+  STACKDIRECTION = "DOWN";
+  BASEADDRESS = "&osEE_task_stack_8[0]";
+  FILLPATTERN = "0xA5A5A5A5";
+};
+
+STACK Stack_Cpu2Task3 {
+  CORE_ID  = "(2)";
+  SIZE = "128";
+  STACKDIRECTION = "DOWN";
+  BASEADDRESS = "&osEE_task_stack_9[0]";
+  FILLPATTERN = "0xA5A5A5A5";
+};
+
+STACK System_Stack_Core2 {
+  CORE_ID  = "(2)";
+  SIZE = "(unsigned int)_lc_ue_ustack_tc2 - (unsigned int)_lc_ub_ustack_tc2";
+  STACKDIRECTION = "DOWN";
+  BASEADDRESS = "_lc_ub_ustack_tc2";
+  FILLPATTERN = "0xA5A5A5A5";
+};
+
+/* Alarms */
+ALARM AlarmCpu0Task1 {
+  CORE_ID   = "(0)";
+  ALARMTIME = "osEE_alarm_cb_array_core0[0].when";
+  CYCLETIME = "osEE_alarm_cb_array_core0[0].cycle";
+  STATE = "osEE_alarm_cb_array_core0[0].status";
+  ACTION = "Activate TASK Cpu0Task1";
+  COUNTER = "system_timer_cpu0";
+  COUNTERVALUE = "osEE_alarm_db_array_core0[0].p_counter_db->p_counter_cb->value";
+};
+
+ALARM AlarmFreeCpu0Task1 {
+  CORE_ID   = "(0)";
+  ALARMTIME = "osEE_alarm_cb_array_core0[1].when";
+  CYCLETIME = "osEE_alarm_cb_array_core0[1].cycle";
+  STATE = "osEE_alarm_cb_array_core0[1].status";
+  ACTION = "Invoke CALLBACK org.eclipse.emf.ecore.impl.DynamicEObjectImpl@6f867602 (eClass: org.eclipse.emf.ecore.impl.EClassImpl@c1fc16c (name: ALARM__ACTION__ALARMCALLBACK__ALARMCALLBACKNAME) (instanceClassName: null) (abstract: false, interface: false))";
+  COUNTER = "system_timer_cpu0";
+  COUNTERVALUE = "osEE_alarm_db_array_core0[1].p_counter_db->p_counter_cb->value";
+};
+
+ALARM AlarmCpu1Task1 {
+  CORE_ID   = "(1)";
+  ALARMTIME = "osEE_alarm_cb_array_core1[0].when";
+  CYCLETIME = "osEE_alarm_cb_array_core1[0].cycle";
+  STATE = "osEE_alarm_cb_array_core1[0].status";
+  ACTION = "Activate TASK Cpu1Task1";
+  COUNTER = "system_timer_cpu1";
+  COUNTERVALUE = "osEE_alarm_db_array_core1[0].p_counter_db->p_counter_cb->value";
+};
+
+ALARM AlarmFreeCpu1Task1 {
+  CORE_ID   = "(1)";
+  ALARMTIME = "osEE_alarm_cb_array_core1[1].when";
+  CYCLETIME = "osEE_alarm_cb_array_core1[1].cycle";
+  STATE = "osEE_alarm_cb_array_core1[1].status";
+  ACTION = "Invoke CALLBACK org.eclipse.emf.ecore.impl.DynamicEObjectImpl@38bca337 (eClass: org.eclipse.emf.ecore.impl.EClassImpl@c1fc16c (name: ALARM__ACTION__ALARMCALLBACK__ALARMCALLBACKNAME) (instanceClassName: null) (abstract: false, interface: false))";
+  COUNTER = "system_timer_cpu1";
+  COUNTERVALUE = "osEE_alarm_db_array_core1[1].p_counter_db->p_counter_cb->value";
+};
+
+ALARM AlarmCpu2Task1 {
+  CORE_ID   = "(2)";
+  ALARMTIME = "osEE_alarm_cb_array_core2[0].when";
+  CYCLETIME = "osEE_alarm_cb_array_core2[0].cycle";
+  STATE = "osEE_alarm_cb_array_core2[0].status";
+  ACTION = "Activate TASK Cpu2Task1";
+  COUNTER = "system_timer_cpu2";
+  COUNTERVALUE = "osEE_alarm_db_array_core2[0].p_counter_db->p_counter_cb->value";
+};
+
+ALARM AlarmFreeCpu2Task1 {
+  CORE_ID   = "(2)";
+  ALARMTIME = "osEE_alarm_cb_array_core2[1].when";
+  CYCLETIME = "osEE_alarm_cb_array_core2[1].cycle";
+  STATE = "osEE_alarm_cb_array_core2[1].status";
+  ACTION = "Invoke CALLBACK org.eclipse.emf.ecore.impl.DynamicEObjectImpl@52398385 (eClass: org.eclipse.emf.ecore.impl.EClassImpl@c1fc16c (name: ALARM__ACTION__ALARMCALLBACK__ALARMCALLBACKNAME) (instanceClassName: null) (abstract: false, interface: false))";
+  COUNTER = "system_timer_cpu2";
+  COUNTERVALUE = "osEE_alarm_db_array_core2[1].p_counter_db->p_counter_cb->value";
+};

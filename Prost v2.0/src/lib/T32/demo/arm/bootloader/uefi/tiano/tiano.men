@@ -1,0 +1,156 @@
+; --------------------------------------------------------------------------------
+; @Title: Additional UEFI Menues
+; @Description: -
+; @Author: DIE
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: uefi.men 3620 2018-09-04 14:23:50Z rweiss $
+
+add
+menu
+(
+
+  
+  
+  popup "&TianoCore"
+
+  (
+
+    popup "&PEI"
+    (
+      menuitem "Display &PEI Modules"       "EXT.PEIModule"
+      menuitem "Display &HOBs"              "EXT.HOB PEI"
+      menuitem "Display &Firmware Volumes"  "EXT.FV PEI"
+
+
+    )
+    popup "&DXE"
+    (
+      menuitem "Display &loaded DXE Drivers"    "EXT.DXEDRiVer"
+      menuitem "Display &HOBs"                  "EXT.HOB DXE"
+      menuitem "Display &Firmware Volumes"      "EXT.FV DXE"
+      menuitem "Display &DXE Modules"           "EXT.DXEModule"
+      menuitem "Display &Protocol Database"     "EXT.PROTocol"
+      menuitem "Display &Configuration Table"   "EXT.ConfigTab"
+
+    )
+
+    separator
+
+    popup "Symbol &Autoloader"
+    (
+        menuitem "List Components"  "sYmbol.AutoLoad.List"
+        menuitem "Check Now!"       "sYmbol.AutoLoad.CHECK"
+        separator
+        menuitem "Set Loader Script"
+        (
+            dialog
+            (
+                header "sYmbol.AutoLoad.CHECKUEFI"
+                pos 0. 0. 40. 3.
+                box "autoload batch script"
+                pos 1. 1. 30. 1
+cmmfile:        edit "autoload.cmm" ""
+                pos 32. 1. 7. 1.
+                button "Browse..."
+                (
+                    dialog.file "*.cmm"
+                    entry %line &file
+                    dialog.set cmmfile "&file"
+                )
+                pos 0. 2.5 40. 3.
+                box "automatic check"
+                pos 1. 3.5 9. 1.
+check.none:     choosebox "none" ""
+                pos 11. 3.5 9. 1.
+check.on:       choosebox "always" ""
+                pos 21. 3.5 11. 1.
+check.ongo:     choosebox "after go/break" ""
+                pos 4. 5.5 8.
+                defbutton "Ok"
+                (
+                    local &log &cmm
+                    &cmm=dialog.string(cmmfile)
+                    sYmbol.AutoLoad.CHECKUEFI "do &cmm "
+                    sYmbol.AutoLoad.CHECK       ; trigger check manually
+                    if dialog.boolean(check.on)
+                        sYmbol.AutoLoad.CHECK ON    ; automatic check enabled
+                    else if dialog.boolean(check.ongo)
+                        sYmbol.AutoLoad.CHECK ONGO  ; automatic check on go/break
+                    else
+                        sYmbol.AutoLoad.CHECK OFF   ; automatic check disabled
+                    dialog.end
+                )
+                pos 16. 5.5 8.
+                button "Cancel" "dialog.end"
+                pos 28. 5.5 8.
+                button "[:manual]Help" "HELP __UEFI_TIANO_.LINK._Symbol_Autoloader" 
+            )
+            dialog.set check.none "TRUE"
+        )
+        separator
+        menuitem "[:manual]Symbol Autoloader Help" "HELP __UEFI_TIANO_.LINK._Symbol_Autoloader" 
+    )
+  )
+  popup "&Help"
+  (
+    MENUITEM "[:manual]UEFI Awareness Manual" "HELP __UEFI_TIANO_" 
+  )
+)
+
+
+menu "ext.peim"
+(
+  default
+  //menuitem "Display detailed"
+  //(
+  //  &magic=address.offset(track.address())
+  //  EXT.PEIModule &magic
+  //)
+  menuitem "Display file header struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %Open.2 (EFI_FFS_FILE_HEADER*)&address
+  )
+  separator
+  menuitem "Load symbols"
+  (
+    &magic=address.offset(track.address())
+    sYmbol.AutoLOAD.CHECK
+    sYmbol.AutoLOAD.TOUCH ext.peim.entry(&magic)
+  )
+  separator
+  menuitem "Dump image entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /Long /dialog
+  )
+)
+
+menu "ext.dxedrv"
+(
+  default
+  menuitem "Display detailed"
+  (
+    &magic=address.offset(track.address())
+    EXT.DXEDRiVer &magic
+  )
+  menuitem "Display image struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %Open.2 (EFI_DEBUG_IMAGE_INFO_NORMAL*)&address
+  )
+  separator
+  menuitem "Load symbols"
+  (
+    &magic=address.offset(track.address())
+    sYmbol.AutoLOAD.CHECK
+    sYmbol.AutoLOAD.TOUCH ext.dxedrv.entry(&magic)
+  )
+  separator
+  menuitem "Dump image entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /Long /dialog
+  )
+)

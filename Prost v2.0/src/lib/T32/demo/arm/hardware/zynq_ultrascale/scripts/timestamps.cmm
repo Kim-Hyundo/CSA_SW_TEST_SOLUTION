@@ -1,0 +1,35 @@
+; --------------------------------------------------------------------------------
+; @Title: Start ETM Timestamp generator on ZYNQ-ULTRASCALE+
+; @Description:
+;   Start ETM Timestamp generator on ZYNQ-ULTRASCALE+
+;   Usage:
+;     DO timestamps.cmm
+; @Keywords: ARM, Cortex-A53
+; @Author: AME
+; @Board: -
+; @Chip: ZYNQ-ULTRASCALE+*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: timestamps.cmm 14747 2019-08-02 11:30:28Z amerkle $
+
+PRIVATE &val
+IF STRing.SCAN(CORENAME(),"CORTEXA53",0.)>=0.
+(
+  IF STATE.RUN()
+  (
+    PRINT OS.PPF() ": Stopped core"
+    Break
+  )
+  &val=Data.Quad(A:0xfe900008)
+  Data.Set A:0xFE900000 %LE %Long 0x00000001
+  WAIT 1.s
+  &val=Data.Quad(A:0xfe900008)-&val
+  &val=FORMAT.DECIMAL(1.,&val)+"Hz"
+  ETM.TimeStampCLOCK &val
+  ETM.TimeStamps OFF
+)
+ELSE
+(
+  PRINT OS.PPF() ": Not supported"
+)
+ENDDO

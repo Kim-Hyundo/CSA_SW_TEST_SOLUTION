@@ -1,0 +1,37 @@
+; --------------------------------------------------------------------------------
+; @Title: Get the config file from the Linux kernel 
+; @Description:
+;   This is a standard Linux Awareness Script.
+;   This script extracts the config.gz from the kernel image if available.
+;   This will only work if the kernel was compiled with CONFIG_IKCONFIG
+;
+; @Keywords: Linux config
+; @Author: kjmal
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: getconfig.cmm 4125 2019-03-22 17:16:46Z kjmal $
+
+
+ENTRY &filename
+LOCAL &cfg_start &cfg_end
+
+IF !sYmbol.EXIST(kernel_config_data)
+(
+    PRINT "Cannot find kernel config!"
+    ENDDO
+)
+
+IF "&filename"==""
+    &filename="config.gz"
+ELSE
+(
+    IF STRing.MID("&filename",string.len("&filename")-3,3)!=".gz"
+        &filename="&filename"+".gz"
+)
+
+&cfg_start=ADDRESS.OFFSET(Var.ADDRESS(kernel_config_data))+0x8
+&cfg_end=ADDRESS.OFFSET(Var.END(kernel_config_data))-0x1-0x8
+
+Data.SAVE.Binary &filename &cfg_start--&cfg_end
+
+PRINT "Kernel config saved to " OS.FILE.PATH("&filename") "/" OS.FILE.NAME("&filename")

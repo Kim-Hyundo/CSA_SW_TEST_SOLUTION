@@ -1,0 +1,147 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo script for IPU/CortexM4 AM572X on BeagleBoard-X15 (RAM)
+; @Description:
+;   Starts the first IPU core of the IPU1 cluster using the CortexA15 core,
+;   loads the sieve demo application into RAM and sets up a demo debug scenario
+;   on all cores.
+;   Use this script to test the IPU core.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to P4 using Adapter LA-3780
+;    * in order to properly hold the core on RESET activate the Wait-In-Reset
+;      (WIR) feature by connecting EMU0 with GND on LA-3780
+;      Note: the SoC will not boot independently as long as the adapter is
+;            connected
+; @Keywords: ARM, Cortex-M4, SMP
+; @Author: AME
+; @Board: BeagleBoard-X15
+; @Chip: AM572X
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: beagleboard-x15_sieve_ipu_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debug session on the CA15 cluster
+RESet
+SYStem.RESet
+SYStem.CPU AM572X
+SYStem.JtagClock CTCK 10MHz
+SYStem.Option ResBreak OFF
+CORE.ASSIGN 1. 2.
+SYStem.Up
+
+; start the first IPU1
+GOSUB KickIPU
+
+; switch to the IPU1-CORE0
+SYStem.Down
+SYStem.CPU AM572XIPU1-CORE0
+SYStem.Mode.Attach
+
+IF STATE.RUN()
+  Break
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_pic_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+; Subroutines
+
+
+KickIPU: ;()
+(
+  ; CM_CORE_AON__IPU
+  ; set CM_IPU1_CLKSTCTRL - SW_WKUP
+  Data.Set AD:0x0:0x4A005500 %Long (Data.Long(AD:0x0:0x4A005500)&(~0x3))|0x2
+  ; set CM_IPU_CLKSTCTRL - SW_WKUP
+  Data.Set AD:0x0:0x4A005540 %Long (Data.Long(AD:0x0:0x4A005540)&(~0x3))|0x2
+  ; set CM_IPU1_CLKCTRL - AUTO
+  Data.Set AD:0x0:0x4A005520 %Long (Data.Long(AD:0x0:0x4A005520)&(~0x3))|0x1
+  IF (Data.Long(AD:0x0:0x4A005500)&0x100)==0x0
+  (
+    PRINT "Error"
+    RETURN FALSE()
+  )
+  ; PM_IPU_PWRSTCTRL - POWERSTATE=ON
+  Data.Set AD:0x0:0x4AE06500 %Long (Data.Long(AD:0x0:0x4AE06500)&(~0x3))|0x3
+
+  ; RM_IPU_RSTCTRL - clear RST_IPU
+  Data.Set AD:0x0:0x4AE06510 %Long 0x3
+
+  ; setup AMMU virt->phys 0x0->0x40300000
+  ; set initial Stack and PC for IPU
+  ; will stop on a endless loop on address 0x8
+  GOSUB SetAMmuEntry "0x58880800" "0" "2" "0x0" "0x40300000" "0x3"
+  Data.Set AD:0x40300000 %Long 0x1000 0x9 0xe7fee7fe
+
+  ; RM_IPU_RSTCTRL - clear RST_CPU0
+  Data.Set AD:0x0:0x4AE06510 %Long 0x2
+  RETURN
+)
+
+SetAMmuEntry: ;(base, channel, small=2/med=1/large=0, virt, phys, policy)
+(
+  PRIVATE &base
+  PARAMETERS &base &channel &size &virt &phys &policy
+  &base=&base+&channel*0x4
+  IF (&size==0.) ; large
+  (
+    ; ADDR
+    Data.Set AD:&base+0x00 %Long &virt
+    ; XLTE
+    Data.Set AD:&base+0x20 %Long &phys
+    ; POLICY
+    Data.Set AD:&base+0x40 %Long &policy
+  )
+  ELSE IF (&size==1.) ; medium
+  (
+    ; ADDR
+    Data.Set AD:&base+0x60 %Long &virt
+    ; XLTE
+    Data.Set AD:&base+0xA0 %Long &phys
+    ; POLICY
+    Data.Set AD:&base+0xE0 %Long &policy
+  )
+  ELSE IF (&size==2.)
+  (
+    ; ADDR
+    Data.Set AD:&base+0x120 %Long &virt
+    ; XLTE
+    Data.Set AD:&base+0x1A0 %Long &phys
+    ; POLICY
+    Data.Set AD:&base+0x220 %Long &policy
+  )
+  ELSE
+  (
+    PRINT %ERROR "Wrong Usage"
+    STOP
+    ENDDO
+  )
+  RETURN
+)

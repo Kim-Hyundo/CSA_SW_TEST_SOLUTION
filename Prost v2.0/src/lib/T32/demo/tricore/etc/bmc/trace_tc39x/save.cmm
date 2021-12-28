@@ -1,0 +1,31 @@
+; --------------------------------------------------------------------------------
+; @Title: Helper script for BMC trace demo
+; @Description:
+;   Saves state.
+;
+; @Props: NoWelcome, NoIndex
+; @Author: MEI
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: save.cmm 16261 2020-07-02 10:49:49Z meick $
+
+
+PARAMETERS &dir &name &elf &cnt
+
+&file="bmc_trace_demo-&(name).ad"
+Trace.SAVE &dir/&file
+&bmcFile="bmc_trace_demo-&(name)-bmc.cmm"
+STORE &dir/&bmcFile BMC
+
+OPEN #1 "&dir/bmc_trace_demo-&(name)-state.cmm" /Create
+WRITE #1 "SYStem.CPU "+CPU()
+WRITE #1 "CORE.ASSIGN 1 2"
+WRITE #1 "SYStem.Up"
+WRITE #1 "Data.LOAD.Elf &elf"
+WRITE #1 "Trace.LOAD ~~~~/&file"
+WRITE #1 "DO ~~~~/&bmcFile"
+WRITE #1 "ENDDO ""&cnt"""
+WRITE #1 ""
+CLOSE #1
+
+ENDDO

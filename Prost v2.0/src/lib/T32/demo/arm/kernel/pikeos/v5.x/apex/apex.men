@@ -1,0 +1,63 @@
+; --------------------------------------------------------------------------------
+; @Title:PikeOS-APEX specific menu
+; @Description: -
+; @Author: DIE
+; @Copyright: (c) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: apex.men 5188 2020-04-07 14:38:55Z rdienstbeck $
+
+ADD
+MENU
+(
+  POPUP "&APEX"
+  (
+    DEFAULT
+    MENUITEM "Display &Processes"     "TASK.AXProcess"
+    MENUITEM "Display &Information"   "TASK.AXInfo"
+  )
+)
+
+
+MENU "task.AXP"
+(
+  DEFAULT
+  MENUITEM "Display detailed"
+  (
+    PRIVATE &magic &spaceid
+    &magic=ADDRESS.OFFSET(TRACK.ADDRESS())
+    &spaceid=ADDRESS.SEGMENT(TRACK.ADDRESS())
+    TASK.AXProcess &magic &spaceid
+  )
+  MENUITEM "Display process struct"
+  (
+    PRIVATE &address &struct
+    &address=TRACK.ADDRESS()
+    &struct=TASK.AXSTRUCT(proc)
+    Var.View %Open %String (&struct*)(&address)
+  )
+  SEPARATOR
+  MENUITEM "Display Stack Frame"
+  (
+    PRIVATE &magic &spaceid &pthr
+    &magic=ADDRESS.OFFSET(TRACK.ADDRESS())
+    &spaceid=ADDRESS.SEGMENT(TRACK.ADDRESS())
+    &pthr=TASK.AXProcess.THREAD2(&magic,&spaceid)
+    Var.Frame /Locals /Caller /TASK &pthr
+  )
+  //MENUITEM "Display Registers"
+  //(
+  //  &address=ADDRESS.OFFSET(TRACK.ADDRESS())
+  //  Register.view /TASK &address
+  //)
+  //MENUITEM "Switch Context"    "Frame.TASK     ADDRESS.OFFSET(TRACK.ADDRESS())"
+  //SEPARATOR
+  //MENUITEM "Add to Stack Cov"  "TASK.STacK.ADD    ADDRESS.OFFSET(TRACK.ADDRESS())"
+  //MENUITEM "Rm from Stack Cov" "TASK.STacK.ReMove ADDRESS.OFFSET(TRACK.ADDRESS())"
+  //SEPARATOR
+  MENUITEM "Dump process entry"
+  (
+    PRIVATE &address
+    &address=TRACK.ADDRESS()
+    Data.dump &address /DIALOG
+  )
+)

@@ -1,0 +1,158 @@
+; --------------------------------------------------------------------------------
+; @Title: Example startup Script for TRITON-270 evaluation board
+; @Description:
+;
+;   Example startup Script for TRITON-270 evaluation board from
+;   Ka-Ro Electronics with XScale PXA270 processor.
+;
+;   Memory locations for TRITON-270/520/64S/16F
+;     Flash at 0x00000000--0x00ffffff
+;     SDRAM at 0xa0000000--0xa3ffffff
+;
+;   Memory locations for TRITON-270/312/32S/16F
+;     Flash at 0x00000000--0x00ffffff
+;     SDRAM at 0xa0000000--0xa1ffffff
+;
+;   NOTE:
+;
+;     TRITON-270 module version 1.2 does not work properly regarding
+;     debugger connection. TRST line is always asserted when Reset line is
+;     asserted via JTAG connector, so that the debug handler cannot be
+;     downloaded as required.
+;
+;     The problem can be fixed by desoldering diode D2 and soldering a 0R
+;     resistor between pin 2 and 6 of the diode. Schematics for the bug fix
+;     can be requested from Ka-Ro electronics or from us.
+;
+;     New TRITON 270 module version 1.3 has fixed this problem.
+;
+;     Because of 5V reference voltage only Debug Cable V3 or newer does work.
+;     This is the more triangular debug cable. Debug cable version can also
+;     be checked in window version.hardware2. Older debug cable does only
+;     support up to 3.3V reference voltage.
+;
+;     Jumper JTAG CLOCK on the TRITON Starterkit 3 has to be closed to allow
+;     fast JTAG clock without RC filter.
+;
+;
+; @Keywords: Ka-Ro, triton, Xscale
+; @Author: WRD
+; @Board: TRITON-270
+; @Chip: PXA270
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: triton270.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+;   wrd - 19.07.2005
+
+
+
+; --------------------------------------------------------------------------------
+; Select target controlled flash programming or TRACE32 tool based
+; flash programming
+; &flashtarget="yes" | "no"
+&flashtarget="yes"
+
+; --------------------------------------------------------------------------------
+; CPU setup
+SYStem.RESet
+SYStem.CPU PXA270
+SYStem.Option WaitReset ON
+SYStem.Up
+
+; Write enable to CS0 to enable flash programming
+Data.Set 0x48000008 %Long Data.Long(ASD:0x48000008)|0x01
+
+; Setup DRAM controller
+
+Data.Set ASD:48000028 %Long 0x00000008 ; MCMEM0
+Data.Set ASD:4800002c %Long 0x00000008 ; MCMEM1
+Data.Set ASD:48000030 %Long 0x00000008 ; MCATT0
+Data.Set ASD:48000034 %Long 0x00000008 ; MCATT1
+Data.Set ASD:48000038 %Long 0x00040286 ; MCIO0
+Data.Set ASD:4800003c %Long 0x00040286 ; MCIO1
+Data.Set ASD:48000004 %Long 0x204a4016 ; MDREFR
+Data.Set ASD:48000004 %Long Data.Long(ASD:48000004)|0x00050000 ; MDREFR
+Data.Set ASD:48000004 %Long Data.Long(ASD:48000004)&0xffbfffff ; MDREFR
+Data.Set ASD:48000004 %Long Data.Long(ASD:48000004)|0x00008000 ; MDREFR
+Data.Set ASD:48000000 %Long 0x08000bc8 ; MDCNFG
+WAIT 10.ms
+&tmp = Data.Long(d:0xa0000000)
+&tmp = Data.Long(d:0xa0000000)
+&tmp = Data.Long(d:0xa0000000)
+&tmp = Data.Long(d:0xa0000000)
+&tmp = Data.Long(d:0xa0000000)
+&tmp = Data.Long(d:0xa0000000)
+&tmp = Data.Long(d:0xa0000000)
+&tmp = Data.Long(d:0xa0000000)
+Data.Set ASD:48000000 %Long Data.Long(ASD:48000000)|1 ; MDCNFG
+Data.Set ASD:48000040 %Long 0x00000000 ; MDMRS
+Data.Set ASD:48000004 %Long 0x200bc017 ; MDREFR
+
+; --------------------------------------------------------------------------------
+; Flash declaration
+; One Intel I28F128W18B Flash connected to 16 bit data bus.
+IF "&flashtarget"=="yes"
+(
+  ; Flash declaration for TRACE32 target based flash programming
+  FLASH.RESet
+  FLASH.Create 1. 0x00000000--0x0000ffff 0x02000 TARGET Word
+  FLASH.Create 1. 0x00010000--0x00ffffff 0x10000 TARGET Word
+  FLASH.TARGET 0xa0000000 0xa0002000 0x1000 ~~/demo/arm/flash/word/i28f200b.bin
+)
+ELSE
+(
+  ; Flash declaration for TRACE32 tool based flash programming
+  FLASH.RESet
+  FLASH.Create 1. 0x00000000--0x0000ffff 0x02000 I28F200B Word
+  FLASH.Create 1. 0x00010000--0x00ffffff 0x10000 I28F200B Word
+)
+
+; --------------------------------------------------------------------------------
+; Flash programming example
+;
+; All sectors of Intel I28F128W18 flash device are locked after power-up.
+
+DIALOG.YESNO "Erase and program flash memory?"
+ENTRY &progflash
+
+IF &progflash
+(
+  FLASH.UNLOCK ALL
+
+  FLASH.Erase ALL
+
+  FLASH.Program ALL
+  Data.LOAD.auto * /Word
+  FLASH.Program OFF
+
+  Data.LOAD.auto * /Word /ComPare
+)
+
+; --------------------------------------------------------------------------------
+; Load demo application to SDRAM
+
+; load demo file
+Data.LOAD.Elf ~~~~/arm.elf
+
+; initialize CPSR and stack pointer
+Register.Set cpsr 0x13
+Register.Set r13 0xa0001000
+
+; set program counter at program start
+Register.Set PC main
+
+; open some windows
+WinCLEAR
+WinPOS 0% 0% 66% 50%
+List.auto
+WinPOS 66% 0%
+Register.view /SpotLight
+WinPOS 0% 50% 50% 50%
+Frame /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch flags ast
+
+ENDDO
+

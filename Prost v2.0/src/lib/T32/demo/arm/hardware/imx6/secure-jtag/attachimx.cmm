@@ -1,0 +1,38 @@
+; --------------------------------------------------------------------------------
+; @Title: Attach to the iMX6 using secure JTAG
+; @Description: 
+;   This script demonstrates how to attach to the iMX6 using secure JTAG
+;   (SJC) and the challenge/response mechanism.
+;   1. Enter the response in calculate_response.cmm. The script gets the
+;      challenge as parameter (&challenge)
+;   2. Call this script
+; @Keywords: Freescale, imx6, secure-jtag, SJC
+; @Author: KJM
+; @Chip: IMX6*
+; @Board: -
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: attachimx.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+RESET
+AREA
+SYStem.CPU iMX6Quad
+CORE.ASSIGN 1
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 1.3s 
+Trace.METHOD Onchip
+
+; deprecated   SYStem.MultiCore.tristate OFF
+SYStem.CONFIG.TriState OFF
+
+DO ~~~~/imx6_attach_secured.cmm
+SYStem.JtagClock 10MHz
+
+SYStem.Mode Attach
+
+IF STATE.RUN()
+  Break
+  
+ENDDO
+

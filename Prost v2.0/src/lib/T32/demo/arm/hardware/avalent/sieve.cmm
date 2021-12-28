@@ -1,0 +1,63 @@
+; --------------------------------------------------------------------------------
+; @Title: Script file for Avalent board; JanusII Rev.0
+; @Description: -
+; @Author: PEG
+; @Board: Avalent
+; @Chip: Janus*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: sieve.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; PEG, 21.08.01
+
+; memory map
+; 0x00000000++3ffff   ROM 256kB
+; 0x01000000++0ffffff RAM 16MB
+; 0xc0000000++2ff     system control, I/O
+
+
+  LOCAL &ip
+
+; reduce JTAG clock because of bug in memory access
+  SYStem.JtagClock 1000000.
+
+; start-up, initialize RAM at 0x1000000, switch off cache for RAM area
+  SYStem.Mode Go
+  WAIT 1s
+  Break.direct
+  Data.Set C15:0x26 %Long 0x0
+
+; workaround to modify PC, patch current command in cache
+  &ip=Register(pc)
+  PRINT &ip
+
+; load demo file
+  Data.LOAD.Elf ~~~~/sieve.elf
+
+; initialize CPSR and stack pointer
+  Register.Set cpsr 0x13
+  Register.Set r13 100e000
+
+; set PC to main()
+  Register.Set PC &ip
+  Register.Set r0 main
+  Data.Assemble &ip bx r0
+  Step.single
+
+; open some windows
+  WinCLEAR
+  WinPOS 0% 0% 100% 50%
+  List.auto
+  WinPOS 0% 50% 50% 50%
+  Frame /Locals /Caller
+  WinPOS 50% 50% 50% 50%
+  Var.Watch flags ast
+
+  ENDDO
+
+
+
+
+
+
+

@@ -1,0 +1,17 @@
+; --------------------------------------------------------------------------------
+; @Title: Dummy script to redirect to GTM demo scripts
+; @Description: Redirects to gtm demos
+; @Keywords: AURIX, gtm, Infineon, mcs, TriCore
+; @Author: MOB
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo.cmm 6943 2014-04-23 14:52:46Z mobermeir $
+
+
+CD "~~~~/../../gtm"
+
+DIALOG.OK "GTM demos are located in" OS.PWD()
+
+DO *.cmm
+
+ENDDO

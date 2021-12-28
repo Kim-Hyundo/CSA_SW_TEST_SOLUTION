@@ -1,0 +1,84 @@
+; --------------------------------------------------------------------------------
+; @Title: Setup the Embedded Trace Router for the CYCLOVE V SOC
+; @Description:
+;   This script demonstrates how to setup the Embedded Trace Router (ETR)
+;   for the CYCLONE V SOC board.
+; @Keywords: ALTERA, Cortex-A9, Cyclone, Cyclonev, ETR, trace
+; @Board: CYCLONEVSOC, Cyclone V SoC Dev Kit
+; @Chip: CYCLONEVSOC
+; @Author: MAZ
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: cyclonevsoc_onchip_trace_etr.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; Start-up the debugger
+  RESet
+  SYStem.CPU CYCLONEVSOC
+  CORE.ASSIGN 1                             ; "1" = first core, "2" = second core, "1 2" = both cores (SMP)
+
+
+  SYStem.JtagClock 5.0MHz
+
+  Onchip.DISable
+
+  WHILE STATE.POWER()
+  PRINT "power cycle"
+  WHILE !STATE.POWER()
+  PRINT "power target"
+  WAIT 100ms
+
+  SYStem.Up
+  Data.Set AZSD:0xFFD05004 %Long 0x00c00000 ; RSTMGR don't stall ETR when reset
+
+  ; disable watchdog
+  IF (Data.Long(AZSD:0xFFD02000)&0x1)==0x1
+  (
+    Data.Assemble 0xFFFF0000 b 0xFFFF0000
+    Register.Set PC 0xFFFF0000
+    Register.Set CPSR 0x1d3
+    PER.Set.simple AZSD:0xFFD02004 %Long 0x0 ; wdog short period
+    PER.Set.simple AZSD:0xFFD0200C %Long 0x76 ; wdog reset
+    Go.direct
+    WAIT !STATE.RUN()
+    SYStem.Mode.Down
+    SYStem.Mode.Attach ; reprogram all registers
+  )
+
+  GOSUB loaddemo
+
+  GOSUB initetr 0xFFFF6000 0xA000
+
+  Go
+  WAIT 1s
+  Break
+
+ENDDO
+
+loaddemo:
+  Data.LOAD.Elf ~~~~/demo.axf /Verify
+  Register.Set PC main
+  Register.Set CPSR 0x1d3
+  Register.Set R13 0xFFFF0100
+
+  ; assembly a longer execution in demo program
+  Data.Assemble ZSR:0xFFFF1FF8 b 0xffff1e74
+
+  List.auto
+RETURN
+
+initetr:
+LOCAL &adr &size
+ENTRY &adr &size
+  Data.Set D:&adr++(&size-1) %Long 0xAAAAAAAA /Verify
+  DO ~~/demo/arm/etc/embedded_trace_router/etr_utility ETR1 set DAB &adr
+  DO ~~/demo/arm/etc/embedded_trace_router/etr_utility ETR1 set RSZ (&size>>2)
+  DO ~~/demo/arm/etc/embedded_trace_router/etr_utility ETR1 set AXICTL 0x00000000 0x00000FBF
+  Onchip.TraceCONNECT ETR1
+  Trace.METHOD onchip
+  Onchip.Init
+  Onchip.state
+RETURN
+
+
+

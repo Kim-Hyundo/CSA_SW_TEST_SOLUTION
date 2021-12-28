@@ -1,0 +1,37 @@
+;-----------------------------------------------------------------------------------
+; @Title: Simple sieve demo running from SRAM
+; @Description:
+;   This is a small demo how to setup a debug session on LPC40xx derivatives. 
+;   The sieve demo is loaded in SRAM.
+;   Prerequisites:
+;     * uTrace/Combiprobe is connected to MIPI20 connector
+;       or
+;       Debugcable is connected to MIPI20 connector using LA-3770
+;
+; @Keywords: Cortex-M4, debug, SWD
+; @Author: AME
+; @Board: LPC4088 Quick Start
+; @Chip: LPC40*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: lpc4088_sieve_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; debug configuration
+RESet
+SYStem.RESet
+SYStem.CPU LPC4088FET208
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+SYStem.CONFIG.CONNECTOR MIPI20T
+SYStem.Up
+
+; load demo code
+Data.LOAD.Elf ~~~~/sieve_ram_thumb_ii_v7.elf
+
+; let bootcode execute
+Go main
+WAIT !STATE.RUN()
+
+Mode.Hll
+List.auto
+
+ENDDO

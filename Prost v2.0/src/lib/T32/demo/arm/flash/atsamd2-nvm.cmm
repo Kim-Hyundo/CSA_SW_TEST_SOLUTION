@@ -1,0 +1,727 @@
+; --------------------------------------------------------------------------------
+; @Title: NVM User Row programming script for ATSAMD20 and ATSAMD21
+; @Description:
+;     Opens a dialog for programming the NVM User Row.
+;     
+;     Script arguments:
+;         
+;         DO atsamd2-nvm.cmm
+;         
+;             Read out current NVM User Row value and opens a dialog.
+;         
+;         DO atsamd2-nvm.cmm SET <value>
+;         
+;             Asks for confirmation and programs the 64 bit value.
+;         
+;         DO atsamd2-nvm.cmm SETSILENT <value>
+;         
+;             Programs the 64 bit value without asking for confirmation.
+;
+;         DO atsamd2-nvm.cmm GetNVMUserRowValue
+;
+;             Reads the 64 bit NVM User Row value from target.
+;         
+; @Author: STK
+; @Chip: ATSAMD2*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: atsamd2-nvm.cmm 7616 2019-11-08 07:18:24Z bschroefel $
+
+  LOCAL &cmd &value &script &ignore
+  ENTRY &cmd &value
+  
+  &script=OS.PPF()
+  
+  ; Check selected CPU
+  IF !CPUIS("ATSAMD2*")
+  (
+    PRINT %ERROR "Wrong CPU selected!"
+    ENDDO
+  )
+  
+  IF INTERFACE.SIM()
+    PRINT %WARNING "Simulator environment!!!"
+  
+  ; Check access to NVMUser row
+  ON ERROR GOSUB
+  (
+    DIALOG.OK "Access to flash failed!" "" "Maybe the device is locked. Please try FLASH.UNSECUREErace" "to erase and unlock it!"
+    ENDDO
+  )
+  &ignore=Data.Quad(ASD:0x00804000)
+  ON ERROR
+  
+  ; Prepare flash programming
+  DO ~~/demo/arm/flash/atsamd.cmm PREPAREONLY
+  
+  ; Evaluate parameters
+  IF "&cmd"==""
+    GOSUB OpenDialog
+  ELSE IF ("&cmd"=="SET")||("&cmd"=="SETF")
+  (
+    IF "&value"==""
+    (
+      PRINT %ERROR "User Row value missing!!!"
+      ENDDO
+    )
+    
+    EVAL &value
+    IF EVAL.TYPE()!=0x0004
+    (
+      PRINT %ERROR "User Row value need to be a 64 bit hex value!!!"
+      ENDDO
+    )
+    
+    IF ("&cmd"=="SET")
+    (
+      PRIVATE &result
+      DIALOG.YESNO "Program NVM User Row?"
+      ENTRY &result
+      
+      IF !(&result)
+        ENDDO
+      
+    
+      GOSUB SetNVMUserRowValue "&value"
+    )
+  )
+  ELSE IF ("&cmd"=="GET")
+  (
+    PRIVATE &returnvalue
+  
+    GOSUB GetNVMUserRowValue
+    RETURNVALUES &returnvalue
+    
+    ENDDO &returnvalue
+  )
+  ELSE
+  (
+    PRINT %ERROR "Unknown command!"
+    GOSUB OpenDialog
+  )
+  
+  ENDDO
+
+
+
+OpenDialog:
+(
+  DIALOG
+  (&+
+              NAME "ATSAMD2NVM"
+              
+              HEADER "ATSAMD2 NVM User Row programming"
+              
+              POS 0. 0. 41. 17.5
+              BOX "Sizes"
+              
+              POS 1. 1. 10. 1.
+              TEXT "BOOTPROT"
+              POS 10. 1. 7. 1.
+BOOTPROT:     COMBOBOX "0B,512B,1KB,2KB,4KB,8KB,16KB,32KB"
+              (
+                PRIVATE &str
+                
+                &str=DIALOG.STRing("BOOTPROT")
+                &str=STRing.UPpeR("&str")
+                
+                IF ("&str"!="0B")&&("&str"!="512B")&&("&str"!="1KB")&&("&str"!="2KB")&&("&str"!="4KB")&&("&str"!="8KB")&&("&str"!="16KB")&&("&str"!="32KB")
+                (
+                  DIALOG.OK "Illegal value for BOOTPROT size!"
+                  DIALOG.Set BOOTPROT "0B"
+                )
+                ELSE
+                  DIALOG.Set BOOTPROT "&str"
+              )
+              
+              POS 20. 1. 10. 1.
+              TEXT "EEPROM"
+              POS 27. 1. 7. 1.
+EEPROM:       COMBOBOX "0B,256B,512B,1KB,2KB,4KB,8KB,16KB"
+              (
+                PRIVATE &str
+                
+                &str=DIALOG.STRing("EEPROM")
+                &str=STRing.UPpeR("&str")
+                
+                IF ("&str"!="0B")&&("&str"!="256B")&&("&str"!="512B")&&("&str"!="1KB")&&("&str"!="2KB")&&("&str"!="4KB")&&("&str"!="8KB")&&("&str"!="16KB")
+                (
+                  DIALOG.OK "Illegal value for EEPROM size!"
+                  DIALOG.Set EEPROM "0B"
+                )
+                ELSE
+                  DIALOG.Set EEPROM "&str"
+              )
+              
+              POS 0. 2.5 41.
+              LINE "BOD33"
+              
+              POS 5. 3.5 5. 1.
+              TEXT "Level"
+              POS 10. 3.5 7. 1.
+BOD33LEVEL:   EDIT ""
+              (
+                PRIVATE &str &num
+                &num=""
+                
+                &str=DIALOG.STRing("BOD33LEVEL")
+                
+                ; Try to convert into hex
+                ON ERROR GOSUB
+                (
+                  DIALOG.OK "Illegal entry for BOD33 Level!"
+                  RETURN
+                )
+                
+                &num="0x"+FORMAT.HEX(1.,&str)
+                
+                ON ERROR
+                
+                IF "&num"==""
+                  &num=0x0
+                
+                IF &num>0x3F
+                (
+                   DIALOG.OK "BOD33 Level too high!"
+                   &num=0x3F
+                )
+                
+                DIALOG.Set BOD33LEVEL "0x"+FORMAT.HEX(1.,&num)
+              )
+              
+              POS 21. 3.5 8. 1.
+              TEXT "Action"
+              POS 27. 3.5 12. 1.
+BOD33ACTION:  COMBOBOX "NONE,RESET,INTERRUPT,Reserved"
+              (
+                PRIVATE &str
+                
+                &str=DIALOG.STRing("BOD33ACTION")
+                &str=STRing.UPpeR("&str")
+                
+                IF ("&str"!="NONE")&&("&str"!="RESET")&&("&str"!="INTERRUPT")
+                (
+                  DIALOG.OK "Illegal value for BOD33 Action!"
+                  DIALOG.Set BOD33ACTION "RESET"
+                )
+                ELSE
+                  DIALOG.Set BOD33ACTION "&str"
+              )
+              
+              POS 5. 5.5
+BOD33HYST:    CHECKBOX "Hyteresis" ""
+              POS 21. 5.5
+BOD33ENABLE:  CHECKBOX "Enable" ""
+              
+              POS 0. 7. 41.
+              LINE "Watchdog"
+              
+              POS 5. 8. 21. 1.
+              TEXT "Timout (clock cycles)"
+              POS 27. 8. 12. 1.
+WDTTIMEOUT:   COMBOBOX "8,16,32,64,128,256,512,1024,2048,4096,8192,16384,Reserved"
+              (
+                PRIVATE &str
+                &str=DIALOG.STRing("WDTTIMEOUT")
+                
+                IF ("&str"!="8")&&("&str"!="16")&&("&str"!="32")&&("&str"!="64")&&("&str"!="128")&&("&str"!="256")&&("&str"!="512")&&("&str"!="1024")&&("&str"!="2048")&&("&str"!="4096")&&("&str"!="8192")&&("&str"!="16384")
+                (
+                  DIALOG.OK "Illegal value for Watchdog timout value!"
+                  DIALOG.Set WDTTIMEOUT "16384"
+                )
+              )
+              
+              POS 5. 9. 21. 1.
+              TEXT "Window (clock cycles)"
+              POS 27. 9. 12. 1.
+WDTWINDOW:    COMBOBOX "8,16,32,64,128,256,512,1024,2048,4096,8192,16384,Reserved"
+              (
+                PRIVATE &str
+                &str=DIALOG.STRing("WDTWINDOW")
+                
+                IF ("&str"!="8")&&("&str"!="16")&&("&str"!="32")&&("&str"!="64")&&("&str"!="128")&&("&str"!="256")&&("&str"!="512")&&("&str"!="1024")&&("&str"!="2048")&&("&str"!="4096")&&("&str"!="8192")&&("&str"!="16384")
+                (
+                  DIALOG.OK "Illegal value for Watchdog window value!"
+                  DIALOG.Set WDTWINDOW "16384"
+                )
+              )
+              
+              POS 5. 10. 21. 1.
+              TEXT "EWOFFSET (clock cycles)"
+              POS 27. 10. 12. 1.
+WDTEWOFFSET:  COMBOBOX "8,16,32,64,128,256,512,1024,2048,4096,8192,16384,Reserved"
+              (
+                PRIVATE &str
+                &str=DIALOG.STRing("WDTEWOFFSET")
+                
+                IF ("&str"!="8")&&("&str"!="16")&&("&str"!="32")&&("&str"!="64")&&("&str"!="128")&&("&str"!="256")&&("&str"!="512")&&("&str"!="1024")&&("&str"!="2048")&&("&str"!="4096")&&("&str"!="8192")&&("&str"!="16384")
+                (
+                  DIALOG.OK "Illegal value for Watchdog early interrupt time offset!"
+                  DIALOG.Set WDTEWOFFSET "16384"
+                )
+              )
+              
+              POS 5. 11.5 9.
+WDTAON:       CHECKBOX "Always-On" ""
+              
+              POS 17. 11.5 13.
+WDTWEN:       CHECKBOX "Window-Mode" ""
+              
+              POS 32. 11.5 7.
+WDTENABLE:    CHECKBOX "Enable"
+              (
+                IF DIALOG.BOOLEAN("WDTENABLE")
+                (
+                  PRIVATE &result
+                  
+                  DIALOG.YESNO "Do you reallly want to enable the watchdog?" "" "The enabled watchdog can prevent debugging!"
+                  ENTRY &result
+                  
+                  IF !(&result)
+                    DIALOG.Set WDTENABLE FALSE()
+                )
+              )
+              
+              POS 0. 13. 41.
+              LINE "Lock Bits"
+              
+              POS 1. 14. 4. 
+LOCKS0:       CHECKBOX "0" ""
+              POS 6. 14. 4. 
+LOCKS1:       CHECKBOX "1" ""
+              POS 11. 14. 4. 
+LOCKS2:       CHECKBOX "2" ""
+              POS 16. 14. 4. 
+LOCKS3:       CHECKBOX "3" ""
+              POS 21. 14. 4. 
+LOCKS4:       CHECKBOX "4" ""
+              POS 26. 14. 4. 
+LOCKS5:       CHECKBOX "5" ""
+              POS 31. 14. 4. 
+LOCKS6:       CHECKBOX "6" ""
+              POS 36. 14. 4. 
+LOCKS7:       CHECKBOX "7" ""
+              
+              POS 1. 15. 4. 
+LOCKS8:       CHECKBOX "8" ""
+              POS 6. 15. 4. 
+LOCKS9:       CHECKBOX "9" ""
+              POS 11. 15. 4. 
+LOCKS10:      CHECKBOX "10" ""
+              POS 16. 15. 4. 
+LOCKS11:      CHECKBOX "11" ""
+              POS 21. 15. 4. 
+LOCKS12:      CHECKBOX "12" ""
+              POS 26. 15. 4. 
+LOCKS13:      CHECKBOX "13" ""
+              POS 31. 15. 4. 
+LOCKS14:      CHECKBOX "14" ""
+              POS 36. 15. 4. 
+LOCKS15:      CHECKBOX "15" ""
+              
+              POS 15. 18. 10. 1.5
+              BUTTON "Program"
+              (
+                PRIVATE &newvalue &tmp &count
+                
+                &newvalue=0xFFFFFFFFFFFFFFFF
+                
+                ; Don't change reserved bits
+                &tmp=Data.Quad(ASD:0x00804000)
+                &newvalue=&tmp|0xFFFF01FFFE01FF77
+                
+                ; Get NVM User Row from dialog
+                &tmp=DIALOG.STRing("BOOTPROT")
+                
+                IF "&tmp"=="0B"
+                  &newvalue=&newvalue&0xFFFFFFFFFFFFFFFF
+                ELSE IF "&tmp"=="512B"
+                  &newvalue=&newvalue&0xFFFFFFFFFFFFFFFE
+                ELSE IF "&tmp"=="1KB"
+                  &newvalue=&newvalue&0xFFFFFFFFFFFFFFFD
+                ELSE IF "&tmp"=="2KB"
+                  &newvalue=&newvalue&0xFFFFFFFFFFFFFFFC
+                ELSE IF "&tmp"=="4KB"
+                  &newvalue=&newvalue&0xFFFFFFFFFFFFFFFB
+                ELSE IF "&tmp"=="8KB"
+                  &newvalue=&newvalue&0xFFFFFFFFFFFFFFFA
+                ELSE IF "&tmp"=="16KB"
+                  &newvalue=&newvalue&0xFFFFFFFFFFFFFFF9
+                ELSE ;IF "&tmp"=="32KB"
+                  &newvalue=&newvalue&0xFFFFFFFFFFFFFFF8
+                
+                &tmp=DIALOG.STRing("EEPROM")
+                
+                IF "&tmp"=="0B"
+                  &newvalue=&newvalue&0xFFFFFFFFFFFFFFFF
+                ELSE IF "&tmp"=="256B"
+                  &newvalue=&newvalue&0xFFFFFFFFFFFFFFEF
+                ELSE IF "&tmp"=="512B"
+                  &newvalue=&newvalue&0xFFFFFFFFFFFFFFDF
+                ELSE IF "&tmp"=="1KB"
+                  &newvalue=&newvalue&0xFFFFFFFFFFFFFFCF
+                ELSE IF "&tmp"=="2KB"
+                  &newvalue=&newvalue&0xFFFFFFFFFFFFFFBF
+                ELSE IF "&tmp"=="4KB"
+                  &newvalue=&newvalue&0xFFFFFFFFFFFFFFAF
+                ELSE IF "&tmp"=="8KB"
+                  &newvalue=&newvalue&0xFFFFFFFFFFFFFF9F
+                ELSE ;IF "&tmp"=="16KB"
+                  &newvalue=&newvalue&0xFFFFFFFFFFFFFF8F
+                
+                &tmp=DIALOG.STRing("BOD33LEVEL")
+                &newvalue=&newvalue&(0xFFFFFFFFFFFFC0FF|(&tmp<<8.))
+                
+                &tmp=DIALOG.STRing("BOD33ACTION")
+                
+                IF "&tmp"=="NONE"
+                  &newvalue=&newvalue&0xFFFFFFFFFFFE7FFF
+                ELSE IF "&tmp"=="INTERUPT"
+                  &newvalue=&newvalue&0xFFFFFFFFFFFF7FFF
+                ELSE ;IF "&tmp"=="RESET"
+                  &newvalue=&newvalue&0xFFFFFFFFFFFEFFFF
+                
+                IF !(DIALOG.BOOLEAN("BOD33ENABLE"))
+                  &newvalue=&newvalue&0xFFFFFFFFFFFFBFFF
+                
+                IF !(DIALOG.BOOLEAN("BOD33HYST"))
+                  &newvalue=&newvalue&0xFFFFFEFFFFFFFFFF
+                
+                &tmp=DIALOG.STRing("WDTTIMEOUT")
+                &tmp="&tmp."   ; Force decimal interpretation
+                
+                &count=0x0    ; Count tailing zeros
+                WHILE (&tmp&0x1)==0x0
+                (
+                  &count=&count+1
+                  &tmp=&tmp>>1.
+                )
+                &count=&count-0x3
+                
+                &newvalue=&newvalue&(0xFFFFFFFF87FFFFFF|(&count<<27.))
+                
+                &tmp=DIALOG.STRing("WDTWINDOW")
+                &tmp="&tmp."   ; Force decimal interpretation
+                
+                &count=0x0    ; Count tailing zeros
+                WHILE (&tmp&0x1)==0x0
+                (
+                  &count=&count+1
+                  &tmp=&tmp>>1.
+                )
+                &count=&count-0x3
+                
+                &newvalue=&newvalue&(0xFFFFFFF87FFFFFFF|(&count<<31.))
+                
+                &tmp=DIALOG.STRing("WDTEWOFFSET")
+                &tmp="&tmp."   ; Force decimal interpretation
+                
+                &count=0x0    ; Count tailing zeros
+                WHILE (&tmp&0x1)==0x0
+                (
+                  &count=&count+1
+                  &tmp=&tmp>>1.
+                )
+                &count=&count-0x3
+                
+                &newvalue=&newvalue&(0xFFFFFF87fFFFFFFF|(&count<<35.))
+                
+                IF !(DIALOG.BOOLEAN("WDTAON"))
+                  &newvalue=&newvalue&0xFFFFFFFFFBFFFFFF
+                
+                IF !(DIALOG.BOOLEAN("WDTWEN"))
+                  &newvalue=&newvalue&0xFFFFFF7FFFFFFFFF
+                
+                IF !(DIALOG.BOOLEAN("WDTENABLE"))
+                  &newvalue=&newvalue&0xFFFFFFFFFDFFFFFF
+                
+                IF DIALOG.BOOLEAN("LOCKS0")
+                  &newvalue=&newvalue&0xFFFEFFFFFFFFFFFF
+                IF DIALOG.BOOLEAN("LOCKS1")
+                  &newvalue=&newvalue&0xFFFDFFFFFFFFFFFF
+                IF DIALOG.BOOLEAN("LOCKS2")
+                  &newvalue=&newvalue&0xFFFBFFFFFFFFFFFF
+                IF DIALOG.BOOLEAN("LOCKS3")
+                  &newvalue=&newvalue&0xFFF7FFFFFFFFFFFF
+                IF DIALOG.BOOLEAN("LOCKS4")
+                  &newvalue=&newvalue&0xFFEFFFFFFFFFFFFF
+                IF DIALOG.BOOLEAN("LOCKS5")
+                  &newvalue=&newvalue&0xFFDFFFFFFFFFFFFF
+                IF DIALOG.BOOLEAN("LOCKS6")
+                  &newvalue=&newvalue&0xFFBFFFFFFFFFFFFF
+                IF DIALOG.BOOLEAN("LOCKS7")
+                  &newvalue=&newvalue&0xFF7FFFFFFFFFFFFF
+                IF DIALOG.BOOLEAN("LOCKS8")
+                  &newvalue=&newvalue&0xFEFFFFFFFFFFFFFF
+                IF DIALOG.BOOLEAN("LOCKS9")
+                  &newvalue=&newvalue&0xFDFFFFFFFFFFFFFF
+                IF DIALOG.BOOLEAN("LOCKS10")
+                  &newvalue=&newvalue&0xFBFFFFFFFFFFFFFF
+                IF DIALOG.BOOLEAN("LOCKS11")
+                  &newvalue=&newvalue&0xF7FFFFFFFFFFFFFF
+                IF DIALOG.BOOLEAN("LOCKS12")
+                  &newvalue=&newvalue&0xEFFFFFFFFFFFFFFF
+                IF DIALOG.BOOLEAN("LOCKS13")
+                  &newvalue=&newvalue&0xDFFFFFFFFFFFFFFF
+                IF DIALOG.BOOLEAN("LOCKS14")
+                  &newvalue=&newvalue&0xBFFFFFFFFFFFFFFF
+                IF DIALOG.BOOLEAN("LOCKS15")
+                  &newvalue=&newvalue&0x7FFFFFFFFFFFFFFF
+                
+                PRINT "New NVM User Row value: 0x"+FORMAT.HEX(16.,&newvalue)
+                
+                DO "&script" SET &newvalue
+              )
+  )
+  
+  PRIVATE &targetvalue &newvalue &regions
+  
+  GOSUB GetNVMUserRowValue
+  RETURNVALUES &targetvalue
+  
+  ; Update dialog
+  IF (&targetvalue&0x7)==0x0
+    DIALOG.SET BOOTPROT "32KB"
+  ELSE IF (&targetvalue&0x7)==0x1
+    DIALOG.SET BOOTPROT "16KB"
+  ELSE IF (&targetvalue&0x7)==0x2
+    DIALOG.SET BOOTPROT "8KB"
+  ELSE IF (&targetvalue&0x7)==0x3
+    DIALOG.SET BOOTPROT "4KB"
+  ELSE IF (&targetvalue&0x7)==0x4
+    DIALOG.SET BOOTPROT "2KB"
+  ELSE IF (&targetvalue&0x7)==0x5
+    DIALOG.SET BOOTPROT "1KB"
+  ELSE IF (&targetvalue&0x7)==0x6
+    DIALOG.SET BOOTPROT "512B"
+  ELSE ;IF (&targetvalue&0x7)==0x7
+    DIALOG.SET BOOTPROT "0B"
+  
+  IF ((&targetvalue>>4.)&0x7)==0x0
+    DIALOG.SET EEPROM "16KB"
+  ELSE IF ((&targetvalue>>4.)&0x7)==0x1
+    DIALOG.SET EEPROM "8KB"
+  ELSE IF ((&targetvalue>>4.)&0x7)==0x2
+    DIALOG.SET EEPROM "4KB"
+  ELSE IF ((&targetvalue>>4.)&0x7)==0x3
+    DIALOG.SET EEPROM "2KB"
+  ELSE IF ((&targetvalue>>4.)&0x7)==0x4
+    DIALOG.SET EEPROM "1KB"
+  ELSE IF ((&targetvalue>>4.)&0x7)==0x5
+    DIALOG.SET EEPROM "512B"
+  ELSE IF ((&targetvalue>>4.)&0x7)==0x6
+    DIALOG.SET EEPROM "256B"
+  ELSE ;IF ((&targetvalue>>4)&0x7)==0x7
+    DIALOG.SET EEPROM "0B"
+  
+  &newvalue=(&targetvalue>>8.)&0x3F
+  DIALOG.Set BOD33LEVEL "0x"+FORMAT.HEX(1.,&newvalue)
+  
+  IF ((&targetvalue>>15.)&0x3)==0x0
+    DIALOG.SET BOD33ACTION "NONE"
+  ELSE IF ((&targetvalue>>15.)&0x3)==0x1
+    DIALOG.SET BOD33ACTION "RESET"
+  ELSE IF ((&targetvalue>>15.)&0x3)==0x2
+    DIALOG.SET BOD33ACTION "INTERRUPT"
+  ELSE ;IF ((&targetvalue>>15.)&0x3)==0x3
+    DIALOG.SET BOD33ACTION "RESERVED"
+  
+  IF ((&targetvalue>>14.)&0x1)==0x1
+    DIALOG.SET BOD33ENABLE TRUE()
+  ELSE
+    DIALOG.SET BOD33ENABLE FALSE()
+  
+  IF ((&targetvalue>>40.)&0x1)==0x1
+    DIALOG.SET BOD33HYST TRUE()
+  ELSE
+    DIALOG.SET BOD33HYST FALSE()
+  
+  IF ((&targetvalue>>27.)&0xF)>0xB
+    DIALOG.SET WDTTIMEOUT "Reserved"
+  ELSE
+    DIALOG.SET WDTTIMEOUT FORMAT.DecimalU(1.,8.<<((&targetvalue>>27.)&0xF))
+  
+  IF ((&targetvalue>>31.)&0xF)>0xB
+    DIALOG.SET WDTWINDOW "Reserved"
+  ELSE
+    DIALOG.SET WDTWINDOW FORMAT.DecimalU(1.,8.<<((&targetvalue>>31.)&0xF))
+  
+  IF ((&targetvalue>>35.)&0xF)>0xB
+    DIALOG.SET WDTEWOFFSET "Reserved"
+  ELSE
+    DIALOG.SET WDTEWOFFSET FORMAT.DecimalU(1.,8.<<((&targetvalue>>35.)&0xF))
+  
+  IF ((&targetvalue>>25.)&0x1)==0x1
+    DIALOG.SET WDTENABLE TRUE()
+  ELSE
+    DIALOG.SET WDTENABLE FALSE()
+  
+  IF ((&targetvalue>>26.)&0x1)==0x1
+    DIALOG.SET WDTAON TRUE()
+  ELSE
+    DIALOG.SET WDTAON FALSE()
+  
+  IF ((&targetvalue>>39.)&0x1)==0x1
+    DIALOG.SET WDTWEN TRUE()
+  ELSE
+    DIALOG.SET WDTWEN FALSE()
+  
+  IF CPUIS("ATSAMD???13*")||CPUIS("ATSAMD???14*")
+    &regions=1.
+  ELSE IF CPUIS("ATSAMD???15*")
+    &regions=2.
+  ELSE IF CPUIS("ATSAMD???16*")
+    &regions=4.
+  ELSE IF CPUIS("ATSAMD???17*")
+    &regions=8.
+  ELSE IF CPUIS("ATSAMD???18*")
+    &regions=16.
+  
+  IF &regions<16.
+  (
+    DIALOG.Disable LOCKS15
+    DIALOG.Disable LOCKS14
+    DIALOG.Disable LOCKS13
+    DIALOG.Disable LOCKS12
+    DIALOG.Disable LOCKS11
+    DIALOG.Disable LOCKS10
+    DIALOG.Disable LOCKS9
+    DIALOG.Disable LOCKS8
+  )
+  IF &regions<8.
+  (
+    DIALOG.Disable LOCKS7
+    DIALOG.Disable LOCKS6
+    DIALOG.Disable LOCKS5
+    DIALOG.Disable LOCKS4
+  )
+  IF &regions<4.
+  (
+    DIALOG.Disable LOCKS3
+    DIALOG.Disable LOCKS2
+  )
+  IF &regions<2.
+  (
+    DIALOG.Disable LOCKS1
+  )
+  
+  IF ((&targetvalue>>48.)&0x1)==0x0
+    DIALOG.SET LOCKS0 TRUE()
+  ELSE
+    DIALOG.SET LOCKS0 FALSE()
+  
+  IF ((&targetvalue>>49.)&0x1)==0x0
+    DIALOG.SET LOCKS1 TRUE()
+  ELSE
+    DIALOG.SET LOCKS1 FALSE()
+  
+  IF ((&targetvalue>>50.)&0x1)==0x0
+    DIALOG.SET LOCKS2 TRUE()
+  ELSE
+    DIALOG.SET LOCKS2 FALSE()
+  
+  IF ((&targetvalue>>51.)&0x1)==0x0
+    DIALOG.SET LOCKS3 TRUE()
+  ELSE
+    DIALOG.SET LOCKS3 FALSE()
+  
+  IF ((&targetvalue>>52.)&0x1)==0x0
+    DIALOG.SET LOCKS4 TRUE()
+  ELSE
+    DIALOG.SET LOCKS4 FALSE()
+  
+  IF ((&targetvalue>>53.)&0x1)==0x0
+    DIALOG.SET LOCKS5 TRUE()
+  ELSE
+    DIALOG.SET LOCKS5 FALSE()
+  
+  IF ((&targetvalue>>54.)&0x1)==0x0
+    DIALOG.SET LOCKS6 TRUE()
+  ELSE
+    DIALOG.SET LOCKS6 FALSE()
+  
+  IF ((&targetvalue>>55.)&0x1)==0x0
+    DIALOG.SET LOCKS7 TRUE()
+  ELSE
+    DIALOG.SET LOCKS7 FALSE()
+  
+  IF ((&targetvalue>>56.)&0x1)==0x0
+    DIALOG.SET LOCKS8 TRUE()
+  ELSE
+    DIALOG.SET LOCKS8 FALSE()
+  
+  IF ((&targetvalue>>57.)&0x1)==0x0
+    DIALOG.SET LOCKS9 TRUE()
+  ELSE
+    DIALOG.SET LOCKS9 FALSE()
+  
+  IF ((&targetvalue>>58.)&0x1)==0x0
+    DIALOG.SET LOCKS10 TRUE()
+  ELSE
+    DIALOG.SET LOCKS10 FALSE()
+  
+  IF ((&targetvalue>>59.)&0x1)==0x0
+    DIALOG.SET LOCKS11 TRUE()
+  ELSE
+    DIALOG.SET LOCKS11 FALSE()
+  
+  IF ((&targetvalue>>60.)&0x1)==0x0
+    DIALOG.SET LOCKS12 TRUE()
+  ELSE
+    DIALOG.SET LOCKS12 FALSE()
+  
+  IF ((&targetvalue>>61.)&0x1)==0x0
+    DIALOG.SET LOCKS13 TRUE()
+  ELSE
+    DIALOG.SET LOCKS13 FALSE()
+  
+  IF ((&targetvalue>>62.)&0x1)==0x0
+    DIALOG.SET LOCKS14 TRUE()
+  ELSE
+    DIALOG.SET LOCKS14 FALSE()
+  
+  IF ((&targetvalue>>63.)&0x1)==0x0
+    DIALOG.SET LOCKS15 TRUE()
+  ELSE
+    DIALOG.SET LOCKS15 FALSE()
+  
+  RETURN
+)
+
+
+GetNVMUserRowValue:
+(
+  PRIVATE &returnvalue
+  
+  ; Check system state
+  IF (SYStem.Mode()!=0xB)||STATE.RUN()
+  (
+    PRINT %ERROR "System need to be Up and Stopped!!!"
+    &returnvalue=0
+  )
+  ELSE
+  (
+    &returnvalue=Data.Quad(ASD:0x00804000)
+  )
+  
+  RETURN "&returnvalue"
+)
+
+
+SetNVMUserRowValue:
+(
+  PARAMETERS &value
+  
+  ; Check system state
+  IF (SYStem.Mode()!=0xB)||STATE.RUN()
+  (
+    PRINT %ERROR "System need to be Up and Stopped!!!"
+    ENDDO
+  )
+  
+  FLASH.AUTO 0x00804000--0x00804007 /CENSORSHIP
+  Data.Set 0x00804000 %Quad &value
+  FLASH.AUTO OFF
+  
+  RETURN
+)

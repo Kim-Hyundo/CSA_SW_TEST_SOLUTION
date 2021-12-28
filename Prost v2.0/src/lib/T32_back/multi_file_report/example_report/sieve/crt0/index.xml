@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="../../t32transform.xsl"?>
+<TRACE32 file="D:\svn\demo\demo\coverage\multi_file_report\example_report\sieve\crt0\index.xml">
+	<coverage>
+		<COVerage.EXPORT.ListModule ts="1539005269" t32ver="S.2018.10.000101728" t32pv="ARM">
+			<module>
+				<addrFrom>P:0x400</addrFrom>
+				<addrTo>P:0x45F</addrTo>
+				<tree>\\sieve\crt0</tree>
+				<cov>never</cov>
+				<exec>0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>96</bytes>
+				<bytesok>0</bytesok>
+			</module>
+		<total>
+			<cov>never</cov>
+			<exec>0.000%</exec>
+			<branches>0.000%</branches>
+			<ok>0</ok>
+			<taken>0</taken>
+			<nottaken>0</nottaken>
+			<never>4</never>
+			<bytes>96</bytes>
+			<bytesok>0</bytesok>
+		</total>
+		</COVerage.EXPORT.ListModule>
+	</coverage>
+	<marker>
+		<BookMark.EXPORT ts="1539005269" t32ver="S.2018.10.000101728" t32pv="ARM">
+		</BookMark.EXPORT>
+	</marker>
+	<listing>
+		<List.EXPORT ts="1539005269" t32ver="S.2018.10.000101728" t32pv="ARM" cpu="ARM922T">
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><src>...</src></hll>
+				<hll><line>4</line><src></src></hll>
+				<hll><line>5</line><src>#ifdef __thumb__</src></hll>
+				<hll><line>6</line><src># define subs sub</src></hll>
+				<hll><line>7</line><src>#endif</src></hll>
+				<hll><line>8</line><src></src></hll>
+				<hll><line>9</line><src></src></hll>
+				<hll><line>10</line><src>_start:</src></hll>
+				<hll><line>11</line><src>    /* set stack and frame pointer */</src></hll>
+				<hll><cov>never</cov><line>12</line><src>    ldr     r1, .SP</src></hll>
+				<asm><cov>never</cov><addr>ST:00000400</addr><code>490F</code><label>_start:</label><mnemonic>ldr     r1,0x440</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><cov>never</cov><line>13</line><src>    mov     r0, #0</src></hll>
+				<asm><cov>never</cov><addr>ST:00000402</addr><code>2000</code><mnemonic>mov     r0,#0x0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><cov>never</cov><line>14</line><src>    mov     sp, r1</src></hll>
+				<asm><cov>never</cov><addr>ST:00000404</addr><code>468D</code><mnemonic>mov     r13,r1</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><cov>never</cov><line>15</line><src>    mov     fp, r0</src></hll>
+				<asm><cov>never</cov><addr>ST:00000406</addr><code>4683</code><mnemonic>mov     r11,r0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><line>16</line><src></src></hll>
+				<hll><line>17</line><src>    /* clear .bss-section */</src></hll>
+				<hll><cov>never</cov><line>18</line><src>    ldr     r4, .BSS_S</src></hll>
+				<asm><cov>never</cov><addr>ST:00000408</addr><code>4C0E</code><mnemonic>ldr     r4,0x444</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><cov>never</cov><line>19</line><src>    ldr     r5, .BSS_E</src></hll>
+				<asm><cov>never</cov><addr>ST:0000040A</addr><code>4D0F</code><mnemonic>ldr     r5,0x448</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><cov>never</cov><line>20</line><src>    subs    r5, r5, r4</src></hll>
+				<asm><cov>never</cov><addr>ST:0000040C</addr><code>1B2D</code><mnemonic>sub     r5,r5,r4</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><cov>never</cov><line>21</line><src>    beq     bss_done</src></hll>
+				<asm><cov>never</cov><addr>ST:0000040E</addr><code>D004</code><mnemonic>beq     0x41A</mnemonic><comment>bss_done</comment></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><cov>never</cov><line>22</line><src>    mov     r0, #0</src></hll>
+				<asm><cov>never</cov><addr>ST:00000410</addr><code>2000</code><mnemonic>mov     r0,#0x0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><line>23</line><src>bss_clear:</src></hll>
+				<hll><cov>never</cov><line>24</line><src>    strb    r0, [r4]</src></hll>
+				<asm><cov>never</cov><addr>ST:00000412</addr><code>7020</code><label>bss_clear:</label><mnemonic>strb    r0,[r4]</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><cov>never</cov><line>25</line><src>    add     r4, r4, #1</src></hll>
+				<asm><cov>never</cov><addr>ST:00000414</addr><code>3401</code><mnemonic>add     r4,#0x1</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><cov>never</cov><line>26</line><src>    subs    r5, r5, #1</src></hll>
+				<asm><cov>never</cov><addr>ST:00000416</addr><code>3D01</code><mnemonic>sub     r5,#0x1</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><cov>never</cov><line>27</line><src>    bne     bss_clear</src></hll>
+				<asm><cov>never</cov><addr>ST:00000418</addr><code>D1FB</code><mnemonic>bne     0x412</mnemonic><comment>bss_clear</comment></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><src>...</src></hll>
+				<hll><line>32</line><src>init_data:</src></hll>
+				<hll><line>33</line><src>    ldr     r0, .DATA_S</src></hll>
+				<hll><line>34</line><src>    ldr     r1, .DATA_LADDR</src></hll>
+				<hll><line>35</line><src>    ldr     r2, .DATA_SIZE</src></hll>
+				<hll><line>36</line><src>    bl      memcpy</src></hll>
+				<hll><line>37</line><src>#endif</src></hll>
+				<hll><line>38</line><src></src></hll>
+				<hll><line>39</line><src>    /* initialization of e.g. static objects */</src></hll>
+				<hll><cov>never</cov><line>40</line><src>    ldr     r4, .INIT_S</src></hll>
+				<asm><cov>never</cov><addr>ST:0000041A</addr><code>4C0C</code><label>bss_done:</label><mnemonic>ldr     r4,0x44C</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><cov>never</cov><line>41</line><src>    ldr     r5, .INIT_E</src></hll>
+				<asm><cov>never</cov><addr>ST:0000041C</addr><code>4D0C</code><mnemonic>ldr     r5,0x450</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><cov>never</cov><line>42</line><src>    subs    r5, r5, r4</src></hll>
+				<asm><cov>never</cov><addr>ST:0000041E</addr><code>1B2D</code><mnemonic>sub     r5,r5,r4</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><cov>never</cov><line>43</line><src>    beq     init_done</src></hll>
+				<asm><cov>never</cov><addr>ST:00000420</addr><code>D009</code><mnemonic>beq     0x436</mnemonic><comment>gomain</comment></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><line>44</line><src>init:</src></hll>
+				<hll><cov>never</cov><line>45</line><src>    ldr     r3,[r4]</src></hll>
+				<asm><cov>never</cov><addr>ST:00000422</addr><code>6823</code><label>init:</label><mnemonic>ldr     r3,[r4]</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><cov>never</cov><line>46</line><src>    push    {r0,r5}</src></hll>
+				<asm><cov>never</cov><addr>ST:00000424</addr><code>B421</code><mnemonic>push    {r0,r5}</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><line>47</line><src>#ifdef __thumb__</src></hll>
+				<hll><cov>never</cov><line>48</line><src>    mov     r1, pc</src></hll>
+				<asm><cov>never</cov><addr>ST:00000426</addr><code>4679</code><mnemonic>mov     r1,pc</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><cov>never</cov><line>49</line><src>    add     r1, #5</src></hll>
+				<asm><cov>never</cov><addr>ST:00000428</addr><code>3105</code><mnemonic>add     r1,#0x5</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><cov>never</cov><line>50</line><src>    mov     lr, r1</src></hll>
+				<asm><cov>never</cov><addr>ST:0000042A</addr><code>468E</code><mnemonic>mov     r14,r1</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><line>51</line><src>#else</src></hll>
+				<hll><line>52</line><src>    mov     lr,pc</src></hll>
+				<hll><line>53</line><src>#endif</src></hll>
+				<hll><cov>never</cov><line>54</line><src>    bx      r3</src></hll>
+				<asm><cov>never</cov><addr>ST:0000042C</addr><code>4718</code><mnemonic>bx      r3</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><cov>never</cov><line>55</line><src>    pop     {r0,r5}</src></hll>
+				<asm><cov>never</cov><addr>ST:0000042E</addr><code>BC21</code><mnemonic>pop     {r0,r5}</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><cov>never</cov><line>56</line><src>    add     r4, r4, #4</src></hll>
+				<asm><cov>never</cov><addr>ST:00000430</addr><code>3404</code><mnemonic>add     r4,#0x4</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><cov>never</cov><line>57</line><src>    subs    r5, r5, #4</src></hll>
+				<asm><cov>never</cov><addr>ST:00000432</addr><code>3D04</code><mnemonic>sub     r5,#0x4</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><cov>never</cov><line>58</line><src>    bne     init</src></hll>
+				<asm><cov>never</cov><addr>ST:00000434</addr><code>D1F5</code><mnemonic>bne     0x422</mnemonic><comment>init</comment></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><line>59</line><src>init_done:</src></hll>
+				<hll><line>60</line><src></src></hll>
+				<hll><line>61</line><src>gomain:</src></hll>
+				<hll><cov>never</cov><line>62</line><src>    mov     r0, #0</src></hll>
+				<asm><cov>never</cov><addr>ST:00000436</addr><code>2000</code><label>gomain:</label><mnemonic>mov     r0,#0x0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><cov>never</cov><line>63</line><src>    mov     r1, #0</src></hll>
+				<asm><cov>never</cov><addr>ST:00000438</addr><code>2100</code><mnemonic>mov     r1,#0x0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><cov>never</cov><line>64</line><src>    bl      main</src></hll>
+				<asm><cov>never</cov><addr>ST:0000043A</addr><code>F000FF17</code><mnemonic>bl      0x126C</mnemonic><comment>main</comment></asm>
+			</mixed>
+			<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><line>65</line><src></src></hll>
+				<hll><line>66</line><src>_exit:</src></hll>
+				<hll><cov>never</cov><line>67</line><src>    b       _exit</src></hll>
+				<asm><cov>never</cov><addr>ST:0000043E</addr><code>E7FE</code><label>_exit:</label><mnemonic>b       0x43E</mnemonic><comment>_exit</comment></asm>
+				<asm><cov>never</cov><addr>SP:00000440</addr><code>00008000</code><mnemonic>dcd     0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>SP:00000444</addr><code>000046B4</code><mnemonic>dcd     0x46B4</mnemonic></asm>
+				<asm><cov>never</cov><addr>SP:00000448</addr><code>00005EE8</code><mnemonic>dcd     0x5EE8</mnemonic></asm>
+				<asm><cov>never</cov><addr>SP:0000044C</addr><code>00004620</code><mnemonic>dcd     0x4620</mnemonic><comment>defaultstring</comment></asm>
+				<asm><cov>never</cov><addr>SP:00000450</addr><code>00004620</code><mnemonic>dcd     0x4620</mnemonic><comment>defaultstring</comment></asm>
+				<asm><cov>never</cov><addr>SP:00000454</addr><code>00004620</code><mnemonic>dcd     0x4620</mnemonic><comment>defaultstring</comment></asm>
+				<asm><cov>never</cov><addr>SP:00000458</addr><code>00004620</code><mnemonic>dcd     0x4620</mnemonic><comment>defaultstring</comment></asm>
+				<asm><cov>never</cov><addr>SP:0000045C</addr><code>00000094</code><mnemonic>dcd     0x94</mnemonic></asm>
+			</mixed>
+				<mixed module="\\sieve\crt0\crt0.sx">
+				<hll><src>...</src></hll>
+				<hll><line>79</line><src>.INIT_E:</src></hll>
+				<hll><line>80</line><src>    .word   __init_array_end</src></hll>
+				<hll><line>81</line><src>.DATA_S:</src></hll>
+				<hll><line>82</line><src>    .word   __data_vaddr</src></hll>
+				<hll><line>83</line><src>.DATA_LADDR:</src></hll>
+				<hll><line>84</line><src>    .word   __data_laddr</src></hll>
+				<hll><line>85</line><src>.DATA_SIZE:</src></hll>
+				<hll><line>86</line><src>    .word   __data_size</src></hll>
+				<hll><line>87</line><src></src></hll>
+				</mixed>
+		</List.EXPORT>
+	</listing>
+</TRACE32>

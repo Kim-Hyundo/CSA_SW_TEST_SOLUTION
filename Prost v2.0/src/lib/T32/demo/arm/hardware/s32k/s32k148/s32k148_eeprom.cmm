@@ -1,0 +1,125 @@
+; --------------------------------------------------------------------------------
+; @Title: Configure FlexNVM as EEPROM on S32K148
+; @Description:
+;   Issues as MASSERASE and configures the FlexNVM as EEPROM on S32K148
+;   Prerequisites S32K148EVB:
+;    * Connect Combiprobe/uTrace to J10
+;      or
+;      Connect AutoFocus Preprocessor to J10
+;      and connect DebugCable to Preprocessor
+;    * remove R113/121 VSupply bridges
+;   Prerequisites S32K148CVD:
+;    * Connect Combiprobe/uTrace to J11
+;      or
+;      Connect AutoFocus Preprocessor to J11
+;      and connect DebugCable to Preprocessor
+;    * remove pins 7, 11, 13 from J11 - VSupply
+; @Keywords: ARM, Cortex-M4, Flash, FlexNVM, EEPROM
+; @Author: AME
+; @Board: S32K148EVB, S32K148CVD
+; @Chip: S32K148
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: s32k148_eeprom.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; System Settings for S32K148
+RESet
+SYStem.RESet
+SYStem.CPU S32K148
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+
+; --------------------------------------------------------------------------------
+; issue MASSERASE
+DO ~~/demo/arm/flash/s32k.cmm MASSERASE PREPAREONLY
+
+; --------------------------------------------------------------------------------
+; reset & connect
+SYStem.Up
+Register.Set PC 0x20000000
+
+; --------------------------------------------------------------------------------
+; repartition DFlash to EEPROM
+; disable Prefetch Buffer OCMDRx
+Data.Set AD:0x40001400 %Long 0xXFFF
+Data.Set AD:0x40001404 %Long 0xXFFF
+Data.Set AD:0x40001408 %Long 0xXFFF
+
+; issue Program Partition command
+Data.Set AD:0x40020007 %Byte 0x80 ; Program Partition
+Data.Set AD:0x40020006 %Byte 0    ; no CSEC
+Data.Set AD:0x40020005 %Byte 0    ; no SFE
+Data.Set AD:0x40020004 %Byte 0    ; load EEPROM on Reset
+Data.Set AD:0x4002000B %Byte 2    ; 4k EEPROM
+Data.Set AD:0x4002000A %Byte 0x4  ; DEPART=4 -> 448k DFlash
+
+; FCNFG - clear errors
+IF (Data.Byte(AD:0x40020000)&0x71)!=0
+  Data.Set AD:0x40020000 %Byte Data.Byte(AD:0x40020000)&0x71
+
+; FCNFG - start
+Data.Set AD:0x40020000 %Byte 0x80
+WAIT (Data.Byte(AD:0x40020000)&0x80)!=0
+
+; --------------------------------------------------------------------------------
+; reset & connect (EEPROM is loaded on RESET)
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; detect new partitioning
+DO ~~/demo/arm/flash/s32k.cmm PREPAREONLY
+
+; PFLASH is now available @0x0
+; DFlash is now available @0x10000000
+; EEPROM is now available @0x14000000
+
+; FLASH.ReProgram ALL
+; Data.LOAD
+; FLASH.ReProgram OFF
+
+; FLASH.ERASE ALL - will clear all flashes but not clear the partitioning
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+DisableWatchdog:
+(
+  LOCAL &tmp1 &tmp2
+  &tmp1=Data.Long(ST:0x20000000)
+  &tmp2=Data.Long(ST:0x20000004)
+  Register.SWAP
+  ; The watchdog has a restrictive timing. It has to be configured and unlocked within a period
+  ; of 128 cycles. Therefor the unlock sequence need to be done by a small target program.
+  Data.Assemble ST:0x20000000  str  r1,[r0]  ;SD:0x40052004 = 0xD928C520   (Key)
+  Data.Assemble ,              str  r3,[r2]  ;SD:0x40052000 = 0x00002120   (Control register)
+  Data.Assemble ,              str  r5,[r4]  ;SD:0x40052008 = 0x0000FFFF   (Timeout value)
+  Data.Assemble ,              bkpt #0
+  Register.Set PC 0x20000000
+  Register.Set SP 0x20001000
+  Register.Set R0 0x40052004
+  Register.Set R1 0xD928C520
+  Register.Set R2 0x40052000
+  Register.Set R3 0x00002120
+  Register.Set R4 0x40052008
+  Register.Set R5 0x0000FFFF
+  Go.direct
+  WAIT !STATE.RUN()
+
+  Data.Set ST:0x20000000 %Long &tmp1
+  Data.Set ST:0x20000004 %Long &tmp2
+  Register.SWAP
+
+  RETURN
+)

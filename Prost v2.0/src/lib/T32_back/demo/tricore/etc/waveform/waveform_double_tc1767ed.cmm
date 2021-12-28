@@ -1,0 +1,89 @@
+; --------------------------------------------------------------------------------
+; @Title: Draw Test Programm for TriCore TC1767ED on Easy-Kit TC176X (double)
+; @Description:
+;   Drawing mathematical waveforms sin, cos, exp
+;   - 32 bit
+;   - double precision
+;
+;   The marker feature requires data trace. Data trace always required an
+;   Emulation Device. The demo was compiled for TC1767 but should run on all
+;   AUDO-FUTURE devices providing enough internal memory.
+;
+;   Performed tests:
+;   EASY KIT TC176X / TC116X V2.0   TC1767ED EES-AA   2009-02-09 MAX
+;
+;   Memory mappings:
+;   processor internal program flash mapped to 0xA0000000--0xA01FFFFF    2 MB
+;   processor internal data flash    mapped to 0xAFE00000--0xAFE07FFF   64 KB
+;                                              0xAFE10000--0xAFE17FFF   64 KB
+;
+; @Keywords: cos, exp, Infineon, internal, intmem, memory, sin, TriCore,
+;   waveform
+; @Author: MAX
+; @Board: Easy-Kit-TC176X
+; @Chip: TC1767ED
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: waveform_double_tc1767ed.cmm 13894 2019-02-07 10:19:12Z mobermaier $
+
+
+; initialize and start the debugger
+
+RESet
+SYStem.CPU TC1767ED
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; configure onchip trace
+
+Trace.METHOD Onchip
+Onchip.OFF
+Onchip.Mode Leash
+MCDS.TraceBuffer.SIZE 256.KB
+
+; timestamps disabled to save trace buffer
+MCDS.TimeStamp OFF
+
+; trace sources
+MCDS.SOURCE.Set TriCore.FlowTrace OFF    ; not required
+MCDS.SOURCE.Set TriCore.WriteAddr ON
+MCDS.SOURCE.Set TriCore.WriteData ON
+
+; --------------------------------------------------------------------------------
+; load demo program
+Data.LOAD.Elf "~~~~/tc1767_waveform_double_intmem.elf"
+Go main
+Go func_Wave
+
+; start test
+Break.Delete
+Break.Set P1--P8 /Write /TraceEnable
+Break.Set P1 /Alpha                  ; sinus
+Break.Set P2        /Beta            ; sinus
+Break.Set P3              /Charly    ; cosinus
+Break.Set P4 /Alpha /Beta            ; cosinus
+Break.Set P5 /Alpha       /Charly    ; exponent
+Break.Set P8 /Alpha /Beta /Charly    ; other
+
+Go func_Wave
+
+; --------------------------------------------------------------------------------
+; open some windows
+
+WinCLEAR
+WinPOS 0% 0% 49% 49%
+List.auto
+
+; open windows
+WinPOS 50% 50%
+MCDS.state
+
+WinPOS 0% 50% 50% 50%
+Onchip.List MARK DEFault /Track
+Onchip.GOTO -1000000.    ; goto first record in display
+
+WinPOS 50% 0% 49% 49%
+Onchip.Chart.DRAW Data %FLOAT.Ieee /Points /Color
+SCREEN
+
+ENDDO

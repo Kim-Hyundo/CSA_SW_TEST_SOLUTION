@@ -1,0 +1,17 @@
+# Should be called with
+#
+# make -f make_linux
+
+all: viewprintf
+
+viewprintf: viewprintf.o pipeproto.o
+	gcc -shared -o $@ $^
+
+pipeproto.o: pipeproto.c pipeproto.h
+	gcc -Wall -fPIC -O2 -c $<
+
+viewprintf.o: viewprintf.c pipeproto.h
+	gcc -Wall -fPIC -O2 -c $<
+
+clean:
+	rm -f *.o viewprintf

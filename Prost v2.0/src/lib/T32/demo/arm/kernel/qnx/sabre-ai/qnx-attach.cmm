@@ -1,0 +1,87 @@
+; --------------------------------------------------------------------------------
+; @Title: QNX Demo for TRACE32 OS Awareness on a Sabre Automotive board
+; @Description:
+;
+;   This script attaches the debugger to a running QNX system
+;
+;   The example is generated for the Sabre Automotive using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;
+; @Keywords: awareness, imx6
+; @Props: Template
+; @Author: DIE
+; @Board: Sabre AI
+; @Chip: IMX6QUAD
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: qnx-attach.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+&workspace="C:/DevTools/QNX700/workspace"
+
+
+; Debugger Reset
+
+ PRINT "resetting..."
+ RESet
+
+
+; Initialize debugger
+
+ print "initializing..."
+
+ SYStem.CPU iMX6Quad
+
+ SYStem.JtagClock CTCK 20MHz
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ TrOnchip.Set DABORT OFF        ; used by MMU
+ TrOnchip.Set PABORT OFF        ; used by MMU
+ TrOnchip.Set UNDEF OFF         ; may be used for FPU emulation
+ SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+ SETUP.IMASKASM ON              ; lock interrupts while single stepping
+
+ MAP.DENYACCESS     ; prevent accesses to non-existent memory
+ MAP.NODENYACCESS 0x02000000--0x020fffff    ; internal periphery
+ MAP.NODENYACCESS 0x10000000--0x8fffffff    ; RAM
+
+
+; Attach to running target
+
+ PRINT "attaching..."
+ SYStem.Mode.Attach
+ IF STATE.RUN()
+   Break
+
+
+ ; Disable watchdog
+ ;PER.Set ASD:0x20BC000 %W (d.w(ASD:0x20BC000)&~0x1)|0x0
+ ;PER.Set ASD:0x20BC000 %W (d.w(ASD:0x20BC000)&~0x4)|0x0
+
+
+; Load the symbols of procnto
+ PRINT "loading procnto symbols..."
+ ; add [+keeplinked] to build script to keep symbol files
+ Data.LOAD.Elf &workspace/SabreAuto/images/procnto-smp-instr.sym /NoCODE
+
+
+; Declare the MMU format to the debugger
+ PRINT "initializing debugger MMU..."
+ MMU.FORMAT STD
+ TRANSlation.COMMON 0xe0000000--0xffffffff  ; kernel area is common for all MMU space ids
+ TRANSlation.TableWalk ON   ; debugger uses a table walk to decode virtual addresses
+ TRANSlation.ON             ; switch on debugger(!) address translation
+
+
+; Initialize QNX Support
+
+ PRINT "initializing QNX support..."
+ TASK.CONFIG ~~/demo/arm/kernel/qnx/qnx.t32     ; loads QNX awareness
+
+ ; Group kernel area to be displayed with red bar
+ GROUP.Create "kernel" 0xfc000000--0xffffffff /RED
+
+
+PRINT "done."
+
+ENDDO

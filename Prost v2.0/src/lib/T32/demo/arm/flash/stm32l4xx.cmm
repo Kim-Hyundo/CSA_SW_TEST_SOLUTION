@@ -1,0 +1,247 @@
+; --------------------------------------------------------------------------------
+; @Title: Example for flash declaration of ST STM32L4xx internal flash
+; @Description:
+;   Script arguments:
+;
+;    DO stm32l4xx [PREPAREONLY] [CPU=<cpu>]
+;
+;      PREPAREONLY only declares flash but does not execute flash programming
+;
+;      CPU=<cpu> selects CPU derivative <cpu>
+;
+;   Example:
+;
+;   DO ~~/demo/arm/flash/stm32l4xx CPU=STM32L476ZG PREPAREONLY
+;
+;   List of STM32L4xx derivatives and their configuration:
+;
+;     CPU-Type         Flash size   Page size    SRAM size
+;                        [Byte]      [Byte]        [Byte]
+; --------------------------------------------------------------------------------
+;     STM32L431CB        0x20000     0x800       0x10000
+;     STM32L431CC        0x40000     0x800       0x10000
+;     STM32L431KB        0x20000     0x800       0x10000
+;     STM32L431KC        0x40000     0x800       0x10000
+;     STM32L431RB        0x20000     0x800       0x10000
+;     STM32L431RC        0x40000     0x800       0x10000
+;     STM32L431VC        0x40000     0x800       0x10000
+;     STM32L432KB        0x20000     0x800       0x10000
+;     STM32L432KC        0x40000     0x800       0x10000
+;     STM32L433CB        0x20000     0x800       0x10000
+;     STM32L433CC        0x40000     0x800       0x10000
+;     STM32L433RB        0x20000     0x800       0x10000
+;     STM32L433RC        0x40000     0x800       0x10000
+;     STM32L433VC        0x40000     0x800       0x10000
+;     STM32L442KC        0x40000     0x800       0x10000
+;     STM32L443CC        0x40000     0x800       0x10000
+;     STM32L443RC        0x40000     0x800       0x10000
+;     STM32L443VC        0x40000     0x800       0x10000
+;     STM32L451CC        0x40000     0x800       0x20000
+;     STM32L451CE        0x80000     0x800       0x20000
+;     STM32L451RC        0x40000     0x800       0x20000
+;     STM32L451RE        0x80000     0x800       0x20000
+;     STM32L451VC        0x40000     0x800       0x20000
+;     STM32L451VE        0x80000     0x800       0x20000
+;     STM32L452CC        0x40000     0x800       0x20000
+;     STM32L452CE        0x80000     0x800       0x20000
+;     STM32L452RC        0x40000     0x800       0x20000
+;     STM32L452RE        0x80000     0x800       0x20000
+;     STM32L452VC        0x40000     0x800       0x20000
+;     STM32L452VE        0x80000     0x800       0x20000
+;     STM32L462CE        0x80000     0x800       0x20000
+;     STM32L462RE        0x80000     0x800       0x20000
+;     STM32L462VE        0x80000     0x800       0x20000
+;     STM32L471QE        0x80000     0x800       0x20000
+;     STM32L471QG       0x100000     0x800       0x20000
+;     STM32L471RE        0x80000     0x800       0x20000
+;     STM32L471RG       0x100000     0x800       0x20000
+;     STM32L471VE        0x80000     0x800       0x20000
+;     STM32L471VG       0x100000     0x800       0x20000
+;     STM32L471ZE        0x80000     0x800       0x20000
+;     STM32L471ZG       0x100000     0x800       0x20000
+;     STM32L475RC        0x40000     0x800       0x20000
+;     STM32L475RE        0x80000     0x800       0x20000
+;     STM32L475RG       0x100000     0x800       0x20000
+;     STM32L475VC        0x40000     0x800       0x20000
+;     STM32L475VE        0x80000     0x800       0x20000
+;     STM32L475VG       0x100000     0x800       0x20000
+;     STM32L476JE        0x80000     0x800       0x20000
+;     STM32L476JG       0x100000     0x800       0x20000
+;     STM32L476ME        0x80000     0x800       0x20000
+;     STM32L476MG       0x100000     0x800       0x20000
+;     STM32L476QE        0x80000     0x800       0x20000
+;     STM32L476QG       0x100000     0x800       0x20000
+;     STM32L476RC        0x40000     0x800       0x20000
+;     STM32L476RE        0x80000     0x800       0x20000
+;     STM32L476RG       0x100000     0x800       0x20000
+;     STM32L476VC        0x40000     0x800       0x20000
+;     STM32L476VE        0x80000     0x800       0x20000
+;     STM32L476VG       0x100000     0x800       0x20000
+;     STM32L476ZE        0x80000     0x800       0x20000
+;     STM32L476ZG       0x100000     0x800       0x20000
+;     STM32L486JG       0x100000     0x800       0x20000
+;     STM32L486QG       0x100000     0x800       0x20000
+;     STM32L486RG       0x100000     0x800       0x20000
+;     STM32L486VG       0x100000     0x800       0x20000
+;     STM32L486ZG       0x100000     0x800       0x20000
+;     STM32L496AE        0x80000     0x800       0x50000
+;     STM32L496AG       0x100000     0x800       0x50000
+;     STM32L496QE        0x80000     0x800       0x50000
+;     STM32L496QG       0x100000     0x800       0x50000
+;     STM32L496RE        0x80000     0x800       0x50000
+;     STM32L496RG       0x100000     0x800       0x50000
+;     STM32L496VE        0x80000     0x800       0x50000
+;     STM32L496VG       0x100000     0x800       0x50000
+;     STM32L496ZE        0x80000     0x800       0x50000
+;     STM32L496ZG       0x100000     0x800       0x50000
+;     STM32L4A6AG       0x100000     0x800       0x50000
+;     STM32L4A6QG       0x100000     0x800       0x50000
+;     STM32L4A6RG       0x100000     0x800       0x50000
+;     STM32L4A6VG       0x100000     0x800       0x50000
+;     STM32L4A6ZG       0x100000     0x800       0x50000
+;
+; @Author: FLC
+; @Chip: STM32L4*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 7602 $
+; $Id: stm32l4xx.cmm 7602 2019-11-05 15:02:25Z bschroefel $
+
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+PRIVATE &param_prepareonly &param_cpu
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CPU=","")
+
+; ------------------------------------------------------------------------------
+; Setup CPU
+
+IF SYStem.MODE()<5
+(
+  SYStem.RESet
+
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  IF !CPUIS(STM32L4*)
+    SYStem.CPU STM32L4*
+
+  IF CABLE.TWOWIRE()
+    SYStem.CONFIG.DEBUGPORTTYPE SWD
+
+  SYStem.Option.ResBreak OFF
+  SYStem.Up
+)
+
+; ------------------------------------------------------------------------------
+; Flash declaration
+
+FLASH.RESet
+GOSUB FlashDeclaration
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; -------------------------------------------------------------------------------
+; Flash programming example
+
+DIALOG.YESNO "Program flash memory?"
+LOCAL &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram.ALL
+  Data.LOAD.auto *
+  FLASH.ReProgram.off
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+)
+
+ENDDO
+
+
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU
+
+FlashDeclaration:
+(
+  PRIVATE &FlashSize &FlashDualBank &FlashDriver
+
+  IF CPUIS(STM32L431?B)||CPUIS(STM32L432?B)||CPUIS(STM32L433?B)||CPUIS(STM32L442?B)||CPUIS(STM32L443?B)
+  (
+    &FlashSize=0x20000
+    &FlashDualBank=FALSE()
+    &FlashDriver="stm32l4b.bin"
+  )
+  ELSE IF CPUIS(STM32L431?C)||CPUIS(STM32L432?C)||CPUIS(STM32L433?C)||CPUIS(STM32L442?C)||CPUIS(STM32L443?C)||CPUIS(STM32L451?C)||CPUIS(STM32L452?C)
+  (
+    &FlashSize=0x40000
+    &FlashDualBank=FALSE()
+    &FlashDriver="stm32l4b.bin"
+  )
+  ELSE IF CPUIS(STM32L451?E)||CPUIS(STM32L452?E)||CPUIS(STM32L462?E)
+  (
+    &FlashSize=0x80000
+    &FlashDualBank=FALSE()
+    &FlashDriver="stm32l4b.bin"
+  )
+  ELSE IF CPUIS(STM32L476?C)||CPUIS(STM32L475?C)
+  (
+    &FlashSize=0x40000
+    &FlashDualBank=TRUE()
+    &FlashDriver="stm32l4c.bin"
+  )
+  ELSE IF CPUIS(STM32L476?E)||CPUIS(STM32L475?E)||CPUIS(STM32L471?E)||CPUIS(STM32L496?E)
+  (
+    &FlashSize=0x80000
+    &FlashDualBank=TRUE()
+    &FlashDriver="stm32l4e.bin"
+  )
+  ELSE IF CPUIS(STM32L476?G)||CPUIS(STM32L475?G)||CPUIS(STM32L486?G)||CPUIS(STM32L471?G)||CPUIS(STM32L496?G)||CPUIS(STM32L4A6?G)
+  (
+    &FlashSize=0x100000
+    &FlashDualBank=TRUE()
+    &FlashDriver="stm32l4g.bin"
+  )
+
+  IF (&FlashSize==0x20000)
+  (
+    FLASH.Create  1. 0x08000000--0x0801FFFF 0x800 TARGET Quad
+  )
+  ELSE IF (&FlashSize==0x40000)&&(!&FlashDualBank)
+  (
+    FLASH.Create  1. 0x08000000--0x0803FFFF 0x800 TARGET Quad
+  )
+  ELSE IF (&FlashSize==0x40000)&&(&FlashDualBank)
+  (
+    FLASH.Create  1. 0x08000000--0x0801FFFF 0x800 TARGET Quad
+    FLASH.Create  2. 0x08020000--0x0803FFFF 0x800 TARGET Quad
+  )
+  ELSE IF (&FlashSize==0x80000)&&(!&FlashDualBank)
+  (
+    FLASH.Create  1. 0x08000000--0x0807FFFF 0x800 TARGET Quad
+  )
+  ELSE IF (&FlashSize==0x80000)&&(&FlashDualBank)
+  (
+    FLASH.Create  1. 0x08000000--0x0803FFFF 0x800 TARGET Quad
+    FLASH.Create  2. 0x08040000--0x0807FFFF 0x800 TARGET Quad
+  )
+  ELSE IF (&FlashSize==0x100000)
+  (
+    FLASH.Create  1. 0x08000000--0x0807FFFF 0x800 TARGET Quad
+    FLASH.Create  2. 0x08080000--0x080FFFFF 0x800 TARGET Quad
+  )
+  ELSE
+  (
+    PRINT %ERROR "FLASH size of CPU type is unknown"
+    ENDDO
+  )
+
+  FLASH.TARGET 0x20000000 0x20001000 0x1000 ~~/demo/arm/flash/byte/&FlashDriver
+
+  RETURN
+)

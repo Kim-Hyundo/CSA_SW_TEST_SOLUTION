@@ -1,0 +1,70 @@
+; --------------------------------------------------------------------------------
+; @Title: ATAG Structure Initialization Script for the phyCORE-i.MX31
+; @Description: 
+;   Setup parameter tags for Linux boot
+;   Format:
+;   u32 size  \_ header
+;   u32 type  /
+;   n * u32 tag
+; @Keywords: imx3*, Linux, phycore, RTOS
+; @Author: DIE
+; @Board: phyCORE-i.MX31
+; @Chip: IMX31
+; @Props:NoWelcome
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx31_atag_list.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+&tagAddr=0x80000100
+
+; ATAG_CORE
+Data.Set &tagAddr %Long %LE 0x5
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x54410001
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x1
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x1000
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x0
+&tagAddr=&tagAddr+0x4
+
+; ATAG_MEM
+Data.Set &tagAddr %Long %LE 0x4
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x54410002
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x08000000  // size 128MB
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x80000000  // start
+&tagAddr=&tagAddr+0x4
+
+; ATAG_INITRD2 (compressed ramdisk physical address)
+Data.Set &tagAddr %Long %LE 0x4
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x54420005
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x80800000 // start
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x00800000 // file size in bytes 8M
+&tagAddr=&tagAddr+0x4
+
+; ATAG_CMDLINE
+Data.Set &tagAddr %Long %LE 0x31
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x54410009
+&tagAddr=&tagAddr+0x4
+;Data.Set &tagAddr "jtag=on console=ttymxc0,115200 root=/dev/nfs ip=192.168.3.11 nfsroot=192.168.3.10:/tftpboot/nfs" 0
+Data.Set &tagAddr "jtag=on console=ttymxc0,115200 root=/dev/ram rw" 0
+&tagAddr=&tagAddr+0xBC
+
+; ATAG_NONE
+Data.Set &tagAddr %Long %LE 0x0
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x0
+&tagAddr=&tagAddr+0x4
+
+Register.Set R2 &tagAddr
+
+ENDDO

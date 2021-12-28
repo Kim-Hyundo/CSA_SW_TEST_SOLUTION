@@ -1,0 +1,134 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for Wind River Hypervisor with TRACE32 OS Awareness
+; @Description: 
+;   
+;   This script demonstrates the use of the OS Awareness for targets
+;   running the Wind River Hypervisor (version 2.x).
+;   
+;   This is just an usage example, it will NOT run on a real board, 
+;   but may be used as a template.
+;   
+; @Keywords: Awareness, Wind River Hypervisor, wrhv, RTOS
+; @Author: DIE
+; @Chip: CORTEX-A9
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: wrhv.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; Open Area window
+  
+WinPAGE.RESet
+WinPOS 0. 32. 80. 17.
+AREA.view
+PRINT
+
+
+; Reset debugger
+
+PRINT "resetting debugger..."
+RESet
+
+
+; Open serial terminal window
+
+&term="COM3"
+PRINT "starting terminal on &term... "
+TERM.METHOD COM &term 115200. 8 NONE 1STOP NONE
+TERM.SIZE 80. 1000.
+TERM.Mode VT100
+TERM.SCROLL ON
+WinPOS 91. 0. 80. 25.  
+TERM.view
+SCREEN.ALways
+
+
+; Initialize debugger
+
+PRINT "initializing debugger..."
+
+SYStem.RESet
+SYStem.CPU CortexA9MPCore
+SYStem.JtagClock 15MHz
+SETUP.IMASKASM ON               ; block interrupts while single stepping
+SYStem.Option MMUSPACES ON      ; enable "space ids" for virtual boards
+
+TrOnchip.Set RESET  OFF         ; used by hypervisor!
+TrOnchip.Set DABORT OFF
+TrOnchip.Set PABORT OFF
+
+
+; Connect to target and reset target
+
+PRINT "resetting target..."
+SYStem.Up
+
+    
+; Load hypervisor image 
+
+PRINT "loading system image..."
+Data.LOAD.Elf workspace/Proj_HIP/obj_prj_debug/system.elf
+
+
+; Load hypervisor symbols to space id zero
+
+PRINT "loading hypervisor symbols..."
+Data.LOAD.Elf workspace/Proj_HIP/obj_prj_debug/hypervisor 0:0 /nocode
+
+
+; Open List window -- we like to see something
+
+WinPOS 0. 0. 86. 26.
+List.auto
+
+
+; Start Hypervisor
+
+Go hvMgr
+PRINT "starting hypervisor..."
+wait !STATE.RUN()
+
+
+; Configure Wind River Hypervisor Awareness
+
+PRINT "loading hypervisor support..."
+TASK.CONFIG ~~/demo/arm/kernel/wrhv/wrhv.t32        ; load hypervisor awareness
+TASK.ACCESS Z:0:0       ; access hypervisor in secure zone, space id zero
+
+
+; Declare MMU Format to debugger
+
+PRINT "initializing debugger translation..."
+MMU.FORMAT STD hv_pageTable 
+TRANSlation.Create 0x0:0x0--0x1fffffff 0x0  ; hypervisor translation
+TRANSlation.TableWalk ON
+TRANSlation.ON
+
+
+; Wait for virtual board "init" to be started
+
+LOCAL &vb &spaceid
+&vb="init"
+
+PRINT "waiting for virtual board ""&vb""..."
+DO wait_for_vb_start &vb
+
+
+; Load the symbols of the virtual board to appropriate space id
+
+PRINT "loading symbols of virtual board..."
+&spaceid=task.virtboard.id(task.virtboard.magic("&vb"))
+Data.LOAD.ELF workspace/Proj_HIP/obj_prj_debug/&vb.elf &spaceid:0 /nocode /noclear
+
+
+; and "go" to the entry point
+
+Go \\&vb\\main
+PRINT "starting virtual board..."
+
+
+; That's it
+
+PRINT "done."
+
+ENDDO

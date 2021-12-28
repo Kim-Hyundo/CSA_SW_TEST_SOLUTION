@@ -1,0 +1,636 @@
+; --------------------------------------------------------------------------------
+; @Title: Windows Std specific menu
+; @Description: -
+; @Author: DIE
+; @Copyright: (c) 1989-2018 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: windows.men 3620 2018-09-04 14:23:50Z rweiss $
+
+
+add
+menu
+(
+  popup "&MSWindows"
+  (
+    default
+    menuitem "[:objects]Display &Processes"   "TASK.Process"
+    menuitem "[:objects]Display &Threads"     "TASK.Thread"
+    menuitem "[:objects]Display &Modules"     "TASK.MODule"
+    
+    separator
+    popup "&Process Debugging"
+    (
+      menuitem "[:symbols]&Load Symbols..."
+      (
+        dialog
+        (
+          header "TASK.sYmbol.LOAD"
+          pos 0. 0. 26. 3.
+          box "Process name"
+          pos 1. 1. 16. 1.
+procl:    defedit "" ""
+          pos 18. 1. 7. 1.
+          button "Browse..."
+          (
+            dialog.file "*.exe"
+            entry %line &file
+            dialog.set procl "&file"
+          )
+          pos 2. 3. 7. 1.
+          defbutton "Ok"
+          (
+            local &procl
+            &procl=dialog.string(procl)
+            TASK.sYmbol.LOAD "&procl"
+            dialog.end
+          )
+          pos 17. 3. 7. 1.
+          button "Cancel"  "dialog.end"
+        )
+      )
+      menuitem "[:symbols]&Delete Symbols..."
+      (
+        dialog
+        (
+          header "TASK.sYmbol.DELete"
+          pos 0. 0. 26. 3.
+          box "Process name"
+          pos 1. 1. 16. 1.
+procd:    defedit "" ""
+          pos 18. 1. 7. 1.
+          button "Browse..."
+          (
+            dialog.file "*.exe"
+            entry %line &file
+            dialog.set procd "&file"
+          )
+          pos 2. 3. 7. 1.
+          defbutton "Ok"
+          (
+            local &procd
+            &procd=dialog.string(procd)
+            TASK.sYmbol.DELete "&procd"
+            dialog.end
+          )
+          pos 17. 3. 7. 1.
+          button "Cancel"  "dialog.end"
+        )
+      )
+      menuitem "Debug New Process..."
+      (
+        
+          do ~~/demo/arm/kernel/windows/app_debug /dialog
+        
+      )
+      ;separator
+      ;menuitem "Help Process Debugging" "HELP __RTOS_WINSTD_User_Processes"
+    )
+    popup "D&LL Debugging"
+    (
+      menuitem "[:symbols]&Load Symbols..."
+      (
+        dialog
+        (
+          header "TASK.sYmbol.LOADDLL"
+          pos 0. 0. 26. 3.
+          box "DLL name"
+          pos 1. 1. 16. 1.
+dlll:     defedit "" ""
+          pos 18. 1. 7. 1.
+          button "Browse..."
+          (
+            dialog.file "*.dll"
+            entry %line &file
+            dialog.set dlll "&file"
+          )
+          pos 2. 3. 7. 1.
+          defbutton "Ok"
+          (
+            local &dlll
+            &dlll=dialog.string(dlll)
+            TASK.sYmbol.LOADDLL "&dlll"
+            dialog.end
+          )
+          pos 17. 3. 7. 1.
+          button "Cancel"  "dialog.end"
+        )
+      )
+      menuitem "[:symbols]&Delete Symbols..."
+      (
+        dialog
+        (
+          header "TASK.sYmbol.DELeteDLL"
+          pos 0. 0. 26. 3.
+          box "DLL name"
+          pos 1. 1. 16. 1.
+dlld:     defedit "" ""
+          pos 18. 1. 7. 1.
+          button "Browse..."
+          (
+            dialog.file "*.dll"
+            entry %line &file
+            dialog.set dlld "&file"
+          )
+          pos 2. 3. 7. 1.
+          defbutton "Ok"
+          (
+            local &dlld
+            &dlld=dialog.string(dlld)
+            TASK.sYmbol.DELeteDLL "&dlld"
+            dialog.end
+          )
+          pos 17. 3. 7. 1.
+          button "Cancel"  "dialog.end"
+        )
+      )
+    )
+    popup "&Module Debugging"
+    (
+      menuitem "[:symbols]&Load Symbols..."
+      (
+        dialog
+        (
+          header "TASK.sYmbol.LOADKM"
+          pos 0. 0. 26. 3.
+          box "Module name"
+          pos 1. 1. 16. 1.
+kmodl:    defedit "" ""
+          pos 18. 1. 7. 1.
+          button "Browse..."
+          (
+            dialog.file "*.sys"
+            entry %line &file
+            dialog.set kmodl "&file"
+          )
+          pos 2. 3. 7. 1.
+          defbutton "Ok"
+          (
+            local &kmodl
+            &kmodl=dialog.string(kmodl)
+            TASK.sYmbol.LOADKM "&kmodl"
+            dialog.end
+          )
+          pos 17. 3. 7. 1.
+          button "Cancel"  "dialog.end"
+        )
+      )
+      menuitem "[:symbols]&Delete Symbols..."
+      (
+        dialog
+        (
+          header "TASK.sYmbol.DELeteKM"
+          pos 0. 0. 26. 3.
+          box "Module name"
+          pos 1. 1. 16. 1.
+kmodd:    defedit "" ""
+          pos 18. 1. 7. 1.
+          button "Browse..."
+          (
+            dialog.file "*.sys"
+            entry %line &file
+            dialog.set kmodd "&file"
+          )
+          pos 2. 3. 7. 1.
+          defbutton "Ok"
+          (
+            local &kmodd
+            &kmodd=dialog.string(kmodd)
+            TASK.sYmbol.DELeteKM "&kmodd"
+            dialog.end
+          )
+          pos 17. 3. 7. 1.
+          button "Cancel"  "dialog.end"
+        )
+      )
+      menuitem "Debug Module on entry..."
+      (
+        
+          do ~~/demo/arm/kernel/windows/mod_debug /dialog
+	
+      )
+      ;separator
+      ;menuitem "Help Process Debugging" "HELP __RTOS_WINSTD_User_Processes"
+    )
+    separator
+        
+          menuitem "[:dump]Generate RAM Dump"     "do ~~/demo/arm/kernel/windows/ramdump.cmm"
+        
+    separator
+    popup "[:symbols]&Autoloader"
+    (
+        menuitem "[:symbols]List Components"  "sYmbol.AutoLoad.List"
+        menuitem "[:init]Check Now!"       "sYmbol.AutoLoad.CHECK"
+        menuitem "Set Loader Script"
+        (
+            dialog
+            (
+                header "sYmbol.AutoLoad.CHECKWINCE"
+                pos 0. 0. 40. 3.
+                box "autoload batch script"
+                pos 1. 1. 30. 1
+cmmfile:        edit "autoload.cmm" ""
+                pos 32. 1. 7. 1.
+                button "Browse..."
+                (
+                    dialog.file "*.cmm"
+                    entry %line &file
+                    dialog.set cmmfile "&file"
+                )
+                pos 1. 3. 16. 1.
+checkon:        checkbox "automatic check" ""
+                pos 10. 4.5 8.
+                defbutton "Ok"
+                (
+                    local &log &cmm
+                    &cmm=dialog.string(cmmfile)
+                    sYmbol.AutoLoad.CHECKWINCE "do &cmm "
+                    sYmbol.AutoLoad.CHECK       ; trigger check manually
+                    if dialog.boolean(checkon)
+                        sYmbol.AutoLoad.CHECK ON    ; automatic check enabled
+                    else
+                        sYmbol.AutoLoad.CHECK OFF   ; automatic check disabled
+                    dialog.end
+                )
+                pos 22. 4.5 8.
+                button "Cancel" "dialog.end"
+            )
+        )
+        menuitem "Set Components Checked"
+        (
+            dialog
+            (
+                header "TASK.sYmbol.Option AutoLoad"
+                pos 0. 0. 25.
+                proc: checkbox "Process (Processes)"
+                (
+                    if dialog.boolean(proc)
+                        TASK.sYmbol.Option AutoLoad Process
+                    else
+                        TASK.sYmbol.Option AutoLoad NoProcess
+                )
+                lib:  checkbox "Library (All Libraries)"
+                (
+                    if dialog.boolean(lib)
+                        TASK.sYmbol.Option AutoLoad Library
+                    else
+                        TASK.sYmbol.Option AutoLoad NoLibrary
+                )
+                mod:  checkbox "Module (Kernel modules)"
+                (
+                    if dialog.boolean(mod)
+                        TASK.sYmbol.Option AutoLoad KModule
+                    else
+                        TASK.sYmbol.Option AutoLoad NoKModule
+                )
+
+            )
+            dialog.set mod  ((task.y.o(autoload)&0x1)!=0)
+            dialog.set proc ((task.y.o(autoload)&0x2)!=0)
+            dialog.set lib  ((task.y.o(autoload)&0x4)!=0)
+
+        )
+        menuitem "[:config]Set Preferences"
+        (
+            dialog
+            (
+              header "Autoloader Preferences"
+              POS 0. 0. 42. 1.
+              LINE "Download the debug symbols from Microsoft symbol server?"
+              POS 2. 1. 10. 1.
+              Download.1: CHOOSEBOX "Always" ""
+              Download.2: CHOOSEBOX "Never" ""
+              Download.3: CHOOSEBOX "Ask the user" ""
+              POS 0. 4. 42. 1.
+              LINE "Failing to locate the debug symbols?"
+              POS 2. 5. 42. 1.
+              notfound.1: CHOOSEBOX "Ignore" ""
+              notfound.2: CHOOSEBOX "Ask the user" ""
+              POS 10. 7. 10. 1.
+              DEFBUTTON "OK" "CONTinue"
+              POS 21. 7. 10. 1.
+              BUTTON    "Cancel" "GOTO cancel"
+              CLOSE "GOTO cancel"
+            )
+setdefault:
+            (
+              LOCAL &def1 &def2
+
+              DO ~~/demo/arm/kernel/windows/preferences get
+              ENTRY &def1 &def2
+
+              IF ("&def1"=="yes")
+              (
+                DIALOG.Set Download.1
+              )
+              ELSE IF ("&def1"=="no")
+              (
+                DIALOG.Set Download.2
+              )
+                ELSE IF ("&def1"=="ask")
+              (
+                DIALOG.Set Download.3
+              )
+
+              IF ("&def2"=="ignore")
+              (
+                DIALOG.Set notfound.1
+              )
+              ELSE IF ("&def2"=="ask")
+              (
+                DIALOG.Set notfound.2
+              )
+            )
+
+waitforprefok:
+            STOP
+            GOTO dialog_pref_ok
+
+dialog_pref_ok:
+            IF DIALOG.BOOLEAN(Download.1)
+            (
+
+              DO ~~/demo/arm/kernel/windows/preferences set symbol_download yes
+
+            )
+            ELSE IF DIALOG.BOOLEAN(Download.2)
+            (
+
+              DO ~~/demo/arm/kernel/windows/preferences set symbol_download no
+
+            )
+            ELSE IF DIALOG.BOOLEAN(Download.3)
+            (
+
+              DO ~~/demo/arm/kernel/windows/preferences set symbol_download ask
+
+            )
+
+            IF DIALOG.BOOLEAN(notfound.1)
+            (
+
+              DO ~~/demo/arm/kernel/windows/preferences set symbol_not_found ignore
+
+            ) 
+            ELSE IF DIALOG.BOOLEAN(notfound.2)
+            (
+
+              DO ~~/demo/arm/kernel/windows/preferences set symbol_not_found ask
+
+            )
+
+cancel:
+            DIALOG.END 
+        )
+    )
+    separator
+    popup "[:coverage]&Stack Coverage"
+    (
+      menuitem "[:coverage]&List Stacks"    "TASK.STacK.view"
+      menuitem "[:plus]Add Task"        "TASK.STacK.ADD"
+      menuitem "[:remove]Remove Task"     "TASK.STacK.RM"
+      enable ice()||fire()
+      menuitem "&Reset Coverage" "TASK.STacK.RESet"
+    )
+  )
+  popup "Trace"
+  (
+    popup "[:alist]List"
+    (
+      separator
+      menuitem "[:alist]&Task Switches"     "Trace.List List.TASK"
+      menuitem "[:alist]&Default and Tasks" "Trace.List List.TASK DEFault"
+    )
+  )
+  popup "Perf"
+  (
+    separator
+    popup "&Task Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+        )
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak&&Write
+          )
+          Break.Delete /Alpha
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+        )
+        if a.mode.flow()
+        (
+          Break.Delete /TraceEnable
+          Break.Set task.config(magic) /TraceEnable
+        )
+      )
+      menuitem "[:perf]Show &Numerical"   "Trace.STATistic.TASK"
+      menuitem "[:achart]Show as &Timing" "Trace.CHART.TASK"
+      menuitem "[:achart]Tracking with Trace &List"
+      (
+        Trace.List List.TASK DEFault /Track
+        Trace.CHART.TASK /Track
+      )
+    )
+    popup "Task &Function Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+          Analyzer.STATistic.PreFetch on
+        )
+
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          if a.config.hac()
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak
+               Sample.Enable if BetaBreak
+               Mark.A        if AlphaBreak
+               Mark.B        if BetaBreak
+             )
+          )
+          else
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak||BetaBreak
+               Mark.A if AlphaBreak
+               Mark.B if BetaBreak
+             )
+          )
+          Break.Delete /Alpha /Beta /Charly
+          Break.SetFunc
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+        )
+        if a.mode.flow()
+        (
+          Break.Delete /TraceData
+          Break.Set task.config(magic) /TraceData
+        )
+      )
+      menuitem "[:perf]Show &Numerical"     "Trace.STATistic.TASKFUNC"
+      menuitem "[:perf]Show as &Tree"       "Trace.STATistic.TASKTREE"
+      menuitem "[:perf]Show &Detailed Tree" "Trace.STATistic.TASKTREE ALL"
+      menuitem "[:achart]Show as &Timing"   "Trace.CHART.TASKFUNC"
+      menuitem "[:alist]Show N&esting"      "Trace.List List.TASK FUNC TI.FUNC"
+    )
+  )
+  popup "&Help"
+  (
+    MENUITEM "[:manual]OS Awareness Manual Windows Std" "HELP __RTOS_WINDOWS_"
+  )
+)
+
+
+menu "task.p"
+(
+  default
+  menuitem "[:objects]Display detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.Process &address
+  )
+  menuitem "[:var]Display process struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %m %s (_EPROCESS)*&address
+  )
+  separator
+  menuitem "[:symbols]Load process symbols"   "TASK.sYmbol.LOAD track.address()"
+  menuitem "[:symbols]Delete Process Symbols" "TASK.sYmbol.DELete track.address()"
+  separator
+  menuitem "[:dump]Dump process entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+
+menu "task.t"
+(
+  default
+  menuitem "[:objects]Display detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.Thread &address
+  )
+  menuitem "[:var]Display thread struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %m %s (_ETHREAD)*&address
+  )
+  separator
+  menuitem "[:varframe]Display Stack Frame"
+  (
+    &address=address.offset(track.address())
+    Var.Frame /Locals /Caller /Task &address
+  )
+  menuitem "[:reg]Display Registers"
+  (
+    &address=address.offset(track.address())
+    Register /Task &address
+  )
+  menuitem "Switch Context"
+  (
+    &address=address.offset(track.address())
+   Register.TASK &address
+  )
+  separator
+  menuitem "[:plus]Add to Stack Cov"
+  (
+    &address=address.offset(track.address())
+    TASK.STK.ADD &address
+  )
+  menuitem "[:remove]Rm from Stack Cov" 
+  (
+    &address=address.offset(track.address())
+    TASK.STK.RM &address
+  )
+  separator
+  menuitem "[:dump]Dump thread entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+
+menu "task.mod"
+(
+  default
+  menuitem "[:objects]Display detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.MODule &address
+  )
+  menuitem "[:var]Display module struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %m %s (_LDR_DATA_TABLE_ENTRY)*&address
+  )
+  separator
+  ;menuitem "Load Module Symbols"   "TASK.sYmbol.LOADKM track.address()"
+  menuitem "[:symbols]Load module symbols"
+  (
+    &address=address.offset(track.address())
+    &address=task.mod.base(&address)
+    sYmbol.AutoLOAD.CHECK
+    sYmbol.AutoLOAD.TOUCH &address
+  )
+  menuitem "[:symbols]Delete Module Symbols" "TASK.sYmbol.DELeteKM track.address()"
+  separator
+  menuitem "[:dump]Dump module entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+
+menu "task.lib"
+(
+  default
+  ;menuitem "Display detailed"
+  ;(
+  ;  &address=address.offset(track.address())
+  ;  TASK.Library &address
+  ;)
+  menuitem "[:var]Display Library Struct"
+  (
+    &address=address.offset(track.address())
+    &spaceid=address.segment(track.address())
+    Var.View %m %s (_LDR_DATA_TABLE_ENTRY)*(&spaceid:&address)
+  )
+  separator
+  menuitem "[:symbols]Load Library Symbols"   
+  (
+    &address=address.offset(track.address())
+    &spaceid=address.segment(track.address())
+    &process=task.proc.sid2magic(&spaceid)
+    TASK.sYmbol.LOADDLL &address &process
+  )
+  menuitem "[:symbols]Delete Library Symbols"
+  (
+    &address=address.offset(track.address())
+    &spaceid=address.segment(track.address())
+    &process=task.proc.sid2magic(&spaceid)
+    TASK.sYmbol.DELeteDLL &address &process
+  )
+  separator
+  menuitem "[:var]Dump Library Entry"
+  (
+    &address=address.offset(track.address())
+    &spaceid=address.segment(track.address())
+    Data.dump &spaceid:&address /l /dialog
+  )
+)
+

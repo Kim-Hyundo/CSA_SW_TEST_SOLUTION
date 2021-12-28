@@ -1,0 +1,105 @@
+; --------------------------------------------------------------------------------
+; @Title: Offchip-Trace demo for CycloneV SoC
+; @Description:
+;   Runs the preloader (Uboot) on a CYCLONEVSOC and loads an own
+;   application code afterwards into SRAM.
+;   Offchip tracing using the ETM is prepared in 8Bit mode.
+;   The preloader is used to map the TRACE to the Mictor38 trace
+;   connector.
+;   Prerequisites:
+;   * Please set bootsel pins to SDCARD
+;     BOOTSEL[0..2] = 2-3 2-3 1-2
+;   * Please REMOVE SD Card
+;     => Device will stop in BOOT ROM
+;   * Assume Mictor based HPS only scanchain
+;     for CycloneV SoC Devkit
+;       * SW4[0]=1, JTAG SEL=1, JTAG_HPS_SEL=0
+;       * AutoFocus-Preprocessor is connected to J4 Mictor-38 connector
+;       * DebugCable is connected to AutoFocus-Preprocessor
+;   * on Rev D boards the VREF-DEBUG pin is not sourced
+;     please populate the corresponding Resistor (R32) with 0Ohm
+;   * the Preloader must be configured to map the TRACECLK+TRACEDATA[0:7]
+;     pins to the DedicatedIO
+;     The provided Preloader configures the TRACECLK+TRACEDATA[] lines only
+; @Keywords: ALTERA, Cortex-A9, Cyclone, Cyclonev , ArriaV
+; @Author: AME
+; @Board: CYCLONEVSOC, Cyclone V SoC Dev Kit
+; @Chip: CYCLONEVSOC
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: cyclonevsoc_offchip_trace.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+  RESet
+  SYStem.RESet
+  SYStem.CPU CYCLONEVSOC
+  SYStem.JtagClock CTCK 5MHz
+  CORE.ASSIGN 1.
+  ETM.OFF
+  Trace.DISable
+  TrOnchip.Set RESET OFF
+  SYStem.Up
+
+; Let the BOOT-ROM run for 3 seconds
+  Go.direct
+  WAIT 3.s
+  Break.direct
+  ; guard DRAM section
+  MAP.DenyAccess 0x0--0x7fffffff
+
+; disable Watchdog - Toggle RESET in PERMODRST
+  Data.Set A:0xFFD05014 %Long Data.Long(A:0xFFD05014)|0x40
+  Data.Set A:0xFFD05014 %Long Data.Long(A:0xFFD05014)&(~0x40)
+
+; Load U-Boot into SRAM - initialize the target
+  Data.LOAD.Elf ~~~~/u-boot-spl-trace-only 
+; run till - u-boot-spl-trace-only is instrumented to stop automatically
+  Go 
+  WAIT !STATE.RUN() 3.s
+  IF STATE.RUN()||(Register(R0)!=0xff)
+  (
+    PRINT %ERROR "SPL boot did not succeed...."
+    ENDDO
+  )
+  
+; disable Watchdog - Toggle RESET in PERMODRST
+  Data.Set A:0xFFD05014 %Long Data.Long(A:0xFFD05014)|0x40
+  Data.Set A:0xFFD05014 %Long Data.Long(A:0xFFD05014)&(~0x40)
+  
+; prepare offchip-trace
+; see prerequisites - preloader must map the TRACECLK & TRACEDATA[0:7] lines
+  IF Analyzer()
+  (
+    Trace.METHOD Analyzer
+    TPIU.PortSize 8
+    TPIU.PortMode Continuous
+    ETM.Trace ON
+    ETM.ON
+    ; use AutoFocus autocalibration
+    Analyzer.AutoFocus
+  )
+  
+; Set VBAR + SCTLR + Exception Vectors
+  Data.Set C15:0x0C %Long 0xffff0000
+  Data.Set C15:0x01 %Long 0xC51078 
+  Data.Assemble AR:0xffff0000 b $+0 b $+0 b $+0 b $+0 b $+0 b $+0 b $+0 b $+0
+; Disable TIMER 1 (will trigger interrupts) and disable interrupts
+  Data.Set A:0xFFD00008 %Long Data.Long(A:0xFFD00008)&(~0x1)
+  Register.Set F 1
+  Register.Set I 1
+  
+; load Position Independent SIEVE demo into SRAM
+  DO ~~/demo/arm/compiler/gnu-pic/demo_sieve 0xFFFF0100
+  Go main
+  WAIT !STATE.RUN()
+  
+; open some windows
+  Mode.Hll
+  List.auto
+  
+  IF Analyzer()
+  (
+    Trace.List
+  )
+  
+  
+  

@@ -1,0 +1,413 @@
+; --------------------------------------------------------------------------------
+; @Title: Detect MMU.FORMAT relevant settings for Linux
+; @Description:
+;   This script tries to detect the MMU.FORMAT/debugger address translation
+;   relevant settings required for Linux Userspace debugging.
+;   Therefore it tries to run a discovery when a core of the system tries to enter
+;   the idle state.
+;   Prerequisites:
+;   * System is connected
+;   * Debug symbols are loaded (named vmlinux)
+;   * Kernel boot succeeded
+;
+;   Usage: (simple)
+;     Data.LOAD.Elf vmlinux /NoCODE
+;     DO detect_translation.cmm
+;   Usage: (advanced e.g. Linux in SECURE WORLD)
+;     SYStem.Option ZONESPACES ON
+;     Data.LOAD.Elf vmlinux Z:0x0 /NoCODE
+;     DO detect_translation.cmm
+;   Usage: (advanced e.g. linux symbol file name is vmlinux_mainline)
+;     Data.LOAD.Elf vmlinux_mainline /NoCODE
+;     DO detect_translation.cmm VMLINUX=vmlinux_mainline
+;   Usage: (advanced e.g. Linux in Virtual Machine)
+;     <tbd>
+;
+;   Parameters:
+;     VMLINUX=<> - specifies the name of the kernel symbol file, default vmlinux
+;     SECURE     - Linux is running in Secure/Z Mode
+;     AARCH32    - Linux is running in AARCH32 mode
+; @Author: AME
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: detect_translation.cmm 16529 2020-09-14 07:07:59Z amerkle $
+
+PRIVATE &sParameters &bSecure &bAARCH32 &sVmlinux &pAddrMax &pAddrKernelCheck
+ENTRY %LINE &sParameters
+
+GOSUB ParseArgs "&sParameters"
+RETURNVALUES &bSecure &bAARCH32 &sVmlinux
+
+&bAARCH32=&bAARCH32||!CPUIS64BIT()
+IF &bAARCH32
+(
+  &pAddrMax=0xffffffff
+  &pAddrKernelCheck=0x80000000 ; 2G/2G split
+)
+ELSE
+(
+  &pAddrMax=0xffffffffffffffff
+  &pAddrKernelCheck=0xf000000000000000
+)
+
+IF !SYStem.Up()
+(
+  PRINT %ERROR "Fatal Error: Not connected. Exiting..."
+  ENDDO FALSE()
+)
+
+IF sYmbol.COUNT(\\&sVmlinux\*\*)==0.
+(
+  PRINT %ERROR "Fatal Error: Symbolfile ""&sVmlinux"" not loaded. Exiting..."
+  ENDDO FALSE()
+)
+
+
+IF STATE.RUN()
+  Break
+
+TRANSlation.OFF
+MMU.FORMAT
+TRANSlation.DELETE
+TRANSlation.COMMON.Clear
+
+PRIVATE &pIdle &pSwapper_pg_dir &pLinux_banner
+ON ERROR GOSUB
+(
+  PRINT %ERROR "Fatal Error: Essential kernel symbols not found. Exiting..."
+  ENDDO FALSE()
+)
+&pIdle=0x0
+GOSUB FindSymbol "&pIdle" "&sVmlinux" "rcu_idle_enter"
+RETURNVALUES &pIdle
+GOSUB FindSymbol "&pIdle" "&sVmlinux" "rcu_idle_exit"
+RETURNVALUES &pIdle
+GOSUB FindSymbol "&pIdle" "&sVmlinux" "do_idle"
+RETURNVALUES &pIdle
+GOSUB FindSymbol "&pIdle" "&sVmlinux" "cpuidle_idle_call"
+RETURNVALUES &pIdle
+&pSwapper_pg_dir=0x0
+GOSUB FindSymbol "&pSwapper_pg_dir" "&sVmlinux" "swapper_pg_dir"
+RETURNVALUES &pSwapper_pg_dir
+&pLinux_banner=0x0
+GOSUB FindSymbol "&pLinux_banner" "&sVmlinux" "linux_banner"
+RETURNVALUES &pLinux_banner
+IF (&pLinux_banner>0)
+  &bSecure=ADDRESS.isSECURE(\\&sVmlinux\\linux_banner)
+ON ERROR inherit
+
+IF (&pIdle!=(&pAddrKernelCheck--&pAddrMax))||(&pSwapper_pg_dir!=(&pAddrKernelCheck--&pAddrMax))||(&pLinux_banner!=(&pAddrKernelCheck--&pAddrMax))
+(
+  PRINT %ERROR "Addresses not detected properly. Exiting..."
+  ENDDO FALSE()
+)
+
+PRIVATE &sKernelAccessClass &sTranslationAccessClass &sTranslationAccessClassColon
+&sKernelAccessClass="NS"
+IF (&bSecure)
+(
+  &sKernelAccessClass="ZS"
+)
+&sTranslationAccessClass="&sKernelAccessClass"
+&sTranslationAccessClassColon=""
+IF PRACTICE.FUNCtion.AVAILable(SYStem.Option.ZoneSPACES)
+(
+  IF !SYStem.Option.ZoneSPACES()
+  (
+    &sTranslationAccessClass=""
+  )
+)
+ELSE
+(
+  &sTranslationAccessClass=""
+)
+IF "&sTranslationAccessClass"!=""
+(
+  &sTranslationAccessClassColon="&(sTranslationAccessClass):"
+)
+TRANSlation.COMMON &(sTranslationAccessClassColon)0x0--&pAddrMax
+
+PRINTF "Virtual Address of swapper_pg_dir: 0x%016x" &pSwapper_pg_dir
+PRINTF "Virtual Address of idle_loop:      0x%016x" &pIdle
+PRINTF "Virtual Address of linux_banner:   0x%016x" &pLinux_banner
+PRINTF "Access Class detected:             %s"     "&sKernelAccessClass"
+PRINTF "Access Class used:                 %s"     "&sTranslationAccessClass"
+
+; go to Supervisor mode, use the idle routine to do that.
+PRINTF "Try to run to *%s* ..." sYmbol.NAME(&sKernelAccessClass:&pIdle)
+Go &sKernelAccessClass:&pIdle /Onchip
+WAIT !STATE.RUN() 5.s
+IF TIMEOUT()
+(
+  PRINTF %ERROR "Timeout: System did not reach function *%s*. Exiting..." sYmbol.NAME(&sKernelAccessClass:&pIdle)
+  ENDDO FALSE()
+)
+
+IF Register(M)!=(0x5||0x13||0x1f)
+(
+  PRINT %ERROR "Core stopped in wrong mode. Exiting..."
+  ENDDO FALSE()
+)
+
+PRIVATE &bResult &nVersion &nMajor
+GOSUB DetectKernelVersion
+RETURNVALUES &bResult &nVersion &nMajor
+
+IF (!&bResult)
+(
+  PRINT %ERROR "Cannot detect Kernel version. Exiting..."
+  ENDDO FALSE()
+)
+
+IF (&nVersion==(2.))
+(
+  PRIVATE &pSwapper_pg_dir_physical &pSwapper_pg_dir_size &pText &pCommonStart
+  ; detect physical address of swapper_pg_dir
+  MMU.SCAN PageTable
+  TRANSlation.TableWalk OFF
+  TRANSlation.ON
+  &pSwapper_pg_dir_physical=TRANS.PHYSICAL(&sKernelAccessClass:&pSwapper_pg_dir)
+  TRANSlation.OFF
+  TRANSlation.DELETE
+  ; detect size of swapper_pg_dir
+  &pSwapper_pg_dir_size=0x3ffff
+  ON ERROR CONTinue
+  &pSwapper_pg_dir_size=sYmbol.NEXT.BEGIN(\\&sVmlinux\swapper_pg_dir)-&pSwapper_pg_dir-1
+  ON ERROR inherit
+
+  ON ERROR CONTinue
+  &pText=ADDRESS.OFFSET(sYmbol.SECADDRESS(\\&sVmlinux\.text))
+  &pText=ADDRESS.OFFSET(sYmbol.SECADDRESS(\\&sVmlinux\.init))
+  ON ERROR inherit
+
+  IF &bAARCH32
+  (
+    &pCommonStart=&pText&0xf0000000
+    &pCommonStart=&pCommonStart-0x01000000
+  )
+
+
+  PRINTF "MMU.FORMAT LINUXSWAP \\%s\swapper_pg_dir %s0x%016x++0x%x 0x%016x" "&sVmlinux" "&sTranslationAccessClassColon" &pSwapper_pg_dir &pSwapper_pg_dir_size &pSwapper_pg_dir_physical
+  PRINTF "TRANSlation.COMMON %s0x%016x--0x%016x" "&sTranslationAccessClassColon" &pCommonStart &pAddrMax
+  PRINTF "TRANSlation.TableWalk ON"
+  PRINTF "TRANSlation.ON"
+
+  IF &bAARCH32
+  (
+    PRINTF "TASK.CONFIG ~~/demo/arm/kernel/linux/linux-2.x/linux2.t32"
+    PRINTF "MENU.ReProgram ~~/demo/arm/kernel/linux/linux-2.x/linux.men"
+  )
+  ELSE
+  (
+    PRINTF "TASK.CONFIG ~~/demo/arm64/kernel/linux/linux-2.x/linux2.t32"
+    PRINTF "MENU.ReProgram ~~/demo/arm64/kernel/linux/linux-2.x/linux.men"
+  )
+  IF "&sTranslationAccessClassColon"!=""
+  (
+    PRINTF "TASK.ACCESS %s" "&sTranslationAccessClassColon"
+  )
+)
+ELSE IF (&nVersion==(3.||4.))
+(
+  ; check if .init.text is free'ed - kernel boot succeeded
+  ; &pInit_text_start=ADDRESS.OFFSET(sYmbol.SECADDRESS(\\&sVmlinux\.init.text))
+  ;PRIVATE &bResult
+  ;&bResult=FALSE()
+  ;ON ERROR GOSUB
+  ;(
+  ;  &bResult=TRUE()
+  ;  RETURN
+  ;)
+  ;SILENT.DATA.IN C:&pInit_text_start+0x40000
+  ;ON ERROR inherit
+  ;IF (!&bResult)
+  ;(
+  ;  PRINT %ERROR "Memory at .init.text is not freed, wrong kernel state. Exiting..."
+  ;  ENDDO FALSE()
+  ;)
+
+  PRIVATE &pSwapper_pg_dir_physical &nSwapper_pg_dir_size &pText &pCommonStart &sFormat &sDemoDir &sTaskAccessOption
+  ; detect physical address of swapper_pg_dir
+  MMU.SCAN PageTable
+  TRANSlation.TableWalk OFF
+  TRANSlation.ON
+  &pSwapper_pg_dir_physical=TRANS.PHYSICAL(&sKernelAccessClass:&pSwapper_pg_dir)
+  TRANSlation.OFF
+  TRANSlation.DELETE
+  ; detect size of swapper_pg_dir
+  &nSwapper_pg_dir_size=0x3ffff
+  ON ERROR CONTinue
+  &nSwapper_pg_dir_size=sYmbol.NEXT.BEGIN(\\&sVmlinux\\swapper_pg_dir)-&pSwapper_pg_dir-1
+  ON ERROR inherit
+
+  ON ERROR CONTinue
+  &pText=ADDRESS.OFFSET(sYmbol.SECADDRESS(\\&sVmlinux\.text))
+  &pText=ADDRESS.OFFSET(sYmbol.SECADDRESS(\\&sVmlinux\.head.text))
+  ON ERROR inherit
+
+  IF &bAARCH32
+  (
+    ; 16M of module memory
+    &pCommonStart=&pText&0xf0000000
+    &pCommonStart=&pCommonStart-0x01000000
+  )
+  ELSE
+  (
+    ; use whole upper memory as common
+    &pCommonStart=&pText&0xf000000000000000
+  )
+
+  IF sYmbol.EXIST(\\&sVmlinux\\swapper_space)||sYmbol.EXIST(\\&sVmlinux\\swapper_spaces)
+  (
+    &sFormat="LINUXSWAP3"
+  )
+  ELSE
+  (
+    &sFormat="LINUX"
+  )
+
+  &sDemoDir="arm64"
+  IF &bAARCH32
+  (
+    &sDemoDir="arm"
+  )
+
+  &sTaskAccessOption=""
+  IF ("&sTranslationAccessClassColon"!="")&&(VERSION.BUILD()>=105118.)
+  (
+    &sTaskAccessOption="/ACCESS &sTranslationAccessClassColon"
+  )
+
+  PRINTF "MMU.FORMAT %s \\%s\\swapper_pg_dir %s0x%016x++0x%x 0x%016x" "&sFormat" "&sVmlinux" "&sTranslationAccessClassColon" &pSwapper_pg_dir &nSwapper_pg_dir_size &pSwapper_pg_dir_physical
+  PRINTF "TRANSlation.COMMON %s0x%016x--0x%016x" "&sTranslationAccessClassColon" &pCommonStart &pAddrMax
+  PRINTF "TRANSlation.TableWalk ON"
+  PRINTF "TRANSlation.ON"
+
+  PRINTF "TASK.CONFIG ~~/demo/%s/kernel/linux/awareness/linux.t32 %s" "&sDemoDir" "&sTaskAccessOption"
+  PRINTF "MENU.ReProgram ~~/demo/%s/kernel/linux/awareness/linux.men" "&sDemoDir"
+  IF ("&sTranslationAccessClassColon"!="")&&(VERSION.BUILD()<105118.)
+  (
+    PRINTF "TASK.ACCESS &sTranslationAccessClassColon"
+  )
+)
+ELSE IF (&nVersion==(5.))
+(
+  PRIVATE &pSwapper_pg_dir_physical &pText &pCommonStart &sFormat &sDemoDir &sTaskAccessOption
+  IF &bAARCH32
+  (
+    &pSwapper_pg_dir_physical=Data.LONG(C15:0x102)&0xffffff80
+  )
+  ELSE
+  (
+    &pSwapper_pg_dir_physical=Data.QUAD(SPR:0x30201)&0xffffffffffff
+  )
+
+  ON ERROR CONTinue
+  &pText=ADDRESS.OFFSET(sYmbol.SECADDRESS(\\&sVmlinux\.text))
+  &pText=ADDRESS.OFFSET(sYmbol.SECADDRESS(\\&sVmlinux\.head.text))
+  ON ERROR inherit
+
+  IF &bAARCH32
+  (
+    ; 16M of module memory
+    &pCommonStart=&pText&0xf0000000
+    &pCommonStart=&pCommonStart-0x01000000
+  )
+  ELSE
+  (
+    ; use whole upper memory as common
+    &pCommonStart=&pText&0xf000000000000000
+  )
+
+  IF sYmbol.EXIST(\\&sVmlinux\\swapper_space)||sYmbol.EXIST(\\&sVmlinux\\swapper_spaces)
+  (
+    &sFormat="LINUXSWAP3"
+  )
+  ELSE
+  (
+    &sFormat="LINUX"
+  )
+
+  &sDemoDir="arm64"
+  IF &bAARCH32
+  (
+    &sDemoDir="arm"
+  )
+
+  &sTaskAccessOption=""
+  IF ("&sTranslationAccessClassColon"!="")&&(VERSION.BUILD()>=105118.)
+  (
+    &sTaskAccessOption="/ACCESS &sTranslationAccessClassColon"
+  )
+
+  PRINTF "MMU.FORMAT %s A:0x%016x" "&sFormat" &pSwapper_pg_dir_physical
+  PRINTF "TRANSlation.COMMON %s0x%016x--0x%016x" "&sTranslationAccessClassColon" &pCommonStart &pAddrMax
+  PRINTF "TRANSlation.TableWalk ON"
+  PRINTF "TRANSlation.ON"
+
+  PRINTF "TASK.CONFIG ~~/demo/%s/kernel/linux/awareness/linux.t32 %s" "&sDemoDir" "&sTaskAccessOption"
+  PRINTF "MENU.ReProgram ~~/demo/%s/kernel/linux/awareness/linux.men" "&sDemoDir"
+  IF ("&sTranslationAccessClassColon"!="")&&(VERSION.BUILD()<105118.)
+  (
+    PRINTF "TASK.ACCESS &sTranslationAccessClassColon"
+  )
+)
+
+TRANSlation.COMMON.CLEAR
+AREA
+
+ENDDO
+
+ParseArgs: ; (parameters)
+(
+  PRIVATE &bSecure &bAARCH32
+  PARAMETERS &sParameters
+  &bSecure=STRing.SCAN("&sParameters","SECURE",0.)>=0.
+  &bAARCH32=STRing.SCAN("&sParameters","AARCH32",0.)>=0.
+  &sVmlinux=STRing.SCANAndExtract("&sParameters","VMLINUX=","vmlinux")
+  RETURN "&bSecure" "&bAARCH32" "&sVmlinux"
+)
+
+FindSymbol: ;(&pAddr,sSymbolFile,sName)
+(
+  PARAMETERS &pAddr &sSymbolFile &sName
+  ; non-ambiguous HLL/ASM symbol
+  IF (sYmbol.COUNT(\\&sSymbolFile\*\&sName)==1.)&&(&pAddr==0x0)
+  (
+    &pAddr=ADDRESS.OFFSET(sYmbol.BEGIN(\\&sSymbolFile\\&sName))
+  )
+  ; HLL query - might fail if ambiguous
+  IF Var.EXIST(\\&sSymbolFile\\&sName)&&(&pAddr==0x0)
+  (
+    ON ERROR GOSUB
+    (
+      &pAddr=0x0
+      RETURN
+    )
+    &pAddr=ADDRESS.OFFSET(Var.ADDRESS(\\&sSymbolFile\\&sName))
+    ON ERROR inherit
+  )
+  RETURN "&pAddr"
+)
+
+DetectKernelVersion: ;()
+(
+  PRIVATE &bResult &sBanner &tmp &nVersion &nMajor
+  &bResult=TRUE()
+  ON ERROR GOSUB
+  (
+    &bResult=FALSE()
+    RETURN
+  )
+  &sBanner=Var.STRING(linux_banner)
+  PRINTF "Linux Banner ""%s""" "&sBanner"
+  &tmp=STRing.SCANAndExtract("&sBanner","Linux version ","")
+  &nVersion="0"+STRing.SPLIT("&tmp",".",0.)+"."
+  &nMajor="0"+STRing.SPLIT("&tmp",".",1.)+"."
+  &nVersion=&nVersion
+  &nMajor=&nMajor
+  IF (&nVersion+&nMajor)==0.
+    &bResult=FALSE()
+  ON ERROR inherit
+  RETURN "&bResult" "&nVersion" "&nMajor"
+)

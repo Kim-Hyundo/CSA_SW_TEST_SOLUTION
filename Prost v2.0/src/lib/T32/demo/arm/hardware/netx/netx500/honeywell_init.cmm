@@ -1,0 +1,30 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to connect to the NETX500 Honeywell Tower Board
+; @Description:
+;   This script connects to the NETX500 Honeywell Tower Board by calling the
+;   netx_common_init.cmm and does some initialization using
+;   Data.Set commands
+; @Keywords: Hilscher, NetX*
+; @Board: Honeywell (Tower)
+; @Chip: NETX500
+; @Author: Hilscher
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: honeywell_init.cmm 12065 2018-02-07 12:26:30Z amerkle $
+
+
+DO ~~~~/netx_common_init.cmm
+
+FLASH.RESet
+
+;setup SDRam Timing
+Data.Set ASD:0x100140 %Long 0x0
+
+Data.Set ASD:0x100100 %Long 0x02010005
+Data.Set ASD:0x100104 %Long 0x02010004
+
+FLASH.RESet
+FLASH.Create  1. 0xc0000000++0x1ffff 0x4000 AM29LV100 Long
+FLASH.Create  2. 0xc0020000++0x1fffff 0x20000 AM29LV100 Long
+
+ENDDO

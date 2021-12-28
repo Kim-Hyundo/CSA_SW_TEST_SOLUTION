@@ -1,0 +1,174 @@
+; --------------------------------------------------------------------------------
+; @Title: WinCE 6.0 Demo for TRACE32 OS Awareness on i.MX31 ADS Board
+; @Description:
+;
+;   This batchfile demonstrates the use of the OS Awareness for Windows CE 6
+;
+;   The example is generated for an i.MX31 ADS board using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   The Windows CE image is downloaded via the ICD.
+;
+; @Keywords: awareness, Windows
+; @Author: DIE
+; @Board: i.MX31-ADS
+; @Chip: IMX31
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: wince.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+;   Created by Rudi Dienstbeck / Lauterbach GmbH at 11.07.2007
+
+; Starting WinCE example with TRACE32:
+; - Start TRACE32
+; - TRACE32: "do wince"
+; - Calibrate touch screen and press ENTER
+; - Start "ETCHA" on target (Start->Programs->Demo Apps->ETCHA)
+
+; For Bootloader communication:
+; - Terminal on UARTC (upper connector next to Ethernet): 115200, 8N1N
+
+; For debugging with TRACE32 we recommend to disable demand paging
+; by setting bit one of ROMFLAGS in PLATFORM\iMX31ADS\FILES\config.bib
+
+
+&reldrive="C:"
+&reldir="&reldrive"+"\WINCE600\OSDesigns\iMX31ADSMobility\RelDir\Freescale_i_MX31_ADS_ARMV4I_Debug"
+
+
+ SCREEN.ON
+
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 24. 75. 8.
+ AREA.view
+
+ PRINT "resetting..."
+
+ sYmbol.RESet
+ SYStem.RESet
+ TASK.RESet
+ Break.Delete
+ MAP.RESet
+ TRANSlation.RESet
+ Break.Delete
+
+
+; setup of ICD
+
+ PRINT "initializing..."
+ SYStem.CPU MCIMX31
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ SYStem.Option ResBreak OFF     ; hardware dependent (see manual)
+ SYStem.JtagClock RTCK          ; hardware dependent (see manual)
+ TrOnchip.Set DABORT OFF        ; used by wince for page miss!
+ TrOnchip.Set PABORT OFF        ; used by wince for page miss!
+ TrOnchip.Set UNDEF OFF         ; used to detect not present FPU
+ SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+ SETUP.IMASKASM ON              ; lock interrupts while single stepping
+
+ SYStem.Up
+
+
+; Target Setup: initialize DRAM controller and peripherals
+
+ PRINT "target setup..."
+
+ ; initialize the board
+ DO mx31_ddr
+
+ ; load boot loader (eboot)
+ Data.LOAD.Binary &reldir\EBOOT.nb0 0x80040000
+ Register.Set PC 0x80040000
+
+ ; let eboot initialize everything
+ Go
+ WAIT 1.s
+ Break
+
+
+; Load the Windows CE image
+
+ ; Use the next lines only to load the image into
+ ; RAM using the debugger.
+
+ PRINT "loading Windows CE image..."
+
+ ; Prepare for direct download: disable MMU!
+ PER.Set.simple C15:0x1 %Long Data.Long(c15:1)&~1    ; switch off MMU
+ Register.RESet
+
+ ; download the image to physical address
+ Data.LOAD.eXe &reldir\nk.bin 0x80100000-0x88100000
+
+ ; set PC to physical start address
+ Register.Set PC 0x80100000
+
+
+; We'd like to see something, open a code window.
+ WinPOS 0. 0. 77. 22.
+ List.auto
+
+
+; Declare the MMU format to the debugger
+
+ ; table format is "WINCE6"
+ ; skip root table (0)
+ ; declare default translation for kernel
+ MMU.FORMAT WINCE6 0 0x88000000--0x8fffffff 0x80000000
+
+ ; ROM DLL, shared heap and kernel addresses are common to all processes
+ TRANSlation.COMMON 0x40000000--0x5fffffff 0x70000000--0xffffffff
+
+ ; debugger uses a table walk to decode virtual addresses
+ TRANSlation.TableWalk ON
+
+ ; switch on debugger(!) address translation
+ TRANSlation.ON
+
+
+; Initialize RTOS Support
+
+ PRINT "initializing Windows CE support..."
+ TASK.CONFIG ../wince6          ; loads WinCE awareness (wince6.t32)
+ MENU.ReProgram ../wince6       ; loads WinCE menu (wince6.men)
+ HELP.FILTER.Add rtoswince      ; add WinCE awareness manual to help
+
+ ; switch on autoloader and add path to symbol files to source path list
+ sYmbol.AutoLoad.CHECKWINCE "do "+OS.PPD()+"/../autoload "
+ sYmbol.SourcePATH.Set &reldir
+
+ ; Group kernel area to be displayed with red bar
+ GROUP.Create "kernel" 0x80000000--0xffffffff /RED
+
+
+; Now let's boot and start Windows CE!
+
+ Go
+ PRINT "booting Windows CE... (please wait)"
+ WAIT 8.s
+ Break
+
+
+; The power saving WFI mode of the CPU doesn't work with JTAG attached.
+; Either remove it from the OAL source code (recommended) or patch the
+; code like this:
+
+ TASK.sYmbol.LoadRM "nk.exe"            ; load symbols of kernel (including OAL)
+ Data.Assemble OALCPUEnterWFI bx r14    ; patch WFI routine to no-op
+
+
+ PRINT "done."
+
+
+; --------------------------------------------------------------------------------
+; Application Debugging
+; e.g. "ETCHA"
+
+ DO ../app_debug ETCHA
+
+ ENDDO
+

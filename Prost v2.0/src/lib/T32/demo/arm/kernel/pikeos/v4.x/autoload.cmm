@@ -1,0 +1,95 @@
+; --------------------------------------------------------------------------------
+; @Title: PikeOS Symbol Autoloader Script
+; @Description: Autoload script, called by TRACE32 if symbols are to be loaded
+; @Keywords: pikeos, v3.3
+; @Author: DIE
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: autoload.cmm 3254 2018-05-08 12:15:37Z rdienstbeck $
+
+
+// define local macros
+PMACRO.EXPLICIT
+LOCAL &taskname &type &code &data &space &machine &access &filename &filepath
+
+// get filename and relocation information
+ // these parameters are passed from TRACE32 when calling this skript
+
+ENTRY &taskname &type &code &data &space &machine
+
+ //PRINT "autoload: " &filename " " &type " " &code " " &data " " &space
+
+ // &taskname:      name of task
+ // &type:          type of file: 0=kernel, 1=task
+ // &code:          text segment address
+ // &data:          data segment address
+ // &space:         space id of process
+ // &machine:       machine id if used in a hypervisor environment
+
+// strip off quotes
+&taskname=&taskname
+
+// no processing for kernel
+IF (&type==0)  // kernel
+    ENDDO
+
+// set space id to zero if not given
+IF "&space"==""
+    &space=0
+
+// prepare access class for machine id and space id
+IF "&machine"==""
+    &access=&space
+ELSE
+    &access="&machine:::&space"
+
+// delete symbols if they already exist
+IF sYmbol.EXIST("\\&taskname")
+    sYmbol.Delete \\&taskname
+GROUP.Delete "&taskname"
+
+// search file in source search path and open dialog when not there
+
+&filename=TASK.TASKFILE("&taskname")        ; check manual translation of task name to file name
+IF "&filename"=="linux userspace"
+    &filename=task.task.id2name(&space)     ; try to get linux name of task
+IF "&filename"=="P4Linux"
+    &filename="vmlinux"                     ; special case for Elinos task
+
+&filepath=sYmbol.SEARCHFILE("&filename.unstripped")         ; search for unstripped application
+IF !OS.FILE("&filepath")                                    ; not found
+    &filepath=sYmbol.SEARCHFILE("&filename.unstripped.elf") ; search for unstripped.elf application
+IF !OS.FILE("&filepath")                                    ; not found
+    &filepath=sYmbol.SEARCHFILE("&filename")                ; search for file name
+IF !OS.FILE("&filepath")                                    ; not found
+(
+    LOCAL &file &spath
+    &file=OS.FILE.NAME("&filename")
+    WinPOS ,,,,,, filebox normal "Searching symbols for &taskname"
+    DIALOG.File "*/&file*"
+    ENTRY %LINE &filepath
+    IF "&filepath"==""
+        ENDDO
+    &spath=OS.FILE.PATH("&filepath")
+    sYmbol.SourcePATH.Set &spath
+)
+
+// load symbol file (options for sourcepath, e.g. /STRIPPART may need to be added when required)
+
+IF (&type==1)  // PikeOS "Tasks"
+(
+    IF CPUFAMILY()=="POWERPC"
+    (
+        IF CPU.FEATURE(hypervisor)
+            Data.LOAD.Elf "&filepath" HU:&access::0 /NoCODE /NoClear /name &taskname /cygdrive /dwarf2
+        ELSE
+            Data.LOAD.Elf "&filepath" &access::0 /NoCODE /NoClear /name &taskname /cygdrive /dwarf2
+    )
+    ELSE
+    (
+        Data.LOAD.Elf "&filepath" &access::0 /NoCODE /NoClear /name &taskname /cygdrive
+    )
+    GROUP.Create "&taskname" &access::0x0--0x7fffffff /GREEN
+)
+
+ENDDO

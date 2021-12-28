@@ -1,0 +1,78 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for MT2523 on LinkIt2523 with Onchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Onchip-Trace.
+;   Prerequisites:
+;    * Connect Debug Cable to CON9002
+;    * Solder bridges are mounted on R9017 to R9021 and R9023
+;    * Soldered 10K resistors on R9001 and R9007
+;    * Remove resistors R9002 and R9008
+; @Keywords: ARM, Cortex-M4, ETB, ETM
+; @Author: STK
+; @Board: LinkIt2523
+; @Chip: MT2523
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: linkit2523_sieve_onchip_etb_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU MT2523
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; initialize ONCHIP trace (ETB, ETM, ITM)
+Trace.METHOD ONCHIP
+Trace.AutoInit ON
+ITM.DataTrace CorrelatedData
+ITM.ON
+ETM.Trace ON
+ETM.ON
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO
+
+DisableWatchdog:
+(
+  ; disable the Watchdog
+  Data.Set SD:0xA2050000 %Long 0x00002200
+  RETURN
+)

@@ -1,0 +1,46 @@
+; --------------------------------------------------------------------------------
+; @Title: Template demo script for OCDS-L2 DataTrace feature
+; @Description:
+;   Script is not ready to run, adaption to specific environment is required.
+;
+;   Initializes the TriCore and loads the demo into memory.
+;
+; @Keywords: Infineon, data, trace, tracedata, TriCore, OCDS-L2
+; @Author: MAX
+; @Chip: 
+; @Copyright: (C) 1989-2015 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tracedata.cmm 8303 2015-04-08 12:30:35Z mobermaier $
+
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.CPU TC1796 ; just an example
+SYStem.Option DataTrace ON
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; further steps, e.g.
+; - disable watchdog timer
+; - set up OCDS-L2 trace port
+; - init EBU (External Bus unit)
+; - set up flash programming
+; - ...
+
+; --------------------------------------------------------------------------------
+; Load demo application program
+Data.LOAD.Elf "~~~~/datatrace.elf"
+
+; --------------------------------------------------------------------------------
+; Open some windows
+WinCLEAR
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch
+Var.AddWatch ast flags
+
+ENDDO

@@ -1,0 +1,45 @@
+; --------------------------------------------------------------------------------
+; @Title: Off-chip trace demo for the MCB1760 board
+; @Description:
+;   Loads the sieve demo into SRAM and sets up a
+;   demo trace and debug scenario.
+; @Keywords: KEIL, NXP, trace
+; @Author: STK
+; @Board: MCB-1760
+; @Chip: LPC1768
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mcb1760_offchip_trace_demo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+; Basic setup
+
+  Break.Reset
+  SYStem.RESet
+  SYStem.CPU LPC1768
+  SYStem.CONFIG SWDP    ON
+  SYStem.Option EnReset OFF
+  SYStem.CONFIG CONNECTOR MIPI20T
+  SYStem.Up
+
+; Load the demo code into the SRAM
+  Data.LOAD.ELF ~~~~/demo.axf
+  Register.Set PC main
+  Register.Set R13 0x10005000
+
+  IF hardware.COMBIPROBE()||hardware.UTRACE()
+  (
+    ; Enable Trace
+    Data.Set 0x4002C028 %Long 0x00000008
+
+    ETM.ON
+    ITM.ON
+
+    ETM.PortMode Continuous
+    ETM.PortSize 4.
+
+    Trace.METHOD CAnalyzer   ; Using CombiProbe
+    Trace.OFF                ; Enable the trace and turn it off
+  )
+
+  ENDDO

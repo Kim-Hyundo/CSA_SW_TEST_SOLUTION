@@ -1,0 +1,24 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for loading HighTec object file in ELF format
+; @Description:
+;   CPU: TC399X
+;
+;   Use the simulator to avoid conflicts with undecleared memory.
+;
+;   There are several elf files available, covering all available
+;   compiler opimization levels.
+;
+; @Keywords: compiler, hightec, Infineon, sieve, TriCore
+; @Author: MEI
+; @Chip: TC399X
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: sieve-tc399.cmm 15990 2020-04-28 09:32:13Z meick $
+
+
+SYStem.CPU TC399X
+SYStem.Up
+Data.LOAD.Elf *sieve-tc162-*.elf
+Go.direct main
+
+ENDDO

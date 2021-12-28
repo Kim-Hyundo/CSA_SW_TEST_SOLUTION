@@ -1,0 +1,332 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to debug an PikeOS-ELinOS process from the start
+; @Description:
+;  Application Debugging for a paravirtualized ELinOS process
+;
+;  This script waits for a Linux application to be started,
+;  loads the symbols and halts the application at main().
+;
+;  NOTE: PikeOS and the PikeOS awareness must be up.
+;
+;  Start this script with the process name as argument to
+;  run the script as command line version or use /dialog
+;  to run the script in a dialog.
+;
+;  Examples:
+;    do el_app_debug hello      ; waits for "hello" to be started
+;    do el_app_debug /dialog    ; opens a dialog window
+;
+;  Prerequisites:
+;  - PikeOS must be booted
+;  - PikeOS awareness must be configured
+;  - Symbol Autoloader must be configured
+;  - Linux kernel symbols must be loaded
+;
+; @Keywords: ELinOS awareness PikeOS
+; @Author: DIE
+; @Copyright: (c) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: el_app_debug.cmm 5001 2020-01-28 15:27:00Z rdienstbeck $
+
+
+; Define local macros
+ LOCAL  &para1 &para2 &para3
+ LOCAL  &process &dialog
+ LOCAL  &machname
+ GLOBAL &breakaddr
+ &breakaddr=0
+ &machname=""
+
+
+; Get the script parameters ("<name> /machine <machname>" or "/dialog")
+ ENTRY &para1 &para2 &para3
+
+
+; Check parameters
+ IF "&para1"==""
+ (
+    ; no parameter given -> print usage
+    PRINT "Usage: ""do app_debug_linux <processname>"" or ""do app_debug /dialog"""
+    ENDDO 1.
+ )
+ IF STRing.LoWeR("&para1")=="/dialog"
+ (
+    ; /dialog -> open a dialog to select process
+    &dialog=TRUE()
+    &process=""
+ )
+ ELSE
+ (
+    ; parameter contains process name
+    &dialog=FALSE()
+    &process="&para1"
+    IF STRing.LoWeR("&para2")=="/machine"
+        &machname="&para3"
+ )
+
+
+; Ensure windows update
+ SCREEN.ALways
+
+
+; Dialog or Command line version?
+
+ IF &dialog
+   GOTO dialog
+
+
+; --------------------------------------------------------------------------------
+; Command line interface
+
+ ; Check if the process already exists in the process list.
+
+ LOCAL &existed &main
+
+ GOSUB checkexisting &process
+ ENTRY &existed
+ IF &existed
+   ENDDO 2.
+
+ ; Wait for process to be loaded.
+
+ PRINT "Waiting for process &process..."
+ GOSUB waitforstart &process
+
+ ; Yep! The process is loaded and we found it.
+ ; Now load the process symbols.
+
+ PRINT "process &process started, loading symbols..."
+ GOSUB loadsymbols &process
+ ENTRY &main
+ IF "&main"==""
+    ENDDO 1.
+
+ ; We got the main entry point of the process.
+ ; We let the system run until it reaches main().
+
+ PRINT "waiting for reaching main..."
+ GOSUB waitformain &process &main
+
+ ; That's it, we halted at main()!
+
+ PRINT "done."
+
+ ENDDO 0.
+
+
+; --------------------------------------------------------------------------------
+; Dialog interface
+
+dialog:
+ DIALOG.view
+ (
+        HEADER "Debug Linux Process on main"
+        POS 0. 0. 24. 3.
+        BOX "process name"
+        POS 1. 1. 22. 1.
+proc:   DEFHOTEDIT ""
+        (
+            IF DIALOG.STRing(proc)!=""
+                DIALOG.Enable bok
+            ELSE
+                DIALOG.Disable bok
+        )
+        POS 2. 4.5 8.
+bok:    DEFBUTTON "Ok"
+        (
+            LOCAL &process &existed &main
+            DIALOG.Disable bok
+            DIALOG.Disable proc
+            &process=DIALOG.STRing(proc)
+            DIALOG.Set mess "Checking process &process..."
+
+            GOSUB checkexisting &process
+            ENTRY &existed
+            IF &existed
+                JUMPTO closing
+
+            DIALOG.Set mess "Please start process &process"
+
+            GOSUB waitforstart &process
+
+            DIALOG.Set mess "Process &process started. Loading symbols..."
+
+            GOSUB loadsymbols &process
+            ENTRY &main
+            IF "&main"==""
+                JUMPTO closing
+
+            DIALOG.Set mess "Waiting for reaching main..."
+
+            GOSUB waitformain &process &main
+
+            JUMPTO closing
+        )
+        POS 14. 4.5 8.
+        BUTTON "Cancel" "JUMPTO closing"
+        POS 0. 6. 24. 1.
+mess:   EDIT "Please enter process name" ""
+        CLOSE "JUMPTO closing"
+ )
+
+ DIALOG.Disable bok
+ DIALOG.Disable mess
+
+ STOP
+
+closing:
+
+ IF &breakaddr!=0
+ (
+    IF STATE.RUN()
+        Break
+    Break.Delete &breakaddr
+    ON PBREAKAT ADDRESS.OFFSET(&breakaddr)
+    &breakaddr=0
+ )
+
+ DIALOG.END
+ ENDDO 0.
+
+
+; --------------------------------------------------------------------------------
+; Subroutine: Check if process already exists
+
+checkexisting:
+ ENTRY &process
+
+ IF STATE.RUN()
+    Break
+
+ IF TASK.TASKID("&process")!=0xFFFFFFFF
+ (
+    sYmbol.AutoLOAD.CLEAR "&process"    ; clear possibly previous set
+    sYmbol.AutoLOAD.CHECK               ; force new autoloader list
+    sYmbol.AutoLOAD.TOUCH "&process"    ; force loading of process symbols
+    IF sYmbol.EXIST(\\&process)
+        GOSUB message "Process &process already running." "Symbols loaded."
+    ELSE
+        GOSUB message "Process &process already running." "No symbol file found."
+    RETURN TRUE()
+ )
+
+; Delete possibly existing breakpoints of previous process runs
+
+ IF sYmbol.EXIST("\\&process")
+   Break.Delete sYmbol.SECRANGE(\\&process\.text)
+
+ RETURN FALSE()
+
+
+; --------------------------------------------------------------------------------
+; Subroutine: Wait for start of process
+
+waitforstart:
+ LOCAL &process
+ ENTRY &process
+
+; Wait for process to be loaded.
+
+ // We cannot load process symbols as long as we don't
+ // know the task id.
+
+ ; set_binfmt() is called for every process to start -
+ ; the conditional breakpoint halts only, if the desired
+ ; process is found in the task table.
+
+ IF "&machname"!=""
+ (
+   LOCAL &domain
+   &domain=STRING.LoWeR("&machname")
+   &breakaddr=\\&domain\\set_binfmt
+ )
+ ELSE
+ (
+   &breakaddr=set_binfmt
+ )
+ Break.Delete &breakaddr                ; delete previous set breakpoints
+ Break.Set &breakaddr /CONDition TASK.TASKID("&process")!=0xFFFFFFFF
+
+ ON PBREAKAT ADDRESS.OFFSET(&breakaddr) GOTO continue1  ; if breakpoint reached: continue
+ Go         ; let the target run and load the process
+ STOP       ; halt script until breakpoint reached
+
+ ; breakpoint hit, continue script
+continue1:
+
+ Break.Delete &breakaddr                // delete breakpoint
+ ON PBREAKAT ADDRESS.OFFSET(&breakaddr) // delete script action
+ &breakaddr=0
+
+ RETURN
+
+
+; --------------------------------------------------------------------------------
+; Subroutine: Load symbols of process
+
+loadsymbols:
+ LOCAL &process &main
+ ENTRY &process
+
+; Yep! The process is loaded and we found it.
+
+; Now load the process symbols to the space id of the task
+
+ sYmbol.AutoLOAD.CLEAR "&process"   ; clear possibly previous set
+ sYmbol.AutoLOAD.CHECK              ; force new autoloader list
+ sYmbol.AutoLOAD.TOUCH "&process"   ; force loading of process symbols
+
+
+// Now set a breakpoint at it's main entry point.
+
+ // There may be more "main" symbols in the system,
+ // we're searching for the right one.
+
+ IF sYmbol.COUNT(\\&process\*\main)==0
+ (
+   GOSUB message "Symbol 'main' of process &process doesn't exist!"
+   RETURN     ; return with empty return parameter
+ )
+
+ sYmbol.ForEach "eval ""*""" \\&process\*\main
+ &main=EVAL.STRing()
+
+ RETURN &main
+
+
+; --------------------------------------------------------------------------------
+; Subroutine: Wait for reaching main
+
+waitformain:
+ LOCAL &process &main
+ ENTRY &process &main
+
+ &breakaddr="&main"
+ Break.Set &breakaddr
+
+ ; if breakpoint reached: continue
+ ON PBREAKAT ADDRESS.OFFSET(&breakaddr) GOTO wfm_continue
+ Go         ; let the target run and start the process
+ STOP       ; halt script until breakpoint reached
+
+ ; breakpoint hit, continue script
+wfm_continue:
+
+ Break.Delete &breakaddr                // delete breakpoint
+ ON PBREAKAT ADDRESS.OFFSET(&breakaddr) // delete script action
+ &breakaddr=0
+
+ RETURN
+
+
+; --------------------------------------------------------------------------------
+; Subroutine: print message in dialog box or command line
+
+message:
+ LOCAL &msg1 &msg2
+ ENTRY &msg1 &msg2
+ IF &dialog
+    DIALOG.OK &msg1 &msg2
+ ELSE
+    PRINT &msg1 " " &msg2
+ RETURN

@@ -1,0 +1,176 @@
+; --------------------------------------------------------------------------------
+; @Title: WinCE 6.0 Demo for TRACE32 OS Awareness on ARM Versatile Board
+; @Description:
+;
+;   This batchfile demonstrates the use of the OS Awareness for Windows CE 6
+;
+;   The example is generated for an ARM Versatile board using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   The Windows CE image is downloaded via the ICD.
+;
+; @Keywords: awareness, Windows
+; @Author: DIE
+; @Chip: ARM926EJ-S
+; @Board: ARM Versatile
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: wince.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+; Starting WinCE example with TRACE32:
+; - Connect PS/2 mouse *and* keyboard
+; - Start TRACE32
+; - TRACE32: "do wince"
+; - Start "freecell" on target
+
+; For Bootloader communication:
+; - Terminal on UART0: 38400, 8N1N
+
+; For debugging with TRACE32 we recommend to disable demand paging
+; by setting bit one of ROMFLAGS in PLATFORM\ARMVPB\FILES\config.bib
+
+
+&reldir="C:\WINCE600\OSDesigns\ARMVersatile\ARMVersatile\RelDir\ARMVPB_ARMV4I_Debug"
+
+
+ SCREEN.ON
+
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 24. 75. 8.
+ AREA.view
+
+ PRINT "resetting..."
+
+ sYmbol.RESet
+ SYStem.RESet
+ TASK.RESet
+ Break.Delete
+ MAP.RESet
+ TRANSlation.RESet
+
+
+; setup of ICD
+
+ PRINT "initializing..."
+ SYStem.CPU ARM926EJ
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ SYStem.Option ResBreak ON      ; hardware dependent (see manual)
+ SYStem.Option BigEndian OFF    ; this demo is in little endian
+ TrOnchip.Set DABORT OFF        ; used by wince for page miss!
+ TrOnchip.Set PABORT OFF        ; used by wince for page miss!
+ TrOnchip.Set UNDEF OFF         ; used to detect not present FPU
+ SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+ SETUP.IMASKASM ON              ; lock interrupts while single stepping
+
+ IF etm()
+ (
+   ETM.PortSize 8        ; ETM port size 8 bit
+   ETM.DataTrace OFF     ; no data trace
+   ETM.ContextID 32      ; trace context id (if used by Linux)
+   ETM.ON                ; switch ETM trace on
+ )
+
+ SYStem.Up
+ Register.RESet
+
+
+; Target Setup: initialize DRAM controller and peripherals
+
+ ; Either let the boot monitor setup the board
+    Go
+    PRINT "target setup..."
+    WAIT 2.s
+    Break
+ ; or use the debugger to initialize it
+    ;print "target setup..."
+    ;do versatile   ; do basic setup
+
+ ; load Windows CE boot loader (eboot)
+ Data.LOAD.Binary &reldir\EBOOT.nb0 0x00030000
+ Register.Set PC 0x00030000
+
+ ; let eboot initialize everything
+ Go
+ WAIT 1.s
+ Break
+
+
+; Load the Windows CE image
+
+ ; Use the next lines only to load the image into
+ ; RAM using the debugger.
+
+ PRINT "loading Windows CE image..."
+
+ ; Prepare for direct download: disable MMU!
+ PER.Set.simple C15:0x1 %Long Data.Long(c15:1)&~1    ; switch off MMU
+ Register.RESet
+
+ ; download the image to physical address
+ Data.LOAD.eXe &reldir\nk.bin       ; nk.bin already physically linked!
+
+ ; set PC to physical start address
+ Register.Set PC 0x00070000
+
+
+; We'd like to see something, open a code window.
+ WinPOS 0. 0. 77. 22.
+ List.auto
+
+
+; Declare the MMU format to the debugger
+
+ ; table format is "WINCE6"
+ ; skip root table (0)
+ ; declare default translation for kernel
+ MMU.FORMAT WINCE6 0 0x88000000--0x8fffffff 0x00000000
+
+ ; ROM DLL, shared heap and kernel addresses are common to all processes
+ TRANSlation.COMMON 0x40000000--0x5fffffff 0x70000000--0xffffffff
+
+ ; debugger uses a table walk to decode virtual addresses
+ TRANSlation.TableWalk ON
+
+ ; switch on debugger(!) address translation
+ TRANSlation.ON
+
+
+; Initialize RTOS Support
+
+ PRINT "initializing Windows CE support..."
+ TASK.CONFIG ../wince6          ; loads WinCE awareness (wince6.t32)
+ MENU.ReProgram ../wince6       ; loads WinCE menu (wince6.men)
+ HELP.FILTER.Add rtoswince      ; add WinCE awareness manual to help
+
+ ; switch on autoloader and add path to symbol files to source path list
+ sYmbol.AutoLoad.CHECKWINCE "do "+OS.PPD()+"/../autoload "
+ sYmbol.SourcePATH.Set &reldir
+
+ ; Group kernel area to be displayed with red bar
+ GROUP.Create "winceos" 0x80000000--0xffffffff /RED
+
+
+; Now let's boot and start Windows CE!
+
+ Go
+ PRINT "booting Windows CE... (please wait)"
+ WAIT 17.s
+ Break
+
+
+ PRINT "done."
+
+
+; --------------------------------------------------------------------------------
+; Application Debugging
+; e.g. "freecell"
+
+ DO ../app_debug freecell
+
+ ENDDO
+

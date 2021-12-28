@@ -1,0 +1,198 @@
+;@Title: Script for Cypress PSOC6 series internal flash.
+;@Description:
+;  Flash declaration of Cypress PSOC6 internal flash.
+;
+;   Script arguments:
+;
+;    DO psoc6 [PREPAREONLY] [CPU=<cpu>]
+;
+;       PREPAREONLY only declares flash but does not execute flash programming
+;
+;       CPU=<cpu> selects CPU derivative <cpu>. <cpu> can be CPU name out of the
+;               table listed below. For these derivatives the flash declaration
+;               is done by the script.
+;
+;   For example:
+;
+;     DO ~~/demo/arm/flash/psoc6 PREPAREONLY CPU=CY8C6347BZI-BLD53-M0+
+;
+;   List of PSOC6 derivatives and their configuration:
+;
+;     CPU-Type          Program Flash    Work Flash    System Flash
+;                          [Byte]          [Byte]         [Byte]
+;   CY8C6246BZI-D04         512k            32k           2k/32k
+;   CY8C6247BZI-D34        1024k            32k           2k/32k
+;   CY8C6247BZI-D44        1024k            32k           2k/32k
+;   CY8C6247BZI-D54        1024k            32k           2k/32k
+;   CY8C6247FDI-D04        1024k            32k           2k/32k
+;   CY8C6247FDI-D34        1024k            32k           2k/32k
+;   CY8C6316BZI-BLF03       512k            32k           2k/32k
+;   CY8C6316BZI-BLF53       512k            32k           2k/32k
+;   CY8C6336BZI-BLD13       512k            32k           2k/32k
+;   CY8C6336BZI-BLF03       512k            32k           2k/32k
+;   CY8C6337BZI-BLF13      1024k            32k           2k/32k
+;   CY8C6347BZI-BLD33      1024k            32k           2k/32k
+;   CY8C6347BZI-BLD43      1024k            32k           2k/32k
+;   CY8C6347BZI-BLD53      1024k            32k           2k/32k
+;   CY8C6347FMI-BLD13      1024k            32k           2k/32k
+;   CY8C6347FMI-BLD33      1024k            32k           2k/32k
+;   CY8C6347FMI-BLD43      1024k            32k           2k/32k
+;   CY8C6347FMI-BLD53      1024k            32k           2k/32k
+;
+;   Note:
+;       This script disables the WATCHDOG. Please perform a RESET or POWER-CYCLE
+;       to reenable it.
+;
+; @Author: AME
+; @Chip: CY8C6*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: psoc6.cmm 7602 2019-11-05 15:02:25Z bschroefel $
+
+LOCAL &parameters &param_prepareonly &param_cpu
+ENTRY %LINE &parameters
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CPU=","")
+
+; --------------------------------------------------------------------------------
+; check Prerequisites
+
+IF VERSION.BUILD()<92177.
+(
+  DIALOG.OK "Please use more recent software!"
+  ENDDO
+)
+
+; ------------------------------------------------------------------------------
+; Start debugging
+
+IF !SYStem.Up()
+(
+  SYStem.RESet
+
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  IF !CPUIS(CY8C6*)
+    SYStem.CPU CY8C6*
+
+  IF CABLE.TWOWIRE()
+    SYStem.CONFIG DEBUGPORTTYPE SWD
+  ELSE
+    SYStem.CONFIG DEBUGPORTTYPE JTAG
+
+  SYStem.Option ResBreak OFF
+  SYStem.Option WaitIDCODE ON
+  SYStem.Up
+
+)
+
+IF (CPUIS(CY8C6??????-BLD*)||CPUIS(CY8C6??????-D*))&&(CORENAME()!="CORTEXM0+")
+(
+  ; dual core and we are not connected to M0+
+  PRINT %ERROR "Please select the CortexM0+ MASTER core for flash programming!"
+  ENDDO
+)
+
+GOSUB WatchdogDisable
+IF (CPUIS(CY8C6??????-BLD*)||CPUIS(CY8C6??????-D*))
+(
+  ; for dual core CPUs disable the M4
+  GOSUB DisableM4
+)
+
+; ------------------------------------------------------------------------------
+; Flash declaration
+FLASH.RESet
+GOSUB FlashDeclaration
+
+;Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; ------------------------------------------------------------------------------
+; Flash programming example
+
+DIALOG.YESNO "Program flash memory?"
+LOCAL &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram.ALL
+  Data.LOAD.auto *
+  FLASH.ReProgram.off
+  SYStem.Up
+)
+
+ENDDO
+
+; ------------------------------------------------------------------------------
+; Subroutines
+
+WatchdogDisable: ;()
+(
+  ; Unlock and disable WDT
+  ; SRSS->WDT_CTL = ((SRSS->WDT_CTL & (uint32_t)(~SRSS_WDT_CTL_WDT_LOCK_Msk)) | CY_WDT_LOCK_BIT0);
+  ; SRSS->WDT_CTL = (SRSS->WDT_CTL | CY_WDT_LOCK_BIT1);
+  ; SRSS->WDT_CTL &= (~ (uint32_t) SRSS_WDT_CTL_WDT_EN_Msk);
+
+  Data.Set A:0x40260180 %Long (Data.Long(A:0x40260180)&~0xC0000000)|0x40000000
+  Data.Set A:0x40260180 %Long Data.Long(A:0x40260180)|0x80000000
+  Data.Set A:0x40260180 %Long Data.Long(A:0x40260180)&~0x1
+  RETURN
+)
+
+DisableM4: ;()
+(
+  &CPUSS=0x40210000
+  &CM4_PWR_CTL=0x80
+  &val=Data.Long(A:&CPUSS+&CM4_PWR_CTL)
+  IF &val==0x9
+  (
+    ; DISABLED
+  )
+  ELSE IF &val==0x3
+  (
+    ; RETAINED
+    Data.Set A:&CPUSS+&CM4_PWR_CTL %Long Data.Long(A:&CPUSS+&CM4_PWR_CTL)|0x8
+    Data.Set A:&CPUSS+&CM4_PWR_CTL %Long Data.Long(A:&CPUSS+&CM4_PWR_CTL)&~0x2
+  )
+  ELSE IF &val==0x14
+  (
+    ; ENABLED
+    Data.Set A:&CPUSS+&CM4_PWR_CTL %Long Data.Long(A:&CPUSS+&CM4_PWR_CTL)&~0x10
+    Data.Set A:&CPUSS+&CM4_PWR_CTL %Long Data.Long(A:&CPUSS+&CM4_PWR_CTL)|0x8
+    Data.Set A:&CPUSS+&CM4_PWR_CTL %Long Data.Long(A:&CPUSS+&CM4_PWR_CTL)|0x1
+    Data.Set A:&CPUSS+&CM4_PWR_CTL %Long Data.Long(A:&CPUSS+&CM4_PWR_CTL)&~0x4
+  )
+  ELSE IF &val==0xC
+  (
+    ; RESET
+  )
+  RETURN
+)
+
+FlashDeclaration: ;()
+(
+  IF CPUIS(CY8C6??4*)
+  (
+    FLASH.Create 1. 0x10000000--0x1001ffff 0x200 TARGET LONG
+  )
+  ELSE IF CPUIS(CY8C6??5*)
+  (
+    FLASH.Create 1. 0x10000000--0x1003ffff 0x200 TARGET LONG
+  )
+  ELSE IF CPUIS(CY8C6??6*)
+  (
+    FLASH.Create 1. 0x10000000--0x1007ffff 0x200 TARGET LONG
+  )
+  ELSE IF CPUIS(CY8C6??7*)
+  (
+    FLASH.Create 1. 0x10000000--0x100fffff 0x200 TARGET LONG
+  )
+  FLASH.Create 2. 0x14000000--0x14007fff 0x200 TARGET LONG
+  FLASH.Create 3. 0x16000000--0x16007fff 0x200 NOP LONG
+  FLASH.CHANGEtype 0x16000800--0x16000fff TARGET
+
+  FLASH.TARGET 0x08000000 0x08000800 0x1000 ~~/demo/arm/flash/long/psoc6.bin /STACKSIZE 0x400
+  RETURN
+)

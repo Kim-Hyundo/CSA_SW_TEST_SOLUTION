@@ -1,0 +1,153 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash Script for the netX family
+; @Description:
+;   This script opens a dialog to prepare with "flasher.elf" helper
+;   The flash parameters can be selected in this dialog
+; @Keywords: NetX*
+; @Board: NetX
+; @Chip: ARM966E-S, NETX100, NETX500
+; @Author: Hilscher
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: prepare_flash.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; dialog to prepare flashing with "flasher.elf" helper
+
+DIALOG.view
+(
+          HEADER "Select flasher parameters"
+          POS 1. 1. 50.
+FILEEDIT: EDIT "" ""
+          POS 50. 1. 5.
+          BUTTON "..."
+          (
+            DIALOG.SetFile FILEEDIT *.bin
+          )
+
+          POS 1. 2. 15.
+TARGETCB: PULLDOWN "SRamBus,SPI,I2C"
+          (
+          )
+
+          POS 1. 3. 15.
+OFFSET:   EDIT "0" "0"
+
+          POS 1. 4. 35.
+AUTOSTART:CHECKBOX "Flash automatically" ""
+
+          POS 1. 6. 5.
+          DEFBUTTON "OK" "JUMPTO proceed"
+          CLOSE     "JUMPTO abort"
+)
+GLOBAL &netx_flasher_binfile &netx_flasher_offset &target
+
+IF "&netx_flasher_offset"!=""
+  DIALOG.Set OFFSET "&netx_flasher_offset"
+
+IF "&netx_flasher_binfile"!=""
+  DIALOG.SetFile FILEEDIT "&netx_flasher_binfile"
+
+IF ("&target"!="")
+(
+  IF &target==1
+    DIALOG.Set TARGETCB "SRamBus"
+  ELSE IF &target==2
+    DIALOG.Set TARGETCB "SPI"
+  ELSE IF &target==3
+    DIALOG.Set TARGETCB "I2C"
+)
+
+STOP
+
+proceed:
+LOCAL  &binfile_size &target_string &flasher_file &binfile_offset
+
+&netx_flasher_binfile=DIALOG.STRing(FILEEDIT)
+&netx_flasher_offset=DIALOG.STRing(OFFSET)
+&flasher_file="~~~~/flasher.elf"
+
+IF !OS.FILE("&netx_flasher_binfile")
+(
+  PRINT "Error opening file to flash! '&netx_flasher_binfile'"
+
+)
+ELSE IF !OS.FILE("&flasher_file")
+(
+  PRINT "Error opening flasher! '&flasher_file'"
+)
+ELSE IF !SYStem.UP()
+(
+  PRINT "Not connected to target. Please attach to the HW first!"
+)
+ELSE IF STATE.RUN()
+(
+  PRINT "Unable to flash while target is running. Please halt the CPU first!"
+)
+ELSE
+(
+  &binfile_size=OS.FILE.SIZE(&netx_flasher_binfile)
+  &binfile_offset=&(netx_flasher_offset)
+  &target_string=DIALOG.STRing(TARGETCB)
+
+  ;translate destination device pulldown box to flasher parameters
+  IF "&target_string"=="SRamBus"
+    &target=1
+  ELSE IF "&target_string"=="SPI"
+    &target=2
+  ELSE IF "&target_string"=="I2C"
+    &target=3
+
+  ; define all sourcetypes
+  ; &BootBlockSrcType_OldStyle=0
+  ; &BootBlockSrcType_SRamBus=1
+  ; &BootBlockSrcType_SPI=2
+  ; &BootBlockSrcType_I2C=3
+  ; &BootBlockSrcType_MMC=4
+  ; &BootBlockSrcType_DPM=5
+  ; &BootBlockSrcType_DPE=6
+  ; &BootBlockSrcType_ExtBus=7
+
+  PRINT "Loading flasher tool 'flasher.elf'"
+  Data.LOAD.Elf ~~~~/flasher.elf
+
+  PRINT "Loading image '&netx_flasher_binfile'"
+  PRINT "Filesize: &binfile_size"
+  PRINT "Offset: &binfile_offset"
+
+  Register.Set CPSR 0x000000D3
+  Register.Set R0   0x00018000
+  Register.Set R13  0x00007ffc
+
+  Register.Set R14 0x00001234
+
+  ; clear return value
+  Data.Set 0x00018000 %Long 0xffffffff
+  ; set input parameter address of flasher parameter block)
+  Data.Set 0x00018004 %Long 0x0001800c
+  ; clear return message
+  Data.Set 0x00018008 %Long 0x00000000
+
+  ; param version
+  Data.Set 0x0001800C %Long 0x00010000
+  ; operation mode is flash
+  Data.Set 0x00018010 %Long 0
+  ; data pointer
+  Data.Set 0x00018014 %Long 0x80000000
+  ; data byte size
+  Data.Set 0x00018018 %Long &binfile_size
+  ; source type
+  Data.Set 0x0001801C %Long &target
+  ; dst dev offset
+  Data.Set 0x00018020 %Long &binfile_offset
+
+  Data.LOAD.Binary "&netx_flasher_binfile" 0x80000000
+
+  IF DIALOG.BOOLEAN(AUTOSTART)
+    Go()
+)
+
+abort:
+DIALOG.END
+
+ENDDO

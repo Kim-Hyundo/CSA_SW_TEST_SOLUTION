@@ -1,0 +1,49 @@
+; --------------------------------------------------------------------------------
+; @Title: VxWorks Demo for TRACE32 OS Awareness on TriCore Simulator
+; @Description:
+;
+;   This script demonstrates the RTOS-Debugger for VxWorks
+;   See also rtos_vxworks.pdf
+;   
+; @Keywords: Awareness, RTOS, VxWorks
+; @Author: DIE
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: vxworks.cmm 13125 2018-09-11 14:03:01Z rdienstbeck $
+
+
+; open an area status window
+ AREA.RESet
+ WinPAGE.RESet
+ WinPOS 0. 27. 63. 7. 0. 0. W006
+ AREA.view
+
+; reset
+ PRINT "resetting..."
+ SYStem.RESet
+
+ PRINT "initializing..."
+
+; System up
+ SYStem.CPU RiderD
+ SYStem.Up
+
+; load OS and sample application
+ PRINT "loading sample application..."
+ Data.LOAD.auto vxWorks
+
+; Load VxWorks support
+
+ PRINT "loading VxWorks support..." 
+ TASK.CONFIG ~~/demo/tricore/kernel/vxworks/vxworks.t32
+
+; display default windows
+ WinPOS 0. 0. 80. 25. 13. 1. W000
+ List.auto
+ WinPOS 20. 24. 77. 8. 0. 1. W001
+ TASK.TaskInfo
+
+ PRINT "load complete."
+
+; go until init routine; takes a while!
+ Go.direct usrAppInit

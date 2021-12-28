@@ -1,0 +1,114 @@
+;
+; @Title: Example for flash declaration of EnergyMicro EFM32 Pearl Gecko internal flash.
+;
+; @Description: 
+; Script arguments:
+;
+;   DO efm32jg [PREPAREONLY] [CPU=<cpu>]
+;
+;     PREPAREONLY only declares flash but does not execute flash programming
+;
+;     CPU=<cpu> selects CPU derivative <cpu>
+;
+; Example:
+;
+;   DO ~~/demo/arm/flash/efm32jg CPU=EFM32PG12B500F1024 PREPAREONLY
+;
+; List of EFM32 Pearl Gecko derivatives and their configuration:
+;
+;   CPU                              FlashSize  RamSize
+;   Derivative                         [kB]      [kB]
+; --------------------------------------------------------------------------------
+;   EFM32PG1B100F128                    128.      32.
+;   EFM32PG1B200F128                    128.      32.
+;	EFM32PG1B100F256                    128.      32.
+;   EFM32PG1B200F256                    256.      32.
+;   EFM32PG12B500F1024                 1024.     256.
+;
+; @Author: MAM
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; @Chip: EFM32JG*
+; --------------------------------------------------------------------------------
+; $Rev: 7577 $
+; $Id: efm32pg.cmm 7577 2019-10-30 15:30:31Z bschroefel $
+
+  LOCAL &parameters &param_prepareonly
+  ENTRY %LINE &parameters
+  &param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+
+  LOCAL &param_cpu
+  &param_cpu=STRing.SCANAndExtract("&parameters","CPU=","")
+
+  LOCAL &FlashSize
+
+  ; ------------------------------------------------------------------------------
+  ; Start debugging
+
+  IF SYStem.MODE()<5
+  (
+    SYStem.RESet
+
+    IF "&param_cpu"!=""
+      SYStem.CPU &param_cpu
+    IF !CPUIS(EFM32JG*)
+      SYStem.CPU EFM32JG*
+
+    SYStem.Option.ResBreak OFF
+    IF CABLE.TWOWIRE()
+    (
+      SYStem.CONFIG.DEBUGPORTTYPE SWD
+    )
+    ELSE
+    (
+      PRINT %ERROR "Serial Wire Debug (SWD) not supported by debug cable"
+      ENDDO
+    )
+    SYStem.JtagClock 500Khz
+
+    SYStem.Up
+
+    ; After SYStem.Up the JTAG clock can be set to higher frequency.
+    SYStem.JtagClock 10Mhz
+  )
+
+  ; ------------------------------------------------------------------------------
+  ; Flash declaration
+
+  IF CPUIS(*F128*)
+    &FlashSize=0x20000
+  ELSE IF CPUIS(*F256*)
+    &FlashSize=0x40000
+  ELSE IF CPUIS(*F1024*)
+    &FlashSize=0x100000
+  ELSE
+  (
+    PRINT %ERROR "FLASH size of CPU type is not supported by the script"
+    ENDDO
+  )
+
+  FLASH.RESet
+  FLASH.Create   1. 0x00000000++(&FlashSize-1) 0x800 TARGET Byte
+  FLASH.TARGET 0x10000000 0x10001000 0x800 ~~/demo/arm/flash/long/efm32.bin
+
+  ; Flash script ends here if called with parameter PREPAREONLY
+  IF &param_prepareonly
+    ENDDO PREPAREDONE
+
+  ; ------------------------------------------------------------------------------
+  ; Flash programming example
+
+  DIALOG.YESNO "Program flash memory?"
+  LOCAL &progflash
+  ENTRY &progflash
+  IF &progflash 
+  (
+    FLASH.ReProgram.ALL /Erase
+    Data.LOAD.auto *
+    FLASH.ReProgram.off
+
+    ; Reset device
+    SYStem.Down
+    SYStem.Up
+  )
+
+  ENDDO

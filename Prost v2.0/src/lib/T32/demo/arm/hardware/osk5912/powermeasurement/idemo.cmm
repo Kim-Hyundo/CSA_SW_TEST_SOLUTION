@@ -1,0 +1,120 @@
+; --------------------------------------------------------------------------------
+; @Title: OSK5912 Powemeasurement Demo
+; @Description:
+;   - Install your tools as shown on the pictures under
+;     powerMeasurement/installationPictures.
+;   - Run this demo script.
+; @Author: PEG
+; @Board: OSK5912
+; @Chip: OMAP5912
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: idemo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+; Start-Up Script for ARM9 on OMAP5912
+; PEG, October 2004
+
+; start-up debugger
+  SYStem.CPU OMAP5912
+  SYStem.JtagClock RTCK
+  SYStem.Option resbreak OFF
+  SYStem.Option waitreset ON
+  SYStem.Up
+  Analyzer.RESet
+  Analyzer.CLOCK 10MHz
+
+; disable MMU
+  Data.Set c15:1 50078
+
+; soft reset of ARM and DSP core
+; Data.Set 0xfffece10 %Word 0x000c
+; Data.Set 0xfffece10 %Word 0x0004
+
+ Data.Set 0fffecf00 %Word 0x0010
+
+; disable watchdog
+  Data.Set 0xfffec808 %Word 0x00f5
+  Data.Set 0xfffec808 %Word 0x00a0
+
+; allow access to DSP memory
+;  Data.Set 0xfffece08 %Word 0x0040
+;  Data.Set 0xfffec900 %Long 0xff1b
+
+; patch branch to itself for DSP to get a defined behaviour after reset release
+  Data.Set 0xe0010000 %Long 0x4a7e4a7e
+
+; DSP reset release; now the start-up script for the DSP will work
+  Data.Set 0xfffec918 %Long 0x05
+  Data.Set 0xfffece10 %Word 0x00
+  Data.Set 0xfffece10 %Word 0x0006
+
+;ETM pin multiplexing - Normal Mode
+  PER.Set.simple ASD:0xFFFE1014 %Long 09200000
+  PER.Set.simple ASD:0xFFFE1018 %Long 09249249
+
+;Set pin mode to PWM
+  PER.Set.simple ASD:0xFFFE101C %Long 9
+; Enable PWM
+  PER.Set.simple ASD:0xFFFB5804 1
+;Set any PWM value
+  PER.Set.simple ASD:0xFFFB5800 80
+
+;Set pin to LED mode
+  PER.Set.simple SD:0xFFFBE430 %Long 0f0d8
+;Set LED pins to output
+  PER.Set.simple SD:0xFFFBE434 %Long 00f27
+
+; --------------------------------------------------------------------------------
+; PowerIntegrator setup for Analog Probe
+;
+; ADC trigger only works if Probe is connected to PI-'A' connector
+; --------------------------------------------------------------------------------
+; Reset MUX setup
+  a.pi_mux_reset
+
+; Addresslines
+ a.pi_mux amux.0 I.A0
+ a.pi_mux amux.1 I.A1
+ a.pi_mux amux.2 I.A2
+ a.pi_mux amux.3 I.A3
+ a.pi_mux amux.4 I.A4
+ a.pi_mux amux.5 I.A5
+ a.pi_mux amux.6 I.A6
+ a.pi_mux amux.7 I.A7
+ a.pi_mux amux.8 I.A8
+ a.pi_mux amux.9 I.A9
+ a.pi_mux amux.10 I.A10
+ a.pi_mux amux.11 I.A11
+
+; Programming of MUX setup
+ a.pi_mux_program
+
+; Menu-ADC-Trigger
+ MENU.ReProgram ~~~~/t32adc.men
+
+;Integrator setup
+ POD.ADC Attach v0 ON
+ POD.ADC Attach v1 ON
+ POD.ADC Attach v2 ON
+ POD.ADC Attach v3 ON
+ POD.ADC Attach i0 ON 1.000
+ POD.ADC Attach i1 ON 1.000
+ POD.ADC Attach i2 ON 1.000
+
+ Integrator.TSelect Program ON
+ Integrator.ReProgram adc.tap
+ Integrator.AutoInit ON
+
+;Set demo program code
+ DO ~~~~/pwm_demo_code2.cmm
+
+;Configure analyzer
+ Analyzer.AutoInit ON
+
+;Open some windows
+ DO ~~~~/demowin
+
+ END
+
+

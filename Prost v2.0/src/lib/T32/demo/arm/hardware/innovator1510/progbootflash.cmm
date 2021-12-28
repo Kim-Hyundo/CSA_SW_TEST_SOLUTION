@@ -1,0 +1,39 @@
+; --------------------------------------------------------------------------------
+; @Title: Example for programming the boot flash of Innovator 1510 development kit
+; @Description: Example for programming the boot flash of Innovator 1510 development kit
+; @Keywords: OMAP
+; @Author: WRD
+; @Board: Innovator 1510
+; @Chip: OMAP1510
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: progbootflash.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+;
+
+; wrd - 22.05.2003
+;
+
+
+; Startup debugger
+DO ~~~~/innovator
+
+; Declare flash depending on DIP switch settings
+DO ~~~~/flashcreate
+
+; setup flash algorithm for target controlled flash programming
+IF &flashtarget==1
+(
+  FLASH.TARGET &ram_start &ram_start+0x2000 0x1000 ~~/demo/arm/flash/word/&bootflash_type.bin
+)
+
+; Erase boot flash
+FLASH.Erase 1.
+
+; Program boot flash
+FLASH.Program 1.
+Data.LOAD.Binary * &bootflash_start
+FLASH.Program OFF
+
+ENDDO

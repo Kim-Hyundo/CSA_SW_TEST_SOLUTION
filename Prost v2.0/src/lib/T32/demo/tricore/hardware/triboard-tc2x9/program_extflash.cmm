@@ -1,0 +1,86 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script to program external flash of TC2x9T* on TriBoard-TC2x9
+; @Description:
+;   Program external flash memory available on the evaluation board.
+;
+;   The script is intended to be called when the EBU is already configured, so
+;   an active debug connection is precondition. The script can be used either
+;   as template for own projects or alternatively be called by them.
+;
+;   Supported devices: All TriBoard-TC2x9 using TC2x9T* devices, e.g. TC299T.
+;
+; @Keywords: AURIX, external, flash
+; @Author: MAX
+; @Board: TriBoard-TC2x9
+; @Chip: TC29*
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: program_extflash.cmm 15461 2019-12-22 17:29:28Z hdammak $
+
+
+;   Script arguments:
+;     DO program_extflash.cmm FLASHSTART=<address> FLASHSIZE=<bytes> [FLASHALTREGION=<segment>]
+;                             [PREPAREONLY]
+;
+;       FLASHSTART=<address>     Start address <address> of external flash
+;       FLASHSIZE=<bytes>        External flash size in <bytes> (normally 2 MB)
+;       FLASHALTREGION=<segment> Segment <segment> where to mirror external flash
+;                                (alternative region)
+;       PREPAREONLY              Only declare flash but do not program
+;
+;   Example:
+;     DO ~~/demo/tricore/hardware/triboard-tc2x9/program_extflash.cmm FLASHSTART=0xA4000000 FLASHSIZE=0x200000 PREPAREONLY
+
+; --------------------------------------------------------------------------------
+; get parameters and check preconditions
+LOCAL &parameters
+ENTRY %LINE &parameters
+
+LOCAL &param_flashStart &param_flashSize &param_flashAltRegion &param_prepareonly
+&param_flashStart=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"FLASHSTART=","")
+&param_flashSize=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"FLASHSIZE=","")
+&param_flashAltRegion=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"FLASHALTREGION=","")
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+
+IF "&param_flashStart"==""
+    ENDDO FLASHSTART_MISSING
+IF "&param_flashSize"==""
+    ENDDO FLASHSIZE_MISSING
+
+IF !CPUIS(TC2?9*)
+  ENDDO CPU_UNSUPPORTED
+IF !SYStem.Up()
+  ENDDO SYSTEM_DOWN
+
+; --------------------------------------------------------------------------------
+; configure external flash
+
+; flash detection and setup via CFI
+FLASH.RESet ; avoid confusion: only one target algorithm allowed
+FLASH.CFI &param_flashStart Long /TARGET 0xC0000000 0xD0000000 0x4000
+IF ("&param_flashAltRegion"!="")
+(
+  ; alternative flash address range
+  LOCAL &flashAltStart &flashAltRange
+  &flashAltStart=(&param_flashAltRegion<<28.)|((&param_flashStart)&(0x0fffffff))
+  &flashAltRange=D:&flashAltStart++(&param_flashSize-0x1)
+
+  FLASH.CreateALIAS &flashAltRange &param_flashStart
+)
+
+; flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; program external flash
+DIALOG.YESNO "Program external flash memory?"
+LOCAL &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram.ALL ; enable flash programming
+  Data.LOAD.auto *
+  FLASH.ReProgram.off ; finally program flash memory
+)
+
+ENDDO

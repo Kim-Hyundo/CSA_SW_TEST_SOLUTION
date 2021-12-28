@@ -1,0 +1,59 @@
+; --------------------------------------------------------------------------------
+; @Title: RealTime Craft Demo for TRACE32 OS Awareness
+; @Description: 
+;   This batchfile loads all necessary files to demonstrate
+;   the RTOS-Debugger for XEC ARM in stand-alone-mode.
+; @Keywords: rtc, RTOS
+; @Author: DIE
+; @Chip: ARM7TDMI
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: rtc.cmm 15227 2019-11-06 11:57:41Z bschroefel $
+
+
+ LOCAL &mode1
+ ENTRY &mode1
+
+; Emulator reset
+ PRINT "Resetting..."
+ RESet
+ WinPAGE.RESet
+
+ IF hardware.ICE()
+ (
+  MAP.PRE 0x0--0x0fffff
+  MAP.PRE 0x0fff00000--0x0ffffffff
+  MAP.DEFault
+ )
+ ELSE IF INTERFACE.SIM()
+ (
+  SYStem.CPU arm7tdmi
+ )
+
+; Stand alone internal mode
+ SYStem.Mode AloneInt
+
+; load absolute MCC68K file
+ Data.LOAD.Elf testrtc
+
+; patch XEC ARM and configure OS Awareness
+ DO prtc
+
+; Create some windows
+ 
+ WinPAGE.RESet
+ 
+ WinCLEAR
+
+ List.auto
+ 
+ TASK.TASK
+ 
+ task.sem
+ 
+ task.mbx
+ 
+ task.dly
+
+ ENDDO
+

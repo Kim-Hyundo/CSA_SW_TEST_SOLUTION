@@ -1,0 +1,44 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple debug demo on Cortex-A5 core of twr-vf65gs10 board
+; @Description:
+;   This demo show how to connect TRACE32 to the CA5 on twr-vf65gs10,
+;   load a simple sieve demo on SRAM and start a debug sessio.n
+;   To debug TWR-VF65GS10 revision H you have to solder a 10K resistor at R161.
+; @Keywords: Cortex-A5, sieve, vybrid
+; @Author: HDA
+; @Board: TWR-Vf65GS10
+; @Chip: VF6*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: twr-vf65gs10_sieve_ca5.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+; Basic settings
+  RESet
+  SYStem.CPU VF6XX-CA5
+  ETM.OFF
+  SYStem.CONFIG.CORE 1. 1.
+  SYStem.Mode Attach
+  Break.direct
+
+; Load demo program on ca5
+  Data.LOAD.Elf ~~~~/demo.axf
+  Register.Set PC main
+  Register.Set CPSR 0x1d3
+  Register.Set R13 0x3f000100
+; Avoid touching areas which react badly
+  MAP.DenyAccess 0x30000000--0x3effffff
+  MAP.DenyAccess 0x80000000--0xffffffff
+
+; Open some windows
+  WinCLEAR
+  WinPOS 93.429 0.0 83. 34. 0. 0.
+  Register.view /SpotLight
+  WinPOS 0.0 0.0 86. 32. 16. 1. W001
+  List.auto
+  WinPOS 0.28571 39.083 86. 3. 0. 0. W003
+  Var.Watch flags ast
+  WinPOS 0.57143 50.0 86. 15. 5. 0. W005
+  Frame.view /Locals /Caller
+
+  ENDDO

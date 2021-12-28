@@ -1,0 +1,36 @@
+; --------------------------------------------------------------------------------
+; @Title: LPC17xx flash template
+; @Description: 
+;   Template script for using an LPC17xx including Flash Programming and
+;   Application debugging.
+;   Prerequisites:
+;     * Replace the SYStem.CPU setting
+; @Props: Template
+; @Author: AME
+; @Board: -
+; @Chip: LPC17??
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: lpc17xx_flash_template.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+; Basic setup
+  
+  RESet
+  SYStem.RESet
+  SYStem.CPU LPC1768
+  SYStem.CONFIG CONNECTOR MIPI20T
+  SYStem.CONFIG SWDP    ON
+  SYStem.Option EnReset OFF
+  SYStem.Up
+  
+  ; Prepare Flash programming
+  DO ~~/demo/arm/flash/lpc17xx PREPAREONLY
+  
+  FLASH.ReProgram ALL
+  ; Data.LOAD.Elf <your_file>.elf
+  FLASH.ReProgram OFF
+  
+  SYStem.Up
+  
+  ENDDO

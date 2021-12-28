@@ -1,0 +1,84 @@
+OUTPUT_FORMAT("elf32-littlearm", "elf32-littlearm","elf32-littlearm")
+OUTPUT_ARCH(arm)
+ENTRY(_start)
+
+/* 
+Fascinating:
+If you read the K60 manual in detail, you will find these sentences:
+
+ --- snip ---
+   The SRAM is split into two logical arrays that are 32-bits wide.
+       SRAM_L - Accessible by the code bus of the Cortex-M4 core and 
+                by the backdoor port.
+       SRAM_U - Accessible by the system bus of the Cortex-M4 core and 
+                by the backdoor port.
+ --- snip ---
+ 
+ After some tests it turns out that this means, that the Instruction Bus of
+ the Cortex-M4 can directly read from SRAM_L, at the same time as the 
+ Data Bus of the Cortex-M4 reads from SRAM_U.
+ It DOES NOT work if you swap these memories (instruction fetches to SRM_U,
+ data load/stored to/from SRAM_L).
+ 
+ Putting the code to SRAM_L and putting the data to SRAM_U gives around
+ 40% more benchmark performance than linking both to just SRAM_U or SRAM_L or
+ two swapping the memories.
+*/
+
+PHDRS
+{
+  mycode   PT_LOAD ;
+  mydata   PT_LOAD ;
+}
+
+MEMORY
+{
+         SRAML (RWX) : ORIGIN = 0x1FFFC000, LENGTH = 0x4000
+         SRAMU (RWX) : ORIGIN = 0x20000000, LENGTH = 0x4000
+}
+
+
+SECTIONS 
+{
+  _sp = ORIGIN(SRAMU) + LENGTH(SRAMU) - 16 ;
+
+  .text :
+  {
+    *(.text .text.*)
+  } > SRAML :mycode
+
+  . = ALIGN(4);
+  
+  .rodata :
+  {
+    *(.rodata .rodata.* .gnu.linkonce.r.*)
+    *(.rodata1)
+  } > SRAMU :mydata
+
+  . = ALIGN(4);
+
+  .data :
+  {
+     *(.data .data.* .gnu.linkonce.d.* )
+     KEEP (*(.gnu.linkonce.d.*personality*))
+     *(.sdata .sdata.* .gnu.linkonce.s.*)
+  } > SRAMU :mydata
+  
+  . = ALIGN(4);
+
+
+  .bss :
+  {
+     PROVIDE ( _bss_start = ABSOLUTE(.) );
+     *(.sbss .sbss.* .gnu.linkonce.sb.*)
+     *(.scommon)
+     *(.bss .bss.* .gnu.linkonce.b.*)
+     *(COMMON)
+  } > SRAMU :NONE
+
+  PROVIDE ( _bss_end = .);
+
+  . = ALIGN(16);
+
+  PROVIDE ( heap_start = .); 
+}

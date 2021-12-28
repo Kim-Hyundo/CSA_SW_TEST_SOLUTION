@@ -1,0 +1,3061 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="t32transform.xsl"?>
+<TRACE32 file="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Gen\20210531_TRACE32_20_02\Failsafe-TestSpec_RS4_0104\Report\Total\MANDO_FailSafe_Integration\FS_InvalidSignal\func-p-80003d1e-80004129.xml">
+	<coverage>
+		<COVerage.EXPORT.ListLine ts="1622419852" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE" metric="object">
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\Rte_SWC_Diag</tree>
+				<cov>partial</cov>
+				<exec metric="object">50.847%</exec>
+				<branches>-</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>0</never>
+				<bytes>590</bytes>
+				<bytesok>300</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_HWFailure</tree>
+				<cov>partial</cov>
+				<exec metric="object">16.831%</exec>
+				<branches>10.000%</branches>
+				<ok>0</ok>
+				<taken>1</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>202</bytes>
+				<bytesok>34</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\SWC_Failsafe</tree>
+				<cov>partial</cov>
+				<exec metric="object">67.441%</exec>
+				<branches>-</branches>
+				<ok>4</ok>
+				<taken>11</taken>
+				<nottaken>21</nottaken>
+				<bytes>1548</bytes>
+				<bytesok>1044</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80002C38</addrFrom>
+				<addrTo>P:80002DC9</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\FS_BatteryVoltage</tree>
+				<cov>partial</cov>
+				<exec metric="object">83.582%</exec>
+				<branches>68.750%</branches>
+				<ok>12</ok>
+				<taken>3</taken>
+				<nottaken>6</nottaken>
+				<never>3</never>
+				<bytes>402</bytes>
+				<bytesok>336</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_CANBusOff</tree>
+				<cov>partial</cov>
+				<exec metric="object">45.736%</exec>
+				<branches>1.215%</branches>
+				<ok>0</ok>
+				<taken>6</taken>
+				<nottaken>2</nottaken>
+				<never>321</never>
+				<bytes>258</bytes>
+				<bytesok>118</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_CANTimeout</tree>
+				<cov>partial</cov>
+				<exec metric="object">37.582%</exec>
+				<branches>16.413%</branches>
+				<ok>8</ok>
+				<taken>82</taken>
+				<nottaken>10</nottaken>
+				<never>229</never>
+				<bytes>2432</bytes>
+				<bytesok>914</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_InvalidSignal</tree>
+				<cov>partial</cov>
+				<exec metric="object">54.381%</exec>
+				<branches>34.650%</branches>
+				<ok>3</ok>
+				<taken>130</taken>
+				<nottaken>92</nottaken>
+				<never>104</never>
+				<bytes>5866</bytes>
+				<bytesok>3190</bytesok>
+				<function>
+					<addrFrom>P:80003D1E</addrFrom>
+					<addrTo>P:80004129</addrTo>
+					<tree uid="p-80003d1e-80004129">\\MANDO_FailSafe_Integration\FS_InvalidSignal\FS_SetInhibit_InvalidSignal</tree>
+					<cov>partial</cov>
+					<exec metric="object">19.884%</exec>
+					<branches>50.000%</branches>
+					<ok>0</ok>
+					<taken>41</taken>
+					<nottaken>1</nottaken>
+					<never>0</never>
+					<bytes>1036</bytes>
+					<bytesok>206</bytesok>
+					<line>
+						<addrFrom>P:80003D1E</addrFrom>
+						<addrTo>P:80003D1F</addrTo>
+						<tree>FS_InvalidSignal.c \1685--1687</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003D20</addrFrom>
+						<addrTo>P:80003D27</addrTo>
+						<tree>FS_InvalidSignal.c \1688--1692</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">75.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>6</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003D28</addrFrom>
+						<addrTo>P:80003D35</addrTo>
+						<tree>FS_InvalidSignal.c \1693--1694</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>14</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003D36</addrFrom>
+						<addrTo>P:80003D39</addrTo>
+						<tree>FS_InvalidSignal.c \1695--1708</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">50.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003D3A</addrFrom>
+						<addrTo>P:80003D4B</addrTo>
+						<tree>FS_InvalidSignal.c \1709--1710</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003D4C</addrFrom>
+						<addrTo>P:80003D4F</addrTo>
+						<tree>FS_InvalidSignal.c \1711--1724</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">50.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003D50</addrFrom>
+						<addrTo>P:80003D61</addrTo>
+						<tree>FS_InvalidSignal.c \1725--1726</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003D62</addrFrom>
+						<addrTo>P:80003D6B</addrTo>
+						<tree>FS_InvalidSignal.c \1727--1742</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">80.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>10</bytes>
+						<bytesok>8</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003D6C</addrFrom>
+						<addrTo>P:80003D7D</addrTo>
+						<tree>FS_InvalidSignal.c \1743--1744</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003D7E</addrFrom>
+						<addrTo>P:80003D89</addrTo>
+						<tree>FS_InvalidSignal.c \1745--1849</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">83.333%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>10</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003D8A</addrFrom>
+						<addrTo>P:80003D9B</addrTo>
+						<tree>FS_InvalidSignal.c \1850--1851</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003D9C</addrFrom>
+						<addrTo>P:80003D9F</addrTo>
+						<tree>FS_InvalidSignal.c \1852--1865</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">50.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003DA0</addrFrom>
+						<addrTo>P:80003DB1</addrTo>
+						<tree>FS_InvalidSignal.c \1866--1867</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003DB2</addrFrom>
+						<addrTo>P:80003DBD</addrTo>
+						<tree>FS_InvalidSignal.c \1868--1882</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">83.333%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>10</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003DBE</addrFrom>
+						<addrTo>P:80003DCF</addrTo>
+						<tree>FS_InvalidSignal.c \1883--1884</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003DD0</addrFrom>
+						<addrTo>P:80003DD3</addrTo>
+						<tree>FS_InvalidSignal.c \1885--1898</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">50.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003DD4</addrFrom>
+						<addrTo>P:80003DE5</addrTo>
+						<tree>FS_InvalidSignal.c \1899--1900</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003DE6</addrFrom>
+						<addrTo>P:80003DE9</addrTo>
+						<tree>FS_InvalidSignal.c \1901--1914</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">50.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003DEA</addrFrom>
+						<addrTo>P:80003DFB</addrTo>
+						<tree>FS_InvalidSignal.c \1915--1916</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003DFC</addrFrom>
+						<addrTo>P:80003E07</addrTo>
+						<tree>FS_InvalidSignal.c \1917--1933</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">83.333%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>10</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003E08</addrFrom>
+						<addrTo>P:80003E19</addrTo>
+						<tree>FS_InvalidSignal.c \1934--1935</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003E1A</addrFrom>
+						<addrTo>P:80003E1D</addrTo>
+						<tree>FS_InvalidSignal.c \1936--1949</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">50.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003E1E</addrFrom>
+						<addrTo>P:80003E2F</addrTo>
+						<tree>FS_InvalidSignal.c \1950--1951</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003E30</addrFrom>
+						<addrTo>P:80003E33</addrTo>
+						<tree>FS_InvalidSignal.c \1952--1965</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">50.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003E34</addrFrom>
+						<addrTo>P:80003E45</addrTo>
+						<tree>FS_InvalidSignal.c \1966--1967</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003E46</addrFrom>
+						<addrTo>P:80003E4B</addrTo>
+						<tree>FS_InvalidSignal.c \1968--1981</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">66.666%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003E4C</addrFrom>
+						<addrTo>P:80003E5D</addrTo>
+						<tree>FS_InvalidSignal.c \1982--1983</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003E5E</addrFrom>
+						<addrTo>P:80003E63</addrTo>
+						<tree>FS_InvalidSignal.c \1984--1997</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">66.666%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003E64</addrFrom>
+						<addrTo>P:80003E75</addrTo>
+						<tree>FS_InvalidSignal.c \1998--1999</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003E76</addrFrom>
+						<addrTo>P:80003E7B</addrTo>
+						<tree>FS_InvalidSignal.c \2000--2013</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">66.666%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003E7C</addrFrom>
+						<addrTo>P:80003E89</addrTo>
+						<tree>FS_InvalidSignal.c \2014--2015</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>14</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003E8A</addrFrom>
+						<addrTo>P:80003E8F</addrTo>
+						<tree>FS_InvalidSignal.c \2016--2029</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">66.666%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003E90</addrFrom>
+						<addrTo>P:80003EA1</addrTo>
+						<tree>FS_InvalidSignal.c \2030--2031</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003EA2</addrFrom>
+						<addrTo>P:80003EA7</addrTo>
+						<tree>FS_InvalidSignal.c \2032--2045</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">66.666%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003EA8</addrFrom>
+						<addrTo>P:80003EB5</addrTo>
+						<tree>FS_InvalidSignal.c \2046--2047</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>14</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003EB6</addrFrom>
+						<addrTo>P:80003EBB</addrTo>
+						<tree>FS_InvalidSignal.c \2048--2061</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">66.666%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003EBC</addrFrom>
+						<addrTo>P:80003ECD</addrTo>
+						<tree>FS_InvalidSignal.c \2062--2063</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003ECE</addrFrom>
+						<addrTo>P:80003ED3</addrTo>
+						<tree>FS_InvalidSignal.c \2064--2078</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">66.666%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003ED4</addrFrom>
+						<addrTo>P:80003EE5</addrTo>
+						<tree>FS_InvalidSignal.c \2079--2080</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003EE6</addrFrom>
+						<addrTo>P:80003EEF</addrTo>
+						<tree>FS_InvalidSignal.c \2081--2096</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">80.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>10</bytes>
+						<bytesok>8</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003EF0</addrFrom>
+						<addrTo>P:80003F01</addrTo>
+						<tree>FS_InvalidSignal.c \2097--2098</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003F02</addrFrom>
+						<addrTo>P:80003F11</addrTo>
+						<tree>FS_InvalidSignal.c \2099--2114</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>branches</cov>
+						<exec metric="object">75.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>1</nottaken>
+						<never>0</never>
+						<bytes>16</bytes>
+						<bytesok>12</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003F12</addrFrom>
+						<addrTo>P:80003F23</addrTo>
+						<tree>FS_InvalidSignal.c \2115--2116</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003F24</addrFrom>
+						<addrTo>P:80003F27</addrTo>
+						<tree>FS_InvalidSignal.c \2117--2130</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">50.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003F28</addrFrom>
+						<addrTo>P:80003F39</addrTo>
+						<tree>FS_InvalidSignal.c \2131--2132</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003F3A</addrFrom>
+						<addrTo>P:80003F3F</addrTo>
+						<tree>FS_InvalidSignal.c \2133--2146</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">66.666%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003F40</addrFrom>
+						<addrTo>P:80003F51</addrTo>
+						<tree>FS_InvalidSignal.c \2147--2148</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003F52</addrFrom>
+						<addrTo>P:80003F5B</addrTo>
+						<tree>FS_InvalidSignal.c \2149--2163</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">80.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>10</bytes>
+						<bytesok>8</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003F5C</addrFrom>
+						<addrTo>P:80003F6D</addrTo>
+						<tree>FS_InvalidSignal.c \2164--2165</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003F6E</addrFrom>
+						<addrTo>P:80003F71</addrTo>
+						<tree>FS_InvalidSignal.c \2166--2180</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">50.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003F72</addrFrom>
+						<addrTo>P:80003F83</addrTo>
+						<tree>FS_InvalidSignal.c \2181--2182</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003F84</addrFrom>
+						<addrTo>P:80003F87</addrTo>
+						<tree>FS_InvalidSignal.c \2183--2196</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">50.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003F88</addrFrom>
+						<addrTo>P:80003F99</addrTo>
+						<tree>FS_InvalidSignal.c \2197--2198</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003F9A</addrFrom>
+						<addrTo>P:80003FA3</addrTo>
+						<tree>FS_InvalidSignal.c \2199--2214</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">80.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>10</bytes>
+						<bytesok>8</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003FA4</addrFrom>
+						<addrTo>P:80003FB5</addrTo>
+						<tree>FS_InvalidSignal.c \2215--2216</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003FB6</addrFrom>
+						<addrTo>P:80003FBF</addrTo>
+						<tree>FS_InvalidSignal.c \2217--2232</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">80.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>10</bytes>
+						<bytesok>8</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003FC0</addrFrom>
+						<addrTo>P:80003FD1</addrTo>
+						<tree>FS_InvalidSignal.c \2233--2234</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003FD2</addrFrom>
+						<addrTo>P:80003FDB</addrTo>
+						<tree>FS_InvalidSignal.c \2235--2250</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">80.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>10</bytes>
+						<bytesok>8</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003FDC</addrFrom>
+						<addrTo>P:80003FED</addrTo>
+						<tree>FS_InvalidSignal.c \2251--2252</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003FEE</addrFrom>
+						<addrTo>P:80003FF9</addrTo>
+						<tree>FS_InvalidSignal.c \2253--2492</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">83.333%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>10</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80003FFA</addrFrom>
+						<addrTo>P:8000400B</addrTo>
+						<tree>FS_InvalidSignal.c \2493--2494</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000400C</addrFrom>
+						<addrTo>P:8000400F</addrTo>
+						<tree>FS_InvalidSignal.c \2495--2508</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">50.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004010</addrFrom>
+						<addrTo>P:80004021</addrTo>
+						<tree>FS_InvalidSignal.c \2509--2510</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004022</addrFrom>
+						<addrTo>P:80004025</addrTo>
+						<tree>FS_InvalidSignal.c \2511--2525</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">50.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004026</addrFrom>
+						<addrTo>P:80004037</addrTo>
+						<tree>FS_InvalidSignal.c \2526--2527</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004038</addrFrom>
+						<addrTo>P:80004043</addrTo>
+						<tree>FS_InvalidSignal.c \2528--2543</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">83.333%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>10</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004044</addrFrom>
+						<addrTo>P:80004055</addrTo>
+						<tree>FS_InvalidSignal.c \2544--2545</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004056</addrFrom>
+						<addrTo>P:80004059</addrTo>
+						<tree>FS_InvalidSignal.c \2546--2559</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">50.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000405A</addrFrom>
+						<addrTo>P:8000406B</addrTo>
+						<tree>FS_InvalidSignal.c \2560--2561</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000406C</addrFrom>
+						<addrTo>P:8000406F</addrTo>
+						<tree>FS_InvalidSignal.c \2562--2575</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">50.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004070</addrFrom>
+						<addrTo>P:80004081</addrTo>
+						<tree>FS_InvalidSignal.c \2576--2577</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004082</addrFrom>
+						<addrTo>P:80004089</addrTo>
+						<tree>FS_InvalidSignal.c \2578--2592</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">75.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>6</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000408A</addrFrom>
+						<addrTo>P:80004093</addrTo>
+						<tree>FS_InvalidSignal.c \2593--2593</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>10</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004094</addrFrom>
+						<addrTo>P:800040A5</addrTo>
+						<tree>FS_InvalidSignal.c \2594--2595</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800040A6</addrFrom>
+						<addrTo>P:800040A9</addrTo>
+						<tree>FS_InvalidSignal.c \2596--2609</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">50.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800040AA</addrFrom>
+						<addrTo>P:800040B3</addrTo>
+						<tree>FS_InvalidSignal.c \2610--2610</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>10</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800040B4</addrFrom>
+						<addrTo>P:800040C5</addrTo>
+						<tree>FS_InvalidSignal.c \2611--2612</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800040C6</addrFrom>
+						<addrTo>P:800040D1</addrTo>
+						<tree>FS_InvalidSignal.c \2613--2628</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">83.333%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>10</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800040D2</addrFrom>
+						<addrTo>P:800040E3</addrTo>
+						<tree>FS_InvalidSignal.c \2629--2630</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800040E4</addrFrom>
+						<addrTo>P:800040E7</addrTo>
+						<tree>FS_InvalidSignal.c \2631--2644</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">50.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800040E8</addrFrom>
+						<addrTo>P:800040F9</addrTo>
+						<tree>FS_InvalidSignal.c \2645--2646</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800040FA</addrFrom>
+						<addrTo>P:800040FD</addrTo>
+						<tree>FS_InvalidSignal.c \2647--2660</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">50.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800040FE</addrFrom>
+						<addrTo>P:8000410F</addrTo>
+						<tree>FS_InvalidSignal.c \2661--2662</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004110</addrFrom>
+						<addrTo>P:80004115</addrTo>
+						<tree>FS_InvalidSignal.c \2663--2676</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">66.666%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004116</addrFrom>
+						<addrTo>P:80004127</addrTo>
+						<tree>FS_InvalidSignal.c \2677--2678</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>18</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80004128</addrFrom>
+						<addrTo>P:80004129</addrTo>
+						<tree>FS_InvalidSignal.c \2679--2692</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<total>
+						<cov>partial</cov>
+						<exec metric="object">19.884%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>41</taken>
+						<nottaken>1</nottaken>
+						<never>0</never>
+						<bytes>1036</bytes>
+						<bytesok>206</bytesok>
+					</total>
+				</function>
+				<total>
+					<cov>partial</cov>
+					<exec metric="object">19.884%</exec>
+					<branches>50.000%</branches>
+					<ok>0</ok>
+					<taken>41</taken>
+					<nottaken>1</nottaken>
+					<never>0</never>
+					<bytes>1036</bytes>
+					<bytesok>206</bytesok>
+				</total>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_SWFailure</tree>
+				<cov>partial</cov>
+				<exec metric="object">36.224%</exec>
+				<branches>1.215%</branches>
+				<ok>0</ok>
+				<taken>7</taken>
+				<nottaken>1</nottaken>
+				<never>321</never>
+				<bytes>392</bytes>
+				<bytesok>142</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>5</never>
+				<bytes>806</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80005B2A</addrFrom>
+				<addrTo>P:80005CBB</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc1</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>402</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80005CBC</addrFrom>
+				<addrTo>P:80005E4D</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc2</tree>
+				<cov>partial</cov>
+				<exec metric="object">81.094%</exec>
+				<branches>87.500%</branches>
+				<ok>3</ok>
+				<taken>0</taken>
+				<nottaken>1</nottaken>
+				<never>0</never>
+				<bytes>402</bytes>
+				<bytesok>326</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc3</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc4</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_main</tree>
+				<cov>partial</cov>
+				<exec metric="object">24.691%</exec>
+				<branches>25.000%</branches>
+				<ok>1</ok>
+				<taken>1</taken>
+				<nottaken>1</nottaken>
+				<never>5</never>
+				<bytes>324</bytes>
+				<bytesok>80</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80006180</addrFrom>
+				<addrTo>P:80006315</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc5</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80006456</addrFrom>
+				<addrTo>P:80006485</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_stubs</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>2</never>
+				<bytes>48</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<total>
+				<cov>partial</cov>
+				<exec metric="object">43.546%</exec>
+				<branches>15.776%</branches>
+				<ok>31</ok>
+				<taken>241</taken>
+				<nottaken>134</nottaken>
+				<never>979</never>
+				<bytes>14890</bytes>
+				<bytesok>6484</bytesok>
+			</total>
+		</COVerage.EXPORT.ListLine>
+	</coverage>
+	<marker>
+		<BookMark.EXPORT ts="1622419852" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE">
+		</BookMark.EXPORT>
+	</marker>
+	<listing>
+		<List.EXPORT ts="1622419852" t32ver="R.2020.09.000128638" t32pv="TRICORE" order="source">
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1685</line><src>}</src></hll>
+				<hll><line>1686</line><src></src></hll>
+				<hll><cov>ok</cov><line>1687</line><src>void FS_SetInhibit_InvalidSignal(void)</src></hll>
+				<asm><cov>ok</cov><addr>P:80003D1E</addr><code>2820</code><label>FS_SetInhibit_InvalidSignal:                                                                                                                                                                                                                                    </label><mnemonic>sub16.a   a10,#0x28</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1688</line><src>{</src></hll>
+				<hll><line>1689</line><src>#if CCAN == CANFD</src></hll>
+				<hll><line>1690</line><src>#if VEH_TYPE == NORMAL</src></hll>
+				<hll><line>1691</line><src>    /* EMS */</src></hll>
+				<hll><cov>taken</cov><line>1692</line><src>    if (ems[EMS_C161386_0].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003D20</addr><code>FE5CFF61</code><mnemonic>fcall     0x800039D8</mnemonic><comment>.cocofun_48</comment></asm>
+				<asm><cov>ok</cov><addr>P:80003D24</addr><code>FF14</code><mnemonic>ld16.bu   d15,[a15]</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003D26</addr><code>086E</code><mnemonic>jz16      d15,0x80003D36</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1693</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>1694</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003D28</addr><code>FE85FF61</code><mnemonic>fcall     0x80003A32</mnemonic><comment>.cocofun_57</comment></asm>
+				<asm><cov>never</cov><addr>P:80003D2C</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003D2E</addr><code>F8CFFF61</code><mnemonic>fcall     0x80002ECC</mnemonic><comment>.cocofun_26</comment></asm>
+				<asm><cov>never</cov><addr>P:80003D32</addr><code>0BE1006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1695</line><src>                .fca = {0,0,0,0,0,0,0,0,0},</src></hll>
+				<hll><line>1696</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>1697</line><src>                .sccml = {1},</src></hll>
+				<hll><line>1698</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>1699</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>1700</line><src>                .hda = {0,1,1,1},</src></hll>
+				<hll><line>1701</line><src>                .bca = {0,0,0,0},</src></hll>
+				<hll><line>1702</line><src>                .sea = {0},</src></hll>
+				<hll><line>1703</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>1704</line><src>                .warning = {0,3,3,3,HDA_FAULT,5,1},</src></hll>
+				<hll><line>1705</line><src>            }</src></hll>
+				<hll><line>1706</line><src>        );</src></hll>
+				<hll><line>1707</line><src>    }</src></hll>
+				<hll><cov>taken</cov><line>1708</line><src>    if (ems[EMS_C161386_1].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003D36</addr><code>6F08</code><mnemonic>ld16.bu   d15,[a15]0x6</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003D38</addr><code>0A6E</code><mnemonic>jz16      d15,0x80003D4C</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1709</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>1710</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003D3A</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003D3E</addr><code>627022D9</code><mnemonic>lea       a2,[a2]0x25B0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003D42</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003D44</addr><code>F8C4FF61</code><mnemonic>fcall     0x80002ECC</mnemonic><comment>.cocofun_26</comment></asm>
+				<asm><cov>never</cov><addr>P:80003D48</addr><code>0BD6006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1711</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>1712</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>1713</line><src>                .sccml = {1},</src></hll>
+				<hll><line>1714</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>1715</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>1716</line><src>                .hda = {1,1,1,1},</src></hll>
+				<hll><line>1717</line><src>                .bca = {1,0,1,0},</src></hll>
+				<hll><line>1718</line><src>                .sea = {1},</src></hll>
+				<hll><line>1719</line><src>                .rcca = {1,0},</src></hll>
+				<hll><line>1720</line><src>                .warning = {3,3,3,3,HDA_LFA_FAULT,5,1},</src></hll>
+				<hll><line>1721</line><src>            }</src></hll>
+				<hll><line>1722</line><src>        );</src></hll>
+				<hll><line>1723</line><src>    }</src></hll>
+				<hll><cov>taken</cov><line>1724</line><src>    if (ems[EMS_C161386_2].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003D4C</addr><code>CF08</code><mnemonic>ld16.bu   d15,[a15]0x0C</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003D4E</addr><code>0A6E</code><mnemonic>jz16      d15,0x80003D62</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1725</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>1726</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003D50</addr><code>F8000091</code><mnemonic>movh.a    a15,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003D54</addr><code>D288FFD9</code><mnemonic>lea       a15,[a15]0x2B48</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003D58</addr><code>A240</code><mnemonic>mov16.aa  a2,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003D5A</addr><code>F838FF61</code><mnemonic>fcall     0x80002DCA</mnemonic><comment>.cocofun_2</comment></asm>
+				<asm><cov>never</cov><addr>P:80003D5E</addr><code>0BCB006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1727</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>1728</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>1729</line><src>                .sccml = {0},</src></hll>
+				<hll><line>1730</line><src>                .nscc = {0,0},</src></hll>
+				<hll><line>1731</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>1732</line><src>                .hda = {0,0,0,0},</src></hll>
+				<hll><line>1733</line><src>                .bca = {1,0,1,0},</src></hll>
+				<hll><line>1734</line><src>                .sea = {1},</src></hll>
+				<hll><line>1735</line><src>                .rcca = {1,0},</src></hll>
+				<hll><line>1736</line><src>                .warning = {3,0,0,0,NO_FAULT,0,1},</src></hll>
+				<hll><line>1737</line><src>            }</src></hll>
+				<hll><line>1738</line><src>        );</src></hll>
+				<hll><line>1739</line><src>    }</src></hll>
+				<hll><line>1740</line><src></src></hll>
+				<hll><line>1741</line><src>    /* TCU */</src></hll>
+				<hll><cov>taken</cov><line>1742</line><src>    if (tcu[TCU_C164686_0].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003D62</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003D66</addr><code>305AFF39</code><mnemonic>ld.bu     d15,[a15]0x4DA</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003D6A</addr><code>0A6E</code><mnemonic>jz16      d15,0x80003D7E</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1743</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>1744</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003D6C</addr><code>F8000091</code><mnemonic>movh.a    a15,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003D70</addr><code>6270FFD9</code><mnemonic>lea       a15,[a15]0x25B0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003D74</addr><code>A240</code><mnemonic>mov16.aa  a2,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003D76</addr><code>F82AFF61</code><mnemonic>fcall     0x80002DCA</mnemonic><comment>.cocofun_2</comment></asm>
+				<asm><cov>never</cov><addr>P:80003D7A</addr><code>0BBD006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1745</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>1746</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>1747</line><src>                .sccml = {1},</src></hll>
+				<hll><line>1748</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>1749</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>1750</line><src>                .hda = {1,1,1,1},</src></hll>
+				<hll><line>1751</line><src>                .bca = {1,0,1,0},</src></hll>
+				<hll><line>1752</line><src>                .sea = {1},</src></hll>
+				<hll><line>1753</line><src>                .rcca = {1,0},</src></hll>
+				<hll><line>1754</line><src>                .warning = {3,3,3,3,HDA_LFA_FAULT,5,1},</src></hll>
+				<hll><line>1755</line><src>            }</src></hll>
+				<hll><line>1756</line><src>        );</src></hll>
+				<hll><line>1757</line><src>    }</src></hll>
+				<hll><line>1758</line><src></src></hll>
+				<hll><line>1759</line><src>#elif VEH_TYPE == EV</src></hll>
+				<hll><line>1760</line><src>    /* VCU */</src></hll>
+				<hll><line>1761</line><src>    if (vcu[VCU_C161C86_0].fault) {</src></hll>
+				<hll><line>1762</line><src>        update_inhibit_info(</src></hll>
+				<hll><line>1763</line><src>            (struct inhibit_info){</src></hll>
+				<hll><line>1764</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>1765</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>1766</line><src>                .sccml = {1},</src></hll>
+				<hll><line>1767</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>1768</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>1769</line><src>                .hda = {1,1,1,1},</src></hll>
+				<hll><line>1770</line><src>                .warning = {3,3,3,3,HDA_LFA_FAULT,5},</src></hll>
+				<hll><line>1771</line><src>            }</src></hll>
+				<hll><line>1772</line><src>        );</src></hll>
+				<hll><line>1773</line><src>    }</src></hll>
+				<hll><line>1774</line><src>    if (vcu[VCU_C161C86_1].fault) {</src></hll>
+				<hll><line>1775</line><src>        update_inhibit_info(</src></hll>
+				<hll><line>1776</line><src>            (struct inhibit_info){</src></hll>
+				<hll><line>1777</line><src>                .fca = {0,0,0,0,0,0,0,0,0},</src></hll>
+				<hll><line>1778</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>1779</line><src>                .sccml = {1},</src></hll>
+				<hll><line>1780</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>1781</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>1782</line><src>                .hda = {0,0,0,0},</src></hll>
+				<hll><line>1783</line><src>                .warning = {0,3,3,3,NO_FAULT,0},</src></hll>
+				<hll><line>1784</line><src>            }</src></hll>
+				<hll><line>1785</line><src>        );</src></hll>
+				<hll><line>1786</line><src>    }</src></hll>
+				<hll><line>1787</line><src></src></hll>
+				<hll><line>1788</line><src>#elif VEH_TYPE == HEV</src></hll>
+				<hll><line>1789</line><src>    /* EMS */</src></hll>
+				<hll><line>1790</line><src>    if (ems[EMS_C161386_0].fault) {</src></hll>
+				<hll><line>1791</line><src>        update_inhibit_info(</src></hll>
+				<hll><line>1792</line><src>            (struct inhibit_info){</src></hll>
+				<hll><line>1793</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>1794</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>1795</line><src>                .sccml = {1},</src></hll>
+				<hll><line>1796</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>1797</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>1798</line><src>                .hda = {1,1,1,1},</src></hll>
+				<hll><line>1799</line><src>                .warning = {3,3,3,3,HDA_LFA_FAULT,5},</src></hll>
+				<hll><line>1800</line><src>            }</src></hll>
+				<hll><line>1801</line><src>        );</src></hll>
+				<hll><line>1802</line><src>    }</src></hll>
+				<hll><line>1803</line><src></src></hll>
+				<hll><line>1804</line><src>    /* HCU */</src></hll>
+				<hll><line>1805</line><src>    if (hcu[HCU_C161C86_0].fault) {</src></hll>
+				<hll><line>1806</line><src>        update_inhibit_info(</src></hll>
+				<hll><line>1807</line><src>            (struct inhibit_info){</src></hll>
+				<hll><line>1808</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>1809</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>1810</line><src>                .sccml = {1},</src></hll>
+				<hll><line>1811</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>1812</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>1813</line><src>                .hda = {1,1,1,1},</src></hll>
+				<hll><line>1814</line><src>                .warning = {3,3,3,3,HDA_LFA_FAULT,5},</src></hll>
+				<hll><line>1815</line><src>            }</src></hll>
+				<hll><line>1816</line><src>        );</src></hll>
+				<hll><line>1817</line><src>    }</src></hll>
+				<hll><line>1818</line><src>    if (hcu[HCU_C161C86_1].fault) {</src></hll>
+				<hll><line>1819</line><src>        update_inhibit_info(</src></hll>
+				<hll><line>1820</line><src>            (struct inhibit_info){</src></hll>
+				<hll><line>1821</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>1822</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>1823</line><src>                .sccml = {0},</src></hll>
+				<hll><line>1824</line><src>                .nscc = {0,0},</src></hll>
+				<hll><line>1825</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>1826</line><src>                .hda = {0,0,0,0},</src></hll>
+				<hll><line>1827</line><src>                .warning = {0,0,0,0,NO_FAULT,0},</src></hll>
+				<hll><line>1828</line><src>            }</src></hll>
+				<hll><line>1829</line><src>        );</src></hll>
+				<hll><line>1830</line><src>    }</src></hll>
+				<hll><line>1831</line><src></src></hll>
+				<hll><line>1832</line><src>    /* HTCU */</src></hll>
+				<hll><line>1833</line><src>    if (htcu[HTCU_C164686_0].fault) {</src></hll>
+				<hll><line>1834</line><src>        update_inhibit_info(</src></hll>
+				<hll><line>1835</line><src>            (struct inhibit_info){</src></hll>
+				<hll><line>1836</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>1837</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>1838</line><src>                .sccml = {1},</src></hll>
+				<hll><line>1839</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>1840</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>1841</line><src>                .hda = {1,1,1,1},</src></hll>
+				<hll><line>1842</line><src>                .warning = {3,3,3,3,HDA_LFA_FAULT,5},</src></hll>
+				<hll><line>1843</line><src>            }</src></hll>
+				<hll><line>1844</line><src>        );</src></hll>
+				<hll><line>1845</line><src>    }</src></hll>
+				<hll><line>1846</line><src>#endif /* VEH_TYPE */</src></hll>
+				<hll><line>1847</line><src></src></hll>
+				<hll><line>1848</line><src>    /* CLU */</src></hll>
+				<hll><cov>taken</cov><line>1849</line><src>    if (clu[CLU_C165686_0].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003D7E</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003D82</addr><code>2070FFD9</code><mnemonic>lea       a15,[a15]0x4B0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003D86</addr><code>FF14</code><mnemonic>ld16.bu   d15,[a15]</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003D88</addr><code>0A6E</code><mnemonic>jz16      d15,0x80003D9C</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1850</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>1851</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003D8A</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003D8E</addr><code>22B422D9</code><mnemonic>lea       a2,[a2]0x28B4</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003D92</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003D94</addr><code>F89CFF61</code><mnemonic>fcall     0x80002ECC</mnemonic><comment>.cocofun_26</comment></asm>
+				<asm><cov>never</cov><addr>P:80003D98</addr><code>0BAE006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1852</line><src>                .fca = {0,0,0,0,0,0,0,0,0},</src></hll>
+				<hll><line>1853</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>1854</line><src>                .sccml = {1},</src></hll>
+				<hll><line>1855</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>1856</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>1857</line><src>                .hda = {1,1,1,1},</src></hll>
+				<hll><line>1858</line><src>                .bca = {1,0,1,0},</src></hll>
+				<hll><line>1859</line><src>                .sea = {1},</src></hll>
+				<hll><line>1860</line><src>                .rcca = {1,0},</src></hll>
+				<hll><line>1861</line><src>                .warning = {0,3,3,3,HDA_LFA_FAULT,5,1},</src></hll>
+				<hll><line>1862</line><src>            }</src></hll>
+				<hll><line>1863</line><src>        );</src></hll>
+				<hll><line>1864</line><src>    }</src></hll>
+				<hll><cov>taken</cov><line>1865</line><src>    if (clu[CLU_C165686_1].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003D9C</addr><code>6F08</code><mnemonic>ld16.bu   d15,[a15]0x6</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003D9E</addr><code>0A6E</code><mnemonic>jz16      d15,0x80003DB2</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1866</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>1867</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003DA0</addr><code>F8000091</code><mnemonic>movh.a    a15,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DA4</addr><code>329CFFD9</code><mnemonic>lea       a15,[a15]0x28DC</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DA8</addr><code>A240</code><mnemonic>mov16.aa  a2,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DAA</addr><code>F810FF61</code><mnemonic>fcall     0x80002DCA</mnemonic><comment>.cocofun_2</comment></asm>
+				<asm><cov>never</cov><addr>P:80003DAE</addr><code>0BA3006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1868</line><src>                .fca = {0,0,0,0,0,0,0,0,0},</src></hll>
+				<hll><line>1869</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>1870</line><src>                .sccml = {0},</src></hll>
+				<hll><line>1871</line><src>                .nscc = {0,0},</src></hll>
+				<hll><line>1872</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>1873</line><src>                .hda = {0,0,0,0},</src></hll>
+				<hll><line>1874</line><src>                .bca = {0,0,0,0},</src></hll>
+				<hll><line>1875</line><src>                .sea = {0},</src></hll>
+				<hll><line>1876</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>1877</line><src>                .warning = {0,0,0,0,NO_FAULT,0,1},</src></hll>
+				<hll><line>1878</line><src>            }</src></hll>
+				<hll><line>1879</line><src>        );</src></hll>
+				<hll><line>1880</line><src>    }</src></hll>
+				<hll><line>1881</line><src>    /* BCM */</src></hll>
+				<hll><cov>taken</cov><line>1882</line><src>    if (bcm[BCM_C181281_0].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003DB2</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003DB6</addr><code>1048FFD9</code><mnemonic>lea       a15,[a15]0x448</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003DBA</addr><code>FF14</code><mnemonic>ld16.bu   d15,[a15]</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003DBC</addr><code>0A6E</code><mnemonic>jz16      d15,0x80003DD0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1883</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>1884</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003DBE</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DC2</addr><code>D2B022D9</code><mnemonic>lea       a2,[a2]0x2B70</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DC6</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DC8</addr><code>F882FF61</code><mnemonic>fcall     0x80002ECC</mnemonic><comment>.cocofun_26</comment></asm>
+				<asm><cov>never</cov><addr>P:80003DCC</addr><code>0B94006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1885</line><src>                .fca = {0,0,0,0,0,0,0,0,0},</src></hll>
+				<hll><line>1886</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>1887</line><src>                .sccml = {0},</src></hll>
+				<hll><line>1888</line><src>                .nscc = {0,0},</src></hll>
+				<hll><line>1889</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>1890</line><src>                .hda = {0,0,0,0},</src></hll>
+				<hll><line>1891</line><src>                .bca = {1,0,1,0},</src></hll>
+				<hll><line>1892</line><src>                .sea = {1},</src></hll>
+				<hll><line>1893</line><src>                .rcca = {1,0},</src></hll>
+				<hll><line>1894</line><src>                .warning = {0,0,0,0,NO_FAULT,0,1},</src></hll>
+				<hll><line>1895</line><src>            }</src></hll>
+				<hll><line>1896</line><src>        );</src></hll>
+				<hll><line>1897</line><src>    }</src></hll>
+				<hll><cov>taken</cov><line>1898</line><src>    if (bcm[BCM_C181281_1].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003DD0</addr><code>6F08</code><mnemonic>ld16.bu   d15,[a15]0x6</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003DD2</addr><code>0A6E</code><mnemonic>jz16      d15,0x80003DE6</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1899</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>1900</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003DD4</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DD8</addr><code>D2B022D9</code><mnemonic>lea       a2,[a2]0x2B70</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DDC</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DDE</addr><code>F877FF61</code><mnemonic>fcall     0x80002ECC</mnemonic><comment>.cocofun_26</comment></asm>
+				<asm><cov>never</cov><addr>P:80003DE2</addr><code>0B89006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1901</line><src>                .fca = {0,0,0,0,0,0,0,0,0},</src></hll>
+				<hll><line>1902</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>1903</line><src>                .sccml = {0},</src></hll>
+				<hll><line>1904</line><src>                .nscc = {0,0},</src></hll>
+				<hll><line>1905</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>1906</line><src>                .hda = {0,0,0,0},</src></hll>
+				<hll><line>1907</line><src>                .bca = {1,0,1,0},</src></hll>
+				<hll><line>1908</line><src>                .sea = {1},</src></hll>
+				<hll><line>1909</line><src>                .rcca = {1,0},</src></hll>
+				<hll><line>1910</line><src>                .warning = {0,0,0,0,NO_FAULT,0,1},</src></hll>
+				<hll><line>1911</line><src>            }</src></hll>
+				<hll><line>1912</line><src>        );</src></hll>
+				<hll><line>1913</line><src>    }</src></hll>
+				<hll><cov>taken</cov><line>1914</line><src>    if (bcm[BCM_C181281_2].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003DE6</addr><code>CF08</code><mnemonic>ld16.bu   d15,[a15]0x0C</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003DE8</addr><code>0A6E</code><mnemonic>jz16      d15,0x80003DFC</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1915</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>1916</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003DEA</addr><code>F8000091</code><mnemonic>movh.a    a15,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DEE</addr><code>D2B0FFD9</code><mnemonic>lea       a15,[a15]0x2B70</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DF2</addr><code>A240</code><mnemonic>mov16.aa  a2,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003DF4</addr><code>F7EBFF61</code><mnemonic>fcall     0x80002DCA</mnemonic><comment>.cocofun_2</comment></asm>
+				<asm><cov>never</cov><addr>P:80003DF8</addr><code>0B7E006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1917</line><src>                .fca = {0,0,0,0,0,0,0,0,0},</src></hll>
+				<hll><line>1918</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>1919</line><src>                .sccml = {0},</src></hll>
+				<hll><line>1920</line><src>                .nscc = {0,0},</src></hll>
+				<hll><line>1921</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>1922</line><src>                .hda = {0,0,0,0},</src></hll>
+				<hll><line>1923</line><src>                .bca = {1,0,1,0},</src></hll>
+				<hll><line>1924</line><src>                .sea = {1},</src></hll>
+				<hll><line>1925</line><src>                .rcca = {1,0},</src></hll>
+				<hll><line>1926</line><src>                .warning = {0,0,0,0,NO_FAULT,0,1},</src></hll>
+				<hll><line>1927</line><src>            }</src></hll>
+				<hll><line>1928</line><src>        );</src></hll>
+				<hll><line>1929</line><src>    }</src></hll>
+				<hll><line>1930</line><src></src></hll>
+				<hll><line>1931</line><src></src></hll>
+				<hll><line>1932</line><src>    /* ESC */</src></hll>
+				<hll><cov>taken</cov><line>1933</line><src>    if (esc[ESC_C164286_0].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003DFC</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003E00</addr><code>E00CFFD9</code><mnemonic>lea       a15,[a15]0x38C</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003E04</addr><code>FF14</code><mnemonic>ld16.bu   d15,[a15]</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003E06</addr><code>0A6E</code><mnemonic>jz16      d15,0x80003E1A</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1934</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>1935</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003E08</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E0C</addr><code>627022D9</code><mnemonic>lea       a2,[a2]0x25B0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E10</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E12</addr><code>F85DFF61</code><mnemonic>fcall     0x80002ECC</mnemonic><comment>.cocofun_26</comment></asm>
+				<asm><cov>never</cov><addr>P:80003E16</addr><code>0B6F006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1936</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>1937</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>1938</line><src>                .sccml = {1},</src></hll>
+				<hll><line>1939</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>1940</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>1941</line><src>                .hda = {1,1,1,1},</src></hll>
+				<hll><line>1942</line><src>                .bca = {1,0,1,0},</src></hll>
+				<hll><line>1943</line><src>                .sea = {1},</src></hll>
+				<hll><line>1944</line><src>                .rcca = {1,0},</src></hll>
+				<hll><line>1945</line><src>                .warning = {3,3,3,3,HDA_LFA_FAULT,5,1},</src></hll>
+				<hll><line>1946</line><src>            }</src></hll>
+				<hll><line>1947</line><src>        );</src></hll>
+				<hll><line>1948</line><src>    }</src></hll>
+				<hll><cov>taken</cov><line>1949</line><src>    if (esc[ESC_C164286_1].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003E1A</addr><code>6F08</code><mnemonic>ld16.bu   d15,[a15]0x6</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003E1C</addr><code>0A6E</code><mnemonic>jz16      d15,0x80003E30</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1950</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>1951</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003E1E</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E22</addr><code>E29822D9</code><mnemonic>lea       a2,[a2]0x2B98</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E26</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E28</addr><code>F852FF61</code><mnemonic>fcall     0x80002ECC</mnemonic><comment>.cocofun_26</comment></asm>
+				<asm><cov>never</cov><addr>P:80003E2C</addr><code>0B64006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1952</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>1953</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>1954</line><src>                .sccml = {0},</src></hll>
+				<hll><line>1955</line><src>                .nscc = {0,0},</src></hll>
+				<hll><line>1956</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>1957</line><src>                .hda = {0,0,0,0},</src></hll>
+				<hll><line>1958</line><src>                .bca = {0,0,0,0},</src></hll>
+				<hll><line>1959</line><src>                .sea = {0},</src></hll>
+				<hll><line>1960</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>1961</line><src>                .warning = {3,0,0,0,NO_FAULT,0,1},</src></hll>
+				<hll><line>1962</line><src>            }</src></hll>
+				<hll><line>1963</line><src>        );</src></hll>
+				<hll><line>1964</line><src>    }</src></hll>
+				<hll><cov>taken</cov><line>1965</line><src>    if (esc[ESC_C164286_2].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003E30</addr><code>CF08</code><mnemonic>ld16.bu   d15,[a15]0x0C</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003E32</addr><code>0A6E</code><mnemonic>jz16      d15,0x80003E46</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1966</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>1967</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003E34</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E38</addr><code>F28022D9</code><mnemonic>lea       a2,[a2]0x2BC0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E3C</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E3E</addr><code>F847FF61</code><mnemonic>fcall     0x80002ECC</mnemonic><comment>.cocofun_26</comment></asm>
+				<asm><cov>never</cov><addr>P:80003E42</addr><code>0B59006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1968</line><src>                .fca = {0,0,0,0,0,0,1,1,1},</src></hll>
+				<hll><line>1969</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>1970</line><src>                .sccml = {0},</src></hll>
+				<hll><line>1971</line><src>                .nscc = {0,0},</src></hll>
+				<hll><line>1972</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>1973</line><src>                .hda = {1,1,1,1},</src></hll>
+				<hll><line>1974</line><src>                .bca = {0,0,0,0},</src></hll>
+				<hll><line>1975</line><src>                .sea = {0},</src></hll>
+				<hll><line>1976</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>1977</line><src>                .warning = {0,0,0,0,HDA_LFA_FAULT,5,1},</src></hll>
+				<hll><line>1978</line><src>            }</src></hll>
+				<hll><line>1979</line><src>        );</src></hll>
+				<hll><line>1980</line><src>    }</src></hll>
+				<hll><cov>taken</cov><line>1981</line><src>    if (esc[ESC_NA_0].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003E46</addr><code>0852FF09</code><mnemonic>ld.bu     d15,[a15]0x12</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003E4A</addr><code>0A6E</code><mnemonic>jz16      d15,0x80003E5E</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1982</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>1983</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003E4C</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E50</addr><code>F2A822D9</code><mnemonic>lea       a2,[a2]0x2BE8</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E54</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E56</addr><code>F83BFF61</code><mnemonic>fcall     0x80002ECC</mnemonic><comment>.cocofun_26</comment></asm>
+				<asm><cov>never</cov><addr>P:80003E5A</addr><code>0B4D006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1984</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>1985</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>1986</line><src>                .sccml = {0},</src></hll>
+				<hll><line>1987</line><src>                .nscc = {0,0},</src></hll>
+				<hll><line>1988</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>1989</line><src>                .hda = {0,0,0,0},</src></hll>
+				<hll><line>1990</line><src>                .bca = {0,0,0,0},</src></hll>
+				<hll><line>1991</line><src>                .sea = {0},</src></hll>
+				<hll><line>1992</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>1993</line><src>                .warning = {0,0,0,0,NO_FAULT,0,1},</src></hll>
+				<hll><line>1994</line><src>            }</src></hll>
+				<hll><line>1995</line><src>        );</src></hll>
+				<hll><line>1996</line><src>    }</src></hll>
+				<hll><cov>taken</cov><line>1997</line><src>    if (esc[ESC_C16B881_0].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003E5E</addr><code>0858FF09</code><mnemonic>ld.bu     d15,[a15]0x18</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003E62</addr><code>0A6E</code><mnemonic>jz16      d15,0x80003E76</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>1998</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>1999</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003E64</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E68</addr><code>E29822D9</code><mnemonic>lea       a2,[a2]0x2B98</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E6C</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E6E</addr><code>F82FFF61</code><mnemonic>fcall     0x80002ECC</mnemonic><comment>.cocofun_26</comment></asm>
+				<asm><cov>never</cov><addr>P:80003E72</addr><code>0B41006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2000</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>2001</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>2002</line><src>                .sccml = {0},</src></hll>
+				<hll><line>2003</line><src>                .nscc = {0,0},</src></hll>
+				<hll><line>2004</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>2005</line><src>                .hda = {0,0,0,0},</src></hll>
+				<hll><line>2006</line><src>                .bca = {0,0,0,0},</src></hll>
+				<hll><line>2007</line><src>                .sea = {0},</src></hll>
+				<hll><line>2008</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>2009</line><src>                .warning = {3,0,0,0,NO_FAULT,0,1},</src></hll>
+				<hll><line>2010</line><src>            }</src></hll>
+				<hll><line>2011</line><src>        );</src></hll>
+				<hll><line>2012</line><src>    }</src></hll>
+				<hll><cov>taken</cov><line>2013</line><src>    if (esc[ESC_C136081_0].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003E76</addr><code>085EFF09</code><mnemonic>ld.bu     d15,[a15]0x1E</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003E7A</addr><code>086E</code><mnemonic>jz16      d15,0x80003E8A</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2014</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>2015</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003E7C</addr><code>FDDBFF61</code><mnemonic>fcall     0x80003A32</mnemonic><comment>.cocofun_57</comment></asm>
+				<asm><cov>never</cov><addr>P:80003E80</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E82</addr><code>F825FF61</code><mnemonic>fcall     0x80002ECC</mnemonic><comment>.cocofun_26</comment></asm>
+				<asm><cov>never</cov><addr>P:80003E86</addr><code>0B37006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2016</line><src>                .fca = {0,0,0,0,0,0,0,0,0},</src></hll>
+				<hll><line>2017</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>2018</line><src>                .sccml = {1},</src></hll>
+				<hll><line>2019</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>2020</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>2021</line><src>                .hda = {0,1,1,1},</src></hll>
+				<hll><line>2022</line><src>                .bca = {0,0,0,0},</src></hll>
+				<hll><line>2023</line><src>                .sea = {0},</src></hll>
+				<hll><line>2024</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>2025</line><src>                .warning = {0,3,3,3,HDA_FAULT,5,1},</src></hll>
+				<hll><line>2026</line><src>            }</src></hll>
+				<hll><line>2027</line><src>        );</src></hll>
+				<hll><line>2028</line><src>    }</src></hll>
+				<hll><cov>taken</cov><line>2029</line><src>    if (esc[ESC_NA_1].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003E8A</addr><code>0864FF09</code><mnemonic>ld.bu     d15,[a15]0x24</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003E8E</addr><code>0A6E</code><mnemonic>jz16      d15,0x80003EA2</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2030</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>2031</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003E90</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E94</addr><code>62B822D9</code><mnemonic>lea       a2,[a2]0x29B8</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E98</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003E9A</addr><code>F819FF61</code><mnemonic>fcall     0x80002ECC</mnemonic><comment>.cocofun_26</comment></asm>
+				<asm><cov>never</cov><addr>P:80003E9E</addr><code>0B2B006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2032</line><src>                .fca = {0,0,0,0,0,0,0,0,0},</src></hll>
+				<hll><line>2033</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>2034</line><src>                .sccml = {1},</src></hll>
+				<hll><line>2035</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>2036</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>2037</line><src>                .hda = {0,1,1,1},</src></hll>
+				<hll><line>2038</line><src>                .bca = {0,0,0,0},</src></hll>
+				<hll><line>2039</line><src>                .sea = {0},</src></hll>
+				<hll><line>2040</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>2041</line><src>                .warning = {0,0,0,0,HDA_FAULT,5,1},</src></hll>
+				<hll><line>2042</line><src>            }</src></hll>
+				<hll><line>2043</line><src>        );</src></hll>
+				<hll><line>2044</line><src>    }</src></hll>
+				<hll><cov>taken</cov><line>2045</line><src>    if (esc[ESC_C163881_0].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003EA2</addr><code>086AFF09</code><mnemonic>ld.bu     d15,[a15]0x2A</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003EA6</addr><code>086E</code><mnemonic>jz16      d15,0x80003EB6</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2046</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>2047</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003EA8</addr><code>FDC5FF61</code><mnemonic>fcall     0x80003A32</mnemonic><comment>.cocofun_57</comment></asm>
+				<asm><cov>never</cov><addr>P:80003EAC</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003EAE</addr><code>F80FFF61</code><mnemonic>fcall     0x80002ECC</mnemonic><comment>.cocofun_26</comment></asm>
+				<asm><cov>never</cov><addr>P:80003EB2</addr><code>0B21006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2048</line><src>                .fca = {0,0,0,0,0,0,0,0,0},</src></hll>
+				<hll><line>2049</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>2050</line><src>                .sccml = {1},</src></hll>
+				<hll><line>2051</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>2052</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>2053</line><src>                .hda = {0,1,1,1},</src></hll>
+				<hll><line>2054</line><src>                .bca = {0,0,0,0},</src></hll>
+				<hll><line>2055</line><src>                .sea = {0},</src></hll>
+				<hll><line>2056</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>2057</line><src>                .warning = {0,3,3,3,HDA_FAULT,5,1},</src></hll>
+				<hll><line>2058</line><src>            }</src></hll>
+				<hll><line>2059</line><src>        );</src></hll>
+				<hll><line>2060</line><src>    }</src></hll>
+				<hll><cov>taken</cov><line>2061</line><src>    if (esc[ESC_C164282_0].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003EB6</addr><code>0870FF09</code><mnemonic>ld.bu     d15,[a15]0x30</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003EBA</addr><code>0A6E</code><mnemonic>jz16      d15,0x80003ECE</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2062</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>2063</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003EBC</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003EC0</addr><code>428422D9</code><mnemonic>lea       a2,[a2]0x2904</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003EC4</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003EC6</addr><code>F803FF61</code><mnemonic>fcall     0x80002ECC</mnemonic><comment>.cocofun_26</comment></asm>
+				<asm><cov>never</cov><addr>P:80003ECA</addr><code>0B15006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2064</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>2065</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>2066</line><src>                .sccml = {1},</src></hll>
+				<hll><line>2067</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>2068</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>2069</line><src>                .hda = {1,1,1,1},</src></hll>
+				<hll><line>2070</line><src>                .bca = {0,0,0,0},</src></hll>
+				<hll><line>2071</line><src>                .sea = {0},</src></hll>
+				<hll><line>2072</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>2073</line><src>                .warning = {3,3,3,3,HDA_LFA_FAULT,5,1},</src></hll>
+				<hll><line>2074</line><src>            }</src></hll>
+				<hll><line>2075</line><src>        );</src></hll>
+				<hll><line>2076</line><src>    }</src></hll>
+				<hll><line>2077</line><src></src></hll>
+				<hll><cov>taken</cov><line>2078</line><src>    if (esc[ESC_C164281_0].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003ECE</addr><code>0876FF09</code><mnemonic>ld.bu     d15,[a15]0x36</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003ED2</addr><code>0A6E</code><mnemonic>jz16      d15,0x80003EE6</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2079</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>2080</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003ED4</addr><code>F8000091</code><mnemonic>movh.a    a15,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003ED8</addr><code>72A0FFD9</code><mnemonic>lea       a15,[a15]0x29E0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003EDC</addr><code>A240</code><mnemonic>mov16.aa  a2,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003EDE</addr><code>F776FF61</code><mnemonic>fcall     0x80002DCA</mnemonic><comment>.cocofun_2</comment></asm>
+				<asm><cov>never</cov><addr>P:80003EE2</addr><code>0B09006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2081</line><src>                .fca = {0,0,0,0,0,0,0,0,0},</src></hll>
+				<hll><line>2082</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>2083</line><src>                .sccml = {0},</src></hll>
+				<hll><line>2084</line><src>                .nscc = {0,0},</src></hll>
+				<hll><line>2085</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>2086</line><src>                .hda = {0,0,0,0},</src></hll>
+				<hll><line>2087</line><src>                .bca = {0,0,1,0},</src></hll>
+				<hll><line>2088</line><src>                .sea = {0},</src></hll>
+				<hll><line>2089</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>2090</line><src>                .warning = {0,0,0,0,NO_FAULT,0,1},</src></hll>
+				<hll><line>2091</line><src>            }</src></hll>
+				<hll><line>2092</line><src>        );</src></hll>
+				<hll><line>2093</line><src>    }</src></hll>
+				<hll><line>2094</line><src></src></hll>
+				<hll><line>2095</line><src>    /* ICU */</src></hll>
+				<hll><cov>taken</cov><line>2096</line><src>    if (icu[ICU_C183E86_0].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003EE6</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003EEA</addr><code>3060FF39</code><mnemonic>ld.bu     d15,[a15]0x4E0</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003EEE</addr><code>0A6E</code><mnemonic>jz16      d15,0x80003F02</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2097</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>2098</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003EF0</addr><code>F8000091</code><mnemonic>movh.a    a15,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003EF4</addr><code>925CFFD9</code><mnemonic>lea       a15,[a15]0x265C</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003EF8</addr><code>A240</code><mnemonic>mov16.aa  a2,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003EFA</addr><code>F768FF61</code><mnemonic>fcall     0x80002DCA</mnemonic><comment>.cocofun_2</comment></asm>
+				<asm><cov>never</cov><addr>P:80003EFE</addr><code>0AFB006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2099</line><src>                .fca = {0,0,0,0,0,0,0,0,0},</src></hll>
+				<hll><line>2100</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>2101</line><src>                .sccml = {0},</src></hll>
+				<hll><line>2102</line><src>                .nscc = {0,0},</src></hll>
+				<hll><line>2103</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>2104</line><src>                .hda = {0,0,0,1},</src></hll>
+				<hll><line>2105</line><src>                .bca = {0,0,0,0},</src></hll>
+				<hll><line>2106</line><src>                .sea = {0},</src></hll>
+				<hll><line>2107</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>2108</line><src>                .warning = {0,0,0,0,NO_FAULT,5,1},</src></hll>
+				<hll><line>2109</line><src>            }</src></hll>
+				<hll><line>2110</line><src>        );</src></hll>
+				<hll><line>2111</line><src>    }</src></hll>
+				<hll><line>2112</line><src></src></hll>
+				<hll><line>2113</line><src>    /* MDPS */</src></hll>
+				<hll><cov>branches</cov><line>2114</line><src>    if (mdps[MDPS_C168886_0].fault || mdps[MDPS_C168886_1].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003F02</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003F06</addr><code>F030FFD9</code><mnemonic>lea       a15,[a15]0x3F0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003F0A</addr><code>FF14</code><mnemonic>ld16.bu   d15,[a15]</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:80003F0C</addr><code>03EE</code><mnemonic>jnz16     d15,0x80003F12</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003F0E</addr><code>6F08</code><mnemonic>ld16.bu   d15,[a15]0x6</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003F10</addr><code>0A6E</code><mnemonic>jz16      d15,0x80003F24</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2115</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>2116</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003F12</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003F16</addr><code>42AC22D9</code><mnemonic>lea       a2,[a2]0x292C</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003F1A</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003F1C</addr><code>F7D8FF61</code><mnemonic>fcall     0x80002ECC</mnemonic><comment>.cocofun_26</comment></asm>
+				<asm><cov>never</cov><addr>P:80003F20</addr><code>0AEA006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2117</line><src>                .fca = {0,0,0,0,0,0,1,1,1},</src></hll>
+				<hll><line>2118</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>2119</line><src>                .sccml = {0},</src></hll>
+				<hll><line>2120</line><src>                .nscc = {0,0},</src></hll>
+				<hll><line>2121</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>2122</line><src>                .hda = {1,0,1,1},</src></hll>
+				<hll><line>2123</line><src>                .bca = {1,0,0,0},</src></hll>
+				<hll><line>2124</line><src>                .sea = {0},</src></hll>
+				<hll><line>2125</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>2126</line><src>                .warning = {3,0,0,0,HDA_LFA_FAULT,5,1},</src></hll>
+				<hll><line>2127</line><src>            }</src></hll>
+				<hll><line>2128</line><src>        );</src></hll>
+				<hll><line>2129</line><src>    }</src></hll>
+				<hll><cov>taken</cov><line>2130</line><src>    if (mdps[MDPS_C223986_0].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003F24</addr><code>CF08</code><mnemonic>ld16.bu   d15,[a15]0x0C</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003F26</addr><code>0A6E</code><mnemonic>jz16      d15,0x80003F3A</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2131</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>2132</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003F28</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003F2C</addr><code>42AC22D9</code><mnemonic>lea       a2,[a2]0x292C</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003F30</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003F32</addr><code>F7CDFF61</code><mnemonic>fcall     0x80002ECC</mnemonic><comment>.cocofun_26</comment></asm>
+				<asm><cov>never</cov><addr>P:80003F36</addr><code>0ADF006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2133</line><src>                .fca = {0,0,0,0,0,0,1,1,1},</src></hll>
+				<hll><line>2134</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>2135</line><src>                .sccml = {0},</src></hll>
+				<hll><line>2136</line><src>                .nscc = {0,0},</src></hll>
+				<hll><line>2137</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>2138</line><src>                .hda = {1,0,1,1},</src></hll>
+				<hll><line>2139</line><src>                .bca = {1,0,0,0},</src></hll>
+				<hll><line>2140</line><src>                .sea = {0},</src></hll>
+				<hll><line>2141</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>2142</line><src>                .warning = {3,0,0,0,HDA_LFA_FAULT,5,1},</src></hll>
+				<hll><line>2143</line><src>            }</src></hll>
+				<hll><line>2144</line><src>        );</src></hll>
+				<hll><line>2145</line><src>    }</src></hll>
+				<hll><cov>taken</cov><line>2146</line><src>    if (mdps[MDPS_C223986_1].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003F3A</addr><code>0852FF09</code><mnemonic>ld.bu     d15,[a15]0x12</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003F3E</addr><code>0A6E</code><mnemonic>jz16      d15,0x80003F52</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2147</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>2148</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003F40</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003F44</addr><code>828822D9</code><mnemonic>lea       a2,[a2]0x2A08</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003F48</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003F4A</addr><code>F7C1FF61</code><mnemonic>fcall     0x80002ECC</mnemonic><comment>.cocofun_26</comment></asm>
+				<asm><cov>never</cov><addr>P:80003F4E</addr><code>0AD3006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2149</line><src>                .fca = {0,0,0,0,0,0,0,0,0},</src></hll>
+				<hll><line>2150</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>2151</line><src>                .sccml = {0},</src></hll>
+				<hll><line>2152</line><src>                .nscc = {0,0},</src></hll>
+				<hll><line>2153</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>2154</line><src>                .hda = {1,0,1,1},</src></hll>
+				<hll><line>2155</line><src>                .bca = {1,0,0,0},</src></hll>
+				<hll><line>2156</line><src>                .sea = {0},</src></hll>
+				<hll><line>2157</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>2158</line><src>                .warning = {0,0,0,0,HDA_LFA_FAULT,5,1},</src></hll>
+				<hll><line>2159</line><src>            }</src></hll>
+				<hll><line>2160</line><src>        );</src></hll>
+				<hll><line>2161</line><src>    }</src></hll>
+				<hll><line>2162</line><src>    /* SAS */</src></hll>
+				<hll><cov>taken</cov><line>2163</line><src>    if (sas[SAS_C181486_0].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003F52</addr><code>29004091</code><mnemonic>movh.a    a2,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003F56</addr><code>30662F39</code><mnemonic>ld.bu     d15,[a2]0x4E6</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003F5A</addr><code>0A6E</code><mnemonic>jz16      d15,0x80003F6E</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2164</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>2165</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003F5C</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003F60</addr><code>529422D9</code><mnemonic>lea       a2,[a2]0x2954</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003F64</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003F66</addr><code>F7B3FF61</code><mnemonic>fcall     0x80002ECC</mnemonic><comment>.cocofun_26</comment></asm>
+				<asm><cov>never</cov><addr>P:80003F6A</addr><code>0AC5006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2166</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>2167</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>2168</line><src>                .sccml = {1},</src></hll>
+				<hll><line>2169</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>2170</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>2171</line><src>                .hda = {1,1,1,1},</src></hll>
+				<hll><line>2172</line><src>                .bca = {1,0,1,0},</src></hll>
+				<hll><line>2173</line><src>                .sea = {0},</src></hll>
+				<hll><line>2174</line><src>                .rcca = {1,0},</src></hll>
+				<hll><line>2175</line><src>                .warning = {3,3,3,3,HDA_LFA_FAULT,5,1},</src></hll>
+				<hll><line>2176</line><src>            }</src></hll>
+				<hll><line>2177</line><src>        );</src></hll>
+				<hll><line>2178</line><src>    }</src></hll>
+				<hll><line>2179</line><src>    /* SBCM */</src></hll>
+				<hll><cov>taken</cov><line>2180</line><src>    if (mdps[SBCM_C185481_0].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003F6E</addr><code>FF14</code><mnemonic>ld16.bu   d15,[a15]</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003F70</addr><code>0A6E</code><mnemonic>jz16      d15,0x80003F84</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2181</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>2182</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003F72</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003F76</addr><code>B27C22D9</code><mnemonic>lea       a2,[a2]0x26FC</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003F7A</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003F7C</addr><code>F7A8FF61</code><mnemonic>fcall     0x80002ECC</mnemonic><comment>.cocofun_26</comment></asm>
+				<asm><cov>never</cov><addr>P:80003F80</addr><code>0ABA006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2183</line><src>                .fca = {0,0,0,0,0,0,0,0,0},</src></hll>
+				<hll><line>2184</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>2185</line><src>                .sccml = {0},</src></hll>
+				<hll><line>2186</line><src>                .nscc = {0,0},</src></hll>
+				<hll><line>2187</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>2188</line><src>                .hda = {0,0,0,0},</src></hll>
+				<hll><line>2189</line><src>                .bca = {0,0,0,0},</src></hll>
+				<hll><line>2190</line><src>                .sea = {0},</src></hll>
+				<hll><line>2191</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>2192</line><src>                .warning = {0,0,0,0,NO_FAULT,0,2},</src></hll>
+				<hll><line>2193</line><src>            }</src></hll>
+				<hll><line>2194</line><src>        );</src></hll>
+				<hll><line>2195</line><src>    }</src></hll>
+				<hll><cov>taken</cov><line>2196</line><src>    if (mdps[SBCM_C185381_0].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003F84</addr><code>6F08</code><mnemonic>ld16.bu   d15,[a15]0x6</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003F86</addr><code>0A6E</code><mnemonic>jz16      d15,0x80003F9A</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2197</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>2198</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003F88</addr><code>F8000091</code><mnemonic>movh.a    a15,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003F8C</addr><code>B27CFFD9</code><mnemonic>lea       a15,[a15]0x26FC</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003F90</addr><code>A240</code><mnemonic>mov16.aa  a2,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003F92</addr><code>F71CFF61</code><mnemonic>fcall     0x80002DCA</mnemonic><comment>.cocofun_2</comment></asm>
+				<asm><cov>never</cov><addr>P:80003F96</addr><code>0AAF006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2199</line><src>                .fca = {0,0,0,0,0,0,0,0,0},</src></hll>
+				<hll><line>2200</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>2201</line><src>                .sccml = {0},</src></hll>
+				<hll><line>2202</line><src>                .nscc = {0,0},</src></hll>
+				<hll><line>2203</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>2204</line><src>                .hda = {0,0,0,0},</src></hll>
+				<hll><line>2205</line><src>                .bca = {0,0,0,0},</src></hll>
+				<hll><line>2206</line><src>                .sea = {0},</src></hll>
+				<hll><line>2207</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>2208</line><src>                .warning = {0,0,0,0,NO_FAULT,0,2},</src></hll>
+				<hll><line>2209</line><src>            }</src></hll>
+				<hll><line>2210</line><src>        );</src></hll>
+				<hll><line>2211</line><src>    }</src></hll>
+				<hll><line>2212</line><src></src></hll>
+				<hll><line>2213</line><src>    /* ICSC */</src></hll>
+				<hll><cov>taken</cov><line>2214</line><src>    if (icsc[ICSC_C187002_0].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003F9A</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003F9E</addr><code>3078FF39</code><mnemonic>ld.bu     d15,[a15]0x4F8</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003FA2</addr><code>0A6E</code><mnemonic>jz16      d15,0x80003FB6</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2215</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>2216</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003FA4</addr><code>F8000091</code><mnemonic>movh.a    a15,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003FA8</addr><code>329CFFD9</code><mnemonic>lea       a15,[a15]0x28DC</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003FAC</addr><code>A240</code><mnemonic>mov16.aa  a2,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003FAE</addr><code>F70EFF61</code><mnemonic>fcall     0x80002DCA</mnemonic><comment>.cocofun_2</comment></asm>
+				<asm><cov>never</cov><addr>P:80003FB2</addr><code>0AA1006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2217</line><src>                .fca = {0,0,0,0,0,0,0,0,0},</src></hll>
+				<hll><line>2218</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>2219</line><src>                .sccml = {0},</src></hll>
+				<hll><line>2220</line><src>                .nscc = {0,0},</src></hll>
+				<hll><line>2221</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>2222</line><src>                .hda = {0,0,0,0},</src></hll>
+				<hll><line>2223</line><src>                .bca = {0,0,0,0},</src></hll>
+				<hll><line>2224</line><src>                .sea = {0},</src></hll>
+				<hll><line>2225</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>2226</line><src>                .warning = {0,0,0,0,NO_FAULT,0,1},</src></hll>
+				<hll><line>2227</line><src>            }</src></hll>
+				<hll><line>2228</line><src>        );</src></hll>
+				<hll><line>2229</line><src>    }</src></hll>
+				<hll><line>2230</line><src></src></hll>
+				<hll><line>2231</line><src>    /* YRS */</src></hll>
+				<hll><cov>taken</cov><line>2232</line><src>    if (yrs[YRS_C184286_0].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003FB6</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003FBA</addr><code>306CFF39</code><mnemonic>ld.bu     d15,[a15]0x4EC</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003FBE</addr><code>0A6E</code><mnemonic>jz16      d15,0x80003FD2</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2233</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>2234</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003FC0</addr><code>F8000091</code><mnemonic>movh.a    a15,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003FC4</addr><code>6270FFD9</code><mnemonic>lea       a15,[a15]0x25B0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003FC8</addr><code>A240</code><mnemonic>mov16.aa  a2,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003FCA</addr><code>F700FF61</code><mnemonic>fcall     0x80002DCA</mnemonic><comment>.cocofun_2</comment></asm>
+				<asm><cov>never</cov><addr>P:80003FCE</addr><code>0A93006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2235</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>2236</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>2237</line><src>                .sccml = {1},</src></hll>
+				<hll><line>2238</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>2239</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>2240</line><src>                .hda = {1,1,1,1},</src></hll>
+				<hll><line>2241</line><src>                .bca = {1,0,1,0},</src></hll>
+				<hll><line>2242</line><src>                .sea = {1},</src></hll>
+				<hll><line>2243</line><src>                .rcca = {1,0},</src></hll>
+				<hll><line>2244</line><src>                .warning = {3,3,3,3,HDA_LFA_FAULT,5,1},</src></hll>
+				<hll><line>2245</line><src>            }</src></hll>
+				<hll><line>2246</line><src>        );</src></hll>
+				<hll><line>2247</line><src>    }</src></hll>
+				<hll><line>2248</line><src></src></hll>
+				<hll><line>2249</line><src>    /* SWRC */</src></hll>
+				<hll><cov>taken</cov><line>2250</line><src>    if (swrc[SWRC_C183D82_0].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003FD2</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003FD6</addr><code>3072FF39</code><mnemonic>ld.bu     d15,[a15]0x4F2</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003FDA</addr><code>0A6E</code><mnemonic>jz16      d15,0x80003FEE</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2251</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>2252</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003FDC</addr><code>F8000091</code><mnemonic>movh.a    a15,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003FE0</addr><code>A26CFFD9</code><mnemonic>lea       a15,[a15]0x26AC</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003FE4</addr><code>A240</code><mnemonic>mov16.aa  a2,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003FE6</addr><code>F6F2FF61</code><mnemonic>fcall     0x80002DCA</mnemonic><comment>.cocofun_2</comment></asm>
+				<asm><cov>never</cov><addr>P:80003FEA</addr><code>0A85006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2253</line><src>                .fca = {0,0,0,0,0,0,0,0,0},</src></hll>
+				<hll><line>2254</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>2255</line><src>                .sccml = {1},</src></hll>
+				<hll><line>2256</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>2257</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>2258</line><src>                .hda = {1,1,1,1},</src></hll>
+				<hll><line>2259</line><src>                .bca = {0,0,0,0},</src></hll>
+				<hll><line>2260</line><src>                .sea = {0},</src></hll>
+				<hll><line>2261</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>2262</line><src>                .warning = {0,3,3,3,HDA_LFA_FAULT,5,1},</src></hll>
+				<hll><line>2263</line><src>            }</src></hll>
+				<hll><line>2264</line><src>        );</src></hll>
+				<hll><line>2265</line><src>    }</src></hll>
+				<hll><line>2266</line><src></src></hll>
+				<hll><line>2267</line><src>#elif CCAN == HSCAN</src></hll>
+				<hll><line>2268</line><src>    /* CGW */</src></hll>
+				<hll><line>2269</line><src>    if (cgw[CGW_C181786_0].fault) {</src></hll>
+				<hll><line>2270</line><src>        update_inhibit_info(</src></hll>
+				<hll><line>2271</line><src>            (struct inhibit_info){</src></hll>
+				<hll><line>2272</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>2273</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>2274</line><src>                .sccml = {1},</src></hll>
+				<hll><line>2275</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>2276</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>2277</line><src>                .hda = {1,1,1,1},</src></hll>
+				<hll><line>2278</line><src>                .warning = {3,3,3,3,HDA_LFA_FAULT,5},</src></hll>
+				<hll><line>2279</line><src>            }</src></hll>
+				<hll><line>2280</line><src>        );</src></hll>
+				<hll><line>2281</line><src>    }</src></hll>
+				<hll><line>2282</line><src></src></hll>
+				<hll><line>2283</line><src>    /* CLU */</src></hll>
+				<hll><line>2284</line><src>    if (clu[CLU_C165686_0].fault) {</src></hll>
+				<hll><line>2285</line><src>        update_inhibit_info(</src></hll>
+				<hll><line>2286</line><src>            (struct inhibit_info){</src></hll>
+				<hll><line>2287</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>2288</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>2289</line><src>                .sccml = {1},</src></hll>
+				<hll><line>2290</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>2291</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>2292</line><src>                .hda = {1,1,1,1},</src></hll>
+				<hll><line>2293</line><src>                .warning = {3,3,3,3,HDA_LFA_FAULT,5},</src></hll>
+				<hll><line>2294</line><src>            }</src></hll>
+				<hll><line>2295</line><src>        );</src></hll>
+				<hll><line>2296</line><src>    }</src></hll>
+				<hll><line>2297</line><src>    if (clu[CLU_C165686_1].fault) {</src></hll>
+				<hll><line>2298</line><src>        update_inhibit_info(</src></hll>
+				<hll><line>2299</line><src>            (struct inhibit_info){</src></hll>
+				<hll><line>2300</line><src>                .fca = {0,0,0,0,0,0,0,0,0},</src></hll>
+				<hll><line>2301</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>2302</line><src>                .sccml = {0},</src></hll>
+				<hll><line>2303</line><src>                .nscc = {0,0},</src></hll>
+				<hll><line>2304</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>2305</line><src>                .hda = {0,0,0,1},</src></hll>
+				<hll><line>2306</line><src>                .warning = {0,0,0,0,NO_FAULT,5},</src></hll>
+				<hll><line>2307</line><src>            }</src></hll>
+				<hll><line>2308</line><src>        );</src></hll>
+				<hll><line>2309</line><src>    }</src></hll>
+				<hll><line>2310</line><src></src></hll>
+				<hll><line>2311</line><src>    /* ESC */</src></hll>
+				<hll><line>2312</line><src>    if (esc[ESC_C164286_0].fault) {</src></hll>
+				<hll><line>2313</line><src>        update_inhibit_info(</src></hll>
+				<hll><line>2314</line><src>            (struct inhibit_info){</src></hll>
+				<hll><line>2315</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>2316</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>2317</line><src>                .sccml = {1},</src></hll>
+				<hll><line>2318</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>2319</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>2320</line><src>                .hda = {1,1,1,1},</src></hll>
+				<hll><line>2321</line><src>                .warning = {3,3,3,3,HDA_LFA_FAULT,5},</src></hll>
+				<hll><line>2322</line><src>            }</src></hll>
+				<hll><line>2323</line><src>        );</src></hll>
+				<hll><line>2324</line><src>    }</src></hll>
+				<hll><line>2325</line><src>    if (esc[ESC_C164286_1].fault) {</src></hll>
+				<hll><line>2326</line><src>        update_inhibit_info(</src></hll>
+				<hll><line>2327</line><src>            (struct inhibit_info){</src></hll>
+				<hll><line>2328</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>2329</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>2330</line><src>                .sccml = {0},</src></hll>
+				<hll><line>2331</line><src>                .nscc = {0,0},</src></hll>
+				<hll><line>2332</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>2333</line><src>                .hda = {0,0,0,0},</src></hll>
+				<hll><line>2334</line><src>                .warning = {3,0,0,0,NO_FAULT,0},</src></hll>
+				<hll><line>2335</line><src>            }</src></hll>
+				<hll><line>2336</line><src>        );</src></hll>
+				<hll><line>2337</line><src>    }</src></hll>
+				<hll><line>2338</line><src>    if (esc[ESC_NA_0].fault) {</src></hll>
+				<hll><line>2339</line><src>        update_inhibit_info(</src></hll>
+				<hll><line>2340</line><src>            (struct inhibit_info){</src></hll>
+				<hll><line>2341</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>2342</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>2343</line><src>                .sccml = {0},</src></hll>
+				<hll><line>2344</line><src>                .nscc = {0,0},</src></hll>
+				<hll><line>2345</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>2346</line><src>                .hda = {0,0,0,0},</src></hll>
+				<hll><line>2347</line><src>                .warning = {0,0,0,0,NO_FAULT,0},</src></hll>
+				<hll><line>2348</line><src>            }</src></hll>
+				<hll><line>2349</line><src>        );</src></hll>
+				<hll><line>2350</line><src>    }</src></hll>
+				<hll><line>2351</line><src>    if (esc[ESC_C16B881_0].fault) {</src></hll>
+				<hll><line>2352</line><src>        update_inhibit_info(</src></hll>
+				<hll><line>2353</line><src>            (struct inhibit_info){</src></hll>
+				<hll><line>2354</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>2355</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>2356</line><src>                .sccml = {0},</src></hll>
+				<hll><line>2357</line><src>                .nscc = {0,0},</src></hll>
+				<hll><line>2358</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>2359</line><src>                .hda = {0,0,0,0},</src></hll>
+				<hll><line>2360</line><src>                .warning = {3,0,0,0,NO_FAULT,0},</src></hll>
+				<hll><line>2361</line><src>            }</src></hll>
+				<hll><line>2362</line><src>        );</src></hll>
+				<hll><line>2363</line><src>    }</src></hll>
+				<hll><line>2364</line><src>    if (esc[ESC_C136081_0].fault) {</src></hll>
+				<hll><line>2365</line><src>        update_inhibit_info(</src></hll>
+				<hll><line>2366</line><src>            (struct inhibit_info){</src></hll>
+				<hll><line>2367</line><src>                .fca = {0,0,0,0,0,0,0,0,0},</src></hll>
+				<hll><line>2368</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>2369</line><src>                .sccml = {1},</src></hll>
+				<hll><line>2370</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>2371</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>2372</line><src>                .hda = {0,1,1,1},</src></hll>
+				<hll><line>2373</line><src>                .warning = {0,3,3,3,HDA_FAULT,5},</src></hll>
+				<hll><line>2374</line><src>            }</src></hll>
+				<hll><line>2375</line><src>        );</src></hll>
+				<hll><line>2376</line><src>    }</src></hll>
+				<hll><line>2377</line><src>    if (esc[ESC_NA_1].fault) {</src></hll>
+				<hll><line>2378</line><src>        update_inhibit_info(</src></hll>
+				<hll><line>2379</line><src>            (struct inhibit_info){</src></hll>
+				<hll><line>2380</line><src>                .fca = {0,0,0,0,0,0,0,0,0},</src></hll>
+				<hll><line>2381</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>2382</line><src>                .sccml = {1},</src></hll>
+				<hll><line>2383</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>2384</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>2385</line><src>                .hda = {0,1,1,1},</src></hll>
+				<hll><line>2386</line><src>                .warning = {0,0,0,0,HDA_FAULT,5},</src></hll>
+				<hll><line>2387</line><src>            }</src></hll>
+				<hll><line>2388</line><src>        );</src></hll>
+				<hll><line>2389</line><src>    }</src></hll>
+				<hll><line>2390</line><src>    if (esc[ESC_C163881_0].fault) {</src></hll>
+				<hll><line>2391</line><src>        update_inhibit_info(</src></hll>
+				<hll><line>2392</line><src>            (struct inhibit_info){</src></hll>
+				<hll><line>2393</line><src>                .fca = {0,0,0,0,0,0,0,0,0},</src></hll>
+				<hll><line>2394</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>2395</line><src>                .sccml = {1},</src></hll>
+				<hll><line>2396</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>2397</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>2398</line><src>                .hda = {0,1,1,1},</src></hll>
+				<hll><line>2399</line><src>                .warning = {0,3,3,3,HDA_FAULT,5},</src></hll>
+				<hll><line>2400</line><src>            }</src></hll>
+				<hll><line>2401</line><src>        );</src></hll>
+				<hll><line>2402</line><src>    }</src></hll>
+				<hll><line>2403</line><src></src></hll>
+				<hll><line>2404</line><src>    /* MDPS */</src></hll>
+				<hll><line>2405</line><src>    if (mdps[MDPS_C168886_0].fault || mdps[MDPS_C168886_1].fault) {</src></hll>
+				<hll><line>2406</line><src>        update_inhibit_info(</src></hll>
+				<hll><line>2407</line><src>            (struct inhibit_info){</src></hll>
+				<hll><line>2408</line><src>                .fca = {0,0,0,0,0,0,1,1,1},</src></hll>
+				<hll><line>2409</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>2410</line><src>                .sccml = {0},</src></hll>
+				<hll><line>2411</line><src>                .nscc = {0,0},</src></hll>
+				<hll><line>2412</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>2413</line><src>                .hda = {1,0,1,1},</src></hll>
+				<hll><line>2414</line><src>                .warning = {3,0,0,0,HDA_LFA_FAULT,5},</src></hll>
+				<hll><line>2415</line><src>            }</src></hll>
+				<hll><line>2416</line><src>        );</src></hll>
+				<hll><line>2417</line><src>    }</src></hll>
+				<hll><line>2418</line><src>    if (mdps[MDPS_C223986_0].fault) {</src></hll>
+				<hll><line>2419</line><src>        update_inhibit_info(</src></hll>
+				<hll><line>2420</line><src>            (struct inhibit_info){</src></hll>
+				<hll><line>2421</line><src>                .fca = {0,0,0,0,0,0,1,1,1},</src></hll>
+				<hll><line>2422</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>2423</line><src>                .sccml = {0},</src></hll>
+				<hll><line>2424</line><src>                .nscc = {0,0},</src></hll>
+				<hll><line>2425</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>2426</line><src>                .hda = {1,0,1,1},</src></hll>
+				<hll><line>2427</line><src>                .warning = {3,0,0,0,HDA_LFA_FAULT,5},</src></hll>
+				<hll><line>2428</line><src>            }</src></hll>
+				<hll><line>2429</line><src>        );</src></hll>
+				<hll><line>2430</line><src>    }</src></hll>
+				<hll><line>2431</line><src></src></hll>
+				<hll><line>2432</line><src>    /* SAS */</src></hll>
+				<hll><line>2433</line><src>    if (sas[SAS_C181486_0].fault) {</src></hll>
+				<hll><line>2434</line><src>        update_inhibit_info(</src></hll>
+				<hll><line>2435</line><src>            (struct inhibit_info){</src></hll>
+				<hll><line>2436</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>2437</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>2438</line><src>                .sccml = {1},</src></hll>
+				<hll><line>2439</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>2440</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>2441</line><src>                .hda = {1,1,1,1},</src></hll>
+				<hll><line>2442</line><src>                .warning = {3,3,3,3,HDA_LFA_FAULT,5},</src></hll>
+				<hll><line>2443</line><src>            }</src></hll>
+				<hll><line>2444</line><src>        );</src></hll>
+				<hll><line>2445</line><src>    }</src></hll>
+				<hll><line>2446</line><src></src></hll>
+				<hll><line>2447</line><src>    /* EMS */</src></hll>
+				<hll><line>2448</line><src>    if (ems[EMS_C161386_0].fault) {</src></hll>
+				<hll><line>2449</line><src>        update_inhibit_info(</src></hll>
+				<hll><line>2450</line><src>            (struct inhibit_info){</src></hll>
+				<hll><line>2451</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>2452</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>2453</line><src>                .sccml = {1},</src></hll>
+				<hll><line>2454</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>2455</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>2456</line><src>                .hda = {1,1,1,1},</src></hll>
+				<hll><line>2457</line><src>                .warning = {3,3,3,3,HDA_LFA_FAULT,5},</src></hll>
+				<hll><line>2458</line><src>            }</src></hll>
+				<hll><line>2459</line><src>        );</src></hll>
+				<hll><line>2460</line><src>    }</src></hll>
+				<hll><line>2461</line><src>    if (ems[EMS_C161386_1].fault) {</src></hll>
+				<hll><line>2462</line><src>        update_inhibit_info(</src></hll>
+				<hll><line>2463</line><src>            (struct inhibit_info){</src></hll>
+				<hll><line>2464</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>2465</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>2466</line><src>                .sccml = {0},</src></hll>
+				<hll><line>2467</line><src>                .nscc = {0,0},</src></hll>
+				<hll><line>2468</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>2469</line><src>                .hda = {0,0,0,0},</src></hll>
+				<hll><line>2470</line><src>                .warning = {3,0,0,0,NO_FAULT,0},</src></hll>
+				<hll><line>2471</line><src>            }</src></hll>
+				<hll><line>2472</line><src>        );</src></hll>
+				<hll><line>2473</line><src>    }</src></hll>
+				<hll><line>2474</line><src></src></hll>
+				<hll><line>2475</line><src>    /* TCU */</src></hll>
+				<hll><line>2476</line><src>    if (tcu[TCU_C164686_0].fault) {</src></hll>
+				<hll><line>2477</line><src>        update_inhibit_info(</src></hll>
+				<hll><line>2478</line><src>            (struct inhibit_info){</src></hll>
+				<hll><line>2479</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>2480</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>2481</line><src>                .sccml = {1},</src></hll>
+				<hll><line>2482</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>2483</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>2484</line><src>                .hda = {1,1,1,1},</src></hll>
+				<hll><line>2485</line><src>                .warning = {3,3,3,3,HDA_LFA_FAULT,5},</src></hll>
+				<hll><line>2486</line><src>            }</src></hll>
+				<hll><line>2487</line><src>        );</src></hll>
+				<hll><line>2488</line><src>    }</src></hll>
+				<hll><line>2489</line><src>#endif /* CCAN */</src></hll>
+				<hll><line>2490</line><src></src></hll>
+				<hll><line>2491</line><src>    /* Navi */</src></hll>
+				<hll><cov>taken</cov><line>2492</line><src>    if (navi[NAVI_C174686_0].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80003FEE</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003FF2</addr><code>105AFFD9</code><mnemonic>lea       a15,[a15]0x45A</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80003FF6</addr><code>FF14</code><mnemonic>ld16.bu   d15,[a15]</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80003FF8</addr><code>0A6E</code><mnemonic>jz16      d15,0x8000400C</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2493</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>2494</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80003FFA</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80003FFE</addr><code>C26422D9</code><mnemonic>lea       a2,[a2]0x2724</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004002</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004004</addr><code>F764FF61</code><mnemonic>fcall     0x80002ECC</mnemonic><comment>.cocofun_26</comment></asm>
+				<asm><cov>never</cov><addr>P:80004008</addr><code>0A76006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2495</line><src>                .fca = {0,0,0,0,0,0,0,0,0},</src></hll>
+				<hll><line>2496</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>2497</line><src>                .sccml = {0},</src></hll>
+				<hll><line>2498</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>2499</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>2500</line><src>                .hda = {0,0,1,1},</src></hll>
+				<hll><line>2501</line><src>                .bca = {0,0,0,0},</src></hll>
+				<hll><line>2502</line><src>                .sea = {0},</src></hll>
+				<hll><line>2503</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>2504</line><src>                .warning = {0,0,0,3,HDA_FAULT,5,1},</src></hll>
+				<hll><line>2505</line><src>            }</src></hll>
+				<hll><line>2506</line><src>        );</src></hll>
+				<hll><line>2507</line><src>    }</src></hll>
+				<hll><cov>taken</cov><line>2508</line><src>    if (navi[NAVI_C183186_0].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:8000400C</addr><code>6F08</code><mnemonic>ld16.bu   d15,[a15]0x6</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:8000400E</addr><code>0A6E</code><mnemonic>jz16      d15,0x80004022</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2509</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>2510</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80004010</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004014</addr><code>C26422D9</code><mnemonic>lea       a2,[a2]0x2724</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004018</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000401A</addr><code>F759FF61</code><mnemonic>fcall     0x80002ECC</mnemonic><comment>.cocofun_26</comment></asm>
+				<asm><cov>never</cov><addr>P:8000401E</addr><code>0A6B006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2511</line><src>                .fca = {0,0,0,0,0,0,0,0,0},</src></hll>
+				<hll><line>2512</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>2513</line><src>                .sccml = {0},</src></hll>
+				<hll><line>2514</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>2515</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>2516</line><src>                .hda = {0,0,1,1},</src></hll>
+				<hll><line>2517</line><src>                .bca = {0,0,0,0},</src></hll>
+				<hll><line>2518</line><src>                .sea = {0},</src></hll>
+				<hll><line>2519</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>2520</line><src>                .warning = {0,0,0,3,HDA_FAULT,5,1},</src></hll>
+				<hll><line>2521</line><src>            }</src></hll>
+				<hll><line>2522</line><src>        );</src></hll>
+				<hll><line>2523</line><src>    }</src></hll>
+				<hll><line>2524</line><src>#if CCAN == CANFD</src></hll>
+				<hll><cov>taken</cov><line>2525</line><src>    if (navi[NAVI_C183186_1].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80004022</addr><code>CF08</code><mnemonic>ld16.bu   d15,[a15]0x0C</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80004024</addr><code>0A6E</code><mnemonic>jz16      d15,0x80004038</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2526</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>2527</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80004026</addr><code>F8000091</code><mnemonic>movh.a    a15,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000402A</addr><code>C264FFD9</code><mnemonic>lea       a15,[a15]0x2724</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000402E</addr><code>A240</code><mnemonic>mov16.aa  a2,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004030</addr><code>F6CDFF61</code><mnemonic>fcall     0x80002DCA</mnemonic><comment>.cocofun_2</comment></asm>
+				<asm><cov>never</cov><addr>P:80004034</addr><code>0A60006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2528</line><src>                .fca = {0,0,0,0,0,0,0,0,0},</src></hll>
+				<hll><line>2529</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>2530</line><src>                .sccml = {0},</src></hll>
+				<hll><line>2531</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>2532</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>2533</line><src>                .hda = {0,0,1,1},</src></hll>
+				<hll><line>2534</line><src>                .bca = {0,0,0,0},</src></hll>
+				<hll><line>2535</line><src>                .sea = {0},</src></hll>
+				<hll><line>2536</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>2537</line><src>                .warning = {0,0,0,3,HDA_FAULT,5,1},</src></hll>
+				<hll><line>2538</line><src>            }</src></hll>
+				<hll><line>2539</line><src>        );</src></hll>
+				<hll><line>2540</line><src>    }</src></hll>
+				<hll><line>2541</line><src>#endif /* CCAN */</src></hll>
+				<hll><line>2542</line><src>    /* Front Camera */</src></hll>
+				<hll><cov>taken</cov><line>2543</line><src>    if (fr_cmr[FR_CMR_28B086_0].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80004038</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:8000403C</addr><code>106CFFD9</code><mnemonic>lea       a15,[a15]0x46C</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80004040</addr><code>FF14</code><mnemonic>ld16.bu   d15,[a15]</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80004042</addr><code>0A6E</code><mnemonic>jz16      d15,0x80004056</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2544</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>2545</line><src>            (struct inhibit_info) {</src></hll>
+				<asm><cov>never</cov><addr>P:80004044</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004048</addr><code>02BC22D9</code><mnemonic>lea       a2,[a2]0x283C</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000404C</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000404E</addr><code>F73FFF61</code><mnemonic>fcall     0x80002ECC</mnemonic><comment>.cocofun_26</comment></asm>
+				<asm><cov>never</cov><addr>P:80004052</addr><code>0A51006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2546</line><src>                .fca = {0,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>2547</line><src>                .scc = {0,0,1,1},</src></hll>
+				<hll><line>2548</line><src>                .sccml = {0},</src></hll>
+				<hll><line>2549</line><src>                .nscc = {0,1},</src></hll>
+				<hll><line>2550</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>2551</line><src>                .hda = {1,0,1,1},</src></hll>
+				<hll><line>2552</line><src>                .bca = {1,0,0,0},</src></hll>
+				<hll><line>2553</line><src>                .sea = {0},</src></hll>
+				<hll><line>2554</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>2555</line><src>                .warning = {3,0,0,0,HDA_LFA_FAULT,5,1},</src></hll>
+				<hll><line>2556</line><src>            }</src></hll>
+				<hll><line>2557</line><src>        );</src></hll>
+				<hll><line>2558</line><src>    }</src></hll>
+				<hll><cov>taken</cov><line>2559</line><src>    if (fr_cmr[FR_CMR_28B086_1].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80004056</addr><code>6F08</code><mnemonic>ld16.bu   d15,[a15]0x6</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80004058</addr><code>0A6E</code><mnemonic>jz16      d15,0x8000406C</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2560</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>2561</line><src>            (struct inhibit_info) {</src></hll>
+				<asm><cov>never</cov><addr>P:8000405A</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000405E</addr><code>82B022D9</code><mnemonic>lea       a2,[a2]0x2A30</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004062</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004064</addr><code>F734FF61</code><mnemonic>fcall     0x80002ECC</mnemonic><comment>.cocofun_26</comment></asm>
+				<asm><cov>never</cov><addr>P:80004068</addr><code>0A46006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2562</line><src>                .fca = {0,0,0,0,0,0,0,0,0},</src></hll>
+				<hll><line>2563</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>2564</line><src>                .sccml = {0},</src></hll>
+				<hll><line>2565</line><src>                .nscc = {0,0},</src></hll>
+				<hll><line>2566</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>2567</line><src>                .hda = {1,0,1,1},</src></hll>
+				<hll><line>2568</line><src>                .bca = {0,0,0,0},</src></hll>
+				<hll><line>2569</line><src>                .sea = {0},</src></hll>
+				<hll><line>2570</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>2571</line><src>                .warning = {0,0,0,0,HDA_LFA_FAULT,5,1},</src></hll>
+				<hll><line>2572</line><src>            }</src></hll>
+				<hll><line>2573</line><src>        );</src></hll>
+				<hll><line>2574</line><src>    }</src></hll>
+				<hll><cov>taken</cov><line>2575</line><src>    if (fr_cmr[FR_CMR_NA_0].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:8000406C</addr><code>CF08</code><mnemonic>ld16.bu   d15,[a15]0x0C</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:8000406E</addr><code>0A6E</code><mnemonic>jz16      d15,0x80004082</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2576</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>2577</line><src>            (struct inhibit_info) {</src></hll>
+				<asm><cov>never</cov><addr>P:80004070</addr><code>F8000091</code><mnemonic>movh.a    a15,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004074</addr><code>9298FFD9</code><mnemonic>lea       a15,[a15]0x2A58</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004078</addr><code>A240</code><mnemonic>mov16.aa  a2,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000407A</addr><code>F6A8FF61</code><mnemonic>fcall     0x80002DCA</mnemonic><comment>.cocofun_2</comment></asm>
+				<asm><cov>never</cov><addr>P:8000407E</addr><code>0A3B006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2578</line><src>                .fca = {0,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>2579</line><src>                .scc = {0,0,1,1},</src></hll>
+				<hll><line>2580</line><src>                .sccml = {0},</src></hll>
+				<hll><line>2581</line><src>                .nscc = {0,1},</src></hll>
+				<hll><line>2582</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>2583</line><src>                .hda = {1,0,1,1},</src></hll>
+				<hll><line>2584</line><src>                .bca = {1,0,0,0},</src></hll>
+				<hll><line>2585</line><src>                .sea = {0},</src></hll>
+				<hll><line>2586</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>2587</line><src>                .warning = {5,0,0,0,HDA_LFA_FAULT,5,1},</src></hll>
+				<hll><line>2588</line><src>            }</src></hll>
+				<hll><line>2589</line><src>        );</src></hll>
+				<hll><line>2590</line><src>    }</src></hll>
+				<hll><line>2591</line><src>    /* Front Radar */</src></hll>
+				<hll><cov>taken</cov><line>2592</line><src>    if (fr_rdr[FR_RDR_C28B186_0].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80004082</addr><code>FCD3FF61</code><mnemonic>fcall     0x80003A28</mnemonic><comment>.cocofun_56</comment></asm>
+				<asm><cov>ok</cov><addr>P:80004086</addr><code>FF14</code><mnemonic>ld16.bu   d15,[a15]</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80004088</addr><code>0F6E</code><mnemonic>jz16      d15,0x800040A6</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>never</cov><line>2593</line><src>        chk_rdr_inhibit = TRUE;</src></hll>
+				<asm><cov>never</cov><addr>P:8000408A</addr><code>29004091</code><mnemonic>movh.a    a2,#0x9004</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000408E</addr><code>01DA</code><mnemonic>mov16     d15,#0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004090</addr><code>606F2FE9</code><mnemonic>st.b      [a2]0x5AF,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2594</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>2595</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80004094</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004098</addr><code>D24C22D9</code><mnemonic>lea       a2,[a2]0x274C</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000409C</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000409E</addr><code>F717FF61</code><mnemonic>fcall     0x80002ECC</mnemonic><comment>.cocofun_26</comment></asm>
+				<asm><cov>never</cov><addr>P:800040A2</addr><code>0A29006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2596</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>2597</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>2598</line><src>                .sccml = {1},</src></hll>
+				<hll><line>2599</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>2600</line><src>                .lfa = {0,1},</src></hll>
+				<hll><line>2601</line><src>                .hda = {0,1,1,1},</src></hll>
+				<hll><line>2602</line><src>                .bca = {1,0,0,0},</src></hll>
+				<hll><line>2603</line><src>                .sea = {0},</src></hll>
+				<hll><line>2604</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>2605</line><src>                .warning = {3,3,3,3,HDA_FAULT,5,1},</src></hll>
+				<hll><line>2606</line><src>            }</src></hll>
+				<hll><line>2607</line><src>        );</src></hll>
+				<hll><line>2608</line><src>    }</src></hll>
+				<hll><cov>taken</cov><line>2609</line><src>    if (fr_rdr[FR_RDR_NA_0].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:800040A6</addr><code>6F08</code><mnemonic>ld16.bu   d15,[a15]0x6</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:800040A8</addr><code>0F6E</code><mnemonic>jz16      d15,0x800040C6</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><cov>never</cov><line>2610</line><src>        chk_rdr_inhibit = TRUE;</src></hll>
+				<asm><cov>never</cov><addr>P:800040AA</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800040AE</addr><code>01DA</code><mnemonic>mov16     d15,#0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800040B0</addr><code>606FFFE9</code><mnemonic>st.b      [a15]0x5AF,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2611</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>2612</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:800040B4</addr><code>F8000091</code><mnemonic>movh.a    a15,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800040B8</addr><code>A280FFD9</code><mnemonic>lea       a15,[a15]0x2A80</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800040BC</addr><code>A240</code><mnemonic>mov16.aa  a2,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800040BE</addr><code>F686FF61</code><mnemonic>fcall     0x80002DCA</mnemonic><comment>.cocofun_2</comment></asm>
+				<asm><cov>never</cov><addr>P:800040C2</addr><code>0A19006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2613</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>2614</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>2615</line><src>                .sccml = {1},</src></hll>
+				<hll><line>2616</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>2617</line><src>                .lfa = {0,1},</src></hll>
+				<hll><line>2618</line><src>                .hda = {0,1,1,1},</src></hll>
+				<hll><line>2619</line><src>                .bca = {1,0,0,0},</src></hll>
+				<hll><line>2620</line><src>                .sea = {0},</src></hll>
+				<hll><line>2621</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>2622</line><src>                .warning = {6,2,0,0,HDA_FAULT,5,1},</src></hll>
+				<hll><line>2623</line><src>            }</src></hll>
+				<hll><line>2624</line><src>        );</src></hll>
+				<hll><line>2625</line><src>    }</src></hll>
+				<hll><line>2626</line><src></src></hll>
+				<hll><line>2627</line><src>    /* Front Corner Radar */</src></hll>
+				<hll><cov>taken</cov><line>2628</line><src>        if (fr_c_rdr[FR_C_RDR_C188186_0].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:800040C6</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800040CA</addr><code>0048FFD9</code><mnemonic>lea       a15,[a15]0x408</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800040CE</addr><code>FF14</code><mnemonic>ld16.bu   d15,[a15]</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:800040D0</addr><code>0A6E</code><mnemonic>jz16      d15,0x800040E4</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2629</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>2630</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:800040D2</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800040D6</addr><code>A2A822D9</code><mnemonic>lea       a2,[a2]0x2AA8</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800040DA</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800040DC</addr><code>F6F8FF61</code><mnemonic>fcall     0x80002ECC</mnemonic><comment>.cocofun_26</comment></asm>
+				<asm><cov>never</cov><addr>P:800040E0</addr><code>0A0A006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2631</line><src>                .fca = {0,0,1,0,1,1,1,1,1},</src></hll>
+				<hll><line>2632</line><src>                .scc = {0,0,0,1},</src></hll>
+				<hll><line>2633</line><src>                .sccml = {0},</src></hll>
+				<hll><line>2634</line><src>                .nscc = {0,1},</src></hll>
+				<hll><line>2635</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>2636</line><src>                .hda = {0,0,0,1},</src></hll>
+				<hll><line>2637</line><src>                .bca = {1,0,1,0},</src></hll>
+				<hll><line>2638</line><src>                .sea = {0},</src></hll>
+				<hll><line>2639</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>2640</line><src>                .warning = {3,0,0,0,NO_FAULT,5,1},</src></hll>
+				<hll><line>2641</line><src>            }</src></hll>
+				<hll><line>2642</line><src>        );</src></hll>
+				<hll><line>2643</line><src>    }</src></hll>
+				<hll><cov>taken</cov><line>2644</line><src>    if (fr_c_rdr[FR_C_RDR_C188186_1].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:800040E4</addr><code>6F08</code><mnemonic>ld16.bu   d15,[a15]0x6</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:800040E6</addr><code>0A6E</code><mnemonic>jz16      d15,0x800040FA</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2645</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>2646</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:800040E8</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800040EC</addr><code>B29022D9</code><mnemonic>lea       a2,[a2]0x2AD0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800040F0</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800040F2</addr><code>F6EDFF61</code><mnemonic>fcall     0x80002ECC</mnemonic><comment>.cocofun_26</comment></asm>
+				<asm><cov>never</cov><addr>P:800040F6</addr><code>09FF006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2647</line><src>                .fca = {0,0,1,0,0,0,1,1,1},</src></hll>
+				<hll><line>2648</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>2649</line><src>                .sccml = {0},</src></hll>
+				<hll><line>2650</line><src>                .nscc = {0,1},</src></hll>
+				<hll><line>2651</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>2652</line><src>                .hda = {0,0,0,1},</src></hll>
+				<hll><line>2653</line><src>                .bca = {1,0,1,0},</src></hll>
+				<hll><line>2654</line><src>                .sea = {1},</src></hll>
+				<hll><line>2655</line><src>                .rcca = {1,0},</src></hll>
+				<hll><line>2656</line><src>                .warning = {3,0,0,0,NO_FAULT,5,1},</src></hll>
+				<hll><line>2657</line><src>            }</src></hll>
+				<hll><line>2658</line><src>        );</src></hll>
+				<hll><line>2659</line><src>    }</src></hll>
+				<hll><cov>taken</cov><line>2660</line><src>    if (fr_c_rdr[FR_C_RDR_NA_0].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:800040FA</addr><code>CF08</code><mnemonic>ld16.bu   d15,[a15]0x0C</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:800040FC</addr><code>0A6E</code><mnemonic>jz16      d15,0x80004110</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2661</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>2662</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:800040FE</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004102</addr><code>B2B822D9</code><mnemonic>lea       a2,[a2]0x2AF8</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004106</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004108</addr><code>F6E2FF61</code><mnemonic>fcall     0x80002ECC</mnemonic><comment>.cocofun_26</comment></asm>
+				<asm><cov>never</cov><addr>P:8000410C</addr><code>09F4006D</code><mnemonic>call      0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2663</line><src>                .fca = {0,0,1,0,1,1,1,1,1},</src></hll>
+				<hll><line>2664</line><src>                .scc = {0,0,0,1},</src></hll>
+				<hll><line>2665</line><src>                .sccml = {0},</src></hll>
+				<hll><line>2666</line><src>                .nscc = {0,1},</src></hll>
+				<hll><line>2667</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>2668</line><src>                .hda = {0,0,0,1},</src></hll>
+				<hll><line>2669</line><src>                .bca = {0,1,0,1},</src></hll>
+				<hll><line>2670</line><src>                .sea = {0},</src></hll>
+				<hll><line>2671</line><src>                .rcca = {0,0},</src></hll>
+				<hll><line>2672</line><src>                .warning = {6,0,0,0,NO_FAULT,5,1},</src></hll>
+				<hll><line>2673</line><src>            }</src></hll>
+				<hll><line>2674</line><src>        );</src></hll>
+				<hll><line>2675</line><src>    }</src></hll>
+				<hll><cov>taken</cov><line>2676</line><src>    if (fr_c_rdr[FR_C_RDR_NA_1].fault) {</src></hll>
+				<asm><cov>ok</cov><addr>P:80004110</addr><code>0852FF09</code><mnemonic>ld.bu     d15,[a15]0x12</mnemonic></asm>
+				<asm><cov>taken</cov><addr>P:80004114</addr><code>0A6E</code><mnemonic>jz16      d15,0x80004128</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2677</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>2678</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80004116</addr><code>F8000091</code><mnemonic>movh.a    a15,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000411A</addr><code>C2A0FFD9</code><mnemonic>lea       a15,[a15]0x2B20</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:8000411E</addr><code>A240</code><mnemonic>mov16.aa  a2,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80004120</addr><code>F655FF61</code><mnemonic>fcall     0x80002DCA</mnemonic><comment>.cocofun_2</comment></asm>
+				<asm><cov>never</cov><addr>P:80004124</addr><code>09E8001D</code><mnemonic>j         0x800054F4</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\FS_InvalidSignal" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\FS_Items\FS_InvalidSignal.c">
+				<hll><line>2679</line><src>                .fca = {0,0,1,0,0,0,1,1,1},</src></hll>
+				<hll><line>2680</line><src>                .scc = {0,0,0,0},</src></hll>
+				<hll><line>2681</line><src>                .sccml = {0},</src></hll>
+				<hll><line>2682</line><src>                .nscc = {0,1},</src></hll>
+				<hll><line>2683</line><src>                .lfa = {0,0},</src></hll>
+				<hll><line>2684</line><src>                .hda = {0,0,0,1},</src></hll>
+				<hll><line>2685</line><src>                .bca = {0,1,0,1},</src></hll>
+				<hll><line>2686</line><src>                .sea = {1},</src></hll>
+				<hll><line>2687</line><src>                .rcca = {0,1},</src></hll>
+				<hll><line>2688</line><src>                .warning = {6,0,0,0,NO_FAULT,5,1},</src></hll>
+				<hll><line>2689</line><src>            }</src></hll>
+				<hll><line>2690</line><src>        );</src></hll>
+				<hll><line>2691</line><src>    }</src></hll>
+				<hll><cov>ok</cov><line>2692</line><src>}</src></hll>
+				<asm><cov>ok</cov><addr>P:80004128</addr><code>9000</code><mnemonic>ret16     </mnemonic></asm>
+			</mixed>
+		</List.EXPORT>
+	</listing>
+</TRACE32>

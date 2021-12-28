@@ -1,0 +1,497 @@
+B::
+&cmm_dir = os.pwd()
+area.clear
+area
+
+print "working directory is : &cmm_dir"
+
+;SCU REGS
+GLOBAL &__SCU_PLLCON0_INIT &__SCU_PLLCON0_ADDR &__SCU_PLLCON0_VALUE
+GLOBAL &__SCU_PLLCON1_INIT &__SCU_PLLCON1_ADDR &__SCU_PLLCON1_VALUE
+GLOBAL &__SCU_OSCCON_INIT &__SCU_OSCCON_ADDR &__SCU_OSCCON_VALUE
+GLOBAL &__SCU_CCUCON0_INIT &__SCU_CCUCON0_ADDR &__SCU_CCUCON0_VALUE
+GLOBAL &__SCU_CCUCON1_INIT &__SCU_CCUCON1_ADDR &__SCU_CCUCON1_VALUE
+GLOBAL &__SCU_CCUCON2_INIT &__SCU_CCUCON2_ADDR &__SCU_CCUCON2_VALUE
+
+;P/D Cache
+GLOBAL &__PCON0_INIT_C0 &__PCON0_ADDR_C0 &__PCON0_VALUE_C0
+GLOBAL &__DCON0_INIT_C0 &__DCON0_ADDR_C0 &__DCON0_VALUE_C0
+
+GLOBAL &__PCON0_INIT_C1 &__PCON0_ADDR_C1 &__PCON0_VALUE_C1
+GLOBAL &__DCON0_INIT_C1 &__DCON0_ADDR_C1 &__DCON0_VALUE_C1
+
+GLOBAL &__PCON0_INIT_C2 &__PCON0_ADDR_C2 &__PCON0_VALUE_C2
+GLOBAL &__DCON0_INIT_C2 &__DCON0_ADDR_C2 &__DCON0_VALUE_C2
+
+GLOBAL &__PCON0_INIT_C3 &__PCON0_ADDR_C3 &__PCON0_VALUE_C3
+GLOBAL &__DCON0_INIT_C3 &__DCON0_ADDR_C3 &__DCON0_VALUE_C3
+
+GLOBAL &__PCON0_INIT_C4 &__PCON0_ADDR_C4 &__PCON0_VALUE_C4
+GLOBAL &__DCON0_INIT_C4 &__DCON0_ADDR_C4 &__DCON0_VALUE_C4
+
+GLOBAL &__PCON0_INIT_C5 &__PCON0_ADDR_C5 &__PCON0_VALUE_C5
+GLOBAL &__DCON0_INIT_C5 &__DCON0_ADDR_C5 &__DCON0_VALUE_C5
+
+
+;Register init
+&__SCU_PLLCON0_INIT     = 0x0
+&__SCU_PLLCON1_INIT     = 0x0
+&__SCU_OSCCON_INIT      = 0x0
+&__SCU_CCUCON0_INIT     = 0x0
+&__SCU_CCUCON1_INIT     = 0x0
+&__SCU_CCUCON2_INIT     = 0x0
+&__PCON0_INIT_C0        = 0x0
+&__DCON0_INIT_C0        = 0x0
+&__PCON0_INIT_C1 		= 0x0
+&__DCON0_INIT_C1        = 0x0
+&__PCON0_INIT_C2        = 0x0
+&__DCON0_INIT_C2        = 0x0
+&__PCON0_INIT_C3        = 0x0
+&__DCON0_INIT_C3        = 0x0
+&__PCON0_INIT_C4        = 0x0
+&__DCON0_INIT_C4        = 0x0
+&__PCON0_INIT_C5        = 0x0
+&__DCON0_INIT_C5        = 0x0
+
+&__SCU_PLLCON0_ADDR	= 0xF0036018
+&__SCU_PLLCON1_ADDR	= 0xF003601C
+&__SCU_OSCCON_ADDR	= 0xF0036010
+&__SCU_CCUCON0_ADDR	= 0xF0036030
+&__SCU_CCUCON1_ADDR	= 0xF0036034
+&__SCU_CCUCON2_ADDR	= 0xF0036040
+&__PCON0_ADDR_C0		= 0xF881920C
+&__DCON0_ADDR_C0		= 0xF8819040
+&__PCON0_ADDR_C1		= 0xF883920C
+&__DCON0_ADDR_C1		= 0xF8839040
+&__PCON0_ADDR_C2		= 0xF885920C
+&__DCON0_ADDR_C2		= 0xF8859040
+&__PCON0_ADDR_C3		= 0xF887920C
+&__DCON0_ADDR_C3		= 0xF8879040
+&__PCON0_ADDR_C4		= 0xF889920C
+&__DCON0_ADDR_C4		= 0xF8899040
+&__PCON0_ADDR_C5		= 0xF88D920C
+&__DCON0_ADDR_C5		= 0xF88D9040
+
+print "check cpu name"
+if cpuis(TC29*)
+(
+  ;get init value for registers
+  system.up
+
+  &__SCU_PLLCON0_VALUE = data.long(D:&__SCU_PLLCON0_ADDR)
+  &__SCU_PLLCON1_VALUE = data.long(D:&__SCU_PLLCON1_ADDR)
+  &__SCU_OSCCON_VALUE = data.long(D:&__SCU_OSCCON_ADDR)
+  &__SCU_CCUCON0_VALUE = data.long(D:&__SCU_CCUCON0_ADDR)
+  &__SCU_CCUCON1_VALUE = data.long(D:&__SCU_CCUCON1_ADDR)
+  &__SCU_CCUCON2_VALUE = data.long(D:&__SCU_CCUCON2_ADDR)
+  &__PCON0_VALUE_C0       = data.long(D:&__PCON0_ADDR_C0)
+  &__DCON0_VALUE_C0       = data.long(D:&__DCON0_ADDR_C0)
+  &__PCON0_VALUE_C1       = data.long(D:&__PCON0_ADDR_C1)
+  &__DCON0_VALUE_C1       = data.long(D:&__DCON0_ADDR_C1)
+  &__PCON0_VALUE_C2       = data.long(D:&__PCON0_ADDR_C2)
+  &__DCON0_VALUE_C2       = data.long(D:&__DCON0_ADDR_C2)
+
+  print "check registers value in system reset"
+  ;target running for 3s.
+  go
+  wait 3.s
+  break
+
+  if &__SCU_PLLCON0_VALUE!=data.long(D:&__SCU_PLLCON0_ADDR)  ;If Target SW change this register value
+  (
+    &__SCU_PLLCON0_INIT = 1
+    &__SCU_PLLCON0_VALUE = data.long(D:&__SCU_PLLCON0_ADDR)
+  )
+
+  if &__SCU_PLLCON1_VALUE!=data.long(D:&__SCU_PLLCON1_ADDR)  ;If Target SW change this register value
+  (
+    &__SCU_PLLCON1_INIT = 1
+    &__SCU_PLLCON1_VALUE = data.long(D:&__SCU_PLLCON1_ADDR)
+  )
+
+   if &__SCU_OSCCON_VALUE!=data.long(D:&__SCU_OSCCON_ADDR)  ;If Target SW change this register value
+  (
+    &__SCU_OSCCON_INIT = 1
+    &__SCU_OSCCON_VALUE = data.long(D:&__SCU_OSCCON_ADDR)
+  )
+
+  if &__SCU_CCUCON0_VALUE!=data.long(D:&__SCU_CCUCON0_ADDR)  ;If Target SW change this register value
+  (
+    &__SCU_CCUCON0_INIT = 1
+    &__SCU_CCUCON0_VALUE = data.long(D:&__SCU_CCUCON0_ADDR)
+  )
+
+  if &__SCU_CCUCON1_VALUE!=data.long(D:&__SCU_CCUCON1_ADDR)  ;If Target SW change this register value
+  (
+    &__SCU_CCUCON1_INIT = 1
+    &__SCU_CCUCON1_VALUE = data.long(D:&__SCU_CCUCON1_ADDR)
+  )
+
+  if &__SCU_CCUCON2_VALUE!=data.long(D:&__SCU_CCUCON2_ADDR)  ;If Target SW change this register value
+  (
+    &__SCU_CCUCON2_INIT = 1
+    &__SCU_CCUCON2_VALUE = data.long(D:&__SCU_CCUCON2_ADDR)
+  )
+
+  if &__PCON0_VALUE_C0!=data.long(D:&__PCON0_ADDR_C0)  ;If Target SW change this register value
+  (
+    &__PCON0_INIT_C0 = 1
+    &__PCON0_VALUE_C0 = data.long(D:&__PCON0_ADDR_C0)
+  )
+
+  if &__DCON0_VALUE_C0!=data.long(D:&__DCON0_ADDR_C0)  ;If Target SW change this register value
+  (
+    &__DCON0_INIT_C0 = 1
+    &__DCON0_VALUE_C0 = data.long(D:&__DCON0_ADDR_C0)
+  )
+  
+  if &__PCON0_VALUE_C1!=data.long(D:&__PCON0_ADDR_C1)  ;If Target SW change this register value
+  (
+    &__PCON0_INIT_C1 = 1
+    &__PCON0_VALUE_C1 = data.long(D:&__PCON0_ADDR_C1)
+  )
+
+  if &__DCON0_VALUE_C1!=data.long(D:&__DCON0_ADDR_C1)  ;If Target SW change this register value
+  (
+    &__DCON0_INIT_C1 = 1
+    &__DCON0_VALUE_C1 = data.long(D:&__DCON0_ADDR_C1)
+  )
+  
+  if &__PCON0_VALUE_C2!=data.long(D:&__PCON0_ADDR_C2)  ;If Target SW change this register value
+  (
+    &__PCON0_INIT_C2 = 1
+    &__PCON0_VALUE_C2 = data.long(D:&__PCON0_ADDR_C2)
+  )
+
+  if &__DCON0_VALUE_C2!=data.long(D:&__DCON0_ADDR_C2)  ;If Target SW change this register value
+  (
+    &__DCON0_INIT_C2 = 1
+    &__DCON0_VALUE_C2 = data.long(D:&__DCON0_ADDR_C2)
+  )
+  
+  print "check registers value after sytstem running"
+
+  open #1 ./system_config.txt /create /write
+  write #1 "__SCU_PLLCON0_INIT  &__SCU_PLLCON0_INIT"
+  write #1 "__SCU_PLLCON0_VALUE  &__SCU_PLLCON0_VALUE"
+
+  write #1 "__SCU_PLLCON1_INIT  &__SCU_PLLCON1_INIT"
+  write #1 "__SCU_PLLCON1_VALUE  &__SCU_PLLCON1_VALUE"
+
+  write #1 "__SCU_OSCCON_INIT  &__SCU_OSCCON_INIT"
+  write #1 "__SCU_OSCCON_VALUE  &__SCU_OSCCON_VALUE"
+
+  write #1 "__SCU_CCUCON0_INIT  &__SCU_CCUCON0_INIT"
+  write #1 "__SCU_CCUCON0_VALUE  &__SCU_CCUCON0_VALUE"
+
+  write #1 "__SCU_CCUCON1_INIT  &__SCU_CCUCON1_INIT"
+  write #1 "__SCU_CCUCON1_VALUE  &__SCU_CCUCON1_VALUE"
+
+  write #1 "__SCU_CCUCON2_INIT  &__SCU_CCUCON2_INIT"
+  write #1 "__SCU_CCUCON2_VALUE  &__SCU_CCUCON2_VALUE"
+
+  write #1 "//for Core0 config"
+  write #1 "__PCON0_INIT  &__PCON0_INIT_C0"
+  write #1 "__PCON0_VALUE  &__PCON0_VALUE_C0"
+  write #1 "__DCON0_INIT  &__DCON0_INIT_C0"
+  write #1 "__DCON0_VALUE  &__DCON0_VALUE_C0"
+  
+  write #1 "//for Core1 config"
+  write #1 "__PCON0_INIT  &__PCON0_INIT_C1"
+  write #1 "__PCON0_VALUE  &__PCON0_VALUE_C1"
+  write #1 "__DCON0_INIT  &__DCON0_INIT_C1"
+  write #1 "__DCON0_VALUE  &__DCON0_VALUE_C1"  
+  
+  write #1 "//for Core1 config"
+  write #1 "__PCON0_INIT  &__PCON0_INIT_C2"
+  write #1 "__PCON0_VALUE  &__PCON0_VALUE_C2"
+  write #1 "__DCON0_INIT  &__DCON0_INIT_C2"
+  write #1 "__DCON0_VALUE  &__DCON0_VALUE_C2" 
+
+  close #1
+
+
+  print "__SCU_PLLCON0_INIT  &__SCU_PLLCON0_INIT"
+  print "__SCU_PLLCON0_VALUE  &__SCU_PLLCON0_VALUE"
+
+  print "__SCU_PLLCON1_INIT  &__SCU_PLLCON1_INIT"
+  print "__SCU_PLLCON1_VALUE  &__SCU_PLLCON1_VALUE"
+
+  print "__SCU_OSCCON_INIT  &__SCU_OSCCON_INIT"
+  print "__SCU_OSCCON_VALUE  &__SCU_OSCCON_VALUE"
+
+  print "__SCU_CCUCON0_INIT  &__SCU_CCUCON0_INIT"
+  print "__SCU_CCUCON0_VALUE  &__SCU_CCUCON0_VALUE"
+
+  print "__SCU_CCUCON1_INIT  &__SCU_CCUCON1_INIT"
+  print "__SCU_CCUCON1_VALUE  &__SCU_CCUCON1_VALUE"
+
+  print "__SCU_CCUCON2_INIT  &__SCU_CCUCON2_INIT"
+  print "__SCU_CCUCON2_VALUE  &__SCU_CCUCON2_VALUE"
+
+  print "//for Core0 config"
+  print "__PCON0_INIT  &__PCON0_INIT_C0"
+  print "__PCON0_VALUE  &__PCON0_VALUE_C0"
+  print "__DCON0_INIT  &__DCON0_INIT_C0"
+  print "__DCON0_VALUE  &__DCON0_VALUE_C0"
+  print
+  print "//for Core1 config"
+  print "__PCON0_INIT  &__PCON0_INIT_C1"
+  print "__PCON0_VALUE  &__PCON0_VALUE_C1"
+  print "__DCON0_INIT  &__DCON0_INIT_C1"
+  print "__DCON0_VALUE  &__DCON0_VALUE_C1"  
+  print
+  print "//for Core1 config"
+  print "__PCON0_INIT  &__PCON0_INIT_C2"
+  print "__PCON0_VALUE  &__PCON0_VALUE_C2"
+  print "__DCON0_INIT  &__DCON0_INIT_C2"
+  print "__DCON0_VALUE  &__DCON0_VALUE_C2" 
+  
+  print "&cmm_dir/system_config.txt file is created"
+
+)
+
+else if cpuis(TC39*)
+(
+  ;get init value for registers
+  system.up
+
+  &__SCU_PLLCON0_VALUE = data.long(D:&__SCU_PLLCON0_ADDR)
+  &__SCU_PLLCON1_VALUE = data.long(D:&__SCU_PLLCON1_ADDR)
+  &__SCU_OSCCON_VALUE = data.long(D:&__SCU_OSCCON_ADDR)
+  &__SCU_CCUCON0_VALUE = data.long(D:&__SCU_CCUCON0_ADDR)
+  &__SCU_CCUCON1_VALUE = data.long(D:&__SCU_CCUCON1_ADDR)
+  &__SCU_CCUCON2_VALUE = data.long(D:&__SCU_CCUCON2_ADDR)
+  &__PCON0_VALUE_C0       = data.long(D:&__PCON0_ADDR_C0)
+  &__DCON0_VALUE_C0       = data.long(D:&__DCON0_ADDR_C0)
+  &__PCON0_VALUE_C1       = data.long(D:&__PCON0_ADDR_C1)
+  &__DCON0_VALUE_C1       = data.long(D:&__DCON0_ADDR_C1)
+  &__PCON0_VALUE_C2       = data.long(D:&__PCON0_ADDR_C2)
+  &__DCON0_VALUE_C2       = data.long(D:&__DCON0_ADDR_C2)
+  &__PCON0_VALUE_C3       = data.long(D:&__PCON0_ADDR_C3)
+  &__DCON0_VALUE_C3       = data.long(D:&__DCON0_ADDR_C3)
+  &__PCON0_VALUE_C4       = data.long(D:&__PCON0_ADDR_C4)
+  &__DCON0_VALUE_C4       = data.long(D:&__DCON0_ADDR_C4)
+  &__PCON0_VALUE_C5       = data.long(D:&__PCON0_ADDR_C5)
+  &__DCON0_VALUE_C5       = data.long(D:&__DCON0_ADDR_C5)
+
+  print "check registers value in system reset"
+  ;target running for 3s.
+  go
+  wait 3.s
+  break
+
+  if &__SCU_PLLCON0_VALUE!=data.long(D:&__SCU_PLLCON0_ADDR)  ;If Target SW change this register value
+  (
+    &__SCU_PLLCON0_INIT = 1
+    &__SCU_PLLCON0_VALUE = data.long(D:&__SCU_PLLCON0_ADDR)
+  )
+
+  if &__SCU_PLLCON1_VALUE!=data.long(D:&__SCU_PLLCON1_ADDR)  ;If Target SW change this register value
+  (
+    &__SCU_PLLCON1_INIT = 1
+    &__SCU_PLLCON1_VALUE = data.long(D:&__SCU_PLLCON1_ADDR)
+  )
+
+   if &__SCU_OSCCON_VALUE!=data.long(D:&__SCU_OSCCON_ADDR)  ;If Target SW change this register value
+  (
+    &__SCU_OSCCON_INIT = 1
+    &__SCU_OSCCON_VALUE = data.long(D:&__SCU_OSCCON_ADDR)
+  )
+
+  if &__SCU_CCUCON0_VALUE!=data.long(D:&__SCU_CCUCON0_ADDR)  ;If Target SW change this register value
+  (
+    &__SCU_CCUCON0_INIT = 1
+    &__SCU_CCUCON0_VALUE = data.long(D:&__SCU_CCUCON0_ADDR)
+  )
+
+  if &__SCU_CCUCON1_VALUE!=data.long(D:&__SCU_CCUCON1_ADDR)  ;If Target SW change this register value
+  (
+    &__SCU_CCUCON1_INIT = 1
+    &__SCU_CCUCON1_VALUE = data.long(D:&__SCU_CCUCON1_ADDR)
+  )
+
+  if &__SCU_CCUCON2_VALUE!=data.long(D:&__SCU_CCUCON2_ADDR)  ;If Target SW change this register value
+  (
+    &__SCU_CCUCON2_INIT = 1
+    &__SCU_CCUCON2_VALUE = data.long(D:&__SCU_CCUCON2_ADDR)
+  )
+
+  if &__PCON0_VALUE_C0!=data.long(D:&__PCON0_ADDR_C0)  ;If Target SW change this register value
+  (
+    &__PCON0_INIT_C0 = 1
+    &__PCON0_VALUE_C0 = data.long(D:&__PCON0_ADDR_C0)
+  )
+
+  if &__DCON0_VALUE_C0!=data.long(D:&__DCON0_ADDR_C0)  ;If Target SW change this register value
+  (
+    &__DCON0_INIT_C0 = 1
+    &__DCON0_VALUE_C0 = data.long(D:&__DCON0_ADDR_C0)
+  )
+  
+  if &__PCON0_VALUE_C1!=data.long(D:&__PCON0_ADDR_C1)  ;If Target SW change this register value
+  (
+    &__PCON0_INIT_C1 = 1
+    &__PCON0_VALUE_C1 = data.long(D:&__PCON0_ADDR_C1)
+  )
+
+  if &__DCON0_VALUE_C1!=data.long(D:&__DCON0_ADDR_C1)  ;If Target SW change this register value
+  (
+    &__DCON0_INIT_C1 = 1
+    &__DCON0_VALUE_C1 = data.long(D:&__DCON0_ADDR_C1)
+  )
+  
+  if &__PCON0_VALUE_C2!=data.long(D:&__PCON0_ADDR_C2)  ;If Target SW change this register value
+  (
+    &__PCON0_INIT_C2 = 1
+    &__PCON0_VALUE_C2 = data.long(D:&__PCON0_ADDR_C2)
+  )
+
+  if &__DCON0_VALUE_C2!=data.long(D:&__DCON0_ADDR_C2)  ;If Target SW change this register value
+  (
+    &__DCON0_INIT_C2 = 1
+    &__DCON0_VALUE_C2 = data.long(D:&__DCON0_ADDR_C2)
+  )
+  
+  if &__DCON0_VALUE_C3!=data.long(D:&__DCON0_ADDR_C3)  ;If Target SW change this register value
+  (
+    &__DCON0_INIT_C3 = 1
+    &__DCON0_VALUE_C3 = data.long(D:&__DCON0_ADDR_C3)
+  )
+  
+  if &__DCON0_VALUE_C4!=data.long(D:&__DCON0_ADDR_C4)  ;If Target SW change this register value
+  (
+    &__DCON0_INIT_C4 = 1
+    &__DCON0_VALUE_C4 = data.long(D:&__DCON0_ADDR_C4)
+  )
+  
+  if &__DCON0_VALUE_C5!=data.long(D:&__DCON0_ADDR_C5)  ;If Target SW change this register value
+  (
+    &__DCON0_INIT_C5 = 1
+    &__DCON0_VALUE_C5 = data.long(D:&__DCON0_ADDR_C5)
+  )
+  
+  print "check registers value after sytstem running"
+
+  open #1 ./system_config.txt /create /write
+  write #1 "__SCU_PLLCON0_INIT  &__SCU_PLLCON0_INIT"
+  write #1 "__SCU_PLLCON0_VALUE  &__SCU_PLLCON0_VALUE"
+
+  write #1 "__SCU_PLLCON1_INIT  &__SCU_PLLCON1_INIT"
+  write #1 "__SCU_PLLCON1_VALUE  &__SCU_PLLCON1_VALUE"
+
+  write #1 "__SCU_OSCCON_INIT  &__SCU_OSCCON_INIT"
+  write #1 "__SCU_OSCCON_VALUE  &__SCU_OSCCON_VALUE"
+
+  write #1 "__SCU_CCUCON0_INIT  &__SCU_CCUCON0_INIT"
+  write #1 "__SCU_CCUCON0_VALUE  &__SCU_CCUCON0_VALUE"
+
+  write #1 "__SCU_CCUCON1_INIT  &__SCU_CCUCON1_INIT"
+  write #1 "__SCU_CCUCON1_VALUE  &__SCU_CCUCON1_VALUE"
+
+  write #1 "__SCU_CCUCON2_INIT  &__SCU_CCUCON2_INIT"
+  write #1 "__SCU_CCUCON2_VALUE  &__SCU_CCUCON2_VALUE"
+
+  write #1 "//for Core0 config"
+  write #1 "__PCON0_INIT  &__PCON0_INIT_C0"
+  write #1 "__PCON0_VALUE  &__PCON0_VALUE_C0"
+  write #1 "__DCON0_INIT  &__DCON0_INIT_C0"
+  write #1 "__DCON0_VALUE  &__DCON0_VALUE_C0"
+  
+  write #1 "//for Core1 config"
+  write #1 "__PCON0_INIT  &__PCON0_INIT_C1"
+  write #1 "__PCON0_VALUE  &__PCON0_VALUE_C1"
+  write #1 "__DCON0_INIT  &__DCON0_INIT_C1"
+  write #1 "__DCON0_VALUE  &__DCON0_VALUE_C1"  
+  
+  write #1 "//for Core1 config"
+  write #1 "__PCON0_INIT  &__PCON0_INIT_C2"
+  write #1 "__PCON0_VALUE  &__PCON0_VALUE_C2"
+  write #1 "__DCON0_INIT  &__DCON0_INIT_C2"
+  write #1 "__DCON0_VALUE  &__DCON0_VALUE_C2" 
+  
+  write #1 "//for Core3 config"
+  write #1 "__PCON0_INIT  &__PCON0_INIT_C3"
+  write #1 "__PCON0_VALUE  &__PCON0_VALUE_C3"
+  write #1 "__DCON0_INIT  &__DCON0_INIT_C3"
+  write #1 "__DCON0_VALUE  &__DCON0_VALUE_C3"
+  
+  write #1 "//for Core4 config"
+  write #1 "__PCON0_INIT  &__PCON0_INIT_C4"
+  write #1 "__PCON0_VALUE  &__PCON0_VALUE_C4"
+  write #1 "__DCON0_INIT  &__DCON0_INIT_C4"
+  write #1 "__DCON0_VALUE  &__DCON0_VALUE_C4"  
+  
+  write #1 "//for Core5 config"
+  write #1 "__PCON0_INIT  &__PCON0_INIT_C5"
+  write #1 "__PCON0_VALUE  &__PCON0_VALUE_C5"
+  write #1 "__DCON0_INIT  &__DCON0_INIT_C5"
+  write #1 "__DCON0_VALUE  &__DCON0_VALUE_C5" 
+
+  close #1
+
+
+  print "__SCU_PLLCON0_INIT  &__SCU_PLLCON0_INIT"
+  print "__SCU_PLLCON0_VALUE  &__SCU_PLLCON0_VALUE"
+
+  print "__SCU_PLLCON1_INIT  &__SCU_PLLCON1_INIT"
+  print "__SCU_PLLCON1_VALUE  &__SCU_PLLCON1_VALUE"
+
+  print "__SCU_OSCCON_INIT  &__SCU_OSCCON_INIT"
+  print "__SCU_OSCCON_VALUE  &__SCU_OSCCON_VALUE"
+
+  print "__SCU_CCUCON0_INIT  &__SCU_CCUCON0_INIT"
+  print "__SCU_CCUCON0_VALUE  &__SCU_CCUCON0_VALUE"
+
+  print "__SCU_CCUCON1_INIT  &__SCU_CCUCON1_INIT"
+  print "__SCU_CCUCON1_VALUE  &__SCU_CCUCON1_VALUE"
+
+  print "__SCU_CCUCON2_INIT  &__SCU_CCUCON2_INIT"
+  print "__SCU_CCUCON2_VALUE  &__SCU_CCUCON2_VALUE"
+
+  print "//for Core0 config"
+  print "__PCON0_INIT  &__PCON0_INIT_C0"
+  print "__PCON0_VALUE  &__PCON0_VALUE_C0"
+  print "__DCON0_INIT  &__DCON0_INIT_C0"
+  print "__DCON0_VALUE  &__DCON0_VALUE_C0"
+  print
+  print "//for Core1 config"
+  print "__PCON0_INIT  &__PCON0_INIT_C1"
+  print "__PCON0_VALUE  &__PCON0_VALUE_C1"
+  print "__DCON0_INIT  &__DCON0_INIT_C1"
+  print "__DCON0_VALUE  &__DCON0_VALUE_C1"  
+  print
+  print "//for Core2 config"
+  print "__PCON0_INIT  &__PCON0_INIT_C2"
+  print "__PCON0_VALUE  &__PCON0_VALUE_C2"
+  print "__DCON0_INIT  &__DCON0_INIT_C2"
+  print "__DCON0_VALUE  &__DCON0_VALUE_C2" 
+  print
+  print "//for Core3 config"
+  print "__PCON0_INIT  &__PCON0_INIT_C3"
+  print "__PCON0_VALUE  &__PCON0_VALUE_C3"
+  print "__DCON0_INIT  &__DCON0_INIT_C3"
+  print "__DCON0_VALUE  &__DCON0_VALUE_C3" 
+  print
+  print "//for Core4 config"
+  print "__PCON0_INIT  &__PCON0_INIT_C4"
+  print "__PCON0_VALUE  &__PCON0_VALUE_C4"
+  print "__DCON0_INIT  &__DCON0_INIT_C4"
+  print "__DCON0_VALUE  &__DCON0_VALUE_C4" 
+  print
+  print "//for Core5 config"
+  print "__PCON0_INIT  &__PCON0_INIT_C5"
+  print "__PCON0_VALUE  &__PCON0_VALUE_C5"
+  print "__DCON0_INIT  &__DCON0_INIT_C5"
+  print "__DCON0_VALUE  &__DCON0_VALUE_C5" 
+  
+  print "&cmm_dir/system_config.txt file is created"
+
+)
+else
+(
+  print "Target CPU name is Wrong!"
+  print "please connect TC29X type MCU"
+)
+
+enddo

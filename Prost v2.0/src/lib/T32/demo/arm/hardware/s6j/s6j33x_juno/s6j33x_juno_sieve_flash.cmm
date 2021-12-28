@@ -1,0 +1,241 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo script for S6J331CKSA on  (FLASH)
+; @Description:
+;   Programs the sieve demo application into the processor internal flash and
+;   sets up a demo debug scenario.
+;   This script can be used as a template for flashing an application.
+;   Prerequisites:
+;     Debugger only:
+;     * JTAG is connected to 20PIN JTAG
+;     * flash is empty
+; @Keywords: ARM, Cortex-R5, Flash
+; @Author: AME
+; @Board: S6J3310 Series 208pin Evaluation Board
+; @Chip: S6J33[1-7]*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: s6j33x_juno_sieve_flash.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; Configure whether the watchdog reset shall be masked by a special debug register bit
+&DBG_MASK_WDG_RESET=FALSE()
+; Configure whether the Fake Power On mode shall be enabled by a special debug register bit
+&DBG_ENABLE_FAKEPOWERON=FALSE()
+; Configure whether the Fake Clock On mode shall be enabled by a special debug register bit
+; and which value (0-3) should be used, refer SCSCU_CNTL_FAKE_CLKON description
+&DBG_ENABLE_FAKECLOCKON=FALSE()
+; 0..3
+&DBG_FAKECLOCK_ON_SETTING=0x3
+&DBG_FAKECLOCK_ON_SETTING=&DBG_FAKECLOCK_ON_SETTING&0x3
+
+GOSUB DefineGlobals
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check Prerequisites
+
+IF VERSION.BUILD()<92177.
+(
+  DIALOG.OK "Please use more recent software!"
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU S6J331CKSA
+SYStem.MemAccess DAP
+; special settings
+SYStem.Option WATCHDOG OFF
+SYStem.Option WaitIDCODE ON
+SYStem.Option ResBreak OFF
+SYStem.JtagClock CTCK 10MHz
+ON ERROR CONTinue
+SYStem.Up
+ON ERROR inherit
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; Flash programming
+GOSUB SetupMpuForFlashProgramming
+; prepare flash programming (declarations)
+DO ~~/demo/arm/flash/s6j3 PREPAREONLY
+
+; ReProgram Flash
+FLASH.ReProgram ALL
+Data.LOAD.Elf "~~~~/sieve_flash_arm_v7r_le.elf"
+FLASH.ReProgram OFF
+
+; load BootROM Markers
+; e.g. clear the BootROM markers
+FLASH.AUTO 0x9f0000--0x9f014f /CENSORSHIP
+Data.Set 0x9f0000--0x9f014f %Long 0xffffffff
+FLASH.AUTO OFF
+
+; --------------------------------------------------------------------------------
+; Reset the target again
+ON ERROR CONTinue
+SYStem.Up
+ON ERROR inherit
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+ENDDO
+
+DisableWatchdog:
+(
+  GOSUB SetSpecialDebugFeatures &DBG_MASK_WDG_RESET &DBG_ENABLE_FAKEPOWERON &DBG_ENABLE_FAKECLOCKON &DBG_FAKECLOCK_ON_SETTING
+  RETURN
+)
+
+DefineGlobals: ;()
+(
+  GLOBAL &MASK__SCSCU_CNTL_JTAGCON
+  GLOBAL &MASK__SCSCU_CNTL_FAKE_PDON
+  GLOBAL &MASK__SCSCU_CNTL_WDGRSTMASK
+  GLOBAL &KEY__SCCFG_UNLOCK
+  GLOBAL &KEY__SCCFG_LOCK
+  GLOBAL &REG_APB__SCCFG_UNLCK
+  GLOBAL &REG_APB__SCSCU_CNTL
+  &MASK__SCSCU_CNTL_JTAGCON=0x00010000
+  &MASK__SCSCU_CNTL_FAKE_PDON=0x00000010
+  &MASK__SCSCU_CNTL_WDGRSTMASK=0x00000100
+  &KEY__SCCFG_UNLOCK=0x5ecacce5
+  &KEY__SCCFG_LOCK=0xa135331a
+  &REG_APB__SCCFG_UNLCK=0x000c01a4
+  &REG_APB__SCSCU_CNTL=0x000c01b4
+
+  GLOBAL &REG_AHB__SYSC0_PROTKEYR
+  GLOBAL &REG_AHB__SYSC0_SPECFGR
+  GLOBAL &MASK__SYSC0_SPECFGR_IOxRSTC
+  GLOBAL &KEY__SYSC0_UNLOCK
+  &REG_AHB__SYSC0_PROTKEYR=0xb0600000
+  &REG_AHB__SYSC0_SPECFGR=0xb0600680
+  &MASK__SYSC0_SPECFGR_IOxRSTC=0x00600000
+  &KEY__SYSC0_UNLOCK=0x5cacce55
+  RETURN
+)
+
+EnableTrace: ;()
+(
+  PRIVATE &SYSC0_SPECFGR
+  &SYSC0_SPECFGR=Data.Long(EAHB:&REG_AHB__SYSC0_SPECFGR)
+  Data.Set EAHB:&REG_AHB__SYSC0_PROTKEYR %Long &KEY__SYSC0_UNLOCK
+  Data.Set EAHB:&REG_AHB__SYSC0_SPECFGR %Long &SYSC0_SPECFGR&(~&MASK__SYSC0_SPECFGR_IOxRSTC)
+  RETURN
+)
+
+SetSpecialDebugFeatures: ;(wdogrstmask, fakepoweron, fakeclockon, fakeclockon_setting)
+(
+  PRIVATE &SCSCU_CNTL &wdogrstmask &fakepoweron &fakeclockon &fakeclockon_setting
+  ENTRY &wdogrstmask &fakepoweron &fakeclockon &fakeclockon_setting
+  &SCSCU_CNTL=&MASK__SCSCU_CNTL_JTAGCON
+  IF &wdogrstmask
+  (
+    PRINT "SCSCU_CNTL: HW/SW Watchdog Reset Mask"
+    &SCSCU_CNTL=&SCSCU_CNTL|&MASK__SCSCU_CNTL_WDGRSTMASK
+  )
+  IF &fakepoweron
+  (
+    PRINT "SCSCU_CNTL: Fake Power On Mode"
+    &SCSCU_CNTL=&SCSCU_CNTL|&MASK__SCSCU_CNTL_FAKE_PDON
+  )
+  IF &fakeclockon
+  (
+    PRINT "SCSCU_CNTL: Fake Clock On Mode &fakeclockon_setting "
+    &SCSCU_CNTL=&SCSCU_CNTL|(&fakeclockon_setting&0x3)
+  )
+  Data.Set APB:&REG_APB__SCCFG_UNLCK %Long &KEY__SCCFG_UNLOCK ; Unlock register write access
+  Data.Set APB:&REG_APB__SCSCU_CNTL %Long &SCSCU_CNTL         ; Make user configuration (SCSCU_CNTL_JTAGCON bit and others)
+  Data.Set APB:&REG_APB__SCCFG_UNLCK %Long &KEY__SCCFG_LOCK   ; Lock register write access again
+  RETURN
+)
+
+WriteGpioPpc: ;(address, accesssize, value)
+(
+  LOCAL &addr &size &value &tmp &PPC_KEYCDR
+  ENTRY &addr &size &value
+  IF &size==4
+    &tmp=0x20000000
+  ELSE IF &size==2
+    &tmp=0x10000000
+  ELSE
+    &tmp=0x00000000
+
+  &PPC_KEYCDR=0xb4740400
+  Data.Set A:(&PPC_KEYCDR) %LONG &tmp|0x00000000|(&addr&0x7fff)
+  Data.Set A:(&PPC_KEYCDR) %LONG &tmp|0x40000000|(&addr&0x7fff)
+  Data.Set A:(&PPC_KEYCDR) %LONG &tmp|0x80000000|(&addr&0x7fff)
+  Data.Set A:(&PPC_KEYCDR) %LONG &tmp|0xc0000000|(&addr&0x7fff)
+
+  IF &size==4
+    &tmp="%Long"
+  ELSE IF &size==2
+    &tmp="%Word"
+  ELSE
+    &tmp="%Byte"
+  Data.Set A:(&addr) &tmp &value
+  RETURN
+)
+
+SetupMpuForFlashProgramming:
+(
+  ; disable MPU & Cache
+  Data.Set C15:0x1 %Long Data.Long(C15:0x1)&(~0x5)
+  ; disable all regions
+  PRIVATE &i
+  &i=0
+  RePeaT 16.
+  (
+    ; set MRNR
+    Data.Set C15:0x26 %Long &i
+    ; clear RSER
+    Data.Set C15:0x216 %Long 0x0
+    &i=&i+1.
+  )
+  ; setup regions for simplicity only region 0&1&2
+  ; region 0: 0x00000000--0xffffffff - Shareable Device - all permissions
+  Data.Set C15:0x26 %Long 0x0
+  Data.Set C15:0x16 %Long 0x0
+  Data.Set C15:0x216 %Long 0x3f
+  Data.Set C15:0x416 %Long 0x305
+  ; region 1: 0x00000000--0xffff - NonCacheable - all permissions
+  Data.Set C15:0x26 %Long 0x1
+  Data.Set C15:0x16 %Long 0x0
+  Data.Set C15:0x216 %Long 0x1f
+  Data.Set C15:0x416 %Long 0x308
+  ; region 2: 0xffff0000--0xffff - NonCacheable - all permissions
+  Data.Set C15:0x26 %Long 0x2
+  Data.Set C15:0x16 %Long 0xffff0000
+  Data.Set C15:0x216 %Long 0x1f
+  Data.Set C15:0x416 %Long 0x308
+
+  ; enable MPU
+  Data.Set C15:0x1 %Long Data.Long(C15:0x1)|0x1
+
+  RETURN
+)

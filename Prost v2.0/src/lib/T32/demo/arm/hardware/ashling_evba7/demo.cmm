@@ -1,0 +1,51 @@
+; --------------------------------------------------------------------------------
+; @Title: Start-Up Script for Ashling EVBA7
+; @Description:
+;   Philips LPC2100 Eval Board
+;   usage of primary JTAG pins
+; @Author: PEG
+; @Board: EVBA7
+; @Chip: LPC2106
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+;   PEG, October 20, 2004
+
+; TRACE32 software newer than October 20, 2004 required
+
+; use external power supply (not from USB bus)
+; required board settings:
+; JP13 = "EXT": external power supply
+; JP12 removed: do not use on-board debugger
+; JP6  removed: ISP mode deactivated
+; JP11 set    : enable debug mode
+
+
+  SYStem.CPU LPC2106
+  SYStem.JtagClock RTCK 20MHz
+  SYStem.Option ResBreak OFF
+  SYStem.Option NOIRCHECK ON
+  SYStem.Option BUGFIXV4 ON
+  SYStem.Up
+
+; Enable halfrate mode
+  ETM.HalfRate ON
+; Maximum supported port size is 4
+  ETM.PortSize 4
+; To prevent FIFO overflows disable data tracing
+  ETM.DataTrace OFF
+
+  Data.LOAD.Elf ~~~~/demo.axf
+  Register.Set PC main
+  Register.Set r13 0x40008000
+
+  WinCLEAR
+  WinPOS 0% 0% 100% 50%
+  List.auto
+  WinPOS 0% 50% 50% 50%
+  Frame.view /Locals /Caller
+  WinPOS 50% 50% 50% 50%
+  Var.Watch flags ast
+
+

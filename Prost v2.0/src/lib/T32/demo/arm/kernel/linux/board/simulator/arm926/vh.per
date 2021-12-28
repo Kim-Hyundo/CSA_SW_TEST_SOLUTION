@@ -1,0 +1,218 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux Example for TRACE32 Simulator - Peripheral File
+; @Description: -
+; @Author: SYL
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only 
+; --------------------------------------------------------------------------------
+; $Id: vh.per 12187 2018-02-20 09:29:31Z pegold $
+
+config 16. 8.
+width 0x0b
+
+
+base d:0xFE000000
+
+tree "INTC"
+
+rgroup.long 0x00++0x03
+	line.long 0x00 "ISTAT,Interrupt Status Register"
+		bitfld.long 0x00 0.--4. " INUM ," "TIMER,KEYBOARD,MOUSE,RTC,UART0"
+
+rgroup.long 0x04++0x03
+	line.long 0x00 "IPEND,Interrupt Pending Register"
+		bitfld.long 0x00 4. " DBGU ," "-,Pending"
+		bitfld.long 0x00 3. " RTC ," "-,Pending"
+		bitfld.long 0x00 2. " MOUSE ," "-,Pending"
+		bitfld.long 0x00 1. " KEYBOARD ," "-,Pending"
+		bitfld.long 0x00 0. " TIMER ," "-,Pending"
+
+rgroup.long 0x08++0x03
+	line.long 0x00 "IMASK,Interrupt Mask Register"
+		bitfld.long 0x00 4. " DBGU ," "-,Enabled"
+		bitfld.long 0x00 3. " RTC ," "-,Enabled"
+		bitfld.long 0x00 2. " MOUSE ," "-,Enabled"
+		bitfld.long 0x00 1. " KEYBOARD ," "-,Enabled"
+		bitfld.long 0x00 0. " TIMER ," "-,Enabled"
+
+group.long 0x0C++0x03
+	line.long 0x00 "IENA,Interrupt Enable Register"
+		bitfld.long 0x00 4. " DBGU ," "-,Enable"
+		bitfld.long 0x00 3. " RTC ," "-,Enable"
+		bitfld.long 0x00 2. "  MOUSE ," "-,Enable"
+		bitfld.long 0x00 1. "  KEYBOARD ," "-,Enable"
+		bitfld.long 0x00 0. "  TIMER ," "-,Enable"
+
+group.long 0x10++0x03
+	line.long 0x00 "IDIS,Interrupt Disable Register"
+		bitfld.long 0x00 4. " DBGU ," "-,Disable"
+		bitfld.long 0x00 3. " RTC ," "-,Disable"
+		bitfld.long 0x00 2. " MOUSE ," "-,Disable"
+		bitfld.long 0x00 1. " KEYBOARD ," "-,Disable"
+		bitfld.long 0x00 0. " TIMER ," "-,Disable"
+
+tree.end
+
+
+
+
+
+base d:0xFE006000
+
+tree "HD0"
+
+group.long 0x00++0x03
+	line.long 0x00 "RDSECT,Read sector command"
+
+group.long 0x04++0x03
+	line.long 0x00 "WRSECT,Write sector command"
+
+rgroup.long 0x08++0x03
+	line.long 0x00 "RDCNT,Number of reads"
+
+rgroup.long 0x0C++0x03
+	line.long 0x00 "WRCNT,Number of writes"
+
+group.long 0x10++0x03
+	line.long 0x00 "ADDRESS,Physical address of read buffer"
+
+group.long 0x14++0x03
+	line.long 0x00 "SECTORS,Number of sectors (512 bytes each)"
+
+textline ""
+	
+button "RDBUFF" "d (0xFE006020)--(0xFE006020+0x1FF) /byte"
+button "WRBUFF" "d (0xFE006220)--(0xFE006220+0x1FF) /byte"
+
+tree.end
+
+
+
+
+
+base d:0xFE003000
+
+tree "DBGU"
+
+rgroup.long 0x00++0x03
+	line.long 0x00 "TXR,Transmit Register"
+
+rgroup.long 0x04++0x03
+	line.long 0x00 "RXR,Receive Register"
+
+rgroup.long 0x08++0x03
+	line.long 0x00 "CTRL,Control Register"
+		bitfld.long 0x00 0. " IE ," "-,Enabled"
+
+tree.end
+
+
+
+base d:0xFE001000
+
+tree "Timer"
+
+group.long 0x00++3
+	line.long 0x00 "ITPER,Interval Timer Period"
+rgroup.long 0x04++3
+	line.long 0x00 "ITCNT,Interval Timer Counter"
+group.long 0x08++3
+	line.long 0x00 "ITCTRL,Timer Interrupt Enable/Disable"
+		bitfld.long 0x00 1. " TE ,Timer Enable" "Disabled,Enabled"
+		bitfld.long 0x00 0. " IE ,Interrupt Enable" "Disabled,Enabled"
+group.long 0x0C++3
+	line.long 0x00 "ITSTAT,Timer Status"
+		bitfld.long 0x00 0. " IS ,Interrupt Status" "-,Asserted"
+
+tree.end
+
+
+
+
+base d:0xFE002000
+
+tree "RTC"
+
+rgroup.long 0x00--0x1F
+	line.long 0x00 "YEAR,"
+	line.long 0x04 "MONTH,"
+	line.long 0x08 "DOW,"
+	line.long 0x0c "DAY,"
+	line.long 0x10 "HOUR,"
+	line.long 0x14 "MINUTE,"
+	line.long 0x18 "SECOND,"
+	line.long 0x1c "MSEC,"
+
+group.long 0x20--0x23
+	line.long 0x00 "CTRL,"
+		bitfld.long 0x00 1. " SUICLR ,Seconds Update Interrupt Asserted" "-,Asserted"
+		bitfld.long 0x00 0. " SUIE ,Seconds Update Interrupt Enable" "Disabled,Enabled"
+
+rgroup.long 0x24--0x27
+	line.long 0x00 "PSECOND,Previous Second"
+
+tree.end
+
+
+
+
+
+base d:0xFE100000
+
+tree "DISPLAY"
+
+rgroup.long 0x00++3
+	line.long 0x00 "KKEY,"
+
+rgroup.long 0x04++3
+	line.long 0x00 "KEVENT,"
+
+rgroup.long 0x08++3
+	line.long 0x00 "MX,"
+
+rgroup.long 0x0C++3
+	line.long 0x00 "MY,"
+
+rgroup.long 0x10++3
+	line.long 0x00 "MEVENT,"
+
+group.long 0x14++3
+	line.long 0x00 "KI,"
+		eventfld.long 0x00 1. " IA ,Interrupt Asserted" "-,Asserted"
+		bitfld.long 0x00 0. " IE ,Interrupt Enable" "Disabled,Enabled"
+		
+group.long 0x18++3
+	line.long 0x00 "MI,"
+		eventfld.long 0x00 1. " IA ,Interrupt Asserted" "-,Asserted"
+		bitfld.long 0x00 0. " IE ,Interrupt Enable" "Disabled,Enabled"
+
+rgroup.long 0x1C++3
+	line.long 0x00 "WIDTH,Screen width"
+
+rgroup.long 0x20++3
+	line.long 0x00 "HEIGHT,Screen height"
+
+rgroup.long 0x24++3
+	line.long 0x00 "SIZE,Total frame buffer size"
+
+rgroup.long 0x28++3
+	line.long 0x00 "STRIDE,Bytes per horizontal line"
+
+group.long 0x2C++3
+	line.long 0x00 "LEDS,LEDS indicators"
+		bitfld.long 0x00 0. " NUM_LOCK ,Num Lock" "-,On"
+		bitfld.long 0x00 1. " CAPS_LOCK ,Caps Lock" "-,On"
+		bitfld.long 0x00 2. " SCROLL_LOCK ,Scroll Lock" "-,On"
+
+wgroup.long 0xEFFFFC++3
+	line.long 0x00 "DOACCEL,Do Acceleration Command"
+
+textline ""
+textline ""
+
+button "BUFFER" "d (0xFE100000+0x001000)--(0xFE100000+0x7FFFF) /byte"
+
+button "ACCELBUF" "d (0xFEB00000)--(0xFEFFFFFB) /long"
+
+tree.end
+
+textline ""

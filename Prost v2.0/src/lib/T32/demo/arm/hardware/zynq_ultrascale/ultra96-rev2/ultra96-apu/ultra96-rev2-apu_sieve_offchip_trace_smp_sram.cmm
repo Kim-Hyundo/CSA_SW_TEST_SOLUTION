@@ -1,0 +1,182 @@
+; --------------------------------------------------------------------------------
+; @Title: SMP-Demo script for ZYNQ-ULTRASCALE+-APU with Offchip-Trace (RAM, SMP)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario using all A53 cores..
+;   The program flow is traced using the Offchip-Trace. Pinmuxing and Clock
+;   setup is handled by loading the FSBL from the Xilinx SDK.
+;   Use this script to test the Offchip-Trace on Ultra96.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to JTAG
+;    * Connect AutoFocus Preprocessor to Lauterbach test adapter TPINTI using
+;      Mictor38 cable
+;    * [optional] set bootmode to JTAG - SW2[1..2]=0y11
+; @Keywords: ARM, Cortex-A53, ETM, SMP
+; @Author: AME
+; @Board: Avnet ULTRA96 Rev2
+; @Chip: ZYNQ-ULTRASCALE+-APU
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: ultra96-rev2-apu_sieve_offchip_trace_smp_sram.cmm 15708 2020-02-20 08:40:44Z amerkle $
+
+PRIVATE &ppd
+&ppd=OS.PPD()
+
+IF !OS.FILE("&(ppd)/ultra96_offchiptrace.bit")
+(
+  UNZIP "&(ppd)/ultra96_offchiptrace.bit.gz" "&(ppd)/ultra96_offchiptrace.bit"
+)
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU ZYNQ-ULTRASCALE+-APU
+SYStem.JtagClock 10MHz
+CORE.ASSIGN 1.
+Trace.DISable
+
+; <temporariely switch to BOOTMODE=JTAG>
+; this sequence forces the SoC to use BOOTMODE=JTAG
+; a SRST is issued using the debug logic
+; we kickstart the first R5/A53
+SYStem.Option ResBreak OFF
+SYStem.Option EnReset OFF
+SYStem.Option TRST OFF
+; DO ~~/demo/arm64/hardware/zynq_ultrascale/scripts/zynq-ultrascale_reset.cmm OVERRIDE_BOOTMODE=0x0
+DO "&(ppd)/../../scripts/zynq-ultrascale_reset.cmm" OVERRIDE_BOOTMODE=0x0
+SYStem.Mode Prepare
+; start the APU subsystem
+; DO ~~/demo/arm64/hardware/zynq_ultrascale/scripts/zynq-ultrascale_kick_bootcore.cmm A53_X64
+DO "&(ppd)/../../scripts/zynq-ultrascale_kick_bootcore.cmm" A53_X64
+; set BOOT_MODE_USER to JTAG
+; mandatory as FSBL will evaluate BOOT_MODE_POR otherwise
+Data.Set ENAXI:0xFF5E0200 %Long 0x100
+; </temporariely switch to BOOTMODE=JTAG>
+
+SYStem.Mode.Attach
+IF STATE.RUN()
+  Break
+
+; --------------------------------------------------------------------------------
+; use FSBL to initialize SoC
+Data.LOAD.Elf "&(ppd)/fsbl.elf"
+; --------------------------------------------------------------------------------
+; start FSBL execution
+Go XFsbl_Loop
+WAIT !STATE.RUN() 3.s
+IF TIMEOUT()
+(
+  Break.direct
+)
+
+; clear BOOT_MODE_USER
+Data.Set ENAXI:0xFF5E0200 %Long 0x0
+
+IF Register(PC)!=ADDRESS.OFFSET(XFsbl_Loop)
+(
+  PRINT %ERROR "Boot flow error"
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; the FSBL initialization is finished - load FPGA fabric
+(
+  ; DO ~~/demo/arm64/hardware/zynq_ultrascale/scripts/zynq-ultrascale_load_bitstream.cmm "path_to_bitstream" 0x10000000
+  DO "&(ppd)/../../scripts/zynq-ultrascale_load_bitstream.cmm" "&(ppd)/ultra96_offchiptrace.bit" 0x10000000
+
+  ; call the post-configuration to finalize FPGA loading
+  ; requires that FSBL is not stripped/compiled with debug info
+  Var.Assign psu_ps_pl_isolation_removal_data()
+  Var.Assign psu_ps_pl_reset_config_data()
+)
+
+; --------------------------------------------------------------------------------
+; kick secondary cores
+; DO ~~/demo/arm64/hardware/zynq_ultrascale/scripts/zynq-ultrascale_kick_bootcore.cmm _A53_234_X64
+DO "&(ppd)/../../scripts/zynq-ultrascale_kick_bootcore.cmm" _A53_234_X64
+
+; disconnect from system and reattach in SMP mode
+SYStem.Mode.Down
+CORE.ASSIGN 1. 2. 3. 4.
+SYStem.Mode.Attach
+
+IF STATE.RUN()
+  Break.direct
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+CORE.select 0.
+Data.LOAD.Elf "&(ppd)/sieve_ram_aarch64_v8.elf"
+; Set PC for all secondary cores
+Register.Init /CORE 1.
+Register.Set PC _start /CORE 1.
+Register.Init /CORE 2.
+Register.Set PC _start /CORE 2.
+Register.Init /CORE 3.
+Register.Set PC _start /CORE 3.
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace if Analyzer is plugged (ETM)
+IF Analyzer()
+(
+  ; set PinMux and enable Clocks
+  ; already done by FSBL and PL
+  ; f_PL0 = 250Mhz
+  ; for PowerTrace2Lite/PowerTrace PX we need to lower < 200MHz
+  PRIVATE &bReduceBandwidth
+  &bReduceBandwidth=FALSE()
+  &bReduceBandwidth=&(bReduceBandwidth)||hardware.POWERTRACEPX()
+  IF VERSION.BUILD.BASE()>=117875.
+  (
+    &bReduceBandwidth=&(bReduceBandwidth)||hardware.POWERTRACE2LITE()
+  )
+  IF (&bReduceBandwidth)
+  (
+    IF Data.Long(ENAXI:0xFF5E00C0)==0x1010600
+    (
+      // Assume IOPLL=1.5GHz => set f_PL0 divider to 8
+      Data.Set ENAXI:0xFF5E00C0 %Long 0x1010800
+    )
+    ELSE
+    (
+      PRINT %ERROR "Unknown Clock-Initialization! Exiting..."
+      END
+    )
+  )
+
+  ; design uses a 32bit->16bit DDR-DataMux
+  Trace.Method Analyzer
+  Analyzer.PortSize 16
+  TPIU.PortSize 32
+  TPIU.PortMode Continuous
+  ETM.Trace ON
+  ETM.ON
+  ; use Autofocus based calibration
+  Analyzer.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

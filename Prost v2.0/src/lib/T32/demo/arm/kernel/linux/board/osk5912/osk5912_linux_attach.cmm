@@ -1,0 +1,139 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux Demo for TRACE32 OS Awareness on the OSK5912 Board
+; @Description: 
+;   This script is supposed to attach to a running Linux on
+;   Spectrum Digital OSK5912 board. 
+;   The Task Awareness + Debugger Address Translation are prepared as for the 
+;   GSRD. After execution of this script the debugger is ready for Process, 
+;   Kernel, optional Module and optional Library debugging.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+; @Keywords: awareness, OMAP*, OSK, RTOS, TI
+; @Board: OSK5912
+; @Chip: OMAP5912
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: osk5912_linux_attach.cmm 16019 2020-05-06 08:47:23Z kjmal $
+
+
+; Starting Linux example with TRACE32 and Hyperterminal:
+; - Connect NULL modem cable to RS-232
+; - Start TRACE32
+; - Open serial terminal: 115200 baud, 8/N/1, no(!) handshake
+; - Switch on the board
+; - TRACE32: Start this script
+
+LOCAL &ka_path &awareness
+
+  SCREEN.ALways      ; permanent update for internal terminal window
+  ; screen.on        ; if you use external terminal
+
+
+; Debugger Reset
+
+  WinPAGE.RESet
+  AREA.RESet
+  WinPOS 0. 24. 75. 8. 0. 0. W000
+  AREA.view
+ 
+  PRINT "resetting..."
+
+  RESet
+
+
+; Initializing Debugger
+ 
+  PRINT "initializing..."
+  SYStem.CPU OMAP5912
+  SYStem.JtagClock RTCK
+  SYStem.Option DACR ON          ; give Debugger global write permissions
+  SYStem.Option ResBreak OFF     ; hardware dependent (see manual)
+  SYStem.Option WaitReset ON     ; hardware dependent (see manual)
+  TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+  TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+  TrOnchip.Set UNDEF OFF         ; my be used by Linux for FPU detection
+  SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+
+  SYStem.Attach
+  Break.direct
+  WAIT !STATE.RUN()
+
+ 
+  MAP.DenyAccess 0xE0000000--0xEFFFFFFF  ; access may disturb the board
+  SETUP.IMASKASM ON          ; lock interrupts while single stepping
+ 
+
+; Open serial terminal window on COM1
+ 
+  DO ~~/demo/etc/terminal/serial/term.cmm COM1 115200.
+ 
+
+ 
+; configure ETM on target and on TRACE32 for H3
+ IF ETM()
+ (
+   PRINT "ETM setup..."
+   ; Initialze ETM pins of OMAP5912
+   ;Enable ETM pins
+   ;ETM pin multiplexing - Normal Mode
+     PER.Set.simple ASD:0xFFFE1014 %Long 09200000; FUNC_MUX_CTRL_4
+     PER.Set.simple ASD:0xFFFE1018 %Long 09249249; FUNC_MUX_CTRL_5
+   ;ETM pin multiplexing - Demux Mode
+     PER.Set.simple ASD:0xFFFE101C %Long 00B40000; FUNC_MUX_CTRL_6
+     PER.Set.simple ASD:0xFFFE1020 %Long 0000002D; FUNC_MUX_CTRL_7
+   ;Change packet order in demux mode
+     SYStem.Option tidemuxfix ON
+   
+   ;etm.datatrace off
+     ETM.PortSize 8
+     ETM.HalfRate ON
+     ETM.ContextID 32.
+     Trace.AutoInit ON
+     Analyzer.AutoFocus
+ )
+
+
+; Load the Linux kernel symbols into the debugger
+ ; use /strippart and /path to map source paths, if necessary
+
+  PRINT "loading Linux kernel symbols..."
+  Data.LOAD.Elf vmlinux /NoCODE /StripPART 3 /PATH "S:\"
+
+
+; Open a Code Window -- we like to see something
+
+  WinPOS 0. 0. 75. 20.
+  List.auto
+  SCREEN.display
+ 
+; Declare the MMU format to the debugger
+ ; - table format is "LINUX"
+ ; - table base address is at label "swapper_pg_dir"
+ ; - kernel address translation
+ ; Map the virtual kernel symbols to physical addresses to give 
+ ; the debugger access to it before CPU MMU is initialized
+
+  PRINT "initializing debugger MMU..."
+  MMU.FORMAT LINUX swapper_pg_dir 0xc0000000--0xc1ffffff 0x10000000
+  TRANSlation.COMMON 0xc0000000--0xffffffff            ; common area for kernel and processes
+  TRANSlation.TableWalk ON   ; debugger uses a table walk to decode virtual addresses
+  TRANSlation.ON             ; switch on debugger(!) address translation 
+ 
+ ; Initialize Linux Awareness
+   ; Note that the Linux awareness needs the kernel symbols to work 
+   PRINT "initializing RTOS support..."
+   ; Choose the correct Linux major version below
+   ;TASK.CONFIG ~~/demo/arm/kernel/linux/linux-2.x/linux.t32     ; loads Linux awareness for linux-2.x
+   ;MENU.ReProgram ~~/demo/arm/kernel/linux/linux-2.x/linux.men  ; loads Linux menu  for linux-2.x
+   TASK.CONFIG ~~/demo/arm/kernel/linux/linux-3.x/linux3.t32     ; loads Linux awareness for linux-3.x
+   MENU.ReProgram ~~/demo/arm/kernel/linux/linux-3.x/linux.men  ; loads Linux menu  for linux-3.x
+   
+ ; Group kernel area to be displayed with red bar
+   GROUP.Create "kernel" 0xc0000000--0xffffffff /RED
+ 
+   Go.direct
+ 
+   Mode.Hll
+ 
+  ENDDO
+

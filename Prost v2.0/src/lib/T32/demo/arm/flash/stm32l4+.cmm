@@ -1,0 +1,152 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash declaration of ST STM32L4+ internal flash
+; @Description:
+; Script arguments:
+;
+;    DO stm32l4+ [PREPAREONLY] [CPU=<cpu>]
+;
+;      PREPAREONLY only declares flash but does not execute flash programming
+;      CPU=<cpu> selects CPU derivative <cpu>
+;
+;   Example:
+;
+;   DO ~~/demo/arm/flash/stm32l4+ CPU=STM32L4R5ZG PREPAREONLY
+;
+;   List of STM32L4xx derivatives and their configuration:
+;
+;     CPU-Type         Flash size   Page size    SRAM size
+;                        [Byte]      [Byte]        [Byte]
+; --------------------------------------------------------------------------------
+;     STM32L4R5xG       0x100000  0x1000/0x2000  0x30000  x=A/Q/V/Z
+;     STM32L4R5xI       0x200000  0x1000/0x2000  0x30000  x=A/Q/V/Z
+;     STM32L4R7xI       0x200000  0x1000/0x2000  0x30000  x=A/V/Z
+;     STM32L4R9xG       0x100000  0x1000/0x2000  0x30000  x=A/V/Z
+;     STM32L4R9xI       0x200000  0x1000/0x2000  0x30000  x=A/V/Z
+;     STM32L4S5xI       0x200000  0x1000/0x2000  0x30000  x=A/Q/V/Z
+;     STM32L4S7xI       0x200000  0x1000/0x2000  0x30000  x=A/V/Z
+;     STM32L4S9xI       0x200000  0x1000/0x2000  0x30000  x=A/V/Z
+;
+; Flash start: 0x08000000  alias at 0x0 (SYSCFG_MEMRMP MEM_MODE==0x0 main flash
+;                          memory)
+; SRAM0 start: 0x20000000
+;
+; @Author: PHI
+; @Chip: STM32L4*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 7657 $
+; $Id: stm32l4+.cmm 7657 2019-11-20 09:50:31Z sphilipp $
+
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+PRIVATE &param_prepareonly &param_cpu
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CPU=","")
+&param_dualport=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"DUALPORT=","1")
+
+; ------------------------------------------------------------------------------
+; Setup CPU
+
+IF SYStem.MODE()<5
+(
+  SYStem.RESet
+
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  IF !CPUIS(STM32L4*)
+    SYStem.CPU STM32L4*
+    
+  IF !(CPUIS(STM32L4R*G)||CPUIS(STM32L4R*I)||CPUIS(STM32L4S*I))
+  (
+    PRINT %ERROR "CPU not supported by this script"
+    ENDDO
+  )
+  IF CABLE.TWOWIRE()
+    SYStem.CONFIG.DEBUGPORTTYPE SWD
+
+  SYStem.Option.ResBreak OFF
+  SYStem.Up
+)
+
+; ------------------------------------------------------------------------------
+; Flash declaration
+
+FLASH.RESet
+GOSUB FlashDeclaration "&param_dualport"
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; -------------------------------------------------------------------------------
+; Flash programming example
+
+DIALOG.YESNO "Program flash memory?"
+LOCAL &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram.ALL
+  Data.LOAD.auto *
+  FLASH.ReProgram.off
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+)
+
+ENDDO
+
+
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU
+
+FlashDeclaration:
+(
+  PARAMETERS &param_dualport
+  PRIVATE &FlashSize &FlashDualBank &FlashDriver &SectorSize
+
+  &FlashDriver="stm32l4r.bin"
+
+  IF CPUIS(STM32L4R*G)
+    &FlashSize=0x100000
+  ELSE IF(CPUIS(STM32L4R*I)||CPUIS(STM32L4S*I))
+    &FlashSize=0x200000
+  ELSE
+  (
+    PRINT %ERROR "FLASH size of CPU type is unknown"
+    ENDDO
+  )
+
+  IF (((Data.Long(D:0x1FF00000)&0x400000)==0x400000)||((Data.Long(D:0x1FF00000)&0x400000)==0x200000))
+  (
+    &FlashDualBank=TRUE()
+    &SectorSize=0x1000
+  )
+  ELSE
+  (
+    &FlashDualBank=FALSE()
+    &SectorSize=0x2000
+  )
+
+  IF &FlashDualBank==TRUE()
+  (
+    FLASH.Create  1. 0x08000000++((&FlashSize/2.)-1.) &SectorSize TARGET Quad
+    FLASH.Create  2. (0x08000000+(&FlashSize/2.))++((&FlashSize/2.)-1.) &SectorSize TARGET Quad
+  )
+  ELSE
+      FLASH.Create  1. 0x08000000++(&FlashSize-1.) &SectorSize TARGET Quad
+
+  Data.ComPare 0x0--0xf 0x08000000
+  IF !FOUND()
+    FLASH.CreateALIAS 0x00000000++(&FlashSize-1) 0x08000000
+
+  IF (("&param_dualport"=="0")||SYStem.ACCESS.DENIED())
+    FLASH.TARGET 0x20000000 0x20001000 0x1000 ~~/demo/arm/flash/byte/&FlashDriver
+  ELSE
+    FLASH.TARGET 0x20000000 EAHB:0x20001000 0x1000 ~~/demo/arm/flash/byte/&FlashDriver /DualPort
+
+  RETURN
+)

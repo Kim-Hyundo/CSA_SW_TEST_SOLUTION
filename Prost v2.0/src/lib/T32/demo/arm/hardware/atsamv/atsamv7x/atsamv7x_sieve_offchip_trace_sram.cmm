@@ -1,0 +1,307 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for ATSAMV71Q21 on ATSAMV71-XULT with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The Offchip Trace using a Combiprobe/uTrace or PowerTrace is set up.
+;   Use this script for testing the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Combiprobe/uTrace to Coresight20
+;      or
+;      Connect AutoFocus Preprocessor to Coresight20 using Adapter LA-3809
+;      and connect DebugCable to Preprocessor
+; @Keywords: ARM, Cortex-M7, ETM, ITM
+; @Author: AME
+; @Board: ATSAMV71-XULT
+; @Chip: ATSAMV7* ATSAMS7* ATSAME7*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: atsamv7x_sieve_offchip_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU ATSAMV71Q21
+; for RevA devices select ATSAMV7xxxxA
+; e.g. SYStem.CPU ATSAMV71Q21A
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock 10MHz
+; trace infrastructure is unclocked after reset
+Trace.DISable
+ETM.OFF
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace (ETM, ITM)
+IF COMBIPROBE()||UTRACE()||Analyzer()
+(
+  ; set PinMux and enable Clocks
+  ; optional: setup the clocks
+  ;GOSUB ClockSetupCpu300
+  GOSUB ClockSetupCpu192
+  ;GOSUB ClockSetupTraceClk100
+  ;GOSUB ClockSetupTraceClk108
+  GOSUB KSZ8061Reset
+  GOSUB TraceGpioInit
+
+  ; mandatory: enable Trace Clock
+  ; set PCK3 source to MainClk if not yet configured (e.g. in ClockSetup...)
+  IF Data.Long(A:0x400e064c)==0x0
+    Data.Set A:0x400e064c %Long 0x4
+  WAIT 0.1s
+  ; finally enable the clock
+  ; PMC - start PCK3 - TPIU input CLK
+  Data.Set A:0x400e0600 %Long 0x800
+  WAIT 0.1s
+
+  TPIU.PortSize 4
+  TPIU.PortMode Continuous
+  ITM.DataTrace CorrelatedData
+  ITM.ON
+  ETM.Trace ON
+  ETM.COND ALL
+  ETM.ON
+)
+IF COMBIPROBE()||UTRACE()
+(
+  Trace.METHOD CAnalyzer
+  Trace.AutoInit ON
+  CAnalyzer.AutoFocus
+)
+IF Analyzer()
+(
+  Trace.METHOD Analyzer
+  Trace.AutoInit ON
+  Trace.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO
+
+DisableWatchdog:
+(
+  ; disable the Watchdog
+  ; WDT_MR, set WDDIS
+  Data.Set A:0x400E1854 %Long Data.Long(A:0x400E1854)|0x8000
+  RETURN
+)
+
+TraceGpioInit:
+(
+  ; Pin Multiplexing
+  ; PIOD, Write Protection
+  Data.Set A:0x400e14E4 %Long 0x50494F00
+  ; PD4-8 -> Peripheral
+  ; PIOD, set PIO_PDR
+  Data.Set A:0x400E1404 %Long 0x1f0
+  ; PD7-8 -> PeripheralCD
+  ; PIOD, set PIOABCDSR2
+  Data.Set A:0x400E1474 %Long Data.Long(A:0x400E1474)|0x1f0
+  ; PD4-7 -> PeripheralC (TraceData)
+  ; PIOD, clear PIOABCDSR1
+  Data.Set A:0x400E1470 %Long Data.Long(A:0x400E1470)&~(0xf0)
+  ; PD8   -> PeripheralD (TraceClk)
+  ; PIOD, set   PIOABCDSR1
+  Data.Set A:0x400E1470 %Long Data.Long(A:0x400E1470)|0x100
+  ; PD4-8 -> disable Multidrive
+  ; PIOD, set PIO_MDDR
+  Data.Set A:0x400E1454 %Long 0x1f0
+  ; PD4-8 -> set HIGH-Drive
+  ; PIOD, set PIO_DRIVER
+  Data.Set A:0x400E1518 %Long Data.Long(A:0x400E1518)|0x1f0
+  RETURN
+)
+
+KSZ8061Reset:
+(
+  ; set KSZ8061 phy in RESET -> otherwise the trace lines are shorted with the PHY
+  ; only required for the XPLAINED board
+  ; PIOC, Write Protection
+  Data.Set A:0x400e12E4 %Long 0x50494F00
+  ; PC10 -> Peripheral
+  ; PIOC, set PIO_PER
+  Data.Set A:0x400E1200 %Long 0x400
+  ; PC10 -> Output
+  ; PIOC, set PIO_OER
+  Data.Set A:0x400E1210 %Long 0x400
+  ; PC10 -> LOW
+  ; PIOC, set PIO_CODR
+  Data.Set A:0x400E1234 %Long 0x400
+  RETURN
+)
+
+ClockSetupCpu300:
+(
+  ; sample clock initialization
+  ; use PLLA sourced from FastRC
+  ; use FastRC=12MHz
+  ; use PLLA=288MHz
+
+  ; set MasterClock to MainClock
+  ; init PMC_MCKR
+  Data.Set A:0x400E0630 %Long 0x1
+
+  ; enable FastRC, set FastRC 12MHz, switch to FastRC
+  ; init CKGR_MOR
+  Data.Set A:0x400E0620 %Long  (Data.Long(A:0x400E0620)|0x370000)|0x8
+  Data.Set A:0x400E0620 %Long ((Data.Long(A:0x400E0620)|0x370000)&~(0x70))|0x20
+  Data.Set A:0x400E0620 %Long  (Data.Long(A:0x400E0620)|0x370000)&~(0x01000000)
+
+  ; enable PLLA, set PLL to 288MHz, => 12MHz * 24 = 288MHz => MDIV=23, DIVA=1
+  Data.Set A:0x400E0628 %Long (1<<29.)|(23.<<16.)|(0xf<<8)|0x1
+  WAIT 0.1s
+  ; init master clock divider
+  ; use PLLA as source, Prescaler=1 -> f_core = f_PLLA   = 288MHz
+  ;                     Divider  =2 -> f_MCK  = f_PLLA/2 = 144MHz
+  ; init PMC_MCKR
+  Data.Set A:0x400E0630 %Long 0x101
+  WAIT 0.1s
+  Data.Set A:0x400E0630 %Long 0x102
+  WAIT 0.1s
+
+  ; set PCK3 source to MCK = 144MHz - 77MHz externally
+  Data.Set A:0x400e064c %Long 0x4
+  RETURN
+)
+
+ClockSetupCpu192:
+(
+  ; sample clock initialization
+  ; use PLLA sourced from FastRC
+  ; use FastRC=12MHz
+  ; use PLLA=192MHz
+
+  ; set MasterClock to MainClock
+  ; init PMC_MCKR
+  Data.Set A:0x400E0630 %Long 0x1
+
+  ; enable FastRC, set FastRC 12MHz, switch to FastRC
+  ; init CKGR_MOR
+  Data.Set A:0x400E0620 %Long  (Data.Long(A:0x400E0620)|0x370000)|0x8
+  Data.Set A:0x400E0620 %Long ((Data.Long(A:0x400E0620)|0x370000)&~(0x70))|0x20
+  Data.Set A:0x400E0620 %Long  (Data.Long(A:0x400E0620)|0x370000)&~(0x01000000)
+
+  ; enable PLLA, set PLL to 192MHz, => 12MHz * 16 = 192MHz => MDIV=15, DIVA=1
+  Data.Set A:0x400E0628 %Long (1<<29.)|(15.<<16.)|(0xf<<8)|0x1
+  WAIT 0.1s
+  ; init master clock divider
+  ; use PLLA as source, Prescaler=1 -> f_core = f_PLLA   = 192MHz
+  ;                     Divider  =2 -> f_MCK  = f_PLLA/2 = 96MHz
+  ; init PMC_MCKR
+  Data.Set A:0x400E0630 %Long 0x101
+  WAIT 0.1s
+  Data.Set A:0x400E0630 %Long 0x102
+  WAIT 0.1s
+
+  ; set PCK3 source to MCK = 96MHz - 48MHz externally
+  Data.Set A:0x400e064c %Long 0x4
+  RETURN
+)
+
+ClockSetupTraceClk100:
+(
+  ; sample clock initialization
+  ; use PLLA sourced from FastRC
+  ; use FastRC=12MHz
+  ; use PLLA=204MHz
+
+  ; set MasterClock to MainClock
+  ; init PMC_MCKR
+  Data.Set A:0x400E0630 %Long 0x1
+
+  ; enable FastRC, set FastRC 12MHz, switch to FastRC
+  ; init CKGR_MOR
+  Data.Set A:0x400E0620 %Long  (Data.Long(A:0x400E0620)|0x370000)|0x8
+  Data.Set A:0x400E0620 %Long ((Data.Long(A:0x400E0620)|0x370000)&~(0x70))|0x20
+  Data.Set A:0x400E0620 %Long  (Data.Long(A:0x400E0620)|0x370000)&~(0x01000000)
+
+  ; enable PLLA, set PLL to 204MHz, => 12MHz * 17 = 204MHz => MDIV=16, DIVA=1
+  Data.Set A:0x400E0628 %Long (1<<29.)|(16.<<16.)|(0xf<<8)|0x1
+  WAIT 0.1s
+  ; init master clock divider
+  ; use PLLA as source, Prescaler=1 -> f_core = f_PLLA   = 204MHz
+  ;                     Divider  =2 -> f_MCK  = f_PLLA/2 = 102MHz
+  ; init PMC_MCKR
+  Data.Set A:0x400E0630 %Long 0x101
+  WAIT 0.1s
+  Data.Set A:0x400E0630 %Long 0x102
+  WAIT 0.1s
+
+  ; set PCK3 source to PLLA/1 = 204MHz - 102MHz externally
+  Data.Set A:0x400e064c %Long 0x02
+  RETURN
+)
+
+ClockSetupTraceClk108:
+(
+  ; sample clock initialization
+  ; use PLLA sourced from FastRC
+  ; use FastRC=12MHz
+  ; use PLLA=216MHz
+
+  ; set MasterClock to MainClock
+  ; init PMC_MCKR
+  Data.Set A:0x400E0630 %Long 0x1
+
+  ; enable FastRC, set FastRC 12MHz, switch to FastRC
+  ; init CKGR_MOR
+  Data.Set A:0x400E0620 %Long  (Data.Long(A:0x400E0620)|0x370000)|0x8
+  Data.Set A:0x400E0620 %Long ((Data.Long(A:0x400E0620)|0x370000)&~(0x70))|0x20
+  Data.Set A:0x400E0620 %Long  (Data.Long(A:0x400E0620)|0x370000)&~(0x01000000)
+
+  ; enable PLLA, set PLL to 216MHz, => 12MHz * 18 = 216MHz => MDIV=17, DIVA=1
+  Data.Set A:0x400E0628 %Long (1<<29.)|(17.<<16.)|(0xf<<8)|0x1
+  WAIT 0.1s
+  ; init master clock divider
+  ; use PLLA as source, Prescaler=1 -> f_core = f_PLLA   = 216MHz
+  ;                     Divider  =2 -> f_MCK  = f_PLLA/2 = 108MHz
+  ; init PMC_MCKR
+  Data.Set A:0x400E0630 %Long 0x101
+  WAIT 0.1s
+  Data.Set A:0x400E0630 %Long 0x102
+  WAIT 0.1s
+
+  ; set PCK3 source to PLLA/1 = 216MHz - 108MHz externally
+  Data.Set A:0x400e064c %Long 0x02
+  RETURN
+)

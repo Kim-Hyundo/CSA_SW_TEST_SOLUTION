@@ -1,0 +1,18 @@
+//MS 변수 확인 (1cycle-> 10ms)
+B::
+ENTRY &para1
+ON ERROR JUMPTO errorhandler
+
+&result=var.Value(&para1)
+&result=&result*10.
+
+print %decimal &result
+
+ON ERROR
+ENDDO &result
+
+
+errorhandler:
+PRINT %ERROR "ERROR4"
+ON ERROR
+ENDDO ERROR

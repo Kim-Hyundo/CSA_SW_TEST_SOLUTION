@@ -1,0 +1,156 @@
+; --------------------------------------------------------------------------------
+; @Title: SMP-Demo script for ZYNQ-7000 with Offchip-Trace (RAM, SMP)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Offchip-Trace.
+;   Therefore the FSBL is used to initialize DRAM. Afterwards the FPGA is loaded
+;   using the PCAP (via DRAM & DMA). Clock Initialization is handled by FSBL.
+;   Use this script to test the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to J1 using adapter LA-3881
+;      please modify the adapter according to readme.pdf
+;    * HW-FMC-105-DEBUG card is plugged
+;    * Connect AutoFocus Preprocessor to P1 on HW-FMC-105-DEBUG using
+;      Mictor38 cable
+;    *  SW7[1..5]=MIO[2..6]=0y00000 - JTAG BOOT
+;      or
+;       SW7[1..5]=MIO[2..6]=0y00110 - SD BOOT and remove the SD-Card
+;    * set short JP1 1-2 - FPGA TDO
+;    * on HW-FMC-105-DEBUG ensure J5 TDI+TDO are not shorted (avoid stub lines)
+;    * on HW-FMC-105-DEBUG add a pulldown ~800 Ohm from J5 TCK-GND (reflexions)
+; @Keywords: ARM, Cortex-A9, ETM, SMP
+; @Author: AME
+; @Board: AVNET/ZEDBOARD Zynq Mini-ITX
+; @Chip: ZYNQ-7000
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mini-itx_sieve_offchip_trace_smp_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+WinCLEAR
+
+PRIVATE &ppd
+&ppd=OS.PPD()
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU ZYNQ-7000
+; set DaisyChaining Parameters of the board
+; check e.g. SYStem.DETECT.ShowCHAIN
+SYStem.CONFIG DAPIRPRE  6.
+SYStem.CONFIG DAPIRPOST 0.
+SYStem.CONFIG DAPDRPRE  1.
+SYStem.CONFIG DAPDRPOST 0.
+; wait 100ms after nReset release for the first connection attempt (caused by BootROM)
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 100ms
+; due to signal problems max 1.5MHz JtagClock
+SYStem.JtagClock CTCK 1.5MHz
+; generic part continues here
+Trace.DISable
+;CORE.ASSIGN 1. 2.
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load the FSBL - FirstStageBootloader
+; set both cores to the Entry Point (0x0)
+PRINT "execute FSBL"
+Data.LOAD.Elf ~~~~/fsbl.elf
+Register.Set PC 0x0 /CORE 0.
+Register.Set PC 0x0 /CORE 1.
+; patch the code just in case the jumpers do not select JTAG
+Data.Assemble InitNor  b FsblHandoffJtagExit
+Data.Assemble InitSD   b FsblHandoffJtagExit
+Data.Assemble InitQspi b FsblHandoffJtagExit
+
+; execute FSBL - go till "FsblHandoffJtagExit", then to "Loop"
+Go FsblHandoffJtagExit
+WAIT !STATE.RUN() 1.s
+IF STATE.RUN()
+  Break
+IF Register(PC)!=ADDRESS.OFFSET(FsblHandoffJtagExit)
+(
+  PRINT %WARNING "CPU did not stop at FsblHandoffJtagExit ... continue"
+)
+Go Loop
+WAIT !STATE.RUN() 0.2s
+IF STATE.RUN()
+  Break
+
+
+PRINT "programming the FPGA design"
+PRIVATE &bitfile
+&bitfile="&ppd/mini-itx-7z45_parallel_32_to_16.bit"
+IF !OS.FILE("&bitfile")&&OS.FILE("&bitfile.gz")
+  UNZIP "&bitfile.gz" "&bitfile"
+;DO "~~/demo/arm/hardware/zynq-7000/scripts/zynq_bitstream" "&bitfile" 0x00100000
+DO "~~~~/../scripts/zynq_bitstream" "&bitfile" 0x00100000
+
+GOSUB FpgaPostInit
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace if Analyzer is plugged (ETM)
+IF Analyzer()
+(
+  ; the FPGA design uses the Bandwidth trick as documented in
+  ; ~~/pdf/app_xilinx_zynq.pdf
+  ; TPIU is formatting with 32bit, but FPGA design does data multiplexing to 16bit
+  Trace.Method Analyzer
+  TPIU.PortSize 32
+  Analyzer.PortSize 16
+  TPIU.PortMode Continuous
+  ETM.Trace ON
+  ETM.ON
+  ; use Autofocus based calibration - fails right now due to the bandwidth trick
+  ON ERROR CONTinue
+  Analyzer.AutoFocus /TESTCODE
+  ON ERROR inherit
+  PRINT "Trace ready ..."
+)
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+CORE.select 0.
+Data.LOAD.Elf "~~~~/sieve_ram_arm_v7.elf"
+; Set PC for all secondary cores
+Register.Init /CORE 1.
+Register.Set PC _start /CORE 1.
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO
+
+FpgaPostInit:
+(
+  ; unlock
+  Data.Set AD:0xf8000008 %Long 0x0000df0d
+  ; enable level shifters PS->PL, PL->PS
+  Data.Set AD:0xf8000900 %Long 0x0000000f
+  ; toggle reset
+  Data.Set AD:0xf8000240 %Long 0xffffffff
+  Data.Set AD:0xf8000240 %Long 0x00000000
+  ; lock
+  Data.Set AD:0xf8000004 %Long 0x0000767b
+  RETURN
+)

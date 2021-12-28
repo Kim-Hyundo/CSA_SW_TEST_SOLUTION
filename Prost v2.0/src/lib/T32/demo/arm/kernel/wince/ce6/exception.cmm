@@ -1,0 +1,109 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to investigate Unhandled Exceptions for WinCE 6.0
+; @Description: 
+;   See Windows CE Awareness Manual, chapter
+;       "Debugging Windows CE"->"Trapping Unhandled Exceptions"
+;   Call this script to set the appropriate breakpoints
+;   and call it again to set the register set to the place
+;   where the fault happened.
+;   The registers are set temporarily; as soon as debugging
+;   is continued (Step, Go, ...), the original registers
+;   are restored.
+;   see WINCE600/private/winceos/coreos/nk/kernel/exdsptch.c
+; @Keywords: awareness, windows
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: exception.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+ LOCAL &print_exc
+
+ ; we need access to the kernel symbols, ensure they're loaded
+ 
+ IF !sYmbol.EXIST(PrintException)
+ (
+   TASK.sYmbol.Option AutoLoad RomMod
+   sYmbol.AutoLOAD.CHECK
+   sYmbol.AutoLOAD.TOUCH "kernel.dll"
+   IF !sYmbol.EXIST(PrintException)
+   (
+     PRINT "Error: symbols for exception handling not loaded!"
+     ENDDO
+   )
+ )
+
+ ; unhandled exception
+ &print_exc=ADDRESS.OFFSET(PrintException)
+ Break.Set &print_exc
+ 
+ ; if halted on unhandled exception
+ IF Register(pc)==&print_exc
+ (
+    &id=Register(r0)
+    GOSUB print_exception_id &id
+    GOSUB swap_registers r(r2)
+    ENDDO
+ )
+
+ ENDDO
+
+
+print_exception_id:
+
+ ; print the exception id as string
+ 
+ LOCAL &idstring
+ 
+ ENTRY &id
+
+ IF &id<=5          ; MD_MAX_EXCP_ID in nkarm.h
+   &idstring=Data.STRing(D:Var.VALUE(g_ppszMDExcpId[&id]))
+ ELSE IF (&id+3)<3  ; nOsExcps
+   &idstring=Data.STRing(D:Var.VALUE(ppszOsExcp[&id]))
+ ELSE
+   &idstring="Unknown Exception"
+   
+ PRINT "exception '&idstring' (&id)"
+ 
+ RETURN
+
+
+swap_registers:
+
+ ; set register set temporarily to faulty state
+
+ LOCAL &r0  &r1  &r2  &r3  &r4  &r5  &r6  &r7 
+ LOCAL &r8  &r9  &r10 &r11 &r12 &r13 &r14
+ LOCAL &pc  &cpsr
+ LOCAL &i
+ 
+ ENTRY &ctx
+
+ ; first get all register values from the context
+
+ &i=0.
+ WHILE &i<15.
+ (
+   ; collect all registers to script variables &r0-&r14
+   &ic=STRing.CUT("&i",-1)   ; to cut trailing dot
+   &r&ic=Data.Long(D:&ctx+4+(&i*4))     ; &r0=v.v(pCtx->R0)
+   &i=&i+1
+ )
+ &pc=Data.Long(D:&ctx+(16.*4))
+ &cpsr=Data.Long(D:&ctx+(17.*4))
+
+ ; second write values into registers temporarily
+
+ Register.Set cpsr &cpsr /Task Temporary    ; set CPSR first! (regbank)
+ &i=0.
+ WHILE &i<15.
+ (
+   &ic=STRing.CUT("&i",-1)  ; to cut trailing dot
+   &&value=&r&ic            ; && for recursive macro parsing
+   Register.Set r&ic &value /Task Temporary  ; r.s r0 &r0
+   &i=&i+1
+ )
+ Register.Set PC &pc /Task Temporary
+
+ RETURN

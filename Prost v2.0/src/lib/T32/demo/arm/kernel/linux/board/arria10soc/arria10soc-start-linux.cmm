@@ -1,0 +1,116 @@
+; --------------------------------------------------------------------------------
+; @Title: ARRIA10SOC Linux debugging (from Bootloader)
+; @Description:
+;   This script starts the Linux Kernel on a ARRIA10SOC from the Bootloader. 
+;   The script may be either used to start the kernel directly OR to start the 
+;   kernel from U-BOOT (see comments below).
+;   The Task Awareness + Debugger Address Translation are prepared as for the 
+;   GSRD. After execution of this script the debugger is ready for Process, 
+;   Kernel, optional Module and optional Library debugging.
+;   Prerequisites:
+;   * Target is stopped in Bootloader console (u_boot)
+;   * connect Debugcable or Combiprobe to HPS Trace connector
+;     and make sure nothing is connected to J24
+;     OR
+;     connect Debugcable or Combiprobe to J24 header
+;     using LA-3863 (ARM->NIOS converter)
+;   * set FPGA->HPS JTAG DaisyChain configuration
+;     SW3[1..8]=0b01111111 (M5A Jtag Enable)
+;   * ZIMAGE file, VMLINUX file, DTB file available
+; @Keywords: ALTERA, Cortex-A9, Arria10, GSRD
+; @Props: Template
+; @Author: AME
+; @Board: ARRIA10SOC
+; @Chip: ARRIA10SOC
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: arria10soc-start-linux.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+; board setup
+RESet
+SYStem.RESet
+SYStem.CPU ARRIA10SOC
+; settings for FPGA-HPS scanchain - see prerequisites
+; can be discovered by SYStem.DETECT.ShowCHAIN
+SYStem.CONFIG DAPIRPOST 10.
+SYStem.CONFIG DAPDRPOST 1.
+; linux specific settings
+TrOnchip.Set DABORT OFF
+TrOnchip.Set PABORT OFF
+TrOnchip.Set UNDEF OFF
+TrOnchip.Set RESET OFF
+SYStem.Option DACR ON
+SYStem.Option MMUSPACES ON
+; start with the first core only
+CORE.ASSIGN 1.              ; "1" = first core, "2" = second core, "1 2" = both cores (SMP)
+SYStem.Mode.Attach
+
+IF FALSE()
+(
+  ; Method 1: Start the kernel using the debugger
+  ; DTB will be not modified by U-Boot (no bootargs, ...), it's expected that VMLINUX uses a 2G/2G split
+  ; load kernel code + dtb to physical address
+  Data.LOAD.Elf <path to>/vmlinux EAHB:0x0-0x80000000 /NosYmbol
+  ; expects that the "chosen=" string is set in the DTB directly
+  ; alternative the Kernel default command line arguments are enough
+  Data.LOAD.Binary <path to>/socfpga_custom.dtb EAHB:0x01ff7000
+  ; load kernel symbols to virtual addresses
+  Data.LOAD.Elf <path to>/vmlinux /NoCODE
+  
+  Register.Set I 1
+  Register.Set F 1
+  Register.Set R0 0x0          // must be 0x0
+  Register.Set R1 0x94D6ED80   // MACHINE_TYPE - may be incorrect - check arch/arm/tools/mach-types
+  Register.Set R2 0x01ff7000   // pointer to DTB
+  Go.direct start_kernel /Onchip
+)
+ELSE
+(
+  ; Method 2: Start the kernel using U-Boot
+  ; We load the zImage + DTB into RAM and continue with U-Boot ...
+  ; DTB will be modified by U-Boot (bootargs, ...)
+  IF STATE.RUN()
+    Break
+  ; load zImage/kernel + dtb to physical address
+  Data.LOAD.Binary <path to>/zImage 0x8000
+  Data.LOAD.Binary <path to>/socfpga_arria10_socdk.dtb 0x100
+  ; load kernel symbols to virtual addresses
+  Data.LOAD.Elf <path to>/vmlinux /NoCODE
+
+  Go.direct start_kernel /Onchip
+  DIALOG.OK "Please type *bootz 0x8000 - 0x100* now into U-Boot console."
+  ; or TERM.OUT "<other commands>; bootz 0x8000 - 0x100"
+)
+; wait till the target stops at start_kernel
+WAIT !STATE.RUN()
+
+; setup debugger address translation
+; Kernel Virtual Memory 0x80000000++0x3fffffff
+; Kernel Physical       0x0
+; Common Section        KERNEL + Modules -> 0x7f000000--0xffffffff
+; activate debugger address translation
+MMU.FORMAT LINUXSWAP3 swapper_pg_dir 0x80000000++0x3fffffff 0x0
+TRANSlation.COMMON 0x7f000000--0xffffffff
+TRANSlation.TableWalk ON
+TRANSlation.ON
+
+; boot till smp_cpus_done .. switch to SMP
+Go smp_cpus_done
+WAIT !STATE.RUN()
+SYStem.Down
+CORE.ASSIGN 1.,2.
+SYStem.Mode.Attach
+
+; load Awareness LINUX3
+TASK.CONFIG ~~/demo/arm/kernel/linux/linux-3.x/linux3.t32
+MENU.ReProgram ~~/demo/arm/kernel/linux/linux-3.x/linux.men
+
+; for now activate PROCESS debugging only
+TASK.sYmbol.Option AutoLoad PROCESS
+;TASK.sYmbol.Option AutoLoad MODULE
+;TASK.sYmbol.Option AutoLoad LIBRARY
+
+; check for new symbols after each GO
+sYmbol.AutoLOAD.CHECK ONGO
+
+ENDDO

@@ -1,0 +1,45 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple midi demo script for the Cypress board
+; @Description: 
+;   Loads the midi demo into SRAM and sets up a demo debug
+;   SRAM: 0x2000_0000--0x20000FFF (4Kb)
+;        
+; @Keywords: Cypress, CortexM0, SWD
+; @Board: CY8CKIT-042
+; @Author: MSA
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: cy8c4245_sram_midi_demo.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+  RESet
+  SYStem.RESet
+
+  SYStem.CPU CortexM0
+  SYStem.CONFIG SWDP ON
+
+  SYStem.Mode Attach
+
+  IF STATE.RUN()
+    Break.direct
+    
+  Data.LOAD.Elf ~~~~/midi_ram_thumb_v6m.elf
+  
+ ; open some windows
+  WinCLEAR
+
+  WinPOS 0% 0% 50% 50%
+  List.auto
+
+  WinPOS 50% 0% 50% 50%
+  Register.view /SpotLight
+
+  WinPOS 0% 50% 50% 50%
+  Frame /Locals /Caller
+
+  WinPOS 50% 50% 50% 50%
+  Var.DRAW sinewave
+  
+  GO
+  WAIT 2.s
+  Break
+  ENDDO

@@ -1,0 +1,126 @@
+; --------------------------------------------------------------------------------
+; @Title: Example for Debugging Code Overlays (Single-ELF)
+; @Description:
+;   Example for debugging Code Overlays with TRACE32
+;   unsing a single ELF with overlaying code sections
+;
+;   Supported Targets:
+;       TriBoard-TC399
+;       TRACE32 Instruction Set Simulator
+;
+; @Author: MEI
+; @Board: TriBoard-TC3x9; TRACE32 Simulator
+; @Copyright: (C) 1989-2016 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: ovdemo.cmm 15150 2019-10-23 10:15:36Z meick $
+
+
+LOCAL &param
+ENTRY %LINE &param
+&param=STRing.LoWeR("&param")
+
+WinCLEAR
+Break.RESet
+AREA.CLEAR
+sYmbol.RESet
+SYStem.RESet
+FramePOS ,,,,Maximized
+
+; --------------------------------------------------------------------------------
+; Setting up the target board
+; --------------------------------------------------------------------------------
+
+SYStem.CPU TC399XE
+SYStem.Option OVERLAY withOVSBP
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; Setting up the overlay example
+; --------------------------------------------------------------------------------
+;Register.RESet
+;Register.Set CPSR 0x0013
+;Data.Set 0x00--0x3ff %Long 0xeafffffe
+sYmbol.SourcePATH.Set "~~~~/src"
+
+IF STRing.SCAN("&param","alt",0)>=0
+(
+	// file-base overlay support (not recommended)
+	sYmbol.RESet
+	sYmbol.OVERLAY.Create 1,,,".page1","task"
+	sYmbol.OVERLAY.Create 1,,,".page1","task1"
+	sYmbol.OVERLAY.Create 1,,,".page1","funcasm"
+	sYmbol.OVERLAY.Create 2,,,".page1","func"
+	sYmbol.OVERLAY.Create 1,,,".page1","sieve"
+	sYmbol.OVERLAY.Create 2,,,".page2","inc"
+	sYmbol.OVERLAY.Create 2,,,".page2","blubber"
+	Data.LOAD.Elf "~~~~/ovdemo.alt.elf" /OVERLAY /NoClear /Include /RelPATH /NOFRAME
+)
+ELSE
+(
+	IF STRing.SCAN("&param","cid8",0)>=0
+	(
+		sYmbol.OVERLAY.Create 0x41,,,".page1" ;Map section '.page1' to memory segment 0x41 (independent from the sections index)
+		sYmbol.OVERLAY.Create 0x42,,,".page2" ;Map section '.page2' to memory segment 0x42 (independent from the sections index)
+	)
+	ELSE
+	(
+		sYmbol.OVERLAY.Create    1,,,".page1" ;optional: Map section '.page1' to memory segment 1 (independent from the sections index)
+		sYmbol.OVERLAY.Create    2,,,".page2" ;optional: Map section '.page2' to memory segment 2 (independent from the sections index)
+	)
+
+	Data.LOAD.Elf "~~~~/ovdemo.elf" /NoClear /Include /RelPATH /GNU /OVERLAY
+	Data.LOAD.Elf "~~~~/ovdemo.elf" /NosYmbol /CODESEC /VM /OVERLAY    // Load code again in VM for code coverage based on RTS
+)
+
+
+// Find magic address/values pairs to detect of an overlay page is active
+sYmbol.OVERLAY.AutoID
+;	Break.Set ADDRESS.OFFSET(sYmbol.SECADDRESS(.page1)) /Write /TraceData
+
+// Disable the usage of symbolic frame information (since they work usally not well with code overlays)
+Frame.CONFIG.sYmbol OFF
+
+// Option creation of Groups:
+GROUP.RESet
+GROUP.Create "page1" sYmbol.SECPRANGE(.page1)
+GROUP.Create "page2" sYmbol.SECPRANGE(.page2)
+
+
+Mode.Hll
+Go main
+
+
+IF Analyzer()&&SIMULATOR()
+(
+	WinPOS 30% 60% 70% 20%
+	Analyzer.Chart.GROUP /ZoomTrack
+
+	WinPOS 55% 0 45% 60%
+	Analyzer.List List.ADDRESS DEFault /Track
+
+	WinPOS 0 0 55% 60%
+	List.auto
+)
+ELSE
+(
+	WinPOS 30% 60% 70% 20%
+	Var.Ref %Hex %Decimal
+
+	WinPOS 0% 0% 100% 60%
+	List.auto
+)
+
+WinPOS 0% 60% 30% 40%
+Frame.view
+
+WinPOS 30% 82% 70% 18%
+sYmbol.OVERLAY.List /STorage
+
+;sYmbol.List.LINE
+;sYmbol.List.Function
+;sYmbol.List.FRAME
+;sYmbol.Browse.SModule
+
+ENDDO
+
+

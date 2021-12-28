@@ -1,0 +1,137 @@
+; --------------------------------------------------------------------------------
+; @Title: ATSAMA5D24 Quad SPI Serial FLASH Programming Script
+; @Description:
+; Serial FLASH (ISSI, IS25LP064A) is connected to QSPI Controller
+;
+; Internal SRAM    : 0xD0000000
+; Serial FLASH Controller Addr: 0xF0020000
+;
+;  QSPI0_SCK    :PA22
+;  QSPI0_SS     :PA23
+;  QSPI0_IO[0:3]:PA[24:27]
+;
+; @Author: jjeong
+; @Chip: ATSAMA5D24
+; @Keywords: flash SPI
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: atsama5d2-qspi.cmm 7224 2019-08-05 09:24:08Z jjeong $
+
+&QSPI_BASE=0xF0020000
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+PRIVATE &param_prepareonly &param_cpu &param_dualport
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CPU=","")
+&param_dualport=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"DUALPORT=","0")
+
+; ------------------------------------------------------------------------------
+; Setup CPU
+RESet
+SYStem.RESet
+SYStem.CPU ATSAMA5D24
+IF VERSION.BUILD()<84227.
+(
+  SYStem.CONFIG L2CACHE Type L2C-310
+  SYStem.CONFIG L2CACHE Base ANC:0xA00000
+)
+SYStem.Option ResBreak OFF
+SYStem.Option WaitIDCODE  1s
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+SYStem.Up
+
+Break.RESet
+GOSUB DisableWatchdog
+
+; ------------------------------------------------------------------------------
+; Flash Power & Clock Enable
+PER.Set.simple AZSD:0xF0014100 %Long 0x100000  ;QSPI0 enable
+
+; ------------------------------------------------------------------------------
+; Flash Pin Mux Configuration
+PER.Set.simple AZSD:0xFC038000 %Long 0x0FC00000  ;PA[27:22]non mask
+PER.Set.simple AZSD:0xFC038004 %Long 0x206       ;Periph_f port_A
+
+; ------------------------------------------------------------------------------
+; Flash Controller Init
+PER.Set.simple AZSD:&QSPI_BASE+0x0000 %Long (0x1<<7)    ; reset & disable all values
+PER.Set.simple AZSD:&QSPI_BASE+0x0004 %Long 0x02000001  ; !!DLYCS very important!!
+PER.Set.simple AZSD:&QSPI_BASE+0x0014 %Long 0x7FF       ; interrupt enable
+PER.Set.simple AZSD:&QSPI_BASE+0x0020 %Long 0x000200    ; 44.Mhz
+PER.Set.simple AZSD:&QSPI_BASE+0x0034 %Long 0x03        ; Read command:03
+PER.Set.simple AZSD:&QSPI_BASE+0x0038 %Long 0x10b0      ; for the memory mapped
+PER.Set.simple AZSD:&QSPI_BASE+0x0000 %Long 0x1         ; Enable QSPI controller
+
+; ------------------------------------------------------------------------------
+; Flash Read ID Test
+GOSUB READ_ID_TEST
+
+; ------------------------------------------------------------------------------
+; Flash declaration
+FLASH.RESet
+FLASH.Create  0xD0000000++0xFFFFFF  0x10000  TARGET  Byte
+FLASH.TARGET  A:0x00201000  0x00203000  0x2000  ~~/demo/arm/flash/byte/snor3b_atsama5d2.bin  /STACKSIZE 0x200
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; -------------------------------------------------------------------------------
+; Flash programming example
+DIALOG.YESNO "Program flash memory?"
+LOCAL &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram.ALL
+  Data.LOAD.auto *
+  FLASH.ReProgram.off
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+)
+
+ENDDO
+
+DisableWatchdog:
+(
+  ; disable the Watchdog
+  Data.Set AD:0xF8048044 %Long Data.Long(AD:0xF8048044)|0x8000
+  RETURN
+)
+
+READ_ID_TEST:
+(
+  &tx_reg=&QSPI_BASE+0x000C
+  &rx_reg=&QSPI_BASE+0x0008
+  &cs_reg=&QSPI_BASE+0x0000
+
+  PER.Set.simple AZSD:&QSPI_BASE+0x0004 %Long 0x02000018
+
+  Data.Set &cs_reg %Long ((0x1<<24.))  ;CS Eable
+  Data.Set &tx_reg %Long 0x9f9f9f9F    ; Write command
+  PRINT "read 1st: 0x" Data.Byte(A:&rx_reg)  ; dummy
+
+  Data.Set &tx_reg %Long 0x00    ; Write dummy
+  PRINT "read 2nd: 0x" Data.Byte(SD:&rx_reg)  " (Manufacture ID)"
+
+  Data.Set &tx_reg %Long 0x00    ; Write dummy
+  PRINT "read 3rd: 0x" Data.Byte(SD:&rx_reg)  " (Deveice ID)"
+
+  Data.Set &tx_reg %Long 0x00    ; Write dummy
+  PRINT "read 4th: 0x" Data.Byte(SD:&rx_reg)
+
+  PER.Set.simple AZSD:&QSPI_BASE+0x0000 %Long (0x1<<7)    ; reset & disable all values
+  PER.Set.simple AZSD:&QSPI_BASE+0x0004 %Long 0x02000001  ; !!DLYCS very important!!
+  PER.Set.simple AZSD:&QSPI_BASE+0x0014 %Long 0x7FF       ; interrupt enable
+  PER.Set.simple AZSD:&QSPI_BASE+0x0020 %Long 0x000200    ; 44.Mhz
+  PER.Set.simple AZSD:&QSPI_BASE+0x0034 %Long 0x03        ; Read command:03
+  PER.Set.simple AZSD:&QSPI_BASE+0x0038 %Long 0x10b0      ; for the memory mapped
+  PER.Set.simple AZSD:&QSPI_BASE+0x0000 %Long 0x1         ; Enable QSPI controller
+
+  RETURN
+)

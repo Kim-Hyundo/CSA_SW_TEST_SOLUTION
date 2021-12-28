@@ -1,0 +1,119 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for MSR1-CM7 on STA800C with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The Offchip Trace using a Combiprobe/uTrace or PowerTrace is set up.
+;   Use this script for testing the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Debug Cable to J14
+;      or connect Combiprobe/uTrace to J14 using adapter LA-3771.
+;    * Connect Preprocessor AF-II MIPI (LA-7993) to J15.
+; @Keywords: ARM, MSR1, Cortex-M7, ETM, ITM
+; @Author: ALI
+; @Board: STA800C
+; @Chip: MSR1-CM7
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: sta800c_cm7_sieve_offchip_trace_sram.cmm 14794 2019-08-12 13:22:33Z alintner $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU MSR1-CM7
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.JtagClock 10MHz
+SYStem.Option EnReset OFF
+
+; try to guess TSEL
+SYStem.DETECT.IDCode
+IF IDCODE(0)!=0x6BA00477 ; the ARM DAP should be the first in the JTAG chain
+(
+  PRINT %ERROR "No ARM Debug Access Port detected"
+  ENDDO
+)
+IF IDCODENUMBER()>1.
+(
+  SYStem.CONFIG.DAPIRPRE 5.
+  SYStem.CONFIG.DAPDRPRE 1.
+)
+Trace.DISable
+ETM.OFF
+ITM.OFF
+STM.OFF
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace (ETM, ITM)
+IF Analyzer()
+(
+)
+ELSE IF COMBIPROBE()||UTRACE()
+(
+)
+IF COMBIPROBE()||UTRACE()||Analyzer()
+(
+  ; set PinMux and enable Clocks
+  DO ~~~~/../scripts/coresight_enable "TPIU_CLK_DIV=8."
+  WAIT 100.ms
+
+  TPIU.PortMode Continuous
+  ITM.DataTrace CorrelatedData
+  ITM.ON
+  ETM.Trace ON
+  ETM.COND ALL
+  ETM.ON
+)
+IF Analyzer()
+(
+  Trace.METHOD Analyzer
+  TPIU.PortSize 20
+  Trace.AutoInit ON
+  Trace.AutoFocus
+)
+ELSE IF COMBIPROBE()||UTRACE()
+(
+  Trace.METHOD CAnalyzer
+  TPIU.PortSize 4
+  Trace.AutoInit ON
+  Trace.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+//Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO

@@ -1,0 +1,96 @@
+; --------------------------------------------------------------------------------
+; @Title: Generic Flash script file for TC1793 devices
+; @Description:
+;   Example script for flash declaration and programming of Infineon
+;   TriCore TC1793 internal flash.
+; @Keywords: Flash, Infineon, TriCore
+; @Author: WRD
+; @Chip: TC1793*
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 2935 $
+; $Id: tc1793.cmm 2935 2014-08-05 07:49:32Z mobermeir $
+
+
+; Script arguments:
+;
+;   DO tc1793 [PREPAREONLY]
+;
+;     PREPAREONLY only declares flash but does not execute flash programming
+;
+; Example:
+;
+;   DO ~~/demo/tricore/flash/tc1793 PREPAREONLY
+;
+; Flash:
+;   4 MByte onchip program flash at 0x80000000--0x801fffff (FLASH_0, cached)
+;                                   0x80800000--0x809fffff (FLASH_1, cached)
+;                                or 0xa0000000--0xa01fffff (FLASH_0, non cached)
+;                                   0xa0800000--0xa09fffff (FLASH_1, non cached)
+;     Sectors (logical):  8 x 16kB, 1 x 128kB, 7 x 256kB
+;     Sectors (physical): 2 x 64kB, 1 x 128kB, 7 x 256kB
+;
+;   192 kByte onchip data flash at 0xaf000000--0xaf017fff (DFLASH Bank 0)
+;                                  0xaf080000--0xaf097fff (DFLASH Bank 1)
+;     Sectors: 2 x 96kB
+;
+; RAM:
+;   128 kByte DMI Scratch-Pad RAM at 0xd0000000--0xd001ffff
+;    32 kByte PMI Scratch-Pad RAM at 0xc0000000--0xc0007fff
+;
+
+  LOCAL &parameters &param_prepareonly
+  ENTRY %LINE &parameters
+  &param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+
+  ; ------------------------------------------------------------------------------
+  ; Initialize
+
+  IF SYStem.MODE()<5.
+  (
+    SYStem.RESet
+    SYStem.CPU TC1793
+    SYStem.Up
+  )
+
+  Data.Set 0xF00005F4 %Long 0x00000008    ; disable watchdog for programming
+
+  ; ------------------------------------------------------------------------------
+  ; Flash Declaration
+  ; Declaring TC1793 internal flash requires an additional parameter providing
+  ; the base address for the flash device to use (FLASH_0 or FLASH_1).
+  ; In case the parameter is omitted, the default is FLASH_0.
+
+  FLASH.RESet
+  ; Program flash
+  FLASH.Create 1. 0xa0000000--0xa000ffff 0x04000 TARGET Long 0xf8002000
+  FLASH.Create 2. 0xa0010000--0xa001ffff 0x04000 TARGET Long 0xf8002000
+  FLASH.Create 3. 0xa0020000--0xa003ffff 0x20000 TARGET Long 0xf8002000
+  FLASH.Create 3. 0xa0040000--0xa01fffff 0x40000 TARGET Long 0xf8002000
+  FLASH.Create 4. 0xa0800000--0xa080ffff 0x04000 TARGET Long 0xf8004000
+  FLASH.Create 5. 0xa0810000--0xa081ffff 0x04000 TARGET Long 0xf8004000
+  FLASH.Create 6. 0xa0820000--0xa083ffff 0x20000 TARGET Long 0xf8004000
+  FLASH.Create 6. 0xa0840000--0xa09fffff 0x40000 TARGET Long 0xf8004000
+  ; Data flash
+  FLASH.Create 7. 0xaf000000--0xaf017fff 0x18000 TARGET Long 0xf8002000
+  FLASH.Create 8. 0xaf080000--0xaf097fff 0x18000 TARGET Long 0xf8002000
+  FLASH.TARGET 0xc0000000 0xd0000000 0x1000 ~~/demo/tricore/flash/long/tc1798.bin
+  FLASH.CreateALIAS 0x80000000--0x80ffffff 0xa0000000
+
+  ; Flash script ends here if called with parameter PREPAREONLY
+  IF &param_prepareonly
+    ENDDO PREPAREDONE
+  ; ------------------------------------------------------------------------------
+  ; Example for download
+
+  DIALOG.YESNO "Program flash memory?"
+  LOCAL &progflash
+  ENTRY &progflash
+  IF &progflash
+  (
+    FLASH.ReProgram ALL /Erase
+    Data.LOAD.auto *
+    FLASH.ReProgram.off
+  )
+
+  ENDDO

@@ -1,0 +1,82 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to identify some Information on an H2 board
+; @Description: -
+; @Author: DIE
+; @Board: H2
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: identifyomap.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+&fpga_rev=Data.Word(asd:0x04000010)
+; print "Multiport debug board FPGA Revision: &fpga_rev"
+		
+GLOBAL &core
+&core=0		; unidentified
+
+&prodid=Data.Long(sd:0xFFFE2004)
+&prodid=((&prodid&0x1FFFE)>>1)
+&devrev=Data.Long(sd:0xFFFE1804)
+&devrev=((&devrev&(0x1E0000))>>0x11)
+&omapid=Data.Long(sd:0xFFFED400)
+
+; See TOmapPlat::GetCpuType() in omap1610_plat.cpp
+
+IF ((&prodid==0xB576)&&(&devrev==0x0)&&(&omapid==0x03320000))
+	(
+	PRINT "Core matches ES1.0 OMAP1610 (Debug board FPGA: &fpga_rev)"
+	&core=1610
+	)
+
+IF ((&prodid==0xB576)&&(&devrev==0x2)&&(&omapid==0x03320100))
+	(
+	PRINT "Core matches ES1.1 OMAP1610, Marked OMAP1610A (Debug board FPGA: &fpga_rev)"
+	&core=1610
+	)
+
+IF ((&prodid==0xB576)&&(&devrev==0x3)&&(&omapid==0x03320100))
+	(
+	PRINT "Core matches ES1.2 OMAP1610, Marked OMAP1610C (Debug board FPGA: &fpga_rev)"
+	&core=1610
+	)
+
+IF ((&prodid==0xB576)&&(&devrev==0x0)&&(&omapid==0x03320200))
+	(
+	PRINT "Core matches ES2.0 OMAP1610, Marked OMAP1610D (Debug board FPGA: &fpga_rev)"
+	&core=1610
+	)
+
+IF ((&prodid==0xB613)&&(&devrev==0x1)&&(&omapid==0x03320300))
+	(
+	PRINT "Core matches ES2.1 OMAP1610, RevE ? not seen one of these yet. (Debug board FPGA: &fpga_rev)"
+	&core=1610
+	)
+
+IF ((&prodid==0xB613)&&(&devrev==0x2)&&(&omapid==0x03320300))
+	(
+	PRINT "Core matches ES2.2 OMAP1610, Marked OMAP1610F (Debug board FPGA: &fpga_rev)"
+	&core=1610
+	)
+
+IF ((&prodid==0xB58C)&&(&devrev==0x2)&&(&omapid==0x03320200))
+	(
+	PRINT "Core matches ES1.1 OMAP1611, Marked OMAP1611B (Debug board FPGA: &fpga_rev)"
+	&core=1611
+	)
+
+IF ((&prodid==0xB65F)&&(&devrev==0x0)&&(&omapid==0x03320400))
+	(
+	PRINT "Core matches ES1.0 OMAP1623. (Debug board FPGA: &fpga_rev)"
+	&core=1623
+	)
+
+IF ((&prodid==0xB65F)&&(&devrev==0x2)&&(&omapid==0x03320500))
+	(
+	PRINT "Core matches ES1.2 OMAP1623. (Debug board FPGA: &fpga_rev)"
+	&core=1623
+	)
+
+IF (&core==0)
+	(
+	PRINT "Unknown Core: ID Features are ProdID=&prodid, devrev = &devrev, OMAP3.2 ID = &omapid (Debug board FPGA: &fpga_rev)"
+	)

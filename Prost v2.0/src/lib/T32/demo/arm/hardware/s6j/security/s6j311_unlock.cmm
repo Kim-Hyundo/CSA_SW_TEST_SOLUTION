@@ -1,0 +1,148 @@
+; --------------------------------------------------------------------------------
+; @Title: Unlocking a secured S6J3xx device
+; @Description:
+;   This script demonstrates how to UNLOCK and deactivate Flash-Protection of an 
+;   S6J311AHAA. For demonstration reasons a small assembly loop serving the wdog 
+;   is assembled at the flash entry point. 
+;   Please see ~~~~/s6j311ahaa-lock .
+;   Prerequisites:
+;     * JTAG is connected to 20PIN JTAG or Mictor38
+;     * the SRST line is disconnected from the Chip and wired to 
+;       RSTX on the board [S6J311EJAA only]
+;     * please adapt security key at UnlockDevice
+;     * the flash must contain some useful code - otherwise the device might 
+;       RESET periodically => unlocking impossible
+;   Note: This script does require a board modification for S6J311EJAA!
+; @Chip: S6J311???? S6J32*
+; @Board: SK-Leo, SK-Amber
+; @Author: FLC
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: s6j311_unlock.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+LOCAL &result
+
+RESet
+SYStem.RESet
+SYStem.CPU S6J311AHAA
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 500us 
+SYStem.Option EnReset OFF
+SYStem.Option AHBHPROT 0x3
+
+; send a RESET to get a defined state
+JTAG.PIN ENable
+JTAG.PIN NRESET 0
+WAIT 10ms
+JTAG.PIN NRESET 1
+
+SYStem.Mode PREPARE
+GOSUB UnlockDevice 0xffffffff 0xffffffff 0xffffffff 0xffffffff
+ENTRY &result
+
+IF &result
+(
+  SYStem.Mode.Attach
+  IF STATE.RUN()
+    Break.direct
+
+  GOSUB DisableFlashProtection
+)
+
+
+
+ENDDO &result
+
+UnlockDevice: ;(&SECURITY_KEY_0 &SECURITY_KEY_1 &SECURITY_KEY_2 &SECURITY_KEY_3)
+  LOCAL &SECURITY_KEY_0 &SECURITY_KEY_1 &SECURITY_KEY_2 &SECURITY_KEY_3
+  ENTRY &SECURITY_KEY_0 &SECURITY_KEY_1 &SECURITY_KEY_2 &SECURITY_KEY_3
+  
+  LOCAL &REG_APB_SCCFG_STAT2
+  LOCAL &REG_APB_SCCFG_SECKEY0
+  LOCAL &REG_APB_SCCFG_UNLCK
+  LOCAL &REG_APB_SCSCU_CNTL
+  LOCAL &MASK_SCCFG_STAT2_SECEN
+  LOCAL &MASK_SCCFG_STAT2_SECLOCK
+  LOCAL &MASK_SCCFG_STAT2_SEC
+  LOCAL &MASK_SCCFG_STAT2_DBGRDY
+  LOCAL &KEY_SCCFG_UNLOCK
+  LOCAL &KEY_SCCFG_LOCK
+  LOCAL &stat2Value &result
+  
+  &REG_APB_SCCFG_STAT2=0x000c0180
+  &REG_APB_SCCFG_SECKEY0=0x000c0190
+  &REG_APB_SCCFG_UNLCK=0x000c01a4
+  &REG_APB_SCSCU_CNTL=0x000c01b4
+  &MASK_SCCFG_STAT2_SECEN=0x00000001
+  &MASK_SCCFG_STAT2_SECLOCK=0x00000002
+  &MASK_SCCFG_STAT2_SEC=0x00000004
+  &MASK_SCCFG_STAT2_DBGRDY=0x00000100
+  &KEY_SCCFG_UNLOCK=0x5ecacce5
+  &KEY_SCCFG_LOCK=0xa135331a
+  &result=TRUE()
+
+  &stat2Value=Data.Long(EAPB:&REG_APB_SCCFG_STAT2)
+  IF ((&stat2Value&&MASK_SCCFG_STAT2_SECEN)!=0)
+  (
+    IF (&stat2Value==(&MASK_SCCFG_STAT2_SECEN|&MASK_SCCFG_STAT2_DBGRDY)) 
+    (
+      PRINT "MCU still unlocked"
+    )
+    ELSE
+    (
+      &MASK__SCSCU_CNTL_JTAGCON=0x00010000
+      Data.Set EAPB:&REG_APB_SCCFG_UNLCK %Long &KEY_SCCFG_UNLOCK
+      Data.Set EAPB:&REG_APB_SCCFG_SECKEY0 %Long &SECURITY_KEY_0
+      Data.Set EAPB:&REG_APB_SCCFG_SECKEY0+0x4 %Long &SECURITY_KEY_1
+      Data.Set EAPB:&REG_APB_SCCFG_SECKEY0+0x8 %Long &SECURITY_KEY_2
+      Data.Set EAPB:&REG_APB_SCCFG_SECKEY0+0xc %Long &SECURITY_KEY_3
+      Data.Set EAPB:&REG_APB_SCSCU_CNTL %Long &MASK__SCSCU_CNTL_JTAGCON
+      Data.Set EAPB:&REG_APB_SCCFG_UNLCK %Long &KEY_SCCFG_LOCK
+
+      &stat2Value=Data.Long(EAPB:&REG_APB_SCCFG_STAT2)
+      &stat2Value=&stat2Value&(&MASK_SCCFG_STAT2_SECEN|&MASK_SCCFG_STAT2_SECLOCK|&MASK_SCCFG_STAT2_SEC)
+
+      IF (&stat2Value==(&MASK_SCCFG_STAT2_SECEN|&MASK_SCCFG_STAT2_SECLOCK))
+      (
+        PRINT %ERROR "Invalid security key entered!" 
+        &result=FALSE()
+      )
+      ELSE IF (&stat2Value==&MASK_SCCFG_STAT2_SECEN)
+      (
+        PRINT "Correct security key entered, MCU unlocked"
+        &result=TRUE()
+      )
+      ELSE
+      (
+        PRINT "Device still secured"
+        &result=FALSE()
+      )
+    )
+  )
+  RETURN &result
+
+DisableFlashProtection:
+  DO ~~/demo/arm/flash/s6j3 PREPAREONLY
+  ; assemble a simple watchdog handling loop into flash-entry point
+  ; erase non-erased flash-sections
+  FLASH.ReProgram ALL /Erase
+  Data.Assemble R:0xa00000    cpsid if
+  Data.Assemble ,             movw r14,#0x0020
+  Data.Assemble ,             movt r14,#0x00a0
+  Data.Assemble ,             mov  r0,#0x0
+  Data.Assemble ,             movw r1,#0xc010
+  Data.Assemble ,             movt r1,#0xb060
+  Data.Assemble ,             movw r2,#0xc018
+  Data.Assemble ,             movt r2,#0xb060
+  Data.Assemble ,             str  r0,[r1]
+  Data.Assemble ,             str  r0,[r2]
+  Data.Assemble ,             bx r14
+  FLASH.ReProgram OFF
+
+  ; Program the flash-header. Guarded by the /CENSORSHIP option
+  ; erase CENSORSHIP section -> no protection
+  FLASH.AUTO 0x19f0000--0x19f014f /CENSORSHIP
+  Data.Set 0x19f0000--0x19f014f %Long 0xffffffff
+  FLASH.AUTO OFF
+  RETURN
+

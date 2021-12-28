@@ -1,0 +1,51 @@
+﻿<!-- 신규 프로젝트 생성 이름 정의 Dialog -->
+    <UserControl x:Class="ProstMain.Dialog.CreateProjectDialogView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:wpf="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
+             mc:Ignorable="d" Background="DarkGray" Height="180" Width="300">
+
+    <Grid>
+        <Grid.InputBindings>
+            <KeyBinding Key="Enter" Command="{Binding Source={StaticResource Locator},Path=MainVM.CreateProjectDialogOKCommand}" CommandParameter="{Binding ElementName=tb_projectname,Path=Text}"/>
+        </Grid.InputBindings>
+        <GroupBox>
+            <GroupBox.Header>
+                <StackPanel Orientation="Horizontal">
+                    <wpf:PackIcon Kind="Information" Foreground="Orange"/>
+                    <TextBlock Text="Create Project" Foreground="{DynamicResource ResourceKey=GroupBoxHeaderForeground}" Margin="8,0,0,0" FontWeight="Bold"/>
+                </StackPanel>
+            </GroupBox.Header>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2.5*"/>
+                    <RowDefinition Height="2.5*"/>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="2.9*"/>
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="5*"/>
+                    <ColumnDefinition Width="5*"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Content="Project Name" Foreground="Black"></Label>
+                <TextBox x:Name="tb_projectname" Width="280" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" wpf:HintAssist.Hint="Enter the Project Name" HorizontalAlignment="Left" Text="" TextWrapping="Wrap" TextAlignment="Center" Foreground="Black" FontSize="14" VerticalAlignment="Center"/>
+
+
+                <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="5*"/>
+                        <ColumnDefinition Width="5*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Foreground="{DynamicResource ResourceKey=ButtonForeground}"  Background="{DynamicResource ButtonBackground}" Command="{Binding Source={StaticResource Locator},Path=MainVM.CreateProjectDialogOKCommand}" CommandParameter="{Binding ElementName=tb_projectname,Path=Text}" Width="130" Margin="0,0,5,0">OK</Button>
+                    <Button Grid.Column="1" Background="{DynamicResource ButtonBackground}" Command="{Binding Source={StaticResource Locator},Path=MainVM.DialogCancelCommand}" CommandParameter="CreateProject" Foreground="{DynamicResource ResourceKey=ButtonForeground}" Width="130" Margin="5,0,0,0">Cancel</Button>
+                </Grid>
+            </Grid>
+        </GroupBox>
+    </Grid>
+</UserControl>
+
+

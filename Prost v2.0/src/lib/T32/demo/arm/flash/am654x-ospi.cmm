@@ -1,0 +1,204 @@
+; --------------------------------------------------------------------------------
+; @Title: OSPI FLASH Program script for the AM654x
+; @Description:
+; The MT35XU512 (Cypress) is connected to the OSPI_CS0 controller
+;
+; SRAM:
+; OSPI(controller) Base: 0x47040000
+; OSPI memory mapped ADDRESS:
+;
+; Prerequisites: Switch Settings
+;
+; @Chip: 
+; @Board:
+; @Author: JIM
+; @Keywords: Micron
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: am654x-ospi.cmm 7577 2019-10-30 15:30:31Z bschroefel $
+
+&OSPI_BASE=0x47040000
+
+WinCLEAR
+
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+//open the master core(CM3) to disable WDOG
+; --------------------------------------------------------------------------------
+; open an other debugger instance for the Cortex-M3
+  IF !INTERCOM.PING(CM3)
+    TargetSystem.NewInstance CM3 /ARCHitecture ARM
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+  InterCom CM3 RESet
+  InterCom CM3 SYStem.RESet
+  InterCom CM3 SYStem.CPU AM6548-CM3
+  InterCom CM3 IF COMBIPROBE()||UTRACE()
+  (
+  InterCom CM3 SYStem.CONFIG.CONNECTOR MIPI34 ; because of converter LA-3782
+  )
+  InterCom CM3 SYStem.Option EnReset OFF
+  InterCom CM3 SYStem.Option DUALPORT ON
+  InterCom CM3 SYStem.MemAccess DAP
+  InterCom CM3 Trace.DISable
+  InterCom CM3 SYStem.CONFIG SLAVE OFF ; CM3 is the master core
+
+; disable a clock gate; you can't connect otherwise
+  InterCom CM3 SYStem.Mode Prepare
+  InterCom CM3 Data.Set EDBG:0x400003f0 %Long 0x00190000
+  InterCom CM3 Data.Set EDBG:0x40000350 %Long 0x00102098
+
+  InterCom CM3 SYStem.Up
+
+; --------------------------------------------------------------------------------
+; stop DMSC watchdog
+  InterCom CM3 Data.Set 0x44135120 %Long 0x4658fc21
+  InterCom CM3 Data.Set 0x44135124 %Long 0x3ac4f102
+  InterCom CM3 Data.Set 0x44135150 %Long 0x0000000a
+
+; --------------------------------------------------------------------------------
+; disable lockstep operation of second Cortex-R5F
+  InterCom CM3 Data.Set 0x45A50040 %Long 0x00000008 ; MCU_CLUSTER0_CONFIG_MMR
+
+SYStem.CPU AM6548-CR5
+CORE.ASSIGN 1.
+SYStem.CONFIG SLAVE ON  ; CR5 is the slave core
+SYStem.Option RB off
+SYStem.Option EnReset ON
+SYStem.MemAccess DAP    ;Enable to use the dualport
+SYStem.Up
+
+GOSUB CLK_INIT
+GOSUB PIN_MUX
+GOSUB OSPI_INIT
+
+GOSUB READ_ID_TEST
+
+Break.RESet
+
+FLASHFILE.RESet
+
+FLASHFILE.CREATE 0x0--0x3FFFFFF   0x20000  ;MT35XU512 has 128KB uniform sectors
+
+//FLASFILE.CONFIG <MCU_FSS0_OSPI0_CTRL>  <MCU_FSS0_DAT_REG1>  ; for indirect ospi memory write
+FLASHFILE.CONFIG &OSPI_BASE              0x50000000
+
+FLASHFILE.TARGET 0x41C00000++0x1FFF    E:0x41C03000++0x23FF   ~~/demo/arm/flash/byte/spi4b64_tiospi.bin   /KEEP   /DualPort
+
+// Read FLASH Manufacturer and Device ID
+FLASHFILE.GETID
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+ENDDO
+
+//Dump window for Serial FLASH
+FLASHFILE.DUMP 0x0
+
+//Write Serial FLASH
+;FLASHFILE.ERASE 0x00--0xFFFFF
+
+//Write Serial FLASH
+;FLASHFILE.LOAD  * 0x00
+;FLASHFILE.LOAD  * 0x00  /ComPare
+
+ENDDO
+
+READ_ID_TEST:
+(
+
+LOCAL &rdata
+&CTRLREG=&OSPI_BASE+0x090
+&RXDATA0=&OSPI_BASE+0x0A0
+&RXDATA1=&OSPI_BASE+0x0A4
+
+&cmd=0x9f<<24.     //cmd
+&rd=0x1<<23.       //rd data enable
+&rd_num=0x7<<20.   //7+1==8bytes
+&cmd_exec=0x1      //cmd execution
+
+Data.Set A:&CTRLREG %LE %Long (&cmd|&cmd_exec|&rd_num|&rd)   ;write cmd + write data
+WAIT 100.ms
+
+&rdata=Data.Long(A:&RXDATA0)  ;read lower  , 8byte fifo
+PRINT "1st 0x" (&rdata)&0xFF " (Manufacture)"      ; //RXFIFO0
+PRINT "2nd 0x" (&rdata>>8.)&0xFF " (Device ID)"
+PRINT "3rd 0x" (&rdata>>16.)&0xFF 
+PRINT "4th 0x" (&rdata>>24.)&0xFF
+&rdata=Data.Long(A:&RXDATA1)  ;read upper , 8byte fifo
+PRINT "5th 0x" (&rdata)&0xFF
+PRINT "6th 0x" (&rdata>>8.)&0xFF
+PRINT "7th 0x" (&rdata>>16.)&0xFF 
+PRINT "8th 0x" (&rdata>>24.)&0xFF
+
+RETURN
+)
+
+ENDDO
+
+
+OSPI_INIT:
+(
+Data.Set A:&OSPI_BASE+0x0 %LE %Long 0x0
+Data.Set A:&OSPI_BASE+0x4 %LE %Long 0x00000013 ; 4B Addr Read
+Data.Set A:&OSPI_BASE+0x8 %LE %Long 0x00000012 ; 4B Addr Write
+
+Data.Set A:&OSPI_BASE+0x0 %LE %Long 0x80800000
+Data.Set A:&OSPI_BASE+0x14 %LE %Long  0x1003; 4B Address mode, 3B Addr: 0x1002
+Data.Set A:&OSPI_BASE+0x10 %LE %Long  0x21
+
+;D.S A:&OSPI_BASE+0x0 %LE %Long   0x80A00000   ;baudrate divide-by-2
+Data.Set A:&OSPI_BASE+0x1C %LE %Long  0xFFFFFFFF
+Data.Set A:&OSPI_BASE+0xC %LE %Long (0xFF<<16.)|(0xFF<<8.)    ; !!!!! OSPI_DEV_DELAY_REG bcz writing !!!!!
+Data.Set A:&OSPI_BASE+0x0  %LE %Long 0x00000081|(0x1<<19.)|(0xE<<10.) ; 0x1==div4, Enable using OSPI_CS0
+
+RETURN
+)
+
+PIN_MUX:
+(
+;MMR_unlock
+Data.Set 0x4301D008 %Long 0x68EF3490  ;CTRLMMR_WKUP_LOCK7_KICK0
+Data.Set 0x4301D00C %Long 0xD172BC5A  
+
+Data.Set 0x4301C000 %Long 0x00040000   ;CTRLMMR_WKUP_PADCONFIG0
+Data.Set 0x4301C004 %Long 0x00040000
+Data.Set 0x4301C008 %Long 0x00040000
+Data.Set 0x4301C00C %Long 0x00040000
+Data.Set 0x4301C010 %Long 0x00040000
+Data.Set 0x4301C014 %Long 0x00040000
+Data.Set 0x4301C018 %Long 0x00040000
+Data.Set 0x4301C01C %Long 0x00040000
+Data.Set 0x4301C020 %Long 0x00040000
+Data.Set 0x4301C024 %Long 0x00040000
+Data.Set 0x4301C028 %Long 0x00040000
+Data.Set 0x4301C02C %Long 0x00040000
+Data.Set 0x4301C030 %Long 0x00040000
+Data.Set 0x4301C038 %Long 0x00040001
+Data.Set 0x4301C03C %Long 0x00040001
+
+RETURN
+)
+
+CLK_INIT:
+(
+Data.Set 0x40F09008 %Long 0x68EF3490  ; CTRLMMR_MCU_LOCK2_KICK0
+Data.Set 0x40F0900C %Long 0xD172BC5A
+
+Data.Set 0x40d01010  %Long 0x68EF3490  ;MCU_PLL1_KICK0
+Data.Set 0x40d01014  %Long 0x68EF3490  ;MCU_PLL1_KICK1
+
+//freq == 166
+Data.Set 0x40F08030  %Long 0x1         ;CTRLMMR_MCU_OSPI0_CLKSEL, 1h - CPSWHSDIV_CLKOUT4
+Data.Set 0x40d01120  %Long 0x05000000  ;MCU_PLL1_HSDIV_CLKDIV, High Speed Divider Clock Divider Register
+Data.Set 0x40d01124  %Long 0x8         ;MCU_PLL1_HSDIV_CTRL
+WAIT 100.ms
+Data.Set 0x40d01124  %Long 0x80000008
+
+RETURN
+)
+
+

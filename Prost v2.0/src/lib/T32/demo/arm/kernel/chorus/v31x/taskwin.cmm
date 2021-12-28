@@ -1,0 +1,30 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags, NoIndex
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: taskwin.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+ E::
+ 
+ TOOLBAR ON
+ STATUSBAR ON
+ CMDPOS 43.1429 55.9231 114. 12.
+ WinPAGE.RESet
+ 
+ WinCLEAR
+ WinPOS 3.57143 1.61538 80. 24. 0. 0. W001
+ E::TERM.view 0x80001 0x80002
+ 
+ WinPOS 63.8571 9.15385 80. 25. 13. 1. W000
+ E::List.auto
+ 
+ WinPOS 37.1429 20.6154 80. 6. 0. 1. W003
+ E::task.la
+ 
+ WinPOS 4.28571 32.3077 71. 7. 0. 1. W002
+ E::task.lt
+ 
+ WinPAGE.select P000     
+ 
+ ENDDO

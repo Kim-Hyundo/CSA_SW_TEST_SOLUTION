@@ -1,0 +1,92 @@
+; --------------------------------------------------------------------------------
+; @Title: Load and start a VxWorks DKM with TRACE32
+; @Description:
+;
+;   This script loads a VxWorks DKM (*.out) with TRACE32 internal terminal
+;   and optionally halts at its entry point.
+;   Pleast note the prerequisites below!
+;
+;   usage: do startdkm <file> [<entry>]
+;   e.g.:  do startdkm /ram0/myDKM.out myDkmStart
+;
+; @Keywords: VxWorks
+; @Author: DIE
+; @Copyright: (C) 1989-2018 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: startdkm.cmm 4754 2019-11-06 10:55:10Z rdienstbeck $
+
+
+; Prerequisites:
+; - INCLUDE_SHELL (target-resident kernel shell)
+; - INCLUDE_SHELL_INTERP_C (C line interpreter)
+; - INCLUDE_SHELL_INTERP_CMD (command line interpreter)
+; - Access to kernel shell via TERM window within TRACE32
+
+
+LOCAL &file &entry
+
+; get and check parameters
+ENTRY &file &entry
+IF ("&file"=="")
+(
+    PRINT "usage: do startdkm <file> [<entry>]"
+    ENDDO
+)
+
+; get filename and basename
+&filename=OS.FILE.NAME(&file)
+&basename=STRing.CUT("&filename",-STRING.LENgth(OS.FILE.EXTENSION(&filename)))
+
+; run target if halted
+IF !STATE.RUN()
+    Go
+
+; delete possibly existing symbols
+sYmbol.AutoLOAD.CLEAR "&filename"
+IF sYmbol.EXIST("\\&basename")
+    sYmbol.Delete \\&basename
+
+; change to command mode
+TERM.Out , "cmd" 0x0a
+WAIT 0.2s
+
+; check if DKM already loaded and remove it if necessary
+Break
+IF task.modid("&filename")!=0xffffffff
+(
+  Go
+  TERM.Out , "module unload &filename" 0x0a
+  WAIT 0.2s
+)
+ELSE
+  Go
+
+; load DKM
+TERM.Out , "ld &file" 0x0a
+WAIT 0.2s
+TERM.Out , "module list" 0x0a
+WAIT 0.2s
+
+; load symbols of DKM
+Break
+sYmbol.AutoLOAD.CHECK
+sYmbol.AutoLOAD.TOUCH "&filename"
+
+if "&entry"!=""
+(
+    ; set breakpoint on DKM entry point,
+    Break.Set &entry
+
+    ; switch to "C" mode and start DKM entry function
+    Go
+    TERM.Out , 0x0a
+    TERM.Out , "C" 0x0a
+    WAIT 0.2s
+    TERM.Out , "&entry" 0x0a
+    WAIT !STATE.RUN()
+
+    ; remove breakpoint on entry point
+    Break.Delete &entry
+)
+
+ENDDO

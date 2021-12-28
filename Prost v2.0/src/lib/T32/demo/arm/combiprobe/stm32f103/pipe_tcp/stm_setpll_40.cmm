@@ -1,0 +1,41 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to setup the STM PLL (40MHz CPU Clock)
+; @Description: Script to setup the STM PLL using Data.Set commands
+; @Author: ING
+; @Chip: STM32F103ZE
+; @Board: STM32F103 EVB
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: stm_setpll_40.cmm 15209 2019-11-04 10:07:55Z bschroefel $
+
+
+; Switch to internal HSI clock
+  Data.Set SD:0x40021004 %Long 0yxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx00
+
+; Turn PLL OFF
+  Data.Set SD:0x40021000 %Long 0yxxxxxxx0xxxxxxxxxxxxxxxxxxxxxxxx
+
+; FLASH Latency 2 for > 48Mhz operation
+  Data.Set SD:0x40022000 %Long 0yxxxxxxxxxxxxxxxxxxxxxxxxxxx10010
+
+; HSEBYP = NOT BYPASSED
+; HSEON  = ON
+; => Turn On external oscillator
+  Data.Set SD:0x40021000 %Long 0yxxxxxxxxxxxxx0x1xxxxxxxxxxxxxxxx
+
+; CPU Clock 40Mhz, APB==20Mhz
+; APB1     = HCLK/2 (==101 BIT 10-8  Docu BUG !?)
+; APB2     = HCLK/2 (==101 BIT 13-11 Docu BUG !?)
+; PLLSRC   = HSE  (BIT 16)
+; PLLXTPRE = HSE  (BIT 17)
+; PLLMUL   = 5    (BIT 18-21)
+  Data.Set SD:0x40021004 %Long 0yxxxxxxxxxx001101xx101101xxxxxxxx
+
+; Turn PLL ON
+  Data.Set SD:0x40021000 %Long 0yxxxxxxx1xxxxxxxxxxxxxxxxxxxxxxxx
+
+; Switch to PLL Clock
+  Data.Set SD:0x40021004 %Long 0yxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx10
+
+  ENDDO
+

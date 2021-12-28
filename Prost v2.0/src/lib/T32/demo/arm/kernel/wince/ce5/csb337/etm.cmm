@@ -1,0 +1,29 @@
+; --------------------------------------------------------------------------------
+; @Title: ETM Configuration Script for AT91RM9200
+; @Description: -
+; @Author: DIE
+; @Chip: AT91RM9200
+; @Board: CSB337
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: etm.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+;   configure chip to output ETM lines
+
+&PIOD=0xfffffa00    ; base address of PIO D controller
+&PIO_PDR=0x0004     ; offset of PIO Disable Register
+&PIO_BSR=0x0074     ; offset of PIO Periph B Select Register
+
+ Data.Set &PIOD+&PIO_PDR %LE %Long 0x0fffff80   ; select peripheral for ETM lines
+ Data.Set &PIOD+&PIO_BSR %LE %Long 0x0fffff80   ; select periph B for ETM lines
+
+; configure TRACE32 for ETM
+ Trace.THreshold 1.25
+ 
+ ETM.HalfRate ON
+ ETM.PortSize 16
+ ETM.PortMode Normal
+ 
+ ;  ETM.DT OFF
+ ETM.ContextID OFF    // at91rm9200 doesn't have context id

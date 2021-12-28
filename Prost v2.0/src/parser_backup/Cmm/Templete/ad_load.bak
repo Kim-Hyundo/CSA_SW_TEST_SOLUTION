@@ -1,0 +1,105 @@
+; -------------------------------------------------------------------------------
+; @Title: Trace result(.ad) file load & save(.txt) CMM
+; Script arguments:
+;
+;   DO ad_load.cmm &tesecase_number
+;
+; --------------------------------------------------------------------------------
+LOCAL &adFilePath &testcase_number &reultFilePath &covFile &covCBAFile &timingFile
+ENTRY %line &parameter
+LOCAL &Delimeter
+&Delimeter="||"
+
+&parameter=STRing.CUT("&parameter",1)
+&parameter=STRing.CUT("&parameter",-1)
+
+&parameter_cnt=STRing.COUNT("&parameter","&Delimeter")
+
+if &parameter_cnt==0.
+   &parameter_cnt=1.
+
+&testcase_number=string.split("&parameter","&Delimeter",0)
+&testcase_number=string.trim("&testcase_number")
+
+&debug_path=string.split("&parameter","&Delimeter",1)
+&debug_path=string.trim("&debug_path")
+
+&Scenario=string.split("&parameter","&Delimeter",2)
+&Scenario=string.trim("&Scenario")
+
+;&testcase_number=format.decimal(1.,&testcase_number)
+;&tesecase_number=Convert.HextoInt(&testcase_number)
+&adFilePath="&debug_path\ad\&Scenario"
+&coveragePath="&debug_path\txt\coverage\&Scenario"
+&timingPath="&debug_path\txt\timing\&Scenario"
+
+IF RUN()
+(
+  BREAK
+)
+
+
+//------------Single testcase result save------------//
+print &testcase_number
+&loop_index=1.
+while &loop_index<=&testcase_number
+(
+  &adFile="&adFilePath"+"\trace"+"&loop_index"+"ad"
+
+  IF !OS.FILE("&adFile")
+  (
+    print "'&adFile'"+" Not Found. Please check about the trace result file."
+  )
+
+  Trace.Init
+  Trace.LOAD "&adFile"
+
+  COVerage.Init
+  COVerage.ADD
+  COVerage.Option.SourceMetric.Statement
+
+  //------------Coverage.ListFunc save------------//
+  &covFile="&coveragePath"+"\cov"+"\cov"+"&loop_index"+"txt"
+  PRinTer.FILE "&covFile"
+  WinPrint.COVerage.ListFunc
+
+  //------------Coverage.EXPORT.CBA save------------//
+  &covCBAFile="&coveragePath"+"\cba"+"\covCBA"+"&loop_index"+"txt"
+  COVerage.EXPORT.CBA "&covCBAFile"
+
+  //------------Trace.STATistic.Func save------------//
+  &timingFile="&timingPath"+"\timing"+"&loop_index"+"txt"
+  PRinTer.FILE "&timingFile"
+  WinPrint.Trace.STATistic.Func /Filter CORE 0
+
+  &loop_index=&loop_index+1.
+)
+
+//------------Merge testcase result save------------//
+
+Trace.Init
+COVerage.Init
+
+&idx=1.
+repeat &testcase_number
+(
+  &testcase_number=STRing.split("&idx",".",0)
+  &adFile="&adFilePath"+"\trace"+"&testcase_number"+".ad"
+
+  IF !OS.FILE("&adFile")
+  (
+    print "'&adFile'"+" Not Found. Please check about the trace result file."
+  )
+
+  Trace.LOAD "&adFile"
+
+  COVerage.ADD
+
+  &idx=&idx+1.
+)
+  COVerage.Option.SourceMetric.Statement
+  &covMergeFile="&coveragePath"+"\cov"+"\cov_merge"+".txt"
+  COVerage.EXPORT.ListFunc "&coveragePath\cov_merge.xml"
+  PRinTer.FILE "&covMergeFile"
+
+  WinPrint.COVerage.ListFunc

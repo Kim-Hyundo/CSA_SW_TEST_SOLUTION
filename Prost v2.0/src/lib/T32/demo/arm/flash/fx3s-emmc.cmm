@@ -1,0 +1,188 @@
+; --------------------------------------------------------------------------------
+; @Title: EZ-USB-FX3S(CYUSB3035) eMMC FLASH Programming Script
+; @Description:
+;   FLASH Type: eMMC FLASH(Numonyx, NAND16GXH) connected to the Storage
+;   Port (S0-PORT)
+; 
+;   S(D)RAM: 0x40003000
+;   SDMMC_CMD_IDX: 0xE0020000
+;   DMA Socket & Descriptor Registers
+;    -pDmaSocket6=(DmaSocketType *)0xE0028300
+;    -pDmaSocket7=(DmaSocketType *)0xE0028380
+;
+; @Author: jjeong
+; @Chip: CYUSB3035
+; @Keywords: Cypress eMMC
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: fx3s-emmc.cmm 7577 2019-10-30 15:30:31Z bschroefel $
+
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+&MMC_BASE=0xE0020000
+
+RESet
+SYStem.RESet
+SYStem.CPU CYUSB3035
+SYStem.Up
+
+SCREEN.OFF
+
+PER.Set.simple C15:0x1 %Long Data.Long(C15:0x1)&(~0x1005)
+
+GOSUB INIT_CPU_AND_SPORT
+
+GOSUB READ_ID_TEST
+
+ FLASHFILE.RESet
+;FLASHFILE.CONFIG  <eMMC controller> <0x0>  <0x0> <0x0>
+ FLASHFILE.CONFIG  &MMC_BASE         0x0   0x0   0x0
+
+;FLASHFILE.TARGET <code range>        <data range>        <algorithm file>
+ FLASHFILE.TARGET 0x40003000++0x1FFF  0x40005000++0xF9FF  ~~/demo/arm/flash/byte/emmc_fx3s.bin  /KEEP
+
+Data.Set A:0xE0052010 %Long 0x80001BFF  ; 400Khz
+ FLASHFILE.GETID
+
+;Data.Set A:0xE0052010 %Long 0x80001814  ;20Mhz
+Data.Set A:0xE0052010 %Long 0x80001808  ;46Mhz
+FLASHFILE.GETEXTCSD
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+ENDDO
+
+ FLASHFILE.DUMP 0x0              ; Read Flash
+
+;FLASHFILE.ERASE 0x0--0xFFFFF    ; Erase Flash
+;FLASHFILE.LOAD * 0x0            ; Write Flash
+
+ENDDO
+
+
+
+INIT_CPU_AND_SPORT:
+
+SCREEN.OFF
+
+//Enable WDT0 free running mode
+Data.Set A:0xe0050014 %Long 0x82570301
+Data.Set A:0xe0050000 %Long 0xDE040001
+
+//clk, GCTL->cpu_clk_cfg
+Data.Set 0xe0052024 %Long 0x800609c3  ;uart clock
+
+Data.Set 0xE0007F04 %Long 0x0 ;Reset and enable the LPP block */
+Data.Set 0xE0007F04 %Long 0x80000000
+
+//init all lpp scoket
+Data.Set A:0xe0052018 %Long 0x80000061   ;GCTL->gpio_fast_clk
+Data.Set A:0xe005201C %Long 0x8000000F   ;GCTL->gpio_slow_clk
+
+// Power the GPIO block ON, and wait for it to be active. 
+Data.Set 0xE00013F4 %Long 0x0
+Data.Set 0xE00013F4 %Long 0x80000000  
+
+//CyU3PSibStart
+Data.Set A:0xE0020038 %Long Data.Long(A:0xE0020038)|0x4000  ;clk disable
+Data.Set A:0xE0052010 %Long 0x80001BFF  ; clk 400Khz
+Data.Set A:0xE0020038 %Long Data.Long(A:0xE0020038)&(~0x4000)  ;enable
+
+Data.Set 0xe0027F04 %Long 0x1         ;CyFx3SibPowerOn
+Data.Set 0xe0027F04 %Long 0x80000000  ;CyFx3SibPowerOn
+
+Data.Set A:0xE00011AC %LE %Long 0x88000040  ; CyU3PGpioSetSimpleConfig
+
+Data.Set A:0xE0020000 %LE %Long 0x0
+Data.Set A:0xE002002C %LE %Long 0x200
+Data.Set A:0xE0020030 %LE %Long 0x10000820
+Data.Set A:0xE0020038 %LE %Long 0x06000000
+
+Data.Set A:0xE0020040 %LE %Long 0x0FFFFFFFF ;clear status
+
+SCREEN.ON
+
+RETURN
+
+
+
+// Update the CPU clock register and read back to flush
+CLK_Update:
+Register.Set r2 0xe0052004
+Register.Set r1 0x1131
+Data.Set 0x40003000 %Long 0xe5821000
+Register.Set pc 0x40003000
+Step.single
+RETURN
+
+
+
+READ_ID_TEST:
+
+//CMD0
+RePeaT 2.
+(
+Data.Set &MMC_BASE+0x40 %Long 0xFFFFFDFF  // clear all interrupt
+Data.Set &MMC_BASE+0x04 %Long 0x0 ; argument
+Data.Set &MMC_BASE+0x00 %Long 0x0 ; cmd
+Data.Set &MMC_BASE+0x24 %Long 0x25 ; CMD RESP format , tx 37bits, rx 0 bits (resp0)
+Data.Set &MMC_BASE+0x38 %Long 0x06000001  ;send command
+WAIT 10.ms
+)
+
+//CMD1
+RePeaT 10.
+(
+Data.Set &MMC_BASE+0x40 %Long 0xFFFFFDFF  // clear all interrupt
+Data.Set &MMC_BASE+0x04 %Long 0x40FF8000  ; argument
+Data.Set &MMC_BASE+0x00 %Long 0x1 ; cmd
+Data.Set &MMC_BASE+0x24 %Long 0x00260025 ; CMD RESP format , tx 37.bits, rx 38.bits (resp1)
+Data.Set &MMC_BASE+0x38 %Long 0x06000001  ;send command
+WAIT 100.ms
+&resp=Data.Long(A:(&MMC_BASE+0x10))
+//print "CMD1 resp: 0x" &resp
+IF (&resp&0x80000000)==0x80000000
+(
+GOTO jump_cmd2
+)
+)
+
+PRINT "CMD1 fail"
+END
+
+jump_cmd2:
+//CMD2
+Data.Set &MMC_BASE+0x40 %Long 0xFFFFFDFF  // clear all interrupt
+Data.Set &MMC_BASE+0x04 %Long 0x0  ; argument
+Data.Set &MMC_BASE+0x00 %Long 0x2 ; cmd
+Data.Set &MMC_BASE+0x24 %Long 0x007E0025 ; CMD RESP format , tx 37.bits, rx 126.bits (resp2)
+Data.Set &MMC_BASE+0x38 %Long 0x06000001  ;send command
+WAIT 10.ms
+
+//CMD3
+Data.Set &MMC_BASE+0x40 %Long 0xFFFFFDFF  // clear all interrupt
+Data.Set &MMC_BASE+0x04 %Long 0x00010000    ; argument
+Data.Set &MMC_BASE+0x00 %Long 0x3 ; cmd
+Data.Set &MMC_BASE+0x24 %Long 0x00260025 ; CMD RESP format , tx 37.bits, rx 38.bits (resp1)
+Data.Set &MMC_BASE+0x38 %Long 0x06000001  ;send command
+WAIT 10.ms
+
+//CMD10
+Data.Set &MMC_BASE+0x40 %Long 0xFFFFFDFF  // clear all interrupt
+Data.Set &MMC_BASE+0x04 %Long 0x00010000  ; argument
+Data.Set &MMC_BASE+0x00 %Long 0xA ; cmd
+Data.Set &MMC_BASE+0x24 %Long 0x007E0025 ; CMD RESP format , tx 37.bits, rx 126.bits (resp2)
+Data.Set &MMC_BASE+0x38 %Long 0x06000001  ;send command
+WAIT 10.ms
+
+//Response2
+PRINT "CID register"
+PRINT "[127:104] 0x" Data.Long(A:(&MMC_BASE+0x10))
+PRINT "[103:72]  0x" Data.Long(A:(&MMC_BASE+0x14))
+PRINT "[71:40]   0x" Data.Long(A:(&MMC_BASE+0x18))
+PRINT "[39:8]    0x" Data.Long(A:(&MMC_BASE+0x1C))
+
+RETURN
+

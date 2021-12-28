@@ -1,0 +1,44 @@
+; --------------------------------------------------------------------------------
+; @Title: Start-Up Script for TMS320C55x Core within OMAP1510 on Innovator Development Kit
+; @Description:
+;   Start-Up Script for TMS320C55x Core within OMAP1510 on Innovator Development
+;   Kit (PSI)
+;   It might be required to halt the reset button on the innovator board, start
+;   the script, and release the button.
+; @Keywords: OMAP
+; @Author: PEG
+; @Board: Innovator 1510
+; @Chip: OMAP1510
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: start_dsp.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+;   PEG, December 9, 2003
+
+; start-up debugger
+  SYStem.CPU OMAP1510
+  SYnch.Connect LOCALHOST:20001
+  SYStem.Mode Attach
+  IF STATE.RUN()
+	  Break.direct
+
+; disable watchdog
+  Data.Set IO:0x3404 %Word 0xf5
+  Data.Set IO:0x3404 %Word 0xa0
+
+; load demo program for DSP
+  Data.LOAD.COFF ~~~~/cppdemo.out /GNUCPP
+  Register.Set ST1 r(st1)|0x4000
+  Register.Set PC main
+  Register.Set XSP 0x300
+  Register.Set XSSP 0x400
+
+; open some windows
+  WinCLEAR
+  List.auto
+
+  ENDDO
+
+
+
+

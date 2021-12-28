@@ -1,0 +1,67 @@
+; --------------------------------------------------------------------------------
+; @Title: Startup Script for Debugging Eboot on iMX51EVK Board, WinCE 6.0
+; @Description: -
+; @Author: DIE
+; @Keywords: i.MX51
+; @Board: iMX51EVK
+; @Chip: iMX515
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: eboot.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+ LOCAL &projectpath
+ 
+ &projectpath="C:\WINCE600\OSDesigns\iMX51-EVK-PDK1_6-Mobility\RelDir\Freescale_i_MX51_EVK_ARMV4I_Release"
+ 
+ ; reset debugger
+ 
+ sYmbol.RESet
+ SYStem.RESet
+
+ ; setup debugger
+ 
+ SYStem.CPU iMX515
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ SYStem.Option ResBreak OFF     ; hardware dependent (see manual)
+ SYStem.Option EnReset ON       ; hardware dependent (see manual)
+ SYStem.JtagClock 20MHz         ; hardware dependent (see manual)
+
+ ; only allow access to DRAM and peripherals
+ MAP.DenyAccess
+ MAP.NoDenyAccess 0x73f00000--0x73ffffff    ; peripherals
+ MAP.NoDenyAccess 0x83f00000--0x83ffffff    ; peripherals
+ MAP.NoDenyAccess 0x90000000--0xafffffff    ; phys. DRAM
+ MAP.NoDenyAccess 0x80000000--0x800fffff    ; virt. DRAM
+
+ SYStem.Up
+
+ ; initialize the board
+ 
+ DO imx51_to2_ddr2
+  
+ ; load bootloader to *physical* address (virtual 0x80040000, see eboot.bib)
+ 
+ Data.LOAD.Binary "&projectpath\eboot.nb0" 0x90040000
+ Register.Set PC 0x90040000
+ 
+ ; load eboot awareness (eboot.t32) for section detection
+ ; specify physical address of image
+ 
+ EXTension.CONFIG ../eboot.t32 0x90040000
+ 
+ ; load eboot.exe symbols
+ 
+ &text=eboot.addr(0)    ; code segment
+ &data=eboot.addr(1)    ; data segment
+
+ Data.LOAD.eXe &projectpath\eboot.exe /NoCODE /NoClear \
+   /reloc .text at &text /RELOC .data at &data
+   
+ ; if you want to debug the physical startup until enabling the MMU,
+ ; then relocate the .text symbols to physical address (-0x10000000)
+ ; sYmbol.RELOC P:0xF0000000
+ 
+ Go main /Onchip    ; use onchip because of MMU switch
+
+ENDDO

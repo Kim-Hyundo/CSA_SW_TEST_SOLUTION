@@ -1,0 +1,132 @@
+; --------------------------------------------------------------------------------
+; @Title: WinCE 5.0 Demo for TRACE32 OS Awareness on Cogent CSB337 Board
+; @Description: 
+;   
+;   This batchfile demonstrates the use of the OS Awareness for WinCE
+;   
+;   The example is generated for a Cogent CSB337 board using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   Windows CE is downloaded to the target via ICD.
+;   
+; @Keywords: awareness, Windows
+; @Author: DIE
+; @Chip: AT91RM9200
+; @Board: CSB337
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: wince.cmm 15236 2019-11-08 07:27:03Z bschroefel $
+
+;   Created by Rudi Dienstbeck / Lauterbach GmbH at 22.03.2006
+
+; Starting WinCE example with TRACE32:
+; - Start TRACE32
+; - TRACE32: do wince
+; - on WinCE: start "ping.exe"
+
+ SCREEN.ON
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 26. 75. 8. 0. 0. W000
+ AREA.view
+ 
+ PRINT "resetting..."
+
+ SYStem.Down
+ TASK.RESet
+ Break.Delete
+ MAP.RESet
+ sYmbol.RESet
+ TRANSlation.RESet
+
+; setup of ICD
+ 
+ PRINT "initializing..."
+ SYStem.CPU AT91RM9200
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ TrOnchip.Set DABORT OFF        ; used by wince for page miss!
+ TrOnchip.Set PABORT OFF        ; used by wince for page miss!
+ TrOnchip.Set UNDEF OFF         ; used to detect not present FPU
+ SYStem.Option MMUSpaces ON     ; enable space ids to virtual addresses
+ SYStem.Up
+
+ SETUP.IMASKASM ON      ; disable interrupts at assembler single step
+ SETUP.IMASKHLL ON      ; disable interrupts at HLL single step
+
+; Target Setup: initialize DRAM controller and peripherals
+ 
+ ; Either let the boot monitor setup the board
+    ; go
+    ; wait 1.s
+    ; break
+ ; or use the debugger to initialize it
+    DO csb337   ; do basic setup
+    DO console  ; setup serial console
+
+; confiture ETM on target and on TRACE32 for AT91RM9200
+ DO etm
+ 
+; Load Windows CE image
+
+ PRINT "loading Windows CE image..."
+ Data.LOAD.Binary nk.nb0 2008d000
+ Register.Set PC 2008e000
+
+; Load and Relocate Symbols of WinCE kernel (nk)
+
+; The WinCE Awareness needs the symbols contained in nk.exe!
+; Use the nk.exe file, which you used to build your WinCE system
+; (which resides in your build directory).
+; Please refer to the Windows CE Awareness Manual on how to download
+; and relocate kernel symbols
+
+ PRINT "loading kernel symbols..."
+ DO ../nk CSB337
+ DO loadnk
+ 
+; Run over MMU initialization
+
+ Go ARMInit     ; at this point the vector table is switched
+ PRINT "wait for init..."
+ WAIT !STATE.RUN()
+ 
+; Switch on debugger address translation
+ ; set common area for common DLLs and kernel
+ TRANSlation.COMMON 0x02000000--0x03ffffff 0x80000000--0xffffffff
+ TRANSlation.ON
+
+; We'd like to see something, open a code window.
+ WinPOS 0. 0. 77. 22. 13. 1. W001
+ List.auto
+ 
+; Initialize RTOS Support
+
+ PRINT "initializing WinCE support..."
+ TASK.CONFIG ../wince       ; loads WinCE awareness (wince.t32)
+ MENU.ReProgram ../wince    ; loads WinCE menu (wince.men)
+ HELP.FILTER.Add rtoswince  ; add WinCE awareness manual to help
+ 
+; Group kernel area to be displayed with red bar
+
+ GROUP.Create "kernel" 0x80000000--0xffffffff /RED
+
+; Now let's boot and start WinCE!
+ 
+ PRINT "booting WinCE..."
+ 
+ Go
+ WAIT 5.s
+ Break
+ 
+
+; --------------------------------------------------------------------------------
+; Application Debugging
+; e.g. "ping"
+
+ DO ../app_debug ping
+
+ ENDDO
+

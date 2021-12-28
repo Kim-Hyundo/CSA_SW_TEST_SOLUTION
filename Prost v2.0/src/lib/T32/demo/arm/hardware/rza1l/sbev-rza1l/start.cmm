@@ -1,0 +1,39 @@
+; --------------------------------------------------------------------------------
+; @Title: Start-up script for SBEV-RZ/A1L board from Shimafuji
+; @Description: Some hints how to setup the board.
+; @Keywords: RZ/A1L
+; @Author: PEG
+; @Board: SBEV-RZ/A1L
+; @Chip: R7S721021
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: start.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+;
+;
+; Use CN27 (ARM-20) for debug or use CN26 (MIPI-20) for debug and trace.
+; When using CN26 you need to cut CN26.7 (key pin) on the board.
+; For connecting a "Preprocessor" you can use LA-3809 "Converter Mictor-38/ARM20 to MIPI-20".
+; With CN26 and CN27 you can always use SWD.
+; If you want to operate JTAG you need to have DSW6-3 ON (pin mux).
+; If you want to use trace on CN26 you need to have DSW3-4 OFF, DSW3-6 ON
+; but then serial flash cannot be used (pin mux).
+;
+; Use TRACE32 software May 21th, 2014 (build 53747) or newer.
+;
+; Apply 12V power to J3 and switch power switch SW1 ON. 
+
+
+
+  RESet
+; SYStem.CONFIG DEBUGPORTTYPE SWD
+  SYStem.CPU R7S721021
+  SYStem.Up
+  
+  IF Analyzer()
+  (
+    ETM.PortSize 4
+    ETM.PortMode Continuous
+    Data.Set APB:0x8000F004 %Long 0x00900000 ; TRCMUX_SEL (pin mux)
+  )

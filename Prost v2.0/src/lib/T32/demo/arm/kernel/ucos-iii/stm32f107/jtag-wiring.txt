@@ -1,0 +1,15 @@
+
+JTAG wiring on µC/Eval-STM32F107 board
+
+Do *not* connect the JTAG signals to the "JTAG" connector CN4!
+Instead, use the JTAG signals provided on the expansion connector CN3.
+
+JTAG    CN3  CN4
+
+  1 --------- 1
+  3 ---  8
+  5 --- 40
+  7 --- 44
+  9 --- 46
+ 13 ---  6
+ 14 --------- 7

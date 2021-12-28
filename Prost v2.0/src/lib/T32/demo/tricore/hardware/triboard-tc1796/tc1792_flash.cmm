@@ -1,0 +1,144 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TriCore TC1792 on TriBoard TC1796 (Flash)
+; @Description:
+;   Initializes TriCore, SRAM and Flash,
+;   declares flash and prepares for target based flashing.
+;
+;   CAUTION: Script erases all flash contents!
+; @Keywords: Flash, Infineon, TriCore
+; @Author: MAX
+; @Board: TriBoard-TC1796
+; @Chip: TC1792
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc1792_flash.cmm 7659 2014-09-24 08:50:29Z mobermaier $
+
+
+; --------------------------------------------------------------------------------
+; Performed tests:
+; Dip Switch S301: SW1=ON,  SW2=OFF, SW3=ON,  SW4=ON,
+;                  SW5=ON,  SW6=ON,  SW7=OFF, SW8=OFF
+;
+; A-steps: Since the watchdog is not suspended in debug mode, do not use a
+; low JTAG clock frequency in case the watchdog is not already disabled by
+; the target program. Otherwise the debugger is possibly to slow to disable
+; the watchdog in time. Minimum JTAG clock depends on the core clock. Default
+; JTAG clock should be fine.
+;
+; Requirements to use OCDS-1:
+; Set jumper JP501 to 2-3 (= disable on-board wiggler)
+;
+; Memory mappings:
+; external SRAM                    mapped to 0xA2000000--0xA20FFFFF    1 MB
+; external Flash                   mapped to 0xA1000000--0xA13FFFFF    4 MB
+; processor internal program flash mapped to 0xA0000000--0xA01FFFFF    2 MB
+; processor internal data flash    mapped to 0xAFE00000--0xAFE07FFF   32 KB
+;                                            0xAFE10000--0xAFE17FFF   32 KB
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+WinCLEAR
+SYStem.CPU TC1792
+SYStem.Up
+
+Data.Set 0xF0000024 %Long 0x00000008 ; disable watchdog
+
+; --------------------------------------------------------------------------------
+; Memory initialzation
+; initialize external bus unit
+Data.Set 0xF8000010 %Long 0x00F9FF68 ; EBU_CON
+Data.Set 0xF8000020 %Long 0x001001D0 ; EBU_BFCON
+
+; memory assignment
+; /CS0: AMD AM29BL162CB flash
+Data.Set 0xF8000080 %Long 0xA2000051 ; EBU_ADDR_SEL0
+Data.Set 0xF80000C0 %Long 0x00820000 ; EBU_BUSCON0
+Data.Set 0xF8000100 %Long 0x23FF0100 ; EBU_BUSAP0
+; /CS1: ALLIANCE SRAM
+Data.Set 0xF8000088 %Long 0xA1000071 ; EBU_ADDR_SEL1
+Data.Set 0xF80000C8 %Long 0x00820000 ; EBU_BUSCON1
+Data.Set 0xF8000108 %Long 0x00D80000 ; EBU_BUSAP1
+; /CS2, /CS3: unused
+
+; --------------------------------------------------------------------------------
+; Flash declaration
+; Note: Only one FLASH.TARGET command at the same time is supported. If two
+;       or more target algorithms are required on the same target, the
+;       appropriate FLASH.TARGET command has to be issued when switching to
+;       another flash type.
+FLASH.RESet
+
+; flash declaration for processor internal flash - uncached address segment
+; processor internal program flash
+FLASH.Create 1. 0xA0000000--0xA000FFFF 0x4000  TARGET Long
+FLASH.Create 2. 0xA0010000--0xA001FFFF 0x4000  TARGET Long
+FLASH.Create 3. 0xA0020000--0xA003FFFF 0x20000 TARGET Long
+FLASH.Create 3. 0xA0040000--0xA007FFFF 0x40000 TARGET Long
+FLASH.Create 3. 0xA0080000--0xA01FFFFF 0x80000 TARGET Long
+; processor internal data flash
+FLASH.Create 4. 0xAFE00000--0xAFE07FFF 0x8000  TARGET Long
+FLASH.Create 5. 0xAFE10000--0xAFE17FFF 0x8000  TARGET Long
+//FLASH.TARGET 0xD4000000 0xD0000000 0x1000 ~~/demo/tricore/flash/long/tc1796.bin
+
+; flash declaration for external flash  - uncached address segment
+; 2 AMD AM29BL162CB flash parallel to 32 bit data bus
+FLASH.Create 6. 0xA1000000--0xA1007FFF 0x8000  TARGET Long
+FLASH.Create 6. 0xA1008000--0xA100FFFF 0x4000  TARGET Long
+FLASH.Create 6. 0xA1010000--0xA107FFFF 0x70000 TARGET Long
+FLASH.Create 6. 0xA1080000--0xA13FFFFF 0x80000 TARGET Long
+//FLASH.TARGET 0xD4000000 0xD0000000 0x1000 ~~/demo/tricore/flash/long/am29lv100.bin
+
+; flash declaration for cached address segments
+FLASH.CreateALIAS 0x80000000--0x8FFFFFFF 0xA0000000
+
+; show flash declaration
+WinPOS 0% 0%
+FLASH.List
+
+; --------------------------------------------------------------------------------
+; example download to external flash
+
+DIALOG.YESNO "Program external flash memory?"
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.TARGET 0xD4000000 0xD0000000 0x1000 ~~/demo/tricore/flash/long/am29lv100.bin
+  FLASH.ReProgram 6. /Erase
+
+  ; load user program
+  Data.LOAD.auto * /Long
+  FLASH.ReProgram off
+)
+
+; --------------------------------------------------------------------------------
+; example download to processor internal flash
+;
+; FLASH.AUTO or FLASH.ReProgram is required for flash programming of
+; unsorted files. FLASH.PROGRAM may result in incorrect CRCs.
+
+DIALOG.YESNO "Program internal flash memory?"
+ENTRY &execflash
+IF &execflash
+(
+  FLASH.TARGET 0xD4000000 0xD0000000 0x1000 ~~/demo/tricore/flash/long/tc1796.bin
+
+  ; using FLASH.ReProgram is faster and more gentle than FLASH.AUTO
+  FLASH.ReProgram 0xA0000000--0xA01FFFFF /Erase
+  FLASH.ReProgram 0xAFE00000--0xAFE07FFF /Erase
+  FLASH.ReProgram 0xAFE10000--0xAFE17FFF /Erase
+
+  ; load user program
+  Data.LOAD.auto *
+  FLASH.ReProgram off
+)
+
+; use internal flash programming algorithm as default
+FLASH.TARGET 0xD4000000 0xD0000000 0x1000 ~~/demo/tricore/flash/long/tc1796.bin
+
+; --------------------------------------------------------------------------------
+; open some window
+WinPOS 0% 50%
+List.auto
+
+ENDDO

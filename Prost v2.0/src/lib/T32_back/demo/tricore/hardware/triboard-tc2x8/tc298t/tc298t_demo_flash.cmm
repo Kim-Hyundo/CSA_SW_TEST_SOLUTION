@@ -1,0 +1,87 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC298T on TriBoard-TC2x8 (Flash, sieve app)
+; @Description:
+;   Programs the sieve demo application (single-core) into the processor
+;   internal flash and sets up a demo debug scenario. This script can be used
+;   as a template for flashing an application.
+; @Keywords: AURIX, flash, Infineon, TriCore
+; @Author: MOB
+; @Board: TriBoard-TC2x8
+; @Chip: TC298T
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc298t_demo_flash.cmm 15579 2020-01-27 15:08:53Z sltaief $
+
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.CPU TC298T
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; Flash programming
+LOCAL &elfFile &progFlash &bmhdResult
+&elfFile="~~~~/triboard-tc29x_sieve_intflash.elf"
+
+; prepare flash programming (declarations)
+DO ~~/demo/tricore/flash/tc29x.cmm CPU=TC298T PREPAREONLY
+
+; check if application is already in flash and load symbols
+Data.LOAD.Elf "&elfFile" /DIFF /SingleLineAdjacent
+IF FOUND()
+(
+  DIALOG.YESNO "Program Lauterbach sieve demo into flash memory?"
+  ENTRY &progFlash
+  IF (&progFlash)
+  (
+    ; enable flash programming
+    FLASH.ReProgram ALL
+
+    ; load demo application
+    Data.LOAD.Elf "&elfFile"
+
+    ; check if there is at least one valid Boot Mode Header
+    DO ~~/demo/tricore/flash/tc29x.cmm CHECKBMHD
+    ENTRY &bmhdResult
+    IF ("&bmhdResult"=="BMHD_OK")
+    (
+      ; finally program flash memory
+      FLASH.ReProgram off
+
+      ; sanity check after flashing
+      Data.LOAD.Elf "&elfFile" /DIFF
+      IF FOUND()
+      (
+        ; maybe some sections are still declared as NOP?
+        PRIVATE &diffAddress
+        &diffAddress=TRACK.ADDRESS()
+        DIALOG.MESSAGE "File &elfFile has not been fully flashed, difference found at address &diffAddress (check flash declaration)"
+      )
+    )
+    ELSE
+    (
+      DIALOG.OK "No valid Boot Mode Header found!" "Reverting loaded data"
+      FLASH.ReProgram ALL
+      FLASH.ReProgram off
+      ENDDO
+    )
+  )
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame.view /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch
+Var.AddWatch ast flags
+
+ENDDO

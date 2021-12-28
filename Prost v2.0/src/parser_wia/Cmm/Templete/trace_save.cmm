@@ -1,0 +1,29 @@
+; -------------------------------------------------------------------------------
+; @Title: Trace file(.ad) save CMM
+; Script arguments:
+;
+;   DO trace_save.cmm [Testcase Number]
+;
+; --------------------------------------------------------------------------------
+LOCAL &parameters &debug_path
+ENTRY &parameters &debug_path
+
+print "&parameters"
+
+//------------Get testcase number------------//
+;&param_testcase_num=STRing.split("&parameters","x",1)
+
+
+//------------Trace file(.ad) save------------//
+
+&file_name="Trace"+"&parameters"
+
+trace.save "&debug_path\&file_name"
+trace.Init
+
+MCDS.TimeStamp ON
+CLOCK.ON
+MCDS.SOURCE.Set CpuMux0.ReadAddr ON
+MCDS.SOURCE.Set CpuMux0.WriteAddr ON
+MCDS.SOURCE.Set CpuMux0.WriteData ON
+ENDDO

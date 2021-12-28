@@ -1,0 +1,54 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple sieve demo running from SRAM for STM32373C-EVAL board
+; @Description: 
+;   This is a small demo running from SRAM showing how to setup a debug  
+;   session on Cortex-M4 for STM32373C-EVAL board. Either CN15 connector 
+;   or CN17 connector could be used.
+; @Keywords: Cortex-M4, Debug, JTAG, SRAM
+; @Author: HDA
+; @Board: STM32373C-EVAL
+; @Chip: STM32F373VC
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: stm32f373_sieve_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; memory map
+; 0x00000000 256kB FLASH (aliased from 0x08000000)
+; 0x20000000  32kB SRAM
+
+; Basic setup
+  RESet
+  SYStem.RESet
+  SYStem.CPU STM32F373VC
+  SYStem.CONFIG.DEBUGPORTTYPE JTAG
+  SYStem.MemAccess DAP
+  SYStem.Option DUALPORT ON
+  SYStem.Up
+	
+; load debug information of demo application on the board
+  Data.LOAD.ELF ~~~~/demo_sram.axf
+  Register.Set PC main
+  Register.Set R13 0x20005000
+
+  ;Go.direct
+
+  ; open some windows
+  WinCLEAR
+
+  WinPOS 0% 0% 50% 50%
+  List.auto
+
+  WinPOS 50% 0% 50% 50%
+  Register.view /SpotLight
+
+  WinPOS 0% 50% 50% 30%
+  Frame /Locals /Caller
+
+  WinPOS 0% 80% 50% 20%
+  Var.Watch %E %SpotLight.on flags
+  Var.AddWatch ast
+
+  WinPOS 50% 50% 50% 50%
+  Var.DRAW sinewave
+
+  ENDDO

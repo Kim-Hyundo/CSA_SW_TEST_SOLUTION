@@ -1,0 +1,131 @@
+; --------------------------------------------------------------------------------
+; @Title: Tricore TC387 Serial SPI flash program
+; @Description:
+;   Example script for flash declaration and programming of Infineon
+;   TriCore TC3x7 Evaluation board, Serial SPI Flash N25Q00
+;   The SPI flash is connected to QSPI1
+;
+;  pin connection
+;  symbol       port     spi_memory
+;  QSPI1_SLSO5  p11.2    SPI_CS
+;  QSPI1_MRSTB  p11.3    SPI_MISO
+;  QSPI1_SCLK   p11.6    SPI_CLK
+;  QSPI1_MTSR   p11.9    SPI_MOSI
+;
+;  S(D)RAM: 0x70100000
+;  Quad SPI Controller Base Addr: 0xF0001D00 (QSPI1)
+;
+; @Keywords: Flash, Infineon, TriCore
+; @Author: JIM
+; @Chip: TC38*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc38x-spi.cmm 6673 2019-02-25 18:24:04Z jjeong $
+; $Rev: 6673 $
+
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+&QSPI_BASE=0xF0001D00
+
+////////////////////
+// SYSTEM UP setting
+////////////////////
+  SYStem.CPU TC387QP
+  SYStem.Up
+
+////////////////////
+// QSPI CLK enable
+////////////////////
+  Data.Set A:0xF0036034 %Long (Data.Long(A:0xF0036034)|0x01000000)  ;SCU_CCUCON1.B.QSPIDIV = 1
+
+////////////////////
+// pin mux setting (alternative function setting)
+////////////////////
+  Data.Set A:0xF003AB10 %Long 0x10A01010  ;   P11.2  QSPI_CS,  P11.3  QSPI_MISO
+  Data.Set A:0xF003AB14 %Long 0x10981010  ;   P11.6  QSPI_CK
+  Data.Set A:0xF003AB18 %Long 0x10109810  ;   P11.9 QSPI_MOSI
+
+  Data.Set A:0xF003AB40 %Long 0x0  ; set drive strength to speed grade 1
+  Data.Set A:0xF003AB44 %Long 0x0
+
+////////////////////
+// Quad SPI controller setting
+////////////////////
+  Data.Set A:&QSPI_BASE+0x000 %Long 0x8        ;QSPI1_CLC
+  Data.Set A:&QSPI_BASE+0x010 %Long 0x20003C04 ;QSPI1_GLOBALCON
+  Data.Set A:&QSPI_BASE+0x004 %Long 0x1        ;QSPI1_PISEL, QSPI1 P11.2 
+  Data.Set A:&QSPI_BASE+0x014 %Long 0x14000000|(0x3<<9.)  ;QSPI1_GLOBALCON1, Tx and Rx Interrupt Event Enabled 
+  Data.Set A:&QSPI_BASE+0x024 %Long 0x501      ;QSPI1_ECON1
+  Data.Set A:&QSPI_BASE+0x048 %Long ((0x1<<5.)<<16.) ;QSPI2_SSOC = ((0x1<<5.)<< 16) , SLSO5
+
+  Data.Set A:&QSPI_BASE+0x20 %Long 0x3440; ECON0
+  Data.Set A:&QSPI_BASE+0x24 %Long 0x3440; ECON1
+  Data.Set A:&QSPI_BASE+0x28 %Long 0x3440; ECON2
+  Data.Set A:&QSPI_BASE+0x2C %Long 0x3440; ECON3
+  Data.Set A:&QSPI_BASE+0x30 %Long 0x3440; ECON4
+  Data.Set A:&QSPI_BASE+0x34 %Long 0x3440; ECON5 for SLSO5 around 6Mhz
+  Data.Set A:&QSPI_BASE+0x38 %Long 0x3440; ECON6
+  Data.Set A:&QSPI_BASE+0x3C %Long 0x2240; ECON7
+
+  Data.Set A:&QSPI_BASE+0x10 %LE %Long Data.Long(A:&QSPI_BASE+0x10)|(0x1<<24.)  ; /* RUN requested */
+
+////////////////////
+// READ ID TEST
+////////////////////
+  GOSUB READ_ID_TEST
+
+////////////////////
+// FLASHFILE setting
+////////////////////
+  Break.RESet
+
+  FLASHFILE.RESet
+
+//FLASFILE.CONFIG <Base Reg>  0x0 0x0 <SLSO#=CS#>
+  FLASHFILE.CONFIG &QSPI_BASE 0x0 0x0 0x5
+
+//FLASHFILE.TARGET <Code Range>       <Data Range>         <Algorithm File>
+  FLASHFILE.TARGET 0x70100000++0x1FFF 0x70102000++0x1FFF   ~~/demo/tricore/flash/byte/spin25q00_tcqspi.bin  /KEEP
+// general SPI flash memory
+ ;FLASHFILE.TARGET 0x70100000++0x1FFF 0x70102000++0x1FFF   ~~/demo/tricore/flash/byte/spi64_tcqspi.bin  /KEEP
+
+  FLASHFILE.GETID
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+ENDDO
+
+  FLASHFILE.DUMP 0x0
+
+//Erase Serial FLASH  
+  ;FLASHFILE.ERASE 0x0--0xFFFFF
+
+//Write
+  ;FLASHFILE.LOAD   * 0x0
+  ;FLASHFILE.LOAD   * 0x0  /ComPare   ;verify
+
+ENDDO
+
+READ_ID_TEST:
+
+   LOCAL &temp
+
+  ;QSPI1_BACONENTRY = 0x1 |(0x1 << 16) | (0x1 << 21 /*MSB first*/) | (0 << 22) | (0x1F << 23) | (0xXX << 28);
+  &baconent= 0x1|(0x1<<16.)|(0x1<<21.)|(0<<22.)|(0x1F<<23.)|(0x5<<28.)  ; 32bit transfer last fram.
+  Data.Set A:&QSPI_BASE+0x60 %Long &baconent
+
+  &temp=0x9F000000
+  Data.Set A:&QSPI_BASE+0x064 %Long &temp
+  &temp=Data.Long(A:&QSPI_BASE+0x090)
+
+  PRINT "Read 1st 0x" (&temp>>24.)&0xFF      
+  PRINT "Read 2nd 0x" (&temp>>16.)&0xFF " (Manufacture)"
+  PRINT "Read 3rd 0x" (&temp>>8.)&0xFF  " (Device ID)"
+  PRINT "Read 4th 0x" &temp&0xFF
+  
+  Data.Set A:&QSPI_BASE+0x54 %Long Data.Long(A:&QSPI_BASE+0x54)|(0x3<<9.)
+  
+RETURN
+

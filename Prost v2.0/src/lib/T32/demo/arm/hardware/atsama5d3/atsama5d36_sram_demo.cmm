@@ -1,0 +1,49 @@
+; --------------------------------------------------------------------------------
+; @Title: startup script on SRAM for ATMEL ATSAMA5D36
+; @Description:
+;
+;   This demo demonstrates the debugging of the ATMSAMA5D36 Cortex-A5
+;   using a simple sieve demo loaded on the SRAM.
+;
+;   SRAM0: 0x00300000--0x0030FFFF
+;   SRAM1: 0x00310000--0x003FFFFF
+;
+; @Author: MSA
+; @Board: ATMEL
+; @Chip: ATSAMA5D36
+; @Keywords: Cortex-A5, sieve
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: atsama5d36_sram_demo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+  RESet
+  SYStem.RESet
+  SYStem.CPU ATSAMA5D36
+  SYStem.CONFIG.DEBUGPORTTYPE JTAG
+  SYStem.Option.ResBreak OFF
+  SYStem.Option.WaitReset 30.ms
+  SYStem.MemAccess DAP
+
+  SYStem.Up
+
+
+  Data.LOAD.Elf ~~~~/demo_sram.axf
+
+  ; open some windows
+  WinCLEAR
+
+  WinPOS 0% 0% 50% 50%
+  List.auto
+
+  WinPOS 50% 0% 50% 50%
+  Register.view /SpotLight
+
+  WinPOS 0% 50% 50% 50%
+  Frame /Locals /Caller
+
+  WinPOS 50% 50% 50% 50%
+  Var.Watch
+  Var.AddWatch ast; flags;
+
+
+  ENDDO

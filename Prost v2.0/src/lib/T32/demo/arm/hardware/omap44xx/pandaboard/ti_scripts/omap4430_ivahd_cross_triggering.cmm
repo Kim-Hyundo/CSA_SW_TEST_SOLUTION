@@ -1,0 +1,250 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags
+; @Author: TI
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: omap4430_ivahd_cross_triggering.cmm 8886 2015-11-18 18:06:51Z mobermeir $
+
+ENTRY &menu_type 
+
+&CMM_DIR="~~~~"
+
+
+IF (Var.VALUE(&menu_type)==0x0)
+( 
+  GOSUB SetTriggerControlRegisterIcont1CrossTrigger0Halt
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0x1) 
+( 
+  GOSUB SetTriggerControlRegisterICont1CrossTrigger1Halt
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0x2)
+( 
+  GOSUB SetTriggerControlRegisterIcont2CrossTrigger0Halt
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0x3) 
+( 
+  GOSUB SetTriggerControlRegisterICont2CrossTrigger1Halt
+  ENDDO
+)
+
+
+SetTriggerControlRegisterIcont1CrossTrigger0Halt:
+(
+ENTRY
+  LOCAL &triggerValue
+
+  GOSUB EnableICECrusherIcont1
+
+  ;claim this register    
+  &triggerValue=Data.Long(SR:0x102C0010)    
+  &triggerValue=&triggerValue&~0xF0000000    
+  &triggerValue=&triggerValue|0x40000000    
+  Data.Set SR:0x102C0010 %Long &triggerValue
+
+  ;triggerValue = TRIGGER_CTRL_REG(ICECRUSHER_BASE);
+  ;triggerValue = triggerValue&~CLAIM_ENABLE_MASK;
+  ;triggerValue = triggerValue|CLAIM_MASK;
+  ;TRIGGER_CTRL_REG(ICECRUSHER_BASE) = triggerValue;
+
+  ;enable this register
+  ;triggerValue = TRIGGER_CTRL_REG(ICECRUSHER_BASE);
+  ;triggerValue = triggerValue&~CLAIM_ENABLE_MASK;
+  ;triggerValue = triggerValue|ENABLE_MASK;
+  ;TRIGGER_CTRL_REG(ICECRUSHER_BASE) = triggerValue;
+
+  &triggerValue=Data.Long(SR:0x102C0010)    
+  &triggerValue=&triggerValue&~0xF0000000    
+  &triggerValue=&triggerValue|0x80000000    
+  Data.Set SR:0x102C0010 %Long &triggerValue
+
+  ;clear Trigger0 control
+  &triggerValue=Data.Long(SR:0x102C0010)      
+  &triggerValue=&triggerValue&0xFFFFFFF0    
+  Data.Set SR:0x102C0010 %Long &triggerValue
+
+  ;configure cross-trigger 0 halt 
+  ;triggerValue = TRIGGER_CTRL_REG(ICECRUSHER_BASE);
+  ;triggerValue=triggerValue|0x1;
+  ;TRIGGER_CTRL_REG(ICECRUSHER_BASE)=triggerValue;
+
+  &triggerValue=Data.Long(SR:0x102C0010)      
+  &triggerValue=&triggerValue|0x1    
+  Data.Set SR:0x102C0010 %Long &triggerValue
+RETURN
+)
+
+SetTriggerControlRegisterICont1CrossTrigger1Halt:
+(
+ENTRY
+  LOCAL &triggerValue
+
+  GOSUB EnableICECrusherIcont1
+
+      ;claim this register    
+  &triggerValue=Data.Long(SR:0x102C0010)    
+  &triggerValue=&triggerValue&~0xF0000000    
+  &triggerValue=&triggerValue|0x40000000    
+  Data.Set SR:0x102C0010 %Long &triggerValue
+
+  ;triggerValue = TRIGGER_CTRL_REG(ICECRUSHER_BASE);
+  ;triggerValue = triggerValue&~CLAIM_ENABLE_MASK;
+  ;triggerValue = triggerValue|CLAIM_MASK;
+  ;TRIGGER_CTRL_REG(ICECRUSHER_BASE) = triggerValue;
+
+  ;enable this register
+  ;triggerValue = TRIGGER_CTRL_REG(ICECRUSHER_BASE);
+  ;triggerValue = triggerValue&~CLAIM_ENABLE_MASK;
+  ;triggerValue = triggerValue|ENABLE_MASK;
+  ;TRIGGER_CTRL_REG(ICECRUSHER_BASE) = triggerValue;
+
+  &triggerValue=Data.Long(SR:0x102C0010)    
+  &triggerValue=&triggerValue&~0xF0000000    
+  &triggerValue=&triggerValue|0x80000000    
+  Data.Set SR:0x102C0010 %Long &triggerValue
+
+  ;clear Trigger1 control
+  &triggerValue=Data.Long(SR:0x102C0010)      
+  &triggerValue=&triggerValue&0xFFFF0FFF    
+  Data.Set SR:0x102C0010 %Long &triggerValue
+
+  ;configure cross-trigger 1 halt 
+  ;triggerValue = TRIGGER_CTRL_REG(ICECRUSHER_BASE);
+  ;triggerValue=triggerValue|0x1000;
+  ;TRIGGER_CTRL_REG(ICECRUSHER_BASE)=triggerValue;
+
+  &triggerValue=Data.Long(SR:0x102C0010)      
+  &triggerValue=&triggerValue|0x1000    
+  Data.Set SR:0x102C0010 %Long &triggerValue   
+RETURN
+)
+
+SetTriggerControlRegisterIcont2CrossTrigger0Halt:
+(
+ENTRY
+  LOCAL &triggerValue
+
+  GOSUB EnableICECrusherIcont2
+
+  ;claim this register    
+  &triggerValue=Data.Long(SR:0x102C0810)    
+  &triggerValue=&triggerValue&~0xF0000000    
+  &triggerValue=&triggerValue|0x40000000    
+  Data.Set SR:0x102C0810 %Long &triggerValue
+
+  ;triggerValue = TRIGGER_CTRL_REG(ICECRUSHER_BASE);
+  ;triggerValue = triggerValue&~CLAIM_ENABLE_MASK;
+  ;triggerValue = triggerValue|CLAIM_MASK;
+  ;TRIGGER_CTRL_REG(ICECRUSHER_BASE) = triggerValue;
+
+  ;enable this register
+  ;triggerValue = TRIGGER_CTRL_REG(ICECRUSHER_BASE);
+  ;triggerValue = triggerValue&~CLAIM_ENABLE_MASK;
+  ;triggerValue = triggerValue|ENABLE_MASK;
+  ;TRIGGER_CTRL_REG(ICECRUSHER_BASE) = triggerValue;
+
+  &triggerValue=Data.Long(SR:0x102C0810)    
+  &triggerValue=&triggerValue&~0xF0000000    
+  &triggerValue=&triggerValue|0x80000000    
+  Data.Set SR:0x102C0810 %Long &triggerValue
+
+  ;clear Trigger0 control
+  &triggerValue=Data.Long(SR:0x102C0810)      
+  &triggerValue=&triggerValue&0xFFFFFFF0    
+  Data.Set SR:0x102C0810 %Long &triggerValue
+
+  ;configure cross-trigger 0 halt 
+  ;triggerValue = TRIGGER_CTRL_REG(ICECRUSHER_BASE);
+  ;triggerValue=triggerValue|0x1;
+  ;TRIGGER_CTRL_REG(ICECRUSHER_BASE)=triggerValue;
+
+  &triggerValue=Data.Long(SR:0x102C0810)      
+  &triggerValue=&triggerValue|0x1    
+  Data.Set SR:0x102C0810 %Long &triggerValue   
+RETURN
+)
+
+SetTriggerControlRegisterICont2CrossTrigger1Halt:
+(
+ENTRY
+  LOCAL &triggerValue
+
+  GOSUB EnableICECrusherIcont2
+
+      ;claim this register    
+  &triggerValue=Data.Long(SR:0x102C0810)    
+  &triggerValue=&triggerValue&~0xF0000000    
+  &triggerValue=&triggerValue|0x40000000    
+  Data.Set SR:0x102C0810 %Long &triggerValue
+
+  ;triggerValue = TRIGGER_CTRL_REG(ICECRUSHER_BASE);
+  ;triggerValue = triggerValue&~CLAIM_ENABLE_MASK;
+  ;triggerValue = triggerValue|CLAIM_MASK;
+  ;TRIGGER_CTRL_REG(ICECRUSHER_BASE) = triggerValue;
+
+  ;enable this register
+  ;triggerValue = TRIGGER_CTRL_REG(ICECRUSHER_BASE);
+  ;triggerValue = triggerValue&~CLAIM_ENABLE_MASK;
+  ;triggerValue = triggerValue|ENABLE_MASK;
+  ;TRIGGER_CTRL_REG(ICECRUSHER_BASE) = triggerValue;
+
+  &triggerValue=Data.Long(SR:0x102C0810)    
+  &triggerValue=&triggerValue&~0xF0000000    
+  &triggerValue=&triggerValue|0x80000000    
+  Data.Set SR:0x102C0810 %Long &triggerValue
+
+  ;clear Trigger1 control
+  &triggerValue=Data.Long(SR:0x102C0810)      
+  &triggerValue=&triggerValue&0xFFFF0FFF    
+  Data.Set SR:0x102C0810 %Long &triggerValue
+
+  ;configure cross-trigger 1 halt 
+  ;triggerValue = TRIGGER_CTRL_REG(ICECRUSHER_BASE);
+  ;triggerValue=triggerValue|0x1000;
+  ;TRIGGER_CTRL_REG(ICECRUSHER_BASE)=triggerValue;
+
+  &triggerValue=Data.Long(SR:0x102C0810)      
+  &triggerValue=&triggerValue|0x1000    
+  Data.Set SR:0x102C0810 %Long &triggerValue 
+RETURN
+)
+
+EnableICECrusherIcont1:
+(
+  ENTRY
+  LOCAL &value;
+
+  ;Clear ContextRestore status bit
+  &value=Data.Long(SR:0x102C00FC)
+  &value=&value|0x100000;
+  Data.Set SR:0x102C00FC %Long &value
+
+  ; Set Clock Enable bit
+  &value=&value|0x80000
+  Data.Set SR:0x102C00FC %Long &value
+
+  RETURN
+)
+
+EnableICECrusherIcont2:
+(
+  ENTRY
+  LOCAL &value;
+
+  ;Clear ContextRestore status bit   
+  &value=Data.Long(SR:0x102C08FC);
+  &value=&value|0x100000
+  Data.Set SR:0x102C08FC %Long &value
+
+  ; Set Clock Enable bit
+  &value=&value|0x80000
+  Data.Set SR:0x102C08FC %Long &value
+
+  RETURN
+)

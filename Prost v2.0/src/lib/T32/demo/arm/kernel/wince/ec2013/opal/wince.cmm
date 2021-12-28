@@ -1,0 +1,207 @@
+; --------------------------------------------------------------------------------
+; @Title: Windows Embedded Compact 2013 Demo for TRACE32 OS Awareness
+; @Description:
+;
+;   This batchfile demonstrates the use of the OS Awareness for EC2013
+;
+;   The example is generated for an Opal i.MX53 board using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   The Windows EC image is downloaded via the ICD.
+;
+;   This script uses the onboard bootloader to initialize the board
+;
+; @Keywords: awareness, i.MX53
+; @Author: DIE
+; @Board: Opal-i.MX53
+; @Chip: IMX53*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: wince.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+; Starting WinCE example with TRACE32:
+; - Start TRACE32
+; - Power on the board
+; - TRACE32: "do wince"
+
+; For debugging with TRACE32 we recommend to disable demand paging
+; by setting bit one of ROMFLAGS in PLATFORM\Opal\FILES\config.bib
+
+; Connect USB cable to DEBUG/UART
+; - 115200 baud, 8/N/1, no(!) handshake
+
+
+ &winceroot="C:\WINCE800"    ; typically C:\WINCE800
+ &reldir="&winceroot\OSDesigns\Opal2013Tiny\Opal2013Tiny\RelDir\Debug"
+
+ &term="COM6"
+
+
+ SCREEN.ALways      ; permanent update for internal terminal window
+ ; screen.on        ; if you use external terminal
+
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 24. 75. 8.
+ AREA.view
+
+ PRINT "resetting..."
+
+ RESet
+
+
+; Initializing Debugger
+
+ PRINT "initializing..."
+ SYStem.CPU IMX53
+ SYStem.JtagClock 20MHz
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ SYStem.Option ResBreak OFF     ; hardware dependent (see manual)
+ SYStem.Option WaitReset 100ms  ; hardware dependent (see manual)
+ TrOnchip.Set DABORT OFF        ; used by Windows CE for page miss!
+ TrOnchip.Set PABORT OFF        ; used by Windows CE for page miss!
+ TrOnchip.Set UNDEF OFF         ; my be used by Windows CE for FPU detection
+ TrOnchip.Set IRQ OFF
+
+ SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+
+
+; Open serial terminal window
+
+ IF "&term"!=""
+ (
+   WinPOS 35. 0. ,,,,, TERM.view
+   TERM.METHOD COM &term 115200. 8 NONE 1STOP  RTSCTS
+   TERM.SIZE 80. 1000.
+   TERM.Mode VT100
+   TERM.SCROLL ON
+   TERM.view
+ )
+
+
+; Connect to target
+
+ ; sometimes we need the SYStem.Up twice, don't know why
+ ON ERROR GOTO retry
+retry:
+ SYStem.Up
+ ON ERROR
+
+ SETUP.IMASKASM ON          ; lock interrupts while single stepping
+
+
+; Target Setup
+
+ ; if you want to let the bootloader initialize the board:
+     ; start eboot to initialize the board
+     Go
+     PRINT "target setup... with eboot"
+     WAIT 1.s
+     Break
+ ; else setup the board with the debugger:
+     ;print "target setup... with script"
+     ;do setup_board.cmm
+
+
+; Load the Windows CE image
+
+ ; Use the next lines only to load the image into
+ ; RAM using the debugger.
+
+ PRINT "loading Windows CE image..."
+
+ ; Prepare for direct download: disable caches and MMU!
+ Data.Set C15:1 Data.Long(c15:1)&~0x1005    ; SCTLR: I/C/M; L1 cache and MMU
+ Data.Set C15:101 Data.Long(C15:101)&~2     ; ACTLR: L2EN;  L2 cache
+
+ Register.RESet
+
+ ; Download the image to physical address.
+
+ ; See config.bib:
+
+ ; RAMIMAGE entry specifies virtual load address, here 0x80200000
+ ; physical is usually RAM start plus the offset;
+ ; RAM starts at 0x70000000, so physical load address is 0x70200000
+
+ ; ROMSTART entry specifies the start address, here 0x80200000
+ ; IMPORTANT: do *not* add 4k page to ROMSTART - we need the TOC!
+
+ ; ROMOFFSET adds an offset to RAMIMAGE for flash load addresses,
+ ; here 0x1F470400
+ ; then load eboot to <phys. addr.> - (RAMIMAGE+ROMOFFSET)
+
+
+ Data.LOAD.eXe "&reldir\nk.bin" 0x70200000-0x80200000               ; Debug
+ ;Data.LOAD.EXE "&reldir\nk.bin" 0x70200000-(0x80200000+0x1F470400)  ; Shipbuild
+
+ ; set PC to physical start address
+ Register.Set PC 0x70200000
+
+
+; We'd like to see something, open a code window.
+ WinPOS 0. 0. 77. 22.
+ List.auto
+
+
+; Declare the MMU format to the debugger
+
+ ; table format is "WINCE6"
+ ; skip root table (0)
+ ; declare default translation for kernel
+ MMU.FORMAT WINCE6 0 0x80000000--0x9cffffff 0x70000000
+
+ ; ROM DLL, shared heap and kernel addresses are common to all processes
+ TRANSlation.COMMON 0x40000000--0x5fffffff 0x70000000--0xffffffff
+
+ ; debugger uses a table walk to decode virtual addresses
+ TRANSlation.TableWalk ON
+
+  ; switch on debugger(!) address translation
+ TRANSlation.ON
+
+
+; Initialize RTOS Support
+
+ PRINT "initializing Windows CE support..."
+ TASK.CONFIG ~~\demo\arm\kernel\wince\ec2013\wince8.t32     ; loads WinCE awareness
+ MENU.ReProgram ~~\demo\arm\kernel\wince\ec2013\wince8.men  ; loads WinCE menu
+ HELP.FILTER.Add rtoswince6     ; add WinCE awareness manual to help
+
+ ; switch on autoloader and add path to symbol files to source path list
+ sYmbol.AutoLoad.CHECKWINCE "do ~~\demo\arm\kernel\wince\ec2013\autoload "
+ sYmbol.SourcePATH.Set &reldir
+
+ ; Group kernel area to be displayed with red bar
+ GROUP.Create "winceos" 0x80000000--0xffffffff /RED
+
+ ; adapt source paths if necessary (case sensitive!)
+ ;sYmbol.SourcePATH.Translate "c:\wince800" "&winceroot"
+ sYmbol.SourcePATH.Translate "d:\bt\1318" "&winceroot"
+ sYmbol.SourcePATH.Set .    ; add current directory to search path
+
+
+; Now let's boot and start Windows CE!
+
+ Go
+ wintop TERM.view
+ PRINT "booting Windows CE... (please wait)"
+ WAIT 1.s
+ Break
+
+
+ PRINT "done."
+
+
+; --------------------------------------------------------------------------------
+; Application Debugging
+; e.g. "alive.exe"
+
+ DO ~~\demo\arm\kernel\wince\ec2013\app_debug alive
+
+
+ ENDDO

@@ -1,0 +1,1351 @@
+; --------------------------------------------------------------------------------
+; @Title: Setup Script for AM572x : am572x_prcm_config.cmm
+; @Description: see "am572x_hardware_init.cmm"
+; @Keywords: AM57xx
+; @Author: YDA
+; @Board: AM572x EVM
+; @Chip: AM572x
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: am572x_prcm_config.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+PARAMS &func
+
+&DEBUG_PRINT=(0.)
+
+//OPP definitions
+&OPP_NOM=0x0
+&OPP_OD=0x1
+&OPP_HIGH=0x2
+&SYS_CLK1=(20.)
+
+//DEVICE_TYPE definitions
+&DEVICE_AM572X_GP=0x3
+
+//DPLL Definitions
+&DPLL_TIMEOUT=5.   ;DPLL lock/unlock timeout (was 5000)
+
+//Instance Base Addresses
+&CTRL_MODULE_CORE=0x4a002000
+&CKGEN_CM_CORE_AON=0x4a005100
+&MPU_CM_CORE_AON=0x4a005300
+&DSP1_CM_CORE_AON=0x4a005400
+&IPU_CM_CORE_AON=0x4a005500
+&DSP2_CM_CORE_AON=0x4a005600
+&RTC_CM_CORE_AON=0x4a005740
+&VPE_CM_CORE_AON=0x4a005760
+&CKGEN_CM_CORE=0x4a008100
+&COREAON_CM_CORE=0x4a008600
+&CORE_CM_CORE=0x4a008700
+&IVA_CM_CORE=0x4a008f00
+&CAM_CM_CORE=0x4a009000
+&DSS_CM_CORE=0x4a009100
+&GPU_CM_CORE=0x4a009200
+&L3INIT_CM_CORE=0x4a009300
+&L4PER_CM_CORE=0x4a009700
+&CKGEN_PRM=0x4ae06100
+&WKUPAON_CM=0x4ae07800
+&EMU_CM=0x4ae07a00
+
+//CLKSTCTRL offsets
+&CORE_CM_CORE__CM_L3MAIN1_CLKSTCTRL=0x000
+&CORE_CM_CORE__CM_IPU2_CLKSTCTRL=0x200
+&CORE_CM_CORE__CM_DMA_CLKSTCTRL=0x300
+&CORE_CM_CORE__CM_EMIF_CLKSTCTRL=0x400
+&CORE_CM_CORE__CM_L4CFG_CLKSTCTRL=0x600
+&COREAON_CM_CORE__CM_COREAON_CLKSTCTRL=0x00
+&DSP1_CM_CORE_AON__CM_DSP1_CLKSTCTRL=0x00
+&DSP2_CM_CORE_AON__CM_DSP2_CLKSTCTRL=0x00
+&DSS_CM_CORE__CM_DSS_CLKSTCTRL=0x00
+&GPU_CM_CORE__CM_GPU_CLKSTCTRL=0x00
+&IPU_CM_CORE_AON__CM_IPU1_CLKSTCTRL=0x00
+&IPU_CM_CORE_AON__CM_IPU_CLKSTCTRL=0x40
+&IVA_CM_CORE__CM_IVA_CLKSTCTRL=0x00
+&CAM_CM_CORE__CM_CAM_CLKSTCTRL=0x00
+&L3INIT_CM_CORE__CM_L3INIT_CLKSTCTRL=0x00
+&L3INIT_CM_CORE__CM_PCIE_CLKSTCTRL=0xA0
+&L3INIT_CM_CORE__CM_GMAC_CLKSTCTRL=0xC0
+&L4PER_CM_CORE__CM_L4PER_CLKSTCTRL=0x000
+&L4PER_CM_CORE__CM_L4PER2_CLKSTCTRL=0x1FC
+&L4PER_CM_CORE__CM_L4PER3_CLKSTCTRL=0x210
+&MPU_CM_CORE_AON__CM_MPU_CLKSTCTRL=0x00
+&RTC_CM_CORE_AON__CM_RTC_CLKSTCTRL=0x00
+&VPE_CM_CORE_AON__CM_VPE_CLKSTCTRL=0x00
+&WKUPAON_CM__CM_WKUPAON_CLKSTCTRL=0x00
+
+//CLKSTCTRL modes
+&SW_SLEEP=(0x1)
+&SW_WKUP=(0x2)
+&HW_AUTO=(0x3)
+
+&CLKSTCTRL_TIMEOUOT=(300.)
+
+//CLKCTRL Offsets
+&CAM_CM_CORE__CM_CAM_VIP1_CLKCTRL=0x020
+&CAM_CM_CORE__CM_CAM_VIP2_CLKCTRL=0x028
+&CAM_CM_CORE__CM_CAM_VIP3_CLKCTRL=0x030
+&CORE_CM_CORE__CM_L3MAIN1_L3_MAIN_1_CLKCTRL=0x020
+&CORE_CM_CORE__CM_L3MAIN1_GPMC_CLKCTRL=0x028
+&CORE_CM_CORE__CM_L3MAIN1_MMU_EDMA_CLKCTRL=0x030
+&CORE_CM_CORE__CM_L3MAIN1_MMU_PCIESS_CLKCTRL=0x048
+&CORE_CM_CORE__CM_L3MAIN1_OCMC_RAM1_CLKCTRL=0x050
+&CORE_CM_CORE__CM_L3MAIN1_OCMC_RAM2_CLKCTRL=0x058
+&CORE_CM_CORE__CM_L3MAIN1_OCMC_RAM3_CLKCTRL=0x060
+&CORE_CM_CORE__CM_L3MAIN1_OCMC_ROM_CLKCTRL=0x068
+&CORE_CM_CORE__CM_L3MAIN1_TPCC_CLKCTRL=0x070
+&CORE_CM_CORE__CM_L3MAIN1_TPTC1_CLKCTRL=0x078
+&CORE_CM_CORE__CM_L3MAIN1_TPTC2_CLKCTRL=0x080
+&CORE_CM_CORE__CM_IPU2_IPU2_CLKCTRL=0x220
+&CORE_CM_CORE__CM_DMA_DMA_SYSTEM_CLKCTRL=0x320
+&CORE_CM_CORE__CM_EMIF_DMM_CLKCTRL=0x420
+&CORE_CM_CORE__CM_EMIF_EMIF_OCP_FW_CLKCTRL=0x428
+&CORE_CM_CORE__CM_EMIF_EMIF1_CLKCTRL=0x430
+&CORE_CM_CORE__CM_EMIF_EMIF2_CLKCTRL=0x438
+&CORE_CM_CORE__CM_L4CFG_L4_CFG_CLKCTRL=0x620
+&CORE_CM_CORE__CM_L4CFG_SPINLOCK_CLKCTRL=0x628
+&CORE_CM_CORE__CM_L4CFG_MAILBOX1_CLKCTRL=0x630
+&CORE_CM_CORE__CM_L4CFG_MAILBOX2_CLKCTRL=0x648
+&CORE_CM_CORE__CM_L4CFG_MAILBOX3_CLKCTRL=0x650
+&CORE_CM_CORE__CM_L4CFG_MAILBOX4_CLKCTRL=0x658
+&CORE_CM_CORE__CM_L4CFG_MAILBOX5_CLKCTRL=0x660
+&CORE_CM_CORE__CM_L4CFG_MAILBOX6_CLKCTRL=0x668
+&CORE_CM_CORE__CM_L4CFG_MAILBOX7_CLKCTRL=0x670
+&CORE_CM_CORE__CM_L4CFG_MAILBOX8_CLKCTRL=0x678
+&CORE_CM_CORE__CM_L4CFG_MAILBOX9_CLKCTRL=0x680
+&CORE_CM_CORE__CM_L4CFG_MAILBOX10_CLKCTRL=0x688
+&CORE_CM_CORE__CM_L4CFG_MAILBOX11_CLKCTRL=0x690
+&CORE_CM_CORE__CM_L4CFG_MAILBOX12_CLKCTRL=0x698
+&CORE_CM_CORE__CM_L4CFG_MAILBOX13_CLKCTRL=0x6A0
+&CORE_CM_CORE__CM_L3INSTR_L3_MAIN_2_CLKCTRL=0x720
+&DSS_CM_CORE__CM_DSS_DSS_CLKCTRL=0x020
+&GPU_CM_CORE__CM_GPU_GPU_CLKCTRL=0x020
+&EMU_CM__CM_EMU_MPU_EMU_DBG_CLKCTRL=0x00C
+&IPU_CM_CORE_AON__CM_IPU1_IPU1_CLKCTRL=0x020
+&IPU_CM_CORE_AON__CM_IPU_MCASP1_CLKCTRL=0x050
+&IPU_CM_CORE_AON__CM_IPU_TIMER5_CLKCTRL=0x058
+&IPU_CM_CORE_AON__CM_IPU_TIMER6_CLKCTRL=0x060
+&IPU_CM_CORE_AON__CM_IPU_TIMER7_CLKCTRL=0x068
+&IPU_CM_CORE_AON__CM_IPU_TIMER8_CLKCTRL=0x070
+&IVA_CM_CORE__CM_IVA_IVA_CLKCTRL=0x020
+&IVA_CM_CORE__CM_IVA_SL2_CLKCTRL=0x028
+&L3INIT_CM_CORE__CM_L3INIT_MMC1_CLKCTRL=0x028
+&L3INIT_CM_CORE__CM_L3INIT_MMC2_CLKCTRL=0x030
+&L3INIT_CM_CORE__CM_L3INIT_IEEE1500_2_OCP_CLKCTRL=0x078
+&L3INIT_CM_CORE__CM_PCIE_PCIESS1_CLKCTRL=0x0B0
+&L3INIT_CM_CORE__CM_GMAC_GMAC_CLKCTRL=0x0D0
+&L3INIT_CM_CORE__CM_L3INIT_OCP2SCP1_CLKCTRL=0x0E0
+&L3INIT_CM_CORE__CM_L3INIT_OCP2SCP3_CLKCTRL=0x0E8
+&L4PER_CM_CORE__CM_L4PER2_L4_PER2_CLKCTRL=0x00C
+&L4PER_CM_CORE__CM_L4PER3_L4_PER3_CLKCTRL=0x014
+&L4PER_CM_CORE__CM_L4PER_TIMER10_CLKCTRL=0x028
+&L4PER_CM_CORE__CM_L4PER_TIMER11_CLKCTRL=0x030
+&L4PER_CM_CORE__CM_L4PER_TIMER2_CLKCTRL=0x038
+&L4PER_CM_CORE__CM_L4PER_TIMER3_CLKCTRL=0x040
+&L4PER_CM_CORE__CM_L4PER_TIMER4_CLKCTRL=0x048
+&L4PER_CM_CORE__CM_L4PER_TIMER9_CLKCTRL=0x050
+&L4PER_CM_CORE__CM_L4PER_GPIO2_CLKCTRL=0x060
+&L4PER_CM_CORE__CM_L4PER_GPIO3_CLKCTRL=0x068
+&L4PER_CM_CORE__CM_L4PER_GPIO4_CLKCTRL=0x070
+&L4PER_CM_CORE__CM_L4PER_GPIO5_CLKCTRL=0x078
+&L4PER_CM_CORE__CM_L4PER_GPIO6_CLKCTRL=0x080
+&L4PER_CM_CORE__CM_L4PER_I2C1_CLKCTRL=0x0A0
+&L4PER_CM_CORE__CM_L4PER_I2C2_CLKCTRL=0x0A8
+&L4PER_CM_CORE__CM_L4PER_I2C3_CLKCTRL=0x0B0
+&L4PER_CM_CORE__CM_L4PER_I2C4_CLKCTRL=0x0B8
+&L4PER_CM_CORE__CM_L4PER_L4_PER1_CLKCTRL=0x0C0
+&L4PER_CM_CORE__CM_L4PER3_TIMER13_CLKCTRL=0x0C8
+&L4PER_CM_CORE__CM_L4PER3_TIMER14_CLKCTRL=0x0D0
+&L4PER_CM_CORE__CM_L4PER3_TIMER15_CLKCTRL=0x0D8
+&L4PER_CM_CORE__CM_L4PER_MCSPI1_CLKCTRL=0x0F0
+&L4PER_CM_CORE__CM_L4PER_GPIO7_CLKCTRL=0x110
+&L4PER_CM_CORE__CM_L4PER_GPIO8_CLKCTRL=0x118
+&L4PER_CM_CORE__CM_L4PER_MMC3_CLKCTRL=0x120
+&L4PER_CM_CORE__CM_L4PER_MMC4_CLKCTRL=0x128
+&L4PER_CM_CORE__CM_L4PER3_TIMER16_CLKCTRL=0x130
+&L4PER_CM_CORE__CM_L4PER2_QSPI_CLKCTRL=0x138
+&L4PER_CM_CORE__CM_L4PER_UART1_CLKCTRL=0x140
+&L4PER_CM_CORE__CM_L4PER_UART3_CLKCTRL=0x150
+&MPU_CM_CORE_AON__CM_MPU_MPU_CLKCTRL=0x020
+&MPU_CM_CORE_AON__CM_MPU_MPU_MPU_DBG_CLKCTRL=0x028
+&VPE_CM_CORE_AON__CM_VPE_VPE_CLKCTRL=0x004
+&WKUPAON_CM__CM_WKUPAON_WD_TIMER1_CLKCTRL=0x028
+&WKUPAON_CM__CM_WKUPAON_WD_TIMER2_CLKCTRL=0x030
+&WKUPAON_CM__CM_WKUPAON_GPIO1_CLKCTRL=0x038
+&WKUPAON_CM__CM_WKUPAON_TIMER1_CLKCTRL=0x040
+&WKUPAON_CM__CM_WKUPAON_TIMER12_CLKCTRL=0x048
+&WKUPAON_CM__CM_WKUPAON_UART10_CLKCTRL=0x080
+
+//CLKCTRL modes
+&MODE_DISABLED=(0x0)
+&MODE_AUTO=(0x1)
+&MODE_ENABLED=(0x2)
+&CLKCTRL_TIMEOUOT=(300.)
+
+//Various register address definitions
+&CM_CLKSEL_CORE=(&CKGEN_CM_CORE_AON+0x000)
+&CM_CLKSEL_ABE=(&CKGEN_CM_CORE_AON+0x008)
+&CM_DLL_CTRL=(&CKGEN_CM_CORE_AON+0x010)
+&CM_CLKMODE_DPLL_CORE=(&CKGEN_CM_CORE_AON+0x020)
+&CM_CLKSEL_DPLL_CORE=(&CKGEN_CM_CORE_AON+0x02C)
+&CM_CLKMODE_DPLL_MPU=(&CKGEN_CM_CORE_AON+0x060)
+&CM_CLKMODE_DPLL_IVA=(&CKGEN_CM_CORE_AON+0x0A0)
+&CM_CLKMODE_DPLL_ABE=(&CKGEN_CM_CORE_AON+0x0E0)
+&CM_CLKMODE_DPLL_DDR=(&CKGEN_CM_CORE_AON+0x110)
+&CM_CLKMODE_DPLL_DSP=(&CKGEN_CM_CORE_AON+0x134)
+&CM_CLKMODE_DPLL_GMAC=(&CKGEN_CM_CORE_AON+0x1A8)
+&CM_CLKMODE_DPLL_GPU=(&CKGEN_CM_CORE_AON+0x1D8)
+&CM_CLKMODE_DPLL_PER=(&CKGEN_CM_CORE+0x040)
+&CM_CLKMODE_DPLL_PCIE_REF=(&CKGEN_CM_CORE+0x100)
+&CM_SYS_CLKSEL=(&CKGEN_PRM+0x010)
+
+&CTRL_CORE_CONTROL_IO_2=(&CTRL_MODULE_CORE+0x558)
+
+&GENERIC_DPLL_FDPLL=0x1000
+&GENERIC_DPLL_CLKOUT_M2=0x1001
+&GENERIC_DPLL_CLKOUTX2_M2=0x1002
+&GENERIC_DPLL_CLKOUTX2_M3=0x1003
+
+GOSUB &func
+ENDDO
+
+; --------------------------------------------------------------------------------
+; Subroutines
+; --------------------------------------------------------------------------------
+
+AM572x_PRCM_Module_AllEnable_Config:
+(
+  PRINT " PRCM Configuration for all modules in progress..."
+
+//PRCM clock domain state setting functions
+  GOSUB prcm_set_clkdomain_state &CAM_CM_CORE       &CAM_CM_CORE__CM_CAM_CLKSTCTRL      &SW_WKUP
+  GOSUB prcm_set_clkdomain_state &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER_CLKSTCTRL      &SW_WKUP
+  GOSUB prcm_set_clkdomain_state &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER2_CLKSTCTRL     &SW_WKUP
+  GOSUB prcm_set_clkdomain_state &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER3_CLKSTCTRL     &SW_WKUP
+  GOSUB prcm_set_clkdomain_state &L3INIT_CM_CORE    &L3INIT_CM_CORE__CM_L3INIT_CLKSTCTRL    &SW_WKUP
+  GOSUB prcm_set_clkdomain_state &L3INIT_CM_CORE    &L3INIT_CM_CORE__CM_GMAC_CLKSTCTRL      &SW_WKUP
+  GOSUB prcm_set_clkdomain_state &CORE_CM_CORE      &CORE_CM_CORE__CM_EMIF_CLKSTCTRL    &SW_WKUP
+  GOSUB prcm_set_clkdomain_state &CORE_CM_CORE      &CORE_CM_CORE__CM_L4CFG_CLKSTCTRL       &SW_WKUP
+  GOSUB prcm_set_clkdomain_state &CORE_CM_CORE      &CORE_CM_CORE__CM_DMA_CLKSTCTRL     &SW_WKUP
+  GOSUB prcm_set_clkdomain_state &CORE_CM_CORE      &CORE_CM_CORE__CM_L3MAIN1_CLKSTCTRL     &SW_WKUP
+  GOSUB prcm_set_clkdomain_state &CORE_CM_CORE      &CORE_CM_CORE__CM_IPU2_CLKSTCTRL    &SW_WKUP
+  GOSUB prcm_set_clkdomain_state &COREAON_CM_CORE   &COREAON_CM_CORE__CM_COREAON_CLKSTCTRL  &SW_WKUP
+  GOSUB prcm_set_clkdomain_state &DSS_CM_CORE       &DSS_CM_CORE__CM_DSS_CLKSTCTRL      &SW_WKUP
+  GOSUB prcm_set_clkdomain_state &IPU_CM_CORE_AON   &IPU_CM_CORE_AON__CM_IPU1_CLKSTCTRL     &SW_WKUP
+  GOSUB prcm_set_clkdomain_state &IPU_CM_CORE_AON   &IPU_CM_CORE_AON__CM_IPU_CLKSTCTRL      &SW_WKUP
+  GOSUB prcm_set_clkdomain_state &RTC_CM_CORE_AON   &RTC_CM_CORE_AON__CM_RTC_CLKSTCTRL      &SW_WKUP
+  GOSUB prcm_set_clkdomain_state &VPE_CM_CORE_AON   &VPE_CM_CORE_AON__CM_VPE_CLKSTCTRL      &SW_WKUP
+  GOSUB prcm_set_clkdomain_state &WKUPAON_CM    &WKUPAON_CM__CM_WKUPAON_CLKSTCTRL       &SW_WKUP
+  GOSUB prcm_set_clkdomain_state &MPU_CM_CORE_AON   &MPU_CM_CORE_AON__CM_MPU_CLKSTCTRL      &SW_WKUP
+  GOSUB prcm_set_clkdomain_state &DSP1_CM_CORE_AON  &DSP1_CM_CORE_AON__CM_DSP1_CLKSTCTRL    &SW_WKUP
+  GOSUB prcm_set_clkdomain_state &DSP2_CM_CORE_AON  &DSP2_CM_CORE_AON__CM_DSP2_CLKSTCTRL    &SW_WKUP
+  GOSUB prcm_set_clkdomain_state &IVA_CM_CORE       &IVA_CM_CORE__CM_IVA_CLKSTCTRL      &SW_WKUP
+
+//PRCM Generic module mode setting functions
+  GOSUB prcm_set_module_mode &CAM_CM_CORE       &CAM_CM_CORE__CM_CAM_VIP1_CLKCTRL           &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CAM_CM_CORE       &CAM_CM_CORE__CM_CAM_VIP2_CLKCTRL           &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CAM_CM_CORE       &CAM_CM_CORE__CM_CAM_VIP3_CLKCTRL           &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_DMA_DMA_SYSTEM_CLKCTRL    &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_EMIF_DMM_CLKCTRL          &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_EMIF_EMIF1_CLKCTRL        &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_EMIF_EMIF2_CLKCTRL        &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_EMIF_EMIF_OCP_FW_CLKCTRL      &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_L3INSTR_L3_MAIN_2_CLKCTRL     &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_L3MAIN1_GPMC_CLKCTRL      &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_L3MAIN1_L3_MAIN_1_CLKCTRL     &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_L3MAIN1_MMU_EDMA_CLKCTRL      &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_L3MAIN1_MMU_PCIESS_CLKCTRL    &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_L3MAIN1_OCMC_RAM1_CLKCTRL     &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_L3MAIN1_OCMC_RAM2_CLKCTRL     &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_L3MAIN1_OCMC_RAM3_CLKCTRL     &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_L3MAIN1_OCMC_ROM_CLKCTRL      &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_L3MAIN1_TPCC_CLKCTRL      &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_L3MAIN1_TPTC1_CLKCTRL     &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_L3MAIN1_TPTC2_CLKCTRL     &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_L4CFG_L4_CFG_CLKCTRL      &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_L4CFG_MAILBOX1_CLKCTRL    &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_L4CFG_MAILBOX10_CLKCTRL       &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_L4CFG_MAILBOX11_CLKCTRL       &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_L4CFG_MAILBOX12_CLKCTRL       &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_L4CFG_MAILBOX13_CLKCTRL       &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_L4CFG_MAILBOX2_CLKCTRL    &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_L4CFG_MAILBOX3_CLKCTRL    &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_L4CFG_MAILBOX4_CLKCTRL    &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_L4CFG_MAILBOX5_CLKCTRL    &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_L4CFG_MAILBOX6_CLKCTRL    &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_L4CFG_MAILBOX7_CLKCTRL    &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_L4CFG_MAILBOX8_CLKCTRL    &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_L4CFG_MAILBOX9_CLKCTRL    &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &CORE_CM_CORE      &CORE_CM_CORE__CM_L4CFG_SPINLOCK_CLKCTRL    &MODE_AUTO      0x00000000 0x00000000
+
+;    prcm_set_module_mode(IPU_CM_CORE_AON,   IPU_CM_CORE_AON__CM_IPU_MCASP1_CLKCTRL,     MODE_ENABLED,   0x00000000, 0x00000000  );
+
+  GOSUB prcm_set_module_mode &IPU_CM_CORE_AON   &IPU_CM_CORE_AON__CM_IPU_TIMER5_CLKCTRL     &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &IPU_CM_CORE_AON   &IPU_CM_CORE_AON__CM_IPU_TIMER6_CLKCTRL     &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &IPU_CM_CORE_AON   &IPU_CM_CORE_AON__CM_IPU_TIMER7_CLKCTRL     &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &IPU_CM_CORE_AON   &IPU_CM_CORE_AON__CM_IPU_TIMER8_CLKCTRL     &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L3INIT_CM_CORE    &L3INIT_CM_CORE__CM_L3INIT_MMC1_CLKCTRL     &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L3INIT_CM_CORE    &L3INIT_CM_CORE__CM_L3INIT_MMC2_CLKCTRL     &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L3INIT_CM_CORE    &L3INIT_CM_CORE__CM_GMAC_GMAC_CLKCTRL       &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER2_L4_PER2_CLKCTRL       &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER3_L4_PER3_CLKCTRL       &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER3_TIMER13_CLKCTRL       &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER3_TIMER14_CLKCTRL       &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER3_TIMER15_CLKCTRL       &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER3_TIMER16_CLKCTRL       &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER_GPIO2_CLKCTRL      &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER_GPIO3_CLKCTRL      &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER_GPIO4_CLKCTRL      &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER_GPIO5_CLKCTRL      &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER_GPIO6_CLKCTRL      &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER_GPIO7_CLKCTRL      &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER_GPIO8_CLKCTRL      &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER_I2C1_CLKCTRL       &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER_I2C2_CLKCTRL       &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER_I2C3_CLKCTRL       &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER_I2C4_CLKCTRL       &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER_L4_PER1_CLKCTRL    &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER_MCSPI1_CLKCTRL     &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER_MMC3_CLKCTRL       &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER_MMC4_CLKCTRL       &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER_TIMER10_CLKCTRL    &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER_TIMER11_CLKCTRL    &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER_TIMER2_CLKCTRL     &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER_TIMER3_CLKCTRL     &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER_TIMER4_CLKCTRL     &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER_TIMER9_CLKCTRL     &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER2_QSPI_CLKCTRL      &MODE_ENABLED   0x05000000 0x07000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER_UART1_CLKCTRL      &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &L4PER_CM_CORE     &L4PER_CM_CORE__CM_L4PER_UART3_CLKCTRL      &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &MPU_CM_CORE_AON   &MPU_CM_CORE_AON__CM_MPU_MPU_CLKCTRL        &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &VPE_CM_CORE_AON   &VPE_CM_CORE_AON__CM_VPE_VPE_CLKCTRL        &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &WKUPAON_CM    &WKUPAON_CM__CM_WKUPAON_GPIO1_CLKCTRL       &MODE_AUTO      0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &WKUPAON_CM    &WKUPAON_CM__CM_WKUPAON_TIMER1_CLKCTRL      &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &WKUPAON_CM    &WKUPAON_CM__CM_WKUPAON_TIMER12_CLKCTRL     &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &WKUPAON_CM    &WKUPAON_CM__CM_WKUPAON_WD_TIMER1_CLKCTRL       &MODE_ENABLED   0x00000000 0x00000000
+  GOSUB prcm_set_module_mode &WKUPAON_CM    &WKUPAON_CM__CM_WKUPAON_WD_TIMER2_CLKCTRL       &MODE_ENABLED   0x00000000 0x00000000
+
+//PRCM Specialized module mode setting functions
+  GOSUB prcm_set_proc_mode &IVA_CM_CORE     &IVA_CM_CORE__CM_IVA_SL2_CLKCTRL        &MODE_AUTO
+  GOSUB prcm_set_proc_mode &IVA_CM_CORE     &IVA_CM_CORE__CM_IVA_IVA_CLKCTRL        &MODE_AUTO
+  GOSUB prcm_set_proc_mode &CORE_CM_CORE    &CORE_CM_CORE__CM_IPU2_IPU2_CLKCTRL         &MODE_AUTO
+  GOSUB prcm_set_dss_mode &DSS_CM_CORE      &DSS_CM_CORE__CM_DSS_DSS_CLKCTRL        &MODE_ENABLED
+  GOSUB prcm_set_ipu1_mode &IPU_CM_CORE_AON     &IPU_CM_CORE_AON__CM_IPU1_IPU1_CLKCTRL      &MODE_AUTO
+
+    PRINT " PRCM Configuration for all modules is DONE!"
+ENDDO
+)
+
+prcm_set_dss_mode:
+(
+ENTRY &module_base &module_offset &mode
+  &timeout=&CLKCTRL_TIMEOUOT
+  IF (&DEBUG_PRINT==1)
+  (
+    PRINT " module_base:   &module_base"
+    PRINT " module_offset: &module_offset"
+  )
+//DESHDCP Clock ENABLE for DSS
+  Data.Set &CTRL_CORE_CONTROL_IO_2 %LE %Long (Data.Long(A:&CTRL_CORE_CONTROL_IO_2)|0x1)
+  &reg_val=Data.Long(A:&module_base+&module_offset)
+  &reg_val=(&reg_val&~0x3)|0x00003F00|&mode
+  Data.Set (&module_base+&module_offset) %LE %Long &reg_val
+  IF (&DEBUG_PRINT==1)
+  (
+    PRINT " Waiting for DSS module IDLE status...."
+  )
+  WHILE (((Data.Long(A:&module_base+&module_offset)&0x00030000)!=0)&&(&timeout>0))
+  (
+    &timeout=&timeout-1.
+  )
+  IF (&timeout==0)
+  (
+    PRINT " module_base:   &module_base"
+    PRINT " module_offset: &module_offset"
+    PRINT " TIMEOUT"
+  )
+  ELSE
+  (
+    IF (&DEBUG_PRINT==1)
+    (
+      PRINT " DONE"
+    )
+  )
+RETURN
+)
+
+prcm_set_proc_mode:
+(
+ENTRY &module_base &module_offset &mode
+&timeout=&CLKCTRL_TIMEOUOT
+  IF (&DEBUG_PRINT==1)
+  (
+    PRINT " module_base:   &module_base"
+    PRINT " module_offset: &module_offset"
+  )
+  &reg_val=Data.Long(A:&module_base+&module_offset)
+  &reg_val=(&reg_val&~0x3)|&mode
+  Data.Set (&module_base+&module_offset) %LE %Long &reg_val
+  WHILE (((Data.Long(A:&module_base+&module_offset)&0x00030000)==0x00030000)&&(&timeout>0))
+  (
+    &timeout=&timeout-1.
+  )
+  IF (&timeout==0)
+  (
+    PRINT " module_base:   &module_base"
+    PRINT " module_offset: &module_offset"
+    PRINT " TIMEOUT"
+  )
+  ELSE
+  (
+    IF (&DEBUG_PRINT==1)
+    (
+      PRINT " DONE"
+    )
+  )
+RETURN
+)
+
+prcm_set_ipu1_mode:
+(
+ENTRY &module_base &module_offset &mode
+  &timeout=&CLKCTRL_TIMEOUOT
+  IF (&DEBUG_PRINT==1)
+  (
+    PRINT " module_base:   &module_base"
+    PRINT " module_offset: &module_offset"
+  )
+  &reg_val=Data.Long(A:&module_base+&module_offset)
+  &reg_val=(&reg_val&~0x3)|0x01000000|&mode
+  Data.Set (&module_base+&module_offset) %LE %Long &reg_val
+  IF (&DEBUG_PRINT==1)
+  (
+    PRINT " Waiting for IPU1 module IDLE status...."
+  )
+  WHILE (((Data.Long(A:&module_base+&module_offset)&0x00030000)==0x00030000)&&(&timeout>0))
+  (
+    &timeout=&timeout-1.
+  )
+  IF (&timeout==0)
+  (
+    PRINT " module_base:   &module_base"
+    PRINT " module_offset: &module_offset"
+    PRINT " TIMEOUT"
+  )
+  ELSE
+  (
+    IF (&DEBUG_PRINT==1)
+    (
+      PRINT " DONE"
+    )
+  )
+RETURN
+)
+
+prcm_set_module_mode:
+(
+ENTRY &module_base &module_offset &mode &extrabits &extrabitsMask
+  &timeout=&CLKCTRL_TIMEOUOT
+  IF (&DEBUG_PRINT==1)
+  (
+    PRINT " module_base:   &module_base"
+    PRINT " module_offset: &module_offset"
+  )
+  &reg_val=Data.Long(A:&module_base+&module_offset)&~(&extrabitsMask|0x00000003)
+  Data.Set (&module_base+&module_offset) %LE %Long (&reg_val|(&extrabits&&extrabitsMask)|(&mode&0x3))
+  IF (&DEBUG_PRINT==1)
+  (
+    PRINT " Waiting for module IDLE status...."
+  )
+  WHILE (((Data.Long(A:&module_base+&module_offset)&0x00030000)!=0)&&(&timeout>0))
+  (
+    &timeout=&timeout-1.
+  )
+  IF (&timeout==0)
+  (
+    PRINT " module_base:   &module_base"
+    PRINT " module_offset: &module_offset"
+    PRINT " TIMEOUT"
+  )
+  ELSE
+  (
+    IF (&DEBUG_PRINT==1)
+    (
+      PRINT " DONE"
+    )
+  )
+RETURN
+)
+
+prcm_set_clkdomain_state:
+(
+ENTRY &module_base &module_offset &state
+
+  &timeout=&CLKCTRL_TIMEOUOT
+  IF (&DEBUG_PRINT==1)
+  (
+    PRINT " module_base:   &module_base"
+    PRINT " module_offset: &module_offset"
+  )
+  &reg_val=Data.Long(A:&module_base+&module_offset)
+  Data.Set (&module_base+&module_offset) %LE %Long ((&reg_val&~(0x3))|(&state&0x3))
+
+;  IF (&DEBUG_PRINT==1)
+;  (
+;    PRINT " Waiting for clock active...."
+;  )
+;  WHILE (((Data.Long(A:&module_base+&module_offset)&0x100)!=0x100)&&(&timeout>0))
+;  (
+;    &timeout=&timeout-1.
+;  )
+;  IF (&timeout==0)
+;  (
+;    PRINT " TIMEOUT"
+;  )
+;  ELSE
+;  (
+;    IF (&DEBUG_PRINT==1)
+;    (
+;      PRINT " DONE"
+;    )
+;  )
+
+RETURN
+)
+
+AM572x_PRCM_Clock_Config_OPPNOM:
+(
+  GOSUB AM572x_PRCM_Clock_Config_API &OPP_NOM &DEVICE_AM572X_GP
+ENDDO
+)
+
+AM572x_PRCM_Clock_Config_OPPOD:
+(
+  GOSUB AM572x_PRCM_Clock_Config_API &OPP_OD &DEVICE_AM572X_GP
+RETURN
+)
+
+AM572x_PRCM_Clock_Config_OPPHIGH:
+(
+  GOSUB AM572x_PRCM_Clock_Config_API &OPP_HIGH &DEVICE_AM572X_GP
+RETURN
+)
+
+AM572x_PRCM_Clock_Config_API:
+(
+ENTRY &OPP &DEVICE_TYPE
+  PRINT " PRCM Clock Configuration for OPPNOM in progress..."
+  IF (&OPP_NOM!=&OPP)
+  (
+    PRINT " !!!Only DPLL configuration is done!!!"
+    PRINT " !!!Voltage changes for non-NOMinal OPP &OPP needs to be done externally!!!"
+  )
+//DDR DPLL programming is NOT done here, but is called from the DDR config commands
+; DPLL programming
+  GOSUB dpll_a15_opp_config &OPP &DEVICE_TYPE
+
+; IVA clock programming
+  GOSUB dpll_iva_opp_config &OPP &DEVICE_TYPE
+
+; PER DPLL programming
+  GOSUB dpll_per_opp_config &OPP &DEVICE_TYPE
+
+; Core DPLL programming
+  GOSUB dpll_core_opp_config &OPP &DEVICE_TYPE
+
+; ABE DPLL programming
+  GOSUB dpll_abe_opp_config &OPP &DEVICE_TYPE
+
+; GMAC DPLL programming
+  GOSUB dpll_gmac_config &OPP &DEVICE_TYPE
+
+; GPU DPLL programming
+  GOSUB dpll_gpu_config &OPP &DEVICE_TYPE
+
+; DSP DPLL programming
+  GOSUB dpll_dsp_config &OPP &DEVICE_TYPE
+
+; PCIE DPLL programming
+  GOSUB dpll_pcie_config &OPP &DEVICE_TYPE
+
+  PRINT " PRCM Clock Configuration for OPP &OPP_NOM is DONE!"
+RETURN
+)
+
+; --------------------------------------------------------------------------------
+; dpll_a15_opp_config : Cortex A15 DPLL OPP configurations
+; --------------------------------------------------------------------------------
+dpll_a15_opp_config:
+(
+ENTRY &OPP &DEVICE_TYPE
+PRIVATE &dpll_m &dpll_n &divm2
+  &dcc_en=0
+
+  PRINT " Cortex A15 DPLL OPP &OPP clock config is in progress..."
+
+  IF (&OPP_HIGH==&OPP)
+  (
+//1500MHz at 20MHz sys_clk
+    &dpll_m=600.
+    &dpll_n=7.
+    &divm2=1.
+    &dcc_en=1.
+  )
+  ELSE IF (&OPP_OD==&OPP)
+  (
+//1176MHz at 20MHz sys_clk
+    &dpll_m=294.
+    &dpll_n=4.
+    &divm2=1.
+  )
+  ELSE        ;default to OPP_NOM
+  (
+//1000MHz at 20MHz sys_clk
+    &dpll_m=500.
+    &dpll_n=9.
+    &divm2=1.
+  )
+  IF ((Data.Long(A:0x04+&CM_CLKMODE_DPLL_MPU)&0x1)!=0)
+  (
+    PRINT " Cortex A15 DPLL is already locked, now unlocking...  "
+    GOSUB dpll_unlock_sequence &CM_CLKMODE_DPLL_MPU
+  )
+  Data.Set (A:0x0C+&CM_CLKMODE_DPLL_MPU) %LE %Long ((&dpll_m<<8.)|&dpll_n|(&dcc_en<<22.))
+    // Program DPLL_CLKOUT divider (M2=1)
+  Data.Set (A:0x10+&CM_CLKMODE_DPLL_MPU) %LE %Long &divm2
+  GOSUB dpll_lock_sequence &CM_CLKMODE_DPLL_MPU
+  PRINT " Cortex A15 DPLL OPP &OPP is DONE!"
+RETURN
+)
+
+; --------------------------------------------------------------------------------
+; dpll_per_opp_config : PER DPLL OPP configurations
+; --------------------------------------------------------------------------------
+dpll_per_opp_config:
+(
+ENTRY &OPP &DEVICE_TYPE
+  PRINT " PER DPLL OPP &OPP clock config in progress..."
+  IF ((Data.Long(A:0x04+&CM_CLKMODE_DPLL_PER)&0x1)!=0)
+  (
+    PRINT " PER DPLL already locked, now unlocking  "
+    GOSUB dpll_unlock_sequence &CM_CLKMODE_DPLL_PER
+  )
+//CM_CLKSEL_DPLL_PER DPLL MULT
+  Data.Set (A:0x0C+&CM_CLKMODE_DPLL_PER) %LE %Long 0x6004
+
+//CM_DIV_M2_DPLL_PER.DPLL_CLKOUT_DIV=4
+  Data.Set (A:0x10+&CM_CLKMODE_DPLL_PER) %LE %Long 0x4
+
+//CM_DIV_M3_DPLL_PER.DPLL_CLKOUT_DIV=3
+  Data.Set (A:0x14+&CM_CLKMODE_DPLL_PER) %LE %Long 0x1
+
+//CM_DIV_H11_DPLL_PER.HSDIVIDER_CLKOUT1_DIV=3
+  Data.Set (A:0x18+&CM_CLKMODE_DPLL_PER) %LE %Long 0x3
+
+//CM_DIV_H12_DPLL_PER.HSDIVIDER_CLKOUT2_DIV=4
+  Data.Set (A:0x1C+&CM_CLKMODE_DPLL_PER) %LE %Long 0x4
+
+//CM_DIV_H13_DPLL_PER.HSDIVIDER_CLKOUT2_DIV=4: To get 192M output
+  Data.Set (A:0x20+&CM_CLKMODE_DPLL_PER) %LE %Long 0x04
+
+//CM_DIV_H14_DPLL_PER.HSDIVIDER_CLKOUT3_DIV=2
+  Data.Set (A:0x24+&CM_CLKMODE_DPLL_PER) %LE %Long 0x2
+
+  GOSUB dpll_lock_sequence &CM_CLKMODE_DPLL_PER
+
+  PRINT " PER DPLL OPP &OPP is DONE!"
+RETURN
+)
+
+; --------------------------------------------------------------------------------
+;  dpll_core_opp_config : CORE DPLL OPP configurations
+; --------------------------------------------------------------------------------
+dpll_core_opp_config:
+(
+ENTRY &OPP &DEVICE_TYPE
+  PRINT " CORE DPLL OPP &OPP clock config is in progress..."
+  IF ((Data.Long(A:0x04+&CM_CLKMODE_DPLL_CORE)&0x1)!=0)
+  (
+    PRINT " CORE DPLL OPP  already locked, now unlocking....  "
+    GOSUB dpll_unlock_sequence &CM_CLKMODE_DPLL_CORE
+  )
+;  Program L3 & L4 dividers from CORE DPLL
+//L3 clock=CORE CLK /2; L4 clock=L3 clock /2; CORE_CLK=CORE_X2_CLK/2
+  Data.Set &CM_CLKSEL_CORE %LE %Long 0x110
+
+//Lock and code outputs ARE overriden
+  Data.Set &CM_DLL_CTRL %LE %Long 0x00000000
+
+//CM_CLKSEL_DPLL_CORE.PLL_MULT=0x200
+  Data.Set (A:0x0C+&CM_CLKMODE_DPLL_CORE) %LE %Long 0x10a04
+
+//CM_DIV_M2_DPLL_CORE
+  Data.Set (A:0x10+&CM_CLKMODE_DPLL_CORE) %LE %Long 0x2
+
+//CM_DIV_M3_DPLL_CORE
+  Data.Set (A:0x14+&CM_CLKMODE_DPLL_CORE) %LE %Long 0x1
+
+//CM_DIV_H12_DPLL_CORE
+  Data.Set (A:0x1C+&CM_CLKMODE_DPLL_CORE) %LE %Long 0x4
+
+//CM_DIV_H13_DPLL_CORE
+  Data.Set (A:0x20+&CM_CLKMODE_DPLL_CORE) %LE %Long 0x3E
+
+//CM_DIV_H14_DPLL_CORE
+  Data.Set (A:0x24+&CM_CLKMODE_DPLL_CORE) %LE %Long 0x5
+
+//CM_DIV_H22_DPLL_CORE
+  Data.Set (A:0x34+&CM_CLKMODE_DPLL_CORE) %LE %Long 0x5
+
+//CM_DIV_H23_DPLL_CORE
+  Data.Set (A:0x38+&CM_CLKMODE_DPLL_CORE) %LE %Long 0x4
+
+//CM_DIV_H24_DPLL_CORE
+  Data.Set (A:0x3C+&CM_CLKMODE_DPLL_CORE) %LE %Long 0x6
+
+  GOSUB dpll_lock_sequence &CM_CLKMODE_DPLL_CORE
+  PRINT " CORE DPLL OPP &OPP is DONE! "
+RETURN
+)
+
+; --------------------------------------------------------------------------------
+;  dpll_abe_opp_config : ABE DPLL OPP configurations
+; --------------------------------------------------------------------------------
+
+dpll_abe_opp_config:
+(
+ENTRY &OPP &DEVICE_TYPE
+  PRINT " ABE DPLL OPP &OPP clock config in progress... "
+  IF ((Data.Long(A:0x04+&CM_CLKMODE_DPLL_ABE)&0x1)!=0)
+  (
+    PRINT " ABE DPLL OPP is already locked, now unlocking...."
+    GOSUB dpll_unlock_sequence &CM_CLKMODE_DPLL_ABE
+  )
+//select sysclk as CLKINP (ABE cannot lock on CLK32K).
+  Data.Set 0x4AE0610C %LE %Long 0x00000000
+
+//Select sysclk1 (SYS_CLK2=22.5792) as the clock source for ABE PLL
+  Data.Set 0x4AE06118 %LE %Long 0x00000001
+
+;    DPLL MULT
+;    Output=451.584 MHz
+;    Provides enough headroom so the McASP can evenly divide this down
+;    to multiple dIFferent sampling rates as the module does not
+;    contain a multiplier.
+  Data.Set (A:0x0C+&CM_CLKMODE_DPLL_ABE) %LE %Long 0xC809
+  Data.Set (A:0x10+&CM_CLKMODE_DPLL_ABE) %LE %Long 0x1
+  Data.Set (A:0x14+&CM_CLKMODE_DPLL_ABE) %LE %Long 0x1
+  GOSUB dpll_lock_sequence &CM_CLKMODE_DPLL_ABE
+  PRINT " ABE DPLL OPP &OPP is DONE!"
+RETURN
+)
+
+; --------------------------------------------------------------------------------
+;   dpll_iva_opp_config : IVA DPLL OPP configurations
+; --------------------------------------------------------------------------------
+dpll_iva_opp_config:
+(
+ENTRY &OPP &DEVICE_TYPE
+PRIVATE &dpll_m &dpll_n &divm2
+  PRINT " IVA DPLL OPP &OPP clock config is in progress..."
+  IF (&OPP_HIGH==&OPP)
+  (
+//532MHz at 20MHz sys_clk
+    &dpll_m=266.
+    &dpll_n=4.
+    &divm2=2.
+  )
+  ELSE IF (&OPP_OD==&OPP)
+  (
+//430MHz at 20MHz sys_clk
+    &dpll_m=172.
+    &dpll_n=3.
+    &divm2=2.
+  )
+  ELSE         ;default to OPP_NOM
+  (
+//388.3MHz at 20MHz sys_clk
+    &dpll_m=233.
+    &dpll_n=3.
+    &divm2=3.
+  )
+  IF ((Data.Long(A:0x04+&CM_CLKMODE_DPLL_IVA)&0x1)!=0)
+  (
+    PRINT " IVA DPLL already locked, now unlocking..."
+    GOSUB dpll_unlock_sequence &CM_CLKMODE_DPLL_IVA
+  )
+//CM_CLKSEL_DPLL_PER DPLL MULT
+  Data.Set (A:0x0C+&CM_CLKMODE_DPLL_IVA) %LE %Long ((&dpll_m<<8.)|&dpll_n)
+//CM_DIV_M2_DPLL_IVA
+  Data.Set (A:0x10+&CM_CLKMODE_DPLL_IVA) %LE %Long &divm2
+  GOSUB dpll_lock_sequence &CM_CLKMODE_DPLL_IVA
+  PRINT " IVA DPLL OPP &OPP is DONE!"
+RETURN
+)
+
+; --------------------------------------------------------------------------------
+;   dpll_gmac_config : GMAC DPLL configuration
+; --------------------------------------------------------------------------------
+
+dpll_gmac_config:
+(
+ENTRY &OPP &DEVICE_TYPE
+  PRINT " GMAC DPLL OPP &OPP clock config is in progress..."
+  IF ((Data.Long(A:0x04+&CM_CLKMODE_DPLL_GMAC)&0x1)!=0)
+  (
+    PRINT " GMAC DPLL already locked, now unlocking...."
+    GOSUB dpll_unlock_sequence &CM_CLKMODE_DPLL_GMAC
+  )
+//CM_CLKSEL_DPLL_GMAC DPLL MULT
+  Data.Set (A:0x0C+&CM_CLKMODE_DPLL_GMAC) %LE %Long 0xFA04
+
+//CM_DIV_M2_DPLL_GMAC
+  Data.Set (A:0x10+&CM_CLKMODE_DPLL_GMAC) %LE %Long 0x4
+
+//CM_DIV_M3_DPLL_GMAC
+  Data.Set (A:0x14+&CM_CLKMODE_DPLL_GMAC) %LE %Long 0xA
+
+//CM_DIV_H11_DPLL_GMAC
+  Data.Set (A:0x18+&CM_CLKMODE_DPLL_GMAC) %LE %Long 0x28
+
+//CM_DIV_H12_DPLL_GMAC
+  Data.Set (A:0x1C+&CM_CLKMODE_DPLL_GMAC) %LE %Long 0x8
+
+//CM_DIV_H13_DPLL_GMAC
+  Data.Set (A:0x20+&CM_CLKMODE_DPLL_GMAC) %LE %Long 0xA
+
+  GOSUB dpll_lock_sequence &CM_CLKMODE_DPLL_GMAC
+  PRINT " GMAC DPLL OPP &OPP is DONE!"
+RETURN
+)
+
+; --------------------------------------------------------------------------------
+;  dpll_pcie_config : PCIE DPLL configuration
+; --------------------------------------------------------------------------------
+dpll_pcie_config:
+(
+ENTRY &OPP &DEVICE_TYPE
+PRIVATE &dpll_m &dpll_n &divm2
+  PRINT "PCIE_REF DPLL OPP &OPP clock config is in progress..."
+  IF ((Data.Long(A:0x04+&CM_CLKMODE_DPLL_PCIE_REF)&0x1)!=0)
+  (
+    PRINT " PCIE_REF DPLL already locked, now unlocking...."
+    GOSUB dpll_unlock_sequence &CM_CLKMODE_DPLL_PCIE_REF
+  )
+
+//100MHz output at 20MHz SYSCLK
+  &dpll_m=750.
+  &dpll_n=9.
+  &divm2=15.
+
+//CM_CLKSEL_DPLL_GMAC DPLL MULT
+  Data.Set (A:0x0C+&CM_CLKMODE_DPLL_PCIE_REF) %LE %Long ((&dpll_m<<8)|&dpll_n)
+
+//CM_DIV_M2_DPLL_GMAC
+  Data.Set (A:0x10+&CM_CLKMODE_DPLL_PCIE_REF) %LE %Long &divm2
+
+  GOSUB dpll_lock_sequence &CM_CLKMODE_DPLL_PCIE_REF
+  PRINT " PCIE_REF DPLL OPP &OPP is DONE!"
+RETURN
+)
+
+; --------------------------------------------------------------------------------
+;   dpll_ddr_config : DDR DPLL OPP configurations
+; --------------------------------------------------------------------------------
+dpll_ddr_config_532:
+(
+  GOSUB dpll_ddr_config 532.
+  RETURN
+)
+
+dpll_ddr_config_400:
+(
+  GOSUB dpll_ddr_config 400.
+  RETURN
+)
+
+dpll_ddr_config:
+(
+ENTRY &DDR_FREQ
+  IF (532.==&DDR_FREQ)
+  (
+    PRINT " DDR DPLL clock config for &DDR_FREQ is in progress..."
+    IF ((Data.Long(A:0x04+&CM_CLKMODE_DPLL_DDR)&0x1)!=1)
+    (
+      PRINT " DDR DPLL already locked, now unlocking...."
+      GOSUB dpll_unlock_sequence &CM_CLKMODE_DPLL_DDR
+    )
+//CM_CLKSEL_DPLL_DDR DPLL MULT
+    Data.Set (A:0x0C+&CM_CLKMODE_DPLL_DDR) %LE %Long 0x10A04
+
+//CM_DIV_M2_DPLL_DDR
+    Data.Set (A:0x10+&CM_CLKMODE_DPLL_DDR) %LE %Long 0x2
+
+//CM_DIV_M3_DPLL_DDR
+    Data.Set (A:0x14+&CM_CLKMODE_DPLL_DDR) %LE %Long 0x1
+
+//CM_DIV_H11_DPLL_DDR
+    Data.Set (A:0x18+&CM_CLKMODE_DPLL_DDR) %LE %Long 0x8
+
+    GOSUB dpll_lock_sequence &CM_CLKMODE_DPLL_DDR
+    PRINT " DDR DPLL clock config for &DDR_FREQ is in DONE!"
+  )
+  ELSE IF (400.==&DDR_FREQ)
+  (
+    PRINT " DDR DPLL clock config for &DDR_FREQ is in progress..."
+    IF ((Data.Long(A:0x04+&CM_CLKMODE_DPLL_DDR)&0x1)!=0)
+    (
+      PRINT " DDR DPLL already locked, now unlocking...."
+      GOSUB dpll_unlock_sequence &CM_CLKMODE_DPLL_DDR
+    )
+//CM_CLKSEL_DPLL_DDR DPLL MULT
+    Data.Set (A:0x0C+&CM_CLKMODE_DPLL_DDR) %LE %Long 0xC804; //((200 << 8)|(5-1));
+
+//CM_DIV_M2_DPLL_DDR
+    Data.Set (A:0x10+&CM_CLKMODE_DPLL_DDR) %LE %Long 0x2
+
+//CM_DIV_M3_DPLL_DDR
+    Data.Set (A:0x14+&CM_CLKMODE_DPLL_DDR) %LE %Long 0x1
+
+//CM_DIV_H11_DPLL_DDR
+    Data.Set (A:0x18+&CM_CLKMODE_DPLL_DDR) %LE %Long 0x4
+
+    GOSUB dpll_lock_sequence &CM_CLKMODE_DPLL_DDR
+    PRINT " DDR DPLL clock config for &DDR_FREQ is in DONE!"
+  )
+  ELSE
+  (
+    PRINT " DDR DPLL frequency &DDR_FREQ not supported, nothing done."
+  )
+RETURN
+)
+
+; --------------------------------------------------------------------------------
+;   dpll_gpu_config() : GPU DPLL OPP configurations
+; --------------------------------------------------------------------------------
+dpll_gpu_config:
+(
+ENTRY &OPP &DEVICE_TYPE
+PRIVATE &dpll_m &dpll_n &divm2
+    PRINT " tGPU DPLL OPP &OPP clock config is in progress..."
+
+  IF (&OPP_HIGH==&OPP)
+  (
+//532MHz at 20MHz sys_clk
+    &dpll_m=266.
+    &dpll_n=4.
+    &divm2=2.
+  )
+  ELSE IF (&OPP_OD==&OPP)
+  (
+//500MHz at 20MHz sys_clk
+    &dpll_m=200.
+    &dpll_n=3.
+    &divm2=2.
+  )
+  ELSE       ;default to OPP_NOM
+  (
+//425MHz at 20MHz sys_clk
+    &dpll_m=170.
+    &dpll_n=3.
+    &divm2=2.
+  )
+  IF ((Data.Long(A:0x04+&CM_CLKMODE_DPLL_GPU)&0x1)!=0)
+  (
+    PRINT " GPU DPLL already locked, now unlocking..."
+    GOSUB dpll_unlock_sequence &CM_CLKMODE_DPLL_GPU
+  )
+//CM_CLKSEL_DPLL DPLL MULT
+  Data.Set (A:0x0C+&CM_CLKMODE_DPLL_GPU) %LE %Long ((&dpll_m<<8)|&dpll_n);
+
+//CM_DIV_M2_DPLL
+  Data.Set (A:0x10+&CM_CLKMODE_DPLL_GPU) %LE %Long &divm2
+
+  GOSUB dpll_lock_sequence &CM_CLKMODE_DPLL_GPU
+  PRINT " GPU DPLL OPP &OPP is DONE!"
+RETURN
+)
+
+; --------------------------------------------------------------------------------
+;  dpll_dsp_config : DSP DPLL OPP configurations
+; --------------------------------------------------------------------------------
+
+dpll_dsp_config:
+(
+ENTRY &OPP &DEVICE_TYPE
+PRIVATE &dpll_m &dpll_n &divm2
+  PRINT " DSP DPLL OPP &OPP clock config is in progress..."
+  IF (&OPP_HIGH==&OPP)
+  (
+//750MHz at 20MHz sys_clk
+    &dpll_m=150.
+    &dpll_n=3.
+    &divm2=1.
+  )
+  ELSE IF (&OPP_OD==&OPP)
+  (
+//650MHz at 20MHz sys_clk
+    &dpll_m=130.
+    &dpll_n=3.
+    &divm2=1.
+  )
+  ELSE      ;default to OPP_NOM
+  (
+//600MHz at 20MHz sys_clk
+    &dpll_m=150.
+    &dpll_n=4.
+    &divm2=1.
+  )
+  IF ((Data.Long(A:0x04+&CM_CLKMODE_DPLL_DSP)&0x1)!=0)
+  (
+    PRINT " DSP DPLL already locked, now unlocking...."
+    GOSUB dpll_unlock_sequence &CM_CLKMODE_DPLL_DSP
+  )
+//CM_CLKSEL_DPLL DPLL MULT
+  Data.Set (A:0x0C+&CM_CLKMODE_DPLL_DSP) %LE %Long ((&dpll_m<<8)|&dpll_n)
+
+//CM_DIV_M2_DPLL
+  Data.Set (A:0x10+&CM_CLKMODE_DPLL_DSP) %LE %Long &divm2
+
+//CM_DIV_M3_DPLL - not used in default configuration
+  Data.Set (A:0x14+&CM_CLKMODE_DPLL_DSP) %LE %Long 0x3
+
+  GOSUB dpll_lock_sequence &CM_CLKMODE_DPLL_DSP
+  PRINT " DSP DPLL OPP &OPP is DONE!"
+RETURN
+)
+
+; --------------------------------------------------------------------------------
+;   dpll_bypass : Put DPLL in bypass mode
+; --------------------------------------------------------------------------------
+
+dpll_bypass:
+(
+ENTRY &base_address
+  &timer=&DPLL_TIMEOUT
+
+// Put DPLL into bypass mode
+  &clken_pll_value=Data.Long(A:&base_address)
+  &clken_pll_value&=~(7<<0)
+  &clken_pll_value|=(4<<0)
+  Data.Set (A:&base_address) %LE %Long &clken_pll_value
+
+// Wait for DPLL to be unlocked
+  WHILE (((Data.Long(A:0x04+&base_address)&0x1)==0x1)&&(&timer!=0))
+  (
+    &timer=&timer-1.
+   )
+  IF (&timer>0)
+  (
+    return -1
+  )
+  ELSE
+  (
+    return 0
+  )
+RETURN
+)
+
+; --------------------------------------------------------------------------------
+;   dpll_lock_sequence : DPLL lock sequence
+; --------------------------------------------------------------------------------
+
+dpll_lock_sequence:
+(
+ENTRY &base_address
+  &timer=&DPLL_TIMEOUT
+
+// Put DPLL into lock mode
+  Data.Set (A:&base_address) %LE %Long 7.
+
+// Wait for DPLL to be locked
+  WHILE (((Data.Long(A:0x04+&base_address)&0x1)!=0x1)&&(&timer!=0))
+  (
+    &timer=&timer-1
+  )
+  IF (&timer<=0)
+  (
+    PRINT " ERROR: timeout WHILE locking DPLL "
+  )
+RETURN
+)
+
+; --------------------------------------------------------------------------------
+;  dpll_unlock_sequence : DPLL unlock sequence
+; --------------------------------------------------------------------------------
+dpll_unlock_sequence:
+(
+ENTRY &base_address
+// Take DPLL out of lock mode
+  Data.Set (A:&base_address) %LE %Long (Data.Long(A:&base_address)&~0x1)
+RETURN
+)
+
+AM572x_PRCM_Clock_GetConfig:
+(
+  PRINT " Reading DPLL configurations..."
+  PRINT " Frequency values are as per M/N/etc..."
+  PRINT " MPU:"
+  GOSUB dpll_get_clkout_speed &CM_CLKMODE_DPLL_MPU &GENERIC_DPLL_FDPLL 1.
+  PRINT " CORE:"
+  GOSUB dpll_get_clkout_speed &CM_CLKMODE_DPLL_CORE &GENERIC_DPLL_FDPLL 1.
+  ENTRY &core_fdpll
+  PRINT " ABE:"
+  GOSUB dpll_get_clkout_speed &CM_CLKMODE_DPLL_ABE  &GENERIC_DPLL_FDPLL  1.
+  PRINT " IVA:"
+  GOSUB dpll_get_clkout_speed &CM_CLKMODE_DPLL_IVA &GENERIC_DPLL_FDPLL 1.
+  PRINT " DDR:"
+  GOSUB dpll_get_clkout_speed &CM_CLKMODE_DPLL_DDR &GENERIC_DPLL_FDPLL 1.
+  PRINT " DSP:"
+  GOSUB dpll_get_clkout_speed &CM_CLKMODE_DPLL_DSP &GENERIC_DPLL_FDPLL 1.
+  PRINT " GMAC:"
+  GOSUB dpll_get_clkout_speed &CM_CLKMODE_DPLL_GMAC &GENERIC_DPLL_FDPLL 1.
+  PRINT " GPU:"
+  GOSUB dpll_get_clkout_speed &CM_CLKMODE_DPLL_GPU  &GENERIC_DPLL_FDPLL  1.
+  ENTRY &gpu_core_clk
+  GOSUB dpll_get_clkout_speed &CM_CLKMODE_DPLL_GPU &GENERIC_DPLL_FDPLL 0.
+  ENTRY &gpu_hyd_clk
+  PRINT " PER:"
+  GOSUB dpll_get_clkout_speed &CM_CLKMODE_DPLL_PER &GENERIC_DPLL_FDPLL  1.
+  PRINT " PCIE:"
+  GOSUB dpll_get_clkout_speed &CM_CLKMODE_DPLL_PCIE_REF &GENERIC_DPLL_FDPLL 1.
+  PRINT " Clock inputs to dIFferent modules:"
+  &temp=Data.Long(A:&IPU_CM_CORE_AON+&IPU_CM_CORE_AON__CM_IPU1_IPU1_CLKCTRL)
+  &ipu_clksel=(&temp >>24)&0x1;
+  IF (&ipu_clksel==0)
+  (
+    GOSUB dpll_get_clkout_speed &CM_CLKMODE_DPLL_ABE &GENERIC_DPLL_CLKOUTX2_M2 1.
+    ENTRY &ipu1_clk
+    PRINT " IPU1 functional clock is CLKOUTX2_M2 from ABE DPLL."
+  )
+  ELSE
+  (
+    PRINT " IPU1 functional clock is from CORE DPLL (CLKOUTX2_H22)."
+    GOSUB dpll_get_clkout_speed_hsdiv &CM_CLKMODE_DPLL_CORE &Data.Long(A:0x34+&CM_CLKMODE_DPLL_CORE));
+    ENTRY ipu1_clk
+  )
+  PRINT " IPU1 CPU speed is &ipu1_clk/2 MHz "
+  PRINT " IPU2 functional clock is from CORE DPLL (CLKOUTX2_H22)."
+  GOSUB dpll_get_clkout_speed_hsdiv &CM_CLKMODE_DPLL_CORE &Data.Long(A:0x34+&CM_CLKMODE_DPLL_CORE));
+  ENTRY &ipu2_clk
+  PRINT " IPU2 CPU speed is &ipu2_clk/2 MHz"
+  IF (0x00000000==(Data.Long(A:&GPU_CM_CORE+&GPU_CM_CORE__CM_GPU_GPU_CLKCTRL)&0x03000000))
+  (
+    GOSUB dpll_get_clkout_speed_hsdiv &CM_CLKMODE_DPLL_CORE &Data.Long(A:0x24+&CM_CLKMODE_DPLL_CORE));
+    ENTRY &gpu_core_clk
+    PRINT " GPU CORE clock is from CORE DPLL (CLKOUTX2_H14)."
+  )
+  IF (0x01000000==(Data.Long(A:&GPU_CM_CORE+&GPU_CM_CORE__CM_GPU_GPU_CLKCTRL)&0x03000000))
+  (
+    GORUB dpll_get_clkout_speed_hsdiv &CM_CLKMODE_DPLL_PER &Data.Long(A:0x24+&CM_CLKMODE_DPLL_PER));
+    ENTRY &gpu_core_clk
+    PRINT " GPU CORE clock is from PER DPLL (CLKOUTX2_H14)."
+  )
+  IF (0x02000000==(Data.Long(A:&GPU_CM_CORE+&GPU_CM_CORE__CM_GPU_GPU_CLKCTRL)&0x03000000))
+  (
+    PRINT " GPU CORE clock is from GPU DPLL."
+  )
+  PRINT " GPU CORE clock speed is &gpu_core_clk MHz "
+  IF (0x00000000==(Data.Long(A:&GPU_CM_CORE+&GPU_CM_CORE__CM_GPU_GPU_CLKCTRL)&0x0C000000))
+  (
+    GOSUB dpll_get_clkout_speed_hsdiv &CM_CLKMODE_DPLL_CORE &Data.Long(A:0x24+&CM_CLKMODE_DPLL_CORE));
+    ENTRY &gpu_hyd_clk
+    PRINT " GPU HYD clock is from CORE DPLL (CLKOUTX2_H14)."
+  )
+  IF (0x04000000==(Data.Long(A:&GPU_CM_CORE+&GPU_CM_CORE__CM_GPU_GPU_CLKCTRL)&0x0C000000))
+  (
+    dpll_get_clkout_speed_hsdiv &CM_CLKMODE_DPLL_PER &Data.Long(A:0x24+&CM_CLKMODE_DPLL_PER)
+    ENTRY &gpu_hyd_clk
+    PRINT " GPU HYD clock is from PER DPLL (CLKOUTX2_H14)."
+  )
+  IF (0x08000000==(Data.Long(A:&GPU_CM_CORE+&GPU_CM_CORE__CM_GPU_GPU_CLKCTRL)&0x0C000000))
+  (
+    PRINT " GPU HYD clock is from GPU DPLL."
+  )
+  PRINT " GPU HYD clock speed is &gpu_hyd_clk MHz "
+  PRINT " Reading DPLL configurations...done"
+)
+
+dpll_get_clkout_speed:
+(
+ENTRY &base_address &return_clk &print_enable
+
+  &temp=Data.Long(A:0x0C+base_address)
+  &dpll_div_n=&temp&0x7F
+  &dpll_div_m=(&temp>>8)&0x7FF
+  &f_dpll=(&SYS_CLK1*&dpll_div_m)/(&dpll_div_n+1)
+  &temp=Data.Long(A:0x10+base_address)
+  &dpll_div_m2=&temp&0x1F
+  &clkst_clkout_M2=(&temp>>9)&0x1
+  &clkst_clkoutX2_M2=(&temp>>11)&0x1
+  &temp=Data.Long(A:0x14+base_address)
+  &dpll_div_m3=&temp&0x1F
+  &clkst_clkoutX2_M3=(&temp>>9.)&0x1
+  &f_dpll=(2*&SYS_CLK1*&dpll_div_m)/(&dpll_div_n+1)
+  IF (&CM_CLKMODE_DPLL_ABE==&base_address)
+  (
+    &temp=Data.Long(A:CM_CLKMODE_DPLL_ABE);
+    &temp=((&temp>>11)&0x1); DPLL_REGM4XEN
+    IF (&temp)
+    (
+      &f_dpll=&f_dpll*4
+    )
+  )
+  IF (CM_CLKMODE_DPLL_MPU==base_address)
+  (
+    &temp=Data.Long(A:0x0C+CM_CLKMODE_DPLL_MPU);
+    &temp=((&temp>>22)&0x1); DCC_EN
+    IF (&temp)
+    (
+      &f_dpll=&f_dpll/2
+    )
+  )
+  &clkout_M2=&f_dpll/(&dpll_div_m2*2);
+  IF (CM_CLKMODE_DPLL_MPU==base_address)
+  (
+    &temp=Data.Long(A:0x0C+CM_CLKMODE_DPLL_MPU);
+    &temp=((&temp>>22)&0x1); DCC_EN
+    IF (&temp)
+    (
+      &clkout_M2=&f_dpll/(&dpll_div_m2)
+    )
+  )
+  &clkoutX2_M2=&f_dpll/&dpll_div_m2
+  IF (0==&dpll_div_m3)
+  (
+    &clkoutX2_M3=0
+  )
+  ELSE
+  (
+    &clkoutX2_M3=&f_dpll/&dpll_div_m3
+  )
+  &temp=Data.Long(A:base_address)
+  &temp=&temp&0x7
+  IF (&print_enable)
+  (
+    IF (0x5==&temp)
+    (
+      PRINT " DPLL in IDLE_BYPASS_LOW_POWER mode"
+    )
+    IF (0x6==&temp)
+    (
+      PRINT " DPLL in IDLE_BYPASS_FAST_RELOCK mode"
+    )
+    IF (0x7==&temp)
+    (
+      PRINT " DPLL in LOCK_MODE mode"
+    )
+  )
+  IF (print_enable)
+  (
+    PRINT " DPLL CLKOUT_M2 speed is &clkout_M2 MHz "
+    IF (0==&clkst_clkout_M2)
+    (
+      PRINT " DPLL CLKOUT_M2 is GATED "
+      &clkout_M2=0
+    )
+    ELSE
+    (
+      PRINT " DPLL CLKOUT_M2 is ACTIVE "
+    )
+;  //PRINT " DPLL CLKOUTX2_M2 speed is &clkoutX2_M2 MHz "
+    IF (0==&clkst_clkoutX2_M2)
+    (
+;      //PRINT " DPLL CLKOUTX2_M2 is GATED "
+      &clkoutX2_M2=0
+    )
+    ELSE
+    (
+;      //PRINT " DPLL CLKOUTX2_M2 is ACTIVE "
+    )
+;   //PRINT " DPLL CLKOUTX2_M3 speed is clkoutX2_M3 MHz "
+    IF (0==&clkst_clkoutX2_M3)
+    (
+;      //PRINT " DPLL CLKOUTX2_M3 is GATED "
+      &clkoutX2_M3=0
+    )
+    ELSE
+    (
+;      //PRINT " DPLL CLKOUTX2_M3 is ACTIVE "
+    )
+  )
+  IF (&GENERIC_DPLL_CLKOUTX2_M3==&return_clk)
+  (
+    return &clkoutX2_M3
+  )
+  ELSE IF (&GENERIC_DPLL_CLKOUTX2_M2==&return_clk)
+  (
+    return &clkoutX2_M2
+  )
+  ELSE IF (&GENERIC_DPLL_CLKOUT_M2==&return_clk)
+  (
+    return &clkout_M2
+  )
+  ELSE
+  (
+    return &f_dpll
+  )
+)
+
+dpll_get_clkout_speed_hsdiv:
+(
+ENTRY &base_address &divider_val
+  GOSUB dpll_get_clkout_speed &base_address &GENERIC_DPLL_FDPLL 0.
+  ENTRY &f_dpll
+  &divhs=&divider_val&0x3F
+  &clkst=(&divider_val>>9)&0x1
+  IF (&clkst)
+  (
+    &f_divhs=&f_dpll/(&divhs)
+  )
+  ELSE
+  (
+    &f_divhs=0
+  )
+return &f_divhs
+)
+
+convertTemp:
+(
+ENTRY &device_temp
+  &temperature=0.
+  &temp=0.
+  IF (&device_temp-833.>0)
+  (
+    &temperature=0.40470.*(&device_temp- 833.)+80.6.
+  )
+  ELSE IF (&device_temp-735.721.>0)
+  (
+    &temperature=0.41196.*(&device_temp-735.721.)+40.6.
+  )
+  ELSE IF (&device_temp-639.875.>0)
+  (
+    &temperature=0.41820.*(&device_temp-639.875.)+0.6.
+  )
+  ELSE
+  (
+    &temperature=0.41820.*(&device_temp-639.875.)+0.6
+  )
+return &temperature
+)
+
+Readout_Temperatures:
+(
+  &factor=10
+  &device_temp=(Data.Long(A:0x4A00232C)&0x03FF)
+  GOSUB convertTemp &device_temp
+  ENTRY &temperature
+  PRINT " MPU Temperature:    &temperature degC\ "
+  &device_temp=(Data.Long(A:0x4A002330)&0x03FF)
+  GOSUB convertTemp &device_temp
+  &temperature
+  PRINT " GPU Temperature:    &temperature degC "
+  device_temp=(Data.Long(A:0x4A002334)&0x03FF)
+  GOSUB convertTemp &device_temp
+  &temperature
+  PRINT " GPU Temperature:    &temperature degC "
+  device_temp=(Data.Long(A:0x4A002578)&0x03FF)
+  GOSUB convertTemp &device_temp
+  &temperature
+  PRINT " GPU Temperature:    &temperature degC "
+RETURN
+)

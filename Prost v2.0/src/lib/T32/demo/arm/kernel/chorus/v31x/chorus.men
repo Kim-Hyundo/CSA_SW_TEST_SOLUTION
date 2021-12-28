@@ -1,0 +1,89 @@
+; --------------------------------------------------------------------------------
+; @Title: Additional Menues for Chorus
+; @Description: -
+; @Author: DIE
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: chorus.men 7320 2014-07-03 08:57:49Z kjmal $
+
+add
+menu
+(
+  popup "&Chorus"
+  (
+;    enable ice()
+;    menuitem "&KDB Terminal" "TERM T32OUT T32IN"
+;    separator
+    default
+    menuitem "List &Actors"    "TASK.LA"
+    menuitem "List &Threads"   "TASK.LT"
+    menuitem "List &Ports"     "TASK.LP"
+    menuitem "List &Resources" "TASK.LR"
+    separator
+    enable ice()
+    popup "&Stack Coverage"
+    (
+      menuitem "&List Stacks"    "TASK.STK"
+      menuitem "Add Task"        "TASK.STK.ADD"
+      menuitem "Remove Task"     "TASK.STK.RM"
+      menuitem "&Reset Coverage" "TASK.STK.RES"
+    )
+  )
+  popup "&Trace"
+  (
+    popup "&List"
+    (
+      menuitem "&Task Switches"    "Trace.List l.task"
+      menuitem "Default and Tasks" "Trace.List l.task def"
+    )
+  )
+  popup "&Perf"
+  (
+    separator
+    popup "&Task Runtime"
+    (
+        menuitem "&Prepare"
+	(
+          a.rp
+          (
+            s.e if alphab&&write
+          )
+	  b.d /a
+	  b.s task.config(magic) /a
+	)
+        menuitem "Show &Numerical" "Trace.STATistic.TASK"
+        menuitem "Show as &Timing" "Trace.CHART.TASK"
+    )
+    popup "Function Runtime"
+    (
+        menuitem "Prepare"            "DO men_asfp.cmm"
+        menuitem "Show Numerical"     "Trace.STATistic.TASKFUNC"
+        menuitem "Show as Tree"       "Trace.STATistic.TASKTREE"
+        menuitem "Show Detailed Tree" "Trace.STATistic.TASKTREE ALL"
+        menuitem "Show as Timing"     "Trace.CHART.TASKFUNC"
+        menuitem "Show Nesting"       "Trace.List l.task FUNC TI.FUNC"
+    )
+    popup "Task &Status"
+    (
+        menuitem "&Prepare"
+	(
+          a.rp
+          (
+            s.e if alphab&&write
+          )
+	  b.d /a
+	  b.s task.config(magic) /a
+	  task.taskstate
+	)
+        menuitem "Show &Numerical" "Trace.STATistic.TASKSTATE"
+        menuitem "Show as &Timing" "Trace.CHART.TASKSTATE"
+    )
+  )
+  popup "&Help"
+  (
+     menuitem "Chorus Extension" "HELP __RTOS_CHORUS_"
+  )
+)
+
+
+

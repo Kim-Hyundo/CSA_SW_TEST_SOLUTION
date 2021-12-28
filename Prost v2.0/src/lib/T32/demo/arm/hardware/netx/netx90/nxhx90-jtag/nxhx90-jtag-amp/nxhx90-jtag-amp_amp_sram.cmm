@@ -1,0 +1,112 @@
+; --------------------------------------------------------------------------------
+; @Title: AMP-Demo script for  on NXHX90-JTAG (AMP, RAM)
+; @Description:
+;   Setup a AMP debug session using a single script approach.
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   Use this script to test the AMP-Debugging.
+;   Prerequisites:
+;    * Connect Debug Cable to X400 using Adapter LA-3770
+;      or connect Combiprobe/uTrace to X400.
+;    * Set S701[1] to "ON".
+; @Keywords: ARM
+; @Author: ALI
+; @Board: NXHX90-JTAG
+; @Chip: NETX90-COM, NETX90-APP
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: nxhx90-jtag-amp_amp_sram.cmm 13919 2019-02-09 09:45:19Z alintner $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF VERSION.BUILD()<105856.
+(
+  PRINT %ERROR "Please use more recent software. Contact support@lauterbach.com."
+  ENDDO
+)
+IF SYStem.INSTANCE()!=1.
+(
+  PRINT %ERROR "This script must be called from MASTER GUI!"
+  ENDDO
+)
+
+; store current script path in &ppd
+PRIVATE &ppd
+&ppd=OS.PPD()
+
+; --------------------------------------------------------------------------------
+; [optional] close any existing REMOTE GUIs
+; IC OTHERS QUIT
+
+; --------------------------------------------------------------------------------
+; open all SLAVE GUIs
+IF !INTERCOM.PING(ARM_1)
+  TargetSystem.NewInstance ARM_1 /ARCHitecture ARM
+
+; --------------------------------------------------------------------------------
+; set titles for SLAVE GUIs
+TITLE "TRACE32 for ARM - NETX90-COM - MASTER"
+InterCom ARM_1 TITLE "TRACE32 for ARM - NETX90-APP - SLAVE1"
+
+; --------------------------------------------------------------------------------
+; common SYStem settings
+RESet
+InterCom ARM_1 RESet
+SYStem.RESet
+InterCom ARM_1 SYStem.RESet
+SYStem.CPU NETX90-COM
+SYStem.Option.ResBreak OFF
+SYStem.Option.WaitIDCODE 1.5s
+SYStem.CONFIG CORE 1. 1.
+SYStem.CONFIG SLAVE OFF
+InterCom ARM_1 SYStem.CPU NETX90-APP
+InterCom ARM_1 SYStem.CONFIG CORE 2. 1.
+InterCom ARM_1 SYStem.CONFIG SLAVE ON
+
+; disable Trace for connection phase
+ETM.OFF
+ITM.OFF
+Trace.DISable
+
+InterCom ARM_1 ETM.OFF
+InterCom ARM_1 ITM.OFF
+InterCom ARM_1 Trace.DISable
+
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; kick secondary cores
+Data.Set EAHB:0xFF4012C0 %LE %Long Data.Long(EAHB:0xFF4012C0) ; asic_ctrl_access_key
+Data.Set EAHB:0xFF401268 %LE %Long 0x08000800 ; enable application CPU
+
+; --------------------------------------------------------------------------------
+; attach to all cores on all sessions
+InterCom ARM_1 SYStem.Mode.Up
+
+; --------------------------------------------------------------------------------
+; load demo program on all sessions (use internal RAM only)
+Data.LOAD.Elf &(ppd)/master/sieve_ram_thumb_ii_v7m.elf
+InterCom ARM_1 Data.LOAD.Elf &(ppd)/slave1/sieve_ram_thumb_ii_v7m.elf
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main\1
+WAIT !STATE.RUN()
+InterCom ARM_1 Go.direct main\1
+InterCom ARM_1 WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+InterCom ARM_1 WinCLEAR
+InterCom ARM_1 Mode.Hll
+InterCom ARM_1 WinPOS 0. 0. 116. 26.
+InterCom ARM_1 List.auto
+
+ENDDO

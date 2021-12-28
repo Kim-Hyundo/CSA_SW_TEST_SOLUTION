@@ -1,0 +1,154 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for MK65FN2M0VMI18 on TWR-K65F180M with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The Offchip Trace using a Combiprobe/uTrace or PowerTrace is set up.
+;   Use this script for testing the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Combiprobe/uTrace to J18
+;      or
+;      Connect AutoFocus Preprocessor to J18
+;      and connect DebugCable to Preprocessor
+;    * Solder a brigde on R54 to R58 route trace signals to J18.
+;    * Remove jumper J32 to disable onboard debugger
+;    * Optionally solder bridges on R68 (TDI) and 69 (TDO)
+;      to get JTAG support on J18.
+; @Keywords: ARM, Cortex-M4, ETM, ITM
+; @Author: AME
+; @Board: TWR-K65F180M
+; @Chip: MK65FN2M0VMI18
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: twr-k65f180m_sieve_offchip_trace_sram.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU MK65FN2M0VMI18
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF hardware.COMBIPROBE()||hardware.UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; initialize offchip-trace (ETM ON, ITM ON)
+IF hardware.COMBIPROBE()||hardware.UTRACE()||Analyzer()
+(
+  ; set PinMux and enable Clocks
+  GOSUB enable_tpiu
+  
+  TPIU.PortSize 4
+  TPIU.PortMode Continuous
+  ITM.DataTrace CorrelatedData
+  ITM.ON
+  ETM.Trace ON
+  ETM.ON
+)
+IF hardware.COMBIPROBE()||hardware.UTRACE()
+(
+  Trace.METHOD CAnalyzer
+  Trace.AutoInit ON
+  IF VERSION.BUILD.BASE()>=74752.
+  (
+    CAnalyzer.AutoFocus
+  )
+  ELSE
+  (
+    ; for uTrace & Combiprobe use manual calibration
+    ; CAnalyzer.ClockDELAY Large
+  )
+)
+IF Analyzer()
+(
+  Trace.METHOD Analyzer
+  Trace.AutoInit ON
+  Trace.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO
+
+DisableWatchdog:
+(
+  ; disable the Watchdog
+  LOCAL &tmp1 &tmp2
+  &tmp1=Data.Long(ST:0x20000000)
+  &tmp2=Data.Long(ST:0x20000004)
+  Register.SWAP
+  
+  ; The watchdog has a restrictive timing. It has to be configured and unlocked within a peripod
+  ; of 20+256 cycles. Therefor the unlock sequence need to be done by a small target program.
+  Data.Assemble ST:0x20000000  strh r1,[r0]  ;SD:0x4005200E = 0xC520   (Key 1)
+  Data.Assemble ,              strh r2,[r0]  ;SD:0x4005200E = 0xD928   (Key 2)
+  Data.Assemble ,              strh r4,[r3]  ;SD:0x40052000 = 0x0000   (Config register)
+  Data.Assemble ,              bkpt #0
+  Register.Set PC 0x20000000
+  Register.Set R0 0x4005200E
+  Register.Set R1 0xC520
+  Register.Set R2 0xD928
+  Register.Set R3 0x40052000
+  Register.Set R4 0x0
+  Go.direct
+  WAIT !STATE.RUN()
+  
+  Register.SWAP
+  Data.Set ST:0x20000000 %Long &tmp1
+  Data.Set ST:0x20000004 %Long &tmp2
+
+  RETURN
+)
+
+
+enable_tpiu:
+(
+  ; Enable Trace Pins
+  Data.Set SD:0x40048038 %Long 0yXXXXxxxxXXXXxxxxXX1XxxxxXXXXxxxx   ; PORTE_CLK
+  Data.Set SD:0x40048004 %Long 0x00001000                           ; TRACE_CLK0 = Core clock
+  Data.Set SD:0x4004D000 %Long 0x00000540                           ; PTE0 TRACECLK
+  Data.Set SD:0x4004D004 %Long 0x00000540                           ; PTE1 TRACED3
+  Data.Set SD:0x4004D008 %Long 0x00000540                           ; PTE2 TRACED2
+  Data.Set SD:0x4004D00C %Long 0x00000540                           ; PTE3 TRACED1
+  Data.Set SD:0x4004D010 %Long 0x00000540                           ; PTE4 TRACED0
+
+  RETURN
+)

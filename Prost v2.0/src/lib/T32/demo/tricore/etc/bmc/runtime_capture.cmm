@@ -1,0 +1,55 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to capture function runtime using BenchMarkCounter
+; @Description:
+;   Script arguments:
+;       DO capture.cmm prepare | exec "<func>" "<time>"
+;           prepare    prepare BMC for capture
+;           exec       capture single function called <func> for <time>
+;
+; @Keywords: AURIX, BMC, runtime
+; @Author: MEI
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: runtime_capture.cmm 15640 2020-02-05 10:22:16Z meick $
+
+
+
+PRIVATE &cmd &params
+ENTRY &cmd %LINE &params
+
+GOSUB &cmd &params
+
+ENDDO
+
+prepare:
+(
+  ; configure BMC
+  BMC.ICNT.EVENT ON
+  BMC.ICNT.ATOB ON
+  BMC.OTGSC0.EVENT Alpha
+  
+  ; configure clock readout to determine core frequency
+  CLOCK.ON
+  
+  ; configure BTrace to records statistics
+  BTrace.SIZE 1000.
+  BTrace.Init
+  
+  RETURN
+)
+
+exec:
+(
+  PARAMETERS &funcName &time
+  
+  BMC.Init
+  
+  Break.SetFunc &funcName
+  SCREEN.WAIT &time
+  Break.Delete /Alpha
+  Break.Delete /Beta
+  BTrace.PUSH.STATistic &funcName BMC.COUNTER.BYNAME("OTGSC0") BMC.COUNTER.BYNAME("CLOCKS")*1.0s/BMC.CLOCK() 
+  
+  RETURN
+)
+

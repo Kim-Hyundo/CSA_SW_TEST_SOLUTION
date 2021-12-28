@@ -1,0 +1,57 @@
+; --------------------------------------------------------------------------------
+; @Title: OSE Basic (OSARM) Demo for TRACE32 OS Awareness
+; @Description: 
+;   
+;    This batchfile loads all necessary files to demonstrate
+;    the RTOS-Debugger for OSARM in stand-alone-mode.
+;   
+; @Keywords: osebasic, RTOS
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: oseb.cmm 15227 2019-11-06 11:57:41Z bschroefel $
+
+;  Created by Rudolf Dienstbeck / Lauterbach GmbH at 19.08.98
+
+ LOCAL &mode1
+ ENTRY &mode1
+
+ SCREEN.ON
+
+; Emulator reset
+ PRINT "resetting..."
+ RESet
+ WinPAGE.RESet
+
+ PRINT "initializing..."
+
+; Default mapping
+ IF hardware.ICE()||hardware.FIRE()
+ (
+  MAP.Ram 0--1ffff
+  MAP.Intern
+ )
+
+; System settings for ARM7 probe
+ IF hardware.ICE()
+ (
+  SYStem.Access clksteal
+ )
+ SETUP.IMASKASM ON
+
+; Stand alone internal mode
+ SYStem.Mode AloneInt
+
+; load sample application
+ PRINT "loading sample application..."
+ Data.LOAD.AIF motcon  /LPATH /StripPATH
+ Register.Set PC Reset_Handler
+
+; initialize mutitasking support
+ PRINT "initializing RTOS support..."
+ SCREEN.OFF
+ DO poseb &mode1
+ MENU.ReProgram oseb
+ DO taskwin
+ PRINT "load complete."
+

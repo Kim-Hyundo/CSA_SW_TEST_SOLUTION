@@ -1,0 +1,21 @@
+; --------------------------------------------------------------------------------
+; @Title: Attach to the NETX500 withou resetting the CPU
+; @Description: This script connects to a running NETX500
+; @Keywords: Hilscher, NetX*
+; @Board: 
+;   NETX FPGA Board, NXHX500, NXHMI-BB, NXHMI-RE, NXDB500-SYS, NXEB500-HMI, NXSB100, NETPAC, Honeywell (Tower)
+; @Chip: NETX500
+; @Author: Hilscher
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: netx_attach.cmm 15271 2019-11-13 12:30:49Z bschroefel $
+
+
+;setup ROM to let the software decide about how to set breakpoints
+MAP.BOnchip 0x200000--0x300000
+
+SYStem.CPU NETX500
+SYStem.MemAccess UDMON3
+SYStem.Mode Attach
+
+ENDDO

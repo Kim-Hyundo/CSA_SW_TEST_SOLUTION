@@ -1,0 +1,40 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TriCore ROM Monitor with a TC1796 on TriBoard TC1796
+; @Description: Connects to a ROM Monitor already running on the target.
+; @Keywords: Infineon, monitor, sieve, TriCore
+; @Author: MAX
+; @Board: TriBoard-TC1796
+; @Chip: TC1796
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo.cmm 7822 2014-10-29 13:57:15Z kjmal $
+
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+
+RESet
+SYStem.CPU TC1796
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load symbols only
+
+Data.LOAD.Elf "~~~~/sieve_extflash.elf"   /NOCODE /NOREG
+//Data.LOAD.Elf "~~~~/sieve_extram.elf"     /NOCODE /NOREG
+//Data.LOAD.Elf "~~~~/montest_extflash.elf" /NOCODE /NOREG
+//Data.LOAD.Elf "~~~~/montest_extram.elf"   /NOCODE /NOREG
+
+; --------------------------------------------------------------------------------
+; start
+
+WinCLEAR
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch
+Var.AddWatch ast flags
+
+ENDDO

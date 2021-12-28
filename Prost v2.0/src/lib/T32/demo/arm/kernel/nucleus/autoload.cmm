@@ -1,0 +1,60 @@
+; --------------------------------------------------------------------------------
+; @Title: Nucleus symbol autoloader script
+; @Description: Autoload script, called by TRACE32 if symbols are to be loaded
+; @Keywords: nucleus
+; @Author: DIE
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: autoload.cmm 5509 2020-07-20 11:49:01Z rdienstbeck $
+
+
+// define local macros
+ LOCAL &module &type &code &data &space &filename &basename &filepath
+
+// get name and relocation information
+ // these parameters are passed from TRACE32 when calling this skript
+
+ ENTRY &module &type &code &data &space
+
+ //print "autoload: " &module " " &type " " &code " " &data
+
+ // &module:        name of module
+ // &type:          type of file: 1 = load module
+ // &code:          code address
+ // &data:          data address
+
+// get filename of module
+&filename=os.file.name(&module)
+&basename=STRing.CUT("&filename",-STRing.LENgth(OS.FILE.EXTENSION("&filename")))
+
+// delete symbols if they already exist
+ IF sYmbol.EXIST("\\&basename")
+ (
+    &symname="`\\&basename`"
+    sYmbol.Delete &symname
+ )
+
+// search file in source search path and open dialog when not there
+ &filepath=sYmbol.SEARCHFILE("&basename")
+ IF !OS.FILE("&filepath")               // not found
+    &filepath=sYmbol.SEARCHFILE("&basename.out")
+ IF !OS.FILE("&filepath")               // not found
+ (
+   LOCAL &spath
+   WinPOS ,,,,,, filebox normal "Searching symbols for &basename"
+   DIALOG.File "*\&basename.*"
+   ENTRY %LINE &filepath
+   IF "&filepath"==""
+     ENDDO
+   &spath=OS.FILE.PATH("&filepath")
+   sYmbol.SourcePATH.Set &spath
+ )
+
+// load symbol file (options for sourcepath, e.g. /STRIPPART may need to be added when required)
+
+ IF (&type==1)  // load processes
+ (
+   Data.LOAD.Elf "&filepath" &code /ZeroSym /NoCODE /NoClear /name &basename
+ )
+
+ ENDDO

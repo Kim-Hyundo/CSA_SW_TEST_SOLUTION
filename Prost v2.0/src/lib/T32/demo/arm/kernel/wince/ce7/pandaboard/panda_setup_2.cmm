@@ -1,0 +1,206 @@
+; --------------------------------------------------------------------------------
+; @Title: PandaBoard General Setup Script 2
+; @Description: -
+; @Author: KJM
+; @Chip: OMAP4430
+; @Board: PandaBoard
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: panda_setup_2.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+; Disable watchdog timer
+Data.Set ANSD:0x4A314048 %LE %Long 0x0000AAAA
+WAIT ((Data.Long(ANSD:0x4A314034)&0x10)!=0x10)
+Data.Set ANSD:0x4A314048 %LE %Long 0x00005555
+WAIT ((Data.Long(ANSD:0x4A314034)&0x10)!=0x10)
+
+; Enable ICACHE
+Data.Set C15:1 %LE %Long Data.Long(C15:1)|0x1000
+
+; GPMC init
+Data.Set ANSD:0x50000010 %LE %Long 0x00000010	; GPMC_SYSCONFIG
+Data.Set ANSD:0x5000001C %LE %Long 0x00000000	; GPMC_IRQENABLE
+Data.Set ANSD:0x50000040 %LE %Long 0x00000000	; GPMC_TIMEOUT_CONTROL
+Data.Set ANSD:0x50000050 %LE %Long 0x00000000	; GPMC_CONFIG
+Data.Set ANSD:0x50000078 %LE %Long 0x00000000	; Disable the GPMC0 config set by ROM code
+WAIT 1.ms
+
+; Enable GPMC config
+Data.Set ANSD:0x50000108 %LE %Long 0x00000000
+WAIT 1.ms
+Data.Set ANSD:0x500000F0 %LE %Long 0x00611200	; GPMC_CONFIG1
+Data.Set ANSD:0x500000F4 %LE %Long 0x001F1F01	; GPMC_CONFIG2
+Data.Set ANSD:0x500000F8 %LE %Long 0x00080803	; GPMC_CONFIG3
+Data.Set ANSD:0x500000FC %LE %Long 0x1D091D09	; GPMC_CONFIG4
+Data.Set ANSD:0x50000100 %LE %Long 0x041D1F1F	; GPMC_CONFIG5
+Data.Set ANSD:0x50000104 %LE %Long 0x1D0904C4	; GPMC_CONFIG6
+WAIT 2.ms
+
+Data.Set ANSD:0x500000D8 %LE %Long 0x000003E8
+WAIT 1.ms
+Data.Set ANSD:0x500000C0 %LE %Long 0x00001203	; GPMC_CONFIG1
+Data.Set ANSD:0x500000C4 %LE %Long 0x00151501	; GPMC_CONFIG2
+Data.Set ANSD:0x500000C8 %LE %Long 0x00060602	; GPMC_CONFIG3
+Data.Set ANSD:0x500000CC %LE %Long 0x11091109	; GPMC_CONFIG4
+Data.Set ANSD:0x500000D0 %LE %Long 0x01141F1F	; GPMC_CONFIG5
+;Data.Set ANSD:0x500001D4 %LE %LONG 0x1F0F04C4	; GPMC_CONFIG6
+Data.Set ANSD:0x500000D8 %LE %Long 0x00000C50	; GPMC_CONFIG6
+WAIT 2.ms
+
+
+; Interrupt init	
+Data.Set ANSD:48032024 %LE %Long 0x0000003F	; TCLR
+Data.Set ANSD:4803202C %LE %Long 0x00000000	; TLDR
+
+; serial init
+Data.Set ANSD:0x4803202C %LE %Long 0x00000000	; TLDR
+
+Data.Set ANSD:0x48020004 %LE %Byte 0x00
+Data.Set ANSD:0x48020020 %LE %Byte 0x07
+Data.Set ANSD:0x4802000C %LE %Byte 0x83
+Data.Set ANSD:0x48020000 %LE %Byte 0x1A
+Data.Set ANSD:0x48020004 %LE %Byte 0x00
+Data.Set ANSD:0x4802000C %LE %Byte 0x03
+Data.Set ANSD:0x48020010 %LE %Byte 0x03
+Data.Set ANSD:0x48020008 %LE %Byte 0x07
+Data.Set ANSD:0x48020020 %LE %Byte 0x00
+
+
+; I2C init
+&I2CBase="ANSD:0x48070000"
+
+Data.Set &I2CBase+0xA4 %LE %Word 0x0000
+WAIT 50.ms
+Data.Set &I2CBase+0x10 %LE %Word 0x0002
+WAIT 1.ms
+Data.Set &I2CBase+0xB0 %LE %Word 0x000F
+Data.Set &I2CBase+0xB4 %LE %Word 0x0017
+Data.Set &I2CBase+0xB8 %LE %Word 0x0017
+Data.Set &I2CBase+0xA8 %LE %Word 0x0001
+Data.Set &I2CBase+0xA4 %LE %Word 0x8000
+Data.Set &I2CBase+0x2C %LE %Word 0x001F
+WAIT 1.ms
+Data.Set &I2CBase+0x28 %LE %Word 0xFFFF
+
+
+; twl6030 init
+Data.Set &I2CBase+0x28 %LE %Word 0xFFFF
+Data.Set &I2CBase+0x28 %LE %Word 0xFFFF
+Data.Set &I2CBase+0x98 %LE %Word 0x0002
+Data.Set &I2CBase+0xAC %LE %Word 0x0049
+Data.Set &I2CBase+0xA4 %LE %Word 0x8603
+WAIT (Data.Word(&I2CBase+0x28)==0x1410)	;  wait until state change
+Data.Set &I2CBase+0x9C %LE %Byte 0xED
+Data.Set &I2CBase+0x28 %LE %Word 0x0010
+WAIT (Data.Word(&I2CBase+0x28)==0x1410)	;  wait until state change
+WAIT 50.ms
+Data.Set &I2CBase+0x9C %LE %Byte 0x0E
+Data.Set &I2CBase+0x28 %LE %Word 0x0010
+WAIT 50.ms
+Data.Set &I2CBase+0xA4 %LE %Word 0x8000
+WAIT 1.ms
+Data.Set &I2CBase+0x28 %LE %Word 0xFFFF
+Data.Set &I2CBase+0x28 %LE %Word 0xFFFF
+Data.Set &I2CBase+0x98 %LE %Word 0x0000
+
+
+Data.Set &I2CBase+0x28 %LE %Word 0xFFFF
+Data.Set &I2CBase+0x28 %LE %Word 0xFFFF
+Data.Set &I2CBase+0x98 %LE %Word 0x0002
+Data.Set &I2CBase+0xAC %LE %Word 0x0049
+Data.Set &I2CBase+0xA4 %LE %Word 0x8603
+WAIT (Data.Word(&I2CBase+0x28)==0x1410)	;  wait until state change
+Data.Set &I2CBase+0x9C %LE %Byte 0xEE
+Data.Set &I2CBase+0x28 %LE %Word 0x0010
+WAIT (Data.Word(&I2CBase+0x28)==0x1410)	;  wait until state change
+WAIT 50.ms
+Data.Set &I2CBase+0x9C %LE %Byte 0x0F
+Data.Set &I2CBase+0x28 %LE %Word 0x0010
+WAIT 50.ms
+Data.Set &I2CBase+0xA4 %LE %Word 0x8000
+WAIT 1.ms
+Data.Set &I2CBase+0x28 %LE %Word 0xFFFF 
+Data.Set &I2CBase+0x28 %LE %Word 0xFFFF
+Data.Set &I2CBase+0x98 %LE %Word 0x0000
+
+
+Data.Set &I2CBase+0x28 %LE %Word 0xFFFF
+Data.Set &I2CBase+0x28 %LE %Word 0xFFFF
+Data.Set &I2CBase+0x98 %LE %Word 0x0002
+Data.Set &I2CBase+0xAC %LE %Word 0x0049
+Data.Set &I2CBase+0xA4 %LE %Word 0x8603
+WAIT (Data.Word(&I2CBase+0x28)==0x1410)	;  wait until state change
+Data.Set &I2CBase+0x9C %LE %Byte 0xE0
+Data.Set &I2CBase+0x28 %LE %Word 0x0010
+WAIT (Data.Word(&I2CBase+0x28)==0x1410)	;  wait until state change
+WAIT 50.ms
+Data.Set &I2CBase+0x9C %LE %Byte 0x04
+Data.Set &I2CBase+0x28 %LE %Word 0x0010
+WAIT 50.ms
+Data.Set &I2CBase+0xA4 %LE %Word 0x8000
+WAIT 1.ms
+Data.Set &I2CBase+0x28 %LE %Word 0xFFFF 
+Data.Set &I2CBase+0x28 %LE %Word 0xFFFF
+Data.Set &I2CBase+0x98 %LE %Word 0x0000
+
+
+Data.Set &I2CBase+0x28 %LE %Word 0xFFFF
+Data.Set &I2CBase+0x28 %LE %Word 0xFFFF
+Data.Set &I2CBase+0x98 %LE %Word 0x0002
+Data.Set &I2CBase+0xAC %LE %Word 0x0049
+Data.Set &I2CBase+0xA4 %LE %Word 0x8603
+WAIT (Data.Word(&I2CBase+0x28)==0x1410)	;  wait until state change
+Data.Set &I2CBase+0x9C %LE %Byte 0xEC
+Data.Set &I2CBase+0x28 %LE %Word 0x0010
+WAIT (Data.Word(&I2CBase+0x28)==0x1410)	;  wait until state change
+WAIT 50.ms
+Data.Set &I2CBase+0x9C %LE %Byte 0x19
+Data.Set &I2CBase+0x28 %LE %Word 0x0010
+WAIT 50.ms
+Data.Set &I2CBase+0xA4 %LE %Word 0x8000
+WAIT 1.ms
+Data.Set &I2CBase+0x28 %LE %Word 0xFFFF 
+Data.Set &I2CBase+0x28 %LE %Word 0xFFFF
+Data.Set &I2CBase+0x98 %LE %Word 0x0000
+
+
+Data.Set &I2CBase+0x28 %LE %Word 0xFFFF
+Data.Set &I2CBase+0x28 %LE %Word 0xFFFF
+Data.Set &I2CBase+0x98 %LE %Word 0x0002
+Data.Set &I2CBase+0xAC %LE %Word 0x0049
+Data.Set &I2CBase+0xA4 %LE %Word 0x8603
+WAIT (Data.Word(&I2CBase+0x28)==0x1410)	;  wait until state change
+Data.Set &I2CBase+0x9C %LE %Byte 0xE9
+Data.Set &I2CBase+0x28 %LE %Word 0x0010
+WAIT (Data.Word(&I2CBase+0x28)==0x1410)	;  wait until state change
+WAIT 50.ms
+Data.Set &I2CBase+0x9C %LE %Byte 0x20
+Data.Set &I2CBase+0x28 %LE %Word 0x0010
+WAIT 50.ms
+Data.Set &I2CBase+0xA4 %LE %Word 0x8000
+WAIT 1.ms
+Data.Set &I2CBase+0x28 %LE %Word 0xFFFF 
+Data.Set &I2CBase+0x28 %LE %Word 0xFFFF
+Data.Set &I2CBase+0x98 %LE %Word 0x0000
+
+
+Data.Set &I2CBase+0x28 %LE %Word 0xFFFF
+Data.Set &I2CBase+0x28 %LE %Word 0xFFFF
+Data.Set &I2CBase+0x98 %LE %Word 0x0002
+Data.Set &I2CBase+0xAC %LE %Word 0x0049
+Data.Set &I2CBase+0xA4 %LE %Word 0x8603
+WAIT (Data.Word(&I2CBase+0x28)==0x1410)	;  wait until state change
+Data.Set &I2CBase+0x9C %LE %Byte 0xE1
+Data.Set &I2CBase+0x28 %LE %Word 0x0010
+WAIT (Data.Word(&I2CBase+0x28)==0x1410)	;  wait until state change
+WAIT 50.ms
+Data.Set &I2CBase+0x9C %LE %Byte 0x10
+Data.Set &I2CBase+0x28 %LE %Word 0x0010
+WAIT 50.ms
+Data.Set &I2CBase+0xA4 %LE %Word 0x8000
+WAIT 1.ms
+Data.Set &I2CBase+0x28 %LE %Word 0xFFFF 
+Data.Set &I2CBase+0x28 %LE %Word 0xFFFF
+Data.Set &I2CBase+0x98 %LE %Word 0x0000
+

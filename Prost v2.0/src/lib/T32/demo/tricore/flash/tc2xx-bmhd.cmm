@@ -1,0 +1,595 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash script support file for TC2xx BMHD Boot Mode Headers.
+; @Description:
+;   Script for verification of Infineon TriCore TC2xx BMHDs. This script only does
+;   formal verification. For perform Flash programming, please see the appropriate
+;   Flash programming scripts.
+; @Keywords: AURIX1G, Flash, Infineon, TriCore, BMHD
+; @Author: MAX
+; @Chip: TC2*
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc2xx-bmhd.cmm 8208 2020-04-20 13:13:15Z mobermaier $
+; $Rev: 8208 $
+
+
+; Important information, read this before using this script:
+;
+;   Do not edit this script. Instead, call this script from your project using the
+;   command line arguments described below. See the triboard demo scripts for an
+;   example.
+;
+;   This script checks one or more of the programmed BMHDs for formal correctness
+;   to avoid permanent locking of the device. This script is constantly improved,
+;   but it is not guaranteed that all cases are covered.
+;
+; Script arguments:
+;
+;   DO tc2xx-bmhd.cmm [CHECK=<type> | GETCRC=<block>] [BMHD=<bmhd>]
+;
+;     CHECK=<type> Check for a valid BMHD or CRC. A BMHD is valid if the BMHD
+;                  itself is formally correct. If a Memory Range is specified for
+;                  checking, the CRC of the Memory Range must match, too.
+;                  Supported values: ALL, BOOT, BMHD, ABM, MEM
+;                    ALL  Check if all BMHD are valid.
+;                    BOOT Check if there is at least one valid BMHD. This ensures
+;                         that the SSW will unlock the debug interface.
+;                    BMHD Check if a single entire BMHD is valid.
+;                    ABM  Check if the ABM Header CRC of a single BMHD is valid.
+;                    MEM  Check if the Memory Range CRC of a single BMHD is valid.
+;                  The script returns: BMHDOK on pass, BMHDFAIL otherwise
+;
+;     GETCRC=<block> Compute the CRC of the ABM Header or the Memory Range.
+;                    Supported values: ABM, MEM
+;                      ABM Get ABM Header CRC of specified BMHD.
+;                      MEM Get Memory Range CRC of specified BMHD.
+;                    Only check a single BMHD (ALL will return an error).
+;                    The script returns:
+;                      <crc>     CRC of AMB Header or Memory Range.
+;                      0x0       No Memory Range for BMHD.
+;                      BMHDERROR Error accessing Memory Range.
+;
+;     BMHD=<bmhd> Set the BMHD to check, or to get a CRC for.
+;                 Supported values: BMHD0, BMHD1, BMHD2, BMHD3.
+;                 Default is BMHD0.
+;
+;     Running without arguments will default to CHECK=BOOT.
+;     Specifying CHECK= and GETCRC= concurrently results in BMHDERROR.
+;     Test status and error information can be obtained from AREA window.
+;
+; Example:
+;
+;   DO ~~/demo/tricore/flash/tc2xx-bmhd.cmm CHECK=BMHD BMHD=BMHD0
+;
+; Supported devices:
+;
+;   All TC2xx devices, e.g. TC275T, TC297TF.
+;
+; CAUTION:
+;
+;   Reprogramming the BMHDs can permanently prohibit debug access to your device and
+;   prevent it from booting. Make sure you fully understand the Infineon documentation
+;   before changing BMHDs.
+
+
+; --------------------------------------------------------------------------------
+; process arguments
+
+LOCAL &parameters
+ENTRY %LINE &parameters
+
+LOCAL &param_CHECK &param_GETCRC &param_BMHD
+&param_CHECK=STRing.UPpeR(STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CHECK=","none"))
+&param_GETCRC=STRing.UPpeR(STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"GETCRC=","none"))
+&param_BMHD=STRing.UPpeR(STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"BMHD=","BMHD0"))
+
+IF ("&param_CHECK"!="NONE")&&("&param_GETCRC"!="NONE")
+(
+  PRINT %ERROR "tc2xx-bmhd.cmm argument error: either specify CHECK= or GETCRC="
+  ENDDO BMHDERROR
+)
+ELSE IF ("&param_CHECK"=="NONE")&&("&param_GETCRC"=="NONE")
+  &param_CHECK="BOOT"
+
+; --------------------------------------------------------------------------------
+; perform checking
+
+PRIVATE &result
+&result="BMHDOK"
+
+IF ("&param_CHECK"!="NONE")
+(
+  ; check BMHD
+  IF ("&param_CHECK"=="BOOT")
+  (
+    ; check if at least one BMHD is valid to ensure that the SSW will boot the
+    ; chip and unlock the debug interface
+    &result="BMHDFAIL"
+
+    PRIVATE &BMHD
+    &BMHD=0.
+    WHILE ((&BMHD<4.)&&("&result"=="BMHDFAIL"))
+    (
+      &param_BMHD="BMHD"+FORMAT.Decimal(1.,&BMHD)
+      GOSUB BMHD_Check "&param_BMHD"
+      RETURNVALUES &result
+      &BMHD=&BMHD+1.
+    )
+
+    IF ("&result"=="BMHDOK")
+      PRINT "[BMHD] at least one valid BMHD found"
+    ELSE
+      PRINT "[BMHD] no valid BMHD found, potential danger of device being locked"
+  )
+  ELSE IF ("&param_CHECK"=="ALL")
+  (
+    ; check if all BMHDs are valid
+    PRIVATE &BMHD
+    &BMHD=0.
+    WHILE ((&BMHD<4.)&&("&result"=="BMHDOK"))
+    (
+      &param_BMHD="BMHD"+FORMAT.Decimal(1.,&BMHD)
+      GOSUB BMHD_Check "&param_BMHD"
+      RETURNVALUES &result
+      &BMHD=&BMHD+1.
+    )
+
+    IF ("&result"=="BMHDOK")
+      PRINT "[BMHD] all BMHD valid"
+    ELSE
+      PRINT "[BMHD] at least one invalid BMHD found"
+  )
+  ELSE IF ("&param_CHECK"=="BMHD")
+  (
+    ; check a single BMHD
+    GOSUB BMHD_Check "&param_BMHD"
+    RETURNVALUES &result
+
+    IF ("&result"=="BMHDOK")
+      PRINT "[&param_BMHD] check passed"
+    ELSE
+      PRINT "[&param_BMHD] check failed"
+  )
+  ELSE IF ("&param_CHECK"=="ABM")
+  (
+    ; check ABM Header CRC of a single BMHD
+    GOSUB BMHD_CheckABM "&param_BMHD"
+    RETURNVALUES &result
+
+    IF ("&result"=="BMHDOK")
+      PRINT "[&param_BMHD] ABM Header check passed"
+    ELSE
+      PRINT "[&param_BMHD] ABM Header check failed"
+  )
+  ELSE IF ("&param_CHECK"=="MEM")
+  (
+    ; check Memory Range CRC of a single BMHD
+    GOSUB BMHD_CheckMEM "&param_BMHD"
+    RETURNVALUES &result
+
+    IF ("&result"=="BMHDOK")
+      PRINT "[&param_BMHD] Memory Range check passed"
+    ELSE
+      PRINT "[&param_BMHD] Memory Range check failed"
+  )
+  ELSE
+  (
+    PRINT %ERROR "tc2xx-bmhd.cmm invalid value &param_CHECK for CHECK="
+    &result="BMHDERROR"
+  )
+)
+ELSE IF ("&param_GETCRC"!="NONE")
+(
+  ; get CRC
+  IF ("&param_GETCRC"=="ABM")
+  (
+    ; get ABM Header CRC
+    PRIVATE &ABM_CRC
+    GOSUB BMHD_GetABMCRC "&param_BMHD"
+    RETURNVALUES &ABM_CRC
+    IF ("&ABM_CRC"=="CRCINVALID")
+      &result="BMHDERROR"
+    ELSE
+    (
+      PRINT "[&param_BMHD] ABM Header CRC is &ABM_CRC"
+      &result=&ABM_CRC
+    )
+  )
+  ELSE IF ("&param_GETCRC"=="MEM")
+  (
+    ; get Memory Range CRC
+    PRIVATE &MEM_CRC
+    GOSUB BMHD_GetMEMCRC "&param_BMHD"
+    RETURNVALUES &MEM_CRC
+    IF ("&MEM_CRC"=="CRCINVALID")
+      &result="BMHDERROR"
+    ELSE
+    (
+      PRINT "[&param_BMHD] Memory Range CRC is &MEM_CRC"
+      &result=&MEM_CRC
+    )
+  )
+  ELSE
+  (
+    PRINT %ERROR "tc2xx-bmhd.cmm invalid value &param_GETCRC for GETCRC="
+    ENDDO BMHDERROR
+  )
+)
+
+ENDDO &result
+
+
+; --------------------------------------------------------------------------------
+; helper functions
+
+; --------------------------------------------------------------------------------
+; Check if a single Boot Mode Header has valid contents.
+; Check for ID, CRC of ABM and Memory Range (if specified).
+;
+; Parameters:
+;   &BMHD    Which BMHD to check: BMHD0, BMHD1, BMHD2, BMHD3
+; Return values:
+;   BMHDOK   BMHD is valid
+;   BMHDFAIL BMHD is invalid (see AREA for details)
+
+BMHD_Check:
+(
+  PARAMETERS &BMHD
+
+  PRIVATE &result
+  &result="BMHDOK"
+
+  PRIVATE &BMHD_Address
+  GOSUB BMHD_GetAddress "&BMHD"
+  RETURNVALUES &BMHD_Address
+  IF ("&BMHD_Address"=="P:0x0")
+  (
+    PRINT "[&BMHD] invalid BMHD"
+    RETURN "BMHDFAIL"
+  )
+
+  ; error handler for bus error
+  LOCAL &access
+  &access=TRUE()
+  ON.ERROR GOSUB
+  (
+    &access=FALSE()
+    RETURN
+  )
+
+  ; check Boot Mode Header ID: BMHDID==0xB359
+  PRIVATE &BMHD_ID
+  &BMHD_ID=Data.Word(&BMHD_Address+0x6)
+  IF !&access
+  (
+    PRINT "[&BMHD] error reading BMHDID"
+    RETURN "BMHDFAIL"
+  )
+  IF (&BMHD_ID!=0xB359)
+  (
+    PRINT "[&BMHD] invalid BMHDID"
+    RETURN "BMHDFAIL"
+  )
+
+  ; check ABM Header CRC
+  GOSUB BMHD_CheckABM "&BMHD"
+  RETURNVALUES &result
+  IF ("&result"!="BMHDOK")
+  (
+    PRINT "[&BMHD] error checking ABM Header"
+    RETURN "BMHDFAIL"
+  )
+
+  ; check BMI[15:10, 7:0]
+  ; BMI[9:8] controls Lockstep Logic and can have arbitrary values
+  PRIVATE &BMI
+  &BMI=Data.Word(&BMHD_Address+0x4)
+  IF !&access
+  (
+    PRINT "[&BMHD] error reading BMI"
+    RETURN "BMHDFAIL"
+  )
+  IF (((&BMI)&(0xFC87))!=0x0000)
+  (
+    PRINT "[&BMHD] invalid BMI"
+    RETURN "BMHDFAIL"
+  )
+  PRIVATE &BMI_HWCFG
+  &BMI_HWCFG=((&BMI)&(0x0070))>>4.
+  IF (&BMI_HWCFG==0x0)||(&BMI_HWCFG==0x1)||(&BMI_HWCFG==0x2)||(&BMI_HWCFG==0x5)
+  (
+    PRINT "[&BMHD] invalid BMI.HWCFG (value is reserved)"
+    RETURN "BMHDFAIL"
+  )
+
+  ; check Memory Range CRC
+  GOSUB BMHD_CheckMEM "&BMHD"
+  RETURNVALUES &result
+  IF ("&result"!="BMHDOK")
+  (
+    PRINT "[&BMHD] error checking Memory Range"
+    RETURN "BMHDFAIL"
+  )
+
+  RETURN "&result"
+)
+
+; --------------------------------------------------------------------------------
+; Get base address of BMHD.
+;
+; Parameters:
+;   &MBHD Which BMHD to get address for: BMHD0, BMHD1, BMHD2, BMHD3
+; Return values:
+;   <address> Base address of selected BMHD is valid
+;   P:0x0     If selected BMHD is invalid
+
+BMHD_GetAddress:
+(
+  PARAMETERS &BMHD
+
+  IF ("&BMHD"=="BMHD0")
+    RETURN "P:0xA0000000"
+  ELSE IF ("&BMHD"=="BMHD1")
+    RETURN "P:0xA0020000"
+  ELSE IF ("&BMHD"=="BMHD2")
+    RETURN "P:0xA000FFE0"
+  ELSE IF ("&BMHD"=="BMHD3")
+    RETURN "P:0xA001FFE0"
+  ELSE
+    RETURN "P:0x0"
+)
+
+; --------------------------------------------------------------------------------
+; Check if an ABM Header has a valid CRC.
+; Calculate the CRC of the first 24 Bytes from the ABM Header: Process the fields
+; STADABM...CRCRange at offsets 0x00--0x17.
+; a) Compare the result with the CRChead value (offset 0x18).
+; b) Inverse the result value and compare with CRChead~ (offset 0x1C).
+;
+; Parameters:
+;   &BMHD    Which BMHD to check: BMHD0, BMHD1, BMHD2, BMHD3
+; Return values:
+;   BMHDOK   ABM Header CRC is valid
+;   BMHDFAIL ABM Header CRC is invalid
+
+BMHD_CheckABM:
+(
+  PARAMETERS &BMHD
+
+  PRIVATE &BMHD_Address
+  GOSUB BMHD_GetAddress "&BMHD"
+  RETURNVALUES &BMHD_Address
+  IF ("&BMHD_Address"=="P:0x0")
+  (
+    PRINT "[&BMHD] invalid BMHD"
+    RETURN "BMHDFAIL"
+  )
+
+  ; error handler for bus error
+  LOCAL &access
+  &access=TRUE()
+  ON.ERROR GOSUB
+  (
+    &access=FALSE()
+    RETURN
+  )
+
+  ; check ABM Header CRC
+  PRIVATE &ABM_CRC
+  GOSUB BMHD_GetABMCRC "&BMHD"
+  RETURNVALUES &ABM_CRC
+  IF ("&ABM_CRC"=="CRCINVALID")
+  (
+    PRINT "[&BMHD] error calculating ABM Header CRC"
+    &access=FALSE()
+  )
+  ELSE
+  (
+    ; compare with CRC
+    Data.Set &BMHD_Address+0x18 %Long &ABM_CRC /DIFF
+    IF !&access
+      PRINT "[&BMHD] error accessing CRChead"
+    ELSE
+    (
+      &access=!FOUND()
+      IF !(&access)
+        PRINT "[&BMHD] ABM Header CRC does not match CRChead"
+      ELSE
+      (
+        ; compare inverted CRC
+        Data.Set &BMHD_Address+0x1C %Long ~&ABM_CRC /DIFF
+        IF !&access
+          PRINT "[&BMHD] error accessing CRChead~"
+        ELSE
+        (
+          &access=!FOUND()
+          IF !(&access)
+            PRINT "[&BMHD] inverted ABM Header CRC does not match CRChead~"
+        )
+      )
+    )
+  )
+
+  IF &access
+    RETURN "BMHDOK"
+
+  RETURN "BMHDFAIL"
+)
+
+; --------------------------------------------------------------------------------
+; Get CRC of ABM Header.
+;
+; Parameters:
+;   &BMHD    Which BMHD to check: BMHD0, BMHD1, BMHD2, BMHD3
+; Return values:
+;   <crc>      CRC is valid
+;   CRCINVALID CRC is invalid
+
+BMHD_GetABMCRC:
+(
+  PARAMETERS &BMHD
+
+  PRIVATE &BMHD_Address
+  GOSUB BMHD_GetAddress "&BMHD"
+  RETURNVALUES &BMHD_Address
+  IF ("&BMHD_Address"=="P:0x0")
+  (
+    PRINT "[&BMHD] invalid BMHD"
+    RETURN "BMHDFAIL"
+  )
+
+  ; error handler for bus error
+  LOCAL &result
+  &result=TRUE()
+  ON.ERROR GOSUB
+  (
+    &result=FALSE()
+    RETURN
+  )
+
+  ; get CRC
+  Data.SUM &BMHD_Address++0x17 /Long /ByteSWAP /CRC32
+  IF !&result
+    RETURN "CRCINVALID"
+
+  PRIVATE &CRC
+  &CRC=Data.SUM()
+  RETURN "&CRC"
+)
+
+; --------------------------------------------------------------------------------
+; Check if a Memory Range has a valid CRC.
+; Calculate the CRC over the memory address range ChkStart...ChkEnd (start- and
+; end- addresses taken from offsets 08H and 0CH respectively)
+; a) Compare the result with the CRCrange value (offset 0x10).
+; b) Inverse the result value and compare with CRCrange (offset 0x14).
+;
+; Parameters:
+;   &BMHD    Which BMHD to check: BMHD0, BMHD1, BMHD2, BMHD3
+; Return values:
+;   BMHDOK   Memory Range CRC is valid
+;   BMHDFAIL Memory Range CRC is invalid
+
+BMHD_CheckMEM:
+(
+  PARAMETERS &BMHD
+
+  PRIVATE &BMHD_Address
+  GOSUB BMHD_GetAddress "&BMHD"
+  RETURNVALUES &BMHD_Address
+  IF ("&BMHD_Address"=="P:0x0")
+  (
+    PRINT "[&BMHD] invalid BMHD"
+    RETURN "BMHDFAIL"
+  )
+
+  ; error handler for bus error
+  LOCAL &result
+  &result=TRUE()
+  ON.ERROR GOSUB
+  (
+    &result=FALSE()
+    RETURN
+  )
+
+  ; check Memory Range CRC
+  PRIVATE &MEM_CRC
+  GOSUB BMHD_GetMEMCRC "&BMHD"
+  RETURNVALUES &MEM_CRC
+  IF ("&MEM_CRC"=="CRCINVALID")
+  (
+    PRINT "[&BMHD] error calculating Memory Range CRC"
+    &result=FALSE()
+  )
+  ELSE
+  (
+    ; compare with CRC
+    Data.Set &BMHD_Address+0x10 %Long &MEM_CRC /DIFF
+    IF !&result
+      PRINT "[&BMHD] error accessing CRChead"
+    ELSE
+    (
+      &result=!FOUND()
+      IF !(&result)
+        PRINT "[&BMHD] ABM Header CRC does not match CRChead"
+      ELSE
+      (
+        ; compare inverted CRC
+        IF ("&MEM_CRC"=="0x0")
+          &MEM_CRC=~&MEM_CRC ; special case: no Memory Range configured
+        Data.Set &BMHD_Address+0x14 %Long ~&MEM_CRC /DIFF
+        IF !&result
+          PRINT "[&BMHD] error accessing CRChead~"
+        ELSE
+        (
+          &result=!FOUND()
+          IF !(&result)
+            PRINT "[&BMHD] inverted ABM Header CRC does not match CRChead~"
+        )
+      )
+    )
+  )
+
+  IF &result
+    RETURN "BMHDOK"
+
+  RETURN "BMHDFAIL"
+)
+
+; --------------------------------------------------------------------------------
+; Get CRC of Memory Range.
+; Note: The SSW checks STSTAT.HWCFG value to decide wether the Memory Range is to
+;       be checked or not. This script instead assumes that when ChkStart and
+;       ChkEnd are 0x00000000, Memory Range checking is to be skipped.
+;
+; Parameters:
+;   &BMHD    Which BMHD to check: BMHD0, BMHD1, BMHD2, BMHD3
+; Return values:
+;   <crc>      CRC is valid
+;   CRCINVALID CRC is invalid
+
+BMHD_GetMEMCRC:
+(
+  PARAMETERS &BMHD
+
+  PRIVATE &BMHD_Address
+  GOSUB BMHD_GetAddress "&BMHD"
+  RETURNVALUES &BMHD_Address
+  IF ("&BMHD_Address"=="P:0x0")
+  (
+    PRINT "[&BMHD] invalid BMHD"
+    RETURN "BMHDFAIL"
+  )
+
+  ; error handler for bus error
+  LOCAL &result
+  &result=TRUE()
+  ON.ERROR GOSUB
+  (
+    &result=FALSE()
+    RETURN
+  )
+
+  ; get memory range and CRC
+  PRIVATE &ChkStart &ChkEnd &CRC
+  &CRC=0x0
+  &ChkStart=Data.Long(&BMHD_Address+0x08)
+  IF !&result
+    PRINT "[&BMHD] error accessing ChkStart"
+  ELSE
+  (
+    &ChkEnd=Data.Long(&BMHD_Address+0x0C)
+    IF !&result
+      PRINT "[&BMHD] error accessing ChkEnd"
+    ELSE IF (&ChkStart!=0x0)&&(&ChkEnd!=0x0)
+    (
+      ; get CRC
+      Data.SUM &ChkStart--&ChkEnd /Long /ByteSWAP /CRC32
+      IF !&result
+        RETURN "CRCINVALID"
+      &CRC=Data.SUM()
+    )
+  )
+
+  RETURN "&CRC"
+)

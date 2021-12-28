@@ -1,0 +1,132 @@
+; --------------------------------------------------------------------------------
+; @Title: SMP-Demo script for ZYNQ-ULTRASCALE+-APU with Onchip-Trace
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Onchip-Trace (ETF).
+;   As not all cores are accessible after Reset (SYStem.Up) we handle the start
+;   of the secondary cores in the script and switch to SMP later.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to JTAG
+;    * use METHOD 1 if
+;      * a SD-Card Image is available that selects the A53 as bootcore
+;      * bootmode SD-Card is selected - SW2[1..2]=0y01
+;    * use METHOD 2 if
+;      * bootmode JTAG is selected - SW2[1..2]=0y11
+;      * alternative: bootmode SD-Card but remove SD-Card
+;    * use METHOD 3 to override bootmode to JTAG
+; @Keywords: ARM, Cortex-A53, ETF, ETM, SMP
+; @Author: AME
+; @Board: Avnet ULTRA96 Rev1
+; @Chip: ZYNQ-ULTRASCALE+-APU
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: ultra96-rev1-apu_sieve_onchip_etf_trace_smp_sram.cmm 14760 2019-08-06 09:03:55Z amerkle $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU ZYNQ-ULTRASCALE+-APU
+SYStem.JtagClock 10MHz
+CORE.ASSIGN 1.
+Trace.DISable
+
+IF FALSE()
+(
+  ; METHOD 1 - self booting
+  SYStem.Up
+)
+ELSE IF FALSE()
+(
+  ; METHOD 2 - Bootmode JTAG
+  SYStem.Mode Prepare
+  ; start the APU subsystem
+  ; DO ~~/demo/arm64/hardware/zynq_ultrascale/scripts/zynq-ultrascale_kick_bootcore.cmm A53_X64
+  DO ~~~~/../../scripts/zynq-ultrascale_kick_bootcore.cmm A53_X64
+  SYStem.Mode Attach
+  Break
+)
+ELSE
+(
+  ; METHOD 3 - Bootmode override
+  ; <temporariely switch to BOOTMODE=JTAG>
+  ; this sequence forces the SoC to use BOOTMODE=JTAG
+  ; a SRST is issued using the debug logic
+  ; we kickstart the first R5/A53
+  SYStem.Option ResBreak OFF
+  SYStem.Option EnReset OFF
+  SYStem.Option TRST OFF
+  ; DO ~~/demo/arm64/hardware/zynq_ultrascale/scripts/zynq-ultrascale_reset.cmm OVERRIDE_BOOTMODE=0x0
+  DO ~~~~/../../scripts/zynq-ultrascale_reset.cmm OVERRIDE_BOOTMODE=0x0
+  SYStem.Mode Prepare
+  ; start the APU subsystem
+  ; DO ~~/demo/arm64/hardware/zynq_ultrascale/scripts/zynq-ultrascale_kick_bootcore.cmm A53_X64
+  DO ~~~~/../../scripts/zynq-ultrascale_kick_bootcore.cmm A53_X64
+  ; set BOOT_MODE_USER to JTAG
+  ; mandatory as FSBL will evaluate BOOT_MODE_POR otherwise
+  Data.Set ENAXI:0xFF5E0200 %Long 0x100
+  ; </temporariely switch to BOOTMODE=JTAG>
+
+  SYStem.Mode.Attach
+  IF STATE.RUN()
+  Break
+)
+
+; --------------------------------------------------------------------------------
+; kick secondary cores
+; DO ~~/demo/arm64/hardware/zynq_ultrascale/scripts/zynq-ultrascale_kick_bootcore.cmm _A53_234_X64
+DO ~~~~/../../scripts/zynq-ultrascale_kick_bootcore.cmm _A53_234_X64
+
+; disconnect from system and reattach in SMP mode
+SYStem.Mode.Down
+CORE.ASSIGN 1. 2. 3. 4.
+SYStem.Mode.Attach
+
+IF STATE.RUN()
+  Break.direct
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+CORE.select 0.
+Data.LOAD.Elf "~~~~/sieve_ram_aarch64_v8.elf"
+; Set PC for all secondary cores
+Register.Init /CORE 1.
+Register.Set PC _start /CORE 1.
+Register.Init /CORE 2.
+Register.Set PC _start /CORE 2.
+Register.Init /CORE 3.
+Register.Set PC _start /CORE 3.
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; initialize ONCHIP trace (ETF, ETM)
+Trace.METHOD ONCHIP
+Trace.TraceCONNECT ETF
+ETM.Trace ON
+ETM.ON
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

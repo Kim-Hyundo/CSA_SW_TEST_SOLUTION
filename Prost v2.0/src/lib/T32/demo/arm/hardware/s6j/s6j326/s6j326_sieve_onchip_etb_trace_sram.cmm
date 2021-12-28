@@ -1,0 +1,201 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for S6J326C with Onchip-Trace (RAM, ETB)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Onchip-Trace (ETB).
+;   Prerequisites Debug:
+;     * JTAG is connected to 20PIN JTAG
+;     * flash is empty
+;   Prerequisites Offchip Trace:
+;     * Trace Preprocessor is connected to Mictor38 connector
+;     * set SW15-4 ON
+;     * [optional: add R37,R115,R96,R97,R99,R116,R117 = 0Ohm and connect JTAG ]
+;       [          cable to preprocessor                                      ]
+; @Keywords: ARM, Cortex-R5, ETB, ETM
+; @Author: AME
+; @Board: S6J3260 Series 216pin Evaluation Board
+; @Chip: S6J326C*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: s6j326_sieve_onchip_etb_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; Configure whether the watchdog reset shall be masked by a special debug register bit
+&DBG_MASK_WDG_RESET=TRUE()
+; Configure whether the Fake Power On mode shall be enabled by a special debug register bit
+&DBG_ENABLE_FAKEPOWERON=FALSE()
+; Configure whether the Fake Clock On mode shall be enabled by a special debug register bit
+; and which value (0-3) should be used, refer SCSCU_CNTL_FAKE_CLKON description
+&DBG_ENABLE_FAKECLOCKON=FALSE()
+; 0..3
+&DBG_FAKECLOCK_ON_SETTING=0x3
+&DBG_FAKECLOCK_ON_SETTING=&DBG_FAKECLOCK_ON_SETTING&0x3
+
+GOSUB DefineGlobals
+
+; --------------------------------------------------------------------------------
+; check Prerequisites
+
+IF VERSION.BUILD()<92177.
+(
+  DIALOG.OK "Please use more recent software!"
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU S6J326CKS
+SYStem.MemAccess DAP
+; special settings
+SYStem.Option WATCHDOG OFF
+SYStem.Option WaitIDCODE ON
+SYStem.Option ResBreak OFF
+SYStem.JtagClock CTCK 10MHz
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+IF Register(PC)>=0xFFFF0000
+(
+  PRINT "Wait till device reaches BOOTROM end"
+  Go 0xFFFF12f8 /Onchip
+  WAIT !STATE.RUN()
+)
+
+; --------------------------------------------------------------------------------
+; initialize ECC SRAM
+Data.Set 0x0--0x1ffff %Long 0x0
+
+; --------------------------------------------------------------------------------
+; initialize offchip-trace (ETM ON)
+Trace.METHOD Onchip
+ETM.Trace ON
+ETM.ON
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_arm_v7r_le.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+ENDDO
+
+DisableWatchdog:
+(
+  GOSUB SetSpecialDebugFeatures &DBG_MASK_WDG_RESET &DBG_ENABLE_FAKEPOWERON &DBG_ENABLE_FAKECLOCKON &DBG_FAKECLOCK_ON_SETTING
+  RETURN
+)
+
+DefineGlobals: ;()
+(
+  GLOBAL &MASK__SCSCU_CNTL_JTAGCON
+  GLOBAL &MASK__SCSCU_CNTL_FAKE_PDON
+  GLOBAL &MASK__SCSCU_CNTL_WDGRSTMASK
+  GLOBAL &KEY__SCCFG_UNLOCK
+  GLOBAL &KEY__SCCFG_LOCK
+  GLOBAL &REG_APB__SCCFG_UNLCK
+  GLOBAL &REG_APB__SCSCU_CNTL
+  &MASK__SCSCU_CNTL_JTAGCON=0x00010000
+  &MASK__SCSCU_CNTL_FAKE_PDON=0x00000010
+  &MASK__SCSCU_CNTL_WDGRSTMASK=0x00000100
+  &KEY__SCCFG_UNLOCK=0x5ecacce5
+  &KEY__SCCFG_LOCK=0xa135331a
+  &REG_APB__SCCFG_UNLCK=0x000c01a4
+  &REG_APB__SCSCU_CNTL=0x000c01b4
+
+  GLOBAL &REG_AHB__SYSC0_PROTKEYR
+  GLOBAL &REG_AHB__SYSC0_SPECFGR
+  GLOBAL &MASK__SYSC0_SPECFGR_IOxRSTC
+  GLOBAL &KEY__SYSC0_UNLOCK
+  &REG_AHB__SYSC0_PROTKEYR=0xb0600000
+  &REG_AHB__SYSC0_SPECFGR=0xb0600680
+  &MASK__SYSC0_SPECFGR_IOxRSTC=0x00600000
+  &KEY__SYSC0_UNLOCK=0x5cacce55
+  RETURN
+)
+
+EnableTrace: ;()
+(
+  PRIVATE &SYSC0_SPECFGR
+  &SYSC0_SPECFGR=Data.Long(EAHB:&REG_AHB__SYSC0_SPECFGR)
+  Data.Set EAHB:&REG_AHB__SYSC0_PROTKEYR %Long &KEY__SYSC0_UNLOCK
+  Data.Set EAHB:&REG_AHB__SYSC0_SPECFGR %Long &SYSC0_SPECFGR&(~&MASK__SYSC0_SPECFGR_IOxRSTC)
+  RETURN
+)
+
+SetSpecialDebugFeatures: ;(wdogrstmask, fakepoweron, fakeclockon, fakeclockon_setting)
+(
+  PRIVATE &SCSCU_CNTL &wdogrstmask &fakepoweron &fakeclockon &fakeclockon_setting
+  ENTRY &wdogrstmask &fakepoweron &fakeclockon &fakeclockon_setting
+  &SCSCU_CNTL=&MASK__SCSCU_CNTL_JTAGCON
+  IF &wdogrstmask
+  (
+    PRINT "SCSCU_CNTL: HW/SW Watchdog Reset Mask"
+    &SCSCU_CNTL=&SCSCU_CNTL|&MASK__SCSCU_CNTL_WDGRSTMASK
+  )
+  IF &fakepoweron
+  (
+    PRINT "SCSCU_CNTL: Fake Power On Mode"
+    &SCSCU_CNTL=&SCSCU_CNTL|&MASK__SCSCU_CNTL_FAKE_PDON
+  )
+  IF &fakeclockon
+  (
+    PRINT "SCSCU_CNTL: Fake Clock On Mode &fakeclockon_setting "
+    &SCSCU_CNTL=&SCSCU_CNTL|(&fakeclockon_setting&0x3)
+  )
+  Data.Set APB:&REG_APB__SCCFG_UNLCK %Long &KEY__SCCFG_UNLOCK ; Unlock register write access
+  Data.Set APB:&REG_APB__SCSCU_CNTL %Long &SCSCU_CNTL         ; Make user configuration (SCSCU_CNTL_JTAGCON bit and others)
+  Data.Set APB:&REG_APB__SCCFG_UNLCK %Long &KEY__SCCFG_LOCK   ; Lock register write access again
+  RETURN
+)
+
+WriteGpioPpc: ;(address, accesssize, value)
+(
+  LOCAL &addr &size &value &tmp &PPC_KEYCDR
+  ENTRY &addr &size &value
+  IF &size==4
+    &tmp=0x20000000
+  ELSE IF &size==2
+    &tmp=0x10000000
+  ELSE
+    &tmp=0x00000000
+
+  &PPC_KEYCDR=0xb4740400
+  Data.Set A:(&PPC_KEYCDR) %LONG &tmp|0x00000000|(&addr&0x7fff)
+  Data.Set A:(&PPC_KEYCDR) %LONG &tmp|0x40000000|(&addr&0x7fff)
+  Data.Set A:(&PPC_KEYCDR) %LONG &tmp|0x80000000|(&addr&0x7fff)
+  Data.Set A:(&PPC_KEYCDR) %LONG &tmp|0xc0000000|(&addr&0x7fff)
+
+  IF &size==4
+    &tmp="%Long"
+  ELSE IF &size==2
+    &tmp="%Word"
+  ELSE
+    &tmp="%Byte"
+  Data.Set A:(&addr) &tmp &value
+  RETURN
+)

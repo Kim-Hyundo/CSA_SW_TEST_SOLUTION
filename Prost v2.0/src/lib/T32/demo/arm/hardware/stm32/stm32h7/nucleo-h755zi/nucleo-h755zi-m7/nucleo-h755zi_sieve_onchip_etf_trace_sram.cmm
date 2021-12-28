@@ -1,0 +1,70 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for STM32H755ZI-CM7 on NUCLEO-H755ZI with Onchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM (DTCM) and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Onchip-Trace.
+;   Prerequisites:
+;    * Use this script, if only M7 core is booting (BCM4 = 0)
+;    * Connect Debug Cable to CN5 using Adapter LA-3770
+;      or
+;      Connect Combiprobe/uTrace to CN5
+; @Keywords: ARM, Cortex-M7, ETF, ETM
+; @Author: STK
+; @Board: NUCLEO-H755ZI
+; @Chip: STM32H755ZI-CM7
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: nucleo-h755zi_sieve_onchip_etf_trace_sram.cmm 15519 2020-01-14 09:05:23Z skrausse $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.CPU STM32H755ZI-CM7
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; initialize ONCHIP trace (ETF, ETM, ITM)
+Trace.METHOD ONCHIP
+Trace.AutoInit ON
+ITM.DataTrace CorrelatedData
+ITM.ON
+ETM.Trace ON
+ETM.COND ALL
+ETM.ON
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

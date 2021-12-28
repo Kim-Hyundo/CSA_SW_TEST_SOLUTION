@@ -1,0 +1,141 @@
+; --------------------------------------------------------------------------------
+; @Title: osCAN specific menu
+; @Description: Additional menu for osCAN.
+; @Author: DIE
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: oscan.men 6997 2014-04-24 14:15:38Z mobermeir $
+
+
+add
+menu
+(
+  popup "osCAN"
+  (
+    menuitem "Display &Os Configuration"  "TASK.DOS_CONFIGURATION"
+    menuitem "Display &Os State"     "TASK.DOS"
+    default
+    menuitem "Display &Tasks"        "TASK.DTASK"
+    menuitem "Display &Stacks"       "TASK.DSTACK"
+    menuitem "Display &Resources"    "TASK.DRESOURCES"
+    menuitem "Display &Events"       "TASK.DEVENTS"
+    menuitem "Display &Alarms"       "TASK.DALARMS"
+    menuitem "Display &Messages"     "TASK.DMESSAGES"
+
+    separator
+    popup "&Stack Coverage"
+    (
+      menuitem "&List Stacks"     "TASK.STacK.view"
+      menuitem "Add Stack"        "TASK.STacK.ADD"
+      menuitem "Remove Stack"     "TASK.STacK.ReMove"
+      enable fire()||ice()
+      menuitem "&Reset Coverage"  "TASK.STacK.RESet"
+    )
+  )
+  popup "Trace"
+  (
+    popup "List"
+    (
+      separator
+      menuitem "&Task Switches and Services"  "TRace.List List.TASK"
+      menuitem "&Default and Tasks"           "TRace.List List.TASK DEFault"
+    )
+  )
+  popup "Perf"
+  (
+    separator
+    popup "&Task Runtime"
+    (
+        menuitem "&Prepare"
+        (
+          if (ice()||fire())&&!a.mode.flow()
+          (
+            Analyzer.ReProgram
+            (
+              Sample.Enable if AlphaBreak&&Write
+            )
+          )
+          Break.Delete /Alpha
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+        )
+        menuitem "[:perf]Show &Numerical"   "TRace.STATistic.TASK"
+        menuitem "[:achart]Show as &Timing" "TRace.CHART.TASK"
+        menuitem "[:achart]Tracking with Trace &List"
+        (
+          TRace.List List.TASK DEFault /Track
+          TRace.CHART.TASK /Track
+        )
+    )
+    popup "Task &Services"
+    (
+        menuitem "&Prepare"
+        (
+          if (ice()||fire())&&!a.mode.flow()
+          (
+            Analyzer.ReProgram
+            (
+              Sample.Enable if AlphaBreak&&Write
+            )
+          )
+          Break.Delete /Alpha
+          Break.Set task.config(magic_service) /Alpha
+        )
+        menuitem "[:perf]Show &Numerical"   "TRace.STATistic.TASKSRV"
+        menuitem "[:achart]Show as &Timing" "TRace.CHART.TASKSRV"
+        menuitem "[:achart]Tracking with Trace &List"
+        (
+          TRace.List List.TASK DEFault /Track
+          TRace.CHART.TASKSRV /Track
+        )
+    )
+    popup "Task &Function Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+          Analyzer.STATistic.PreFetch on
+        )
+
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          if a.config.hac()
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak
+               Sample.Enable if BetaBreak
+               Mark.A        if AlphaBreak
+               Mark.B        if BetaBreak
+             )
+          )
+          else
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak||BetaBreak
+               Mark.A if AlphaBreak
+               Mark.B if BetaBreak
+             )
+          )
+        )
+
+        Break.Delete /Alpha /Beta /Charly
+        Break.SetFunc
+        Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+      )
+      menuitem "[:perf]Show &Numerical"     "TRace.STATistic.TASKFUNC"
+      menuitem "[:perf]Show as &Tree"       "TRace.STATistic.TASKTREE"
+      menuitem "[:perf]Show &Detailed Tree" "TRace.STATistic.TASKTREE ALL"
+      menuitem "[:achart]Show as &Timing"   "TRace.CHART.TASKFUNC"
+      menuitem "[:alist]Show N&esting"      "TRace.List List.TASK FUNC TI.FUNC"
+    )
+  )
+  popup "&Help"
+  (
+    menuitem "ORTI Multitask Debugger Manual" "HELP __RTOS_ORTI_"
+  )
+)
+
+

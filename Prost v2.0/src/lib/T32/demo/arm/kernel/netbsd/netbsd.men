@@ -1,0 +1,530 @@
+; --------------------------------------------------------------------------------
+; @Title: NetBSD specific menu
+; @Description: -
+; @Author: DIE
+; @Copyright: (c) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: netbsd.men 10497 2017-02-24 07:49:44Z rdienstbeck $
+
+
+add
+menu
+(
+  popup "&NetBSD"
+  (
+    default
+    menuitem "Display &Processes" "TASK.Process"
+    menuitem "Display &LWPs"      "TASK.Lwp"
+    separator
+    popup "&Process Debugging"
+    (
+      menuitem "&Load Symbols..."
+      (
+        dialog
+        (
+          header "TASK.sYmbol.LOAD"
+          pos 0. 0. 30. 3.
+          box "Process name"
+          pos 1. 1. 20. 1.
+procl:    defedit "" ""
+          pos 22. 1. 7. 1.
+          button "Browse..."
+          (
+            dialog.file "*"
+            entry %line &file
+            dialog.set procl "&file"
+          )
+          pos 6. 3. 7. 1.
+          defbutton "Ok"
+          (
+            local &procl &cwd
+            &procl=dialog.string(procl)
+            TASK.sYmbol.LOAD "&procl"
+            dialog.end
+          )
+          pos 17. 3. 7. 1.
+          button "Cancel"  "dialog.end"
+        )
+      )
+      menuitem "&Delete Symbols..."
+      (
+        dialog
+        (
+          header "TASK.sYmbol.DELete"
+          pos 0. 0. 30. 3.
+          box "Process name"
+          pos 1. 1. 20. 1.
+procd:    defedit "" ""
+          pos 22. 1. 7. 1.
+          button "Browse..."
+          (
+            dialog.file "*"
+            entry %line &file
+            dialog.set procd "&file"
+          )
+          pos 6. 3. 7. 1.
+          defbutton "Ok"
+          (
+            local &procd
+            &procd=dialog.string(procd)
+            TASK.sYmbol.DELete "&procd"
+            dialog.end
+          )
+          pos 17. 3. 7. 1.
+          button "Cancel"  "dialog.end"
+        )
+      )
+      popup "&Watch Processes"
+      (
+        menuitem "&Add..."
+        (
+          dialog
+          (
+            header "TASK.Watch.Add"
+            pos 0. 0. 24. 3.
+            box "Process name"
+            pos 1. 1. 22. 1.
+wproca:     defedit "" ""
+            pos 2. 3. 7. 1.
+            defbutton "Ok"
+            (
+              local &wproca
+              &wproca=dialog.string(wproca)
+              TASK.Watch.View "&wproca"
+              dialog.end
+            )
+            pos 15. 3. 7. 1.
+            button "Cancel"  "dialog.end"
+          )
+        )
+        menuitem "&Remove..."
+        (
+          dialog
+          (
+            header "TASK.Watch.DELete"
+            pos 0. 0. 24. 3.
+            box "Process name"
+            pos 1. 1. 22. 1.
+wprocd:     defedit "" ""
+            pos 2. 3. 7. 1.
+            defbutton "Ok"
+            (
+              local &wprocd
+              &wprocd=dialog.string(wprocd)
+              TASK.Watch.DELete "&wprocd"
+              dialog.end
+            )
+            pos 15. 3. 7. 1.
+            button "Cancel"  "dialog.end"
+          )
+        )
+      )
+      separator
+      menuitem "Scan Process MMU Pages..."
+      (
+        dialog
+        (
+            ;header "MMU.TaskPageTable.SCAN"
+            header "TASK.MMU.SCAN"
+            pos 0. 0. 24. 3.
+            box "Process name"
+            pos 1. 1. 22. 1.
+wproca:     defedit "" ""
+            pos 2. 3. 7. 1.
+            defbutton "Ok"
+            (
+              local &wproca
+              &wproca=dialog.string(wproca)
+              TASK.MMU.SCAN "&wproca"
+              ;MMU.TaskPageTable.SCAN "&wproca"
+              dialog.end
+            )
+            pos 15. 3. 7. 1.
+            button "Cancel"  "dialog.end"
+        )
+      )
+    )
+    separator
+    popup "&Autoloader"
+    (
+        menuitem "List Components"  "sYmbol.AutoLoad.List"
+        menuitem "Check Now!"       "sYmbol.AutoLoad.CHECK"
+        menuitem "Set Loader Script"
+        (
+            dialog
+            (
+                header "sYmbol.AutoLoad.CHECKLINUX"
+                pos 0. 0. 40. 3.
+                box "autoload batch script"
+                pos 1. 1. 30. 1
+cmmfile:        edit "autoload.cmm" ""
+                pos 32. 1. 7. 1.
+                button "Browse..."
+                (
+                    dialog.file "*.cmm"
+                    entry %line &file
+                    dialog.set cmmfile "&file"
+                )
+                pos 1. 3. 16. 1.
+checkon:        checkbox "automatic check" ""
+                pos 10. 4.5 8.
+                defbutton "Ok"
+                (
+                    local &log &cmm
+                    &cmm=dialog.string(cmmfile)
+                    sYmbol.AutoLoad.CHECKLINUX "do &cmm "
+                    sYmbol.AutoLoad.CHECK       ; trigger check manually
+                    if dialog.boolean(checkon)
+                        sYmbol.AutoLoad.CHECK ON    ; automatic check enabled
+                    else
+                        sYmbol.AutoLoad.CHECK OFF   ; automatic check disabled
+                    dialog.end
+                )
+                pos 22. 4.5 8.
+                button "Cancel" "dialog.end"
+            )
+        )
+        menuitem "Set Components Checked"
+        (
+            dialog
+            (
+                header "TASK.sYmbol.Option AutoLoad"
+                pos 0. 0. 25.
+                proc: checkbox "Process (Processes)"
+                (
+                    if dialog.boolean(proc)
+                        TASK.sYmbol.Option AutoLoad Process
+                    else
+                        TASK.sYmbol.Option AutoLoad NoProcess
+                )
+                lib:  checkbox "Library (All Libraries)"
+                (
+                    if dialog.boolean(lib)
+                        TASK.sYmbol.Option AutoLoad Library
+                    else
+                        TASK.sYmbol.Option AutoLoad NoLibrary
+                    dialog.set clib "FALSE"
+                )
+                clib: checkbox "CurrLib (Libraries of Current Process)"
+                (
+                    if dialog.boolean(clib)
+                        TASK.sYmbol.Option AutoLoad CurrLib
+                    else
+                        TASK.sYmbol.Option AutoLoad NoLibrary
+                    dialog.set lib "FALSE"
+                )
+            )
+            dialog.set proc ((task.y.o(autoload)&0x1)!=0)
+            dialog.set lib  ((task.y.o(autoload)&0x2)!=0)
+            dialog.set clib ((task.y.o(autoload)&0x4)!=0)
+        )
+    )
+    separator
+    menuitem "&NetBSD Terminal" 
+    (
+      if !window.name(term)
+      (
+        winpos ,,,,,, term
+        TERM
+      )
+      else
+        wintop term
+    )
+    menuitem "Configure Terminal..."
+    (
+      if window.name(term)
+        dialog.ok "Please close terminal window first!"
+      else
+      (
+        dialog
+        (
+          header "TERM.Protocol"
+          pos 0. 0. 9.
+          tp.be:  choosebox "BufferE"
+          (
+              dialog.disable tp.com.dev
+              dialog.disable tp.com.bd
+              dialog.enable tp.be.out
+              dialog.enable tp.be.in
+          )
+          pos 10. 0. 5.
+          text "out:"
+          pos 15. 0. 6.
+          tp.be.out: edit "T32OUTBUF" ""
+          pos 23. 0. 6.
+          text "in:"
+          pos 29. 0. 6.
+          tp.be.in:  edit "T32INBUF" ""
+          pos 0. 1. 9.
+          tp.dcc: choosebox "DCC"
+          (
+              dialog.disable tp.com.dev
+              dialog.disable tp.com.bd
+              dialog.disable tp.be.out
+              dialog.disable tp.be.in
+          )
+          pos 0. 2. 9.
+          tp.com: choosebox "COM"
+          (
+              dialog.disable tp.be.out
+              dialog.disable tp.be.in
+              dialog.enable tp.com.dev
+              dialog.enable tp.com.bd
+          )
+          pos 10. 2. 5.
+          text "device:"
+          pos 15. 2. 6.
+          tp.com.dev: edit "COM1" ""
+          pos 23. 2. 6.
+          text "baudrate:"
+          pos 29. 2. 6.
+          tp.com.bd:  edit "115200." ""
+          pos 9. 3.5 7.
+          defbutton "Ok"
+          (
+            &tpbeout=dialog.string(tp.be.out)
+            &tpbein=dialog.string(tp.be.in)
+            &tpcomdev=dialog.string(tp.com.dev)
+            &tpcombd=dialog.string(tp.com.bd)
+            if dialog.boolean(tp.be)
+              TERM.METHOD BufferE &tpbeout &tpbein
+            else if dialog.boolean(tp.dcc)
+              TERM.METHOD DCC
+            else if dialog.boolean(tp.com)
+              TERM.METHOD COM &tpcomdev &tpcombd 8 NONE 1STOP NONE
+            dialog.end
+          )
+          pos 19. 3.5 7.
+          button "Cancel"  "dialog.end"
+        )
+        dialog.disable tp.be.out
+        dialog.disable tp.be.in
+        dialog.disable tp.com.dev
+        dialog.disable tp.com.bd
+        if cpufamily()!="ARM"
+          dialog.disable tp.dcc
+      )
+    )
+  )
+  popup "Trace"
+  (
+    popup "List"
+    (
+      separator
+      menuitem "&Task Switches"     "Trace.List List.TASK"
+      menuitem "&Default and Tasks" "Trace.List List.TASK DEFault"
+    )
+  )
+  popup "Perf"
+  (
+    separator
+    popup "&Task Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+        )
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak&&Write
+          )
+          Break.Delete /Alpha
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+        )
+        if a.mode.flow()
+        (
+          Break.Delete /TraceEnable
+          Break.Set task.config(magic) /TraceEnable
+        )
+      )
+      menuitem "[:perf]Show &Numerical"   "Trace.STATistic.TASK"
+      menuitem "[:achart]Show as &Timing" "Trace.CHART.TASK"
+      menuitem "[:achart]Tracking with Trace &List"
+      (
+        Trace.List List.TASK DEFault /Track
+        Trace.CHART.TASK /Track
+      )
+    )
+    popup "Task &Function Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+          Analyzer.STATistic.PreFetch on
+        )
+
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          if a.config.hac()
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak
+               Sample.Enable if BetaBreak
+               Mark.A        if AlphaBreak
+               Mark.B        if BetaBreak
+             )
+          )
+          else
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak||BetaBreak
+               Mark.A if AlphaBreak
+               Mark.B if BetaBreak
+             )
+          )
+          Break.Delete /Alpha /Beta /Charly
+          Break.SetFunc
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+        )
+        if a.mode.flow()
+        (
+          Break.Delete /TraceData
+          Break.Set task.config(magic) /TraceData
+        )
+      )
+      menuitem "[:perf]Show &Numerical"     "Trace.STATistic.TASKFUNC"
+      menuitem "[:perf]Show as &Tree"       "Trace.STATistic.TASKTREE"
+      menuitem "[:perf]Show &Detailed Tree" "Trace.STATistic.TASKTREE ALL"
+      menuitem "[:achart]Show as &Timing"   "Trace.CHART.TASKFUNC"
+      menuitem "[:alist]Show N&esting"      "Trace.List List.TASK FUNC TI.FUNC"
+    )
+    popup "Task &Status"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+        )
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak&&Write
+          )
+          Break.Delete /Alpha
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+          TASK.TASKState
+        )
+      )
+      menuitem "[:perf]Show &Numerical"   "Trace.STATistic.TASKSTATE"
+      menuitem "[:achart]Show as &Timing" "Trace.CHART.TASKSTATE"
+      menuitem "[:achart]Tracking with Trace &List"
+      (
+        Trace.List List.TASK DEFault /Track
+        Trace.CHART.TASKSTATE /Track
+      )
+    )
+  )
+  popup "&Help"
+  (
+    menuitem "[:manual]NetBSD Awareness Manual" "HELP __RTOS_NETBSD_"
+  )
+)
+
+
+menu "task.p"
+(
+  default
+  menuitem "Display detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.Process &address
+  )
+  menuitem "Display process struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %m %s (struct proc)*&address
+  )
+  separator
+  menuitem "Load Process Symbols"   "TASK.sYmbol.LOAD track.address()"
+  menuitem "Delete Process Symbols" "TASK.sYmbol.DELete track.address()"
+  ;menuitem "Add to Watched Processes"
+  ;(
+  ;    &address=address.offset(track.address())
+  ;    TASK.Watch.View &address
+  ;)
+  ;menuitem "Delete from Watched Processes" "TASK.Watch.DELete track.address()"
+  ;separator
+  menuitem "Scan MMU Pages"
+  (
+    &address=address.offset(track.address())
+    ;MMU.TaskPageTable.SCAN &address
+    TASK.MMU.SCAN &address
+  )
+  separator
+  menuitem "Dump process entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+
+menu "task.l"
+(
+  default
+  menuitem "Display detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.Lwp &address
+  )
+  menuitem "Display lwp struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %m %s (struct lwp)*&address
+  )
+  separator
+  menuitem "Display Stack Frame"
+  (
+    &address=address.offset(track.address())
+    Var.Frame /Locals /Caller /Task &address
+  )
+  menuitem "Display Registers"
+  (
+    &address=address.offset(track.address())
+    Register /Task &address
+  )
+  menuitem "Switch Context"       "Register.TASK address.offset(track.address())"
+  separator
+  menuitem "Dump lwp entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+
+menu "task.lib"
+(
+  default
+  ;menuitem "Display detailed"
+  ;(
+  ;  &address=address.offset(track.address())
+  ;  TASK.Process &address
+  ;)
+  menuitem "Display Library struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %m %s (struct link_map*)&address
+  )
+  separator
+  menuitem "Load Library Symbols"   "TASK.sYmbol.LOADLib track.string() track.address()"
+  menuitem "Delete Library Symbols" "TASK.sYmbol.DELeteLib track.string() track.address()"
+  separator
+  menuitem "Dump Library entry"
+  (
+    &address=address.offset(track.address())
+    &spaceid=task.proc.spaceid(track.string())
+    Data.dump &spaceid:&address /l /dialog
+  )
+)
+

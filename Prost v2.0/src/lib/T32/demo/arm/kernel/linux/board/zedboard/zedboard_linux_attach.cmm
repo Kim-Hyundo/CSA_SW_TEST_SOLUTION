@@ -1,0 +1,82 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to start Linux on the ZedBoard from U-Boot Prompt
+; @Description: 
+;   This script is supposed to attach to a running Linux on ZedBoard board. 
+;   The Task Awareness + Debugger Address Translation are prepared as for the 
+;   GSRD. After execution of this script the debugger is ready for Process, 
+;   Kernel, optional Module and optional Library debugging.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+; @Keywords: awareness, zynq
+; @Board: ZedBoard
+; @Chip: ZYNQ-7000
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: zedboard_linux_attach.cmm 16019 2020-05-06 08:47:23Z kjmal $
+
+
+
+        
+; open the terminal
+  TERM.RESet
+  TERM.METHOD COM COM3 115200. 8 NONE 1STOP NONE 
+  TERM.SIZE 80. 1000.
+  TERM.Mode VT100 
+  TERM.SCROLL ON
+  WinPOS 76.0 25.0 80. 24. 0. 0. TermWin
+  TERM.view
+        
+  SYStem.CPU ZYNQ-7000
+; linux specific system options
+  SYStem.Option MMUSPACES ON
+  SYStem.Option DACR ON
+  TrOnchip.Set DABORT OFF
+  TrOnchip.Set PABORT OFF
+  TrOnchip.Set UNDEF OFF
+  TrOnchip.Set RESET OFF
+
+  SYStem.Down
+  CORE.ASSIGN 1,2
+  SYStem.Mode.Attach
+  Break.direct
+  WAIT !STATE.RUN()
+
+; load kernel symbols to virtual addresses
+  PRINT "Go the virtual start_kernel entry ..."
+  Data.LOAD.Elf ~~~~/vmlinux /NoCODE /LowerPATH
+
+  // in order to trace we make sure all clock settings are preserved
+  IF Analyzer()
+  (
+    Break.Set clk_disable_unused\1 /DISableHIT /CMD "Var.ASSIGN clk_ignore_unused=1" /RESUME 
+  )
+
+;setup address translation
+; virtual address space: 0xc0000000--0xdfffffff (512MB)
+; absolute base address: 0x0
+; table format LINUXSWAP3
+; kernel module range: 0xbf000000--0xbfffffff
+; resulting common range: 0xbf0000000--0xffffffff (Modules, Kernel, Vectors)
+  MMU.FORMAT LINUXSWAP3 swapper_pg_dir 0xc0000000--0xdfffffff 0x0
+  TRANSlation.COMMON 0xbf000000--0xffffffff
+  TRANSlation.TableWalk ON
+  TRANSlation.ON
+
+
+; Initialize Linux Awareness
+  ; Note that the Linux awareness needs the kernel symbols to work 
+  PRINT "initializing RTOS support..."
+  ; Choose the correct Linux major version below
+  ;TASK.CONFIG ~~/demo/arm/kernel/linux/linux-2.x/linux.t32     ; loads Linux awareness for linux-2.x
+  ;MENU.ReProgram ~~/demo/arm/kernel/linux/linux-2.x/linux.men  ; loads Linux menu  for linux-2.x
+  TASK.CONFIG ~~/demo/arm/kernel/linux/linux-3.x/linux3.t32     ; loads Linux awareness for linux-3.x
+  MENU.ReProgram ~~/demo/arm/kernel/linux/linux-3.x/linux.men  ; loads Linux menu  for linux-3.x
+  
+; Group kernel area to be displayed with red bar
+  GROUP.Create "kernel" 0xc0000000--0xffffffff /RED
+
+  Go.direct
+
+  Mode.Hll
+
+  ENDDO

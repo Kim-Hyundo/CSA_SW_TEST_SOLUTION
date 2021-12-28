@@ -1,0 +1,65 @@
+; --------------------------------------------------------------------------------
+; @Title: Run Sieve demo in RAM with Watchdog Trigger
+; @Description:
+;   This demo programs a simple Watchdog Trigger application
+;   at the FLASH Entry point. Later a demo is loaded into SRAM
+;   which continiously serves the Watchdog reusing the code
+;   previously programmed into Flash.
+;   Prerequisites:
+;     * JTAG is connected to 20PIN JTAG or Mictor38
+;     *   Flash is either ERASED by the time of first connection
+;       OR
+;         the SRST line is disconnected from the Chip and wired to
+;         RSTX on the board
+; @Chip: S6J311????
+; @Board: SK-Leo
+; @Author: AME
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: s6j311_watchdog_trigger_sieve.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+RESet
+SYStem.RESet
+SYStem.CPU S6J311EJAA
+SYStem.Option ResBreak OFF
+IF VERSION.BUILD.BASE()<74695.
+(
+  SYStem.Option DAPREMAP 0x0--0x01ffffff 0x04000000
+)
+; <speedup for connection phase>
+ETM.OFF
+SYStem.JtagClock CTCK 10MHz
+; </speedup for connection phase>
+SYStem.UP
+
+DO ~~/demo/arm/flash/s6j3 PREPAREONLY
+FLASH.ReProgram ALL
+Data.Assemble R:0x19f2000   cpsid if
+Data.Assemble ,             movw r14,#0x2020
+Data.Assemble ,             movt r14,#0x019f
+Data.Assemble R:0x19f200c   mov  r0,#0x0
+Data.Assemble ,             movw r1,#0xc010
+Data.Assemble ,             movt r1,#0xb060
+Data.Assemble ,             movw r2,#0xc018
+Data.Assemble ,             movt r2,#0xb060
+Data.Assemble ,             str  r0,[r1]
+Data.Assemble ,             str  r0,[r2]
+Data.Assemble ,             bx r14
+FLASH.ReProgram OFF
+
+SYStem.Up
+ETM.ON
+Trace.METHOD Onchip
+
+Go
+Wait 0.5s
+Break
+
+DO ~~/demo/arm/compiler/gnu-pic/demo_sieve 0x100
+Go main
+WAIT !STATE.RUN()
+
+; assign the monhook function pointer to watchdog trigger in flash
+Var.Assign monHook = 0x19f200c
+
+ENDDO

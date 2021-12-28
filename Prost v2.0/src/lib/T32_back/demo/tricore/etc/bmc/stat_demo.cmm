@@ -1,0 +1,74 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo showing BMC based performance measurement on TC3xx
+; @Description:
+;   Shows how to measure min/max/average performance values using the benchmark
+;   counter system
+; @Keywords: AURIX, BMC, runtime
+; @Author: MEI
+; @Chip: TC3*
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: stat_demo.cmm 15649 2020-02-06 07:41:37Z meick $
+
+IF interface.SIM()
+(
+  PRINT %ERROR "demo does not work in simulator"
+  ENDDO
+)
+
+WinCLEAR
+
+LOCAL &ElfFile 
+GOSUB SelectCPUandELF
+
+SYStem.Up
+Data.LOAD.Elf &ElfFile
+
+PRIVATE &ppd
+&ppd=OS.PPD()
+DO &ppd/stat_capture.cmm prepare
+
+WinPOS 0% 0% 50% 
+DIALOG.view
+(&+
+  HEADER "Parameters"
+  POS 0. 0. 10. 1.
+  TEXT "iterations"
+  POS 10. 0. 4. 1.
+edIter: EDIT "10." ""
+  POS 16. 0. 15. 1.
+  BUTTON "script to capture all" "DO &ppd/stat_capture.cmm generateScriptAllFuncs ""DIALOG.STRing(edIter)"""
+)
+
+WinPos 0% 5. 50%  8.
+BMC.state
+WinPos 0% 50% 100% 50%
+AREA.view RESULT
+WinPos 50% 0% 50% 50% ,,,,, "Double click symbol name to capture function"
+sYmbol.Browse.Function * /Click "DO &ppd/stat_capture.cmm exec ""*"" ""DIALOG.STRing(edIter)"" "
+
+DO &ppd/stat_capture.cmm exec "func1" "10."
+
+ENDDO
+
+SelectCPUandELF:
+(
+  PRIVATE &name &series &package
+  SYStem.DETECT CPU
+  &name=STRing.LOWER(CPU())
+  &package=STRing.MID("&name",4.,1.)
+  IF CPUIS("TC3???A")
+  (
+    &package="&(package)-adas"
+  )
+  IF CPUIS("TC3*")
+  (
+    &ElfFile="~~~~/../../hardware/triboard-tc3x&(package)/&(name)/"+STRing.MID("&name",0.,4)+"x_sieve_intmem.elf"
+  )
+  ELSE
+  (
+    PRINT %ERROR "CPU &name not supported by demo"
+    ENDDO
+  )
+  RETURN
+)

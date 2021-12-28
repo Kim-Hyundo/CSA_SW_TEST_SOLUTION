@@ -1,0 +1,27 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags
+; @Author: TI
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: fdif_sw_change_efuse.cmm 8886 2015-11-18 18:06:51Z mobermeir $
+
+ENTRY
+  GOSUB FDIF_SW
+ENDDO
+
+FDIF_SW:
+(
+  AREA.Select results
+    
+  PRINT "Change MEM_RW_GWG (bits field 13:12)" 
+    
+  Data.Set ahb:0x4a002338 %Long 0x8000baaa
+    
+  PRINT "New register value must be equal to 0x8000BAAA"
+    
+  &reg=Data.Long(ahb:0x4a002338)
+    
+  PRINT "New register value is &reg"
+       
+RETURN
+)

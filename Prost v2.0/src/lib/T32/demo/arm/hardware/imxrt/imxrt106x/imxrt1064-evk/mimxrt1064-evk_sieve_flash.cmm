@@ -1,0 +1,80 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for IMXRT1064 on MIMXRT1064-EVK (FLASH)
+; @Description:
+;   Programs the sieve demo application into the processor internal qspi flash
+;   and sets up a demo debug scenario.
+;   This script can be used as a template for flashing an application.
+;   Prerequisites:
+;    * Connect Debug Cable to J21
+;      or
+;      Connect Combiprobe/uTrace to J21 using Adapter LA-3771
+;    * open J32 + J33 (disconnect OpenSDA from JTAG/SWD lines)
+; @Keywords: ARM, Cortex-M7, Flash
+; @Author: AME
+; @Board: MIMXRT1064-EVK
+; @Chip: IMXRT1064
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mimxrt1064-evk_sieve_flash.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU IMXRT1064
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock 10MHz
+Trace.DISable
+; prevent write access to FlexSPI
+MAP.BOnchip 0x60000000--0x7EFFFFFF
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; Flash programming
+
+; prepare flash programming (declarations)
+DO ~~/demo/arm/flash/imxrt1064 PREPAREONLY
+
+; ReProgram Flash
+FLASH.ReProgram ALL
+Data.LOAD.Binary "~~~~/sieve_flash_image_qspi_internal.bin"
+FLASH.ReProgram OFF
+
+; --------------------------------------------------------------------------------
+; Reset the target again
+SYStem.Up
+
+; load debug symbols
+Data.LOAD.Elf "~~~~/sieve_flash_thumb_ii_v7m.elf" /NoCODE
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

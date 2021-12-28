@@ -1,0 +1,236 @@
+; --------------------------------------------------------------------------------
+; @Title: LiteOS specific menu
+; @Description: -
+; @Author: DIE YDA
+; @Copyright: (c) 1989-2017 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: liteos.men 4791 2019-11-15 13:59:31Z kjmal $
+
+add
+menu
+(
+  popup "&LiteOS"
+  (
+    default
+    menuitem "[:objects]Display &Tasks"                  "TASK.Task"
+    menuitem "[:objects]Display &Mutex"                  "TASK.MUteX"
+    menuitem "[:objects]Display &Semaphore"              "TASK.SEMaphore"
+    menuitem "[:objects]Display &Queue"                  "TASK.QUEue"
+    menuitem "[:objects]Display &Timer"                  "TASK.TIMer"
+
+    separator
+    popup "[:coverage]&Stack Coverage"
+    (
+      menuitem "[:objects]&List Stacks"    "TASK.STacK.view"
+      menuitem "[:plus]Add Task"        "TASK.STacK.ADD"
+      menuitem "[:exit]Remove Task"     "TASK.STacK.RM"
+      menuitem "Reset Coverage" 
+      (
+        if icd()||simulator()
+        (
+          dialog.yesno "Overwrite unused stack space" "with stack fill pattern?"
+          entry &yes
+          if !&yes
+            enddo
+        )
+        TASK.STacK.Init
+      )
+    )
+  )
+  popup "Trace"
+  (
+    popup "[:alist]List"
+    (
+      separator
+      menuitem "[:alist]&Task Switches"     "Trace.List List.TASK"
+      menuitem "[:alist]&Default and Tasks" "Trace.List List.TASK DEFault"
+    )
+  )
+  popup "Perf"
+  (
+    separator
+    popup "&Task Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+        )
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak&&Write
+          )
+          Break.Delete /Alpha
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+        )
+        if a.mode.flow()
+        (
+          Break.Delete /TraceEnable
+          Break.Set task.config(magic) /TraceEnable
+        )
+      )
+      menuitem "[:perf]Show &Numerical"   "Trace.STATistic.TASK"
+      menuitem "[:achart]Show as &Timing" "Trace.CHART.TASK"
+      menuitem "[:achart]Tracking with Trace &List"
+      (
+        Trace.List List.TASK DEFault /Track
+        Trace.CHART.TASK /Track
+      )
+    )
+    popup "Task &Function Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+          Analyzer.STATistic.PreFetch on
+        )
+
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          if a.config.hac()
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak
+               Sample.Enable if BetaBreak
+               Mark.A        if AlphaBreak
+               Mark.B        if BetaBreak
+             )
+          )
+          else
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak||BetaBreak
+               Mark.A if AlphaBreak
+               Mark.B if BetaBreak
+             )
+          )
+          Break.Delete /Alpha /Beta /Charly
+          Break.SetFunc
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+        )
+        if a.mode.flow()
+        (
+          Break.Delete /TraceData
+          Break.Set task.config(magic) /TraceData
+        )
+      )
+      menuitem "[:perf]Show &Numerical"     "Trace.STATistic.TASKFUNC"
+      menuitem "[:perf]Show as &Tree"       "Trace.STATistic.TASKTREE"
+      menuitem "[:perf]Show &Detailed Tree" "Trace.STATistic.TASKTREE ALL"
+      menuitem "[:achart]Show as &Timing"   "Trace.CHART.TASKFUNC"
+      menuitem "[:alist]Show N&esting"      "Trace.List List.TASK FUNC TI.FUNC"
+    )
+  )
+  popup "&Help"
+  (
+    MENUITEM "[:manual]OS Awareness Manual LiteOS" "HELP __RTOS_LITEOS_"
+  )
+)
+
+menu "task.t"
+(
+  default
+  menuitem "[:var]Display task struct"
+  (
+    &address=track.address()
+    Var.View %Open %String (LOS_TASK_CB *)(&address)
+  )
+  separator
+  menuitem "[:varframe]Display Stack Frame"
+  (
+    &address=address.offset(track.address())
+    Var.Frame /Locals /Caller /Task &address
+  )
+  menuitem "[:reg]Display Registers"
+  (
+    &address=address.offset(track.address())
+    Register /Task &address
+  )
+  menuitem "Switch Context"    "Register.TASK address.offset(track.address())"
+  separator
+  menuitem "[:plus]Add to Stack Cov"  "TASK.STK.ADD address.offset(track.address())"
+  menuitem "[:exit]Rm from Stack Cov" "TASK.STK.RM  address.offset(track.address())"
+  separator
+  menuitem "[:dump]Dump task entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+menu "task.m"
+(
+  default
+  menuitem "[:var]Display Mutex struct"
+  (
+    &address=track.address()
+    Var.View %Open %String (MUX_CB_S *)(&address)
+  )
+  menuitem "[:dump]Dump Mutex Entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+menu "task.sem"
+(
+  default
+  menuitem "[:objects]Display Detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.SEMaphore &address
+  )
+  menuitem "[:var]Display Semaphore struct"
+  (
+    &address=track.address()
+    Var.View %Open %String (SEM_CB_S *)(&address)
+  )
+  menuitem "[:dump]Dump Semaphore Entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+menu "task.que"
+(
+  default
+  menuitem "[:objects]Display Detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.Queue &address
+  )
+  menuitem "[:var]Display Queue struct"
+  (
+    &address=track.address()
+    Var.View %Open %String (QUEUE_CB_S *)(&address)
+  )
+  menuitem "[:dump]Dump Queue Entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)
+
+menu "task.tim"
+(
+  default
+  menuitem "[:var]Display Timer Control struct"
+  (
+    &address=track.address()
+    Var.View %Open %String (SWTMR_CTRL_S *)(&address)
+  )
+  menuitem "[:dump]Dump Timer Entry"
+  (
+    &address=address.offset(track.address())
+    Data.dump &address /l /dialog
+  )
+)

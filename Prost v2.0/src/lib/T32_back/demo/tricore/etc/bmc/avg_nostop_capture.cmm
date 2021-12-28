@@ -1,0 +1,73 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to capture average function performances using BenchMarkCounter
+; @Description:
+;   Results will be in area window "RESULT"
+;
+;   Script arguments:
+;       DO capture.cmm prepare | exec "<func>" "<time>"
+;           prepare    prepare BMC for capture
+;           exec       capture single function called <func> for <time>
+;
+; @Keywords: AURIX, BMC, runtime
+; @Author: MEI
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: avg_nostop_capture.cmm 15739 2020-02-27 14:00:25Z meick $
+
+
+
+PRIVATE &cmd &params
+ENTRY &cmd %LINE &params
+
+GOSUB &cmd &params
+
+ENDDO
+
+prepare:
+(
+  PRIVATE &area
+  ; configure BMC
+  BMC.ICNT.EVENT ON
+  BMC.ICNT.ATOB ON
+  BMC.OTGSC0.EVENT Alpha
+  
+  ; configure clock readout to determine core frequency
+  CLOCK.ON
+  
+  &area=AREA.SELECTed()
+  AREA.Create RESULT
+  AREA.CLEAR RESULT
+  AREA.SELect RESULT
+  PRINTF "%-20s %-10s %-10s %-10s %-10s %-10s %-10s %-10s %-10s %-10s %-10s %-10s" "function" "count" "CLOCKS" "" "ICNT" "" "M1CNT" "" "M2CNT" "" "M3CNT" ""
+  PRINTF "%-20s %-10s %-10s %-10s %-10s %-10s %-10s %-10s %-10s %-10s %-10s %-10s" ""         ""      "tot." "avg." "tot." "avg." "tot." "avg." "tot." "avg." "tot." "avg."
+  PRINT "=">>(20.+11.*11.)
+  AREA.SELect &area
+  
+  RETURN
+)
+
+exec:
+(
+  PARAMETERS &funcName &time
+  PRIVATE &saveArea &cnt &clk &icnt &m1cnt &m2cnt &m3cnt
+  
+  BMC.Init
+  
+  Break.SetFunc &funcName
+  SCREEN.WAIT &time
+  Break.Delete /Alpha
+  Break.Delete /Beta
+  &cnt=BMC.COUNTER.BYNAME("OTGSC0")
+  &clk=BMC.COUNTER.BYNAME("CLOCKS")
+  &icnt=BMC.COUNTER.BYNAME("ICNT")
+  &m1cnt=BMC.COUNTER.BYNAME("M1CNT")
+  &m2cnt=BMC.COUNTER.BYNAME("M2CNT")
+  &m3cnt=BMC.COUNTER.BYNAME("M2CNT")
+  &saveArea=AREA.SELECTed()
+  AREA.SELect RESULT
+  PRINTF "%-20s %10u %10u %10f %10u %10f %10u %10f %10u %10f %10u %10f" "&funcName" &cnt &(clk) &(clk)*1.0/&(cnt) &(icnt) &(icnt)*1.0/&(cnt) &(m1cnt) &(m1cnt)*1.0/&(cnt) &(m2cnt) &(m2cnt)*1.0/&(cnt) &(m3cnt) &(m3cnt)*1.0/&(cnt)
+  AREA.SELect &saveArea
+  
+  RETURN
+)
+

@@ -1,0 +1,486 @@
+; --------------------------------------------------------------------------------
+; @Title: SRI error decoding for AURIX2G CPUs
+; @Description:
+;   Decodes the error registers of the SRI bridge
+; @Keywords: SRI
+; @Author: MEI
+; @Chip: TC3*
+; @Copyright: (C) 1989-2018 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: aurix2g_sri.cmm 13575 2018-11-27 09:19:37Z meick $
+
+PRIVATE &cmd &params
+ENTRY &cmd %LINE &params
+
+IF "&cmd"!=""
+(
+    GOSUB &cmd &params
+    ENDDO
+)
+
+IF !CPUIS("TC3*")
+(
+    PRINT %ERROR "Script only applicable for AURIX2G CPUs"
+    ENDDO
+)
+
+LOCAL &cpu &thisScript
+
+&thisScript=OS.PPF()
+
+DIALOG.view
+(&+
+         NAME "SRIDECDLG"
+         HEADER "SRI Error Decoding"
+         POS 1. 0. 20.
+unit:    DYNPULLDOWN "" "DO &thisScript Refresh"
+         POS 1. 1. 20.
+         TEXT "SCI: slave"
+         POSX 1. 60.
+         TEXT "master: operation [address]"
+         POS 2.  2. 20.
+Name00:  DYNTEXT ""
+         POSX 0. 60.
+State00: INFOTEXT "" WHite SImple
+         POSX 0. 4.
+Ack00:   BUTTON "ACK" "DO &thisScript Ack 0."
+         POS 2.  3. 20.
+Name01:  DYNTEXT ""
+         POSX 0. 60.
+State01: INFOTEXT "" WHite SImple
+         POSX 0. 4.
+Ack01:   BUTTON "ACK" "DO &thisScript Ack 1."
+         POS 2.  4. 20.
+Name02:  DYNTEXT ""
+         POSX 0. 60.
+State02: INFOTEXT "" WHite SImple
+         POSX 0. 4.
+Ack02:   BUTTON "ACK" "DO &thisScript Ack 2."
+         POS 2.  5. 20.
+Name03:  DYNTEXT ""
+         POSX 0. 60.
+State03: INFOTEXT "" WHite SImple
+         POSX 0. 4.
+Ack03:   BUTTON "ACK" "DO &thisScript Ack 3."
+         POS 2.  6. 20.
+Name04:  DYNTEXT ""
+         POSX 0. 60.
+State04: INFOTEXT "" WHite SImple
+         POSX 0. 4.
+Ack04:   BUTTON "ACK" "DO &thisScript Ack 4."
+         POS 2.  7. 20.
+Name05:  DYNTEXT ""
+         POSX 0. 60.
+State05: INFOTEXT "" WHite SImple
+         POSX 0. 4.
+Ack05:   BUTTON "ACK" "DO &thisScript Ack 5."
+         POS 2.  8. 20.
+Name06:  DYNTEXT ""
+         POSX 0. 60.
+State06: INFOTEXT "" WHite SImple
+         POSX 0. 4.
+Ack06:   BUTTON "ACK" "DO &thisScript Ack 6."
+         POS 2.  9. 20.
+Name07:  DYNTEXT ""
+         POSX 0. 60.
+State07: INFOTEXT "" WHite SImple
+         POSX 0. 4.
+Ack07:   BUTTON "ACK" "DO &thisScript Ack 7."
+         POS 2.  10. 20.
+Name08:  DYNTEXT ""
+         POSX 0. 60.
+State08: INFOTEXT "" WHite SImple
+         POSX 0. 4.
+Ack08:   BUTTON "ACK" "DO &thisScript Ack 8."
+         POS 2. 11. 20.
+Name09:  DYNTEXT ""
+         POSX 0. 60.
+State09: INFOTEXT "" WHite SImple
+         POSX 0. 4.
+Ack09:   BUTTON "ACK" "DO &thisScript Ack 9."
+         POS 2. 12. 20.
+Name10:  DYNTEXT ""
+         POSX 0. 60.
+State10: INFOTEXT "" WHite SImple
+         POSX 0. 4.
+Ack10:   BUTTON "ACK" "DO &thisScript Ack 10."
+         POS 2. 13. 20.
+Name11:  DYNTEXT ""
+         POSX 0. 60.
+State11: INFOTEXT "" WHite SImple
+         POSX 0. 4.
+Ack11:   BUTTON "ACK" "DO &thisScript Ack 11."
+         POS 2. 14. 20.
+Name12:  DYNTEXT ""
+         POSX 0. 60.
+State12: INFOTEXT "" WHite SImple
+         POSX 0. 4.
+Ack12:   BUTTON "ACK" "DO &thisScript Ack 12."
+         POS 2. 15. 20.
+Name13:  DYNTEXT ""
+         POSX 0. 60.
+State13: INFOTEXT "" WHite SImple
+         POSX 0. 4.
+Ack13:   BUTTON "ACK" "DO &thisScript Ack 13."
+         POS 2. 16. 20.
+Name14:  DYNTEXT ""
+         POSX 0. 60.
+State14: INFOTEXT "" WHite SImple
+         POSX 0. 4.
+Ack14:   BUTTON "ACK" "DO &thisScript Ack 14."
+         POS 2. 17. 20.
+Name15:  DYNTEXT ""
+         POSX 0. 60.
+State15: INFOTEXT "" WHite SImple
+         POSX 0. 4.
+Ack15:   BUTTON "ACK" "DO &thisScript Ack 15."
+         POS 2. 18. 20.
+         BUTTON "Refresh" "DO &thisScript Refresh"
+)
+
+
+IF CPUIS("TC39*")
+(
+    Dialog.Set unit "DOM0" "DOM0,DOM1,DOM2"
+)
+ELSE IF CPUIS("TC39*E")
+(
+    Dialog.Set unit "DOM0" "DOM0,DOM2"
+)
+ELSE
+(
+    Dialog.Set unit "DOM0" "DOM0"
+)
+
+GOSUB Refresh
+
+ENDDO
+
+GetBase:
+(
+    PARAMETERS &sel &i
+    PRIVATE &base
+    IF "&sel"=="DOM0"
+        &base="ED:0xF8700000"
+    ELSE IF "&sel"=="DOM1"
+        &base="ED:0xF88E0000"
+    ELSE IF "&sel"=="DOM2"
+        &base="ED:0xFB700000"
+    ELSE
+        &base=""
+
+    RETURN "&base+&i*0x20"
+)
+
+Refresh:
+(
+    PRIVATE &sel &base &forceScreenUpdate
+    DIALOG.SELect SRIDECDLG
+    &sel=DIALOG.STRing(unit)
+
+    IF VERSION.BUILD.BASE()<103577.
+        &forceScreenUpdate="SCREEN.display"
+    ELSE
+        &forceScreenUpdate=""
+
+    PRIVATE &i
+    &i=0.
+    WHILE &i<16.
+    (
+        PRIVATE &lname &lstat &lack &n &txt &base
+
+        GOSUB Get&(sel)SciName "&i"
+        RETURNVALUES &n
+
+        SPRINTF &txt "%2u: &n" &i
+        SPRINTF &lname "Name%02u" &i
+        DIALOG.Set &lname "&txt"
+        &forceScreenUpdate
+
+        SPRINTF &lstat "State%02u" &i
+        SPRINTF &lack "Ack%02u" &i
+
+        IF "&n"!="-"
+        (
+            GOSUB GetBase "&sel" "&i"
+            RETURNVALUES &base
+            GOSUB CheckSci "&base" "&lstat"
+            &forceScreenUpdate
+            DIALOG.Enable &lack
+            &forceScreenUpdate
+        )
+        ELSE
+        (
+            DIALOG.Set &lstat ""
+            &forceScreenUpdate
+            DIALOG.Disable &lack
+            &forceScreenUpdate
+        )
+        &i=&i+1.
+    )
+
+    RETURN
+)
+
+CheckSci:
+(
+    PRIVATE &err &erraddr &pecon &trId &tagId &tagName
+    PRIVATE &opc &opName &dirC &dirName &msg
+    PARAMETERS &addr &dyntext
+    &pecon=Data.Long(&addr+0x00)
+    IF (&pecon&0x10)==0
+    (
+        DIALOG.Set &dyntext "no error"
+        RETURN
+    )
+    &err=Data.Long(&addr+0x18)
+
+    &trId=((&err>>8.)&0xFF)
+    &tagId=(&trId&0x3F)
+    GOSUB GetTagNameFromId "&tagId"
+    RETURNVALUES &tagName
+
+    &opc=((&err>>4.)&0x0F)
+    GOSUB GetOpNameFromCode "&opc"
+    RETURNVALUES &opName
+
+    &dirC=(&err)&0x03
+    IF &dirC==0y10
+        &dirName="read"
+    ELSE IF &dirC==0y01
+        &dirName="write"
+    ELSE IF &dirC==0y00
+        &dirName="read/write"
+    ELSE
+        &dirName="?"
+
+    &erraddr=Data.Long(&addr+0x10)
+    &msg="&(tagName)["+FORMAT.BINary(6.,&tagId)+"]: &(opName).&(dirName) [0x"+FORMAT.HEX(8.,&erraddr)+"]"
+    DIALOG.Set &dyntext "&msg"
+
+    RETURN
+)
+
+GetTagNameFromId:
+(
+    PARAMETERS &id
+    IF &id==0y000000
+        RETURN "DMA"
+    ELSE IF &id==0y000001
+        RETURN "CPU0.DMI.NonSafe"
+    ELSE IF &id==0y000010
+        RETURN "CPU1.DMI.Safe"
+    ELSE IF &id==0y000011
+        RETURN "HSMCMI"
+    ELSE IF &id==0y000100
+        RETURN "DMA.Partition1"
+    ELSE IF &id==0y000101
+        RETURN "CPU1.DMI.NonSafe"
+    ELSE IF &id==0y000110
+        RETURN "CPU1.DMI.Safe"
+    ELSE IF &id==0y000111
+        RETURN "SDMMC"
+    ELSE IF &id==0y001000
+        RETURN "DMA.Partition2"
+    ELSE IF &id==0y001001
+        RETURN "CPU2.DMI.NonSafe"
+    ELSE IF &id==0y001010
+        RETURN "CPU2.DMI.Safe"
+    ELSE IF &id==0y001011
+        RETURN "HSSL0"
+    ELSE IF &id==0y001100
+        RETURN "DMA.Partition3"
+    ELSE IF &id==0y001101
+        RETURN "CPU3.DMI.NonSafe"
+    ELSE IF &id==0y001110
+        RETURN "CPU3.DMI.Safe"
+    ELSE IF &id==0y001111
+        RETURN "HSSL1"
+    ELSE IF &id==0y010001
+        RETURN "CPU4.DMI.NonSafe"
+    ELSE IF &id==0y010010
+        RETURN "CPU4.DMI.Safe"
+    ELSE IF &id==0y010011
+        RETURN "CIF1"
+    ELSE IF &id==0y010101
+        RETURN "CPU5.DMI.NonSafe"
+    ELSE IF &id==0y010110
+        RETURN "CPU5.DMI.Safe"
+    ELSE IF &id==0y011100
+        RETURN "Cerberus"
+    ELSE IF &id==0y010000
+        RETURN "CPU0.PMI"
+    ELSE IF &id==0y010001
+        RETURN "CPU1.PMI"
+    ELSE IF &id==0y010010
+        RETURN "CPU2.PMI"
+    ELSE IF &id==0y010011
+        RETURN "CPU2.PMI"
+    ELSE IF &id==0y010011
+        RETURN "CPU3.PMI"
+    ELSE IF &id==0y010100
+        RETURN "CPU4.PMI"
+    ELSE IF &id==0y010101
+        RETURN "CPU5.PMI"
+    ELSE IF &id==0y101000
+        RETURN "GETH.DMA0"
+    ELSE IF &id==0y101001
+        RETURN "GETH.DMA1"
+    ELSE IF &id==0y101010
+        RETURN "GETH.DMA2"
+    ELSE IF &id==0y101011
+        RETURN "GETH.DMA3"
+    ELSE IF &id==0y101100
+        RETURN "GETH1.DMA0"
+    ELSE IF &id==0y101101
+        RETURN "GETH1.DMA1"
+    ELSE IF &id==0y101110
+        RETURN "GETH1.DMA2"
+    ELSE IF &id==0y101111
+        RETURN "GETH1.DMA3"
+    ELSE IF &id==0y110000
+        RETURN "DAM0"
+    ELSE IF &id==0y110001
+        RETURN "DAM1"
+    ELSE
+        RETURN ""
+)
+
+GetOpNameFromCode:
+(
+    PARAMETERS &c
+    IF &c==0y0000
+        RETURN "byte"
+    ELSE IF &c==0y0001
+        RETURN "word"
+    ELSE IF &c==0y0010
+        RETURN "long"
+    ELSE IF &c==0y0011
+        RETURN "quad"
+    ELSE IF &c==0y1000
+        RETURN "2 transfers (wrap around)"
+    ELSE IF &c==0y1001
+        RETURN "4 transfers (wrap around)"
+
+    &c="op"+FORMAT.BINary(4.,&c)
+    RETURN "&c"
+)
+
+GetDOM0SciName:
+(
+    PARAMETERS &x
+
+    IF (&x==0.)&&CPUIS("TC39*")
+        RETURN "S2S3"
+    ELSE IF (&x==0.)&&(CPUIS("TC35*"))
+        RETURN "SFI_S2F"
+    ELSE IF &x==1.
+        RETURN "DMU"
+    ELSE IF (&x==2.)&&(CPUIS("TC39*")||CPUIS("TC38*")||CPUIS("TC37*"))
+      RETURN "DAM0"
+    ELSE IF &x==3.
+      RETURN "CPU0P"
+    ELSE IF &x==4.
+      RETURN "CPU0S"
+    ELSE IF &x==5.
+      RETURN "CPU1P"
+    ELSE IF &x==6.
+      RETURN "CPU1S"
+    ELSE IF (&x==7.)&&(CPUIS("TC39*")||CPUIS("TC38*"))
+      RETURN "CPU2P"
+    ELSE IF (&x==8.)&&(CPUIS("TC39*")||CPUIS("TC38*")||CPUIS("TC37*")||CPUIS("TC35*"))
+      RETURN "CPU2S"
+    ELSE IF (&x==9.)&&(CPUIS("TC39*")||CPUIS("TC38*"))
+      RETURN "CPU3P"
+    ELSE IF (&x==9.)&&(CPUIS("TC35*"))
+      RETURN "EMEM0"
+    ELSE IF (&x==10.)&&(CPUIS("TC39*")||CPUIS("TC38*"))
+      RETURN "CPU3S"
+    ELSE IF (&x==10.)&&(CPUIS("TC35*"))
+      RETURN "EMEM1"
+    ELSE IF (&x==11.)&&(CPUIS("TC39*")||CPUIS("TC38*")||CPUIS("TC35*"))
+      RETURN "LMU0"
+    ELSE IF (&x==12.)&&(CPUIS("TC39*"))
+      RETURN "S2S2"
+    ELSE IF (&x==12.)&&(CPUIS("TC37*"))
+      RETURN "S2S0"
+    ELSE IF (&x==13.)&&(CPUIS("TC39*")||CPUIS("TC37*"))
+      RETURN "S2S1"
+    ELSE IF (&x==14.)&&(CPUIS("TC38*")||CPUIS("TC37*"))
+      RETURN "MiniMCDS"
+    ELSE IF &x==15.
+      RETURN "Default"
+
+    RETURN "-"
+)
+
+GetDOM1SciName:
+(
+    PARAMETERS &x
+
+    IF (&x==0.)
+        RETURN "Default"
+    ELSE IF (&x==1.)
+        RETURN "S2S0"
+    ELSE IF (&x==2.)
+      RETURN "CPU4P"
+    ELSE IF &x==3.
+      RETURN "CPU4S"
+    ELSE IF &x==4.
+      RETURN "CPU5P"
+    ELSE IF &x==5.
+      RETURN "CPU5S"
+    ELSE IF &x==6.
+      RETURN "EBU"
+    ELSE IF (&x==7.)
+      RETURN "LMU1"
+    ELSE IF (&x==8.)
+      RETURN "LMU2"
+    ELSE IF (&x==9.)&&(CPUIS("TC39*-AStep"))
+      RETURN "LMU3"
+    ELSE IF (&x==10.)
+      RETURN "DAM1"
+    ELSE IF (&x==11.)
+      RETURN "S2S4"
+
+    RETURN "-"
+)
+
+GetDOM2SciName:
+(
+    PARAMETERS &x
+
+    IF (&x==0.)
+        RETURN "Default"
+    ELSE IF (&x==1.)
+        RETURN "SFI_S2F"
+    ELSE IF (&x==2.)
+      RETURN "EMEM0"
+    ELSE IF &x==3.
+      RETURN "EMEM1"
+    ELSE IF &x==4.
+      RETURN "EMEM2"
+    ELSE IF (&x==5.)&&CPUIS("TC39*")
+      RETURN "EMEM3"
+    ELSE IF (&x==6.)&&CPUIS("TC39*-AStep")
+      RETURN "MiniMCDS"
+
+    RETURN "-"
+)
+
+Ack:
+(
+    ENTRY &i
+    PRIVATE &sel &base &l
+    &sel=DIALOG.STRing(unit)
+
+    GOSUB GetBase "&sel" "&i"
+    RETURNVALUES &base
+
+    PER.Set.Field &base %LONG 0x10 1.
+
+    SPRINTF &l "State%02u" &i
+    GOSUB CheckSci "&base" "&l"
+
+    RETURN
+)

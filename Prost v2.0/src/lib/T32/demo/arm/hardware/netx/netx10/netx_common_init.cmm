@@ -1,0 +1,40 @@
+; --------------------------------------------------------------------------------
+; @Title: Setup up a connection (SYStem.Up) to the NXHX10 Board
+; @Description: 
+;   This script setup up a connection to the NXHX10 Board (ARM966E-S)
+;   and enables all module clocks except fb_clk mux
+; @Keywords: Hilscher, NetX*
+; @Board: NXHX10
+; @Chip: ARM966E-S
+; @Author: Hilscher
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: netx_common_init.cmm 15237 2019-11-08 08:25:07Z bschroefel $
+
+
+;setup ROM to let the software decide about how to set breakpoints
+;Bootrom (DTCM, ITCM and normal mirror)
+MAP.BOnchip 0x00070000--0x0007ffff
+MAP.BOnchip 0x04070000--0x0407ffff
+MAP.BOnchip 0x08070000--0x0807ffff
+
+;16 MB SQIROM Area (XiP)
+MAP.BOnchip 0x09000000++0x00FFFFFF
+
+SYStem.Down
+SYStem.JtagClock 10MHz
+SYStem.CPU ARM966E-S
+SYStem.MemAccess Denied
+SYStem.Option EnReset ON
+SYStem.Option ResBreak OFF
+SYStem.Option WAITRESET ON
+SYStem.Up
+
+ETM.RESet
+
+; enable all module clocks except fb_clk mux
+&ctrl_key=Data.Long(ASD:0x101c0070)
+Data.Set ASD:0x101c0070 %Long &ctrl_key
+Data.Set ASD:0x101c0028 %Long 0x7111
+
+ENDDO

@@ -1,0 +1,126 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux Demo for TRACE32 OS Awareness on the HiCO.ARM9 Board
+; @Description: 
+;   This script is supposed to attach to a running Linux on emtrion HiCO.ARM9 board. 
+;   The Task Awareness + Debugger Address Translation are prepared as for the 
+;   GSRD. After execution of this script the debugger is ready for Process, 
+;   Kernel, optional Module and optional Library debugging.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+; @Keywords: awareness, hico*
+; @Board: HiCO.ARM9
+; @Chip: AT91RM9200
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: hicoarm9_linux_attach.cmm 16133 2020-06-01 11:09:18Z mcharfi $
+
+
+; Set jumper to boot bootloader
+
+; CHANGED: arch/arm/mach-at91rm9200/time.c: at91rm9200_timer_interrupt():
+;       moved timer_tick() out of while loop;
+;       breaks would cause permanent timer ticks.
+
+; Starting Linux example with TRACE32 and Hyperterminal:
+; - Connect NULL modem cable to COM1
+; - Start TRACE32
+; - Open Hyperterminal:
+;   - 115200 baud, 8/N/1, no(!) handshake
+; - Switch on the board
+; - (T32) Start this script
+
+
+LOCAL &srcdrive
+LOCAL &srcpath
+&srcdrive="S:"
+&srcpath="&srcdrive"+"\"
+LOCAL &ka_path &awareness
+
+
+  SCREEN.ON
+
+
+; Debugger Reset
+
+  WinPAGE.RESet
+  AREA.RESet
+  WinPOS 0. 25. 75. 9. 0. 0. W000
+  AREA.view
+ 
+  PRINT "resetting..."
+ 
+  RESet
+
+
+;Initializing Debugger
+ 
+ PRINT "initializing..."
+ SYStem.CPU AT91RM9200
+ SYStem.JtagClock 1MHz          ; be slow after reset!
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ SYStem.Option ResBreak ON      ; hardware dependent (see manual)
+ SYStem.Option WaitReset OFF    ; hardware dependent (see manual)
+ SYStem.Option BigEndian OFF    ; this demo is in little endian
+ TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+ TrOnchip.Set UNDEF OFF         ; my be used by Linux for FPU detection
+ SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+
+; RESET: The standard layout of the board prevents
+; the debugger from inserting a reset signal. In this
+; case, only a SYStem.Mode Attach/Break works, and only
+; after a manual reset of the board. 
+; A modified board (see PCBErrata in board documentation), that 
+; allows resetting by the debugger, can use this sequence:
+
+  SYStem.Attach
+  Break.direct
+  WAIT !STATE.RUN()
+
+  SETUP.IMASKASM ON              ; lock interrupts while single stepping
+
+; Load the Linux kernel symbols into the debugger
+ ; use /strippart and /path to map source paths, if necessary
+
+ PRINT "loading Linux kernel symbols..."
+ Data.LOAD.Elf vmlinux /gnu /NoCODE /StripPART 3 /PATH "&srcpath"
+
+
+; Open a Code Window -- we like to see something
+
+ WinPOS 0. 0. 75. 20.
+ List.auto
+ SCREEN.display
+
+; Declare the MMU format to the debugger
+ ; - table format is "LINUX"
+ ; - table base address is at label "swapper_pg_dir"
+ ; - kernel address translation
+ ; Map the virtual kernel symbols to physical addresses to give 
+ ; the debugger access to it before CPU MMU is initialized
+
+  PRINT "initializing debugger MMU..."
+  MMU.FORMAT LINUX swapper_pg_dir 0xc0000000--0xc3ffffff 0x20000000
+  TRNASlation.COMMON 0xc0000000--0xffffffff            ; common area for kernel and processes
+  TRNASlation.TableWalk ON   ; debugger uses a table walk to decode virtual addresses
+  TRNASlation.ON             ; switch on debugger(!) address translation 
+ 
+
+  ; Initialize Linux Awareness
+  ; Note that the Linux awareness needs the kernel symbols to work 
+  PRINT "initializing RTOS support..."
+  ; Choose the correct Linux major version below
+  ;TASK.CONFIG ~~/demo/arm/kernel/linux/linux-2.x/linux.t32     ; loads Linux awareness for linux-2.x
+  ;MENU.ReProgram ~~/demo/arm/kernel/linux/linux-2.x/linux.men  ; loads Linux menu  for linux-2.x
+  TASK.CONFIG ~~/demo/arm/kernel/linux/linux-3.x/linux3.t32     ; loads Linux awareness for linux-3.x
+  MENU.ReProgram ~~/demo/arm/kernel/linux/linux-3.x/linux.men  ; loads Linux menu  for linux-3.x
+  
+; Group kernel area to be displayed with red bar
+  GROUP.Create "kernel" 0xc0000000--0xffffffff /RED
+
+  Go.direct
+
+  Mode.Hll
+
+  ENDDO
+  

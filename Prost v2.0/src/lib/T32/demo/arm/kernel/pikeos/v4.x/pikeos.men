@@ -1,0 +1,224 @@
+; --------------------------------------------------------------------------------
+; @Title: PikeOS specific menu
+; @Description: -
+; @Author: DIE
+; @Copyright: (c) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: pikeos.men 4745 2019-11-04 14:30:06Z mschaeffner $
+
+ADD
+MENU
+(
+    POPUP "&PikeOS"
+    (
+        DEFAULT
+        MENUITEM "Display Tasks"                "TASK.TaskList"
+        MENUITEM "Display Threads"              "TASK.ThrliSt"
+        MENUITEM "Display &Resource Partitions" "TASK.ResPart"
+        MENUITEM "Display System &Information"  "TASK.INFO"
+        SEPARATOR
+        MENUITEM "Debug Task on entry..."
+        (
+            LOCAL &arch
+            &arch= "arm" 
+            DO ~~/demo/&arch/kernel/pikeos/v4.x/app_debug /dialog
+        )
+        SEPARATOR
+        POPUP "&Stack Coverage"
+        (
+          MENUITEM "List Stacks"     "TASK.STacK"
+          MENUITEM "Add Task"        "TASK.STacK.ADD"
+          MENUITEM "Remove Task"     "TASK.STacK.ReMove"
+          MENUITEM "&Reset Coverage"
+          (
+            IF ICD()||SIMULATOR()
+            (
+              DIALOG.YESNO "Overwrite unused stack space" "with stack fill pattern?"
+              ENTRY &yes
+              IF !&yes
+                ENDDO
+              )
+            TASK.STacK.Init
+          )
+          MENUITEM "Stack &Pattern..."
+          (
+              DIALOG
+              (
+                HEADER "Stack Pattern"
+                POS 0 0 13. 3.
+                BOX "initialized pattern:"
+                POS 1 1 11. 1.
+pattern:        DEFEDIT "" ""
+                POS 14. 1 6 1
+                DEFBUTTON "OK"
+                (
+                  LOCAL &pattern
+                  &pattern=dialog.string(pattern)
+                  TASK.STacK.PATtern %Long &pattern
+                  DIALOG.END
+                )
+              )
+              DIALOG.SET pattern "0xdeadbeef"
+          )
+        )
+        SEPARATOR
+        POPUP "S&ymbol &Autoloader"
+        (
+            MENUITEM "[:symbols]List Components"    "sYmbol.AutoLoad.List"
+            MENUITEM "[:init]Check Now!"            "sYmbol.AutoLoad.CHECK"
+            MENUITEM "[:config]Config..."           "sYmbol.AutoLOAD.config"
+        )
+    )
+    POPUP "Perf"
+    (
+      SEPARATOR
+      POPUP "&Task Runtime"
+      (
+        MENUITEM "&Prepare"
+        (
+          IF T.METHOD.ANALYZER()
+          (
+            Analyzer.AutoInit on
+          )
+          IF (ICE()||FIRE())&&!A.MODE.FLOW()
+          (
+            Analyzer.ReProgram
+            (
+              Sample.Enable IF AlphaBreak&&Write
+            )
+            Break.Delete /Alpha
+            Break.Set TASK.CONFIG(magic)++(TASK.CONFIG(magicsize)-1) /Alpha
+          )
+          IF A.MODE.FLOW()
+          (
+            Break.Delete /TraceEnable
+            Break.Set TASK.CONFIG(magic) /TraceEnable
+          )
+        )
+        MENUITEM "[:perf]Show &Numerical"   "Trace.STATistic.TASK"
+        MENUITEM "[:achart]Show as &Timing" "Trace.CHART.TASK"
+        MENUITEM "[:achart]Tracking with Trace &List"
+        (
+          Trace.List List.TASK DEFAULT /Track
+          Trace.CHART.TASK /Track
+        )
+      )
+      POPUP "Task &Function Runtime"
+      (
+        MENUITEM "&Prepare"
+        (
+          IF T.METHOD.ANALYZER()
+          (
+            Analyzer.AutoInit on
+            Analyzer.STATistic.PreFetch on
+          )
+
+          IF (ICE()||FIRE())&&!A.MODE.FLOW()
+          (
+            IF A.CONFIG.HAC()
+            (
+               Analyzer.ReProgram
+               (
+                 Sample.Enable IF AlphaBreak
+                 Sample.Enable IF BetaBreak
+                 Mark.A        IF AlphaBreak
+                 Mark.B        IF BetaBreak
+               )
+            )
+            ELSE
+            (
+               Analyzer.ReProgram
+               (
+                 Sample.Enable IF AlphaBreak||BetaBreak
+                 Mark.A IF AlphaBreak
+                 Mark.B IF BetaBreak
+               )
+            )
+            Break.Delete /Alpha /Beta /Charly
+            Break.SetFunc
+            Break.Set TASK.CONFIG(magic)++(TASK.CONFIG(magicsize)-1) /Alpha
+          )
+          IF A.MODE.FLOW()
+          (
+            Break.Delete /TraceData
+            Break.Set TASK.CONFIG(magic) /TraceData
+          )
+        )
+        MENUITEM "[:perf]Show &Numerical"     "Trace.STATistic.TASKFUNC"
+        MENUITEM "[:perf]Show as &Tree"       "Trace.STATistic.TASKTREE"
+        MENUITEM "[:perf]Show &Detailed Tree" "Trace.STATistic.TASKTREE ALL"
+        MENUITEM "[:achart]Show as &Timing"   "Trace.CHART.TASKFUNC"
+        MENUITEM "[:alist]Show N&esting"      "Trace.List List.TASK FUNC TI.FUNC"
+      )
+    )
+    POPUP "&Help"
+    (
+        MENUITEM "[:manual]OS Awareness Manual PikeOS" "HELP __RTOS_PIKEOS_"
+    )
+)
+
+
+MENU "task.tl"
+(
+  MENUITEM "Display detailed"
+  (
+    LOCAL &address
+    &address=ADDRESS.OFFSET(TRACK.ADDRESS())
+    TASK.TaskList &address
+  )
+  MENUITEM "Display task struct"
+  (
+    LOCAL &address
+    &address=TRACK.ADDRESS()
+    Var.View %String %Open (P4k_taskinfo_t*)(&address)
+  )
+  MENUITEM "Dump task struct"
+  (
+    LOCAL &address
+    &address=TRACK.ADDRESS()
+    Data.dump &address /Long /DIALOG
+  )
+  SEPARATOR
+  MENUITEM "Load task symbols"
+  (
+    LOCAL &magic
+    &magic=ADDRESS.OFFSET(TRACK.ADDRESS())
+    TASK.sYmbol.LOAD &magic
+  )
+)
+
+MENU "task.ts"
+(
+  MENUITEM "Display detailed"
+  (
+    LOCAL &address
+    &address=ADDRESS.OFFSET(TRACK.ADDRESS())
+    TASK.ThrliSt &address
+  )
+  MENUITEM "Display thread struct"
+  (
+    LOCAL &address
+    &address=TRACK.ADDRESS()
+    Var.View %String %Open (P4k_thrinfo_t*)(&address)
+  )
+  SEPARATOR
+  MENUITEM "Display Stack Frame"
+  (
+    LOCAL &magic
+    &magic=ADDRESS.OFFSET(TRACK.ADDRESS())
+    Var.Frame /Locals /Caller /TASK &magic
+  )
+  MENUITEM "Switch Context"
+  (
+    LOCAL &magic
+    &magic=ADDRESS.OFFSET(TRACK.ADDRESS())
+    Register.TASK &magic
+  )
+  SEPARATOR
+  MENUITEM "Dump thread struct"
+  (
+    &address=TRACK.ADDRESS()
+    Data.dump &address /Long /DIALOG
+  )
+)
+

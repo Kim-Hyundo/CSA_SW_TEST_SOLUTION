@@ -1,0 +1,23 @@
+;  scatter file
+ 
+FLASH_LOAD 0x8000 0x3000
+{
+  CODE 0x8000 FIXED
+  {
+    * (+RO)
+  }
+
+  DATA 0xb000 0x1000
+  {                     
+    * (+RW, +ZI)
+  }
+
+  ARM_LIB_HEAP 0xc000 EMPTY 0x1000
+  {
+  }
+
+  ARM_LIB_STACK 0xe000 EMPTY -0x1000
+  {
+  }
+}
+

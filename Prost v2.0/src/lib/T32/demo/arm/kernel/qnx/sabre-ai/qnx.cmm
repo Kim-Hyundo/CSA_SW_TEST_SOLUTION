@@ -1,0 +1,210 @@
+; --------------------------------------------------------------------------------
+; @Title: QNX Demo for TRACE32 OS Awareness on a Sabre Automotive board
+; @Description: 
+;   
+;   This batchfile demonstrates the use of the OS Awareness for QNX
+;   
+;   The example is generated for the Sabre Automotive using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   
+;   U-Boot on board is used to initialize the board.
+;   QNX is downloaded to the board via ICD.
+;   
+; @Keywords: awareness, imx6
+; @Props: Template
+; @Author: DIE
+; @Board: Sabre AI
+; @Chip: IMX6QUAD
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: qnx.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; Starting QNX example with TRACE32:
+; - Put SD-card with u-boot into the SD slot
+; - Connect STRAIGHT modem cable to RS232
+;   - 115200 baud, 8/N/1, no(!) handshake
+; - Start TRACE32
+; - Switch on the board
+; - TRACE32: "do qnx"
+; - Terminal: start "sieve_g"
+
+
+&term="COM3"
+&workspace="C:/DevTools/QNX660/workspace"
+
+
+ SCREEN.ALways      ; permanent update for internal terminal window
+ ; screen.on        ; if you use external terminal
+
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 21. 70. 9. 0. 0. W000
+ AREA.view
+ 
+ PRINT "resetting..."
+ RESet
+
+
+; Open serial terminal window
+ 
+ PRINT "starting terminal on &term"
+ WinPOS 35. 0. ,,,,, TERM.view
+ TERM.METHOD COM &term 115200. 8 NONE 1STOP NONE
+ TERM.SIZE 80. 1000.
+ TERM.Mode VT100
+ TERM.SCROLL ON
+ TERM.view
+ 
+ 
+; Initialize debugger
+
+ print "initializing..."
+
+ SYStem.CPU iMX6Quad
+ 
+ ; start with one core
+ CORE.ASSIGN 1
+ 
+
+ SYStem.Option ResBreak OFF
+ SYStem.Option WaitReset 1.3s   ; let bootloader setup the CPU
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ TrOnchip.Set DABORT OFF        ; used by MMU
+ TrOnchip.Set PABORT OFF        ; used by MMU
+ TrOnchip.Set UNDEF OFF         ; may be used for FPU emulation
+ SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+ SETUP.IMASKASM ON              ; lock interrupts while single stepping
+
+ Trace.METHOD Onchip
+
+ MAP.DENYACCESS     ; prevent accesses to non-existent memory
+ MAP.NODENYACCESS 0x02000000--0x020fffff    ; internal periphery
+ MAP.NODENYACCESS 0x10000000--0x8fffffff    ; RAM
+
+ SYStem.Up
+
+
+ ; Disable watchdog
+ PER.Set ASD:0x20BC000 %W (d.w(ASD:0x20BC000)&~0x1)|0x0
+ PER.Set ASD:0x20BC000 %W (d.w(ASD:0x20BC000)&~0x4)|0x0
+
+
+; Open a Code Window -- we like to see something
+
+ WinPOS 0. 0. 75. 20.
+ List.auto
+ wintop TERM.view
+ 
+
+; Download QNX IFS
+
+ PRINT "loading QNX image..."
+ ; load address see src/build: [image=0x10800000]
+ Data.LOAD.Binary &workspace/SabreAI/images/ifs-SabreAI.raw 0x10800000
+ Register.Set PC 0x10800000
+
+
+; if you want to debug the startup
+ ;Data.LOAD.Elf &workspace/SabreAI/images/startup-imx6x-sabreARD.sym /nocode
+ ;TRANSlation.COMMON 0x0--0xffffffff
+ ;stop
+ 
+
+; Load the symbols of procnto
+ PRINT "loading procnto symbols..."
+ Data.LOAD.Elf &workspace/SabreAI/images/procnto-smp-instr.sym /NoCODE 
+
+
+; Configure ETM or STM trace probe
+ ;print "configuring trace probe..."
+ ;do trace.cmm
+ 
+
+; Run over MMU initialization
+
+ Break.Set _main /Program /Onchip   ; use onchip because of virtual address
+ Go
+ PRINT "initilizing QNX..."
+ WAIT !STATE.RUN()
+ Break.Delete _main
+ 
+
+; Declare the MMU format to the debugger
+ PRINT "initializing debugger MMU..."
+ MMU.FORMAT STD
+ TRANSlation.COMMON 0xe0000000--0xffffffff  ; kernel area is common for all MMU space ids
+ TRANSlation.TableWalk ON   ; debugger uses a table walk to decode virtual addresses
+ TRANSlation.ON             ; switch on debugger(!) address translation 
+ 
+
+; Assign to all cores
+
+ SYStem.Down            ; detach from CPU
+ CORE.ASSIGN 1 2 3 4    ; assign to all cores
+ SYStem.Attach          ; reattach to CPU
+
+ 
+; Initialize QNX Support
+
+ PRINT "initializing QNX support..."
+ TASK.CONFIG ~~/demo/arm/kernel/qnx/qnx.t32     ; loads QNX awareness
+ MENU.ReProgram ~~/demo/arm/kernel/qnx/qnx.men  ; loads QNX menu
+ HELP.FILTER.Add rtosqnx    ; add QNX awareness manual to help system
+ 
+ TASK.sYmbol.Option MMUSCAN OFF  ; not necessary with tablewalk
+
+ ; switch on autoloader
+ sYmbol.AutoLoad.CHECKQNX "do ~~/demo/arm/kernel/qnx/autoload "
+
+ ; Group kernel area to be displayed with red bar
+ GROUP.Create "kernel" 0xfc000000--0xffffffff /RED
+
+ ; activate autoloader for processes:
+ TASK.sYmbol.Option AutoLoad Process
+ 
+ 
+; adapt source paths
+ ;&ppd=OS.PPD()
+ ;sYmbol.SourcePATH.Translate "C:\ide-4.7-workspace\" "&ppd\workspace\"
+ 
+
+; Now let's boot and start QNX!
+ 
+ wintop TERM.view        ; set terminal window to front
+ Go
+ PRINT "starting QNX... (please wait)"
+ WAIT 3.s       ; let it run for 3 seconds
+ ;Break
+ 
+ PRINT "done."
+ 
+
+; --------------------------------------------------------------------------------
+; Application Debugging
+; e.g. "sieve_g"
+; --------------------------------------------------------------------------------
+
+ PRINT "please start 'sieve_g'"
+
+ ; script based
+   ; using the script based application debugging
+   ; gives more control over the single commands
+   ; see file "app_debug.cmm"
+   
+   do ~~/demo/arm/kernel/qnx/app_debug sieve_g
+   
+ ; process watch system
+   ; the process watch system automates the actions
+   ; for application debugging
+   
+   ;WinPOS 55. 24. 40. 4.
+   ;TASK.Watch.View  "sieve_g"
+   ;Go
+
+ENDDO
+ 

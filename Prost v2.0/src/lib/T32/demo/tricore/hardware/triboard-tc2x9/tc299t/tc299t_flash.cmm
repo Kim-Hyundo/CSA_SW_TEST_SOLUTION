@@ -1,0 +1,37 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash demo script for TC299T on TriBoard-TC2x9 (any app)
+; @Description:
+;   Allows you to flash your application into memory. Please make sure to
+;   understand the comments in the script!
+; @Keywords: AURIX, Infineon, TriCore
+; @Author: MOB
+; @Board: TriBoard-TC2x9
+; @Chip: TC299T
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc299t_flash.cmm 15579 2020-01-27 15:08:53Z sltaief $
+
+
+; Configures the External Bus Unit (EBU) for accessing external memories:
+;   external Flash    mapped to 0xA4000000--0xA43FFFFF    4 MB
+;   external SRAM     mapped to 0xA3000000--0xA30FFFFF    1 MB
+; External memories are mirrored in segment 8 (cached access).
+;
+; Redirect to example scripts for flash declaration and programming of external
+; and Infineon TriCore TC299T internal flash.
+;
+; Supported devices: All TRIBOARD-TC2X9.
+
+; configure/program internal flash
+DO ~~/demo/tricore/flash/tc29x.cmm CPU=TC299T
+
+; configure external memories
+DO ~~/demo/tricore/hardware/triboard-tc2x9/configure_extmem.cmm FLASHSTART=0xA4000000 FLASHSIZE=0x400000 FLASHALTREGION=0x8 RAMSTART=0xA3000000 RAMSIZE=0x100000 RAMALTREGION=0x8
+
+; configure/program external flash
+DO ~~/demo/tricore/hardware/triboard-tc2x9/program_extflash.cmm FLASHSTART=0xA4000000 FLASHSIZE=0x400000 FLASHALTREGION=0x8
+
+; After flashing the symbols can be loaded with:
+; Data.LOAD.Elf *.elf /NoCODE
+
+ENDDO

@@ -1,0 +1,8 @@
+B::
+v ref_sig.ENG_EngSta=3
+v eng_run_cnt_phase1=200
+v eng_run_cnt_phase2=3
+v msg_received_flags[CHASSIS_0]|=msg_received_flags[CHASSIS_0]|(1<<EMS_02_10ms_POS)
+v ems[EMS_C161386_1].fault=0
+v ems[EMS_C161386_2].fault=0
+ENDDO

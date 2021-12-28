@@ -1,0 +1,23 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to open a terminal over DCC for Linux
+; @Description:
+;  This script opens a terminal over DCC for Linux.
+;  Prerequisites:
+;    * Enable in the Linux kernel config under "Device Drivers" -> 
+;      "Charachter devices" the option "ARM JTAG DCC console" (HVC_DCC)
+;    * Add in the kernel boot command line the string "console=hvc"
+;    * Execute this script to open the terminal over DCC
+;  !! Please note that this will only work if Linux is running on a single
+;     core and not for SMP systems !!
+; @Author: KJM
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: serialdcc.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+  TERM.RESet
+  TERM.METHOD DCC3
+  TERM.SIZE 80. 1000.
+  TERM.Mode VT100 
+  TERM.SCROLL ON
+  
+  ENDDO

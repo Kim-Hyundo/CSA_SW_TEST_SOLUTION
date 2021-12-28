@@ -1,0 +1,103 @@
+; --------------------------------------------------------------------------------
+; @Title: RIOT Demo for TRACE32 OS Awareness
+; @Description: 
+;   
+;   This batchfile loads all necessary files to demonstrate
+;   the OS Awareness for RIOT on TRACE32 Simulator.
+;   
+; @Keywords: awareness, RTOS, RIOT, simulator
+; @Author: RIC
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: riot.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+LOCAL &image
+&image="~~~~/boards/riot/t32demo/stm32/t32demo.elf"
+
+
+RESet
+SYStem.CPU STM32F303VC
+
+GOSUB load_nvic
+
+SYStem.Up
+
+Data.Load.Elf "&image"
+; Add source path for main.c
+sYmbol.SourcePATH.Set "~~~~/boards/riot/t32demo"
+
+
+Data.COPY 0x08000000--0x080001ff 0x0   ; copy vector table
+Register.Reset                      ; load SP and PC
+
+; Patch out hardware init routines that are not available
+; in simulator mode.
+d.a stmclk_enable_hsi+0xe nop
+d.a stmclk_init_sysclk+0x38 nop
+d.a stmclk_init_sysclk+0x56 nop
+d.a stmclk_init_sysclk+0x68 nop
+d.a uart_write+0x28 nop
+d.a uart_write+0x18 nop
+
+; Run as far as main()
+go main
+wait !STATE.RUN()
+
+; Load RIOT kernel awareness files.
+TASK.CONFIG "~~/demo/arm/kernel/riot/riot.t32"
+MENU.ReProgram "~~/demo/arm/kernel/riot/riot.men"
+
+; Open some windows
+WinCLEAR
+WinPOS 0. 0. 105. 26. 16. 1. W000
+WinTABS 16. 10. 25.
+List.auto
+
+ENDDO
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; load_nvic
+; Attempt to detect host OS and load correct nvic DLL/shared object
+load_nvic:
+  LOCAL &arch &tmpfile &tmpline &nvic
+  
+  IF OS.NAME()=="Windows"
+  (
+    &arch=OS.ENV(PROCESSOR_ARCHITECTURE)
+	  IF STRing.SCAN("&arch","64",0)!=-1
+	  (
+	    &nvic="~~/demo/arm/simul/intc_cortexm3/nvic_x64.dll"
+	  )
+	  ELSE
+	  (
+	    &nvic="~~/demo/arm/simul/intc_cortexm3/nvic.dll"
+	  )
+  )
+  ELSE IF OS.NAME()=="Linux"
+  (
+    &tmpfile=OS.TMPFILE()
+    OS.Command uname -m > &tmpfile
+    OPEN #1 &tmpfile
+    READ #1 %LINE &tmpline
+    IF STRing.SCAN("&tmpline","x86_64",0)!=-1
+    (
+      ; Found 64 bit OS
+      &nvic="~~/demo/arm/simul/intc_cortexm3/nvic_pclinux64.so"
+    )
+    ELSE
+    (
+      ; Found 32 bit OS
+      &nvic="~~/demo/arm/simul/intc_cortexm3/nvic_pclinux.so"
+    )
+    CLOSE #1
+  )
+  ELSE
+  (
+    DIALOG.OK "Unsupported OS." "Script will terminate."
+	  ENDDO
+  )
+
+  SIM.LOAD "&nvic"
+  
+RETURN

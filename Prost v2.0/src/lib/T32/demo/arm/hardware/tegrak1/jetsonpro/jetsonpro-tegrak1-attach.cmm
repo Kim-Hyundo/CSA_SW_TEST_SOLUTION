@@ -1,0 +1,24 @@
+; --------------------------------------------------------------------------------
+; @Title: Start-Up script connecting TRACE32 debugger to NVIDIA Jetson Pro board
+; @Description:
+;
+;   This start-up script show how to attach debugger (SYStem.Mode Attach) to
+;   the TegraK1 NVIDIA Jetson Pro board.
+;
+; @Author: MSA
+; @Board: NVIDIA Jetson Pro
+; @Chip: TEGRAK1
+; @Keywords: TEGRAK1, Cortex-A15MPCORE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: jetsonpro-tegrak1-attach.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+  RESet
+  SYStem.RESet
+  SYStem.CPU TEGRAK1
+  SYStem.Option ResBreak OFF
+  SYStem.Option WaitReset 2.s
+  ETM.OFF
+  SYStem.Mode Attach
+
+  ENDDO

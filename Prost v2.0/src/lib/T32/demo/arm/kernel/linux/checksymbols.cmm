@@ -1,0 +1,50 @@
+; --------------------------------------------------------------------------------
+; @Title: Check the Linux kernel symbols
+; @Description:
+;   This is a standard Linux Awareness Script.
+;   This script checks if the loaded symbols match
+;   the executed Linux Code.
+;
+; @Keywords: Linux symbols
+; @Author: kjmal
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: checksymbols.cmm 4746 2019-11-04 15:37:40Z kjmal $
+
+
+LOCAL &vmlinux &vm_banner &banner
+ENTRY &vmlinux
+
+IF STATE.RUN()
+    Break.direct
+
+IF "&vmlinux"==""
+    &vmlinux="vmlinux"
+
+WinCLEAR
+
+IF !sYmbol.EXIST(linux_banner)
+    Data.LOAD.auto &vmlinux /NoCODE
+
+&banner=Data.STRing(linux_banner)
+
+PRINT "Loading the kernel code and symbols to the debugger's virtual memory..."
+
+Data.LOAD.auto &vmlinux /VM
+
+&vm_banner=Data.STRing(VM:linux_banner)
+
+
+
+IF STRing.SCAN("&banner","&vm_banner",0)==0
+(
+    DIALOG.OK "You have the right symbols!"
+)
+ELSE
+(
+    DIALOG.OK "Image and symbols misfit!! See the AREA window for more information"
+    AREA.CLEAR
+    PRINT "Image banner  : &banner"
+    PRINT "vmlinux banner: &vm_banner"
+)
+

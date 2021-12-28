@@ -1,0 +1,56 @@
+; --------------------------------------------------------------------------------
+; @Title: Start-Up Script on SRAM for SabreLite i.MX6 Board Solo Core
+; @Description:
+;   This demo demonstrates the debugging of the Cortex-A9 core of the iMX6
+;   using a simple sieve demo loaded on the SRAM.
+;   Connector J13 "JTAG" can be used with our MIPI connectors (CombiProbe
+;   Dorebug Cable plus Converter LA-3770) if pin 7 and pin 9 will not be
+;   connected. We just bent them over on the J13 connector.
+;   A connector for the external trace port is not available on this board.
+;   WaitReset 0.6s: The required wait time to run the boot rom.
+; @Keywords: Cortex-A9, Freescale, imx6, sabrelite, sieve, i.MX6
+; @Author: HDA
+; @Board: iMX6-SabreLite, Nitrogen6x, Nitrogen6x-SOM, WandBoard, MCIMX6Q-SDB
+; @Chip: IMX6SOLO*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx6solo_sieve_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+; Basic setup
+  RESet
+  SYStem.RESet
+  SYStem.CPU IMX6SOLO
+  ;SYStem.CPU IMX6SOLOLITE
+  SYStem.Option ResBreak OFF
+  IF VERSION.BUILD()<92177.
+  (
+    SYStem.Option WaitReset 0.6s
+  )
+  ELSE
+  (
+    SYStem.Option WaitIDCODE 1.5s
+  )
+  Trace.METHOD Onchip
+  SYStem.Up
+
+  Data.LOAD.Elf ~~~~/demo_sram.axf
+
+
+; open some windows
+  WinCLEAR
+
+  WinPOS 0% 0% 50% 50%
+  List.auto
+
+  WinPOS 50% 0% 50% 50%
+  Register.view /SpotLight
+
+  WinPOS 0% 50% 50% 50%
+  Frame /Locals /Caller
+
+  WinPOS 50% 50% 50% 50%
+  Var.Watch
+  Var.AddWatch ast; flags;
+
+  ENDDO

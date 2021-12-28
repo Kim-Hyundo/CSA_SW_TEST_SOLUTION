@@ -1,0 +1,107 @@
+; --------------------------------------------------------------------------------
+; @Title: Adjust Guest Menu
+; @Description:
+;
+;  This script changes the standard menu of a guest to explicitly work
+;  with this guest.
+;  Specify the menu file of the guest as first parameter and the name of
+;  the guest as second parameter.
+;
+;  Examples:
+;   do adjust_menu ~~/demo/arm/kernel/linux/linux-3.x/linux.men Dom0
+;
+; @Keywords: awareness xen
+; @Author: DIE
+; @Copyright: (c) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: adjust_menu.cmm 3365 2018-06-12 10:04:19Z rdienstbeck $
+
+LOCAL &menufile &extname &param &success
+ENTRY &menufile &extname &param
+
+&success=false()
+
+IF ("&menufile"=="")||("&extname"=="")
+(
+    PRINT "Usage: DO adjust_menu.cmm <menu filename> <extension name>"
+    ENDDO
+)
+
+IF !file.exist(&menufile)
+(
+    PRINT %ERROR "File &menufile not found!"
+    ENDDO
+)
+
+MENU.Delete &menufile
+
+LOCAL &newfile &line
+&newfile=os.ptd()+"/"+"&extname"+".men"
+
+OPEN #1 &menufile /Read
+OPEN #2 &newfile  /Create
+
+READ #1 %LINE &line
+WHILE string.upper(string.trim("&line"))!="ADD"
+(
+    IF EOF()
+    (
+        PRINT %ERROR "Unexpected end of file."
+        GOTO end
+    )
+    WRITE #2 "&line"
+    READ #1 %LINE &line
+)
+
+WHILE string.upper(string.trim("&line"))!="MENU"
+(
+    IF EOF()
+    (
+        PRINT %ERROR "Unexpected end of file."
+        GOTO end
+    )
+    WRITE #2 "&line"
+    READ #1 %LINE &line
+)
+
+WHILE string.upper(string.mid(string.trim("&line"),0.,5.))!="POPUP"
+(
+    IF EOF()
+    (
+        PRINT %ERROR "Unexpected end of file."
+        GOTO end
+    )
+    WRITE #2 "&line"
+    READ #1 %LINE &line
+)
+
+&line=string.upper("&line")
+&line=string.mid("&line",0.,string.scan("&line","POPUP",0.)+6.)
+&line="&line"+"""&"+"&extname"""
+WRITE #2 "&line"
+
+LOCAL &taskcmd1 &taskcmd2
+&taskcmd1="TASK.&extname."
+&taskcmd2="task.&extname."
+
+READ #1 %LINE &line
+WHILE !EOF()
+(
+    &line=string.replace("&line","TASK.","&taskcmd1",0.)
+    &line=string.replace("&line","task.","&taskcmd2",0.)
+    WRITE #2 "&line"
+    READ #1 %LINE &line
+)
+
+&success=true()
+
+end:
+CLOSE #1
+CLOSE #2
+
+IF &success
+    MENU.ReProgram &newfile
+
+;DEL &newfile
+
+ENDDO

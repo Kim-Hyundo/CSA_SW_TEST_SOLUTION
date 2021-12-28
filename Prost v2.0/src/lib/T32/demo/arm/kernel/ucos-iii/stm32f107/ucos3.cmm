@@ -1,0 +1,94 @@
+; --------------------------------------------------------------------------------
+; @Title: uC/OS-III Demo for TRACE32 OS Awareness
+; @Description: 
+;   
+;   This batchfile demonstrates the OS Awareness for uC/OS-III.
+;   
+;   The example is generated for the uC/Eval-STM32F107 board.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   
+; @Keywords: awareness, RTOS, ucos-iii
+; @Author: DIE
+; @Chip: STM32F107VC
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: ucos3.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+; Please note the special wiring for the JTAG signals.
+; See jtag_wiring.txt and jtag_wiring.jpg
+
+ SCREEN.ON                    ; all messages are displayed
+ AREA.RESet
+ WinPAGE.RESet
+ WinCLEAR
+ WinPOS 0. 26. 63. 7. 0. 0. W006
+ AREA.view
+
+; Debugger reset
+
+ PRINT "resetting..."
+ RESet
+
+; Initializing Debugger
+
+ PRINT "initializing..."
+ SYStem.CPU STM32F107VC
+ SYStem.Up
+ 
+; Load stack pointer and PC from vector table
+ 
+ Register.RESet
+
+; Program application into Flash, if required
+
+ DIALOG.YESNO "Program application into Flash?"
+ ENTRY &yes
+ IF &yes
+ (
+    ; Declare Flash regions
+    FLASH.RESet
+    FLASH.Create 1. 0x08000000++((0x400*256)-0x01) 0x800 TARGET Word
+    FLASH.TARGET 0x20000000 0x20001000 0x1000 ~~/demo/arm/flash/word/stm32.bin
+    
+    PRINT "erasing Flash..."
+    FLASH.Erase ALL
+    PRINT "programming Flash..."
+    FLASH.Program.ALL
+    Data.LOAD.Elf uCOS-III-Ex3.out /Word /NosYmbol
+    FLASH.Program.off
+    PRINT "verifying Flash..."
+    Data.LOAD.Elf uCOS-III-Ex3.out /Word /ComPare /NosYmbol
+ )
+  
+; Declare flash area for onchip breakpoints
+
+ MAP.BOnchip 0x00000000--0x1fffffff
+
+; Load debug information of application
+
+ PRINT "loading application symbols..."
+ Data.LOAD.Elf uCOS-III-Ex3.out  /NoCODE
+ sYmbol.CLEANUP     ; necessary to remove empty type declarations
+
+; Initialize RTOS support
+
+ PRINT "initializing uC/OS-III support..."
+ TASK.CONFIG ../ucos3       ; load uC/OS-III Awareness (ucos3.t32)
+ MENU.ReProgram ../ucos3    ; load uC/OS-III Menu (ucos3.men)
+ HELP.FILTER.Add rtosucos3  ; add uC/OS-III awareness manual to help filter
+
+; Open some windows
+
+ WinPOS 0. 0. 73. 22. 11. 1. W001
+ List.auto
+ 
+ WinPOS 63. 15. 60. 11. 0. 1. W003
+ TASK.TASK 
+
+; Start application
+ 
+  Go main
+
+  PRINT "done."

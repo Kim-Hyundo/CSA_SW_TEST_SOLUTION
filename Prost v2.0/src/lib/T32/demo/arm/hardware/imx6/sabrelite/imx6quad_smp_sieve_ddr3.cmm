@@ -1,0 +1,216 @@
+; --------------------------------------------------------------------------------
+; @Title: SMP Start-Up Script on DDR3 for i.MX6 Board Quad Core
+; @Description:
+;   This demo demonstrates the debugging of the four Cortex-A9 cores of
+;   the iMX6 using a simple sieve demo loaded on the DDR3. The script
+;   connects to the first core, initialize DDR3,enables the other core
+;   and then connectsto all of them. Connector J13 "JTAG" can be used with
+;   our MIPI connectors (CombiProbe or Debug Cable plus Converter LA-3770)
+;   if pin 7 and pin 9 will not be connected. We just bent them over on
+;   the J13 connector. A connector for the external trace port is not
+;   available on this board.
+;   WaitReset 0.6s: The required wait time to run the boot rom.
+; @Keywords: Cortex-A9, DDR3, Freescale, imx6, sabrelite, sieve, SMP
+; @Author: HDA
+; @Board: iMX6-SabreLite
+; @Chip: IMX6QUAD
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx6quad_smp_sieve_ddr3.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; reset chip, connect to first core only
+  RESet
+  SYStem.RESet
+  SYStem.CPU iMX6QUAD
+  CORE.ASSIGN 1
+  SYStem.Option ResBreak OFF
+  IF VERSION.BUILD()<92177.
+  (
+    SYStem.Option WaitReset 0.6s
+  )
+  ELSE
+  (
+    SYStem.Option WaitIDCODE 1.5s
+  )
+  Trace.METHOD Onchip
+  SYStem.Up
+
+  GOSUB DDR_init
+; enable other cores and connect to all of them
+  Data.Set ASD:0x020d8000 %Long 0x01C00521
+
+  SYStem.Down
+  CORE.ASSIGN 1 2 3 4
+  SYStem.Mode Attach
+
+  IF STATE.RUN()
+    Break.direct
+
+
+  CORE.select 0.
+  Register.RESet
+  Data.LOAD.Elf ~~~~/demo_ddr.axf   ; load demo on DDR
+
+  CORE.select 1.
+  Register.RESet
+  Register.Set PC  background
+  Register.Set R13 0x917000
+
+  CORE.select 2.
+  Register.RESet
+  Register.Set PC  background
+  Register.Set R13 0x917000
+
+  CORE.select 3.
+  Register.RESet
+  Register.Set PC  background
+  Register.Set R13 0x917000
+
+  CORE.select 0.
+
+; open some windows
+  WinCLEAR
+
+  WinPOS 0% 0% 50% 50%
+  List.auto
+
+  WinPOS 50% 0% 50% 50%
+  Register.view /SpotLight
+
+  WinPOS 0% 50% 50% 50%
+  Frame /Locals /Caller
+
+  WinPOS 50% 50% 50% 50%
+  Var.Watch
+  Var.AddWatch ast; flags;
+
+  ENDDO
+
+
+DDR_init:
+  ; Disable WDOG
+  Data.Set 0x020bc000 %Word 0x30
+
+  ; Enable all clocks (they are disabled by ROM code)
+  Data.Set 0x020c4068 %Long 0xffffffff
+  Data.Set 0x020c406c %Long 0xffffffff
+  Data.Set 0x020c4070 %Long 0xffffffff
+  Data.Set 0x020c4074 %Long 0xffffffff
+  Data.Set 0x020c4078 %Long 0xffffffff
+  Data.Set 0x020c407c %Long 0xffffffff
+  Data.Set 0x020c4080 %Long 0xffffffff
+  Data.Set 0x020c4084 %Long 0xffffffff
+
+  ; Initialize 64-bit DDR3
+
+  ; IOMUX
+  Data.Set 0x020e05a8 %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_PAD_DRAM_SDQS0 - DSE=110
+  Data.Set 0x020e05b0 %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_PAD_DRAM_SDQS1 - DSE=110
+  Data.Set 0x020e0524 %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_PAD_DRAM_SDQS2 - DSE=110
+  Data.Set 0x020e051c %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_PAD_DRAM_SDQS3 - DSE=110
+  Data.Set 0x020e0518 %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_PAD_DRAM_SDQS4 - DSE=110
+  Data.Set 0x020e050c %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_PAD_DRAM_SDQS5 - DSE=110
+  Data.Set 0x020e05b8 %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_PAD_DRAM_SDQS6 - DSE=110
+  Data.Set 0x020e05c0 %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_PAD_DRAM_SDQS7 - DSE=110
+  Data.Set 0x020e05ac %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_PAD_DRAM_DQM0 - DSE=110, DDR_INPUT=1, HYS=0
+  Data.Set 0x020e05b4 %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_PAD_DRAM_DQM1 - DSE=110, DDR_INPUT=1, HYS=0
+  Data.Set 0x020e0528 %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_PAD_DRAM_DQM2 - DSE=110, DDR_INPUT=1, HYS=0
+  Data.Set 0x020e0520 %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_PAD_DRAM_DQM3 - DSE=110, DDR_INPUT=1, HYS=0
+  Data.Set 0x020e0514 %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_PAD_DRAM_DQM4 - DSE=110, DDR_INPUT=1, HYS=0
+  Data.Set 0x020e0510 %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_PAD_DRAM_DQM5 - DSE=110, DDR_INPUT=1, HYS=0
+  Data.Set 0x020e05bc %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_PAD_DRAM_DQM6 - DSE=110, DDR_INPUT=1, HYS=0
+  Data.Set 0x020e05c4 %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_PAD_DRAM_DQM7 - DSE=110, DDR_INPUT=1, HYS=0
+  Data.Set 0x020e056c %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_PAD_DRAM_CAS - DSE=110, DDR_INPUT=1, HYS=0
+  Data.Set 0x020e0578 %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_PAD_DRAM_RAS - DSE=110, DDR_INPUT=1, HYS=0
+  Data.Set 0x020e0588 %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_PAD_DRAM_SDCLK_0 - DSE=101, DDR_INPUT=0, HYS=0
+  Data.Set 0x020e0594 %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_PAD_DRAM_SDCLK_1 - DSE=101, DDR_INPUT=0, HYS=0
+  Data.Set 0x020e057c %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_PAD_DRAM_RESET - DSE=110, DDR_INPUT=1, HYS=0, DDR_SEL=00
+  Data.Set 0x020e0590 %Long 0x00003000 ; IOMUXC_SW_PAD_CTL_PAD_DRAM_SDCKE0
+  Data.Set 0x020e0598 %Long 0x00003000 ; IOMUXC_SW_PAD_CTL_PAD_DRAM_SDCKE1
+  Data.Set 0x020e058c %Long 0x00000000 ; IOMUXC_SW_PAD_CTL_PAD_DRAM_SDBA2
+  Data.Set 0x020e059c %Long 0x00003030 ; IOMUXC_SW_PAD_CTL_PAD_DRAM_SDODT0
+  Data.Set 0x020e05a0 %Long 0x00003030 ; IOMUXC_SW_PAD_CTL_PAD_DRAM_SDODT1
+  Data.Set 0x020e0784 %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_GRP_B0DS - DSE=110
+  Data.Set 0x020e0788 %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_GRP_B1DS - DSE=110
+  Data.Set 0x020e0794 %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_GRP_B2DS - DSE=110
+  Data.Set 0x020e079c %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_GRP_B3DS - DSE=110
+  Data.Set 0x020e07a0 %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_GRP_B4DS - DSE=110
+  Data.Set 0x020e07a4 %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_GRP_B5DS - DSE=110
+  Data.Set 0x020e07a8 %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_GRP_B6DS - DSE=110
+  Data.Set 0x020e0748 %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_GRP_B7DS - DSE=110
+  Data.Set 0x020e074c %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_GRP_ADDDS - DSE=110
+  Data.Set 0x020e0750 %Long 0x00020000 ; IOMUXC_SW_PAD_CTL_GRP_DDRMODE_CTL - DDR_INPUT=1
+  Data.Set 0x020e0758 %Long 0x00000000 ; IOMUXC_SW_PAD_CTL_GRP_DDRPKE - PKE=0
+  Data.Set 0x020e0774 %Long 0x00020000 ; IOMUXC_SW_PAD_CTL_GRP_DDRMODE- DDR_INPUT 1,diff
+  Data.Set 0x020e078c %Long 0x00000030 ; IOMUXC_SW_PAD_CTL_GRP_CTLDS - DSE=110
+  Data.Set 0x020e0798 %Long 0x000c0000 ; IOMUXC_SW_PAD_CTL_GRP_DDR_TYPE - DDR_SEL=11
+
+  ; Initialize 2GB DDR3 - Micron MT41J128M
+  Data.Set 0x021b081c %Long 0x33333333      ; DDR_PHY_P0_MPREDQBY0DL3
+  Data.Set 0x021b0820 %Long 0x33333333      ; DDR_PHY_P0_MPREDQBY1DL3
+  Data.Set 0x021b0824 %Long 0x33333333      ; DDR_PHY_P0_MPREDQBY2DL3
+  Data.Set 0x021b0828 %Long 0x33333333      ; DDR_PHY_P0_MPREDQBY3DL3
+  Data.Set 0x021b481c %Long 0x33333333      ; DDR_PHY_P1_MPREDQBY0DL3
+  Data.Set 0x021b4820 %Long 0x33333333      ; DDR_PHY_P1_MPREDQBY1DL3
+  Data.Set 0x021b4824 %Long 0x33333333      ; DDR_PHY_P1_MPREDQBY2DL3
+  Data.Set 0x021b4828 %Long 0x33333333      ; DDR_PHY_P1_MPREDQBY3DL3
+  Data.Set 0x021b0018 %Long 0x00081740      ; MMDC0_MDMISC, RALAT=0x5 (original value)
+  Data.Set 0x021b001c %Long 0x00008000      ; MMDC0_MDSCR
+  Data.Set 0x021b000c %Long 0x555A7975      ; MMDC0_MDCFG0 see spread sheet for timings
+  Data.Set 0x021b0010 %Long 0xFF538E64      ; MMDC0_MDCFG1 see spread sheet for timings
+  Data.Set 0x021b0014 %Long 0x01ff00db      ; MMDC0_MDCFG2 - tRRD - 4ck; tWTR - 4ck; tRTP - 4ck; tDLLK - 512ck
+  Data.Set 0x021b002c %Long 0x000026d2      ; MMDC0_MDRWD
+  Data.Set 0x021b0030 %Long 0x005b0e21      ; MMDC0_MDOR - tXPR - 92ck; SDE_to_RST - 13ck; RST_to_CKE - 32ck
+  Data.Set 0x021b0008 %Long 0x09444040      ; MMDC0_MDOTC see spread sheet for timings
+  Data.Set 0x021b0004 %Long 0x00025576      ; MMDC0_MDPDC see spread sheet for timings, power down enabled
+  Data.Set 0x021b0040 %Long 0x00000027      ; CS0_END - 0x4fffffff
+  Data.Set 0x021b0000 %Long 0xc31a0000      ; MMDC0_MDCTL - row - 14bits; col %Long 10bits; burst length 8; 64-bit data bus
+  Data.Set 0x021b0404 %Long 0x00011006      ;MMDC0_MAPSR adopt power down enabled
+  Data.Set 0x021b001c %Long 0x04088032      ; MMDC0_MDSCR
+  Data.Set 0x021b001c %Long 0x0408803a      ; MMDC0_MDSCR
+  Data.Set 0x021b001c %Long 0x00008033      ; MMDC0_MDSCR
+  Data.Set 0x021b001c %Long 0x0000803b      ; MMDC0_MDSCR
+  Data.Set 0x021b001c %Long 0x00428031      ; MMDC0_MDSCR
+  Data.Set 0x021b001c %Long 0x00428039      ; MMDC0_MDSCR
+
+  ;Data.Set 0x021b001c %Long 0x00408031     ; MMDC0_MDSCR
+  ;Data.Set 0x021b001c %Long 0x00408039     ; MMDC0_MDSCR
+
+  ;Data.Set 0x021b001c %Long 0x09308030      ; MMDC0_MDSCR
+  ;Data.Set 0x021b001c %Long 0x09308038      ; MMDC0_MDSCR
+  Data.Set 0x021b001c %Long 0x09408030      ; MMDC0_MDSCR, CL=0x8, 8 clks
+  Data.Set 0x021b001c %Long 0x09408038      ; MMDC0_MDSCR, CL=0x8, 8 clks
+
+  Data.Set 0x021b001c %Long 0x04008040      ; MMDC0_MDSCR
+  Data.Set 0x021b001c %Long 0x04008048      ; MMDC0_MDSCR
+  Data.Set 0x021b0800 %Long 0xa1380003      ; DDR_PHY_P0_MPZQHWCTRL
+  Data.Set 0x021b4800 %Long 0xa1380003      ; DDR_PHY_P0_MPZQHWCTRL
+  Data.Set 0x021b0020 %Long 0x00005800      ; MMDC0_MDREF
+  ;Data.Set 0x021b0818 %Long 0x00022221      ; DDR_PHY_P0_MPODTCTRL
+  ;Data.Set 0x021b4818 %Long 0x00022221      ; DDR_PHY_P1_MPODTCTRL
+  Data.Set 0x021b0818 %Long 0x00022227      ; DDR_PHY_P0_MPODTCTRL
+  Data.Set 0x021b4818 %Long 0x00022227      ; DDR_PHY_P1_MPODTCTRL
+
+  Data.Set 0x021b083c %Long 0x434b0350
+  Data.Set 0x021b0840 %Long 0x034c0359
+  Data.Set 0x021b483c %Long 0x434b0350
+  Data.Set 0x021b4840 %Long 0x03650348
+  Data.Set 0x021b0848 %Long 0x4436383b
+  Data.Set 0x021b4848 %Long 0x39393341
+  Data.Set 0x021b0850 %Long 0x35373933
+  Data.Set 0x021b4850 %Long 0x48254a36
+
+  ; write leveling
+  Data.Set 0x021b080c %Long 0x001F001F
+  Data.Set 0x021b0810 %Long 0x001F001F
+
+  Data.Set 0x021b480c %Long 0x00440044
+  Data.Set 0x021b4810 %Long 0x00440044
+
+  Data.Set 0x021b08b8 %Long 0x00000800      ; DDR_PHY_P0_MPMUR0, frc_msr
+  Data.Set 0x021b48b8 %Long 0x00000800      ; DDR_PHY_P0_MPMUR0, frc_msr
+
+  Data.Set 0x021b001c %Long 0x00000000      ; MMDC0_MDSCR
+
+  RETURN

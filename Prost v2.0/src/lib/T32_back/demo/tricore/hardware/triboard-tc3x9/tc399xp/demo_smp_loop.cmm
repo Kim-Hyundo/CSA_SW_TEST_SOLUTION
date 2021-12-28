@@ -1,0 +1,184 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC399XP on TriBoard-TC3x9 (SMP, mini loop)
+; @Description:
+;   Assembles a simple endless loop into RAM and sets up a demo debug scenario
+;   for SMP debugging.
+; @Keywords: AURIX2G, Infineon, multi-core, TriCore
+; @Author: MOB
+; @Board: TriBoard-TC3x9
+; @Chip: TC399XP
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo_smp_loop.cmm 15539 2020-01-17 12:22:53Z meick $
+
+
+GOSUB Initialize
+
+GOSUB AssembleLoops
+
+GOSUB OpenWindows
+
+GOSUB OptionalSettings
+
+; demo script ends here
+ENDDO
+
+; --------------------------------------------------------------------------------
+; subroutines:
+
+; initialize and start the debugger
+Initialize:
+(
+  RESet
+  SYStem.CPU TC399XP
+  ; The TriBoard-TC3x9 comes with a TLF35584 power supply
+  ; This power supply has integrated watchdog functionality which will cut all
+  ; power if not served correctly. By default this demo will disable this
+  ; watchdog functionality. This includes configuring the QSPI controller as
+  ; well as writing data to the QSPI.
+
+  IF !STATE.POWER()
+  (
+    DO ~~~~/disable_tlf35584.cmm
+  )
+  SYStem.Down
+  CORE.ASSIGN 1. 2. 3. 4. 5. 6. // assign cores to the SMP system
+  SYStem.Up
+
+  RETURN
+)
+
+; Assemble an endless loop for each core into internal memory
+AssembleLoops:
+(
+  PRIVATE &core
+
+  &core=0.
+  WHILE (&core<CORE.NUMBER())
+  (
+    GOSUB AssembleLoopCore "&core"
+    GOSUB ResetBootHalt "&core"
+    &core=&core+1.
+  )
+  CORE.select 0.
+
+  RETURN
+)
+
+; open some windows
+OpenWindows:
+(
+  PRIVATE &x &dx &y &dy &core
+
+  WinCLEAR
+  WinPOS 0% 0% 33% 33%
+  TargetSystem.state
+  WinPOS 33% 0% 33% 33%
+  List.auto
+  WinPOS 66% 0% 33% 33%
+  Break.List
+
+  &x=0.
+  &y=33.
+  &dx=100./CORE.NUMBER()
+  &dy=33.
+  &core=0.
+  WHILE (&core<CORE.NUMBER())
+  (
+    GOSUB WinPosRelative "&x" "&y" "&dx" "&dy"
+    List.auto /CORE &core
+    GOSUB WinPosRelative "&x" "&y+&dy" "&dx" "&dy"
+    Register.view /CORE &core
+    &x=&x+&dx
+    &core=&core+1.
+  )
+
+  RETURN
+)
+
+OptionalSettings:
+(
+  SYStem.Option DUALPORT ON
+  SETUP.Var %SpotLight.on
+  MAP.BOnchip 0x0--0xffffffff // force onchip-breakpoints
+
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; helper subroutines:
+
+AssembleLoopCore:
+(
+  PARAMETERS &core
+  PRIVATE &dataRegister &addrPSPR
+
+  &dataRegister="D"+FORMAT.Decimal(0.,&core)
+  GOSUB GetPsprAddr "&core"
+  RETURNVALUES &addrPSPR
+  Data.Assemble &addrPSPR nop nop nop addi &dataRegister,&dataRegister,0x1 nop j &addrPSPR
+  Register.Set PC &addrPSPR /CORE &core
+
+  RETURN
+)
+
+ResetBootHalt:
+(
+  PARAMETERS &core
+  PRIVATE &addrCSFRbase &addrSyscon &valueSyscon &bitshiftSysconBhalt
+
+  &bitshiftSysconBhalt=24. // SYSCON.BHALT
+  GOSUB GetCsfrBaseAddr "&core"
+  RETURNVALUES &addrCSFRbase
+  &addrSyscon=ED:&addrCSFRbase+0xFE14
+  &valueSyscon=Data.Long(&addrSyscon)
+  &valueSyscon=(&valueSyscon)&(~(0x1<<&bitshiftSysconBhalt)) // reset SYSCON.BHALT
+  PER.Set.simple &addrSyscon %Long &valueSyscon
+
+  RETURN
+)
+
+; Get the global base address of the Program Scratch-Pad SRAM of a core
+GetPsprAddr:
+(
+  PARAMETERS &core
+  PRIVATE &addrPSPR
+
+  &core="0x"+FORMAT.HEX(0.,&core)
+  &addrPSPR=0x70100000-(&core*0x10000000)
+  IF (&core>=5.)
+  (
+    &addrPSPR=&addrPSPR-0x10000000
+  )
+
+  RETURN "&addrPSPR"
+)
+
+; Get the base address of the Core Special Function Registers of a core
+GetCsfrBaseAddr:
+(
+  PARAMETERS &core
+  PRIVATE &addrCSFRbase
+
+  &core="0x"+FORMAT.HEX(0.,&core)
+  &addrCSFRbase=0xF8810000+(&core*0x20000)
+  IF (&core>=5.)
+  (
+    &addrCSFRbase=&addrCSFRbase+0x20000
+  )
+
+  RETURN "&addrCSFRbase"
+)
+
+WinPosRelative:
+(
+  PARAMETERS &x &y &dx &dy
+
+  &x=FORMAT.Decimal(0.,&x)
+  &y=FORMAT.Decimal(0.,&y)
+  &dx=FORMAT.Decimal(0.,&dx)
+  &dy=FORMAT.Decimal(0.,&dy)
+  WinPOS &x% &y% &dx% &dy%
+
+  RETURN
+)

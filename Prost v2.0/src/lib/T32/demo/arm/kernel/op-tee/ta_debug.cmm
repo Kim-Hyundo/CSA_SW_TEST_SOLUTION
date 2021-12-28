@@ -1,0 +1,99 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to debug an OP-TEE Trusted Application from the start
+; @Description:
+;   This script is part of the TRACE32 optee Awareness
+;
+; @Keywords: optee ta awareness
+; @Author: KJM
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: ta_debug.cmm 4817 2019-11-21 17:06:07Z amerkle $
+
+
+PRIVATE &machine
+ENTRY &machine
+
+IF "&machine"==""
+  &machine=0
+
+IF sYmbol.COUNT(\\*\*elf_load\elf_load_final)!=0
+(
+  PRIVATE &address &magic &entry_func
+  &address=elf_load_final
+
+  IF STATE.RUN()
+    Break
+
+  Break.Set &address /ONCHIP
+
+  ON.PBREAKAT ADDRESS.OFFSET(&address) GOTO continue
+  Go
+  PRINT "Start trusted application now..."
+  STOP
+
+continue:
+  ON.PBREAKAT
+  Break.Delete &address
+  &magic=TASK.TA.CURRENT()
+  &entry_func=TASK.TA.ENTRY(&magic)
+  Break.Set Z:&machine:::&entry_func /Onchip
+  ON.PBREAKAT &entry_func GOTO continue_entry
+  Go
+  STOP
+
+continue_entry:
+  ON.PBREAKAT
+  Break.Delete &entry_func
+  LOCAL &asid &load_addr
+  &asid=TASK.TA.ASID(&magic)
+  &load_addr=TASK.TA.LOADADDR(&magic)
+  sYmbol.AutoLOAD.Delete Z:&machine:::&asid:&load_addr
+  sYmbol.AutoLOAD.CHECK
+  sYmbol.AutoLOAD.TOUCH Z:&machine:::&load_addr
+)
+ELSE IF sYmbol.COUNT(\\*\Global\ldelf_code_size)!=0
+(
+  &sTmpFile=OS.TMPFILE()+".cmm"
+  STOre "&sTmpFile" BREAK
+  Break.DISable
+  PRIVATE &nMagic &pEntryFunc
+
+  Break.CONFIG.MatchZone ON
+
+  Break
+  Break.Set tee_ta_init_user_ta_session
+  ON.PBREAKAT ADDRESS.OFFSET(tee_ta_init_user_ta_session) GOTO continue2_init
+  PRINT "Start trusted application now..."
+  Go
+  STOP
+
+continue2_init:
+  ON.PBREAKAT
+  Break.Delete tee_ta_init_user_ta_session
+  Break.Set user_ta_enter
+  ON.PBREAKAT  ADDRESS.OFFSET(user_ta_enter) GOTO continue2_enter
+  Go
+  STOP
+
+continue2_enter:
+  &nMagic=TASK.TA.CURRENT()
+  &pEntryFunc=TASK.TA.ENTRY(&nMagic)
+  Break.Set Z:&pEntryFunc /Onchip /Program
+  ON.PBREAKAT &pEntryFunc GOTO continue2_entry
+  Go
+  STOP
+
+continue2_entry:
+  ON.PBREAKAT
+  Break.Delete Z:&pEntryFunc
+  PRIVATE &nSpaceID &nLoadOffset
+  &nSpaceID=TASK.TA.ASID(&nMagic)
+  &nLoadOffset=TASK.TA.LOADADDR(&nMagic)
+  sYmbol.AutoLOAD.Delete Z:&nSpaceID:&nLoadOffset
+  sYmbol.AutoLOAD.CHECK
+  sYmbol.AutoLOAD.TOUCH Z:&nSpaceID:&nLoadOffset
+
+  DO "&sTmpFile"
+  DEL "&sTmpFile"
+)
+ENDDO

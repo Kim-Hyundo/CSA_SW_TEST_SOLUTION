@@ -1,0 +1,217 @@
+; --------------------------------------------------------------------------------
+; @Title: Run a Multi Sieve demo in SRAM for the OMAP4430 PandaBoard
+; @Description:
+;   This demo shows how to connect TRACE32 to the PandaBoard
+;   and start an AMP debugging session on CortexA9 and CortexM3 cores.
+;   Please note that this script is calling external script to setup
+;   general configuration:
+;   DO ~~~~/../../ti_scripts/omap4430_cortexa9_cpu0
+;
+; @Keywords: AMP, Multisieve
+; @Author: MSA
+; @Board: PandaBoard
+; @Chip: OMAP4430*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: panda_multisieve_amp_demo.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+  LOCAL &CM3_start_addr &curr_dir &exec_name
+  LOCAL &portGUI0 &portGUI1
+  LOCAL &addrGUI0 &addrGUI1
+  LOCAL &CORTEXM3_RESET_STATE
+
+  &CORTEXM3_RESET_STATE=0
+
+  &curr_dir=OS.PPD()
+  &pcf=OS.PCF()
+  &configpath=OS.FILE.PATH(&pcf)
+  &configfile=OS.FILE.NAME(&pcf)
+
+  IF (OS.VERSION(0)>=0x20)||(OS.VERSION(0)==0x0)
+  (
+    PRINT "Demo unsupported for this OS"
+    ENDDO
+  )
+  ELSE IF OS.VERSION(0)>=0x10
+  (
+    &exec_name="t32marm-qt"
+  )
+  ELSE
+  (
+    &exec_name="t32marm"
+  )
+
+  GOSUB setup_intercom
+  GOSUB QuitSlaveGui "&portGUI1"
+  WAIT 0.5s
+  GOSUB StartSlaveGui "&exec_name" "&configfile" "&portGUI1" "Panda_MultiSieve_AMP_Session" "2"
+
+  ON CMD CA9 GOSUB coreCA9
+  ON CMD CM3 GOSUB coreCM3
+  ON CMD COREALL GOSUB coreAll
+
+
+  COREALL  "RESet"
+  COREALL  "SYStem.RESet"
+  CM3      "SYStem.CPU OMAP4430DUCATI1"
+
+  CA9 "DO ""&(curr_dir)/../../ti_scripts/omap4430_cortexa9_cpu0.cmm"""
+
+; release CM3 from reset
+  CA9 "GOSUB reset_ducati_cortexM3_RTOS"
+
+  CM3 "SYStem.Mode Attach"
+  CM3 "Break.direct"
+
+  CA9  "Data.LOAD.Elf ""&(curr_dir)/sieve_ram_thumb_ii_v7.elf"""
+
+  CM3  "Data.LOAD.Elf ""&(curr_dir)/sieve_ram_thumb_ii_v7m.elf"""
+
+  ; open some windows
+  COREALL  "WinCLEAR"
+
+  COREALL  "WinPOS 0% 0% 50% 50%"
+  COREALL  "List.auto"
+
+  COREALL  "WinPOS 50% 0% 50% 50%"
+  COREALL  "Register.view /SpotLight"
+
+  COREALL  "WinPOS 0% 50% 50% 50%"
+  COREALL  "Frame /Locals /Caller"
+
+  COREALL  "WinPOS 50% 50% 50% 50%"
+  COREALL  "Var.DRAW sinewave"
+
+  CA9  "GO"
+  CA9  "WAIT 2.s"
+  CA9  "Break.direct"
+  CM3  "GO"
+  CM3  "WAIT 2.s"
+  CM3  "Break.direct"
+
+  ENDDO
+
+
+; --------------------------------------------------------------------------------
+  ; Intercom helper routines
+setup_intercom:
+  (
+    &portGUI0=FORMAT.Decimal(1.,INTERCOM.PORT())
+    &portGUI1=FORMAT.Decimal(1.,INTERCOM.PORT()+1.)
+    &addrGUI0="127.0.0.1:&portGUI0"
+    &addrGUI1="127.0.0.1:&portGUI1"
+    RETURN
+  )
+
+QuitSlaveGui: ;(SlaveIntercomPort)
+  (
+    LOCAL &SlaveIntercomPort
+    PARAMETERS &SlaveIntercomPort
+    IF INTERCOM.PING(localhost:&SlaveIntercomPort)
+    (
+      INTERCOM.executeNoWait localhost:&SlaveIntercomPort QUIT
+    )
+    RETURN
+  )
+
+StartSlaveGui: ;(ExecFile, ConfigFile, SlaveIntercomPort, Name, Index)
+  (
+    LOCAL &ExecFile &ConfigFile &SlaveIntercomPort &Name &Index &patht32m &pathconfig
+    PARAMETERS &ExecFile &ConfigFile &SlaveIntercomPort &Name &Index
+    &pathsys=OS.PSD()
+    &patht32m=OS.PED()+"/"+"&ExecFile"
+    &pathconfig=OS.PPD()+"/"+"&ConfigFile"
+
+    IF OS.VERSION(0)>=0x10
+    (
+      OS &patht32m -c &pathconfig &pathsys &SlaveIntercomPort &Name CORE=&Index &
+    )
+    ELSE
+    (
+      OS &patht32m -c &pathconfig &pathsys &SlaveIntercomPort &Name CORE=&Index
+    )
+
+    WAIT 3.s
+    INTERCOM.WAIT localhost:&SlaveIntercomPort
+
+    RETURN
+  )
+
+coreCA9:
+  (
+    LOCAL &params
+    PARAMETERS &params
+    &params ; ;execute on this gui
+    RETURN
+  )
+
+coreCM3:
+  (
+    LOCAL &params
+    PARAMETERS &params
+    INTERCOM.EXECUTE &addrGUI1 &params ; execute on remote gui1
+    RETURN
+  )
+
+coreAll:
+  (
+    LOCAL &params
+    PARAMETERS &params
+    GOSUB coreCA9 "&params"
+    GOSUB coreCM3 "&params"
+    RETURN
+  )
+
+reset_ducati_cortexM3_RTOS:
+(
+  ENTRY
+  LOCAL &register
+
+  PRINT "--->>> reset_ducati_cortexM3_RTOS <<<--- "
+
+  IF (&CORTEXM3_RESET_STATE==0)
+  (
+    Data.Set NSR:0x4A008920 %Long 0x00000001
+    Data.Set NSR:0x4A008900 %Long 0x00000002
+
+    // while ((Data.Long(NSR:0x4A008900)&0x100)!=0x100)
+    WAIT (Data.Long(NSR:0x4A008900)&0x100)==0x100
+  )
+
+  IF ((&CORTEXM3_RESET_STATE&0x1)!=0x1)
+  (
+    &register=Data.Long(NSR:0x4a306910)
+
+    IF ((&CORTEXM3_RESET_STATE&0x2)!=0x2)
+    (
+      &register=&register&0xFFFFFFFB
+      Data.Set NSR:0x4a306910 %Long &register
+
+      // while ((Data.Long(NSR:0x4A306914)&0x4)!=0x4)
+      WAIT (Data.Long(NSR:0x4A306914)&0x4)==0x4
+
+      Data.Set NSR:0x4a306914 %Long 0x4
+
+
+      Data.Set NSR:0x55080a20 %Long 0xf
+      Data.Set NSR:0x55080a24 %Long 0xf
+
+      Data.Set NSR:0x550809a0 %Long 0x55020000
+
+      Data.Set NSR:0x55020004 %Long 0x801
+      Data.Set NSR:0x55020800 %Long 0xE7FEE7FE
+    )
+    &register=&register&0xFFFFFFFE
+    Data.Set NSR:0x4a306910 %Long &register
+
+    // while ((Data.Long(NSR:0x4A306914)&0x1)!=0x1)
+    WAIT (Data.Long(NSR:0x4A306914)&0x1)==0x1
+
+    Data.Set NSR:0x4a306914 %Long 0x1
+
+    &CORTEXM3_RESET_STATE=&CORTEXM3_RESET_STATE|0x1
+  )
+
+  PRINT "---<<< reset_ducati_cortexM3_RTOS >>>--- "
+  RETURN
+)

@@ -1,0 +1,36 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for loading TASKING object file in IEEE (ABS) format
+; @Description:
+;   Compiler: TASKING C-Compiler for TriCore
+;   CPU: TC10GP
+;
+;   Use the simulator to avoid conflicts with non-existant memory.
+;   This script is intended for loading an object file only. There
+;   is no guarantee the application will work without hardware.
+;
+; @Keywords: abs, compiler, Infineon, tasking, TriCore
+; @Author: MAX
+; @Chip: TC10GP
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: taskc.cmm 7822 2014-10-29 13:57:15Z kjmal $
+
+
+WinCLEAR
+
+SYStem.RESet
+SYStem.CPU TC10GP
+SYStem.Up
+
+;Data.LOAD.Ieee "~~~~/taskc.abs" /MSECtion
+Data.LOAD.Ieee "~~~~/taskc10.abs" /MSECtion
+
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch
+Var.AddWatch ast flags
+
+ENDDO

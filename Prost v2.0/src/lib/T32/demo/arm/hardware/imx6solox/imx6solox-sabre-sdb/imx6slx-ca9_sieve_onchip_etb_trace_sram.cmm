@@ -1,0 +1,61 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for IMX6SOLOX on MCIMX6SX-SDB with Onchip-Trace (RAM, ETB)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Onchip-Trace (ETB).
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to J17
+; @Keywords: ARM, Cortex-A9, ETB, ETM
+; @Author: AME
+; @Board: MCIMX6SX-SDB, i.MX6SoloX Sabre Board
+; @Chip: IMX6SOLOX
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx6slx-ca9_sieve_onchip_etb_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU IMX6SOLOX-CA9
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 10.0ms
+SYStem.JtagClock CTCK 10MHz
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_arm_v7.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; initialize ONCHIP trace (ETB)
+Trace.METHOD ONCHIP
+ETM.Trace ON
+ETM.ON
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

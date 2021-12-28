@@ -1,0 +1,276 @@
+; --------------------------------------------------------------------------------
+; @Title: UCB Helper routines for XMC4xxx family
+; @Description:
+;   Usage:
+;     DO xmc4xxx-ucb PROGRAMUCB UCB=0x<0|1> PWD=0x<pw0>_0x<pw1> PROCON=0x<value>
+;       programs UCBx
+;     DO xmc4xxx-ucb ERASEUCB UCB=0x<0|1>
+;       erases a specific UCBx
+;     DO xmc4xxx-ucb UNLOCKWRITE UCB=0x<0|1> PWD=0x<pw0>_0x<pw1>
+;       disables the write protection set by a specific ucb
+;
+;   Parameters:
+;     UCB=0x<ucb> set the UCB to program as hex number
+;     PWD=<pwd0>_<pwd1>_ ... _<pwd7> password to unlock/program
+;     PROCON=0x<value> the procon register values to program
+;       please check the Reference manual for valid values
+;
+;   Example for XMC4200:
+;     DO xmc4xxx-ucb PROGRAMUCB UCB=0x0 PWD=0x1_0x2 PROCON=0x100
+;       programs UCB0, with password 0x1 0x2  and sets the lock for sector 9
+;     DO xmc4xxx-ucb UNLOCKWRITE UCB=0x0 PWD=0x1_0x2 
+;       disables the write protection set by UCB0, using password 0x1 0x2
+;
+;   Notes:
+;     * please note that if UCB0 with PROCON=0x8??? is programmed that the device 
+;       is locked for debugging after the programming (read protection)
+;     * programming of UCB2 is not handled in this script
+;
+; @Keywords: ARM, Infineon, Flash, UCB, unlock
+; @Author: AME
+; @Board: -
+; @Chip: XMC4*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: xmc4xxx-ucb.cmm 7602 2019-11-05 15:02:25Z bschroefel $
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+; --------------------------------------------------------------------------------
+; parse parameters
+
+PRIVATE &param_UCB &param_PWD &param_PROCON &param_program &param_erase &param_unlock
+&param_UCB="0x"+STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"UCB=0X","f")
+&param_PWD="0x"+STRing.REPLACE(STRing.SCANAndExtract(STRing.LoWeR("&parameters"),"pwd=0x",""),"_"," ",0)
+&param_PROCON="0x"+STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"PROCON=0X","0")
+
+&param_program=(STRing.SCAN(STRing.UPpeR("&parameters"),"PROGRAMUCB",0)!=-1)
+&param_erase=(STRing.SCAN(STRing.UPpeR("&parameters"),"ERASEUCB",0)!=-1)
+&param_unlock=(STRing.SCAN(STRing.UPpeR("&parameters"),"UNLOCKWRITE",0)!=-1)
+
+; --------------------------------------------------------------------------------
+; check parameters
+IF !((0x0<=&param_UCB)&&(&param_UCB<=0x1))
+(
+  GOSUB WrongUsage
+)
+IF (&param_program||&param_unlock)
+(
+  IF STRing.Count("&param_PWD","0x")!=2.
+  (
+    GOSUB WrongUsage
+  )
+)
+
+; --------------------------------------------------------------------------------
+; execute commands
+IF (&param_program)
+(
+  GOSUB ProgramUCBx &param_UCB &param_PROCON &param_PWD
+)
+ELSE IF (&param_erase)
+(
+  GOSUB EraseUCBx "&param_UCB"
+)
+ELSE IF (&param_unlock)
+(
+  GOSUB DisableUCBxWriteProtection &param_UCB &param_PWD
+)
+
+ENDDO TRUE()
+
+; --------------------------------------------------------------------------------
+; TOPLEVEL Subroutines
+
+ProgramUCBx: ;(ucb, procon, pw0, pw1)
+(
+  PRIVATE &ucb &procon &pw0 &pw1
+  ENTRY &ucb &procon &pw0 &pw1
+  Var.NEWLOCAL unsigned int[64] \UCB_Page0
+  Var.NEWLOCAL unsigned int[64] \UCB_Page2
+
+  ; calculate the UCB content
+  Var.Assign \UCB_Page0[0]=&procon
+  Var.Assign \UCB_Page0[2]=\UCB_Page0[0]
+  Var.Assign \UCB_Page0[4]=&pw0
+  Var.Assign \UCB_Page0[5]=&pw1
+  Var.Assign \UCB_Page0[6]=\UCB_Page0[4]
+  Var.Assign \UCB_Page0[7]=\UCB_Page0[5]
+  Var.Assign \UCB_Page2[0]=0x8afe15c3
+  Var.Assign \UCB_Page2[2]=\UCB_Page2[0]
+
+  PRIVATE &ucbBase
+  &ucbBase=0x0c000000+&ucb*0x400
+
+  GOSUB ClearStatus
+  GOSUB ResetToRead
+  GOSUB EraseUserConfigBlock "&ucbBase+0x0"
+  GOSUB WaitTillReady
+  GOSUB EnterPageMode
+  GOSUB LoadPage "\UCB_Page0"
+  GOSUB WriteUserConfigPage "&ucbBase+0x0"
+  GOSUB WaitTillReady
+  GOSUB ResetToRead
+  GOSUB EnterPageMode
+  GOSUB LoadPage "\UCB_Page2"
+  GOSUB WriteUserConfigPage "&ucbBase+0x200"
+  GOSUB WaitTillReady
+  GOSUB ResetToRead
+
+  PRINT "UCB"+FORMAT.Decimal(1.,&ucb)+" programmed successfully."
+  RETURN
+)
+
+EraseUCBx: ;(ucb)
+(
+  PARAMETERS &ucb
+  PRIVATE &ucbBase
+  &ucbBase=0x0c000000+&ucb*0x400
+
+  GOSUB ClearStatus
+  GOSUB ResetToRead
+  GOSUB EraseUserConfigBlock "&ucbBase+0x0"
+  GOSUB WaitTillReady
+  GOSUB ResetToRead
+  RETURN
+)
+
+DisableUCBxWriteProtection: ;(ucb, pw0, pw1)
+(
+  PRIVATE &ucb &pw0 &pw1
+  ENTRY &ucb &pw0 &pw1
+  GOSUB DisableWriteProtection "&ucb" "&pw0" "&pw1"
+  PRINT "Flash Write protection unlocked"
+  RETURN
+)
+
+WrongUsage: ;()
+(
+  PRINT %ERROR "Wrong usage, check header for more details."
+  ENDDO FALSE()
+)
+
+; --------------------------------------------------------------------------------
+; LOWLEVEL Subroutines
+
+WaitTillReady: ;()
+(
+  PRIVATE &value &sqer &pbusy &prog
+  RePeaT
+  (
+    &value=Data.Long(AD:0x58002010)
+    &sqer=(&value&0x400)!=0
+    &pbusy=(&value&0x1)!=0
+    &prog=(&value&0x10)!=0
+    IF &sqer
+    (
+      PRINT "Fatal Error"
+      STOP
+    )
+  )
+  WHILE (&pbusy)
+  GOSUB ClearStatus
+  RETURN
+)
+
+ResetToRead: ;()
+(
+  Data.Set AD:0x0c000000+0x5554 %L 0xF0
+  RETURN
+)
+
+EnterPageMode: ;()
+(
+  Data.Set AD:0x0c000000+0x5554 %L 0x50
+  RETURN
+)
+
+LoadPage: ;(\hllArray[256/4])
+(
+  PRIVATE &i
+  PARAMETERS &array
+  &i=0.
+  RePeaT 32.
+  (
+    Data.Set AD:0x0c000000+0x55F0 %L Var.VALUE(&array[&i+0.])
+    Data.Set AD:0x0c000000+0x55F4 %L Var.VALUE(&array[&i+1.])
+    &i=&i+2.
+  )
+  RETURN
+)
+
+WritePage: ;(addr)
+(
+  PARAMETERS &addr
+  Data.Set AD:0x0c000000+0x5554 %L 0xAA
+  Data.Set AD:0x0c000000+0xAAA8 %L 0x55
+  Data.Set AD:0x0c000000+0x5554 %L 0xA0
+  Data.Set AD:&addr %L 0xAA
+  RETURN
+)
+
+WriteUserConfigPage: ;(addr)
+(
+  PARAMETERS &addr
+  Data.Set AD:0x0c000000+0x5554 %L 0xAA
+  Data.Set AD:0x0c000000+0xAAA8 %L 0x55
+  Data.Set AD:0x0c000000+0x5554 %L 0xC0
+  Data.Set AD:&addr %L 0xAA
+  RETURN
+)
+
+
+ErasePhysicalSector: ;(addr)
+(
+  PARAMETERS &addr
+  Data.Set AD:0x0c000000+0x5554 %L 0xAA
+  Data.Set AD:0x0c000000+0xAAA8 %L 0x55
+  Data.Set AD:0x0c000000+0x5554 %L 0x80
+  Data.Set AD:0x0c000000+0x5554 %L 0xAA
+  Data.Set AD:0x0c000000+0xAAA8 %L 0x55
+  Data.Set AD:&addr %L 0x40
+  RETURN
+)
+
+EraseUserConfigBlock: ;(addr)
+(
+  PARAMETERS &addr
+  Data.Set AD:0x0c000000+0x5554 %L 0xAA
+  Data.Set AD:0x0c000000+0xAAA8 %L 0x55
+  Data.Set AD:0x0c000000+0x5554 %L 0x80
+  Data.Set AD:0x0c000000+0x5554 %L 0xAA
+  Data.Set AD:0x0c000000+0xAAA8 %L 0x55
+  Data.Set AD:&addr %L 0xc0
+  RETURN
+)
+
+DisableReadProtection: ;(pw0, pw1)
+(
+  PARAMETERS &pw0 &pw1
+  Data.Set AD:0x0c000000+0x5554 %L 0xAA
+  Data.Set AD:0x0c000000+0xAAA8 %L 0x55
+  Data.Set AD:0x0c000000+0x553C %L 0x00
+  Data.Set AD:0x0c000000+0xAAA8 %L &pw0
+  Data.Set AD:0x0c000000+0xAAA8 %L &pw1
+  Data.Set AD:0x0c000000+0x5558 %L 0x08
+  RETURN
+)
+
+DisableWriteProtection: ;(ul, pw0, pw1)
+(
+  PARAMETERS &ul &pw0 &pw1
+  Data.Set AD:0x0c000000+0x5554 %L 0xAA
+  Data.Set AD:0x0c000000+0xAAA8 %L 0x55
+  Data.Set AD:0x0c000000+0x553C %L &ul
+  Data.Set AD:0x0c000000+0xAAA8 %L &pw0
+  Data.Set AD:0x0c000000+0xAAA8 %L &pw1
+  Data.Set AD:0x0c000000+0x5558 %L 0x05
+  RETURN
+)
+
+ClearStatus: ;()
+(
+  Data.Set AD:0x0c000000+0x5554 %L 0xF5
+  RETURN
+)

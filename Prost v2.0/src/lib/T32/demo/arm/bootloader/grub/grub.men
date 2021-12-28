@@ -1,0 +1,91 @@
+; --------------------------------------------------------------------------------
+; @Title: GRand Unified Bootloader specific menu
+; @Description: -
+; @Keywords: GRUB menu awareness
+; @Author: MSA
+; @Copyright: (c) 1989-2018 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: grub.men 3160 2018-04-10 15:25:28Z msamet $
+
+
+ADD
+MENU
+(
+  POPUP "&GRUB"
+  (
+    DEFAULT
+    MENUITEM "[:objects]Display Current &Environment Var"       "EXTension.EnvVar /C"
+    MENUITEM "[:objects]Display &Initial Environment var"       "EXTension.EnvVar /I"
+    MENUITEM "[:objects]Display &Devices"                       "EXTension.DEVices"
+    MENUITEM "[:objects]Display &FileSystem"                    "EXTension.FileSystem"
+    MENUITEM "[:objects]Display &Modules"                       "EXTension.MODule"
+    SEPARATOR
+    POPUP "&Module Debugging"
+    (
+      MENUITEM "[:symbols]&Load Symbols..."
+      (
+        DIALOG
+        (
+          HEADER "EXTension.sYmbol.LOADMod"
+          POS 0. 0. 30. 3.
+          BOX "Module name"
+          POS 1. 1. 20. 1.
+modl:     DEFEDIT "" ""
+          POS 22. 1. 7. 1.
+          BUTTON "Browse..."
+          (
+            DIALOG.FILE "*.mod"
+            ENTRY %LINE &file
+            DIALOG.SET modl "&file"
+          )
+          POS 6. 3. 7. 1.
+          DEFBUTTON "Ok"
+          (
+            LOCAL &modl
+            &modl=DIALOG.STRING(modl)
+            EXTension.sYmbol.LOADMod "&modl"
+            DIALOG.END
+          )
+          POS 17. 3. 7. 1.
+          BUTTON "Cancel"  "DIALOG.END"
+        )
+      )
+      MENUITEM "[:symbols]&Delete Symbols..."
+      (
+        DIALOG
+        (
+          HEADER "EXTension.sYmbol.DELeteMod"
+          POS 0. 0. 30. 3.
+          BOX "Module name"
+          POS 1. 1. 20. 1.
+modd:     DEFEDIT "" ""
+          POS 22. 1. 7. 1.
+          BUTTON "Browse..."
+          (
+            DIALOG.FILE "*.mod"
+            ENTRY %LINE &file
+            DIALOG.SET modd "&file"
+          )
+          POS 6. 3. 7. 1.
+          DEFBUTTON "Ok"
+          (
+            LOCAL &modd
+            &modd=DIALOG.STRING(modd)
+            EXTension.sYmbol.DELeteMod "&modd"
+            DIALOG.END
+          )
+          POS 17. 3. 7. 1.
+          BUTTON "Cancel"  "DIALOG.END"
+        )
+      )
+      MENUITEM "Wait for GRUB module..."
+      (
+
+        DO "~~/demo/arm/bootloader/grub/mod_debug"
+
+      )
+    )
+  )
+)
+
+

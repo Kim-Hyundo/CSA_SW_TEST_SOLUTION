@@ -1,0 +1,80 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for RM48L952-ZWT on HERCULES RM48 with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Offchip-Trace. Pinmuxing and Clock
+;   setup is handled in the script.
+;   Use this script to test the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to J4
+;    *   AutoFocus II MIPI60 is connected to J19
+;      or
+;        AutoFocus II Mictor is connected to J19
+;        using LA-3818 converter
+; @Keywords: ARM, Cortex-R4, ETM
+; @Author: AME
+; @Board: HERCULES RM48
+; @Chip: RM48L952-ZWT
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: hercules_rm48_sieve_offchip_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU RM48L952-ZWT
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+; TPIU is unclocked
+ETM.OFF
+Trace.DISable
+SYStem.Up
+
+; Init ECC - via CPU
+Data.Set 0x08000000++0xffff %Quad 0x0
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_arm_v7r_le.elf"
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace (ETM) if Analyzer is plugged
+IF Analyzer()
+(
+  ; Enable TPIU, by setting input clock to VCLK
+  Data.Set APB:0x80003404 %Long 0x00000001
+
+  TPIU.PortSize 16
+  TPIU.PortMode Continuous
+  ETM.Trace ON
+  ETM.ON
+  Trace.METHOD Analyzer
+  Trace.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+ENDDO

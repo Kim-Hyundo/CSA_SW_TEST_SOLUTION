@@ -1,0 +1,126 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: task_ps_config.cmm 4125 2019-03-22 17:16:46Z kjmal $
+
+DIALOG.view
+(
+        HEADER "TASK.PS.CONFIG"
+        
+            POS 0. 0. 9. 12.
+            BOX "Sort"
+            POS 1. 1. 7. 1.
+s.off:      CHOOSEBOX "OFF"   "TASK.PS.SORT OFF"
+            POS 1. 2. 7. 1.
+s.magic:    CHOOSEBOX "magic" "TASK.PS.SORT MAGIC"
+            POS 1. 3. 7. 1.
+s.pid:      CHOOSEBOX "pid"   "TASK.PS.SORT PID"
+            POS 1. 4. 7. 1.
+s.cmd:      CHOOSEBOX "cmd"   "TASK.PS.SORT CMD"
+            POS 1. 5. 7. 1.
+s.mem:      CHOOSEBOX "mem"   "TASK.PS.SORT MEM"
+            POS 1. 6. 7. 1.
+s.cpu:      CHOOSEBOX "%cpu"  "TASK.PS.SORT PCPU"
+        
+        POS 10. 0. 40. 12.
+        BOX ""
+        POS 10. 0. 12. 12.
+        BOX "available"
+        POS 30. 0. 12. 12.
+        BOX "selected"
+        POS 11. 1. 10. 10.
+avail:  LISTBOX "magic,pid,cmd" 
+        (
+            &add=DIALOG.STRing(avail)
+            TASK.PS.ADD &add
+            &avail=task.ps.available()
+            DIALOG.Set avail "" "&avail"
+            &selec=task.ps.selected()
+            DIALOG.Set selec "&add" "&selec"
+        )
+        POS 31. 1. 10. 10.
+selec:  LISTBOX "magic,pid,cmd"
+        (
+            &del=DIALOG.STRing(selec)
+            TASK.PS.DELete &del
+            &avail=task.ps.available()
+            DIALOG.Set avail "&del" "&avail"
+            &selec=task.ps.selected()
+            DIALOG.Set selec "" "&selec"
+        )
+        POS 23. 4. 6. 1.
+        BUTTON "->"
+        (
+            &add=DIALOG.STRing(avail)
+            IF "&add"!=""
+            (
+                TASK.PS.ADD &add
+                &avail=task.ps.available()
+                DIALOG.Set avail "" "&avail"
+                &selec=task.ps.selected()
+                DIALOG.Set selec "&add" "&selec"
+            )
+        )
+        POS 23. 6. 6. 1.
+        BUTTON "<-"
+        (
+            &del=DIALOG.STRing(selec)
+            IF "&del"!=""
+            (
+                TASK.PS.DELete &del
+                &avail=task.ps.available()
+                DIALOG.Set avail "&del" "&avail"
+                &selec=task.ps.selected()
+                DIALOG.Set selec "" "&selec"
+            )
+        )
+        POS 43. 4. 6. 1.
+        BUTTON "up"
+        (
+            &up=DIALOG.STRing(selec)
+            IF "&up"!=""
+            (
+                TASK.PS.UP &up
+                &selec=task.ps.selected()
+                DIALOG.Set selec "&up" "&selec"
+            )
+        )
+        POS 43. 6. 6. 1.
+        BUTTON "down"
+        (
+            &down=DIALOG.STRing(selec)
+            IF "&down"!=""
+            (
+                TASK.PS.DOWN &down
+                &selec=task.ps.selected()
+                DIALOG.Set selec "&down" "&selec"
+            )
+        )
+        
+        POS 1. 12. 10. 1.
+thr:    CHECKBOX "show threads"
+        (
+            IF DIALOG.BOOLEAN(thr)
+                TASK.PS.THREADS ON
+            ELSE
+                TASK.PS.THREADS OFF
+        )
+        
+        ;pos 15. 12. 10. 1.
+        ;checkbox "All Windows" "print 5"
+)
+
+&sort=task.ps.sort()
+DIALOG.Set s.&sort
+
+&avail=task.ps.available()
+DIALOG.Set avail "" "&avail"
+
+&selec=task.ps.selected()
+DIALOG.Set selec "" "&selec"
+
+&thr=task.ps.threads()
+DIALOG.Set thr &thr!=0
+
+ENDDO

@@ -1,0 +1,104 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo script for CY8C6347BZI-BLD53 CortexM4 (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   Use this script for getting started.
+;   Prerequisites:
+;    * Connect Debug Cable to P6 using Adapter LA-3770
+;      or
+;      Connect Combiprobe/uTrace to P6
+; @Keywords: ARM, Cortex-M4
+; @Author: AME
+; @Board: CY8CKIT-062-BLE, PSoC6 BLE Pioneer Kit
+; @Chip: CY8C6*-BLD* CY8C6*-D*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: psoc6dual-m4_sieve_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU CY8C6347BZI-BLD53-M4
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+IF FALSE()
+(
+  ; in case we are sure the M4 is already started, connect to it
+  SYStem.Mode.Attach
+  IF STATE.RUN()
+    Break
+)
+ELSE
+(
+  ; kick the M4 core using the M0+
+  SYStem.CPU CY8C6347BZI-BLD53-M0+
+  SYStem.Mode Up
+  ; wait till the M0+ boot completes
+  WAIT 0.5s
+  ; ensure CortexM4 is started
+  ; DO ~~/demo/arm/hardware/psoc/psoc6/scripts/disable_m4
+  DO ~~~~/../../scripts/disable_m4
+  ; set initial SP, initial PC and create a endless loop
+  Data.Set A:0x08010000 %Long 0x08010100 0x08010009 0xE7FEE7FE
+  ; DO ~~/demo/arm/hardware/psoc/psoc6/scripts/enable_m4 "0x08010000"
+  DO ~~~~/../../scripts/enable_m4 "0x08010000"
+
+  SYStem.CPU CY8C6347BZI-BLD53-M4
+  SYStem.Mode.Attach
+  IF STATE.RUN()
+    Break
+)
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO
+
+DisableWatchdog: ;()
+(
+  ; Unlock and disable WDT
+  ; SRSS->WDT_CTL = ((SRSS->WDT_CTL & (uint32_t)(~SRSS_WDT_CTL_WDT_LOCK_Msk)) | CY_WDT_LOCK_BIT0);
+  ; SRSS->WDT_CTL = (SRSS->WDT_CTL | CY_WDT_LOCK_BIT1);
+  ; SRSS->WDT_CTL &= (~ (uint32_t) SRSS_WDT_CTL_WDT_EN_Msk);
+
+  Data.Set A:0x40260180 %Long (Data.Long(A:0x40260180)&~0xC0000000)|0x40000000
+  Data.Set A:0x40260180 %Long Data.Long(A:0x40260180)|0x80000000
+  Data.Set A:0x40260180 %Long Data.Long(A:0x40260180)&~0x1
+  RETURN
+)

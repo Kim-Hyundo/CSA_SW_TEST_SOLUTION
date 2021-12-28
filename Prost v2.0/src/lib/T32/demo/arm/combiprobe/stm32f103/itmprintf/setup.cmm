@@ -1,0 +1,108 @@
+; --------------------------------------------------------------------------------
+; @Title: ITM Printf Demo for the STM32F103 Using the CombiProbe
+; @Description:
+;   This is a  simple demo to show how to extend the TRACE32 tracing
+;   functionality via your own DLL. Printf traces are exported on SWO.
+;   Example DLL can be found in the "dll" folder.
+; @Chip: STM32F103ZE
+; @Board: STM32F103 EVB
+; @Author: ING
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: setup.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; bring up board, load application etc.
+  Break.Delete
+  SYStem.CPU stm32f103ZE
+  ITM.RESet
+
+  ChDir ../pipeproto
+  DO common TPIU
+  ChDir ../itmprintf
+
+  IF CAnalyzer()
+  (
+    CAnalyzer.Mode FIFO
+    CAnalyzer.Init
+  )
+
+  IF Analyzer()
+  (
+    Analyzer.Mode FIFO
+    Analyzer.Init
+  )
+
+; Load Test application which uses "ITM_Printf" to
+; output "printf" data via ITM
+  Data.LOAD.Elf test.elf
+
+; Now start application
+  Go.direct main
+  WAIT !STATE.RUN()
+
+; Make
+  Var.set timerReload=999.
+
+  WinCLEAR
+
+; Open List.auto window
+  WinPOS 0.0 0.0 92. 15. 15. 1. W000
+  WinTABS 10. 10. 25. 62.
+  List.auto
+
+  IF CAnalyzer()
+  (
+    ; Init CombiProbe and Open "CAnalyzer" window
+
+    WinPOS 97.0 0.076923 25. 16. 0. 0. W001
+    CAnalyzer.state
+    CAnalyzer.Init
+  )
+
+  ETM.OFF
+  ITM.ON
+  ITM.DataTrace OFF
+
+  IF CAnalyzer()
+  (
+    ; Switch back to PIPE mode
+    CAnalyzer.Mode pipe
+
+    &viewprintf="viewprintf"
+    ; Load a custom DLL to display "printf" messages
+    IF (OS.VERSION(0)>=0x20)||(OS.VERSION(0)==0x0)
+    (
+      PRINT "Demo unsupported for this OS"
+      ENDDO
+    )
+    ELSE IF OS.VERSION(0)>=0x10
+    (
+      &viewprintf="viewprintf"
+    )
+    ELSE
+    (
+      IF SOFTWARE.64BIT()
+        &viewprintf="viewprintf64.dll"
+      ELSE
+        &viewprintf="viewprintf32.dll"
+    )
+
+    CAnalyzer.CustomTraceLoad "printf" dll/"&viewprintf"
+
+    ; Open a window using the custom DLL, displaying all strings output
+    ; by the custom DLL
+    WinPOS 0.14286 21.231 64. 39. 12. 1. W003
+    WinTABS 40.
+    CAnalyzer.ct.printf.ListString spare TIme.Back /TRACK
+
+    ; Open DLL Log window
+    WinPOS 68.143 27.692 38. 34. 0. 0. W002
+    CAnalyzer.pproto.log
+
+    ; Regular ITM trace list window to view
+    ; the raw ITM messages
+    WinPOS 110.29 27.692 57. 32. 12. 1. W005
+    WinTABS
+    ITMCAnalyzer.List ADDRESS cycle Data TIme.Back l.nodummy /TRACK
+  )

@@ -1,0 +1,73 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to extract Relocation Addresses from the rombuild Log File
+; @Description: Usage: do reloc <logfile> <module>
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: reloc.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+ ENTRY &logfile &module
+
+ LOCAL &codeaddr &dataaddr
+
+ LOCAL &action &file &section
+ LOCAL &linenr &tmp
+ 
+ &linenr=0
+ &codeaddr=0
+ &dataaddr=0
+ &module=STRing.LoWeR("&module")
+
+ OPEN #1 &logfile /Read
+
+ RePeaT
+ (
+    READ #1 &action &tmp &file &x1 &x2 &x3 &x4 &x5 &x6 &x7
+;   PRINT "line " format.decimal(5,&linenr)
+    &linenr=&linenr+1
+    
+    IF &linenr>50000.
+        GOTO endloop
+    
+    IF "&action"=="Writing"
+        GOTO endloop
+    
+    IF ("&action"=="Processing")&&("&tmp"=="file")
+    (
+        &file=OS.FILE.NAME("&file")
+        &file=STRing.LoWeR("&file")
+        
+        IF "&file"=="&module"
+        (
+            RePeaT
+            (
+                READ #1 &section &addr1 &tmp &addr2 &x1 &x2 &x3 &x4 &x5
+                
+                &linenr=&linenr+1
+    
+                IF &linenr>50000.
+                    GOTO endloop
+    
+                IF "&section"=="Processing"
+                    GOTO endmodule
+
+                IF ("&section"=="Code")&&("&addr1"=="start")
+                    &codeaddr="0x"+"&addr2"
+                
+                IF "&section"=="DataBssLinearBase:"
+                    &dataaddr="0x"+"&addr1"
+                    
+                IF "&section"=="Export"
+                    GOTO endloop
+            )
+        )
+    )
+endmodule:
+ )
+
+endloop:
+ CLOSE #1
+ PRINT "&module code addr = &codeaddr, data addr = &dataaddr"
+ ENDDO &codeaddr &dataaddr
+ 

@@ -1,0 +1,117 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for STM32L552ZE on STM32L552E-EVAL with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The Offchip Trace using a Combiprobe/uTrace or PowerTrace is set up.
+;   Use this script for testing the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Combiprobe/uTrace to CN11
+;      or
+;      Connect AutoFocus Preprocessor to Cn11
+;      and connect DebugCable to Preprocessor
+; @Keywords: ARM, Cortex-M33, ETM, ITM
+; @Author: STK
+; @Board: STM32L552E-EVAL
+; @Chip: STM32L552ZE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: stm32l552e-eval_sieve_offchip_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU STM32L552ZE
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  ; depending on the board
+  ; SYStem.CONFIG.CONNECTOR MIPI34
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+ETM.OFF
+ITM.OFF
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v8m_base.elf"
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace (ETM, ITM)
+IF COMBIPROBE()||UTRACE()||Analyzer()
+(
+  ; set PinMux and enable Clocks
+  
+  ; Enable trace in the DBGMCU register
+  Data.Set AD:0xE0044004 %Long 0yXXXXxxxxXXXXxxxxXXXXxxxx1111xxxx
+  
+  ; Enable GPOIC and GPOIE
+  Data.Set AD:0x4002104C %Long 0yXXXXxxxxXXXXxxxxXXXXxxxxXXX1x1xx
+  
+  ; PE2 (TRACECK) and PE5 (TRACED2) multiplexing
+  Data.Set AD:0x42021000 %Long 0yXXXXxxxxXXXXxxxxXXXX10xxXX10xxxx
+  
+  ; PC9 (TRACED0), PC10 (TRACED1) and PC12 (TRACED3) multiplexing
+  Data.Set AD:0x42020800 %Long 0yXXXXxx10XX1010xxXXXXxxxxXXXXxxxx
+  
+  ; Increase the port speed of PE2 and PE5
+  Data.Set AD:0x42021008 %Long 0yXXXXxxxxXXXXxxxxXXXX11xxXX11xxxx
+  
+  ; Increase the port speed of PC9, PC10 and PC12
+  Data.Set AD:0x42021008 %Long 0yXXXXxx11XX1111xxXXXXxxxxXXXXxxxx
+  
+  TPIU.PortSize 4
+  TPIU.PortMode Continuous
+  ITM.DataTrace CorrelatedData
+  ITM.ON
+  ETM.Trace ON
+  ETM.ON
+)
+IF COMBIPROBE()||UTRACE()
+(
+  Trace.METHOD CAnalyzer
+  Trace.AutoInit ON
+  CAnalyzer.AutoFocus
+)
+IF Analyzer()
+(
+  Trace.METHOD Analyzer
+  Trace.AutoInit ON
+  Trace.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO

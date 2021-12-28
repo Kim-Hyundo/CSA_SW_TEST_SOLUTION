@@ -1,0 +1,296 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags
+; @Author: TI
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: omap4430_cortexm3_basicemulation.cmm 8886 2015-11-18 18:06:51Z mobermeir $
+
+ENTRY &menu_type
+
+GLOBAL &CMM_DIR
+&CMM_DIR="~~~~"
+
+IF (Var.VALUE(&menu_type)==0x1)
+(   
+  GOSUB Load_Asm_program_Internal_Ram_1
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0x2)
+( 
+  GOSUB Basic_Execution_control_Internal_Ram_1
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0x3)
+(   
+  GOSUB Load_Asm_program_Internal_Ram_2
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0x4)
+( 
+  GOSUB Basic_Execution_control_Internal_Ram_2
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0x5)
+(   
+  GOSUB Load_Asm_program_DDR1
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0x6)
+( 
+  GOSUB Basic_Execution_control_DDR1
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0x7)
+(   
+  GOSUB Load_Asm_program_DDR2
+  ENDDO
+)
+
+IF (Var.VALUE(&menu_type)==0x8)
+( 
+  GOSUB Basic_Execution_control_DDR2
+  ENDDO
+)
+ENDDO
+
+
+Load_Asm_program_Internal_Ram_1:
+(
+  ENTRY
+  &__V1=0x00000C00+0x40 
+  Register.Set R4 &__V1
+
+  &__V2=0x00000C00+0x40 
+  Var.Assign *((short *)&__V2)=0x5678
+  &__V2=0x00000C00+0x42 
+  Var.Assign *((short *)&__V2)=0x1234
+
+  Var.Assign *((short *)0x00000C00)=0xBF00
+  &__V2=0x00000C00+0x02 
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x00000C00+0x04 
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x00000C00+0x06 
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x00000C00+0x08 
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x00000C00+0x0A   
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x00000C00+0x0C   
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x00000C00+0x0E   
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x00000C00+0x10   
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x00000C00+0x12   
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x00000C00+0x14   
+  Var.Assign *((short *)&__V2)=0xE7F4
+  Register.Set PC 0x00000C00 
+  AREA.Create TESTS
+  AREA.view TESTS  
+  AREA.Select TESTS
+  PRINT "ASM Internal_Ram_1 PROGRAM LOADED"
+  RETURN 0x0
+  RETURN
+)
+
+Load_Asm_program_Internal_Ram_2:
+(
+  ENTRY
+  &__V1=0x00000A00+0x40 
+  Register.Set R4 &__V1
+
+  &__V2=0x00000A00+0x40 
+  Var.Assign *((short *)&__V2)=0x5678
+  &__V2=0x00000A00+0x42 
+  Var.Assign *((short *)&__V2)=0x1234
+
+
+  Var.Assign *((short *)0x00000A00)=0xBF00
+  &__V2=0x00000A00+0x02 
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x00000A00+0x04 
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x00000A00+0x06 
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x00000A00+0x08 
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x00000A00+0x0A   
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x00000A00+0x0C   
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x00000A00+0x0E   
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x00000A00+0x10   
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x00000A00+0x12   
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x00000A00+0x14   
+  Var.Assign *((short *)&__V2)=0xE7F4
+  Register.Set PC 0x00000A00 
+  AREA.Create TESTS
+  AREA.view TESTS  
+  AREA.Select TESTS
+  PRINT "ASM Internal_Ram_2 PROGRAM LOADED"
+  RETURN 0x0
+  RETURN
+)
+
+Load_Asm_program_DDR1:
+(
+  ENTRY
+  &__V1=0x84000200+0x40 
+  Register.Set R4 &__V1
+
+  &__V2=0x84000200+0x40 
+  Var.Assign *((short *)&__V2)=0x5678
+  &__V2=0x84000200+0x42 
+  Var.Assign *((short *)&__V2)=0x1234
+
+
+  Var.Assign *((short *)0x84000200)=0xBF00
+  &__V2=0x84000200+0x02 
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x84000200+0x04 
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x84000200+0x06 
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x84000200+0x08 
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x84000200+0x0A   
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x84000200+0x0C   
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x84000200+0x0E   
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x84000200+0x10   
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x84000200+0x12   
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x84000200+0x14   
+  Var.Assign *((short *)&__V2)=0xE7F4
+  Register.Set PC 0x84000200 
+  AREA.Create TESTS
+  AREA.view TESTS  
+  AREA.Select TESTS
+  PRINT "ASM DDR1 PROGRAM LOADED"
+  RETURN 0x0
+  RETURN
+)
+
+Load_Asm_program_DDR2:
+(
+  ENTRY
+  &__V1=0x84000800+0x40 
+  Register.Set R4 &__V1
+
+  &__V2=0x84000800+0x40 
+  Var.Assign *((short *)&__V2)=0x5678
+  &__V2=0x84000800+0x42 
+  Var.Assign *((short *)&__V2)=0x1234
+
+
+  Var.Assign *((short *)0x84000800)=0xBF00
+  &__V2=0x84000800+0x02 
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x84000800+0x04 
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x84000800+0x06 
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x84000800+0x08 
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x84000800+0x0A   
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x84000800+0x0C   
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x84000800+0x0E   
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x84000800+0x10   
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x84000800+0x12   
+  Var.Assign *((short *)&__V2)=0xBF00
+  &__V2=0x84000800+0x14   
+  Var.Assign *((short *)&__V2)=0xE7F4
+  Register.Set PC 0x84000800 
+  AREA.Create TESTS
+  AREA.view TESTS  
+  AREA.Select TESTS
+  PRINT "ASM DDR2 PROGRAM LOADED"
+  RETURN 0x0
+  RETURN
+)
+
+Basic_Execution_control_Internal_Ram_1:
+(
+  ENTRY
+  Break.Delete /SOFT
+  Break.Delete /Onchip
+  &__V1=0xC00+0x10  
+  Break.Set &__V1 /SOFT
+  Go.direct
+
+  PRINT "Basic_Execution_control Internal_Ram_1 at address " %Hex Register(PC) " "
+  PRINT ""
+  AREA.Select TESTS
+  PRINT "TEST PASS"
+  RETURN 0x0
+  RETURN
+)
+
+Basic_Execution_control_Internal_Ram_2:
+(
+  ENTRY
+  Break.Delete /SOFT
+  Break.Delete /Onchip
+  &__V1=0xA00+0x10  
+  Break.Set &__V1 /SOFT
+  Go.direct
+
+  PRINT "Basic_Execution_control Internal_Ram_2 at address " %Hex Register(PC) " "
+  PRINT ""
+  AREA.Select TESTS
+  PRINT "TEST PASS"
+  RETURN 0x0
+  RETURN
+)
+
+Basic_Execution_control_DDR1:
+(
+  ENTRY
+  Break.Delete /SOFT
+  Break.Delete /Onchip
+  &__V1=0x84000200+0x10 
+  Break.Set &__V1 /SOFT
+  Go.direct
+
+  PRINT "Basic_Execution_control DDR1 at address " %Hex Register(PC) " "
+  PRINT ""
+  AREA.Select TESTS
+  PRINT "TEST PASS"
+  RETURN 0x0
+  RETURN
+)
+
+Basic_Execution_control_DDR2:
+(
+  ENTRY
+  Break.Delete /SOFT
+  Break.Delete /Onchip
+  &__V1=0x84000800+0x10 
+  Break.Set &__V1 /SOFT
+  Go.direct
+
+  PRINT "Basic_Execution_control DDR2 at address " %Hex Register(PC) " "
+  PRINT ""
+  AREA.Select TESTS
+  PRINT "TEST PASS"
+  RETURN 0x0
+  RETURN
+)

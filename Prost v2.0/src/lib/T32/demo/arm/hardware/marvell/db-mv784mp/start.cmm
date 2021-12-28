@@ -1,0 +1,33 @@
+; --------------------------------------------------------------------------------
+; @Title: Start-Up Script for MV78460V7 on the Armada XP Development Platform
+; @Description: 
+;   Start-Up Script for MV78460V7 on the Armada XP Development Platform
+;   DB-MV784MP-GP from Marvell
+; @Keywords: ArmadaXP, Marvell
+; @Author: PEG
+; @Board: DB-MV784MP-GP
+; @Chip: MV78460V7
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: start.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+;   PEG, September 2013
+
+; connect to the first core
+  RESet
+  SYStem.CPU MV78460V7
+  CORE.ASSIGN 1
+  ETM.OFF
+  SYStem.Up
+
+; set system settings according LE MMU
+  Data.Set C15:1 %Long 0x00052078
+
+  STOP
+  
+; after all cores are out of reset, to debug multicore use
+
+  SYStem.Down
+  CORE.ASSIGN 1 2 3 4
+  SYStem.Mode Attach
+  Break

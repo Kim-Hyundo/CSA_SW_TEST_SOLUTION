@@ -1,0 +1,26 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to set up a different background color for AMP
+; @Description:
+;   Please see README.txt
+; @Props:  NoMetaTags NoWelcome NoIndex NoFullText
+; @Author: AME
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: colors.cmm 15209 2019-11-04 10:07:55Z bschroefel $
+
+LOCAL &num
+ENTRY &num
+
+IF &num==1.
+  SETUP.COLOR 1. 50. 200. 250.
+ELSE IF &num==2.
+  SETUP.COLOR 1. 250. 200. 50.
+ELSE IF &num==3.
+  SETUP.COLOR 55.+2. 210. 210. 255.
+ELSE
+  SETUP.COLOR 55.+3. 255. 213. 170.
+
+; avoid saving color configuration to config file
+LOCAL &ConfigFile
+&ConfigFile=OS.PCF()
+EDIT.QUIT "&ConfigFile"

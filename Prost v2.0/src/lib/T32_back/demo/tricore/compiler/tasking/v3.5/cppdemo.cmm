@@ -1,0 +1,35 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for loading TASKING object file (v3.5) in ELF format
+; @Description:
+;   Compiler: TASKING VX-toolset for TriCore, Version 3.5r1
+;   CPU: TC1798
+;   Language: C++
+;
+;   Application is linked to internal FLASH.
+;   Use the simulator to avoid conflicts with non-existent memory.
+;
+; @Keywords: compiler, Infineon, tasking, TriCore, v3.5
+; @Author: MAX
+; @Chip: TC1798
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: cppdemo.cmm 12312 2018-03-14 08:50:35Z meick $
+
+
+WinCLEAR
+
+SYStem.RESet
+SYStem.CPU TC1798
+SYStem.Up
+
+Data.LOAD.Elf "~~~~/cppdemo.elf" /CPP
+
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch
+Var.AddWatch ast flags
+
+ENDDO

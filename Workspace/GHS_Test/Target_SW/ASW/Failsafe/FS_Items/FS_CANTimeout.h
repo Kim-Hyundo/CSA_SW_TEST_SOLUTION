@@ -1,0 +1,93 @@
+#ifndef FS_CANTIMEOUT_H
+#define FS_CANTIMEOUT_H
+
+#include "DRV_par.h"
+
+#define NO_DETECTION 0
+
+static const uint16 ecan_timeout_val[CHASSIS_0_NUM] = {
+#if CCAN == CANFD
+#if VEH_TYPE == NORMAL
+    [EMS_01_10ms_POS] = MS2TICK(500),
+    [EMS_02_10ms_POS] = MS2TICK(500),
+    [EMS_03_10ms_POS] = MS2TICK(500),
+/* FIXME: Activate after SCC_ISG spec is stabilized (Activate for SCC_ISG Monitoring case that doesn't include EMS_03::EMS_SCCIsgEna)
+    [EMS_03_10ms_POS] = NO_DETECTION,
+*/
+    [EMS_05_100ms_POS] = MS2TICK(1000),
+    [TCU_01_10ms_POS] = MS2TICK(500),
+#elif VEH_TYPE == EV
+    [VCU_01_10ms_POS] = MS2TICK(500),
+    [VCU_03_100ms_POS] = MS2TICK(2000),
+#elif VEH_TYPE == HEV
+    [EMS_07_POS] = MS2TICK(500),
+    [EMS_11_POS] = MS2TICK(500),
+    [HCU_03_POS] = MS2TICK(500),
+    [HCU_05_POS] = MS2TICK(500),
+    [HTCU_04_POS] = MS2TICK(500),
+#endif /* VEH_TYPE */
+    [ABS_ESC_01_10ms_POS] = MS2TICK(500),
+    [BCM_10_200ms_POS] = MS2TICK(2000),
+    [CLU_01_20ms_POS] = MS2TICK(2000),
+    [CLU_02_100ms_POS] = MS2TICK(2000),
+    [ESC_01_10ms_POS] = MS2TICK(500),
+    [ESC_03_20ms_POS] = MS2TICK(500),
+    [HU_CLU_PE_05_POS] = MS2TICK(12000),
+    [HU_GW_PE_01_POS] = MS2TICK(12000),
+    [HU_MON_PE_01_POS] = MS2TICK(12000),
+    [HU_NAVI_V2_POS_PE_POS] = MS2TICK(12000),
+#if ICSC_MSG == APPLIED
+    [ICSC_02_100ms_POS] = MS2TICK(500),
+#elif ICSC_MSG == NOT_APPLIED
+    [ICSC_02_100ms_POS] = NO_DETECTION,
+#endif /* ICSC_MSG */
+    [ICU_02_200ms_POS] = MS2TICK(2000),
+    [ICU_04_200ms_POS] = MS2TICK(2000),
+    [ICU_06_200ms_POS] = MS2TICK(2000),
+    [MDPS_01_10ms_POS] = MS2TICK(500),
+    [MFSW_01_200ms_POS] = MS2TICK(2000),
+    [SAS_01_10ms_POS] = MS2TICK(100),
+    [SBCM_AST_02_200ms_POS] = MS2TICK(1000),
+	[SBCM_DRV_01_200ms_POS] = MS2TICK(1000),
+#if NO_SWRC == NOT_APPLIED
+    [SWRC_03_20ms_POS] = MS2TICK(120000),
+#elif NO_SWRC == APPLIED
+    [SWRC_03_20ms_POS] = NO_DETECTION,
+#endif /* NO_SWRC */
+    [WHL_01_10ms_POS] = MS2TICK(500),
+    [YRS_01_10ms_POS] = MS2TICK(500),
+
+#elif CCAN == HSCAN
+    [CGW1_POS] = MS2TICK(2000),
+    [CGW2_POS] = MS2TICK(2000),
+    [CGW8_POS] = MS2TICK(2000),
+    [CGW_PC4_POS] = MS2TICK(2000),
+    [CGW_PC5_POS] = MS2TICK(2000),
+    [CLU11_POS] = MS2TICK(2000),
+    [CLU13_POS] = MS2TICK(2000),
+    [EMS12_POS] = MS2TICK(500),
+    [EMS16_POS] = MS2TICK(500),
+    [ESP12_POS] = MS2TICK(500),
+    [HU_CLU_PE_05_POS] = MS2TICK(12000),
+    [HU_GW_PE_01_POS] = MS2TICK(12000),
+    [HU_MON_PE_01_POS] = MS2TICK(12000),
+    [MDPS11_POS] = MS2TICK(500),
+    [MDPS12_POS] = MS2TICK(500),
+    [NAVI_V2_POS_E_POS] = MS2TICK(12000),
+    [P_STS_POS] = MS2TICK(2000),
+    [RR_C_RDR_02_POS] = MS2TICK(500),
+    [SAS11_POS] = MS2TICK(100),
+    [TCS11_POS] = MS2TICK(500),
+    [TCS13_POS] = MS2TICK(500),
+    [VSM11_POS] = MS2TICK(500),
+    [WHL_SPD11_POS] = MS2TICK(500),
+#endif /* CCAN */
+};
+static const uint16 acan_timeout_val = MS2TICK(500);
+
+void FS_UpdateInfo_CANTimeout(void);
+void FS_SetDiagsta_CANTimeout(void);
+void FS_SetInhibit_CANTimeout(void);
+void FS_Clear_CANTimeout(void);
+
+#endif  /* FS_CANTIMEOUT_H */

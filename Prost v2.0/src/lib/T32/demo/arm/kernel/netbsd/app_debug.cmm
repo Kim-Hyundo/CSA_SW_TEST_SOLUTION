@@ -1,0 +1,127 @@
+; --------------------------------------------------------------------------------
+; @Title: NetBSD Application Debugging Script, Autoloader Version
+; @Description: 
+;   This script waits for an application to be started,
+;   loads the symbols and halts the application at main()
+;   start this script with the process name as argument.
+;   example: do app_debug hello
+;   Prerequisites:
+;    - NetBSD must be booted
+;    - NetBSD awareness must be configured
+;    - Autoloader must be configured
+; @Keywords: awareness, netbsd
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: app_debug.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; define local macros
+ LOCAL &process &breakaddr
+ 
+; get the process name and option as parameters to the script
+ ENTRY &process &option
+ 
+ LOCAL &process         ; process name (basename of symbol file)
+ LOCAL &spaceid         ; space id of the new process
+ 
+
+; Activate autoloader for processes:
+ TASK.sYmbol.Option AutoLoad Process
+ 
+ 
+; Delete possibly existing breakpoints of previous process runs
+  
+ IF sYmbol.EXIST("\\&process")
+   Break.Delete sYmbol.SECRANGE(\\&process\.text)
+
+
+; we cannot load process symbols as long as we don't
+ ; know the address translation. The MMU for the new
+ ; process is set up, right before doexechooks() is called
+
+ IF STATE.RUN()
+   Break
+   
+ ; doexechooks() is called for every process to start -
+ ; the conditional breakpoint halts only, if the process
+ ; is found in the process table.
+ 
+ &breakaddr=ADDRESS.OFFSET(doexechooks)
+ Break.Delete &breakaddr                ; delete previous set breakpoints
+ Break.Set &breakaddr /CONDition task.proc.spaceid("&process")!=0xffffffff
+ 
+ ON PBREAKAT &breakaddr GOTO continue1  ; if breakpoint reached: continue
+ Go         ; let the target run and load the process
+ PRINT "waiting for &process to be started..."
+
+ STOP       ; halt script until breakpoint reached
+  ; breakpoint hit, continue script
+continue1:
+
+ Break.Delete &breakaddr
+
+ ; Yep! The process is loaded and we found it.
+ ; Due to paging, the MMU table is still not complete!
+ 
+ ; Now load the process symbols to the space id of the process 
+
+ PRINT "process &process started, loading symbols..."
+
+ sYmbol.AutoLOAD.CLEAR "&process"   ; clear possibly previous set
+ sYmbol.AutoLOAD.CHECK              ; force new autoloader list
+ sYmbol.AutoLOAD.TOUCH "&process"   ; force loading of process symbols
+
+; Now set a breakpoint at it's main entry point.
+
+ ; NOTE: The code is still not available, so we MUST set 
+ ; onchip breakpoints, because those are the only ones
+ ; operating on virtual addresses
+
+ ; There may be more "main" symbols in the system,
+ ; we're searching for the right one.
+
+ 
+ Eval 0
+ IF sYmbol.COUNT(\\&process\*\main)>0
+   sYmbol.ForEach "Eval address.offset(*)" \\&process\*\main
+ &breakaddr=EVAL()
+ IF &breakaddr==0
+ (
+   PRINT "Symbol 'main' of process &process not found."
+   ENDDO
+ )
+ 
+ &breakaddr=&breakaddr+4        ; +4 to let the code page load
+ Break.Set &breakaddr /Onchip   ; set breakpoint on main
+
+ ; Let the system run. As soon as the process
+ ; is started at main(), it halts. 
+ 
+ ON PBREAKAT &breakaddr GOTO continue2  ; if breakpoint reached: continue
+ Go         ; let the target run and start the process
+ PRINT "waiting for reaching main..."
+
+ STOP       ; halt script until breakpoint reached
+ ; breakpoint hit, continue script
+continue2: 
+         
+ Break.Delete &breakaddr
+
+; Now scan the MMU for new (swapped in) pages of process
+ PRINT "scanning mmu tables..."
+ &spaceid=task.proc.spaceid("&process")
+ TASK.MMU.SCAN &spaceid
+  ;MMU.TaskPageTable.SCAN &spaceid:0     ; not yet available
+ TRANSlation.CLEANUP
+
+
+ PRINT "done."
+ 
+; NOTE: if finished debugging with a process, or if restarting
+ ; the process, you have to delete the symbols and restart the
+ ; application debugging. Delete the symbols with
+ ; sYmbol.Delete \\<module_name>
+ 
+ ENDDO
+ 

@@ -1,0 +1,54 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo script for NETX51 on NXHX51 (SRAM)
+; @Description:
+;   Loads the sieve demo application into SRAM and sets up a demo debug
+;   scenario.
+;   Use this script for getting started.
+;   Prerequisites:
+;    * Connect Debug Cable to X9 using LA-3722
+; @Keywords: ARM, ARM966E-S
+; @Author: STK
+; @Board: NXHX51
+; @Chip: NETX51
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: nxhx51_sieve_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.CPU NETX51
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 20.ms
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (position independend code) into SRAM
+Register.Init
+Data.LOAD.Elf ~~/demo/arm/compiler/gnu-pic/sieve_arm.elf 0x08000000 /RelPATH
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

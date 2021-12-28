@@ -1,0 +1,399 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash declaration for NXP S32K internal flash
+; @Description:
+;   Script arguments:
+;     DO s32k [PREPAREONLY] [CPU=<cpu>] [DUALPORT=<0|1>] [MASSERASE]
+;       PREPAREONLY    only declares flash but does not execute flash programming
+;       CPU=<cpu>      selects CPU derivative <cpu>
+;       DUALPORT=<0|1> use dual port memory access, default 0
+;       MASSERASE      forces mass erase of device before establishing debug
+;                      connection
+;   Example:
+;     DO ~~/demo/arm/flash/s32k PREPAREONLY
+;   Note:
+;     This file must NOT be modified.
+;     This file is intended to stay within TRACE32 installation.
+;     Usage examples are available in the ~~/demo/arm/hardware/... subdirectories.
+;
+;   List of S32K derivatives and their configuration:
+;      CPU-Type         ProgFlash
+;                        [Byte]
+; --------------------------------------------------------------------------------
+;      S32K116              128 KB
+;      S32K118              256 KB
+;      S32K142              256 KB
+;      S32K144              512 KB
+;      S32K144W             512 KB
+;      S32K146             1024 KB
+;      S32K148        1536-2048 KB
+;
+;   The range 0x400--0x40f is guarded against modification.
+;     Address-Range  Description
+; --------------------------------------------------------------------------------
+;     0x400--0x407   Backdoor Comparison Key
+;     0x408--0x40b   Program flash protection bytes
+;     0x40c          Flash security byte
+;     0x40d          Flash nonvolatile option byte
+;     0x40e          EEPROM protection byte
+;     0x40f          Data flash protection byte
+;
+;   Modifications can be done using the FLASH.AUTO command with /CENSORSHIP option.
+;
+; @Chip: S32K11* S32K14*
+; @Author: FLC AME
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 7605 $
+; $Id: s32k.cmm 7605 2019-11-05 16:45:28Z bschroefel $
+
+PRIVATE &parameters &param_prepareonly &param_cpu &param_masserase &param_dualport
+ENTRY %LINE &parameters
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CPU=","")
+&param_masserase=(STRing.SCAN(STRing.UPpeR("&parameters"),"MASSERASE",0)!=-1)
+&param_dualport=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"DUALPORT=","0")
+
+; ------------------------------------------------------------------------------
+; Start debugging
+
+IF !SYStem.Up()||&param_masserase
+(
+  SYStem.RESet
+
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  IF !CPUIS(S32K1*)
+    SYStem.CPU S32K1*
+
+  IF CABLE.TWOWIRE()
+    SYStem.CONFIG DEBUGPORTTYPE SWD
+  ELSE
+    SYStem.CONFIG DEBUGPORTTYPE JTAG
+
+  IF &param_masserase
+    GOSUB MassErase
+
+  ON.ERROR GOSUB Unsecure
+  SYStem.Up
+  ON.ERROR
+
+  ; Initialize ECC
+  Data.Set AD:0x20000000++0x215f %Long 0x0
+)
+
+; Unsecure device
+IF (Data.Long(EDBG:0x40000100)&0x04)==0x04
+ GOSUB Unsecure
+
+; Disable Bootrom
+GOSUB DisableBootrom
+; Disable watchdog
+ON.ERROR GOSUB Unsecure
+GOSUB DisableWatchdog
+ON.ERROR inherit
+
+
+
+; ------------------------------------------------------------------------------
+; Flash declaration
+
+FLASH.RESet
+GOSUB FlashDeclaration "&param_dualport"
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; ------------------------------------------------------------------------------
+; Flash programming example
+
+DIALOG.YESNO "Program flash memory?"
+LOCAL &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram.ALL /Erase
+  Data.LOAD.auto *
+  FLASH.ReProgram.off
+
+  ; Example to modify Censorship range
+  ; FLASH.AUTO 0x400--0x40f /CENSORSHIP
+  ; Data.Set 0x400--0x40f %Byte <value>
+  ; Data.LOAD.auto <file> 0x400--0x40f
+  ; FLASH.AUTO OFF
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+
+)
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU
+;
+;   Please do NOT modify the TRACE32 flash declaration.
+;
+;   Modifications can result in unpredictable behavior.
+;   Please contact support@lauterbach.com for any changes.
+FlashDeclaration:
+(
+  PARAMETERS &DualPort
+  PRIVATE &FlashDriver &PFlashSize &FlexNVMSize &FlexRAMSize &DFlashSize &EepromSize &PFlashAsDFlash &PFlashSectorSize &DFlashSectorSize
+
+  &PFlashAsDFlash=0x00
+  &DFlashSize=0x00
+  &EepromSize=0x00
+  IF CPUIS("S32K116")
+  (
+    &FlashDriver="s32k_2k2k.bin"
+    &PFlashSize=0x20000
+    &FlexNVMSize=0x8000
+    &FlexRAMSize=0x800
+    &PFlashSectorSize=0x800
+    &DFlashSectorSize=0x800
+  )
+  ELSE IF CPUIS("S32K118")
+  (
+    &FlashDriver="s32k_2k2k.bin"
+    &PFlashSize=0x40000
+    &FlexNVMSize=0x8000
+    &FlexRAMSize=0x800
+    &PFlashSectorSize=0x800
+    &DFlashSectorSize=0x800
+  )
+  ELSE IF CPUIS("S32K142")
+  (
+    &FlashDriver="s32k_2k2k.bin"
+    &PFlashSize=0x40000
+    &FlexNVMSize=0x10000
+    &FlexRAMSize=0x1000
+    &PFlashSectorSize=0x800
+    &DFlashSectorSize=0x800
+  )
+  ELSE IF CPUIS("S32K144*")       ; S32K144 and S32K144W
+  (
+    &FlashDriver="s32k_4k2k.bin"
+    &PFlashSize=0x80000
+    &FlexNVMSize=0x10000
+    &FlexRAMSize=0x1000
+    &PFlashSectorSize=0x1000
+    &DFlashSectorSize=0x800
+  )
+  ELSE IF CPUIS("S32K146")
+  (
+    &FlashDriver="s32k_4k2k.bin"
+    &PFlashSize=0x100000
+    &FlexNVMSize=0x10000
+    &FlexRAMSize=0x1000
+    &PFlashSectorSize=0x1000
+    &DFlashSectorSize=0x800
+  )
+  ELSE IF CPUIS("S32K148")
+  (
+    &FlashDriver="s32k_4k4k.bin"
+    &PFlashSize=0x180000
+    &PFlashAsDFlash=0x70000
+    &FlexNVMSize=0x10000
+    &FlexRAMSize=0x1000
+    &PFlashSectorSize=0x1000
+    &DFlashSectorSize=0x1000
+  )
+  ELSE
+  (
+    PRINT %ERROR "FLASH size of CPU type is not supported by the script"
+    ENDDO
+  )
+
+  GOSUB getDFlashEepromSize "&PFlashSize" "&PFlashAsDFlash" "&FlexNVMSize" "&FlexRAMSize"
+  RETURNVALUES &DFlashSize &EepromSize
+
+  FLASH.Create 1. 0x00000000++(&PFlashSize-0x1) &PFlashSectorSize TARGET Quad /CENSORSHIP 0x400++0xf
+
+  IF &DFlashSize>0x0
+    FLASH.Create 2. 0x10000000++(&DFlashSize-0x1) &DFlashSectorSize TARGET Quad
+
+  IF &EepromSize>0x0
+    FLASH.Create 3. 0x14000000++(&EepromSize-0x1) &EepromSize TARGET Long
+
+  IF "&DualPort"=="0"
+    FLASH.TARGET 0x20000000 0x20001000 0x1000 ~~/demo/arm/flash/quad/&FlashDriver
+  ELSE
+    FLASH.TARGET 0x20000000 EAHB:0x20001000 0x1000 ~~/demo/arm/flash/quad/&FlashDriver /DualPort
+
+  RETURN
+)
+
+getDFlashEepromSize: ;(PFlashSize, FlexNvmSize, &FlexRAMSize)
+(
+  PARAMETERS &PFlashSize &PFlashAsDFlash &FlexNVMSize &FlexRAMSize
+  PRIVATE &DEPART &DFlashSize &EepromSize
+
+  &DEPART=(Data.Long(AD:0x4004804C)>>12.)&0xf
+  &DFlashSize=0x0
+
+  IF (&FlexNVMSize==(0x8000))&&(&PFlashSize==(0x20000||0x40000))
+  (
+    ; 128kB and 256kB configurations with 32kB FlexNVM
+    IF (&DEPART==(0x0||0xb||0xf))
+      &DFlashSize=0x8000
+    ELSE IF (&DEPART==(0x9))
+      &DFlashSize=0x2000
+    ELSE IF (&DEPART==(0x3||0x8))
+      &DFlashSize=0x0
+    ELSE
+      PRINT "Unknown DFlash Size - DEPART invalid"
+
+    IF (&DFlashSize!=&FlexNVMSize)
+      &EepromSize=&FlexRAMSize
+    ELSE
+      &EepromSize=0x0
+  )
+  ELSE IF (&FlexNVMSize==(0x10000))&&(&PFlashSize==(0x40000||0x80000||0x100000))
+  (
+    ; 256KB, 512kB and 1MB configurations with 64kB FlexNVM
+    IF (&DEPART==(0x0||0xc||0xf))
+      &DFlashSize=0x10000
+    ELSE IF (&DEPART==(0x3||0xb))
+      &DFlashSize=0x8000
+    ELSE IF (&DEPART==(0xa))
+      &DFlashSize=0x4000
+    ELSE IF (&DEPART==(0x4||0x8))
+      &DFlashSize=0x0
+    ELSE
+      PRINT "Unknown DFlash Size - DEPART invalid"
+
+    IF (&DFlashSize!=&FlexNVMSize)
+      &EepromSize=&FlexRAMSize
+    ELSE
+      &EepromSize=0x0
+  )
+  ELSE IF (&FlexNVMSize==(0x10000))&&(&PFlashSize==(0x180000))
+  (
+    ; 2MB configurations - 1.5MB PFlash, 448kB D(P)Flash + 64kB DFlash
+    IF (&DEPART==(0x0||0xf))
+    (
+      &DFlashSize=&PFlashAsDFlash+&FlexNVMSize
+      &EepromSize=0x0
+    )
+    ELSE IF (&DEPART==(0x4))
+    (
+      &DFlashSize=&PFlashAsDFlash
+      &EepromSize=&FlexRAMSize
+    )
+    ELSE
+      PRINT "Unknown DFlash Size - DEPART invalid"
+  )
+  ELSE
+  (
+    PRINT "Unknown DFlash Size - Flash Controller unknown"
+  )
+  RETURN "&DFlashSize" "&EepromSize"
+)
+
+DisableBootrom:
+(
+  Data.Set AD:0x4007F010 %LE %Long 0x6
+  Data.Set AD:0x4007F014 %LE %Long 0x0
+  RETURN
+)
+
+DisableWatchdog: ;()
+(
+  LOCAL &tmp1 &tmp2 &error
+  &error=FALSE()
+
+  ON ERROR GOSUB
+  (
+    Data.Set 0x20000000++0x7 %Long 0x0
+    &error=TRUE()
+  )
+
+  &tmp1=Data.Long(SD:0x20000000)
+  &tmp2=Data.Long(SD:0x20000004)
+
+  ON ERROR inherit
+
+  Register.SWAP
+  ; The watchdog has a restrictive timing. It has to be configured and unlocked within a peripod
+  ; of 128 cycles. Therefor the unlock sequence need to be done by a small target program.
+  Data.Assemble ST:0x20000000  str  r1,[r0]  ;SD:0x40052004 = 0xD928C520   (Key)
+  Data.Assemble ,              str  r3,[r2]  ;SD:0x40052000 = 0x00002120   (Control register)
+  Data.Assemble ,              str  r5,[r4]  ;SD:0x40052008 = 0x0000FFFF   (Timeout value)
+  Data.Assemble ,              bkpt #0
+  Register.Set PC 0x20000000
+  Register.Set SP 0x20001000
+  Register.Set R0 0x40052004
+  Register.Set R1 0xD928C520
+  Register.Set R2 0x40052000
+  Register.Set R3 0x00002120
+  Register.Set R4 0x40052008
+  Register.Set R5 0x0000FFFF
+  Go.direct
+  WAIT !STATE.RUN()
+
+  IF !&error
+  (
+    Data.Set ST:0x20000000 %Long &tmp1
+    Data.Set ST:0x20000004 %Long &tmp2
+  )
+  Register.SWAP
+
+  RETURN
+)
+
+
+; --------------------------------------------------------------------------------
+; Try to mass erase the device
+
+MassErase:
+(
+  ON.ERROR DEFault
+
+  ; Mass erase device by unsecure command
+  SYStem.Down
+  FLASH.UNSECUREerase
+  SYStem.Mode.Prepare
+  IF (Data.Long(EDBG:0x40000100)&0x04)==0x04
+  (
+    PRINT %ERROR "Unsecure failed, MDM-AP Status Register is 0x" Data.Long(EDBG:0x40000100)
+    SYStem.Down
+    ENDDO
+  )
+  SYStem.Down
+  RETURN
+)
+
+; --------------------------------------------------------------------------------
+; Try to unsecure a secured device
+
+Unsecure:
+(
+  ON.ERROR DEFault
+
+  SYStem.Mode Prepare
+  IF (Data.Long(EDBG:0x40000104)&0x08)==0x08
+  (
+    Data.Set EDBG:0x40000104 %Long (Data.Long(EDBG:0x40000104)&0xFFFFFFF7)
+  )
+  ; Print security state information
+  PRINT "MDM-AP Status Register is 0x" Data.Long(EDBG:0x40000100)
+
+  DIALOG.YESNO "Execute mass erase to unsecure chip?"
+  LOCAL &masserase
+  ENTRY &masserase
+  IF &masserase
+  (
+    GOSUB MassErase
+  )
+  ELSE
+    ENDDO
+
+  SYStem.Up
+
+  ; Disable watchdog
+  GOSUB DisableWatchdog
+
+  RETURN
+)

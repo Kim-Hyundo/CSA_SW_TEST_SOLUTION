@@ -1,0 +1,101 @@
+; @Title: PikeOS/Elinox autoload script, called by TRACE32 if symbols are to be loaded
+; @Description:
+;   This script is part of the PikeOS/Elinox Awareness
+;
+; @Keywords: PikeOS Elinos autoloader awareness
+; @Author: DIE
+; @Copyright: (c) 1989-2014 Lauterbach GmbH
+; $Id: el_autoload.cmm 5001 2020-01-28 15:27:00Z rdienstbeck $
+
+// define local macros
+ LOCAL &filename &type &code &data &space
+ LOCAL &filepath &basename &progname &progpath
+ LOCAL &symfilename1 &symfilename2
+
+// get filename and relocation information
+ // these parameters are passed from TRACE32 when calling this skript
+
+ ENTRY &filename &type &code &data &space
+
+ //print "autoload: " &filename " " &type " " &code " " &data " " &space
+
+ // &filename:      name of process/file
+ // &type:          type of file: 1=process, 2=library, 3=kernel module
+ // &code:          text segment address
+ // &data:          data segment address
+ // &space:         space id of process
+
+// get symbol file name and program name
+ &filepath=""
+ &basename=STRing.CUT(&filename,-string.len(os.file.extension(&filename)))
+ IF ((&type&0xffff)==2)
+ (
+   // libraries
+   &symfilename1=&filename
+   &symfilename2="&basename"+".so"
+ )
+ IF (&type==3)
+ (
+   // kernel modules
+   &symfilename1="&basename"+".ko"
+   // Linux converts dashes to underlines - try to reverse this
+   LOCAL &ul &len
+   &symfilename2="&basename"+".ko"
+   &len=STRing.LENgth("&symfilename2")
+   &ul=STRing.SCAN("&symfilename2","_",0)
+   WHILE &ul!=-1
+   (
+     &symfilename2=STRing.CUT("&symfilename2",&ul-&len)+"-"+STRing.CUT("&symfilename2",&ul+1)
+     &ul=STRing.SCAN("&symfilename2","_",0)
+   )
+ )
+
+// get program name
+ &progname=OS.FILE.NAME("&basename")
+
+// set space id to kernel if not given
+ IF "&space"==""
+  &space=ext.elinos.spaceid()
+
+// delete symbols if they already exist
+ IF sYmbol.EXIST("\\&progname")
+ (
+   // create program path - due to possible special characters
+   &progpath="`"+"\\"+"&progname"+"`"
+   sYmbol.Delete &progpath
+ )
+ ;GROUP.Delete "&progname"
+
+// check if preset file path is valid
+ IF !OS.FILE("&filepath")
+    &filepath=sYmbol.SEARCHFILE("&symfilename1")
+// search file in source search path and open dialog when not there
+ IF !OS.FILE("&filepath")
+    &filepath=sYmbol.SEARCHFILE("&symfilename2")
+ if !OS.FILE("&filepath")
+ (
+   LOCAL &file &spath
+   &file=OS.FILE.NAME("&symfilename1")
+   WINPOS ,,,,,, filebox normal "Searching symbols for &filename"
+   DIALOG.FILE "*&file*"
+   ENTRY %line &filepath
+   IF "&filepath"==""
+     ENDDO
+   &spath=OS.FILE.PATH("&filepath")
+   sYmbol.SourcePATH.Set "&spath"
+ )
+
+// load symbol file (options for sourcepath, e.g. /STRIPPART may need to be added when required)
+
+ IF (&type==2)      // libraries
+ (
+   Data.LOAD.Elf "&filepath" &space:&code /nocode /noclear
+ )
+
+ IF (&type==3)      // modules
+ (
+   Data.LOAD.Elf "&filepath" &space:0 /nocode /noclear /name &progname /reloctype &type
+   ;GROUP.Create "&progname" y.secrange(\\&progname\.text) /YELLOW
+ )
+
+ ENDDO

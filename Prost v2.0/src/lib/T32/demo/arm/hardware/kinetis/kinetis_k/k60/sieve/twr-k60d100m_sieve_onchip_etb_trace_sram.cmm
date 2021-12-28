@@ -1,0 +1,140 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for MK60DN512VMD10 on TWR-K60D100M with Onchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Onchip-Trace.
+;   Prerequisites:
+;    * Connect Debug Cable to J16 using Adapter LA-3770
+;      or
+;      Connect Combiprobe/uTrace to J16
+; @Keywords: ARM, Cortex-M4, ETB, ETM
+; @Author: STK
+; @Board: TWR-K60D100M
+; @Chip: MK60DN512VMD10
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: twr-k60d100m_sieve_onchip_etb_trace_sram.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU MK60DN512VMD10
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock 10MHz
+Trace.DISable
+SYStem.Up
+
+GOSUB DisableWatchdog
+GOSUB SetupPLL
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; initialize ONCHIP trace (ETB, ETM, ITM)
+Trace.METHOD ONCHIP
+Trace.AutoInit ON
+ITM.DataTrace CorrelatedData
+ITM.ON
+ETM.Trace ON
+ETM.ON
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO
+
+
+
+; -------------------------------------------------------------------------------
+; disable the Watchdog
+DisableWatchdog:
+(
+  ; The watchdog has a restrictive timing. It has to be configured and unlocked within a peripod
+  ; of 20+256 cycles. Therefor the unlock sequence needs to be done by a small target program.
+  Data.Assemble ST:0x20000000  strh r1,[r0]  ;SD:0x4005200E = 0xC520   (Key 1)
+  Data.Assemble ,              strh r2,[r0]  ;SD:0x4005200E = 0xD928   (Key 2)
+  Data.Assemble ,              strh r4,[r3]  ;SD:0x40052000 = 0x0000   (Config register)
+  Data.Assemble ,              bkpt #0       ;breakpoint, stop
+  Register.Set PC 0x20000000
+  Register.Set R0 0x4005200E
+  Register.Set R1 0xC520
+  Register.Set R2 0xD928
+  Register.Set R3 0x40052000
+  Register.Set R4 0x0000
+  Go.direct
+  WAIT !STATE.RUN()
+  
+  RETURN
+)
+
+
+
+;--------------------------------------------------------------------------------
+; PLL Setup for MK60DN512   
+SetupPLL:
+(
+  ; Switches to PLL with 75Mhz, external OSC(50MHz) / 16 * 24 = 75Mhz
+  ; Core Clock    75 Mhz
+  ; Bus/FlexBus  37.5Mhz
+  ; Flash         25 Mhz
+  Data.Set SD:0x40064001 %Byte 0x00          ; MCG_C2: Default, select EXTAL mode (external clock provided)
+  Data.Set SD:0x40064004 %Byte 0x0F          ; MCG_C5: PRDIV = 16
+  Data.Set SD:0x40064005 %Byte 0x00          ; MCG_C6: VDIV = /24
+  Data.Set SD:0x40048044 %Long 0x01120000    ; SIM: CLKDIV1 Core = /1, Bus = /2, FlexBus = /2, FlashClock = /3
+
+  Data.Set SD:0x40064000 %Byte 0x84          ; MCG_C1: Switch to external clock        
+  Data.Set SD:0x40064004 %Byte 0x4F          ; Engage PLL.
+  ; Wait for Lock of PLL
+  LOCAL &h
+  &h=0
+  WHILE ((&h)&0x40)==0
+  (
+    &h=Data.Byte(sd:0x40064006)
+  )
+  Data.Set SD:0x40064005 %Byte 0x40          ; MCG_C6: Feed PLL to clock selector
+  ; Wait until PLL is feed to clock selector
+  &h=0
+  WHILE ((&h)&0x20)==0
+  (
+    &h=Data.Byte(sd:0x40064006)
+  )
+  Data.Set SD:0x40064000 %Byte 0x04          ; MCG_C1: Switch to PLL clock
+  ; Wait until PLL is feed to clock selector
+  &h=0
+  WHILE ((&h)&0x0C)!=0x0C
+  (
+    &h=Data.Byte(sd:0x40064006)
+  )
+  RETURN
+)

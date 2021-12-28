@@ -1,0 +1,114 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash declaration for Texas Instruments MSP432 family internal flash
+; @Description:
+;   Script arguments:
+;
+;     DO msp432 [PREPAREONLY] [CPU=<cpu>] [DUALPORT=<0|1>]
+;       PREPAREONLY    only declares flash but does not execute flash programming
+;       CPU=<cpu>      selects CPU derivative <cpu>
+;       DUALPORT=<0|1> use dual port memory access, default 0
+;   Example:
+;   DO ~~/demo/arm/flash/msp432 PREPAREONLY
+;
+;   List of MSP432P401M derivatives and their configuration:
+;     CPU-Type       Flash    RamSize
+;                   [KB]     [KB]
+;     MSP432P401M    128      32
+;     MSP432P401R    256      64
+;
+; @Chip: MSP432*
+; @Author: MAM
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 7602 $
+; $Id: msp432.cmm 7602 2019-11-05 15:02:25Z bschroefel $
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+PRIVATE &param_prepareonly &param_cpu &param_dualport
+&parameters=STRing.UPpeR("&parameters")
+&param_prepareonly=(STRing.SCAN("&parameters","PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract("&parameters","CPU=","")
+&param_dualport=STRing.SCANAndExtract("&parameters","DUALPORT=","0")
+
+; --------------------------------------------------------------------------------
+; Initialize and start the debugger
+IF !SYStem.Up()
+(
+  SYStem.RESet
+
+  IF "&param_cpu"!=""
+    SYStem.CPU &param_cpu
+  IF !CPUIS(MSP432*)
+    SYStem.CPU MSP432*
+
+  SYStem.JtagClock 5Mhz
+  SYStem.CONFIG.DEBUGPORTTYPE SWD
+  SYStem.Option.WaitReset 10ms
+  SYStem.Up
+)
+
+; --------------------------------------------------------------------------------
+; Flash declaration
+FLASH.RESet
+GOSUB FlashDeclaration "&param_dualport"
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; --------------------------------------------------------------------------------
+; Flash programming example
+DIALOG.YESNO "Program flash memory?"
+PRIVATE &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram ALL /Erase
+  Data.LOAD.auto *
+  FLASH.ReProgram OFF
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+)
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+; SUBROUTINES
+
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU
+FlashDeclaration: ;(param_dualport)
+(
+  PARAMETERS &param_dualport
+
+  PRIVATE &FlashSectorSize
+  PRIVATE &FlashBase &FlashSize
+  PRIVATE &FlashInfoBase &FlashInfoSize
+
+
+  &FlashSectorSize=0x1000 // we use the smallet possible sector size of 4K
+  &FlashBase=0x00000000
+  &FlashSize=0x20000
+  &FlashInfoBase=0x200000
+  &FlashInfoSize=0x2000
+
+
+  FLASH.Create 1. &FlashBase++(&FlashSize-1) &FlashSectorSize TARGET Long 10000000 /AutoInc
+  FLASH.Create 3. &FlashInfoBase++(&FlashInfoSize-1) &FlashSectorSize TARGET Long 30000000 /AutoInc
+  IF CPUIS(MSP432P401R)
+  (
+    FLASH.Create 2. (&FlashBase+&FlashSize)++(&FlashSize-1) &FlashSectorSize TARGET Long 20000000 /AutoInc
+    FLASH.Create 4. (&FlashInfoBase+&FlashInfoSize)++(&FlashInfoSize-1) &FlashSectorSize TARGET Long 40000000 /AutoInc
+  )
+
+  IF "&param_dualport"=="0"
+    FLASH.TARGET 0x01000000 0x01001000 0x1000  ~~/demo/arm/flash/long/msp432.bin
+  ELSE
+    FLASH.TARGET 0x01000000 E:0x01001000 0x1000  ~~/demo/arm/flash/long/msp432.bin /DualPort
+
+  RETURN
+)

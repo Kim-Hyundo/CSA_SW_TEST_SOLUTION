@@ -1,0 +1,49 @@
+; --------------------------------------------------------------------------------
+; @Title: PIPE Demo Setup Script for the BeagleBoard
+; @Description: -
+; @Keywords: beagle, PIPE, PROTO
+; @Board: BeagleBoard
+; @Chip: OMAP3530
+; @Author: ING
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: setup_beagle.cmm 15209 2019-11-04 10:07:55Z bschroefel $
+
+
+; Demo with DLL
+
+; bring up board, load application etc.
+DO common_beagle
+
+; Influence speed of application
+Var.set timerReload = 50.
+
+
+
+; Start program, which will read from windows PIPE
+&a="pproto00"
+IF OS.VERSION(0)==0x10
+(
+  ; LINUX OS
+  OS.screen xterm -fg white -bg black -sl 0 -e ./pread /tmp/&a &
+  WAIT 500.ms
+)
+ELSE
+(
+  OS.screen ./pread.exe \\.\pipe\&a
+  WAIT 500.ms
+)
+
+; Load DLL, which will connect to windows PIPE
+CAnalyzer.PipePROTO dll/pproto &a
+; Set frequency
+CAnalyzer.ExportClock 6Mhz
+; ARM CombiProbe
+CAnalyzer.Arm
+
+
+
+
+
+
+

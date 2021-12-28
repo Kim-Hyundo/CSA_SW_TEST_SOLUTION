@@ -1,0 +1,56 @@
+; --------------------------------------------------------------------------------
+; @Title: GRUB autoload script, called by TRACE32 if symbols are to be loaded
+; @Description:
+;   This script is part of the TRACE32 GRUB Awareness
+; 
+; @Keywords: GRUB autoloader awareness
+; @Author: MSA
+; @Copyright: (c) 1989-2018 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: autoload.cmm 3306 2018-05-21 09:50:59Z msamet $
+
+// define local macros
+ LOCAL &filename &progname &filepath &code &data &space &type
+ LOCAL &symfilename1 &basePath &rpath
+
+// get filename and relocation information
+ // these parameters are passed from TRACE32 when calling this skript
+ 
+ ENTRY &filename  &type &code &data &space
+ 
+ //print "autoload: " &filename " " &type " " &code " " &data " " &space
+ 
+ // &filename:      name of process/file
+ // &type:          NOT USED
+ // &code:          text segment address
+ // &space:         NOT USED
+ 
+ 
+ &filepath=""
+ 
+ &symfilename1=&filename+".mod"
+ 
+ &rpath=task.y.modp(modpath)
+ IF "&rpath"!=""
+ (
+   &basePath="&rpath"
+   &filepath="&basePath"+"/"+"&symfilename1"
+ )
+ 
+ IF !OS.FILE("&filepath")
+ (
+   &file=OS.FILE.NAME("&symfilename1")
+   WinPOS ,,,,,, filebox normal "Searching symbols for &filename"
+   DIALOG.File "*&file*"
+   ENTRY %LINE &filepath
+   IF "&filepath"==""
+     ENDDO
+   &spath=OS.FILE.PATH("&filepath")
+   sYmbol.SourcePATH.Set "&spath"
+   &basePath="&spath"+"/"
+
+ )
+ 
+ Data.LOAD.Elf &filepath &code /NoCODE /NoClear
+ 
+ ENDDO

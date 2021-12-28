@@ -1,0 +1,34 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to connect to the NXEB500-HMI Board
+; @Description:
+;   This script connects to the NXEB500-HMI Board by calling the
+;   netx_common_init.cmm and does some initialization using
+;   Data.Set commands
+; @Keywords: Hilscher, NetX*
+; @Board: NXEB500-HMI
+; @Chip: NETX500
+; @Author: Hilscher
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: nxeb500hmi_init.cmm 12065 2018-02-07 12:26:30Z amerkle $
+
+
+DO ~~~~/netx_common_init.cmm
+
+;setup non-paired Intel StrataFlash
+&FLASH_PROGRAMMING_METHOD="TRACE32 Tool Based"
+FLASH.RESet
+;16MB Flash at 0xc0000000 with a sector size of 128kByte of type intel28FXXXJ3
+FLASH.Create 1. ASD:0xC0000000++0x0FFFFFF 0x20000 TARGET Word
+FLASH.TARGET ASD:0x00001000 ASD:0x00002000 0x1000 word/i28f200j3.bin
+MAP.BOnchip 0xC0000000++0x0FFFFFF
+
+;Setup Flash controller for Intel Strata 16Bit on CS0 @0xc0000000
+Data.Set ASD:0x100100 %Long 0x0103030F
+
+;setup SDRam Timing
+Data.Set ASD:0x100140 %Long 0x0
+Data.Set ASD:0x100144 %Long 0x03C13251
+Data.Set ASD:0x100140 %Long 0x030D0111
+
+ENDDO

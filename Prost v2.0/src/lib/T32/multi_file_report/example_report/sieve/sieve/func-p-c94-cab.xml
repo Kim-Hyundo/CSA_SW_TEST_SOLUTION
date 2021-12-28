@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="../../t32transform.xsl"?>
+<TRACE32 file="D:\svn\demo\demo\coverage\multi_file_report\example_report\sieve\sieve\func-p-c94-cab.xml">
+	<coverage>
+		<COVerage.EXPORT.ListLine ts="1539005269" t32ver="S.2018.10.000101728" t32pv="ARM">
+			<module>
+				<addrFrom>P:0x4B0</addrFrom>
+				<addrTo>P:0x167B</addrTo>
+				<tree>\\sieve\sieve</tree>
+				<cov>partial</cov>
+				<exec>75.109%</exec>
+				<branches>78.125%</branches>
+				<ok>47</ok>
+				<taken>4</taken>
+				<nottaken>2</nottaken>
+				<never>11</never>
+				<bytes>4556</bytes>
+				<bytesok>3422</bytesok>
+				<function>
+					<addrFrom>P:0xC94</addrFrom>
+					<addrTo>P:0xCAB</addrTo>
+					<tree uid="p-c94-cab">\\sieve\sieve\func12</tree>
+					<cov>never</cov>
+					<exec>0.000%</exec>
+					<branches>-</branches>
+					<ok>0</ok>
+					<taken>0</taken>
+					<nottaken>0</nottaken>
+					<never>-</never>
+					<bytes>24</bytes>
+					<bytesok>0</bytesok>
+					<line>
+						<addrFrom>P:0xC94</addrFrom>
+						<addrTo>P:0xC9B</addrTo>
+						<tree>sieve.c \464--469</tree>
+						<srcpath>.\src</srcpath>
+						<cov>never</cov>
+						<exec>0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>-</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:0xC9C</addrFrom>
+						<addrTo>P:0xCA1</addrTo>
+						<tree>sieve.c \470--470</tree>
+						<srcpath>.\src</srcpath>
+						<cov>never</cov>
+						<exec>0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>-</never>
+						<bytes>6</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:0xCA2</addrFrom>
+						<addrTo>P:0xCAB</addrTo>
+						<tree>sieve.c \471--471</tree>
+						<srcpath>.\src</srcpath>
+						<cov>never</cov>
+						<exec>0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>-</never>
+						<bytes>10</bytes>
+						<bytesok>0</bytesok>
+					</line>
+				</function>
+			</module>
+		<total>
+			<cov>partial</cov>
+			<exec>75.109%</exec>
+			<branches>78.125%</branches>
+			<ok>47</ok>
+			<taken>4</taken>
+			<nottaken>2</nottaken>
+			<never>11</never>
+			<bytes>4556</bytes>
+			<bytesok>3422</bytesok>
+		</total>
+		</COVerage.EXPORT.ListLine>
+	</coverage>
+	<marker>
+		<BookMark.EXPORT ts="1539005269" t32ver="S.2018.10.000101728" t32pv="ARM">
+		</BookMark.EXPORT>
+	</marker>
+	<listing>
+		<List.EXPORT ts="1539005269" t32ver="S.2018.10.000101728" t32pv="ARM" cpu="ARM922T">
+			<mixed module="\\sieve\sieve\sieve.c">
+				<hll><line>464</line><src></src></hll>
+				<hll><line>465</line><src>typedef char undefarray[];</src></hll>
+				<hll><line>466</line><src>typedef undefarray * undefptr;</src></hll>
+				<hll><line>467</line><src></src></hll>
+				<hll><line>468</line><src>void func12( undefptr ptr )     /* pointer to array of unknown size */</src></hll>
+				<hll><cov>never</cov><line>469</line><src>{</src></hll>
+				<asm><cov>never</cov><addr>ST:00000C94</addr><code>B580</code><label>func12:</label><mnemonic>push    {r7,r14}</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00000C96</addr><code>B082</code><mnemonic>sub     sp,#0x8</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00000C98</addr><code>AF00</code><mnemonic>add     r7,sp,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00000C9A</addr><code>6078</code><mnemonic>str     r0,[r7,#0x4]</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\sieve\sieve.c">
+				<hll><cov>never</cov><line>470</line><src>    (*ptr)[0] = 1;</src></hll>
+				<asm><cov>never</cov><addr>ST:00000C9C</addr><code>687B</code><mnemonic>ldr     r3,[r7,#0x4]</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00000C9E</addr><code>2201</code><mnemonic>mov     r2,#0x1</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00000CA0</addr><code>701A</code><mnemonic>strb    r2,[r3]</mnemonic></asm>
+			</mixed>
+			<mixed module="\\sieve\sieve\sieve.c">
+				<hll><cov>never</cov><line>471</line><src>}</src></hll>
+				<asm><cov>never</cov><addr>ST:00000CA2</addr><code>46BD</code><mnemonic>mov     r13,r7</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00000CA4</addr><code>B002</code><mnemonic>add     sp,#0x8</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00000CA6</addr><code>BC80</code><mnemonic>pop     {r7}</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00000CA8</addr><code>BC01</code><mnemonic>pop     {r0}</mnemonic></asm>
+				<asm><cov>never</cov><addr>ST:00000CAA</addr><code>4700</code><mnemonic>bx      r0</mnemonic></asm>
+			</mixed>
+		</List.EXPORT>
+	</listing>
+</TRACE32>

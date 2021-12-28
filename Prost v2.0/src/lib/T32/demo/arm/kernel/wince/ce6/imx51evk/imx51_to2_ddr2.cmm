@@ -1,0 +1,144 @@
+; --------------------------------------------------------------------------------
+; @Title: Initialization Script for iMX51 3DS board
+; @Description: DDR Initialization script for iMX51 3DS board
+; @Author: DIE
+; @Board: iMX51-3DS
+; @Keywords: i.MX51
+; @Chip: IMX51*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx51_to2_ddr2.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+; --------------------------------------------------------------------------------
+; init ARM
+; --------------------------------------------------------------------------------
+PER.Set.simple C15:0x1 %Long 0x00050078
+Register.Set CPSR 0x1D3
+ 
+; --------------------------------------------------------------------------------
+; Disable WDOG
+; --------------------------------------------------------------------------------
+Data.Set 0x73f98000 %Word 0x0030
+
+; --------------------------------------------------------------------------------
+; Restore CCM dividers default values (changed by ROM code)
+; Mask this section when validating ROM functionality
+; --------------------------------------------------------------------------------
+Data.Set 0x73fd4014 %Long 0x19239145
+Data.Set 0x73fd401c %Long 0xa6a2a020
+Data.Set 0x73fd4024 %Long 0x00c30318
+
+
+; --------------------------------------------------------------------------------
+; Initialization script for 32 bit DDR2 (CS0+CS1) 
+; Starting DDR frequency (after ROM code execution, before "prog_pll") is 150MHz.
+; Using validation environment (incl. "prog_pll" routine) will set DDR clock to 200MHz.
+; --------------------------------------------------------------------------------
+
+; DDR2 IOMUX configuration
+Data.Set 0x73fa88a0 %Long 0x00000200 ;IOMUXC_SW_PAD_CTL_GRP_INMODE1          DDR2 mode
+
+;Data.Set 0x73fa850c %long 0x000020c5 ;IOMUXC_SW_PAD_CTL_PAD_EIM_SDODT1       Pull-D, HIGH DS *** MPW LOOKS WRONG
+;Data.Set 0x73fa8510 %long 0x000020c5 ;IOMUXC_SW_PAD_CTL_PAD_EIM_SDODT0       Pull-D, HIGH D0 *** MPW LOOKS WRONG
+Data.Set 0x73fa850c %Long 0x000002c7 ;IOMUXC_SW_PAD_CTL_PAD_EIM_SDODT1       Pull-D, MAX DS
+Data.Set 0x73fa8510 %Long 0x000002c7 ;IOMUXC_SW_PAD_CTL_PAD_EIM_SDODT0       Pull-D, MAX DS
+
+;Data.Set 0x73fa883c %long 0x00000002 ;IOMUXC_SW_PAD_CTL_GRP_DDR_A0           MEDIUM DS
+;Data.Set 0x73fa8848 %long 0x00000002 ;IOMUXC_SW_PAD_CTL_GRP_DDR_A1           MEDIUM DS
+Data.Set 0x73fa883c %Long 0x00000006 ;IOMUXC_SW_PAD_CTL_GRP_DDR_A0           MAX DS
+Data.Set 0x73fa8848 %Long 0x00000006 ;IOMUXC_SW_PAD_CTL_GRP_DDR_A1           MAX DS
+
+Data.Set 0x73fa84b8 %Long 0x000000e7 ;IOMUXC_SW_PAD_CTL_PAD_DRAM_SDCLK       MAX DS
+Data.Set 0x73fa84bc %Long 0x00000045 ;IOMUXC_SW_PAD_CTL_PAD_DRAM_SDQS0       Pull/Keep Disable
+Data.Set 0x73fa84c0 %Long 0x00000045 ;IOMUXC_SW_PAD_CTL_PAD_DRAM_SDQS1       Pull/Keep Disable
+Data.Set 0x73fa84c4 %Long 0x00000045 ;IOMUXC_SW_PAD_CTL_PAD_DRAM_SDQS2       Pull/Keep Disable
+Data.Set 0x73fa84c8 %Long 0x00000045 ;IOMUXC_SW_PAD_CTL_PAD_DRAM_SDQS3       Pull/Keep Disable
+
+Data.Set 0x73fa8820 %Long 0x00000000 ;IOMUXC_SW_PAD_CTL_GRP_DDRPKS           PUE = Keeper
+
+;Data.Set 0x73fa84a4 %long 0x00000003 ;IOMUXC_SW_PAD_CTL_PAD_DRAM_RAS         MEDIUM DS
+;Data.Set 0x73fa84a8 %long 0x00000003 ;IOMUXC_SW_PAD_CTL_PAD_DRAM_CAS         MEDIUM DS
+;Data.Set 0x73fa84ac %long 0x000000e3 ;IOMUXC_SW_PAD_CTL_PAD_DRAM_SDWE        MEDIUM DS
+;Data.Set 0x73fa84b0 %long 0x000000e3 ;IOMUXC_SW_PAD_CTL_PAD_DRAM_SDCKE0      MEDIUM DS
+;Data.Set 0x73fa84b4 %long 0x000000e3 ;IOMUXC_SW_PAD_CTL_PAD_DRAM_SDCKE1      MEDIUM DS
+;Data.Set 0x73fa84cc %long 0x000000e3 ;IOMUXC_SW_PAD_CTL_PAD_DRAM_CS0         MEDIUM DS
+;Data.Set 0x73fa84d0 %long 0x000000e2 ;IOMUXC_SW_PAD_CTL_PAD_DRAM_CS1         MEDIUM DS
+
+Data.Set 0x73fa84a4 %Long 0x00000007 ;IOMUXC_SW_PAD_CTL_PAD_DRAM_RAS         MAX DS
+Data.Set 0x73fa84a8 %Long 0x00000007 ;IOMUXC_SW_PAD_CTL_PAD_DRAM_CAS         MAX DS
+Data.Set 0x73fa84ac %Long 0x000000e7 ;IOMUXC_SW_PAD_CTL_PAD_DRAM_SDWE        MAX DS
+Data.Set 0x73fa84b0 %Long 0x000000e7 ;IOMUXC_SW_PAD_CTL_PAD_DRAM_SDCKE0      MAX DS
+Data.Set 0x73fa84b4 %Long 0x000000e7 ;IOMUXC_SW_PAD_CTL_PAD_DRAM_SDCKE1      MAX DS
+Data.Set 0x73fa84cc %Long 0x000000e7 ;IOMUXC_SW_PAD_CTL_PAD_DRAM_CS0         MAX DS
+Data.Set 0x73fa84d0 %Long 0x000000e7 ;IOMUXC_SW_PAD_CTL_PAD_DRAM_CS1         MAX DS
+
+; ----- CHANGES ----- BEGIN
+Data.Set 0x73FA8820 %Long 0x0 ; disable pull up, enable keeper on DRAM_Data pins
+Data.Set 0x73FA882C %Long 0x6 ; DRAM_D31-24 to max
+Data.Set 0x73FA88a4 %Long 0x6 ; DRAM_D0-7 to max
+Data.Set 0x73FA88aC %Long 0x6 ; DRAM_D8-15 to max
+Data.Set 0x73FA88b8 %Long 0x6 ; DRAM_D16-23 to max
+; ----- CHANGES ----- END
+
+;13 ROW, 10 COL, 32Bit, SREF=4 Micron Model
+;CAS=3,  BL=4
+Data.Set 0x83fd9000 %Long 0x82a20000 ; ESDCTL0 
+Data.Set 0x83fd9008 %Long 0x82a20000 ; ESDCTL1 
+
+; 8 bank NO ODT
+;Data.Set 0x83fd9010 %long 0x000ad0d0 ; ESDMISC 
+
+; 8 bank ODT 
+Data.Set 0x83fd9010 %Long 0x000af0d0 ; ESDMISC 
+
+
+Data.Set 0x83fd9004 %Long 0x333574aa ; ESDCFG0 tRFC=13 tXSR=28 tXP=2 tRP=3 tMRD=2 tRAS=8 tRRD=2 tWR=3 tRCD=3 tRC=11
+Data.Set 0x83fd900c %Long 0x333574aa ; ESDCFG1 tRFC=13 tXSR=28 tXP=2 tRP=3 tMRD=2 tRAS=8 tRRD=2 tWR=3 tRCD=3 tRC=11
+
+; Init DRAM on CS0
+Data.Set 0x83fd9014 %Long 0x04008008 ; ESDSCR  
+Data.Set 0x83fd9014 %Long 0x0000801a ; ESDSCR  
+Data.Set 0x83fd9014 %Long 0x0000801b ; ESDSCR  
+ Data.Set 0x83fd9014 %Long 0x00448019 ; ESDSCR      ;From XLoader
+;Data.Set 0x83fd9014 %long 0x00008019 ; ESDSCR    ;From Lauterbach
+Data.Set 0x83fd9014 %Long 0x07328018 ; ESDSCR  
+Data.Set 0x83fd9014 %Long 0x04008008 ; ESDSCR  
+Data.Set 0x83fd9014 %Long 0x00008010 ; ESDSCR  
+Data.Set 0x83fd9014 %Long 0x00008010 ; ESDSCR  
+Data.Set 0x83fd9014 %Long 0x06328018 ; ESDSCR  
+Data.Set 0x83fd9014 %Long 0x03808019 ; ESDSCR  
+Data.Set 0x83fd9014 %Long 0x00408019 ; ESDSCR  ODT=150Ohm,CS0
+Data.Set 0x83fd9014 %Long 0x00008000 ; ESDSCR
+
+; Init DRAM on CS1
+Data.Set 0x83fd9014 %Long 0x0400800c ; ESDSCR  
+Data.Set 0x83fd9014 %Long 0x0000801e ; ESDSCR  
+Data.Set 0x83fd9014 %Long 0x0000801f ; ESDSCR  
+Data.Set 0x83fd9014 %Long 0x0000801d ; ESDSCR  
+Data.Set 0x83fd9014 %Long 0x0732801c ; ESDSCR  
+Data.Set 0x83fd9014 %Long 0x0400800c ; ESDSCR  
+Data.Set 0x83fd9014 %Long 0x00008014 ; ESDSCR  
+Data.Set 0x83fd9014 %Long 0x00008014 ; ESDSCR  
+Data.Set 0x83fd9014 %Long 0x0632801c ; ESDSCR  
+Data.Set 0x83fd9014 %Long 0x0380801d ; ESDSCR  
+Data.Set 0x83fd9014 %Long 0x0040801d ; ESDSCR  ODT=150Ohm,CS0
+Data.Set 0x83fd9014 %Long 0x00008004 ; ESDSCR
+
+Data.Set 0x83fd9000 %Long 0xb2a20000 ; ESDCTL0 
+Data.Set 0x83fd9008 %Long 0xb2a20000 ; ESDCTL1
+
+; 8 bank ODT on
+Data.Set 0x83fd9010 %Long 0x000af6d0 ; ESDMISC RALAT=01, NO ODT
+
+Data.Set 0x83fd9034 %Long 0x90000000 ; ESDCDLYGD
+
+Data.Set 0x83fd9014 %Long 0x00000000 ; ESDSCR - clear "configuration request" bit
+
+ENDDO
+
+
+
+
+
+

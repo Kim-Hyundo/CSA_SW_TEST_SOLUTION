@@ -1,0 +1,82 @@
+; --------------------------------------------------------------------------------
+; @Title: Precise/MQX Demo for TRACE32 OS Awareness
+; @Description: 
+;   
+;    This batchfile loads all necessary files to demonstrate
+;    the Awareness for Precise/MQX.
+;   
+;   
+; @Keywords: mqx, RTOS, v240
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mqx.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+;   Created by Rudolf Dienstbeck / Lauterbach GmbH at 12.04.2002
+
+ SCREEN.ON
+
+; Emulator reset
+ PRINT "resetting..."
+ SYStem.Down
+ Break.Delete
+ WinPAGE.RESet
+ WinPOS 0 26. 70. 8. 0. 0. W000
+ AREA.view
+
+; initialize system
+ PRINT "initializing..."
+
+ SYStem.Option DisMode ACCESS
+ SYStem.Up
+ 
+; load sample application
+ PRINT "loading sample application..."
+ Register.RESet
+ Data.LOAD.Elf demo.elf
+ 
+; on Simulator reroute output to TRACE32 terminal emulation
+ IF INTERFACE.SIM()
+ (
+   ; patch serial ouput to output on memory
+   Data.Set st16550_serial_putc      0x7a 0x46 ; mov r2,pc
+   Data.Assemble ST:st16550_serial_putc+2 ldrb r3,[r2,#0x10]
+   Data.Assemble ,                        cmp  r3,#0x00
+   Data.Assemble ,                        bne  $-4
+   Data.Assemble ,                        strb r1,[r2,#0x10]
+   Data.Assemble ,                        mov  pc,r14
+   
+   ; initialize and open TRACE32 terminal window
+   sYmbol.NEW.Label T32OUT st16550_serial_putc+0x14
+   Data.Set T32OUT 0
+   TERM.Protocol SingleE
+   WinPOS 0 0 80. 24.
+   TERM.view T32OUT 0
+ )
+
+; on Simulator patch idle task to simulate timer tick
+ IF INTERFACE.SIM()
+ (
+   Data.Assemble ST:mqx_idle_task+0x0c bl time_notify_kernel
+   Data.Assemble ,                     bl sched_yield
+ )
+ 
+; initialize mutitasking support
+ PRINT "initializing RTOS support..."
+ SCREEN.OFF
+ TASK.CONFIG mqx 
+ MENU.ReProgram mqx
+
+ PRINT "load complete."
+ 
+; open some windows
+ WinPOS 50. 1. 70. 21.
+ List.auto
+ WinPOS 40. 13. 78. 14. 
+ TASK.TASK
+ WinPOS 40. 30. 75. 3. 0.
+ TASK.SEMAphore
+ 
+; start application
+ Go main_task
+  

@@ -1,0 +1,168 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for NRF9160SICA on NRF9160-DK with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The Offchip Trace using a Combiprobe/uTrace or PowerTrace is set up.
+;   Use this script for testing the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Combiprobe/uTrace to P4
+;      or
+;      Connect AutoFocus Preprocessor to P4
+;      and connect DebugCable to Preprocessor
+; @Keywords: ARM, Cortex-M33, ETM, ITM
+; @Author: CMO
+; @Board: NRF9160-DK
+; @Chip: NRF9160SI*
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: nrf9160-dk_sieve_offchip_trace_sram.cmm 16491 2020-09-02 08:30:52Z cmorgenstern $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU NRF9160SICA
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+	SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock 10MHz
+Trace.DISable
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; set core into secure mode and disable MPU
+Register.Set NS 0
+Data.Set ZSD:0xE000ED94 %Long (Data.Long(ZSD:0xE000ED94)&(~0x1)) ; disable MPU
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v8m_base.elf"
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace (ETM, ITM)
+
+GOSUB CONFIGURE_OFFCHIPTRACE_PINS
+
+IF COMBIPROBE()||UTRACE()||Analyzer()
+(
+	; set PinMux and enable Clocks
+
+	TPIU.PortSize 4
+	TPIU.PortMode Continuous
+	ITM.DataTrace CorrelatedData
+	ITM.ON
+	ETM.Trace ON
+	ETM.ON
+)
+IF Analyzer()
+(
+	Trace.METHOD Analyzer
+	Trace.AutoInit ON
+	; On an unstable trace connection, try:
+	; Trace.TERMination OFF
+
+	Trace.AutoFocus
+)
+ELSE IF COMBIPROBE()||UTRACE()
+(
+	Trace.METHOD CAnalyzer
+	Trace.AutoInit ON
+	; On an unstable trace connection, try:
+	; CAnalyzer.TERMination OFF
+
+	CAnalyzer.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+
+ENDDO
+
+
+CONFIGURE_OFFCHIPTRACE_PINS:
+(
+	PRIVATE &reg
+
+	; claim pin ownership for trace
+	Data.Set ZSD:0xE0080500 %LE %Long 0x1
+
+	; enable all trace clocks
+	Data.Set ZSD:0xE0080000 %LE %Long 0x1
+
+	; SPU settings
+	&reg=Data.Long(ZSD:0x500034C0)
+	&reg=&reg&(~(0x1<<21.|0x1<<22.|0x1<<23.|0x1<<24.|0x1<<25.))
+	Data.Set ZSD:0x500034C0 %LE %Long &reg
+
+	; GPIO pin settings (set high driving strength)
+	Data.Set ZSD:0x50842754 %LE %Long 0x301  ; P0.21
+	Data.Set ZSD:0x50842758 %LE %Long 0x301  ; P0.22
+	Data.Set ZSD:0x5084275C %LE %Long 0x301  ; P0.23
+	Data.Set ZSD:0x50842760 %LE %Long 0x301  ; P0.24
+	Data.Set ZSD:0x50842764 %LE %Long 0x301  ; P0.25
+
+	; define trace pins
+	Data.Set ZSD:0xE0080504 %LE %Long 21.    ; P0.21 = TRACE_CLK
+	Data.Set ZSD:0xE0080508 %LE %Long 22.    ; P0.22 = TRACE_DATA0
+	Data.Set ZSD:0xE008050C %LE %Long 23.    ; P0.23 = TRACE_DATA1
+	Data.Set ZSD:0xE0080510 %LE %Long 24.    ; P0.24 = TRACE_DATA2
+	Data.Set ZSD:0xE0080514 %LE %Long 25.    ; P0.25 = TRACE_DATA3
+
+	; set trace clock
+	Data.Set ZSD:0xE0080518 %LE %Long 0x0	; '0' = 32 MHz, '1' = 16 MHz, '2' = 8 MHz, '3' = 4 MHz
+
+	; Timestamp Generator
+	Data.Set EAHB:0xE0053000 %LE %Long 0x00000001
+
+	; GPR Settings (Mandatory to get trace output)
+	Data.Set EAHB:0xE005AFB0 %LE %Long 0xC5ACCE55
+	Data.Set EAHB:0xE005A000 %LE %Long 0xFFFFFF00
+	Data.Set EAHB:0xE005A004 %LE %Long 0x00000009
+	Data.Set EAHB:0xE005A000 %LE %Long 0x00000303
+	Data.Set EAHB:0xE005AFB0 %LE %Long 0x00000000
+
+	Data.Set EAHB:0xE005BFB0 %LE %Long 0xC5ACCE55
+	Data.Set EAHB:0xE005B000 %LE %Long 0xFFFFFF00
+	Data.Set EAHB:0xE005B004 %LE %Long 0x00003000
+	Data.Set EAHB:0xE005B000 %LE %Long 0x00000308
+	Data.Set EAHB:0xE005BFB0 %LE %Long 0x00000000
+
+	Data.Set EAHB:0xE0058FB0 %LE %Long 0xC5ACCE55
+	Data.Set EAHB:0xE0058000 %LE %Long 0x00000000
+	Data.Set EAHB:0xE0058004 %LE %Long 0x00000000
+	Data.Set EAHB:0xE0058FB0 %LE %Long 0x00000000
+
+	RETURN
+)
+

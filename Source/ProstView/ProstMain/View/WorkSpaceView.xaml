@@ -1,0 +1,77 @@
+﻿<Window x:Class="ProstMain.View.WorkSpaceView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity" 
+        xmlns:utils="clr-namespace:ProstMain.Util"
+        xmlns:local="clr-namespace:ProstMain.View"
+        xmlns:gif="http://wpfanimatedgif.codeplex.com"
+        mc:Ignorable="d"
+        DataContext="{Binding Source={StaticResource Locator},Path=WorkSpaceVM}"
+        Height="380" Width="674" Topmost="True" 
+        WindowStyle="None"
+        BorderThickness="1" Background="#616161" Icon="/ProstMain;component/Resources/MainIcon.ico"
+        ResizeMode="CanResizeWithGrip"
+        AllowsTransparency="True"
+        FocusManager.FocusedElement="{Binding ElementName=BUTTON_OK}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="0.9*"/>
+            <RowDefinition Height="3.8*"/>
+            <RowDefinition Height="6.7*"/>
+        </Grid.RowDefinitions>
+
+        <Image Source="/ProstMain;component/Resources/LoadingImage.png" Width="674" Stretch="Fill" Margin="0,-80,0,0" Height="400" Grid.Row="1" Opacity="0.5"/>
+        
+        
+        <DockPanel x:Name="TitleBar" Width="674" Background="{DynamicResource ResourceKey=TopBarBackground}" Grid.Row="0" Grid.Column="0" MouseDown="TitleBar_MouseDown" HorizontalAlignment="Left">
+            <Image Source="/ProstMain;component/Resources/MainIcon.png" Margin="2" RenderOptions.BitmapScalingMode="HighQuality"/>
+                <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" FontSize="16" Margin="13,0,0,0" FontWeight="Bold">Workspace Launcher</TextBlock>
+            <Button Width="45" Style="{StaticResource CloseButtonStyle}" WindowChrome.IsHitTestVisibleInChrome="True" HorizontalAlignment="Right" Margin="0,0,10,0"
+                            Command="{Binding CancelClickCommand}" CommandParameter="workspace"/>
+        </DockPanel>
+        <Grid Background="{DynamicResource ResourceKey=StandardBackground}" Grid.Row="2" >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2.5*"/>
+                <ColumnDefinition Width="2.5*"/>
+                <ColumnDefinition Width="2.5*"/>
+                <ColumnDefinition Width="2.5*"/>
+                <ColumnDefinition Width="2.5*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="2.5*"/>
+                <RowDefinition Height="2.5*"/>
+                <RowDefinition Height="2.5*"/>
+                <RowDefinition Height="2.5*"/>
+            </Grid.RowDefinitions>
+            <Label Foreground="{DynamicResource ResourceKey=StandardTextForeground}" FontSize="15" Content="  Workspace " HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="1"/>
+
+            <ComboBox  Background="Transparent" Foreground="{DynamicResource StandardTextForeground}"  x:Name="COMB_Workspace" HorizontalAlignment="Stretch" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" ItemsSource="{Binding WorkspaceInfoModelList}" DisplayMemberPath="WorkspacePath" VerticalAlignment="Center" IsReadOnly="True" IsEditable="True" materialDesign:HintAssist.Hint="Workspace Name" SelectedItem="{Binding WorkSpaceModel.SelectWorkspaceItem,UpdateSourceTrigger=PropertyChanged}">
+                <ComboBox.Text>
+                    <Binding Path="WorkSpaceModel.SelectWorkspaceItem.WorkspacePath" UpdateSourceTrigger="PropertyChanged">
+                        <Binding.ValidationRules>
+                            <utils:DirValidationRule ValidatesOnTargetUpdated="True"/>
+                        </Binding.ValidationRules>
+                    </Binding>
+                </ComboBox.Text>
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="SelectionChanged">
+                        <i:InvokeCommandAction Command="{Binding WorkSpaceSelectedCommand, Mode=OneWay}" CommandParameter="{Binding ElementName=COMB_Workspace, Path=SelectedItem}"/>
+
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </ComboBox>
+
+            <CheckBox Background="{DynamicResource CheckBoxBackGroundColor}" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" Grid.Row="2" Grid.ColumnSpan="3" Content="Use this as the default and do not ask again" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0" IsChecked="{Binding WorkSpaceModel.IsWorkSpaceDefaultPath}"/>
+
+            <Button Background="{DynamicResource ResourceKey=ButtonBackground}" Foreground="{DynamicResource ResourceKey=ButtonForeground}" Style="{StaticResource MaterialDesignRaisedButton}" Content="Browser.." VerticalContentAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="1" Grid.Column="4" Command="{Binding BrowserClickCommand}"/>
+            <Button Name="BUTTON_OK" Background="{DynamicResource ResourceKey=ButtonBackground}" Foreground="{DynamicResource ResourceKey=ButtonForeground}"  Content="OK" HorizontalAlignment="Stretch" VerticalAlignment="Center" Grid.Column="3" Grid.Row="3" Command="{Binding OkClickCommand}" Margin="5"/>
+            <Button Background="{DynamicResource ResourceKey=ButtonBackground}" Foreground="{DynamicResource ResourceKey=ButtonForeground}"  Content="Cancel" HorizontalAlignment="Stretch" VerticalAlignment="Center" Grid.Row="3" Grid.Column="4" Command="{Binding CancelClickCommand}" Margin="5"/>
+            <Label Margin="10,0,0,0" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" Content="Select a workspace" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20" FontWeight="Bold" Grid.ColumnSpan="2"/>
+
+        </Grid>
+    </Grid>
+</Window>
+

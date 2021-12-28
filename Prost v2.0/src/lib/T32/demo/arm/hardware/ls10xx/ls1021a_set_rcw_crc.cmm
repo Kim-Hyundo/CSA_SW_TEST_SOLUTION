@@ -1,0 +1,101 @@
+; --------------------------------------------------------------------------------
+; @Title: LS1021A RCW Checksum calculation
+; @Description:
+;   Example how to calculate the checksum of the RCW for a LS102x SoC from NXP.
+;   The RCW and Checksum is available at VM:0x0 afterwards.
+;   Notes:
+;   please ses also
+;     * ls1021a_flash_uboot_with_rcw_nor.cmm
+;     * ls1021a_flash_uboot_with_rcw_qspi.cmm
+;   Usage:
+;     DO ls1021a_set_rcw_crc "NORFLASH"
+;     DO ls1021a_set_rcw_crc "QSPIFLASH"
+; @Keywords: Freescale, Layerscape, CortexA7, QorIQ, RCW
+; @Props: Template
+; @Author: AME
+; @Board: TWR-LS1021A
+; @Chip: LS1021A
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: ls1021a_set_rcw_crc.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+PRIVATE &params &norflash &qspiflash &qspiflash_romloop
+ENTRY %LINE &params
+&norflash=STRing.SCAN("&params","NORFLASH",0.)>=0.
+&qspiflash_romloop=STRing.SCAN("&params","QSPIFLASH_ROMLOOP",0.)>=0.
+&qspiflash=STRing.SCAN("&params","QSPIFLASH",0.)>=0.&&!(&qspiflash_romloop)
+
+Data.Set VM:0x0--0xfff %BE %Long 0xFFFFFFFF
+
+; preamble
+Data.Set VM:0x00 %Long %BE 0xAA55AA55 0x01EE0100
+; <user-input>
+IF &norflash
+(
+  ; from LS1021A NOR Flash (as shipped)
+  ; RCW
+  Data.Set , %Long %BE 0x0608000A 0x00000000 0x00000000 0x00000000
+  Data.Set , %Long %BE 0x70000000 0x00007900 0xE0025A00 0x21046000
+  Data.Set , %Long %BE 0x00000000 0x00000000 0x00000000 0x20000000
+  Data.Set , %Long %BE 0x00080000 0x881B7340 0x00000000 0x00000000
+  ; misc PBL stuff
+  Data.Set , %Long %BE 0x09570200 0xFFFFFFFF
+  ; set scratch to boot location - 0x60100000
+  Data.Set , %Long %BE 0x09EE0200 0x60100000
+  Data.Set , %Long %BE 0x09EA085C 0x00502880
+  Data.Set , %Long %BE 0x09EA0560 0x80800000
+)
+ELSE IF &qspiflash
+(
+  ; from uboot repository
+  ; ls102xa_rcw_sd_qspi.cfg
+  Data.Set , %Long %BE 0x0608000a 0x00000000 0x00000000 0x00000000
+  Data.Set , %Long %BE 0x30000000 0x00007900 0x60040a00 0x21046000
+  Data.Set , %Long %BE 0x00000000 0x00000000 0x00000000 0x20000000
+  Data.Set , %Long %BE 0x20024800 0x881b7340 0x00000000 0x00000000
+
+  ; ls102xa_pbi.cfg
+  Data.Set , %Long %BE 0x09570200 0xffffffff
+  Data.Set , %Long %BE 0x09570158 0x00000300
+  Data.Set , %Long %BE 0x8940007c 0x21f47300
+  ; set scratch to boot location - 0x40010000
+  Data.Set , %Long %BE 0x09ee0200 0x40010000
+
+  Data.Set , %Long %BE 0x09570158 0x00001000
+  Data.Set , %Long %BE 0x096100c0 0x000FFFFF
+)
+ELSE IF &qspiflash_romloop
+(
+  ; mixture of hardcoded and ls102xa_rcw_sd_qspi.cfg
+  ; do not set the scratch register -> cpu loops in bootrom
+  Data.Set , %Long %BE 0x0608000a 0x00000000 0x00000000 0x00000000
+  Data.Set , %Long %BE 0x30000000 0x00007900 0xFB800A00 0x21046000
+  Data.Set , %Long %BE 0x00000000 0x00000000 0x00000000 0x20000000
+  Data.Set , %Long %BE 0x20024800 0x881b7340 0x00000000 0x00000000
+)
+ELSE
+(
+  PRINT %ERROR "Wrong Usage!"
+  ENDDO
+)
+; </user-input>
+; finally write the crc check command
+Data.Set , %Long %BE 0x08610040
+
+; detect length of PBL section
+Data.FIND VM:0x0--0xfff %BE %Long 0x08610040 0xFFFFFFFF
+IF !FOUND()
+(
+  PRINT %ERROR "did not find end of PBL!"
+  ENDDO FALSE()
+)
+; now calculate the checksum
+PRIVATE &pblLength
+&pblLength=ADDRESS.OFFSET(TRACK.ADDRESS())+0x4
+Data.SUM VM:0x0++(&pblLength-0x1) /CRC 32. 0x04C11DB7 0 0 0xFFFFFFFF 0x00000000
+; write the crc "behind" the crc check command (0x08610040)
+Data.Set VM:(0x0+&pblLength) %Long %BE Data.SUM()
+
+; the PBL section is now complete ;-)
+
+ENDDO TRUE()

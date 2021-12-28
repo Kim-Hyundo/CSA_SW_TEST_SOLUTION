@@ -1,0 +1,141 @@
+; --------------------------------------------------------------------------------
+; @Title: Setup of TMS570LS07x internal flash
+;
+; @Description:
+; Script arguments:
+;
+;   DO tms570ls07x [AUTOECC=0|1] [PREPAREONLY]
+;
+;     AUTOECC default value is 1. If auto ECC generation is disabled with
+;             AUTOECC=0 then flash sectors are programmed without generating
+;             ECC. ECC sectors can be programmed separately or ECC sector
+;             programming can be omitted
+;
+;     PREPAREONLY only declares flash but does not execute flash programming
+;
+; List of TMS570LS07x derivatives and their configuration:
+;
+;                      Program   EEPROM
+;   CPU-Type            Flash     Flash   RAM
+; --------------------------------------------------------------------------------
+;   TMS570LS0714-PGE    768kB     64kB   128kB
+;   TMS570LS0714-PZ     768kB     64kB   128kB
+;
+; HINTS:
+;
+;   Flash programming algorithm is linked to address 0x08000000 and is not
+;   position independent. Code address of FLASH.TARGET command has not be
+;   changed.
+;
+; @Author: FLC
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; @Chip: TMS570LS07*   
+; --------------------------------------------------------------------------------
+; $Rev: 6945 $
+; $Id: tms570ls07.cmm 6945 2019-05-07 13:57:32Z wdoering $
+
+  LOCAL &parameters
+  ENTRY %LINE &parameters
+
+  LOCAL &param_prepareonly
+  &param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+
+  LOCAL &AutoECCGeneration
+  &AutoECCGeneration=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"AUTOECC=","1")
+
+  LOCAL &flashdriver
+
+  ; ------------------------------------------------------------------------------
+  ; Setup CPU
+
+  IF SYStem.MODE()<5
+  (
+    SYStem.RESet
+    MAP.RESet
+
+    IF !CPUIS(TMS570LS07*)
+      SYStem.CPU TMS570LS07*
+
+    SYStem.Up
+  )
+
+  ; ------------------------------------------------------------------------------
+  ; Flash declaration
+
+  FLASH.RESet
+
+  IF &AutoECCGeneration!=0
+  (
+    ; Program flash
+    FLASH.Create  1. 0x00000000--0x00017FFF  0x4000 TARGET Byte 0.      /INFO "TCM Flash bank"
+    FLASH.Create  1. 0x00018000--0x0001FFFF  0x8000 TARGET Byte 0.      /INFO "TCM Flash bank"
+    FLASH.Create  1. 0x00020000--0x000BFFFF 0x20000 TARGET Byte 0.      /INFO "TCM Flash bank"
+    ; Program flash ECC
+    FLASH.Create  1. 0xF0400000--0xF0402FFF   0x800 NOP    Byte 0.      /INFO "TCM Flash bank ECC"
+    FLASH.Create  1. 0xF0403000--0xF0403FFF  0x1000 NOP    Byte 0.      /INFO "TCM Flash bank ECC"
+    FLASH.Create  1. 0xF0404000--0xF0417FFF  0x4000 NOP    Byte 0.      /INFO "TCM Flash bank ECC"
+    ; EEPROM emulation flash
+    FLASH.Create  8. 0xF0200000--0xF020FFFF  0x1000 TARGET Byte 7.      /INFO "EEPROM bank"
+    ; EEPROM emulation flash ECC
+    FLASH.Create  8. 0xF0100000--0xF0101FFF   0x200 NOP    Byte 7.      /INFO "EEPROM bank ECC"
+    ; OTP flash
+    FLASH.Create 11. 0xF0000000--0xF0000FFF  0x1000 TARGET Quad 0. /OTP /INFO "Customer OTP, TCM Flash bank"
+    FLASH.Create 18. 0xF000E000--0xF000E3FF   0x400 TARGET Quad 7. /OTP /INFO "Customer OTP, EEPROM bank"
+    ; OTP flash ECC
+    FLASH.Create 11. 0xF0040000--0xF00401FF   0x200 NOP    Byte 0. /OTP /INFO "Customer OTP, TCM Flash bank ECC"
+    FLASH.Create 18. 0xF0041C00--0xF0041C7F    0x80 NOP    Byte 7. /OTP /INFO "Customer OTP, EEPROM bank ECC"
+
+    &flashdriver="f021r4.bin"
+  )
+  ELSE
+  (
+    ; Program flash
+    FLASH.Create  1. 0x00000000--0x00017FFF  0x4000 TARGET Byte 0. /EraseALIAS 0xF0400000--0xF0402FFF /INFO "TCM Flash bank"
+    FLASH.Create  1. 0x00018000--0x0001FFFF  0x8000 TARGET Byte 0. /EraseALIAS 0xF0403000--0xF0403FFF /INFO "TCM Flash bank"
+    FLASH.Create  1. 0x00020000--0x000BFFFF 0x20000 TARGET Byte 0. /EraseALIAS 0xF0404000--0xF0417FFF /INFO "TCM Flash bank"
+    ; Program flash ECC
+    FLASH.Create  1. 0xF0400000--0xF0402FFF   0x800 TARGET Byte 0. /EraseALIAS 0x00000000--0x00017FFF /INFO "TCM Flash bank ECC"
+    FLASH.Create  1. 0xF0403000--0xF0403FFF  0x1000 TARGET Byte 0. /EraseALIAS 0x00018000--0x0001FFFF /INFO "TCM Flash bank ECC"
+    FLASH.Create  1. 0xF0404000--0xF0417FFF  0x4000 TARGET Byte 0. /EraseALIAS 0x00020000--0x000BFFFF /INFO "TCM Flash bank ECC"
+    ; EEPROM emulation flash
+    FLASH.Create  8. 0xF0200000--0xF020FFFF  0x1000 TARGET Byte 7. /EraseALIAS 0xF0100000--0xF0101FFF /INFO "EEPROM bank"
+    ; EEPROM emulation flash ECC
+    FLASH.Create  8. 0xF0100000--0xF0101FFF   0x200 TARGET Byte 7. /EraseALIAS 0xF0200000--0xF020FFFF /INFO "EEPROM bank ECC"
+    ; OTP flash
+    FLASH.Create 11. 0xF0000000--0xF0000FFF  0x1000 TARGET Quad 0. /OTP                               /INFO "Customer OTP, TCM Flash bank"
+    FLASH.Create 18. 0xF000E000--0xF000E3FF   0x400 TARGET Quad 7. /OTP                               /INFO "Customer OTP, EEPROM bank"
+    ; OTP flash ECC
+    FLASH.Create 11. 0xF0040000--0xF00401FF   0x200 TARGET Byte 0. /OTP                               /INFO "Customer OTP, TCM Flash bank ECC"
+    FLASH.Create 18. 0xF0041C00--0xF0041C7F    0x80 TARGET Byte 7. /OTP                               /INFO "Customer OTP, EEPROM bank ECC"
+
+    &flashdriver="f021r4noecc.bin"
+  )
+
+  FLASH.TARGET 0x08000000 0x08001000 0x2000 ~~/demo/arm/flash/byte_be/&flashdriver
+  IF FLASH.TARGET.BUILD(~~/demo/arm/flash/byte_be/&flashdriver)<1764.
+    PRINT %ERROR "Flash algorithm is to old for OTP programming, please request an update"
+
+  FLASH.CLocK.AUTO
+
+  MAP.BUS16 0xF0400000--0xF04FFFFF
+  MAP.BUS16 0xF0100000--0xF013FFFF
+
+  ; Flash script ends here if called with parameter PREPAREONLY
+  IF &param_prepareonly
+    ENDDO PREPAREDONE
+
+  ; ------------------------------------------------------------------------------
+  ; Flash programming example
+
+  DIALOG.YESNO "Program flash memory?"
+  LOCAL &progflash
+  ENTRY &progflash
+
+  IF &progflash 
+  (
+    FLASH.ReProgram.ALL /Erase
+    Data.LOAD.auto *
+    FLASH.ReProgram.off
+  )
+
+  ENDDO

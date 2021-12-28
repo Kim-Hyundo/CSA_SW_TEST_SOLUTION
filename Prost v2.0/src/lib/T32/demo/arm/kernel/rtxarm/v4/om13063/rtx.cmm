@@ -1,0 +1,52 @@
+; --------------------------------------------------------------------------------
+; @Title: RTX ARM v4 Demo for TRACE32 OS Awareness
+; @Description:
+;   This batchfile loads all necessary files to demonstrate the
+;   OS Awareness for RTX ARM v4.
+; @Author: YDA
+; @Chip: LPC4088FET208
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: rtx.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+ SCREEN.ON
+ WinPAGE.RESet
+ WinPOS 0. 25. 70. 7. 0. 0. W000
+ AREA.view
+
+; Debugger reset
+ PRINT "resetting..."
+ RESet
+ SYStem.RESet
+
+; initialize debugger
+ PRINT "initializing..."
+  SYStem.CPU LPC4088FET208
+  SYStem.CONFIG.DEBUGPORTTYPE SWD
+  SYStem.CONFIG.CONNECTOR MIPI20T
+  SYStem.Option ResBreak OFF
+  SYStem.Up
+  
+  ; load sample application
+ PRINT "loading sample application..."
+ Data.LOAD.Elf mbed-os-example-blinky.elf /NoCODE
+
+; initialize RTOS support
+ PRINT "initializing RTX-ARM support..."
+ TASK.CONFIG ~~/demo/arm/kernel/rtxarm/v4/rtx.t32     ; load RTX-ARM v4 awareness
+ MENU.ReProgram ~~/demo/arm/kernel/rtxarm/v4/rtx.men  ; load RTX-ARM v4 menu
+ HELP.FILTER.Add rtosrtxarm ; add RTX-ARM awareness manual to filtered help
+
+ PRINT "load complete."
+
+; open some windows
+ WinPOS 0. 0. 80. 20.
+ List.auto
+ WinPOS 85.286 0.0 80. 11. 0. 1. W002
+ WinTABS 10. 5. 14. 5. 10. 7. 10. 10.
+ TASK.Task
+ 
+; start application
+ Go
+
+ ENDDO

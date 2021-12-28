@@ -1,0 +1,81 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo for Fujitsu/Spansion FM3 series controller.
+; @Description:
+;   Demo code is loaded to SRAM and Offchip trace is prepared in the script.
+;   Prerequisites:
+;     * JTAG Connector is plugged OR MIPI20T connector is used
+; @Keywords: ETM, FM3, Fujitsu, ITM, Spansion
+; @Author: AME
+; @Board: SK-FM3-100PMC
+; @Chip: MB9BF5*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: start-sieve-trace.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+RESet
+SYStem.RESet
+SYStem.CPU MB9BF506N
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+SYStem.CONFIG.CONNECTOR MIPI20T
+SYStem.Option DUALPORT  ON
+SYStem.Option ResBreak  OFF
+SYStem.MemAccess        DAP
+SYStem.Up
+
+; disable Watchdog
+Data.Set SD:0x40011C00 %Long 0x1ACCE551
+Data.Set SD:0x40011C00 %Long 0xE5331AAE
+Data.Set SD:0x40011008 0x1
+Data.Set SD:0x40011C00 %Long 0x1ACCE551
+Data.Set SD:0x40011C00 %Long 0xE5331AAE
+Data.Set SD:0x40011008 0x0
+
+; load some code into SRAM
+DO ~~/demo/arm/compiler/gnu-pic/demo_sieve 0x20000100
+
+; make OFFCHIP Trace ready
+IF hardware.COMBIPROBE()||hardware.UTRACE()||Analyzer()
+(
+  ; Setup pin multiplexing for TRACED0-3 TRACECLK
+  Data.Set SD:0x40033000 %Long Data.Long(SD:0x40033000)|0x000003E0  ; PFR0
+  Data.Set SD:0x40033600 %Long Data.Long(SD:0x40033600)|0x03000000  ; EPFR0
+  ; generic TRACE settings ETM + ITM
+  ETM.PortSize 4.
+  ETM.PortMode CONTINUOUS
+  ITM.DataTrace ON
+  ITM.ON
+  
+  ; trace the *mcount* variable
+  Var.Break.Set mcount /TraceData /Write
+)
+IF hardware.COMBIPROBE()||hardware.UTRACE()
+(
+  Trace.METHOD CAnalyzer
+  CAnalyzer.CLOCKDelay Small
+  CAnalyzer.AutoInit OFF
+  CAnalyzer.AutoArm ON
+  CAnalyzer.Init       ; Resync to TPIU stram
+)
+ELSE IF Analyzer()
+(
+  Trace.METHOD Analyzer
+  Analyzer.AutoInit OFF
+  Analyzer.AutoArm ON
+  Analyzer.AutoFocus
+)
+
+; open some windows
+Mode.Hll
+WinPOS 0% 0%
+List.auto
+
+WinPOS 50% 0%
+Trace.List
+WinPOS 50% 20%
+ITMTrace.List
+
+; Go till *main*
+Go.direct main
+WAIT !STATE.RUN()
+
+ENDDO

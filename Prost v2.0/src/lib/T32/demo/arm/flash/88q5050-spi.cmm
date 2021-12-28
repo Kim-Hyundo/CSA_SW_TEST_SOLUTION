@@ -1,0 +1,89 @@
+; --------------------------------------------------------------------------------
+; @Title: Marvell 88Q5050 QSPI FLASH Programming Template
+; @Description:
+;   Example script to program a W25Q16DV (Winbond) attached to CS#0 of 88Q5050.
+;   The QSPI controller can transfer maximum 4Bytes per one transaction,
+;   so it does not support flash memories > 16MB .
+;   (not support 4Byte address mode)
+;
+;   Internal SRAM: 0x1000
+;   QuadSPI(controller) Base: 0x50009000
+;
+; @Author: jjeong
+; @Chip: 88Q5050
+; @Keywords:  Flash SPI QuadSPI
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: 88q5050-spi.cmm 7577 2019-10-30 15:30:31Z bschroefel $
+
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+
+; defines
+&QSPI_BASE=0x50009000
+
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU 88Q5050
+SYStem.CONFIG.DEBUGPORTTYPE JTAG
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+; we use a 88Q5050 proprietary reset method
+; soft-reset using AIRCR register + LBU.SWRESET_EN
+SYStem.Option SYSRESETREQ ON
+SYStem.Option VECTRESET OFF
+SYStem.Option EnReset OFF
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+SYStem.Mode Prepare
+; set LBU.SWRESET_EN
+Data.Set AD:0x5000f144 %Long Data.Long(AD:0x5000f144)|(1.<<20.)
+SYStem.Up
+
+GOSUB READ_ID_TEST
+
+programFlash:
+
+  FLASHFILE.RESet
+  FLASHFILE.CONFIG  &QSPI_BASE
+
+//FLASHFILE.TARGET <Code Range>       <Data Range>        <Algorithm File>
+  FLASHFILE.TARGET 0x1000++0x1FFF     0x3000++0x1FFF     ~~/demo/arm/flash/byte/spi64_88q5050.bin    /KEEP
+
+  FLASHFILE.GETID   ; Read FLASH Manufacture and Device ID
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+ENDDO
+
+
+;  FLASHFILE.ERASE 0x0++0x1FFFFF       ; erase 2MB size
+;  FLASHFILE.LOAD *.bin 0x0            ; Write uboot.bin to 0x0 on the serial flash
+;  FLASHFILE.LOAD *.bin 0x0  /ComPare  ; Verify
+
+  FLASHFILE.DUMP 0x0  ; Read out from the serial flash
+
+ENDDO
+
+READ_ID_TEST:
+(
+  Data.Set (&QSPI_BASE+0x14)++0x1F %Long 0x0               ; clear  the ind_acc_cmd buffer
+  Data.Set  &QSPI_BASE+0x14  %Long    (0xD<<15.)|0x9F      ; ind_acc_cmd0
+  Data.Set  &QSPI_BASE+0x00  %Long    (0x3<<8.)|0x81       ; read 3bytes, execute ind_acc_cmd0
+  WAIT 100.ms
+
+  PRINT "Read = 0x" Data.Long(A:&QSPI_BASE+0x08)
+
+  PRINT "Read 3rd = 0x" (Data.Long(A:&QSPI_BASE+0x08)>>16.)&0xFF
+  PRINT "Read 2nd = 0x" (Data.Long(A:&QSPI_BASE+0x08)>>8.)&0xFF   " (Device ID)"
+  PRINT "Read 1st = 0x" Data.Long(A:&QSPI_BASE+0x08)&0xFF         " (Manufacture ID)"
+
+  RETURN
+)

@@ -1,0 +1,213 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash declaration for ST STM32H7xx QSPI flash program (Memory Mapped)
+; @Description:
+;   Script arguments:
+;
+;    DO stm32h7xx-qspi [PREPAREONLY] [CPU=<cpu>] [DUALPORT=0|1]
+;
+;      PREPAREONLY only declares flash but does not execute flash programming
+;
+;      CPU=<cpu> selects CPU derivative <cpu>
+;
+;      DUALPORT=0|1 default value is 0 (disabled).
+;
+;   Example:
+;
+;   DO ~~/demo/arm/flash/stm32h7xx-qspi CPU=STM32F756NG PREPAREONLY DUALPORT=1
+;
+; @Author: JIM
+; @Chip: STM32F72* STM32F73* STM32F74* STM32F75* STM32F76* STM32F77*
+; @Copyright: (C) 1989-2018 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Rev: 8055 $
+; $Id: stm32h7xx-qspi.cmm 8055 2020-03-10 10:11:00Z jjeong $
+
+&QSPI_BASE=0x52005000
+
+PRIVATE &parameters
+ENTRY %LINE &parameters
+
+PRIVATE &param_prepareonly &param_cpu &param_dualport
+&param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+&param_cpu=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CPU=","")
+&param_dualport=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"DUALPORT=","0")
+
+; ------------------------------------------------------------------------------
+; Setup CPU
+
+IF SYStem.MODE()<5
+(
+SYStem.RESet
+
+PRINT "initializing..."
+SYStem.CPU STM32H743XI
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+Trace.DISable
+SYStem.Up
+
+)
+
+WinCLEAR
+AREA.view
+
+GOSUB Init_QSPI
+
+//EXIT QUAD INPUT/OUTPUT MODE, to make the single spi mode
+GOSUB WRITEBYTE_QPI   0xF5
+
+GOSUB READ_ID_TEST
+
+//switch QSPI to the memory mapped mode
+Data.Set  A:&QSPI_BASE      %Long  (Data.Long(A:&QSPI_BASE)&~0x1)  ;disable
+Data.Set  A:&QSPI_BASE+0x14 %Long  0x0D003513   ; FMODE, READ cmd(0x13), ADSize 32b and so on...
+Data.Set  A:&QSPI_BASE      %Long  (Data.Long(A:&QSPI_BASE)|0x1)  ;enable
+
+; ------------------------------------------------------------------------------
+; Flash declaration
+GOSUB FlashDeclaration "&param_dualport"
+
+; Flash script ends here if called with parameter PREPAREONLY
+IF &param_prepareonly
+  ENDDO PREPAREDONE
+
+; -------------------------------------------------------------------------------
+; Flash programming example
+
+DIALOG.YESNO "Program flash memory?"
+LOCAL &progflash
+ENTRY &progflash
+IF &progflash
+(
+  FLASH.ReProgram.ALL
+  Data.LOAD.auto *
+  FLASH.ReProgram.off
+
+  ; Reset device
+  SYStem.Down
+  SYStem.Up
+)
+
+ENDDO
+
+
+Init_QSPI:
+(
+Data.Set A:0x580244D4 %LE %Long 0x4000      ; RCC_AHB3ENR, Quad SPI memory controller clock enable
+
+Data.Set A:0x5802447C %LE %Long 0x4000      ; RCC_AHB3RSTR, Quad SPI memory controller reset
+Data.Set A:0x5802447C %LE %Long 0x0000      ; RCC_AHB3RSTR, release Quad SPI memory controller reset
+Data.Set A:0x580244FC %LE %LONG 0x4000      ; RCC_AHB3LPENR, QUADSPI memory controller clock enable during Sleep mode
+
+Data.Set A:0x580244E0 %LE %Long 0x0000006B  ; GPIOB & GPIOD & GPIOF & GPIOG clk enable
+
+;C   <-> GPIOB[2]   en ALT 9,  (QUADSPI_CLK)	
+;CS1 <-> GPIOG[6]   en ALT 10, (QUADSPI_BK1_NCS)
+;DQ0 <-> GPIOD[11]  en ALT 9,  (QUADSPI_BK1_IO0)
+;DQ1 <-> GPIOD[12]  en ALT 9,  (QUADSPI_BK1_IO1)
+;DQ2 <-> GPIOF[7]   en ALT 9,  (QUADSPI_BK1_IO2)
+;DQ3 <-> GPIOD[13]  en ALT 9.  (QUADSPI_BK1_IO3)
+
+Data.Set A:0x58020400 %LE %Long 0xFFFFFFEF  ; GPIOB_MODER
+Data.Set A:0x58020408 %LE %Long 0x00000030  ; Very high speed
+Data.Set A:0x58020420 %LE %Long 0x00000900  ; PB2 alt 9
+
+Data.Set A:0x58020C00 %LE %Long 0xFABFFFFF  ; GPIOD_MODER
+Data.Set A:0x58020C08 %LE %Long 0x0FC00000  ; Very high speed
+Data.Set A:0x58020C24 %LE %Long 0x00999000  ; PD11, 12 & 13 alt 9
+
+Data.Set A:0x58021400 %LE %Long 0xFFFFBFFF  ; GPIOF_MODER
+Data.Set A:0x58021408 %LE %Long 0x0000C000  ; Very high speed 	
+Data.Set A:0x58021420 %LE %Long 0x90000000  ; PF7 alt 9
+
+Data.Set A:0x58021800 %LE %Long 0xFFFFEFFF  ; GPIOG_MODER
+Data.Set A:0x58021808 %LE %Long 0x00003000 	; Very high speed 
+Data.Set A:0x58021820 %LE %Long 0x0A000000  ; PG6 alt 10
+
+Data.Set A:0x52005000 %Long 0x01000311      ; QUADSPI_CR, QUADSPI control register, enable clk and prescaler										
+Data.Set A:0x52005004 %Long 0x00170100      ; QUADSPI_DCR, flash size 2^24 (16MBytes)
+Data.Set A:0x5200500C %Long 0xFF            ; QUADSPI_FCR, QUADSPI flag clear register
+												
+RETURN
+)
+
+READ_ID_TEST:
+(
+&QSPI_FCR=&QSPI_BASE+0xC
+&QSPI_CCR=&QSPI_BASE+0x14
+&QSPI_DLR=&QSPI_BASE+0x10
+&QSPI_DR=&QSPI_BASE+0x20
+
+Data.Set A:&QSPI_FCR %LE %Long 0x1F  ;clear status
+
+// 1 instruction , 4 read data
+Data.Set A:&QSPI_DLR  %Long 0x3  ; 4byte data read
+
+&ccr=0x19F             ; imode with insturction  1byte instruction write
+&ccr=&ccr|(0x1<<24.)   ; dmode single
+&ccr=&ccr|(0x1<<26.)   ; indirect read mode
+Data.Set A:&QSPI_CCR %LE %Long &ccr
+
+&read_data=Data.Long(A:&QSPI_DR)  ;read little endian
+
+PRINT "1st 0x" &read_data&0xFF        " (Manufacture)"
+PRINT "2nd 0x" (&read_data>>8.)&0xFF  " (Device ID)"
+PRINT "3rd 0x" (&read_data>>16.)&0xFF 
+PRINT "4th 0x" (&read_data>>24.)&0xFF 
+
+RETURN
+)
+
+
+WRITEBYTE_QPI:
+(
+ENTRY &wdata
+
+SCREEN.OFF
+
+Data.Set A:(&QSPI_BASE+0xC) %LE %Long 0x1F  ;clear status
+
+&ccr=(0x3<<8)|&wdata       ; imode with insturction  1byte instruction write
+Data.Set A:(&QSPI_BASE+0x14) %LE %Long &ccr
+
+SCREEN.ON
+
+RETURN 
+)
+
+; Flash declaration
+
+FlashDeclaration:
+(
+  PRIVATE &FlashSize &FlashDriver  &FlashBaseAddr
+  PARAMETERS &DualPort
+
+  &FlashDriver="snor_stm32h7.bin"
+  &FlashSize=0x4000000       ;64Mbytes
+  &FlashBaseAddr=0x90000000  ;SPI AHB base address
+  
+  FLASH.RESet
+  
+  rpt (&FlashSize)>>24.
+  (
+    FLASH.Create    &FlashBaseAddr++0xFFFFFF    0x10000   TARGET   Byte
+    &FlashBaseAddr =&FlashBaseAddr+0x1000000     ;16Mbytes
+  )
+
+  IF "&DualPort"=="0"
+    FLASH.TARGET 0x20000000 0x20002000 0x4000 ~~/demo/arm/flash/byte/&FlashDriver
+  ELSE
+    FLASH.TARGET 0x20000000 EAHB:0x20002000 0x4000 ~~/demo/arm/flash/byte/&FlashDriver /DualPort
+
+  FLASH.List
+
+  RETURN
+)
+
+

@@ -1,0 +1,96 @@
+; --------------------------------------------------------------------------------
+; @Title: Start-Up Script for ARM925T Core within OMAP1510 on Innovator Development Kit
+; @Description:
+;   Start-Up Script for ARM925T Core within OMAP1510 on Innovator Development
+;   Kit (PSI)
+;   It might be required to halt the reset button on the innovator board, start
+;   the script, and release the button.
+; @Keywords: OMAP
+; @Author: PEG
+; @Board: Innovator 1510
+; @Chip: OMAP1510
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: start_arm.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+;   PEG, December 9, 2003
+
+; start-up debugger
+  SYStem.CPU OMAP1510
+  SYStem.Option ResBreak OFF
+  SYnch.Connect localhost:20002
+  SYStem.Up
+
+  IF Analyzer()
+  (
+     ; put in 1510 mode
+     Data.Set 0xfffe100c %LE %Long 0x0000eaef
+
+     ; set bits 27, 24 and 21 in FUNC_MUX_CONTROL_4
+     Data.Set 0xfffe1014 %LE %Long 0x09200000
+
+     ; set bits 27, 24, 18, 15, 12, 9, 6, 3, and 0 in FUNC_MUX_CONTROL_5
+     Data.Set 0xFFFE1018 %LE %Long 0x09249249
+
+     ETM.PortSize 8
+  )
+
+; soft reset of ARM and DSP core
+  Data.Set 0xfffece10 %Word 0x000c
+  Data.Set 0xfffece10 %Word 0x0004
+
+; disable watchdog
+  Data.Set 0xfffec808 %Word 0x00f5
+  Data.Set 0xfffec808 %Word 0x00a0
+
+; allow access to DSP memory
+  Data.Set 0xfffece08 %Word 0x0040
+  Data.Set 0xfffec900 %Long 0xff1b
+
+; patch branch to itself for DSP to get a defined behaviour after reset release
+  Data.Set 0xe0010000 %Long 0x4a7e4a7e
+
+; DSP reset release; now the start-up script for the DSP will work
+  Data.Set 0xfffec918 %Long 0x05
+  Data.Set 0xfffece10 %Word 0x00
+  Data.Set 0xfffece10 %Word 0x0006
+
+; initialize chip select settings
+  Data.Set 0xfffecc10 %Long 0x00203339 ; EMIFS (nCS0) configuration
+  Data.Set 0xfffecc14 %Long 0x00001139 ; EMIFS (nCS1) configuration
+  Data.Set 0xfffecc18 %Long 0x00001139 ; EMIFS (nCS2) configuration
+  Data.Set 0xfffecc1c %Long 0x00001139 ; EMIFS (nCS3) configuration
+  Data.Set 0xfffecc20 %Long 0x0000bcf4 ; EMIFF (nCS4) configuration
+  Data.Set 0xfffecc24 %Long 0x00000027 ; MRS   (nCS4) initialization
+
+; load demo program for ARM
+  Data.LOAD.Elf ~~~~/c_main_ale.axf
+  Register.Set PC main
+  Register.Set R13 0x10010000
+  Register.Set CPSR 0x600000d3
+
+; open some windows
+  WinCLEAR
+  WinPOS 0% 0% 100% 50%
+  List.auto
+  WinPOS 0% 50% 50% 50%
+  Frame /Locals /Caller
+  WinPOS 50% 50% 50% 50%
+  Var.Watch
+  Var.AddWatch ast; flags;
+
+  ENDDO
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,33 @@
+# 
+# This make file is intended to build the code with GCC under Linux
+
+BUILDDIR := linux
+COPTS := -Wall -fPIC -O2 -c
+
+APPTPIUDLL := tpiu_print
+OBJTPIUDLL := pipecsproto tpiu_print
+
+OBJTPIUDLL := $(patsubst %,$(BUILDDIR)/%.o,$(OBJTPIUDLL))
+APPTPIUDLL := $(patsubst %,$(BUILDDIR)/%.so,$(APPTPIUDLL))
+
+all: $(APPTPIUDLL)
+
+$(OBJTPIUDLL): | $(BUILDDIR)
+
+
+$(BUILDDIR):
+	mkdir $(BUILDDIR)
+
+
+$(APPTPIUDLL): $(OBJTPIUDLL)
+	gcc -shared -o $@ $^
+	strip $@
+
+$(BUILDDIR)/%.o: src/%.c
+	gcc $(COPTS) -o $@ $<
+
+clean:
+	rm -rf $(BUILDDIR)
+	
+cleanmost:
+	rm -f $(BUILDDIR)/*.o

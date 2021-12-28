@@ -1,0 +1,110 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for NETX500 on NXDB500-SYS with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into SDRAM and sets up a demo debug
+;   scenario.
+;   Use this script for testing the Offchip-Trace using Power Trace
+;   Prerequisites:
+;    * Connect Debug Cable to X3
+;    * Connect AutoFocus Preprocessor to X50
+;    * Set jumper J50 to "ETM" position
+; @Keywords: ARM, ARM926EJ-S, ETM
+; @Author: STK
+; @Board: NXDB500-SYS
+; @Chip: NETX500
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: nxdb500sys_sieve_offchip_trace_sdram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU NETX500
+SYStem.JtagClock CTCK 10MHz
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset ON
+Trace.DISable
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; Setup Memory controllers
+GOSUB setupTarget
+
+; --------------------------------------------------------------------------------
+; load demo program (position independend code) into SDRAM
+Register.Init
+Data.LOAD.Elf ~~/demo/arm/compiler/gnu-pic/sieve_arm.elf 0x80000000 /RelPATH
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace (ETM)
+
+IF Analyzer()
+(
+  ; Setup pin multiplexing
+  Data.Set ASD:0x00100070 %Long Data.Long(ASD:0x00100070)
+  Data.Set ASD:0x00100004 %Long 0x00800000
+
+  Trace.METHOD Analyzer
+  
+  ETM.HalfRate ON
+  ETM.PortSize 8
+  ETM.ON
+  
+  Trace.AutoInit ON
+  Trace.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO
+
+
+setupTarget:
+(
+  ; Disable MMU and Caches
+  Data.Set C15:0x0001 %Long 0x00050078
+
+  ; set MiscAsicCtrl to 1
+  ; Before changing the controll registers, a read and write access to the 
+  ; access key register is necessary. (read value and write back the value).
+  ; After it the system rgisters can be changed.
+  Data.Set ASD:0x00100070 %Long Data.Long(ASD:0x00100070)    ; access key register
+  Data.Set ASD:0x0010002c %Long 1                            ; MiscAsicCtrl register
+
+  ; Setup SDRAM timing, Flash and SRAM settings
+  Data.Set ASD:0x100140 %Long 0x0                            ; MEMDR_CONFIG_CR
+  Data.Set ASD:0x100144 %Long 0x03C23151                     ; MEMDR_TIMING_CR
+  Data.Set ASD:0x100140 %Long 0x030D0121                     ; MEMDR_CONFIG_CR
+  Data.Set ASD:0x100100 %Long 0x0203030F                     ; Flash settings
+  Data.Set ASD:0x100104 %Long 0x0003033F                     ; SRAM settings
+  Data.Set ASD:0x100108 %Long 0x0003033F                     ; SRAM settings
+  
+  RETURN
+)

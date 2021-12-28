@@ -1,0 +1,1449 @@
+; --------------------------------------------------------------------------------
+; @Title: Menu for PI Analog Probe - OSK5912 Demo
+; @Description: 
+;   This menu can be loaded with MENU.ReProgram t32adc.men
+; @Board: OSK5912
+; @Chip: OMAP5912
+; @Author: STK
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: t32adc.men 7318 2014-07-03 07:59:13Z amerkle $
+
+; --------------------------------------------------------------------------------
+;  Menu for PI Analog Probe
+; --------------------------------------------------------------------------------
+; missing:
+; - ADC probe detection
+
+
+add
+menu
+(
+ 
+
+; --------------------------------------------------------------------------------
+;   Trace pulldown submenue
+; --------------------------------------------------------------------------------
+
+  popup "&ProbeADC"
+  (
+    default
+    menuitem  "[:aconfig]&Configuration..." "Integrator"
+    menuitem  "[:aconfig]&Configuration ADC" "Pod A"
+
+; --------------------------------------------------------------------------------
+    enable INTEGRATOR()
+    menuitem  "[:time]&Recoding Time"
+    (
+
+      &chan=0.
+      if I.ADC.ENABLE(i.v0a)
+        &chan=&chan+1.
+      if I.ADC.ENABLE(i.v1a)
+        &chan=&chan+1.
+      if I.ADC.ENABLE(i.v2a)
+        &chan=&chan+1.
+      if I.ADC.ENABLE(i.v3a)
+        &chan=&chan+1.
+      if I.ADC.ENABLE(i.i0a)||I.ADC.ENABLE(i.p0a)
+        &chan=&chan+1.
+      if I.ADC.ENABLE(i.i1a)||I.ADC.ENABLE(i.p1a)
+        &chan=&chan+1.
+      if I.ADC.ENABLE(i.i2a)||I.ADC.ENABLE(i.p2a)
+        &chan=&chan+1.
+
+dialog
+(&
+        header "Expand Recoding Time"
+	pos 2. 0.5 25. 1.
+	text "Number of enabled ADC channels = &chan"
+	pos 2. 1.5 17. 1.
+	text "Time to trace (seconds)"
+	pos 2. 2.5 17. 1.
+TIME:   EDIT "2." ""
+
+        pos 1. 4.5  9.
+        defbutton "Ok"
+        (
+	  dialog.execute apply
+          dialog.end
+        )
+        pos 25. 4.5  9.
+        button "Cancel" "dialog.end"
+
+        pos 13. 4.5  9.
+apply:  button "Apply"
+        (
+          local &recstring &waitstring &cval &time &rectime &waittime
+
+	  &recstring=""
+	  &waitstring=""
+
+;          &chan=dialog.string("CHAN")
+ 	  &cval=dialog.string("TIME")
+
+	  if "&cval"!=""
+	  (
+	    on error gosub 
+	    (
+ 	     &cval=""
+ 	     &time=""
+ 	     return
+ 	    )
+        
+
+	    EVAL &cval
+ 	    &t1=eval.type()
+;               &DInteger     DIntNum       DFloat       DHex        DNumeric
+            if (&t1!=0x08)&&(&t1!=0x2E)&&(&t1!=0x10)&&(&t1!=0x04)&&(&t1!=0x3E)
+ 	    (
+  	      &t1="&cval"+" no valid time value!"
+ 	      print %ERROR "&t1"
+  	      &cval=""
+ 	    )
+ 	  )
+ 	  &time=&cval 
+
+	  &rectime=((&chan)*1600.)
+	  &recstring="&rectime"+"ns"
+
+	  &waittime=&time*&chan*1000000000.0
+	  &waittime=(&waittime/524288.)-&rectime
+	  &waittime=conv.floattoint(&waittime)
+	  &waitstring="&waittime"+"ns"
+
+ 	  if ((&time<1)||(&chan==0))
+	  (
+	    Integrator.ReProgram
+ 	    (
+ 	    )
+            print %ERROR "Wrong Time or Channel Count"
+ 	  ) 
+ 	  else
+ 	  (  
+	    Integrator.ReProgram
+	    (
+             ; Expand Recording Time: Channels: &chan, Seconds: &time
+             
+	     TimeCouNTer COUNT0 &recstring
+ 	     TimeCouNTer COUNT1 &waitstring
+ 
+	     LEVEL0:
+ 		Counter.Increment COUNT0
+		Counter.Restart COUNT1 IF COUNT0
+		GOTO LEVEL1 IF COUNT0
+		SAMPLE.ENABLE IF !COUNT0
+  
+	     LEVEL1:
+		Counter.Increment COUNT1
+		Counter.Restart COUNT0 IF COUNT1
+		GOTO LEVEL0 IF COUNT1
+	    )
+            print "Analyzer programmed."
+	  )
+        )
+      )
+    )
+
+; --------------------------------------------------------------------------------
+    enable INTEGRATOR()
+    popup    "[:atrigger]&Trigger Definition"
+    (
+      menuitem  "[:program]&Current Program"
+      (
+         Integrator.Program
+      )
+      menuitem "[:program]&New Program"            
+      (
+	 Integrator.ReProgram
+         (
+         )
+         Integrator.Program
+      )
+      menuitem "&Directory..."
+      (
+	  Integrator.Program *.tap
+      )
+      separator
+      menuitem "Clear Program"    
+      (
+         Integrator.ReProgram
+      )
+; --------------------------------------------------------------------------------
+      menuitem "&Trace from Start to End..."
+      (
+       local &csel
+
+       &csel=""
+       if I.ADC.ENABLE(i.v0a)
+         &csel="&csel"+",V0"
+       if I.ADC.ENABLE(i.v1a)
+         &csel="&csel"+",V1"
+       if I.ADC.ENABLE(i.v2a)
+         &csel="&csel"+",V2"
+       if I.ADC.ENABLE(i.v3a)
+         &csel="&csel"+",V3"
+       if I.ADC.ENABLE(i.i0a)&&(I.ADC.SHUNT(i.i0a)!=0)
+         &csel="&csel"+",I0"
+       if I.ADC.ENABLE(i.i1a)&&(I.ADC.SHUNT(i.i1a)!=0)
+         &csel="&csel"+",I1"
+       if I.ADC.ENABLE(i.i2a)&&(I.ADC.SHUNT(i.i2a)!=0)
+         &csel="&csel"+",I2"
+       if I.ADC.ENABLE(i.p0a)&&(I.ADC.SHUNT(i.p0a)!=0)
+         &csel="&csel"+",P0"
+       if I.ADC.ENABLE(i.p1a)&&(I.ADC.SHUNT(i.p1a)!=0)
+         &csel="&csel"+",P1"
+       if I.ADC.ENABLE(i.p2a)&&(I.ADC.SHUNT(i.p2a)!=0)
+         &csel="&csel"+",P2"
+
+       if string.mid("&csel",0,1)==","
+          &csel=string.cut("&csel",1)
+
+dialog
+(&
+       header "Trace from Start to Stop Point"
+
+       pos 0x1 1.3 6. 1.
+chanA: PULLDOWN "&csel" ""
+       pos 0x8 1.3 22.
+addrA: defedit "" ""
+       pos 33. 0.7 7. 1.
+a.eq:  choosebox "equal" ""
+       pos 33. 1.7 7. 1.
+a.not: choosebox "! equal" ""
+       pos 41. 0.7 7. 1.
+a.ris: choosebox "rising" ""
+       pos 41. 1.7 7. 1.
+a.fal: choosebox "falling" ""
+       pos 0x1 4.3 6. 1.
+chanB: PULLDOWN "&csel" ""
+       pos 0x8 4.3 22.
+addrB: edit "" ""
+       pos 33. 3.7 7. 1.
+b.eq:  choosebox "equal" ""
+       pos 33. 4.7 7. 1.
+b.not: choosebox "! equal" ""
+       pos 41. 3.7 7. 1.
+b.ris: choosebox "rising" ""
+       pos 41. 4.7 7. 1.
+b.fal: choosebox "falling" ""
+
+ 
+       pos 15. 6.5  9.
+       defbutton "Ok"
+       (
+	 dialog.execute apply
+         dialog.end
+       )
+       pos 39. 6.5  9.
+       button "Cancel" "dialog.end"
+
+       pos 27. 6.5  9.
+apply: button "Apply"
+       (
+        local &addrA &triggerA &addrB &triggerB &triggerC &triggerD
+        local &addr1 &addr2 &channel &chanA &chanNrB
+        local &addrAl &addrAh &addrBl &addrBh &addrCl &addrCh &addrDl &addrDh
+
+        on error jumpto
+        (
+          beep 5.
+          print "Input error, please check syntax"
+          enddo
+        )
+
+; -------------- A ---------------------------------------------------------------
+        &addrdeclA=""
+        &addrA=dialog.string(addrA)
+        &chanA=dialog.string(chanA)
+
+        gosub CheckRange &addrA &chanA
+        ENTRY &addrA1 &addrA2
+
+        &channelA="&channel"
+
+        if dialog.boolean(a.ris)
+        (
+           &triggerA=" if AlphaRange&&ChannelA"
+           &triggerC=" if CharlyRange&&ChannelA"
+           &addrAl=0.
+           &addrAh=&addrA1
+           &addrCl=&addrA1
+           &addrCh=4096.
+        )
+        else if dialog.boolean(a.fal)
+        (
+           &triggerA=" if AlphaRange&&ChannelA"
+           &triggerC=" if CharlyRange&&ChannelA"
+           &addrAh=4096.
+           &addrAl=&addrA2
+           &addrCh=&addrA2
+           &addrCl=0.
+        )
+        else if  dialog.boolean(a.eq)
+        (
+           &triggerA=""
+           &triggerC=" if CharlyRange&&ChannelA"
+           &addrAl=0.
+           &addrAh=0
+           &addrCl=&addrA1
+           &addrCh=&addrA2
+        )
+        else
+        (
+           &triggerA=""
+           &triggerC=" if !CharlyRange&&ChannelA"
+           &addrAl=0.
+           &addrAh=0
+           &addrCl=&addrA1
+           &addrCh=&addrA2
+        )
+
+
+; --------------- B --------------------------------------------------------------
+         &addrdeclB=""
+         &addrB=dialog.string(addrB)
+         &chanB=dialog.string(chanB)
+
+         gosub CheckRange &addrB &chanB
+         ENTRY &addrB1 &addrB2
+
+         &channelB="&channel"
+
+        if dialog.boolean(b.ris)
+        (
+           &triggerB=" if BetaRange&&ChannelB"
+           &triggerD=" if DeltaRange&&ChannelB"
+           &addrBl=0.
+           &addrBh=&addrB1
+           &addrDl=&addrB1
+           &addrDh=4096.
+        )
+        else if dialog.boolean(b.fal)
+        (
+           &triggerB=" if BetaRange&&ChannelB"
+           &triggerD=" if DeltaRange&&ChannelB"
+           &addrBh=4096.
+           &addrBl=&addrB2
+           &addrDh=&addrB2
+           &addrDl=0.
+        )
+        else if  dialog.boolean(b.eq)
+        (
+           &triggerB=""
+           &triggerD=" if DeltaRange&&ChannelB"
+           &addrBl=0.
+           &addrBh=0
+           &addrDl=&addrB1
+           &addrDh=&addrB2
+        )
+        else
+        (
+           &triggerB=""
+           &triggerD=" if !DeltaRange&&ChannelB"
+           &addrBl=0.
+           &addrBh=0
+           &addrDl=&addrB1
+           &addrDh=&addrB2
+        )
+        
+; --------------------------------------------------------------------------------
+        Integrator.ReProgram
+        (
+           ; Volt/Amp/Watt Range for Start: &addrA
+             SELECTORRANGE AlphaRange  &addrAl--&addrAh
+             SELECTORRANGE CharlyRange &addrCl--&addrCh
+
+           ; Volt/Amp/Watt Range for Stop: &addrB
+	     SELECTORRANGE BetaRange   &addrBl--&addrBh
+	     SELECTORRANGE DeltaRange  &addrDl--&addrDh
+
+           ; Channel Start: &chanA           
+             SELECTOR ChannelA i.A15.Falling &channelA
+
+           ; Channel Stop: &chanB
+             SELECTOR ChannelB i.A15.Falling &channelB
+
+	     start:
+	       CONTinue        &triggerA
+	     startA:
+	       Sample.enable   &triggerC
+	       CONTinue        &triggerC
+
+	     occured:
+	       Sample.Enable
+	       CONTinue        &triggerB
+	     occuredB:
+	       Sample.Enable
+	       Goto    start   &triggerD
+	 )
+	 
+	 
+         print "Analyzer programmed."
+         goto applyend
+
+
+; --------------------------------------------------------------------------------
+CheckRange:
+	ENTRY &addr &chan
+
+        local &shunt &PwrVolt
+        
+        &shunt=0
+        &PwrVolt=0
+
+; check channel
+         if "&chan"=="V0"
+            &channel="i.A14.Low  i.A13.Low  i.A12.Low"
+         else if "&chan"=="V1"
+            &channel="i.A14.Low  i.A13.Low  i.A12.High"
+         else if "&chan"=="V2"
+            &channel="i.A14.Low  i.A13.High i.A12.Low"
+         else if "&chan"=="V3"
+            &channel="i.A14.Low  i.A13.High i.A12.High"
+         else if "&chan"=="I0"||"&chan"=="P0"
+         (
+            &channel="i.A14.High i.A13.Low  i.A12.Low"
+            &shunt=I.ADC.SHUNT(i.i0a)
+            &PwrVolt=I.ADC.SHUNT(i.p0a)
+         )
+         else if "&chan"=="I1"||"&chan"=="P1"
+         (
+            &channel="i.A14.High i.A13.Low  i.A12.High"
+            &shunt=I.ADC.SHUNT(i.i1a)
+            &PwrVolt=I.ADC.SHUNT(i.p1a)
+         )
+         else if "&chan"=="I2"||"&chan"=="P2"
+         (
+            &channel="i.A14.High i.A13.High i.A12.Low"
+            &shunt=I.ADC.SHUNT(i.i2a)
+            &PwrVolt=I.ADC.SHUNT(i.p2a)
+         )
+
+; check empty
+	 if "&addr"==""
+         (
+           beep 5.
+           print "Input error: Empty Range"
+           enddo
+         )
+; check range
+         EVAL &addr
+	 &t1=eval.type()
+	 if (&t1==0x80)    ; DRange
+         (
+            &len=STRING.LEN("&addr")
+            &cut=STRING.SCAN("&addr","--",0)
+            &addr1=STRING.CUT("&addr",-(&len-&cut)) 
+            &addr2=STRING.CUT("&addr",&cut+2) 
+         )
+         else
+         (
+	    &addr1=&addr
+	    &addr2=&addr
+         )
+
+; check lo-val
+         EVAL &addr1
+         &t1=eval.type()
+;            &DInteger     DIntNum       DFloat       DHex        DNumeric
+         if (&t1!=0x08)&&(&t1!=0x2E)&&(&t1!=0x10)&&(&t1!=0x04)&&(&t1!=0x3E)
+         (
+            &t1="Input Error: "+"&t1"+" no valid value!"
+            print %ERROR "&t1"
+            enddo
+         )
+; check hi-val
+         EVAL &addr2
+         &t1=eval.type()
+;           &DInteger     DIntNum       DFloat       DHex        DNumeric
+         if (&t1!=0x08)&&(&t1!=0x2E)&&(&t1!=0x10)&&(&t1!=0x04)&&(&t1!=0x3E)
+         (
+            &t1="Input Error: "+"&t1"+" no valid value!"
+            print %ERROR "&t1"
+            enddo
+         )
+
+; calculation of trigger value
+         if "&chan"=="V0"||"&chan"=="V1"||"&chan"=="V2"||"&chan"=="V3"
+         (
+          ; voltage calculation
+          ; &addr1=&addr1*4096.*1000./5000.
+            &addr1=&addr1*819.2
+            &addr2=&addr2*819.2 
+         )
+         else
+         (
+           if "&chan"=="P0"||"&chan"=="P1"||"&chan"=="P2"
+           (
+              &addr1=&addr1/&PwrVolt
+              &addr2=&addr2/&PwrVolt
+           )
+         ; current calculation
+         ; &addr1=&addr1*&shunt*4096.*1000.*2./125.
+           &addr1=&addr1*&shunt*32768.
+           &addr2=&addr2*&shunt*32768.
+         )
+
+         if &addr1==0.0
+            &addr1=0.
+         else if &addr1>4096.
+            &addr1=4096.
+         else
+            &addr1=conv.floattoint(&addr1) 
+         
+         if &addr2==0.0
+            &addr2=0.
+         else if &addr2>4096.
+            &addr2=4096.
+         else
+            &addr2=conv.floattoint(&addr2) 
+
+         return &addr1 &addr2
+; --------------------------------------------------------------------------------
+
+
+applyend:    
+        )
+        pos 0. 0. 49. 3.5
+        box "Channel        Volt/Amp/Watt Range for Start"
+        pos 0. 3.0 49. 3.5
+        box "Channel        Volt/Amp/Watt Range for Stop"
+       )
+       dialog.set a.eq
+       dialog.set b.eq
+      )
+; --------------------------------------------------------------------------------
+      menuitem "&Selective Trace..."
+      (
+       local &csel
+
+       &csel=""
+       if I.ADC.ENABLE(i.v0a)
+         &csel="&csel"+",V0"
+       if I.ADC.ENABLE(i.v1a)
+         &csel="&csel"+",V1"
+       if I.ADC.ENABLE(i.v2a)
+         &csel="&csel"+",V2"
+       if I.ADC.ENABLE(i.v3a)
+         &csel="&csel"+",V3"
+       if I.ADC.ENABLE(i.i0a)&&(I.ADC.SHUNT(i.i0a)!=0)
+         &csel="&csel"+",I0"
+       if I.ADC.ENABLE(i.i1a)&&(I.ADC.SHUNT(i.i1a)!=0)
+         &csel="&csel"+",I1"
+       if I.ADC.ENABLE(i.i2a)&&(I.ADC.SHUNT(i.i2a)!=0)
+         &csel="&csel"+",I2"
+       if I.ADC.ENABLE(i.p0a)&&(I.ADC.SHUNT(i.p0a)!=0)
+         &csel="&csel"+",P0"
+       if I.ADC.ENABLE(i.p1a)&&(I.ADC.SHUNT(i.p1a)!=0)
+         &csel="&csel"+",P1"
+       if I.ADC.ENABLE(i.p2a)&&(I.ADC.SHUNT(i.p2a)!=0)
+         &csel="&csel"+",P2"
+
+       if string.mid("&csel",0,1)==","
+          &csel=string.cut("&csel",1)
+
+dialog
+(&
+       header "Voltage/Current Selective Trace"
+
+       pos 0x1 1.3 6. 1.
+chan:  PULLDOWN "&csel" ""
+       pos 0x8 1.3 22.
+addr:  defedit "" ""
+
+       pos 0. 0. 41. 3.5
+       box "Channel        Volt/Amp/Watt Range"
+
+       pos 33. 0.7 7. 1.
+a.eq:  choosebox "equal" ""
+       pos 33. 1.7 7. 1.
+a.not: choosebox "! equal" ""
+
+       pos 1. 3.5  9.
+       defbutton "Ok"
+       (
+	 dialog.execute apply
+         dialog.end
+       )
+
+       pos 25. 3.5  9.
+       button "Cancel" "dialog.end"
+
+       pos 13. 3.5 9.
+apply: button "Apply"
+       (
+         local &addr &addrdecl &triggerA
+         local &addr1 &addr2
+         local &chan &channel
+ 
+         on error jumpto
+         (
+           beep 5.
+           print "Input error, please check syntax"
+           enddo
+         )
+
+; --------------------------------------------------------------------------------
+         &addrdecl=""
+	 &addr=dialog.string(addr)
+         &chan=dialog.string(chan)
+
+         gosub CheckRange &addr &chan
+         ENTRY &addr1 &addr2
+
+         if dialog.boolean(a.eq)
+           &triggerA="AlphaRange"
+         else
+           &triggerA="!AlphaRange"
+; --------------------------------------------------------------------------------
+
+	 Integrator.ReProgram
+	 (
+         ; Volt/Amp/Watt Range: &addr
+	   SELECTORRANGE AlphaRange &addr1--&addr2
+
+         ; Channel &chan
+           SELECTOR Channel &channel
+
+	   start:
+	       Sample.enable   if AlphaRange&&Channel
+	       CONTinue        if AlphaRange&&Channel
+
+	   occured:
+	       Sample.Enable 
+	       Goto    Start   if !AlphaRange&&Channel
+	 )
+         print "Analyzer programmed."
+         goto applyend
+
+
+; --------------------------------------------------------------------------------
+CheckRange:
+	ENTRY &addr &chan
+
+        local &shunt &PwrVolt
+        
+        &shunt=0
+        &PwrVolt=0
+
+; check channel
+         if "&chan"=="V0"
+            &channel="i.A14.Low  i.A13.Low  i.A12.Low"
+         else if "&chan"=="V1"
+            &channel="i.A14.Low  i.A13.Low  i.A12.High"
+         else if "&chan"=="V2"
+            &channel="i.A14.Low  i.A13.High i.A12.Low"
+         else if "&chan"=="V3"
+            &channel="i.A14.Low  i.A13.High i.A12.High"
+         else if "&chan"=="I0"||"&chan"=="P0"
+         (
+            &channel="i.A14.High i.A13.Low  i.A12.Low"
+            &shunt=I.ADC.SHUNT(i.i0a)
+            &PwrVolt=I.ADC.SHUNT(i.p0a)
+         )
+         else if "&chan"=="I1"||"&chan"=="P1"
+         (
+            &channel="i.A14.High i.A13.Low  i.A12.High"
+            &shunt=I.ADC.SHUNT(i.i1a)
+            &PwrVolt=I.ADC.SHUNT(i.p1a)
+         )
+         else if "&chan"=="I2"||"&chan"=="P2"
+         (
+            &channel="i.A14.High i.A13.High i.A12.Low"
+            &shunt=I.ADC.SHUNT(i.i2a)
+            &PwrVolt=I.ADC.SHUNT(i.p2a)
+         )
+
+
+; check empty
+	 if "&addr"==""
+         (
+           beep 5.
+           print "Input error: Empty Range"
+           enddo
+         )
+; check range
+         EVAL &addr
+	 &t1=eval.type()
+	 if (&t1==0x80)    ; DRange
+         (
+            &len=STRING.LEN("&addr")
+            &cut=STRING.SCAN("&addr","--",0)
+            &addr1=STRING.CUT("&addr",-(&len-&cut)) 
+            &addr2=STRING.CUT("&addr",&cut+2) 
+         )
+         else
+         (
+           beep 5.
+           print "Input error: No Range"
+           enddo
+         )
+
+; check lo-val
+         EVAL &addr1
+         &t1=eval.type()
+;            &DInteger     DIntNum       DFloat       DHex        DNumeric
+         if (&t1!=0x08)&&(&t1!=0x2E)&&(&t1!=0x10)&&(&t1!=0x04)&&(&t1!=0x3E)
+         (
+            &t1="Input Error: "+"&t1"+" no valid value!"
+            print %ERROR "&t1"
+            enddo
+         )
+; check hi-val
+         EVAL &addr2
+         &t1=eval.type()
+;           &DInteger     DIntNum       DFloat       DHex        DNumeric
+         if (&t1!=0x08)&&(&t1!=0x2E)&&(&t1!=0x10)&&(&t1!=0x04)&&(&t1!=0x3E)
+         (
+            &t1="Input Error: "+"&t1"+" no valid value!"
+            print %ERROR "&t1"
+            enddo
+         )
+
+; calculation of trigger value
+         if "&chan"=="V0"||"&chan"=="V1"||"&chan"=="V2"||"&chan"=="V3"
+         (
+          ; voltage calculation
+          ; &addr1=&addr1*4096.*1000./5000.
+            &addr1=&addr1*819.2
+            &addr2=&addr2*819.2 
+         )
+         else
+         (
+           if "&chan"=="P0"||"&chan"=="P1"||"&chan"=="P2"
+           (
+              &addr1=&addr1/&PwrVolt
+              &addr2=&addr2/&PwrVolt
+           )
+         ; current calculation
+         ; &addr1=&addr1*&shunt*4096.*1000.*2./125.
+           &addr1=&addr1*&shunt*32768.
+           &addr2=&addr2*&shunt*32768.
+         )
+
+         if &addr1==0.0
+            &addr1=0.
+         else if &addr1>4096.
+            &addr1=4096.
+         else
+            &addr1=conv.floattoint(&addr1) 
+         
+         if &addr2==0.0
+            &addr2=0.
+         else if &addr2>4096.
+            &addr2=4096.
+         else
+            &addr2=conv.floattoint(&addr2) 
+
+         return &addr1 &addr2
+; --------------------------------------------------------------------------------
+
+
+applyend:    
+       )
+      )
+      dialog.set a.eq
+     )
+; --------------------------------------------------------------------------------
+     menuitem "&Trace around / Trigger..."
+     (
+       local &csel
+
+       &csel=""
+       if I.ADC.ENABLE(i.v0a)
+         &csel="&csel"+",V0"
+       if I.ADC.ENABLE(i.v1a)
+         &csel="&csel"+",V1"
+       if I.ADC.ENABLE(i.v2a)
+         &csel="&csel"+",V2"
+       if I.ADC.ENABLE(i.v3a)
+         &csel="&csel"+",V3"
+       if I.ADC.ENABLE(i.i0a)&&(I.ADC.SHUNT(i.i0a)!=0)
+         &csel="&csel"+",I0"
+       if I.ADC.ENABLE(i.i1a)&&(I.ADC.SHUNT(i.i1a)!=0)
+         &csel="&csel"+",I1"
+       if I.ADC.ENABLE(i.i2a)&&(I.ADC.SHUNT(i.i2a)!=0)
+         &csel="&csel"+",I2"
+       if I.ADC.ENABLE(i.p0a)&&(I.ADC.SHUNT(i.p0a)!=0)
+         &csel="&csel"+",P0"
+       if I.ADC.ENABLE(i.p1a)&&(I.ADC.SHUNT(i.p1a)!=0)
+         &csel="&csel"+",P1"
+       if I.ADC.ENABLE(i.p2a)&&(I.ADC.SHUNT(i.p2a)!=0)
+         &csel="&csel"+",P2"
+
+       if string.mid("&csel",0,1)==","
+          &csel=string.cut("&csel",1)
+
+dialog
+(&
+       header "Trace around or Trigger"
+
+       pos 0x1 1.3 6. 1.
+chan:  PULLDOWN "&csel" ""
+       pos 0x8 1.3 22.
+addr:  defedit "" ""
+       pos 33. 0.7 7. 1.
+a.eq:  choosebox "equal" ""
+       pos 33. 1.7 7. 1.
+a.not: choosebox "! equal" ""
+       pos 41. 0.7 7. 1.
+a.ris: choosebox "rising" ""
+       pos 41. 1.7 7. 1.
+a.fal: choosebox "falling" ""
+
+       pos 0. 0. 49. 3.5
+       box "Channel        Volt/Amp/Watt Range"
+
+       pos 1. 3.2 11. 1.
+d.pre:    choosebox "TrigDelay 10%"    ""
+d.center: choosebox "TrigDelay 50%"          ""
+d.post:   choosebox "TrigDelay 90%"     ""
+
+       pos 15. 3.2 12. 1.
+t.break:  choosebox "Break Analyzer"  ""
+t.trigg:  choosebox "Break Program"   ""
+
+
+       pos 15. 5.5  9.
+       defbutton "Ok"
+       (
+	 dialog.execute apply
+         dialog.end
+       )
+
+       pos 39. 5.5  9.
+       button "Cancel" "dialog.end"
+
+       pos 27. 5.5 9.
+apply: button "Apply"
+       (
+         local &addr &addrdecl &triggerA &tdelay &breakarg &tracetrigger
+         local &addr1 &addr2 &addr1l &addr1h &addr2l &addr2h
+         local &chan &channel
+
+         on error jumpto
+         (
+           beep 5.
+           print "Input error, please check syntax"
+           enddo
+         )
+
+; --------------------------------------------------------------------------------
+         &addrdecl=""
+	 &addr=dialog.string(addr)
+         &chan=dialog.string(chan)
+
+         gosub CheckRange &addr &chan
+         ENTRY &addr1 &addr2
+
+
+; --------------------------------------------------------------------------------
+
+	 if dialog.boolean(d.pre)
+	   &tdelay=52428.
+	 else if dialog.boolean(d.center)
+	   &tdelay=524288./2.
+	 else
+	   &tdelay=524288.-52428.
+
+;         &tdelay=&tdelay*1.6
+;         &tdelay=conv.floattoint(&tdelay)
+;         &tdelay="&tdelay"+"us"
+
+         I.TDelay 100%
+
+         if dialog.boolean(t.break)
+         (
+	    &breakarg="BREAK.TRACE    IF tdelay"
+	    i.TOut BusA OFF
+         )
+         else
+         (
+	    &breakarg="TRIGGER.PODBUS  IF tdelay"
+	    i.TOut BusA ON
+	    TRIGGER.Set.Break ON
+	 )   
+	 &tracetrigger="TRUE"
+
+; --------------------------------------------------------------------------------
+         if dialog.boolean(a.eq)||dialog.boolean(a.not)
+         (
+           if dialog.boolean(a.eq)
+             &triggerA="AlphaRange"
+           else if dialog.boolean(a.not)
+             &triggerA="!AlphaRange"
+
+ 	   Integrator.ReProgram
+	   (
+	   ; Volt/Amp/Watt Range: &addr
+	    SELECTORRANGE AlphaRange &addr1--&addr2
+ 
+	   ; Channel &chan
+	    SELECTOR Channel i.A15.Falling &channel
+
+	   ; DelayCounter
+	    EXTERNSYNCCOUNTER tdelay &tdelay
+
+	    Sample.ON
+	    start:
+	      TRIGGER.TRACE  IF &triggerA&&Channel
+	      CONTinue       IF &triggerA&&Channel
+	    occured:
+	      Counter.Increment tdelay
+	      &breakarg
+	   )
+	 )
+	 else
+         (
+           if dialog.boolean(a.ris)
+           (
+              &addr1l=0.
+              &addr1h=&addr1
+              &addr2l=&addr1
+              &addr2h=4096.
+           )
+           else
+           (
+              &addr2l=0.
+              &addr2h=&addr2
+              &addr1l=&addr2
+              &addr1h=4096.
+           )
+
+ 	   Integrator.ReProgram
+	   (
+	   ; Volt/Amp/Watt Range: &addr
+	    SELECTORRANGE AlphaRange &addr1l--&addr1h
+	    SELECTORRANGE BetaRange  &addr2l--&addr2h
+ 
+	   ; Channel &chan
+	    SELECTOR Channel i.A15.Falling &channel
+
+	   ; DelayCounter
+	    EXTERNSYNCCOUNTER tdelay &tdelay
+
+	    Sample.ON
+	    start:
+	        CONTinue     IF AlphaRange&&Channel
+	    startA:
+	      TRIGGER.TRACE  IF BetaRange&&Channel
+	      CONTinue       IF BetaRange&&Channel
+	    occured:
+	      Counter.Increment tdelay
+	      &breakarg
+	   )
+	 )
+
+         print "Analyzer programmed."
+         goto applyend
+
+
+; --------------------------------------------------------------------------------
+CheckRange:
+	ENTRY &addr &chan
+
+        local &shunt &PwrVolt
+        
+        &shunt=0
+        &PwrVolt=0
+
+; check channel
+         if "&chan"=="V0"
+            &channel="i.A14.Low  i.A13.Low  i.A12.Low"
+         else if "&chan"=="V1"
+            &channel="i.A14.Low  i.A13.Low  i.A12.High"
+         else if "&chan"=="V2"
+            &channel="i.A14.Low  i.A13.High i.A12.Low"
+         else if "&chan"=="V3"
+            &channel="i.A14.Low  i.A13.High i.A12.High"
+         else if "&chan"=="I0"||"&chan"=="P0"
+         (
+            &channel="i.A14.High i.A13.Low  i.A12.Low"
+            &shunt=I.ADC.SHUNT(i.i0a)
+            &PwrVolt=I.ADC.SHUNT(i.p0a)
+         )
+         else if "&chan"=="I1"||"&chan"=="P1"
+         (
+            &channel="i.A14.High i.A13.Low  i.A12.High"
+            &shunt=I.ADC.SHUNT(i.i1a)
+            &PwrVolt=I.ADC.SHUNT(i.p1a)
+         )
+         else if "&chan"=="I2"||"&chan"=="P2"
+         (
+            &channel="i.A14.High i.A13.High i.A12.Low"
+            &shunt=I.ADC.SHUNT(i.i2a)
+            &PwrVolt=I.ADC.SHUNT(i.p2a)
+         )
+
+
+; check empty
+	 if "&addr"==""
+         (
+           beep 5.
+           print "Input error: Empty Range"
+           enddo
+         )
+; check range
+         EVAL &addr
+	 &t1=eval.type()
+	 if (&t1==0x80)    ; DRange
+         (
+            &len=STRING.LEN("&addr")
+            &cut=STRING.SCAN("&addr","--",0)
+            &addr1=STRING.CUT("&addr",-(&len-&cut)) 
+            &addr2=STRING.CUT("&addr",&cut+2) 
+         )
+         else
+         (
+            &addr1=&addr 
+            &addr2=&addr
+         )
+
+; check lo-val
+         EVAL &addr1
+         &t1=eval.type()
+;            &DInteger     DIntNum       DFloat       DHex        DNumeric
+         if (&t1!=0x08)&&(&t1!=0x2E)&&(&t1!=0x10)&&(&t1!=0x04)&&(&t1!=0x3E)
+         (
+            &t1="Input Error: "+"&t1"+" no valid value!"
+            print %ERROR "&t1"
+            enddo
+         )
+; check hi-val
+         EVAL &addr2
+         &t1=eval.type()
+;           &DInteger     DIntNum       DFloat       DHex        DNumeric
+         if (&t1!=0x08)&&(&t1!=0x2E)&&(&t1!=0x10)&&(&t1!=0x04)&&(&t1!=0x3E)
+         (
+            &t1="Input Error: "+"&t1"+" no valid value!"
+            print %ERROR "&t1"
+            enddo
+         )
+
+; calculation of trigger value
+         if "&chan"=="V0"||"&chan"=="V1"||"&chan"=="V2"||"&chan"=="V3"
+         (
+          ; voltage calculation
+          ; &addr1=&addr1*4096.*1000./5000.
+            &addr1=&addr1*819.2
+            &addr2=&addr2*819.2 
+         )
+         else
+         (
+           if "&chan"=="P0"||"&chan"=="P1"||"&chan"=="P2"
+           (
+              &addr1=&addr1/&PwrVolt
+              &addr2=&addr2/&PwrVolt
+           )
+         ; current calculation
+         ; &addr1=&addr1*&shunt*4096.*1000.*2./125.
+           &addr1=&addr1*&shunt*32768.
+           &addr2=&addr2*&shunt*32768.
+         )
+
+         if &addr1==0.0
+            &addr1=0.
+         else if &addr1>4096.
+            &addr1=4096.
+         else
+            &addr1=conv.floattoint(&addr1) 
+         
+         if &addr2==0.0
+            &addr2=0.
+         else if &addr2>4096.
+            &addr2=4096.
+         else
+            &addr2=conv.floattoint(&addr2) 
+
+         return &addr1 &addr2
+; --------------------------------------------------------------------------------
+
+
+applyend:    
+       )
+       )
+       dialog.set a.eq
+       dialog.set d.center
+       dialog.set t.break
+
+      )
+; --------------------------------------------------------------------------------
+      menuitem "Multiple trace after..."
+      (
+       local &csel
+
+       &csel=""
+       if I.ADC.ENABLE(i.v0a)
+         &csel="&csel"+",V0"
+       if I.ADC.ENABLE(i.v1a)
+         &csel="&csel"+",V1"
+       if I.ADC.ENABLE(i.v2a)
+         &csel="&csel"+",V2"
+       if I.ADC.ENABLE(i.v3a)
+         &csel="&csel"+",V3"
+       if I.ADC.ENABLE(i.i0a)&&(I.ADC.SHUNT(i.i0a)!=0)
+         &csel="&csel"+",I0"
+       if I.ADC.ENABLE(i.i1a)&&(I.ADC.SHUNT(i.i1a)!=0)
+         &csel="&csel"+",I1"
+       if I.ADC.ENABLE(i.i2a)&&(I.ADC.SHUNT(i.i2a)!=0)
+         &csel="&csel"+",I2"
+       if I.ADC.ENABLE(i.p0a)&&(I.ADC.SHUNT(i.p0a)!=0)
+         &csel="&csel"+",P0"
+       if I.ADC.ENABLE(i.p1a)&&(I.ADC.SHUNT(i.p1a)!=0)
+         &csel="&csel"+",P1"
+       if I.ADC.ENABLE(i.p2a)&&(I.ADC.SHUNT(i.p2a)!=0)
+         &csel="&csel"+",P2"
+
+       if string.mid("&csel",0,1)==","
+          &csel=string.cut("&csel",1)
+
+dialog
+(&
+            header "Multiple trace after "
+            pos 0x1 1.3 6. 1.
+chan:       PULLDOWN "&csel" ""
+            pos 0x8 1.3 22.
+addr:       defedit "" ""
+            pos 33. 0.7 7. 1.
+a.eq:       choosebox "equal" ""
+            pos 33. 1.7 7. 1.
+a.not:      choosebox "! equal" ""
+            pos 41. 0.7 7. 1.
+a.ris:      choosebox "rising" ""
+            pos 41. 1.7 7. 1.
+a.fal:      choosebox "falling" ""
+
+            pos 0. 0. 49. 3.5
+            box "Channel        Volt/Amp/Watt Range"
+
+            pos 1. 3. 11. 1.
+            text "Cycles to trace:"
+delay:      edit "1000." ""
+
+       pos 15. 3.5  9.
+       defbutton "Ok"
+       (
+	 dialog.execute apply
+         dialog.end
+       )
+
+       pos 39. 3.5  9.
+       button "Cancel" "dialog.end"
+
+       pos 27. 3.5 9.
+apply: button "Apply"
+       (
+         local &addr &addrdecl &triggerA &tdelay &tracetrigger
+         local &addr1 &addr2 &addr1l &addr1h &addr2l &addr2h
+         local &chan &channel
+
+         on error jumpto
+         (
+            beep 5.
+            print "Input error, please check syntax"
+            enddo
+         )
+
+
+; --------------------------------------------------------------------------------
+         &addrdecl=""
+	 &addr=dialog.string(addr)
+         &chan=dialog.string(chan)
+
+         gosub CheckRange &addr &chan
+         ENTRY &addr1 &addr2
+
+; --------------------------------------------------------------------------------
+
+         &tdelay=dialog.string(delay)
+;         &tdelay=&tdelay*1.6
+;         &tdelay=conv.floattoint(&tdelay)
+;         &tdelay="&tdelay"+"us"
+
+
+         if dialog.boolean(a.eq)||dialog.boolean(a.not)
+         (
+           if dialog.boolean(a.eq)
+             &triggerA="AlphaRange"
+           else if dialog.boolean(a.not)
+             &triggerA="!AlphaRange"
+
+	   Integrator.ReProgram
+	   (
+            ; Volt/Amp/Watt Range: &addr
+	    SELECTORRANGE AlphaRange &addr1--&addr2
+
+            ; Channel &chan
+            SELECTOR Channel i.A15.Falling &channel
+
+            ; Delay Counter
+	    EXTERNSYNCCOUNTER delay &tdelay
+		  
+	    start:
+	       Sample.ON           if &triggerA&&Channel
+	       CONTinue            if &triggerA&&Channel
+	    occured:
+	       Counter.Enable  delay
+	       Counter.Restart delay IF delay
+	       Sample.OFF            IF delay
+	       GOTO start            IF delay
+	   )
+         )
+	 else
+         (
+           if dialog.boolean(a.ris)
+           (
+              &addr1l=0.
+              &addr1h=&addr1
+              &addr2l=&addr1
+              &addr2h=4096.
+           )
+           else
+           (
+              &addr2l=0.
+              &addr2h=&addr2
+              &addr1l=&addr2
+              &addr1h=4096.
+           )
+
+ 	   Integrator.ReProgram
+	   (
+	   ; Voltage/Current Range: &addr
+	    SELECTORRANGE AlphaRange &addr1l--&addr1h
+	    SELECTORRANGE BetaRange  &addr2l--&addr2h
+ 
+	   ; Channel &chan
+	    SELECTOR Channel i.A15.Falling &channel
+
+	   ; DelayCounter
+	    EXTERNSYNCCOUNTER delay &tdelay
+
+	    start:
+	       CONTinue       IF AlphaRange&&Channel
+	    startA:
+	       Sample.ON      IF BetaRange&&Channel
+	       CONTinue       IF BetaRange&&Channel
+	    occured:
+	       Counter.Enable  delay
+	       Counter.Restart delay IF delay
+	       Sample.OFF            IF delay
+	       GOTO start            IF delay
+	   )
+	 )
+         
+         
+         print "Analyzer programmed."
+         goto applyend
+
+
+; --------------------------------------------------------------------------------
+CheckRange:
+ 	ENTRY &addr &chan
+
+        local &shunt &PwrVolt
+        
+        &shunt=0
+        &PwrVolt=0
+
+; check channel
+         if "&chan"=="V0"
+            &channel="i.A14.Low  i.A13.Low  i.A12.Low"
+         else if "&chan"=="V1"
+            &channel="i.A14.Low  i.A13.Low  i.A12.High"
+         else if "&chan"=="V2"
+            &channel="i.A14.Low  i.A13.High i.A12.Low"
+         else if "&chan"=="V3"
+            &channel="i.A14.Low  i.A13.High i.A12.High"
+         else if "&chan"=="I0"||"&chan"=="P0"
+         (
+            &channel="i.A14.High i.A13.Low  i.A12.Low"
+            &shunt=I.ADC.SHUNT(i.i0a)
+            &PwrVolt=I.ADC.SHUNT(i.p0a)
+         )
+         else if "&chan"=="I1"||"&chan"=="P1"
+         (
+            &channel="i.A14.High i.A13.Low  i.A12.High"
+            &shunt=I.ADC.SHUNT(i.i1a)
+            &PwrVolt=I.ADC.SHUNT(i.p1a)
+         )
+         else if "&chan"=="I2"||"&chan"=="P2"
+         (
+            &channel="i.A14.High i.A13.High i.A12.Low"
+            &shunt=I.ADC.SHUNT(i.i2a)
+            &PwrVolt=I.ADC.SHUNT(i.p2a)
+         )
+
+; check empty
+	 if "&addr"==""
+         (
+           beep 5.
+           print "Input error: Empty Range"
+           enddo
+         )
+; check range
+         EVAL &addr
+	 &t1=eval.type()
+	 if (&t1==0x80)    ; DRange
+         (
+            &len=STRING.LEN("&addr")
+            &cut=STRING.SCAN("&addr","--",0)
+            &addr1=STRING.CUT("&addr",-(&len-&cut)) 
+            &addr2=STRING.CUT("&addr",&cut+2) 
+         )
+         else
+         (
+            &addr1=&addr 
+            &addr2=&addr 
+         )
+
+; check lo-val
+         EVAL &addr1
+         &t1=eval.type()
+;            &DInteger     DIntNum       DFloat       DHex        DNumeric
+         if (&t1!=0x08)&&(&t1!=0x2E)&&(&t1!=0x10)&&(&t1!=0x04)&&(&t1!=0x3E)
+         (
+            &t1="Input Error: "+"&t1"+" no valid value!"
+            print %ERROR "&t1"
+            enddo
+         )
+; check hi-val
+         EVAL &addr2
+         &t1=eval.type()
+;           &DInteger     DIntNum       DFloat       DHex        DNumeric
+         if (&t1!=0x08)&&(&t1!=0x2E)&&(&t1!=0x10)&&(&t1!=0x04)&&(&t1!=0x3E)
+         (
+            &t1="Input Error: "+"&t1"+" no valid value!"
+            print %ERROR "&t1"
+            enddo
+         )
+
+; calculation of trigger value
+         if "&chan"=="V0"||"&chan"=="V1"||"&chan"=="V2"||"&chan"=="V3"
+         (
+          ; voltage calculation
+          ; &addr1=&addr1*4096.*1000./5000.
+            &addr1=&addr1*819.2
+            &addr2=&addr2*819.2 
+         )
+         else
+         (
+           if "&chan"=="P0"||"&chan"=="P1"||"&chan"=="P2"
+           (
+              &addr1=&addr1/&PwrVolt
+              &addr2=&addr2/&PwrVolt
+           )
+         ; current calculation
+         ; &addr1=&addr1*&shunt*4096.*1000.*2./125.
+           &addr1=&addr1*&shunt*32768.
+           &addr2=&addr2*&shunt*32768.
+         )
+
+         if &addr1==0.0
+            &addr1=0.
+         else if &addr1>4096.
+            &addr1=4096.
+         else
+            &addr1=conv.floattoint(&addr1) 
+         
+         if &addr2==0.0
+            &addr2=0.
+         else if &addr2>4096.
+            &addr2=4096.
+         else
+            &addr2=conv.floattoint(&addr2) 
+
+         return &addr1 &addr2
+; --------------------------------------------------------------------------------
+
+
+applyend:    
+;           v   end button OK
+            )
+            )
+;     v  end menuitem  multiple trace after
+      dialog.set a.eq
+      )
+     )
+
+
+; --------------------------------------------------------------------------------
+    popup "[:alist]&List"
+    (
+      default
+      menuitem "&Default"                   "Integrator.List i.V0A i.V1A i.V2A i.V3A i.I0A i.I1A i.I2A"
+      menuitem "&All"                       "Integrator.List ALL"
+      menuitem "[:correlate]&Tracking with Timing and Draw"
+      (
+         Integrator.Timing /ZoomTrack
+         Integrator.Draw i.V0A i.V1A i.V2A i.V3A i.I0A i.I1A i.I2A /ZoomTrack
+         Integrator.List i.V0A i.V1A i.V2A i.V3A i.I0A i.I1A i.I2A /Track
+      )
+    )
+; --------------------------------------------------------------------------------
+    popup "[:atiming]&Timing"
+    (
+      default
+      menuitem "&Default" "Integrator.Timing"
+      menuitem "&All"     "Integrator.Timing ALL"
+      menuitem "[:correlate]&Tracking with List and Draw"
+      (
+         Integrator.List i.V0A i.V1A i.V2A i.V3A i.I0A i.I1A i.I2A /Track
+         Integrator.Draw i.V0A i.V1A i.V2A i.V3A i.I0A i.I1A i.I2A /ZoomTrack
+         Integrator.Timing /ZoomTrack
+      )
+    )
+    popup "[:adraw]&Draw"
+    (
+      default
+      menuitem "&Default" "Integrator.Draw %Float.MICRO"
+      menuitem "&Channel V0-V1-V2-V3"  "Integrator.Draw %Float.MICRO i.V0A i.V1A i.V2A i.V3A"
+      menuitem "&Channel V0"      "Integrator.Draw %Float.MICRO i.V0A"
+      menuitem "&Channel V1"      "Integrator.Draw %Float.MICRO i.V1A"
+      menuitem "&Channel V2"      "Integrator.Draw %Float.MICRO i.V2A"
+      menuitem "&Channel V3"      "Integrator.Draw %Float.MICRO i.V3A"
+      menuitem "&Channel I0-I1-I2"   "Integrator.Draw %Float.MICRO i.I0A i.I1A i.I2A"
+      menuitem "&Channel I0"      "Integrator.Draw %Float.MICRO i.I0A"
+      menuitem "&Channel I1"      "Integrator.Draw %Float.MICRO i.I1A"
+      menuitem "&Channel I2"      "Integrator.Draw %Float.MICRO i.I2A"
+      menuitem "&Channel P0-P1-P2"   "Integrator.Draw %Float.MICRO i.P0A i.P1A i.P2A"
+      menuitem "&Channel P0"      "Integrator.Draw %Float.MICRO i.P0A"
+      menuitem "&Channel P1"      "Integrator.Draw %Float.MICRO i.P1A"
+      menuitem "&Channel P2"      "Integrator.Draw %Float.MICRO i.P2A"
+
+      menuitem "[:correlate]&Tracking with List and Timing"
+      (
+         Integrator.List i.V0A i.V1A i.V2A i.V3A i.I0A i.I1A i.I2A /Track
+         Integrator.Timing /ZoomTrack
+         Integrator.Draw i.V0A i.V1A i.V2A i.V3A i.I0A i.I1A i.I2A /ZoomTrack
+      )
+    )
+    addhere
+    separator
+    menuitem "[:save]Save trace data ..."         "Integrator.SAVE"
+    menuitem "[:load]Load reference data ..."     "Integrator.LOAD *"
+    separator
+; --------------------------------------------------------------------------------
+    menuitem "&Reset"                       "Integrator.RESet"
+  )
+)
+; --------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

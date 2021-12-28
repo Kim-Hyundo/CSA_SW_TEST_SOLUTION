@@ -1,0 +1,215 @@
+; --------------------------------------------------------------------------------
+; @Title: Windows Embedded Compact 2013 Demo for TRACE32 OS Awareness on the PandaBoard
+; @Description:
+;
+;   This batchfile demonstrates the use of the OS Awareness for CE8
+;
+;   The example is generated for a PandaBoard using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   The Windows EC image is downloaded via the ICD.
+;
+;   This script uses the on-board u-boot to initialize the board
+;
+; @Keywords: awareness
+; @Author: DIE
+; @Board: PandaBoard
+; @Chip: OMAP4430
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: wince.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+; Starting WinCE example with TRACE32:
+; - Start TRACE32
+; - Power on the board
+; - TRACE32: "do wince"
+; - Start "compute.exe" on target via CMD
+
+; For debugging with TRACE32 we recommend to disable demand paging
+; by setting bit one of ROMFLAGS in PLATFORM\NE1TB\FILES\config.bib
+
+; Connect STRAIGHT serial cable to RS232
+; - 115200 baud, 8/N/1, no(!) handshake
+
+
+&winceroot="C:\WINCE800"    ; typically C:\WINCE800
+&reldir="&winceroot\OSDesigns\PandaBSPuart\PandaBSPuart\RelDir\PANDABOARD_ARMV7_Debug"
+
+&term="COM3"
+;&term="\\.\COM11"
+;&term=""
+
+
+ SCREEN.ALways      ; permanent update for internal terminal window
+ ; screen.on        ; if you use external terminal
+
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 24. 75. 8.
+ AREA.view
+
+ PRINT "resetting..."
+
+ RESet
+
+ DIALOG.OK "Please reset the target and continue"
+
+
+; Initializing Debugger
+
+ PRINT "initializing..."
+ SYStem.CPU OMAP4430
+ SYStem.JtagClock CTCK 30MHz
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ SYStem.Option ResBreak OFF     ; hardware dependent (see manual)
+ SYStem.Option WaitReset ON     ; hardware dependent (see manual)
+ TrOnchip.Set DABORT OFF 	; used by wince for page miss!
+ TrOnchip.Set PABORT OFF 	; used by wince for page miss!
+ TrOnchip.Set UNDEF OFF		; used to detect not present FPU
+ TrOnchip.Set IRQ OFF
+ SYStem.Option MMUSPACES ON 	; enable space ids to virtual addresses
+
+ SYStem.Mode Up
+
+ SETUP.IMASKASM ON 		; lock interrupts while single stepping
+
+ MAP.DenyAccess 0xC0000000--0xDFFFFFFF  ; disable access to non-existent memory
+
+
+; Open serial terminal window
+
+; if "&term"!=""
+ (
+   WinPOS 35. 0. ,,,,, TERM.view
+   TERM.METHOD COM &term 115200. 8 NONE 1STOP  RTSCTS
+   TERM.SIZE 80. 1000.
+   TERM.Mode VT100
+   TERM.SCROLL ON
+   TERM.view
+ )
+
+
+; Target Setup
+
+ ; if you want to let the bootloader initialize the board:
+     ; start u-boot to initialize the board
+     Go
+     PRINT "target setup... with u-boot"
+     WAIT 1.s
+     Break
+ ; else setup the board with the debugger:
+     ;print "target setup... with script"
+     ;do panda_setup_1.cmm
+     ;do panda_setup_2.cmm
+
+
+; Load the Windows CE image
+
+ ; Use the next lines only to load the image into
+ ; RAM using the debugger.
+
+ PRINT "loading Windows CE image..."
+
+ ; Prepare for direct download: disable caches and MMU!
+ Data.Set C15:1 Data.Long(c15:1)&~0x1005    ; SCTLR: I/C/M; L1 cache and MMU
+ Data.Set C15:0x201 %Long 0x00F00000	    ; CPACR InitFPU
+
+ Register.RESet
+
+ ; Download the image to physical address.
+
+ ; See config.bib:
+
+ ; RAMIMAGE entry specifies virtual load address, here 0x80100000
+ ; physical is usually RAM start plus the offset;
+ ; RAM starts at 0x80000000, so physical load address is 0x80100000
+
+ ; ROMSTART entry specifies the start address, here 0x80100000
+ ; IMPORTANT: do *not* add 4k page to ROMSTART - we need the TOC!
+
+ ; ROMOFFSET adds an offset to RAMIMAGE for flash load addresses,
+ ; here 0x1F470400
+ ; then load nk.bin to <phys. addr.> - (RAMIMAGE+ROMOFFSET)
+
+
+ Data.LOAD.eXe "&reldir\nk.bin" 0x80100000-0x80100000               ; Debug
+ ;Data.LOAD.EXE "&reldir\nk.bin" 0x80100000-(0x80100000+0x1F470400)  ; Shipbuild
+
+ ; set PC to physical start address for each core
+ ; see config.bib NK RAMIMAGE
+
+ CORE.select 0
+ Register.Set PC 0x80100000
+ CORE.select 1
+ Register.Set PC 0x80100000
+ CORE.select 0
+
+
+; We'd like to see something, open a code window.
+ WinPOS 0. 0. 77. 22.
+ List.auto
+
+
+; Declare the MMU format to the debugger
+
+ ; table format is "WINCE6"
+ ; skip root table (0)
+ ; declare default translation for kernel
+ MMU.FORMAT WINCE6 0 0x80000000++0x07ffffff 0x80000000
+
+ ; ROM DLL, shared heap and kernel addresses are common to all processes
+ TRANSlation.COMMON 0x40000000--0x5fffffff 0x70000000--0xffffffff
+
+ ; debugger uses a table walk to decode virtual addresses
+ TRANSlation.TableWalk ON
+
+  ; switch on debugger(!) address translation
+ TRANSlation.ON
+
+
+; Initialize RTOS Support
+
+ PRINT "initializing Windows CE support..."
+ TASK.CONFIG ~~\demo\arm\kernel\wince\ec2013\wince8.t32     ; loads WinCE awareness
+ MENU.ReProgram ~~\demo\arm\kernel\wince\ec2013\wince8.men  ; loads WinCE menu
+ HELP.FILTER.Add rtoswince6     ; add WinCE awareness manual to help
+
+ ; switch on autoloader and add path to symbol files to source path list
+ sYmbol.AutoLoad.CHECKWINCE "do ~~\demo\arm\kernel\wince\ec2013\autoload "
+ sYmbol.SourcePATH.Set &reldir
+
+ ; Group kernel area to be displayed with red bar
+ GROUP.Create "winceos" 0x80000000--0xffffffff /RED
+
+ ; adapt source paths if necessary (case sensitive!)
+ ;sYmbol.SourcePATH.Translate "c:\wince800" "&winceroot"
+ ;sYmbol.SourcePATH.Translate "d:\bt\1318" "&winceroot"
+ sYmbol.SourcePATH.Set .    ; add current directory to search path
+
+
+; Now let's boot and start Windows CE!
+
+ Go
+ wintop TERM.view
+ PRINT "booting Windows CE... (please wait)"
+ WAIT 2.s
+ Break
+
+
+ PRINT "done."
+
+
+; --------------------------------------------------------------------------------
+; Application Debugging
+; e.g. "compute.exe"
+
+ DO ~~\demo\arm\kernel\wince\ce7\app_debug compute
+ ;do ~~\demo\arm\kernel\wince\ce7\app_debug appstarter
+
+
+ ENDDO
+

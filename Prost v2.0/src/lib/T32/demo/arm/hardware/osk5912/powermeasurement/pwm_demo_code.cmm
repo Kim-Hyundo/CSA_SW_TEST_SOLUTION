@@ -1,0 +1,112 @@
+; --------------------------------------------------------------------------------
+; @Title: OSK5912 Powemeasurement Demo Code
+; @Description: 
+;   Demo code for the OSK5912 powermeasurement demo.
+;   The code is assembled in the target memory using
+;   the Data.Assemble command.
+; @Author: STK
+; @Board: OSK5912
+; @Chip: OMAP5912
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: pwm_demo_code.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+&base=10000000
+
+&data=&base+200
+&data2=&data+100
+&prog=&base
+
+sYmbol.RESet
+sYmbol.NEW Start &base
+sYmbol.NEW PWM &base+0x004
+sYmbol.NEW LED &base+0x01c
+sYmbol.NEW DELAY &base+0x060
+Register.RESet
+Register.Set PC &prog
+
+
+Data.Set &data %Long 0xFFFB5800
+Data.Set , %Long &data+0x0c
+Data.Set , %Long &data+0x10
+Data.Set , %Long 0x24
+Data.Set , %Long 0x24
+Data.Set , %Long 0xf0d8
+Data.Set , %Long 0xf0d0
+Data.Set , %Long 0xf0c0
+Data.Set , %Long 0xf080
+Data.Set , %Long 0xf000
+Data.Set , %Long 0xe000
+Data.Set , %Long 0xc000
+Data.Set , %Long 0x8000
+Data.Set , %Long 0x0000
+Data.Set , %Long 0xFFFBE430
+Data.Set , %Long &data+0x10
+Data.Set , %Long 0x00008000
+
+Data.Assemble &prog nop
+Data.Assemble , ldr r0, &data
+Data.Assemble , ldr r1,[r0]
+Data.Assemble , adds r1,r1, #0x10
+Data.Assemble , strb r1, [r0]
+Data.Assemble , nop
+Data.Assemble , nop
+Data.Assemble , ldr r0, &data+4
+Data.Assemble , ldrb r1,[r0]
+Data.Assemble , subs r1,r1, #0x1
+Data.Assemble , subs r1,r1, #0x1
+Data.Assemble , subs r1,r1, #0x1
+Data.Assemble , subs r1,r1, #0x1
+Data.Assemble , bne $+0c 
+Data.Assemble , ldr r2, &data+8
+Data.Assemble , ldrb r1,[r2]
+Data.Assemble , strb r1, [r0]
+Data.Assemble , ldr r0, &data+3c
+Data.Assemble , adds r1,r1,r0
+Data.Assemble , ldr r0, [r1]
+Data.Assemble , ldr r1, &data+38
+Data.Assemble , str r0, [r1]
+Data.Assemble , nop
+Data.Assemble , nop
+Data.Assemble , ldr r1, &data+40
+Data.Assemble , subs r1,r1, #0x1
+Data.Assemble , bne $-04 
+
+
+Data.Assemble , b &prog
+Data.Assemble , nop nop nop nop
+
+
+ENDDO
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

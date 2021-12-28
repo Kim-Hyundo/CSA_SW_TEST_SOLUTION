@@ -1,0 +1,82 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC1766ED on TriBoard TC1766
+; @Description:
+;   Initializes the TriCore and loads the Sieve-Demo into memory.
+; @Keywords: Infineon, internal, intmem, memory, sieve, TriCore
+; @Author: MAX
+; @Board: TriBoard-TC1766
+; @Chip: TC1766ED
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc1766ed_demo.cmm 7659 2014-09-24 08:50:29Z mobermaier $
+
+
+; --------------------------------------------------------------------------------
+; Performed tests:
+; Dip Switch S301:      SW1=ON,  SW2=OFF, SW3=ON,  SW4=ON,
+;                       SW5=OFF, SW6=ON,  SW7=OFF, SW8=OFF
+; TriBoard TC1766.102A TC1766 EES-AC 2005-01-26 MAX
+; TriBoard TC1766.102A TC1766 EES-BA 2005-01-26 MAX
+;
+; A-steps: Since the watchdog is not suspended in debug mode, do not use a
+; low JTAG clock frequency in case the watchdog is not already disabled by
+; the target program. Otherwise the debugger is possibly to slow to disable
+; the watchdog in time. Minimum JTAG clock depends on the core clock. Default
+; JTAG clock should be fine.
+;
+; TriBoard Bugfix: Triboards-TC1766 older than Revision 300 have two trace
+; signal lines swappend. For OCDS-L2 tracing on these boards, use
+; SYStem.Option TB1766FIX ON
+;
+; Requirements to use OCDS-1:
+; Set jumper JP501 to 2-3 (= disable on-board wiggler)
+;
+; If onchip flash is not functional: DIP Switch S401 SW5=ON
+;
+; Memory mappings:
+; flash is not declared - see flash.cmm
+; processor internal RAM (LDRAM)      56 KB 0xD0000000--0xD000DFFF
+; processor internal RAM (SPRAM)      16 KB 0xD4000000--0xD4003FFF
+; processor internal program flash   1.5 MB 0xA0000000--0xA0177FFF
+; processor internal data flash       16 KB 0xAFE00000--0xAFE03FFF (Bank 0)
+;                                     16 KB 0xAFE10000--0xAFE13FFF (Bank 1)
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+; When the processor is connected via DAS (USB over Emulation Devices),
+; SYStem.Up does not work because then the startup code for DAS in the
+; firmware is not executed.
+
+RESet
+SYStem.CPU TC1766ED
+//SYStem.Option WDTFIX ON ; only required for A-step devices via JTAG
+SYStem.Up
+
+IF Analyzer()
+(
+  //SYStem.Option TB1766FIX ON ; only required for TriBoards with revision < 300
+
+  ; Port 5 pins set to OCDS-L2 function
+  Data.Set 0xF0001110 %Long 0xA0A0A0A0
+  Data.Set 0xF0001114 %Long 0xA0A0A0A0
+  Data.Set 0xF0001118 %Long 0xA0A0A0A0
+  Data.Set 0xF000111C %Long 0xA0A0A0A0
+)
+
+; --------------------------------------------------------------------------------
+; load demo program
+Data.LOAD.Elf "~~~~/triboard-tc1766_sieve_intmem.elf"
+Trace.Init
+Go.direct main
+
+; open some windows
+WinCLEAR
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame.view /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch
+Var.AddWatch ast flags
+
+ENDDO

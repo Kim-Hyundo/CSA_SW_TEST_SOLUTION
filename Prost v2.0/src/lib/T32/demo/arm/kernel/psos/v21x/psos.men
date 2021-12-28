@@ -1,0 +1,115 @@
+; --------------------------------------------------------------------------------
+; @Title: pSOS+ specific menu
+; @Description: -
+; @Author: DIE
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: psos.men 7320 2014-07-03 08:57:49Z kjmal $
+
+; This menu is special created for pSOS+ support!
+
+add
+menu
+(
+  popup "pSOS+"
+  (
+    menuitem "pROBE Terminal" "TERM T32OUT T32IN"
+    menuitem "&Break to pROBE"
+    (
+      d.s e:T32IN 0x0
+      d.s e:T32IN 0x9
+    )
+    separator
+    popup "Query &Configuration"
+    (
+      menuitem "&Node"   "TASK.QC"
+      menuitem "&pSOS+"  "TASK.QC psos"
+      menuitem "&pROBE+" "TASK.QC probe"
+      menuitem "&pHILE+" "TASK.QC phile"
+      menuitem "&pREPC+" "TASK.QC prepc"
+      menuitem "&pNA+" "TASK.QC pna"
+      menuitem "&pSE+" "TASK.QC pse"
+      menuitem "&pMONT+" "TASK.QC pmont"
+    )
+    default
+    menuitem "Query &Task"      "TASK.QT"
+    popup    "Query &Objects"
+    (
+      menuitem "&All"       "TASK.QO"
+      menuitem "&Task"      "TASK.QO task"
+      menuitem "&Queue"     "TASK.QO queue"
+      menuitem "&Semaphore" "TASK.QO semaphore"
+      menuitem "&Region"    "TASK.QO region"
+      menuitem "&Partition" "TASK.QO partition"
+    )
+    menuitem "Query &Queue"     "TASK.QQ"
+    menuitem "Query &Semaphore" "TASK.QS"
+    menuitem "Query &Region"    "TASK.QR"
+    menuitem "Query &Partition" "TASK.QP"
+    menuitem "Query &Date/Time" "TASK.QD"
+    menuitem "Query &Versions"  "TASK.QV"
+;    separator
+;    enable ice()
+;    popup "&Stack Coverage"
+;    (
+;      menuitem "List Stacks"    "TASK.STK"
+;      menuitem "Reset Coverage" "TASK.STK.RES"
+;    )
+  )
+  popup "Trace"
+  (
+    popup "List"
+    (
+      separator
+      menuitem "&Task Switches"     "Trace.List l.task"
+      menuitem "&Default and Tasks" "Trace.List l.task def"
+    )
+  )
+  popup "Perf"
+  (
+      separator
+      popup "&Task Runtime"
+      (
+        menuitem "&Prepare"
+	(
+          a.rp
+          (
+            s.e if alphab&&write
+          )
+	  b.d /a
+	  b.s task.config(magic)++0x3 /a
+	)
+        menuitem "Show &Numerical" "Trace.STATistic.TASK"
+        menuitem "Show as &Timing" "Trace.CHART.TASK"
+      )
+      popup "Task &Function Runtime"
+      (
+        menuitem "&Prepare"            "DO men_asfp.cmm"
+        menuitem "Show &Numerical"     "Trace.STATistic.TASKFUNC"
+        menuitem "Show as &Tree"       "Trace.STATistic.TASKTREE"
+        menuitem "Show &Detailed Tree" "Trace.STATistic.TASKTREE ALL"
+        menuitem "Show as &Timing"     "Trace.CHART.TASKFUNC"
+        menuitem "Show N&esting"       "Trace.List l.task FUNC TI.FUNC"
+      )
+      popup "Task &Status"
+      (
+        menuitem "&Prepare"
+	(
+          a.rp
+          (
+            s.e if alphab&&write
+          )
+	  b.d /a
+	  b.s task.config(magic)++0x3 /a
+	  task.taskstate
+	)
+        menuitem "Show &Numerical" "Trace.STATistic.TASKSTATE"
+        menuitem "Show as &Timing" "Trace.CHART.TASKSTATE"
+      )
+  )
+  popup "&Help"
+  (
+    menuitem "pSOS+ Manual" "HELP __RTOS_PSOS_"
+  )
+)
+

@@ -1,0 +1,179 @@
+; --------------------------------------------------------------------------------
+; @Title: Example for flash declaration of EnergyMicro EFM32 Tiny Gecko internal flash.
+;
+; @Description: 
+; Script arguments:
+;
+;   DO efm32tg [PREPAREONLY]
+;
+;     PREPAREONLY only declares flash but does not execute flash programming
+;
+;     CPU=<cpu> selects CPU derivative <cpu>
+; Example:
+; List of EFM32 Tiny Gecko derivatives and their configuration:
+;
+;   CPU                             FlashSize  RamSize
+;   Derivative       CpuType           [kB]      [kB]
+; --------------------------------------------------------------------------------
+;   EFM32TG108F4     EFM32TG108F          4.        1.
+;   EFM32TG108F8     EFM32TG108F          8.        2.
+;   EFM32TG108F16    EFM32TG108F         16.        4.
+;   EFM32TG108F32    EFM32TG108F         32.        4.
+;   EFM32TG110F8     EFM32TG110F          8.        2.
+;   EFM32TG110F16    EFM32TG110F         16.        4.
+;   EFM32TG110F32    EFM32TG110F         32.        4.
+;   EFM32TG210F8     EFM32TG210F          8.        2.
+;   EFM32TG210F16    EFM32TG210F         16.        4.
+;   EFM32TG210F32    EFM32TG210F         32.        4.
+;   EFM32TG222F8     EFM32TG222F          8.        2.
+;   EFM32TG222F16    EFM32TG222F         16.        4.
+;   EFM32TG222F32    EFM32TG222F         32.        4.
+;   EFM32TG225F8     EFM32TG225F          8.        2.
+;   EFM32TG225F16    EFM32TG225F         16.        4.
+;   EFM32TG225F32    EFM32TG225F         32.        4.
+;   EFM32TG230F8     EFM32TG230F          8.        2.
+;   EFM32TG230F16    EFM32TG230F         16.        4.
+;   EFM32TG230F32    EFM32TG230F         32.        4.
+;   EFM32TG232F8     EFM32TG232F          8.        2.
+;   EFM32TG232F16    EFM32TG232F         16.        4.
+;   EFM32TG232F32    EFM32TG232F         32.        4.
+;   EFM32TG822F8     EFM32TG822F          8.        2.
+;   EFM32TG822F16    EFM32TG822F         16.        4.
+;   EFM32TG822F32    EFM32TG822F         32.        4.
+;   EFM32TG825F8     EFM32TG825F          8.        2.
+;   EFM32TG825F16    EFM32TG825F         16.        4.
+;   EFM32TG825F32    EFM32TG825F         32.        4.
+;   EFM32TG840F8     EFM32TG840F          8.        2.
+;   EFM32TG840F16    EFM32TG840F         16.        4.
+;   EFM32TG840F32    EFM32TG840F         32.        4.
+;   EFM32TG842F8     EFM32TG842F          8.        2.
+;   EFM32TG842F16    EFM32TG842F         16.        4.
+;   EFM32TG842F32    EFM32TG842F         32.        4.
+;   EFM32TG11B???F128*                  128.       32.
+;   EFM32TG11B???F64*                    64.       32.
+
+; @Author: STK
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; @Chip: EFM32TG???F
+; --------------------------------------------------------------------------------
+; $Rev: 7577 $
+; $Id: efm32tg.cmm 7577 2019-10-30 15:30:31Z bschroefel $
+
+  LOCAL &parameters &param_prepareonly
+  ENTRY %LINE &parameters
+  &param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+
+
+  LOCAL &param_cpu
+  &param_cpu=STRing.SCANAndExtract("&parameters","CPU=","")
+
+  ; Start debugging
+
+  IF SYStem.MODE()<5
+  (
+    SYStem.RESet
+
+    IF !CPUIS(EFM32TG*)
+    (
+      IF VERSION.BUILD()>=37389.
+        SYStem.CPU EFM32TG*
+      ELSE
+      (
+        PRINT %ERROR "Please select EFM32TGxxxF CPU derivative"
+        ENDDO
+      )
+    )
+
+    SYStem.Option.ResBreak OFF
+    IF CABLE.TWOWIRE()
+    (
+      SYStem.CONFIG.DEBUGPORTTYPE SWD
+    )
+    ELSE
+    (
+      PRINT %ERROR "Serial Wire Debug (SWD) not supported by debug cable"
+      ENDDO
+    )
+    SYStem.JtagClock 500Khz
+
+    SYStem.Up
+
+    ; After SYStem.Up the JTAG clock can be set to higher frequency.
+    SYStem.JtagClock 10Mhz
+  )
+
+  ; Flash declaration
+
+  ; Detect flash size in kByte via device information page
+  PRIVATE &FlashSize &PageSize &FlashDriver &DataStart
+  IF CPUIS(EFM32TG11B*)
+  (
+    &FlashDriver="efm32gg11.bin"
+    &PageSize=0x800
+    &DataStart=0x20001000
+    IF CPUIS(*F64*)
+      &FlashSize=64. // [kb]
+    ELSE IF CPUIS(*F128*)
+      &FlashSize=128. // [kb]
+    ELSE
+    (
+      PRINT "UNKNOWN Flash size"  
+      ENDDO
+    )
+  )
+  ELSE // For earlier devices the Flash size was not coded within the CPU name. Therefore we have to read them from the target register.
+  (
+    &FlashDriver="efm32.bin"
+    &FlashSize=Data.Word(SD:0x0FE081F8)
+    &PageSize=0x200
+    &DataStart=0x20000400
+  )
+
+  IF &FlashSize==0x00
+  (
+    &FlashSize=4.
+  )
+
+  FLASH.RESet
+  
+  IF &FlashSize==4. // EFM32TG108F4 is the only device which has 4k flash!
+  (
+    PRINT %ERROR "Not enough memory for flash algorithm" // The EFM32TG108F4 has only 1K but we need at least 2k
+    ENDDO
+  )
+  IF &FlashSize>=8.
+    FLASH.Create 1. 0x01000--0x01fff &PageSize TARGET Long
+  IF &FlashSize>=16.
+    FLASH.Create 1. 0x02000--0x03fff &PageSize TARGET Long
+  IF &FlashSize>=32.
+    FLASH.Create 1. 0x04000--0x07fff &PageSize TARGET Long
+  IF &FlashSize>=64.
+    FLASH.Create 1. 0x08000--0x0ffff &PageSize TARGET Long
+  IF &FlashSize>=128.
+    FLASH.Create 1. 0x10000--0x1ffff &PageSize TARGET Long
+
+
+
+  FLASH.TARGET 0x20000000 &DataStart 0x200 ~~/demo/arm/flash/long/&FlashDriver
+
+  ; Flash script ends here if called with parameter PREPAREONLY
+  IF &param_prepareonly
+    ENDDO PREPAREDONE
+
+  ; Flash programming example
+
+  DIALOG.YESNO "Program flash memory?"
+  LOCAL &progflash
+  ENTRY &progflash
+  IF &progflash 
+  (
+    FLASH.ReProgram.ALL /Erase
+    Data.LOAD.auto *
+    FLASH.ReProgram.off
+
+    ; Reset device
+    SYStem.Down
+    SYStem.Up
+  )
+
+  ENDDO

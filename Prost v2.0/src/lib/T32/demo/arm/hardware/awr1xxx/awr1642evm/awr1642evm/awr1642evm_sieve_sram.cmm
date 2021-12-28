@@ -1,0 +1,134 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo script for AWR1642 on awr1642evm (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   Use this script for getting started.
+;   Prerequisites:
+;    * The board consists of two PCBs. Connect both PCBs with flat cable
+;      having 60 pin connector.
+;    * Use a 5V power supply connected to P6 and power via MicroUSB connector J1.
+;    * Disconnect JTAG lines from on-board XDS110 by removing R30, R69,
+;      R70 and R71.
+;    * Connect Debug Cable to P8 using LA-7748
+; @Keywords: ARM, Cortex-R4
+; @Author: STK
+; @Board: awr1642evm
+; @Chip: AWR1642
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: awr1642evm_sieve_sram.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+LOCAL &rom_break_addr &rom_cont_addr &checksum
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU AWR1642
+SYStem.Option EnReset OFF    ; Disable driving nReset and use soft resets instead
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+SYStem.Up
+
+;---------------------------------------------------------------------------------
+; Execute boot ROM, but skip triggering the BIST by executing a WFI.
+; The BIST causing a reset of the debug registers, which blocks setting
+; breakpoints in the user code before jumping into it.
+; The following sequence tries to skip the BIST call.
+; If the script matches the ROM code is checked by its CRC32 value.
+
+IF Register(PC)!=0x0
+(
+  ; SYStem.Up was not able to stop on the boot ROM reset vector, but this is neccesary
+  ; for the further steps. We don't know the state of the chip, so abort here.
+  PRINT %ERROR "SYStem.Up cannot stop on the reset vector!"
+  ENDDO
+)
+
+; Check CRC over the ROM code for a known version
+Data.SUM 0x00000000++0xFFFF /CRC32
+&checksum=Data.SUM()
+IF (&checksum==0x4BF554EB)
+(
+  ; ROM code V1
+  &rom_break_addr=0x00000E0E    ; Address, where to break inthe ROM code
+  &rom_cont_addr=0x00000F2A     ; Address, where to continue in the ROM code
+)
+ELSE IF (&checksum==0x81A890D1)
+(
+  ; ROM code V2
+  &rom_break_addr=0x00003352    ; Address, where to break inthe ROM code
+  &rom_cont_addr=0x00003354     ; Address, where to continue in the ROM code
+)
+ELSE
+(
+  ; ROM check sum code does not match,
+  ; maybe due to a different ROM code version or derivative.
+  PRINT %ERROR "ROM code content does not match!"
+  ENDDO
+)
+
+; Execute boot code, but skip enabling the BIST
+Go.direct T:&rom_break_addr
+PRINT "Run boot ROM code..."
+WAIT !STATE.RUN() 1s
+IF STATE.RUN()
+(
+  ; Core does not stop on expected location.
+  PRINT %ERROR "Core does not stop!"
+  ENDDO
+)
+IF Register(PC)!=&rom_break_addr
+(
+  ; Core stopped somewhere else than on expected location.
+  PRINT %ERROR "Core does not stop on expected location!"
+  ENDDO
+)
+
+; Skip BIST and run to user code entry
+Register.Set PC &rom_cont_addr
+TrOnchip.Set RESET ON
+Go.direct
+
+WAIT !STATE.RUN() 1s
+IF STATE.RUN()
+(
+  ; Core does not enter user code.
+  PRINT %ERROR "Core does not enter user code!"
+  ENDDO
+)
+IF Register(PC)!=0x0
+(
+  ; Core stopped somewhere else than on expected location.
+  PRINT %ERROR "Core does not stop user code reset vector!"
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_arm_v7r_le.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+ENDDO

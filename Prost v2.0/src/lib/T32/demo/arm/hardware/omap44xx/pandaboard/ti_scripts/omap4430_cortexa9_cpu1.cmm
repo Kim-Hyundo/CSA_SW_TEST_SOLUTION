@@ -1,0 +1,39 @@
+; --------------------------------------------------------------------------------
+; @Title: Start-Up Script for PandaBoard (OMAP4430APP2, CortexA9_CPU1)
+; @Description: 
+;   This start up script is will connect to the CortexA9 CPU1. 
+;   This CPU should be released before running this script
+;   Use omap4430_cortexa9_cpu0.cmm cmm menu to release it.
+;   Other scripts are available in the TRACE32 window (CMM menu) 
+;   and executing by clicking on them (see omap4430_lauterbach_startup_guide.doc)
+; @Keywords: OMAP4430 PandaBoard
+; @Author: TI
+; @Board: PandaBoard
+; @Chip: OMAP4430
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: omap4430_cortexa9_cpu1.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+SYStem.RESet
+SYStem.CPU OMAP4430APP2
+;SYStem.CPU OMAP4430
+SYStem.JtagClock 10MHz
+;SYStem.JtagClock rtck
+SYStem.CONFIG CTIBASE 0xd4149000
+  
+SYStem.Mode Attach
+IF STATE.RUN()
+  Break.direct
+  
+AREA.Create results
+AREA.CLEAR results
+AREA.view results
+
+GLOBAL &CMM_DIR
+&CMM_DIR="~~~~"
+  
+DO &CMM_DIR/omap4430_cortexa9_emulation_tests
+  
+PRINT " CortexA9 CPU1 connected ..."
+
+ENDDO

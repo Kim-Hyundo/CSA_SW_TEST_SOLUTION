@@ -1,0 +1,79 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for CYCLONEVSOC on SoCrates with Onchip-Trace (RAM, ETF)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Onchip-Trace (ETF).
+;   Prerequisites:
+;   * Please set bootmode to SD-Card and REMOVE SD-Card
+;     => Device will stop in BOOT ROM
+;     on SoCrates P18[6..8]=0y101
+;   * Connect Debugcable or Combiprobe to P19 header
+;     using LA-3863 (ARM->NIOS halfsize converter)
+; @Keywords: ARM, Cortex-A9, ETF, ETM
+; @Author: AME
+; @Board: SoCrates
+; @Chip: CYCLONEVSOC
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: socrates_sieve_onchip_etf_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU CYCLONEVSOC
+; settings for HPS-FPGA scanchain - hardwired on SoCrates
+SYStem.CONFIG DAPIRPOST  0.
+SYStem.CONFIG DAPIRPRE  10.
+SYStem.CONFIG DAPDRPOST  0.
+SYStem.CONFIG DAPDRPRE   1.
+SYStem.JtagClock CTCK 10MHz
+CORE.ASSIGN 1.
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; Write to the clock manage to prevent the system from gating the debug clocks during a warm reset
+Data.Set AHB:0xFFD04010 %Long 0x1
+; Watchdog is activated by BOOTROM
+; the only way is to use the RESET MANAGER
+; disable Watchdog - Toggle RESET in PERMODRST
+Data.Set A:0xFFD05014 %Long Data.Long(A:0xFFD05014)|0x40
+Data.Set A:0xFFD05014 %Long Data.Long(A:0xFFD05014)&(~0x40)
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_arm_v7.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; initialize ONCHIP trace (ETF)
+Trace.METHOD ONCHIP
+Trace.TraceCONNECT ETF
+ETM.Trace ON
+ETM.ON
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

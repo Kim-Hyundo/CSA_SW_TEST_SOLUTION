@@ -1,0 +1,24 @@
+; --------------------------------------------------------------------------------
+; @Title: Flash demo script for TC2D7TE on TriBoard-TC2x7 (any app)
+; @Description:
+;   Allows you to flash your application into memory. Please make sure to
+;   understand the comments in the script!
+; @Keywords: AURIX, Infineon, TriCore
+; @Author: MOB
+; @Board: TriBoard-TC2x7
+; @Chip: TC2D7TE
+; @Copyright: (C) 1989-2020 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc2d7te_flash.cmm 15579 2020-01-27 15:08:53Z sltaief $
+
+
+; Redirect to example script for flash declaration and programming of Infineon
+; TriCore TC2D7TE internal flash.
+
+; configure/program internal flash
+DO ~~/demo/tricore/flash/tc2dx.cmm CPU=TC2D7TE
+
+; After flashing the symbols can be loaded with:
+; Data.LOAD.Elf *.elf /NoCODE
+
+ENDDO

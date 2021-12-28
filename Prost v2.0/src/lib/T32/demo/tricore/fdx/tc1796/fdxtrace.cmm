@@ -1,0 +1,102 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for FDX Trace on TC1796
+; @Description:
+;   Example for integration of FDX (fast data exchange) into application.
+; @Keywords: data, exchange, fast, fdx, Infineon, TriCore
+; @Author: MAX
+; @Chip: TC1796
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: fdxtrace.cmm 8321 2015-04-13 14:16:19Z mobermeir $
+
+
+; --------------------------------------------------------------------------------
+; Memory mappings:
+; flash is not declared - see flash.cmm
+; external SRAM                    mapped to 0xA1000000--0xA1FFFFFF
+; external Flash                   mapped to 0xA2000000--0xA1FFFFFF
+; processor internal program flash mapped to 0xA0000000--0xA01FFFFF
+; processor internal data flash    mapped to 0xAFE00000--0xAFE1FFFF
+;
+; To use the TriBoard with a debugger the OCDS interface needs to be enabled.
+; This is done by the example program inside the external FLASH (set
+; OEC=0x10000).
+; Use the Boot-Option selected by following:
+; Dip Switch S301: SW1=ON, SW2=ON, SW3=OFF, SW4=ON
+; (Test condition was: SW5=ON, SW6=ON, SW7=OFF, SW8=OFF)
+;
+; If the external FLASH is erased or modified the OCDS interface is NOT
+; enabled by default (A11 step only). In this case use the following Dip
+; Switch setting to get connected:
+; Dip Switch S301: SW1=ON, SW2=ON, SW3=OFF, SW4=OFF
+; (Test condition was: SW5=ON, SW6=ON, SW7=OFF, SW8=OFF)
+; Now OCDS is enabled by default to get the debugger connected.
+;
+; Please note that A11 step can not be halted immediately after reset.
+;
+; A-steps: Since the watchdog is not suspended in debug mode, do not use a
+; low JTAG clock frequency in case the watchdog is not already disabled by
+; the target program. Otherwise the debugger is possibly to slow to disable
+; the watchdog in time. Minimum JTAG clock depends on the core clock. Default
+; JTAG clock should be fine.
+;
+; Requirements to use OCDS-1:
+; Set jumper JP501 to 2-3 (= disable on-board wiggler)
+;
+; If onchip flash is not functional: DIP Switch S401 SW5=ON
+;
+; performed tests
+; TriBoard TC1796.101 TC1796 EES-AB 2005-03-04 MAZ
+; TriBoard TC1796.101 TC1796 EES-BA 2005-03-04 MAZ
+; TriBoard TC1796.300 TC1796 EES-BC 2005-03-04 MAZ
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+
+RESet
+SYStem.JtagClock 10.0MHz
+SYStem.CPU TC1796
+SYStem.Option WDTFIX ON   ; only required for A-Step Devices
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; Memory initialzation
+; initialize external bus unit
+Data.Set 0xF8000010 %Long 0x00F9FF68  ; EBU_CON
+Data.Set 0xF8000020 %Long 0x001001D0  ; EBU_BFCON
+
+; memory assignment
+; AMD AM29BL162CB flash
+Data.Set 0xF8000080 %Long 0xA2000051  ; EBU_ADDR_SEL0
+Data.Set 0xF80000C0 %Long 0x00820000  ; EBU_BUSCON0
+Data.Set 0xF8000100 %Long 0x23FF0100  ; EBU_BUSAP0
+; ALLIANCE SRAM
+Data.Set 0xF8000088 %Long 0xA1000071  ; EBU_ADDR_SEL1
+Data.Set 0xF80000C8 %Long 0x00820000  ; EBU_BUSCON1
+Data.Set 0xF8000108 %Long 0x00D80000  ; EBU_BUSAP1
+
+; --------------------------------------------------------------------------------
+Data.LOAD.Elf "~~~~/fdxtrace.elf" /Verify
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; Set to Core to 150Mhz and JTAG to 40Mhz
+PER.Set.simple D:0xF0000040 %Long 0x003B2381
+SYStem.JtagClock 40.0MHz
+
+; --------------------------------------------------------------------------------
+; Configure FDX
+FDX.Mode compress OFF
+FDX.SIZE 100000.
+FDX.TraceChannel FdxTraceSendBuffer
+FDX.OFF
+
+; select FDX as default trace method
+Trace.METHOD fdx
+
+; show windows
+List.auto
+FDX.state
+
+ENDDO

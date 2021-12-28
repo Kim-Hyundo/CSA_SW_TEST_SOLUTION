@@ -1,0 +1,38 @@
+; --------------------------------------------------------------------------------
+; @Title: Setup up a connection (SYStem.Up) to the NETX500
+; @Description: This script setup up a connection to the NETX500
+; @Keywords: Hilscher, NetX*
+; @Board: 
+;   NETX FPGA Board, NXHX500, NXHMI-BB, NXHMI-RE, NXDB500-SYS, NXEB500-HMI, NXSB100, NETPAC, Honeywell (Tower)
+; @Chip: NETX500
+; @Author: Hilscher
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: netx_common_init.cmm 15237 2019-11-08 08:25:07Z bschroefel $
+
+
+;setup ROM to let the software decide about how to set breakpoints
+MAP.BOnchip 0x0++3
+MAP.BOnchip 0x200000--0x300000
+
+SYStem.Down
+SYStem.JtagClock 10MHz
+SYStem.CPU NETX500
+SYStem.MemAccess Denied
+SYStem.Option EnReset ON
+SYStem.Option ResBreak OFF
+SYStem.Option WAITRESET ON
+SYStem.Up
+
+ETM.RESet
+                         
+;set MiscAsicCtrl to 1
+Data.Set ASD:0x00100070 %Long Data.Long(ASD:0x00100070)
+Data.Set ASD:0x0010002c %Long 1
+
+Register.Set PC 0
+PER.Set.simple C15:0x3 %Long 0
+PER.Set.simple C15:0x2 %Long 0
+PER.Set.simple C15:0x1 %Long 0x00050078
+
+ENDDO

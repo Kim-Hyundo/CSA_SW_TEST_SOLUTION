@@ -1,0 +1,204 @@
+; --------------------------------------------------------------------------------
+; @Title: TriCore 1775 GPTU model demo
+; @Description:
+;   GPTU can form 8-bit, 16-bit, 24-bit, 32-bit timers using T0 or T1.
+;   40-bit, 48-bit, 56-bit, 64-bit timers can be created by T0 and T1
+;   concatenation.
+;
+;   Implementation limits:
+;   - T0AINS can only use fGPTU as input. Other timer blocks can't use CNT0 and
+;     CNT1 as input
+;   - setting T0INC will have no effect - T0A can't carry from T0D and T1D
+;   - setting T1INC will have no effect. T1A will always carry from T0D
+;   - setting T1DREL to '1' will have no effect
+;   - currently T2 is not implemented
+;
+; @Keywords: gptu, Infineon, simulator, TriCore
+; @Author: MOB
+; @Chip: TC1775
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo.cmm 7821 2014-10-29 11:06:58Z kjmal $
+
+
+; Usage:
+; Simply uncomment [line:38] desired configuration to test the module.
+
+SYStem.Down
+
+SIM.UNLOAD ; unload all modules
+
+SYStem.CPU TC1775
+
+SIM.LOAD gptu_tc1775.dll "gptu" ; load gptu module for tc1775
+
+SYStem.Up
+
+; --- core registers -----
+Register.Set PC 0xA0000000
+Register.Set BIV 0xA0000100 ; Interrupt Vector Table Pointer
+Register.Set FCX 0x000D0048 ; Free Context List Pointer
+Register.Set LCX 0x000D000D ; Context List Limit Pointer
+
+Register.Set PSW 0xB80
+Register.Set ISP 0xD0001E10
+Register.Set BTV 0xA0000200
+
+Register.Set ICR 0x00000100 ; global int enable
+
+; ------ main loop -------
+Data.Assemble 0xA0000000 nop16
+;d.a 0xA0000004 BISR #2
+Data.Assemble 0xA000001e JA 0xA0000000 ;abs jump
+
+; ------- set up timer -------
+;goto gptu_8bit_mode ; T0A 8-bit mode with 1 interrupt
+;goto gptu_32bit_mode ; T0 32-bit mode with 1 interrupt
+;goto gptu_64bit_mode ; T0/T1 64-bit mode with 1 interrupt
+GOTO gptu_multi_mode ; T0 1x8-bit, 1x24-bit; T1 1x32-bit. All with corresponding interrupt
+
+; ----- load windows -------------------------------------------------------------
+exit:
+B::
+
+FramePOS 3.125,1.7857,,,Maximized
+WinPAGE.RESet
+
+WinCLEAR
+WinPOS 0.375 0.21429 134. 55. 0. 0. W000
+PER.view pertc1775.per
+WinPAN 0. 34.
+
+WinPOS 189.38 30.143 45. 23. 13. 1. W003
+WinTABS 10. 10. 25. 62.
+List.auto 0
+
+WinPOS 139.0 0.28571 95. 24. 13. 1. W001
+WinTABS 10. 10. 25. 62.
+List.auto
+
+WinPOS 140.0 30.571 44. 24. 0. 0. W002
+Register.view
+
+WinPAGE.select P000
+
+ENDDO
+
+; ---- T0A 8-bit mode with 1 interrupt -----
+gptu_8bit_mode:
+(
+  ; --------- SR0 (T0A overflow) ---------
+  Data.Assemble 0xA0000120 nop
+  Data.Assemble 0xA0000130 rfe ;return from exception
+
+  Data.Assemble 0xA0000140 nop
+  Data.Assemble 0xA0000150 rfe ;return from exception
+
+  ; --------- timer setup ---------
+  Data.Set D:0xF0000700 %Long 0x00000100 ;[CLC] 8-bit clock divider = 1 (fCLK == fGPTU)
+
+  Data.Set D:0xF0000710 %Long 0x00000000 ;[T01IRS] default: source = fgptu, reload on overflow
+  Data.Set D:0xF0000734 %Long 0x000000a0 ;[T0DCBA] set timer T0 counter value to 0xA0 (interrupt every 96 timer clocks)
+  Data.Set D:0xF000073C %Long 0x000000a0 ;[T0RDCBA] set timer T0 reload register to 0xA0
+  Data.Set D:0xF0000760 %Long 0x00000001 ;[T012RUN] run T0A
+
+  ; ---- interrupt settings -----
+  Data.Set D:0xF00007DC %Long 0xc0000000 ;[SRSEL] SR0 interrupt source = SR00
+  Data.Set D:0xF0000714 %Long 0x00000000 ;[T01OTS] SR00 = T0A (interrupt on T0a overflow)
+  Data.Set D:0xF00007FC %Long 0x00001001 ;[SRC0] enable SR0, priority=1
+
+  GOTO exit
+)
+
+; ---- T0 32-bit mode with 1 interrupt -----
+gptu_32bit_mode:
+(
+  ; --------- SR0 (T0D overflow) ---------
+  Data.Assemble 0xA0000120 nop
+  Data.Assemble 0xA0000124 add d1, d1, 1 ;for testing purpose
+  Data.Assemble 0xA0000130 rfe ;return from exception
+
+  ; --------- timer setup ---------
+  Data.Set D:0xF0000700 %Long 0x00000100 ;[CLC]  8-bit clock divider = 1 (fCLK == fGPTU)
+
+  Data.Set D:0xF0000710 %Long 0x000700FC ;[T01IRS] all T0 timer blocks are concatenated together to form 32-bit wide timer (interrupt every 2^32 timer clocks)
+  Data.Set D:0xF0000734 %Long 0x00000000 ;[T0DCBA] set timer T0 counter values
+  Data.Set D:0xF000073C %Long 0x00000000 ;[T0RDCBA] set timer T0 reload register
+  Data.Set D:0xF0000760 %Long 0x0000000f ;[T012RUN] run all T0 timer blocks
+
+  ; ---- interrupt settings -----
+  Data.Set D:0xF00007DC %Long 0xc0000000 ;[SRSEL] SR0 interrupt source = SR00
+  Data.Set D:0xF0000714 %Long 0x00000300 ;[T01OTS] SR00 = T0D (interrupt on T0D overflow, which is the most significant part of T0)
+  Data.Set D:0xF00007FC %Long 0x00001001 ;[SRC0] enable SR0, priority=1
+
+  GOTO exit
+)
+
+; ---- T0 64-bit mode with 1 interrupt -----
+gptu_64bit_mode:
+(
+  ; --------- SR0 (T1D overflow) ---------
+  Data.Assemble 0xA0000120 nop
+  Data.Assemble 0xA0000124 add d1, d1, 1 ;for testing purpose
+  Data.Assemble 0xA0000130 rfe ;return from exception
+
+  ; --------- timer setup ---------
+  Data.Set D:0xF0000700 %Long 0x00000100 ;[CLC]  8-bit clock divider = 1 (fCLK == fGPTU)
+
+  Data.Set D:0xF0000710 %Long 0x007FFFFC ;[T01IRS] all T0 and T1 timer blocks are concatenated together to form 64-bit wide timer (interrupt every 2^64 timer clocks)
+  Data.Set D:0xF0000734 %Long 0x00000000 ;[T0DCBA] set timer T0 counter values
+  Data.Set D:0xF000073C %Long 0x00000000 ;[T0RDCBA] set timer T0 reload register
+  Data.Set D:0xF0000744 %Long 0x00000000 ;[T1DCBA] set timer T1 counter values
+  Data.Set D:0xF000074C %Long 0x00000000 ;[T1RDCBA] set timer T1 reload register
+  Data.Set D:0xF0000760 %Long 0x00000000 ;[T012RUN] run all T0 and t1 timer blocks
+
+  ; ---- interrupt settings -----
+  Data.Set D:0xF00007DC %Long 0xe0000000 ;[SRSEL] SR0 interrupt source = SR10
+  Data.Set D:0xF0000714 %Long 0x03000000 ;[T01OTS] SR10 = T1D (interrupt on T1D overflow, which is the most significant part of T0/1)
+  Data.Set D:0xF00007FC %Long 0x00001001 ;[SRC0]  enable SR0, priority=1
+
+  GOTO exit
+)
+
+; ---- T0 1x8-bit, 1x24-bit; T1 1x32-bit. All with corresponding interrupt -----
+; T0A, T0B, T0C form 24-bit timer
+; T0D is a 8-bit timer
+; T1A, T1B, T1C, T1D form 32-bit timer
+
+gptu_multi_mode:
+(
+  ; --------- SR0 (T0C overflow) ---------
+  Data.Assemble 0xA0000120 ENABLE ;allow nested interrupts
+  Data.Assemble 0xA0000124 add d1, d1, 1 ;for testing purpose
+  Data.Assemble 0xA0000130 rfe ;return from exception
+
+  ; --------- SR1 (T0D overflow) ---------
+  Data.Assemble 0xA0000140 ENABLE ;allow nested interrupts
+  Data.Assemble 0xA0000144 add d2, d2, 1 ;for testing purpose
+  Data.Assemble 0xA0000150 rfe ;return from exception
+
+  ; --------- SR2 (T1D overflow) ---------
+  Data.Assemble 0xA0000160 ENABLE ;allow nested interrupts
+  Data.Assemble 0xA0000164 add d3, d3, 1 ;for testing purpose
+  Data.Assemble 0xA0000170 rfe ;return from exception
+
+  ; --------- timer setup ---------
+  Data.Set D:0xF0000700 %Long 0x00000100 ;[CLC]  8-bit clock divider = 1
+
+  Data.Set D:0xF0000710 %Long 0x0073FC3C ;[T01IRS] setup timer blocks
+  Data.Set D:0xF0000734 %Long 0x00000000 ;[T0DCBA] set timer T0 counter value
+  Data.Set D:0xF000073C %Long 0x00000000 ;[T0RDCBA] set timer T0 reload register
+  Data.Set D:0xF0000744 %Long 0x00000000 ;[T1DCBA] set timer T1 counter values
+  Data.Set D:0xF000074C %Long 0x00000000 ;[T1RDCBA] set timer T1 reload register
+  Data.Set D:0xF0000760 %Long 0x000000ff ;[T012RUN] run all timer blocks
+
+  ; ---- interrupt settings -----
+  Data.Set D:0xF00007DC %Long 0xCDE00000 ;[SRSEL] SR0 = SR00, SR1 = SR01, SR2 = SR10
+  Data.Set D:0xF0000714 %Long 0x03000E00 ;[T01OTS] SR00 = T0C, SR01 = T0D, SR10 = T1D
+
+  Data.Set D:0xF00007F4 %Long 0x00001003 ;[SRC2]  enable SR2, priority=3
+  Data.Set D:0xF00007F8 %Long 0x00001002 ;[SRC1]  enable SR1, priority=2
+  Data.Set D:0xF00007FC %Long 0x00001001 ;[SRC0]  enable SR0, priority=1
+
+  GOTO exit
+)

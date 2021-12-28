@@ -1,0 +1,50 @@
+; --------------------------------------------------------------------------------
+; @Title: SYS/BIOS Demo for TRACE32 OS Awareness
+; @Description: 
+;   This batchfile loads all necessary files to demonstrate
+;   the OS Awareness for SYS/BIOS.
+; @Keywords: awareness
+; @Author: DIE
+; @Chip: Cortex-M3
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: sysbios.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+ AREA.RESet
+ WinPAGE.RESet
+ WinPOS 0 24. 70. 8. 0. 0. W000
+ AREA.view
+
+; Debugger reset
+ PRINT "resetting..."
+ RESet
+   
+; Debugger initializations
+ PRINT "initializing..."      ; send to message line
+ SYStem.CPU CortexM3
+ SYStem.Up
+ 
+ ; print "loading application..."
+ Data.LOAD.Elf CortexM3_sysbios_mutex.out
+ 
+; initialize RTOS support
+ PRINT "initializing SYS/BIOS support..."
+ TASK.CONFIG ~~/demo/arm/kernel/sysbios/sysbios.t32     ; load SYS/BIOS awareness
+ MENU.ReProgram ~~/demo/arm/kernel/sysbios/sysbios.men  ; load SYS/BIOS menu
+ HELP.FILTER.Add rtossysbios
+ TASK.STacK.PATtern 0xbe        ; stack fill pattern
+ 
+ PRINT "load complete."      ; send to Message Line
+
+; open some windows
+ WinPOS 0. 0. 70. 21.
+ List.auto
+ WinPOS 40. 10. 80. 6.
+ TASK.TASK
+
+; init SYS/BIOS
+ Go task2
+
+ ENDDO
+ 

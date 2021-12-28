@@ -1,0 +1,425 @@
+; --------------------------------------------------------------------------------
+; @Title: OS21 specific menu
+; @Description: -
+; @Author: DIE
+; @Copyright: (c) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: os21.men 10497 2017-02-24 07:49:44Z rdienstbeck $
+
+add
+menu
+(
+  popup "&OS21"
+  (
+    default
+    menuitem "Display &Tasks"       "TASK.Task"
+    menuitem "Display &Semaphores"
+    (
+        if y.exist("_semList")
+            TASK.SEMaphore
+        else
+        (
+            dialog
+            (
+                header "Display Semaphore"
+                pos 0x1 0x1 20.
+addr:           defedit "" ""
+                pos 24. 1. 7.
+                defbutton "Ok"
+                (
+                    local &addr
+                    &addr=dialog.string(addr)
+                    TASK.SEMaphore v.value(&addr)
+                    dialog.end
+                )
+                pos 0. 0. 33. 3.
+                box "Semaphore"
+            )
+        )
+    )
+    menuitem "Display &Mutexes"
+    (
+        if y.exist("_mtxList")
+            TASK.MuTeX
+        else
+        (
+            dialog
+            (
+                header "Display Mutex"
+                pos 0x1 0x1 20.
+addr:           defedit "" ""
+                pos 24. 1. 7.
+                defbutton "Ok"
+                (
+                    local &addr
+                    &addr=dialog.string(addr)
+                    TASK.MuTeX v.value(&addr)
+                    dialog.end
+                )
+                pos 0. 0. 33. 3.
+                box "Mutex"
+            )
+        )
+    )
+    menuitem "Display &Event Groups"
+    (
+        if y.exist("_evtList")
+            TASK.EVenT
+        else
+        (
+            dialog
+            (
+                header "Display Event Group"
+                pos 0x1 0x1 20.
+addr:           defedit "" ""
+                pos 24. 1. 7.
+                defbutton "Ok"
+                (
+                    local &addr
+                    &addr=dialog.string(addr)
+                    TASK.EVenT v.value(&addr)
+                    dialog.end
+                )
+                pos 0. 0. 33. 3.
+                box "Event Group"
+            )
+        )
+    )
+    menuitem "Display &Message Queue"
+    (
+        dialog
+        (
+            header "Display Message Queue"
+            pos 0x1 0x1 20.
+addr:       defedit "" ""
+            pos 24. 1. 7.
+            defbutton "Ok"
+            (
+                local &addr
+                &addr=dialog.string(addr)
+                TASK.MeSsage v.value(&addr)
+                dialog.end
+            )
+            pos 0. 0. 33. 3.
+            box "Message Queue"
+        )
+    )
+    menuitem "Display &Partition"
+    (
+        dialog
+        (
+            header "Display Partition"
+            pos 0x1 0x1 20.
+addr:       defedit "" ""
+            pos 24. 1. 7.
+            defbutton "Ok"
+            (
+                local &addr
+                &addr=dialog.string(addr)
+                TASK.PARTition v.value(&addr)
+                dialog.end
+            )
+            pos 0. 0. 33. 3.
+            box "Partition"
+        )
+    )
+    separator
+    popup "&Stack Coverage"
+    (
+      menuitem "&List Stacks"    "TASK.STacK.view"
+      menuitem "Add Task"        "TASK.STacK.ADD"
+      menuitem "Remove Task"     "TASK.STacK.RM"
+      enable ice()||fire()
+      menuitem "&Reset Coverage" "TASK.STacK.RESet"
+    )
+  )
+  popup "Trace"
+  (
+    popup "[:alist]List"
+    (
+      separator
+      menuitem "&Task Switches"     "Trace.List List.TASK"
+      menuitem "&Default and Tasks" "Trace.List List.TASK DEFault"
+    )
+  )
+  popup "Perf"
+  (
+    separator
+    popup "&Task Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+        )
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak&&Write
+          )
+          Break.Delete /Alpha
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+        )
+        if a.mode.flow()
+        (
+          Break.Delete /TraceEnable
+          Break.Set task.config(magic) /TraceEnable
+        )
+      )
+      menuitem "[:perf]Show &Numerical"   "Trace.STATistic.TASK"
+      menuitem "[:achart]Show as &Timing" "Trace.CHART.TASK"
+      menuitem "[:achart]Tracking with Trace &List"
+      (
+        Trace.List List.TASK DEFault /Track
+        Trace.CHART.TASK /Track
+      )
+    )
+    popup "Task &Function Runtime"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+          Analyzer.STATistic.PreFetch on
+        )
+
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          if a.config.hac()
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak
+               Sample.Enable if BetaBreak
+               Mark.A        if AlphaBreak
+               Mark.B        if BetaBreak
+             )
+          )
+          else
+          (
+             Analyzer.ReProgram
+             (
+               Sample.Enable if AlphaBreak||BetaBreak
+               Mark.A if AlphaBreak
+               Mark.B if BetaBreak
+             )
+          )
+          Break.Delete /Alpha /Beta /Charly
+          Break.SetFunc
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+        )
+        if a.mode.flow()
+        (
+          Break.Delete /TraceData
+          Break.Set task.config(magic) /TraceData
+        )
+      )
+      menuitem "[:perf]Show &Numerical"     "Trace.STATistic.TASKFUNC"
+      menuitem "[:perf]Show as &Tree"       "Trace.STATistic.TASKTREE"
+      menuitem "[:perf]Show &Detailed Tree" "Trace.STATistic.TASKTREE ALL"
+      menuitem "[:achart]Show as &Timing"   "Trace.CHART.TASKFUNC"
+      menuitem "[:alist]Show N&esting"      "Trace.List List.TASK FUNC TI.FUNC"
+    )
+    popup "Task &Status"
+    (
+      menuitem "&Prepare"
+      (
+        if t.method.analyzer()
+        (
+          Analyzer.AutoInit on
+        )
+        if (ice()||fire())&&!a.mode.flow()
+        (
+          Analyzer.ReProgram
+          (
+            Sample.Enable if AlphaBreak&&Write
+          )
+          Break.Delete /Alpha
+          Break.Set task.config(magic)++(task.config(magicsize)-1) /Alpha
+          TASK.TASKState
+        )
+      )
+      menuitem "[:perf]Show &Numerical"   "Trace.STATistic.TASKSTATE"
+      menuitem "[:achart]Show as &Timing" "Trace.CHART.TASKSTATE"
+      menuitem "[:achart]Tracking with Trace &List"
+      (
+        Trace.List List.TASK DEFault /Track
+        Trace.CHART.TASKSTATE /Track
+      )
+    )
+  )
+  popup "&Help"
+  (
+    menuitem "OS21 Awareness Manual" "HELP __RTOS_OS21_"
+  )
+)
+
+
+menu "task.t"
+(
+  default
+  menuitem "Display detailed"
+  (
+    &address=address.offset(track.address())
+    TASK.Task &address
+  )
+  menuitem "Display task struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %m %in %s (task_t*)&address
+  )
+  separator
+  menuitem "Display Stack Frame"
+  (
+    &address=address.offset(track.address())
+    Var.Frame /Locals /Caller /Task &address
+  )
+  menuitem "Display Registers"
+  (
+    &address=address.offset(track.address())
+    Register /Task &address
+  )
+  menuitem "Switch Context"       "Register.TASK address.offset(track.address())"
+  separator
+  menuitem "Add to Stack Cov"  "TASK.STK.ADD address.offset(track.address())"
+  menuitem "Rm from Stack Cov" "TASK.STK.RM  address.offset(track.address())"
+  separator
+  menuitem "Dump task struct"  
+  (
+    &address=address.offset(track.address())
+    Data.dump &address
+  )
+)
+
+
+menu "task.sem"
+(
+  menuitem "Display Detailed"  
+  (
+    &addr=address.offset(track.address())
+    TASK.SEMaphore &addr
+  )
+  menuitem "Display Semaphore Struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %m %in (semaphore_t*)&address
+  )
+  menuitem "Dump Semaphore Struct"  
+  (
+    &addr=address.offset(track.address())
+    Data.dump &addr
+  )
+)
+
+menu "task.mtx"
+(
+  menuitem "Display Detailed"  
+  (
+    &addr=address.offset(track.address())
+    TASK.MuTeX &addr
+  )
+  menuitem "Display Mutex Struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %m %in (mutex_t*)&address
+  )
+  menuitem "Dump Mutex Struct"  
+  (
+    &addr=address.offset(track.address())
+    Data.dump &addr
+  )
+)
+
+menu "task.evt"
+(
+  menuitem "Display Detailed"  
+  (
+    &addr=address.offset(track.address())
+    TASK.EVenT &addr
+  )
+  menuitem "Display Event Group Struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %m %in (event_group_t*)&address
+  )
+  menuitem "Dump Event Group Struct"  
+  (
+    &addr=address.offset(track.address())
+    Data.dump &addr
+  )
+)
+
+menu "task.msg"
+(
+  menuitem "Display Detailed"  
+  (
+    &addr=address.offset(track.address())
+    TASK.MeSsaGe &addr
+  )
+  menuitem "Display Message Queue Struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %m %in (message_queue_t*)&address
+  )
+  menuitem "Dump Message Queue Struct"  
+  (
+    &addr=address.offset(track.address())
+    Data.dump &addr
+  )
+)
+
+menu "task.part"
+(
+  menuitem "Display Detailed"  
+  (
+    &addr=address.offset(track.address())
+    TASK.PARTition &addr
+  )
+  menuitem "Display Partition Struct"
+  (
+    &address=address.offset(track.address())
+    Var.View %m %in (partition_t*)&address
+  )
+  menuitem "Dump Partition Struct"  
+  (
+    &addr=address.offset(track.address())
+    Data.dump &addr
+  )
+)
+
+add
+menu "Var"
+(
+    separator
+    popup "OS21 Object"
+    (
+        menuitem "Semaphore"
+        (
+            &address=selection.string()
+            TASK.SEMaphore v.value(&address)
+        )
+        menuitem "Mutex"
+        (
+            &address=selection.string()
+            TASK.MuTeX v.value(&address)
+        )
+        menuitem "Event Group"
+        (
+            &address=selection.string()
+            TASK.EVenT v.value(&address)
+        )
+        menuitem "Message Queue"
+        (
+            &address=selection.string()
+            TASK.MeSsaGe v.value(&address)
+        )
+        menuitem "Partition"
+        (
+            &address=selection.string()
+            TASK.PARTition v.value(&address)
+        )
+    )
+)

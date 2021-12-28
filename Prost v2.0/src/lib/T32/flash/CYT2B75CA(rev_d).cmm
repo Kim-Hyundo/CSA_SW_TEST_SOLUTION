@@ -1,0 +1,272 @@
+; -------------------------------------------------------------------------------
+; @Title: Target settings & Flash Download CMM
+; Script arguments:
+;
+; 
+;
+; --------------------------------------------------------------------------------
+ENTRY &elfPath &Core &preLoadElfPath &postLoadElfPath
+LOCAL &elfFilePath 
+
+&elfFilePath=&elfPath
+&preLoadElfPath_flag=(STRing.SCAN(STRing.UPpeR("&preLoadElfPath"),".ELF",0)!=-1)
+&postLoadElfPath_flag=(STRing.SCAN(STRing.UPpeR("&postLoadElfPath"),".ELF",0)!=-1)
+
+// LOCAL &parameters &param_prepareonly &param_cpu &param_dualport &param_firmwareram
+// ENTRY %LINE &parameters
+// &param_prepareonly=(STRing.SCAN(STRing.UPpeR("&parameters"),"PREPAREONLY",0)!=-1)
+// &param_cpu=STRing.SCANAndExtract(STRing.UPpeR("&parameters"),"CPU=","")
+// &param_dualport=STRing.SCANAndExtract("&parameters","DUALPORT=","1")
+// &param_firmwareram=(STRing.SCAN(STRing.UPpeR("&parameters"),"FIRMWARERAM",0)!=-1)
+
+
+
+
+
+; ------------------------------------------------------------------------------
+; Initialize and start the debugger
+
+IF SYStem.MODE()<5.
+(
+  SYStem.RESet
+
+  SYStem.CPU CYT2B75CA-CM0+
+
+  ;IF CABLE.TWOWIRE()
+  ;  SYStem.CONFIG DEBUGPORTTYPE SWD
+  ;ELSE
+    SYStem.CONFIG DEBUGPORTTYPE JTAG
+
+  SYStem.JtagClock 10MHz
+
+  (
+    ; assert reset line and do another debugger based reset
+    ; -> M0+ should stop in BootROM/Supervisory Flash
+    SYStem.Option EnReset ON
+    SYStem.Option WaitIDCODE ON
+    SYStem.Option CoreSightRESet ON
+  )
+
+  SYStem.Up
+
+)
+
+IF Simulator()
+(
+	Data.Load.ELF "&elfFilePath"
+	
+	PRINT "SIMULATOR FLASHDOWNLOAD COMPLETE"
+	ENDDO
+)
+else
+(
+	GOSUB WatchdogDisable
+	
+
+	; ------------------------------------------------------------------------------
+	; Flash declaration
+	FLASH.RESet
+	GOSUB FlashDeclaration
+	// ;Flash script ends here if called with parameter PREPAREONLY
+	// IF &param_prepareonly
+	// ENDDO PREPAREDONE
+
+	; ------------------------------------------------------------------------------
+	; Example for download
+
+
+
+	; Enable flash programming
+	FLASH.ReProgram.ALL
+
+	if &preLoadElfPath_flag
+	(
+		Data.LOAD.auto "&preLoadElfPath" /nosymbol
+	)
+	//Data.LOAD.auto "C:\Users\GiCheol.Shin\Desktop\test\test\Target_SW\Debug/cm0plus.elf"  ;m0
+	Data.LOAD.auto "&elfFilePath"	;m4 
+	
+	if &postLoadElfPath_flag
+	(
+		Data.LOAD.auto "&postLoadElfPath" /nosymbol /noclear
+	)
+	FLASH.ReProgram OFF
+	
+	
+)
+
+wait 1.s
+SYStem.Down
+SYStem.CPU CYT2B75CA-CM4
+wait 1.s
+SYStem.mode.go
+
+	PRINT "TEST SCRIPT"
+
+	PRINT "POWERVIEW FLASHDOWNLOAD COMPLETE"
+
+ENDDO
+
+; ------------------------------------------------------------------------------
+; Subroutines
+
+WatchdogDisable: ;()
+(
+
+)
+
+; --------------------------------------------------------------------------------
+; Flash declaration depending on selected CPU
+;
+;   Please do NOT modify the TRACE32 flash declaration.
+;
+;   Modifications can result in unpredictable behavior.
+;   Please contact support@lauterbach.com for any changes.
+FlashDeclaration:
+(
+  PRIVATE &nMainCodeLargeSectors  &nMainCodeSmallSectors
+  PRIVATE &nWorkFlashLargeSectors &nWorkFlashSmallSectors
+  PRIVATE &nSRamBaseAddress &sFirmwareRam
+
+  &nMainCodeLargeSectors=0.
+  &nMainCodeSmallSectors=0.
+  &nWorkFlashLargeSectors=0.
+  &nWorkFlashSmallSectors=0.
+  &sFirmwareRam=""
+  &nSRamBaseAddress=0x08000000
+
+  IF CPUIS("CYT3*")||CPUIS("CYT4*")
+  (
+    &nSRamBaseAddress=0x28000000
+  )
+
+  IF CPUIS("CYT??5*") ; 512kB/64kB
+  (
+    // 576kB
+    &nMainCodeLargeSectors=14.
+    &nMainCodeSmallSectors=16.
+    // 64kB
+    &nWorkFlashLargeSectors=24.
+    &nWorkFlashSmallSectors=128.
+
+    &sFirmwareRam="0x0800f800++0x7ff"
+  )
+  ELSE IF CPUIS("CYT??7*") ; 1088kB/96kB
+  (
+    // 1088kB
+    &nMainCodeLargeSectors=30.
+    &nMainCodeSmallSectors=16.
+    // 96kB
+    &nWorkFlashLargeSectors=36.
+    &nWorkFlashSmallSectors=192.
+
+    &sFirmwareRam="0x0801f800++0x7ff"
+  )
+  ELSE IF CPUIS("CYT??9*") ; 2112kB/128kB
+  (
+    // 2016kB
+    &nMainCodeLargeSectors=62.
+    &nMainCodeSmallSectors=16.
+    // 128kB
+    &nWorkFlashLargeSectors=48.
+    &nWorkFlashSmallSectors=256.
+
+    &sFirmwareRam="0x0803f800++0x7ff"
+  )
+  ELSE IF CPUIS("CYT??B*") ; 4160kB/256kB
+  (
+    // 4160kB
+    &nMainCodeLargeSectors=126. //32KB
+    &nMainCodeSmallSectors=16. // 8KB
+    // 256kB
+    &nWorkFlashLargeSectors=96. //2KB
+    &nWorkFlashSmallSectors=512. //128B
+
+    &sFirmwareRam="0x280bf800++0x7ff"
+  )
+  ELSE IF CPUIS("CYT??L*") ; 4160kB/128kB
+  (
+    // 4160kB
+    &nMainCodeLargeSectors=126. //32KB
+    &nMainCodeSmallSectors=16. // 8KB
+    // 128kB
+    &nWorkFlashLargeSectors=48. //2KB
+    &nWorkFlashSmallSectors=256. //128B
+
+    &sFirmwareRam="0x2809f800++0x7ff"
+  )
+  ELSE IF CPUIS("CYT??F*") ; 8384kB/256kB
+  (
+    // 8384kB
+    &nMainCodeLargeSectors=254. //32KB
+    &nMainCodeSmallSectors=32. // 8KB
+    // 256kB
+    &nWorkFlashLargeSectors=96. //2KB
+    &nWorkFlashSmallSectors=512. //128B
+
+    &sFirmwareRam="0x280ff800++0x7ff"
+  )
+  ELSE
+  (
+    PRINT %WARNING CPU()+" is not supported by "+OS.PPF()
+    ENDDO
+  )
+
+  ; <MainCodeFlash>
+  IF TRUE()
+  (
+    ; Single Bank
+    ; large code
+    FLASH.Create 1. (0x10000000)++(&nMainCodeLargeSectors*0x8000-0x1) 0x8000 TARGET LONG
+    ; small code
+    FLASH.Create 1. (0x10000000+&nMainCodeLargeSectors*0x8000)++(&nMainCodeSmallSectors*0x2000-0x1) 0x2000 TARGET LONG
+  )
+  ELSE
+  (
+    ; Dual Bank
+    ; large code
+    FLASH.Create 1. (0x10000000)++(&nMainCodeLargeSectors*0x8000/0x2-0x1) 0x8000 TARGET LONG
+    ; small code
+    FLASH.Create 1. (0x10000000+&nMainCodeLargeSectors*0x8000/0x2)++(&nMainCodeSmallSectors*0x2000/0x2-0x1) 0x2000 TARGET LONG
+    ; large code
+    FLASH.Create 1. (0x12000000)++(&nMainCodeLargeSectors*0x8000/0x2-0x1) 0x8000 TARGET LONG
+    ; small code
+    FLASH.Create 1. (0x12000000+&nMainCodeLargeSectors*0x8000/0x2)++(&nMainCodeSmallSectors*0x2000/0x2-0x1) 0x2000 TARGET LONG
+  )
+  ; </MainCodeFlash>
+
+  ; <WorkFlash>
+  IF TRUE()
+  (
+    ; Single Bank
+    ; large
+    FLASH.Create 2. (0x14000000)++(&nWorkFlashLargeSectors*0x800-0x1) 0x800 TARGET LONG
+    ; small
+    FLASH.Create 2. (0x14000000+&nWorkFlashLargeSectors*0x800)++(&nWorkFlashSmallSectors*0x80-0x1) 0x80 TARGET LONG
+  )
+  ELSE
+  (
+    ; Dual Bank
+    ; large
+    FLASH.Create 2. (0x14000000)++(&nWorkFlashLargeSectors*0x800/0x2-0x1) 0x800 TARGET LONG
+    ; small
+    FLASH.Create 2. (0x14000000+&nWorkFlashLargeSectors*0x800/0x2)++(&nWorkFlashSmallSectors*0x80/0x2-0x1) 0x80 TARGET LONG
+    ; large
+    FLASH.Create 2. (0x15000000)++(&nWorkFlashLargeSectors*0x800/0x2-0x1) 0x800 TARGET LONG
+    ; small
+    FLASH.Create 2. (0x15000000+&nWorkFlashLargeSectors*0x800/0x2)++(&nWorkFlashSmallSectors*0x80/0x2-0x1) 0x80 TARGET LONG
+  )
+  ; </WorkFlash>
+
+   &sFirmwareRam=""
+
+&currpath=os.ppd()
+
+  IF (SYStem.ACCESS.DENIED())
+    FLASH.TARGET &nSRamBaseAddress+0x1000   &nSRamBaseAddress+0x2000 0x1000 "&currpath\traveo_ii.bin" /STACKSIZE 0x800 &sFirmwareRam
+  ELSE
+    FLASH.TARGET &nSRamBaseAddress+0x1000 E:&nSRamBaseAddress+0x2000 0x1000 "&currpath\traveo_ii.bin" /STACKSIZE 0x800 &sFirmwareRam /DUALPORT
+
+  FLASH.CLOCK AUTO
+  RETURN
+)

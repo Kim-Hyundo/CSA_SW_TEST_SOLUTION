@@ -1,0 +1,48 @@
+﻿<UserControl x:Class="GraphProject.Views.TimingChartContainerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:GraphProject.Views"
+             xmlns:ViewModels="clr-namespace:GraphProject.ViewModel"
+             xmlns:md ="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity" 
+             mc:Ignorable="d" 
+             d:DesignHeight="884" d:DesignWidth="844"
+             d:DataContext="{Binding TimingChartContainerViewModel, Source={StaticResource Locator}}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="9*" />
+        </Grid.RowDefinitions>
+        <Border x:Name="TimingTitle" Grid.Row="0" CornerRadius="6" Background="#2C000000" Margin="5">
+            <Grid>
+                <StackPanel Orientation="Vertical" Margin="30,10,30,5">
+                    <TextBlock Foreground="White" FontSize="14" HorizontalAlignment="Center" FontFamily="../Fonts/Roboto-Medium.ttf #Roboto">Timing Statistic Report</TextBlock>
+                    <TextBlock Foreground="White" FontSize="12" HorizontalAlignment="Center" Margin="0,10,0,0" Text="{Binding ScenarioName}"></TextBlock>
+                    <!--<TextBlock Foreground="White" FontSize="12" HorizontalAlignment="Center" Text="{Binding memorychartmodel.StartAddress}"></TextBlock>-->
+                </StackPanel>
+                <StackPanel Orientation="Vertical" HorizontalAlignment="Right">
+                    <TextBlock Text="Search Function" Foreground="White" HorizontalAlignment="Right" />
+                    <StackPanel Orientation="Horizontal">
+                        <Button Style="{StaticResource MaterialDesignFlatAccentButton}" Command="{Binding SearchCommand}" CommandParameter="{Binding ElementName=SearchTextBox,Path=Text}"> 
+                            <Button.Content>
+                                <md:PackIcon Kind="Search" Foreground="White"/>
+                            </Button.Content>
+                        </Button>
+                        <TextBox Width="300" Style="{StaticResource MaterialDesignTextBox}" HorizontalAlignment="Right" Foreground="White" VerticalContentAlignment="Bottom" TextAlignment="Right" Name="SearchTextBox">
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="KeyUp">
+                                    <i:InvokeCommandAction Command="{Binding SearchCommand}" CommandParameter="{Binding ElementName=SearchTextBox,Path=Text}"/>
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </TextBox>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+        <StackPanel Grid.Row="1" Orientation="Vertical">
+            <ContentControl Content="{Binding GridContainer}"></ContentControl>
+        </StackPanel>
+    </Grid>
+</UserControl>

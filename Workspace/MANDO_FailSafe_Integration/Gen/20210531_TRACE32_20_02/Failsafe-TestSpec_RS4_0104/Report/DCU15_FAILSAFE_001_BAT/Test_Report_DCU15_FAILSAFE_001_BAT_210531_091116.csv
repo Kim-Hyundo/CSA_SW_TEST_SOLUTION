@@ -1,0 +1,78 @@
+<General Information>
+Test_Code_Path,C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW
+SW_Version,3.4
+CPU_Clock,3000000
+Test_SW_Version,
+Test_Code_List,"['.\\MANDO_FailSafe_Integration.c', 'prost_cstart.c', 'prost_cstart_tc1.c', 'prost_cstart_tc2.c', 'prost_cstart_tc3.c', 'prost_cstart_tc4.c', 'prost_cstart_tc5.c', 'prost_main.c', 'prost_stubs.c', 'SWC_Failsafe.c', 'FS_BatteryVoltage.c', 'FS_CANBusOff.c', 'FS_CANTimeout.c', 'FS_HWFailure.c', 'FS_InvalidSignal.c', 'FS_SWFailure.c', 'Rte_SWC_Diag.c', 'Stub.c', 'cinit.c', 'trapass.c', 'trapcont.c', 'trapmmu.c', 'trapprot.c', 'trapbus.c', 'trapinst.c', 'trapnmi.c', 'trapsys.c', 'memset.c', 'memcpy.c', '_Exit.c', 'cinit_tc1.c', 'cinit_tc2.c', 'cinit_tc3.c', 'cinit_tc4.c', 'cinit_tc5.c']"
+Test_CPU,tc39x
+Test_Project,MANDO_FailSafe_Integration
+HeaderFile_Path,
+Pcache,0
+Test_CompilerType,TASKING
+Comment,TRACE32_20_02
+Dcache,0
+Tester,
+Test_Component,MANDO_FailSafe_Integration
+CompilerVersion,6.2
+ 
+<Test Result>
+Test ID,USER MACRO INPUT1(입력),USER MACRO INPUT2(입력), ,USER MACRO OUTPUT(예상 출력),USER MACRO OUTPUT(실제 출력),  ,FS_MasterLoop()(실행 시간)(us),결과
+0.0,DUMMY,DUMMY, ,DUMMY,DUMMY, ,N/A,Pass
+1.0,"ENG_RUN
+IGN_OFF
+NOT_BUSOFF","vol_grp[VOL_BAT]=17005
+bat_info.high.detect_tick = MS(9980)", ,bat_info.high.detect_tick==0X0,bat_info.high.detect_tick==0X0, ,246.18,Pass
+2.0,"ENG_RUN
+IGN_OFF
+NOT_BUSOFF","vol_grp[VOL_BAT]=17005
+bat_info.high.detect_tick = MS(9990)", ,bat_info.high.detect_tick==0X1,bat_info.high.detect_tick==0X1, ,248.4,Pass
+3.0,"ENG_RUN
+IGN_OFF
+NOT_BUSOFF","vol_grp[VOL_BAT]=16005
+bat_info.high.recover_tick = MS(4000)", ,bat_info.high.recover_tick==0X1,bat_info.high.recover_tick==0X1, ,248.58,Pass
+4.0,"ENG_RUN
+IGN_OFF
+NOT_BUSOFF","vol_grp[VOL_BAT]=15995
+bat_info.high.recover_tick = MS(3980)", ,bat_info.high.recover_tick==0X1,bat_info.high.recover_tick==0X1, ,249.83,Pass
+5.0,"ENG_RUN
+IGN_OFF
+NOT_BUSOFF","vol_grp[VOL_BAT]=15995
+bat_info.high.recover_tick = MS(4000)", ,"bat_info.high.recover_tick==MS(4000)
+bat_info.high.fault==0","bat_info.high.recover_tick==MS(4000)
+bat_info.high.fault==0
+", ,238.73,Pass
+6.0,"ENG_RUN
+IGN_OFF
+NOT_BUSOFF","vol_grp[VOL_BAT]=7995
+bat_info.low.detect_tick = MS(9980)", ,"bat_info.low.detect_tick==MS(9990)
+bat_info.low.fault==0","bat_info.low.detect_tick==MS(9990)
+bat_info.low.fault==0
+", ,238.86,Pass
+7.0,"ENG_RUN
+IGN_OFF
+NOT_BUSOFF","vol_grp[VOL_BAT]=7995
+bat_info.low.detect_tick = MS(9990)", ,"bat_info.low.detect_tick==MS(10000)
+bat_info.low.fault==1","bat_info.low.detect_tick==MS(10000)
+bat_info.low.fault==1
+", ,247.56,Pass
+8.0,"ENG_RUN
+IGN_OFF
+NOT_BUSOFF","vol_grp[VOL_BAT]=8995
+bat_info.low.recover_tick = MS(4000)", ,"bat_info.low.recover_tick==MS(0)
+bat_info.low.fault==1","bat_info.low.recover_tick==MS(0)
+bat_info.low.fault==1
+", ,247.94,Pass
+9.0,"ENG_RUN
+IGN_OFF
+NOT_BUSOFF","vol_grp[VOL_BAT]=9005
+bat_info.low.recover_tick = MS(3980)", ,"bat_info.low.recover_tick==MS(3990)
+bat_info.low.fault==1","bat_info.low.recover_tick==MS(3990)
+bat_info.low.fault==1
+", ,247.53,Pass
+10.0,"ENG_RUN
+IGN_OFF
+NOT_BUSOFF","vol_grp[VOL_BAT]=9005
+bat_info.low.recover_tick = MS(4000)", ,"bat_info.low.recover_tick==MS(4000)
+bat_info.low.fault==0","bat_info.low.recover_tick==MS(4000)
+bat_info.low.fault==0
+", ,239.31,Pass

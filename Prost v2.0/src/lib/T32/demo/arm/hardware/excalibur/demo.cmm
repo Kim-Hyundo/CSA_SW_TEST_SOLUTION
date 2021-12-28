@@ -1,0 +1,192 @@
+; --------------------------------------------------------------------------------
+; @Title: Example Script File for Altera Excalibur ARM922T
+; @Description: Example script file for EPXA10/EPXA1-DEV-BOARD from Altera
+; @Author: HLG
+; @Board: EPXA1/EPXA10 Excalibur
+; @Chip: EPXA1, EPXA10
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: demo.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; 31.01.02, PEG
+; 15.10.04, HLG
+; 21.12.07, HLG
+; 07.11.08, HLG
+; 20.01.11, HLG
+
+LOCAL &EXC_REGISTERS_BASE &epxa &addr
+&EXC_REGISTERS_BASE=0x7fffc000
+
+AREA.CLEAR
+PRINT " "
+PRINT "---- Start script demo.cmm for EPXA10 Excalibur Targets -----"
+
+IF !STATE.POWER()
+(
+	PRINT %ERROR "ERROR ! Your Target seems to have no Power"
+	ENDDO
+)
+
+; initialize system
+SYStem.RESet
+SYStem.CPU EPXA
+SYStem.Option BigEndian OFF
+SYStem.Option INTDIS ON
+SYStem.JtagClock ctck 10.MHz
+SYStem.Up
+
+IF !INTERFACE.SIM()
+(
+	LOCAL &EXC_ID &EXC_NAME
+	&EXC_ID=Data.Long(D:(&EXC_REGISTERS_BASE+0x8)) ; read Excalibur-ID
+	PRINT "Excalibur ID: " &EXC_ID
+
+	IF &EXC_ID==0x090010DD
+		&epxa=10.
+	ELSE IF &EXC_ID==0x081010DD
+		&epxa=1.
+	ELSE
+	(
+		PRINT %ERROR "ERROR ! This seems not to be neither an EPXA1 nor a EPXA10 target board"
+		ENDDO
+	)
+	&EXC_NAME="EPXA"+FORMAT.Decimal(0,&epxa)
+	PRINT "&EXC_NAME-Target detected"
+	TITLE "TRACE32 - Excalibur &EXC_NAME"
+)
+ELSE
+(
+	&epxa=10.
+	TITLE "TRACE32 - Excalibur Demo in Simulator"
+)
+
+WinCLEAR
+
+
+; disable InstructionCache
+Data.Set c15:00000001 %Long 0x00000178
+
+
+IF (Analyzer())&&(&epxa==10.)
+(
+	; enable trace if not already done (BE SHURE THAT THE REGISTER IS NOT LOCKED !)
+	Data.Set SD:(&EXC_REGISTERS_BASE+0x04c) %LE %Long 0x00000006
+
+	; Check if Bit 1 of Register IOCR_TRACE is not set - otherwise the Trace is not accessible
+	IF ((Data.Long(D:(&EXC_REGISTERS_BASE+0x4C)))>>1)%2==0
+	(
+		AREA.view
+		PRINT %ERROR "ERROR ! Can't enable ETM on Target (Maybe you have locked register IOCR_TRACE on your Excalibur target)."
+		ENDDO
+	)
+	PRINT "Trace enabled on Target"
+
+	; initialize analyzer
+	Analyzer.RESet
+	Analyzer.THreshold  1.65
+	Analyzer.AutoInit ON
+
+	; initialize ETM and preprocessor
+	ETM.RESet
+	ETM.DataTrace OFF
+	ETM.SmartTrace OFF
+	ETM.PortSize 16
+	ETM.HalfRate ON
+	ETM.STALL ON   ; Stall CPU when ETM FiFo gets full (basically useless here, because ignored by ARM922T core)
+)
+
+
+
+; Turn off default boot mapping with Flash0 at address 0
+Data.Set (&EXC_REGISTERS_BASE+0x0) %Long 0x00000001  ;BOOT_CR
+
+; Turn off all memories except the SRAM
+&addr=(&EXC_REGISTERS_BASE+0xA0)
+WHILE &addr<=(&EXC_REGISTERS_BASE+0xDC)
+(
+	Data.Set &addr %Long 0
+	&addr=&addr+4
+)
+
+IF &epxa==1.
+(
+	; Map SRAM0 to Adress 0x00000000 with a size of 16KB
+	Data.Set (&EXC_REGISTERS_BASE+0x90) %Long 0x00000681
+
+	; Map SRAM1 to Adress 0x00004000 with a size of 16KB
+	Data.Set (&EXC_REGISTERS_BASE+0x94) %Long 0x00004181
+)
+ELSE
+(
+	; Map SRAM0 to Adress 0x00020000 with a size of 128KB
+	Data.Set (&EXC_REGISTERS_BASE+0x90) %Long 0x00020803
+
+	; Map SRAM1 to Adress 0x00000000 with a size of 128KB
+	Data.Set (&EXC_REGISTERS_BASE+0x94) %Long 0x00000803
+)
+
+;disable interrupts
+Register.Set I 1
+Register.Set F 1
+
+PRINT "Loading example application..."
+Data.Set 0.--255. %Long 0
+Data.LOAD.Elf "~~~~/arm.elf" /StripPATH /LPATH /PlusVM
+Data.LOAD.Elf "~~~~/arm.elf" /DIFF
+IF FOUND()
+(
+	AREA.view
+	PRINT %ERROR "ERROR ! Failed to download the code of the example. Please check the memory settings of your target."
+	Data.LOAD.Elf "~~~~/arm.elf" /ComPare
+	ENDDO
+)
+
+FramePOS ,,,,MAXIMIZED
+IF (Analyzer())&&(&epxa==10.)
+(
+	WinPOS 0.0 26.688 68. 21. 12. 1.
+	Analyzer.List
+
+	WinPOS 71.75 29.25 77. 15. 0. 0.
+	ETM.view
+
+	WinPOS 85.875 0.125 64. 17. 0. 0.
+	Analyzer.state
+
+	WinPOS 0.0 0.0625 82. 22. 15. 1.
+	List.auto
+)
+ELSE
+(
+	WinPOS 0% 0% 100% 50%
+	List.auto
+
+	WinPOS 0% 50% 36% 50%
+	Var.Ref %Hex %Decimal
+
+	WinPOS 36% 50% 28% 50% ,, 5.
+	Frame /Args /Locals
+
+	WinPOS 64% 50% 36% 50%
+	Var.Watch
+	Var.AddWatch flags; ast;
+)
+SCREEN.display
+
+IF (Analyzer.CONFIG.POWERTRACE())&&(&epxa==10.)
+(
+	Analyzer.TestFocus ; test trace port
+	IF FOUND() ; if trace port test failed...
+	(
+		PRINT "Performing AutoFocus..."
+		Analyzer.AutoFocus
+	)
+)
+
+Go main
+
+PRINT "---- End script ---------------------------------------------"
+PRINT " "
+ENDDO
+

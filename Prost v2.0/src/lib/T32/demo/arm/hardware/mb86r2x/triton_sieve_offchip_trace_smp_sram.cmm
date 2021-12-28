@@ -1,0 +1,96 @@
+; --------------------------------------------------------------------------------
+; @Title: SMP-Demo script for MB86R24 with Offchip-Trace (RAM, SMP)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Offchip-Trace. Pinmuxing and Clock
+;   setup is handled in the script.
+;   Use this script to test the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to AutoFocus Preprocessor
+;    * Connect AutoFocus Preprocessor to JTAG/ETM J1 using Mictor38 cable
+;    * Set Bootmode: NOR-Flash
+;        SW4[6]=0y0        - SELFL=0y0
+;        SW4[3..1] = 0y100 - MPXMODE[2..0]=0y100
+;    * Set SW4[7] = 0y0 (ARM DAP)
+;    * Set SW4[5] = 0y0 (TESTMODE=0)
+;    * Disable TRACE(PinMux #H mode 4)
+;    * Set SW4[8] = 0y0
+;    * Enable TRACE(PinMux #E/J/K/L Mode2)
+;        SW6[8] = 0y1
+; @Keywords: ARM, Cortex-A9, ETM, SMP
+; @Author: AME
+; @Board: TRITON-C Promotion Board
+; @Chip: MB86R24
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: triton_sieve_offchip_trace_smp_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU MB86R24
+SYStem.JtagClock CTCK 10MHz
+;CORE.ASSIGN 1. 2.
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; optional: setup clocks
+DO ~~~~/1_chip_initialization
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+CORE.select 0.
+Data.LOAD.Elf "~~~~/sieve_ram_arm_v7.elf"
+; Set PC for all secondary cores
+Register.Set T 0 /CORE 1.
+Register.Set PC _start /CORE 1.
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace if Analyzer is plugged (ETM)
+IF Analyzer()
+(
+  ; PinMux #E/J/K/L Mode2
+  ; PINMUX2 = 0x92 PINMUX1=0x81402000
+  Data.Set AD:0x3D100204 %Long 0x92
+  Data.Set AD:0x3D100200 %Long 0x81402000
+  ; PinMux #H Mode4
+  ; PINMUX2 = 0x140 PINMUX1=0x81000000
+  ; Data.Set AD:0x3D100204 %Long 0x140
+  ; Data.Set AD:0x3D100200 %Long 0x81000000
+
+  Trace.Method Analyzer
+  TPIU.PortSize 8
+  TPIU.PortMode Continuous
+  ETM.Trace ON
+  ETM.ON
+  ; use Autofocus based calibration
+  Analyzer.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

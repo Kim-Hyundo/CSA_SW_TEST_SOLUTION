@@ -1,0 +1,56 @@
+; --------------------------------------------------------------------------------
+; @Title: ITM printf demo for XMC4500 Hexagon board
+; @Description:
+;   This is a very simple demo to show how to display ascii encoded itm trace
+;   into a text message. Printf traces are exported on SWO.
+; @Keywords: Cortex-M4, DLL, ITM, printf, SWD
+; @Author: HDA
+; @Board: XMC4500 Hexagon
+; @Chip: XMC4500
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: xmc4500_swo_itm_printf_trace.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+  Break.RESet
+  SYStem.RESet
+  SYStem.CPU XMC4500
+  SYStem.Option ResBreak OFF
+  SYStem.CONFIG.DEBUGPORTTYPE SWD
+  SYStem.CONFIG.CONNECTOR MIPI20T
+
+; Init CombiProbe
+  CAnalyzer.RESet
+  CAnalyzer.THreshold 1.6
+  SYStem.Up
+
+
+; Init internal SRAM
+  Data.Set 0x20000000++0FFFF %Long 0
+
+;load demo application
+  Data.LOAD.Elf ~~~~/demo.axf
+; load stack pointer and PC from vector table
+  Register.RESet
+  Register.Set PC main
+  Register.Set R13 0x20005000
+
+  CAnalyzer.Init
+  ITM.PortMode NRZ
+  ITM.PortSize SWV
+
+  CAnalyzer.AutoFocus
+  CAnalyzer.Mode FIFO
+
+
+;Turn on ITM and ETM
+  ETM.OFF
+  ITM.CLEAR
+
+  Go.direct
+  WAIT 4.s
+
+  Break.direct
+
+  PrintfTrace.List MESSAGE List.NoDummy
+
+  ENDDO

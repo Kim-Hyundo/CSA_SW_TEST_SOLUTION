@@ -1,0 +1,323 @@
+; --------------------------------------------------------------------------------
+; @Title: Script to debug a DXE driver from the start
+; @Description:
+; DXE Driver Debugging
+;
+; This script waits for a DXE driver to start,
+; loads the symbols and halts the driver at it's entry point
+;
+; Start this script with the driver name as argument to
+; run the script as command line version or use /dialog 
+; to run the script in a dialog.
+;
+; Examples: 
+;   do go_dxedrv SmmRuntime    ; waits for "SmmRuntime" to be started
+;   do go_dxedrv /dialog       ; opens a dialog window
+;
+; Prerequisites:
+; - UEFI BIOS should be in DXE state
+; - UEFI awareness must be configured
+; - Symbol Autoloader must be configured
+;
+; @Keywords: UEFI, DXE
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: go_dxedrv.cmm 15223 2019-11-05 16:29:45Z bschroefel $  
+
+
+; Define local macros
+ local  &para1 &driver &dialog
+ global &true &false &breakaddr
+ &true=(1==1)
+ &false=(1==0)
+ &breakaddr=0
+ 
+ 
+ ; we need access to the DXE symbols, ensure they're loaded
+ 
+ if !y.exist(CoreStartImage)
+ (
+   ;EXT.sYmbol.Option AutoLoad DXEMAIN
+   sYmbol.AutoLoad.CHECK
+   sYmbol.AutoLoad.TOUCH "DxeMain"
+   if !y.exist(CoreStartImage)
+   (
+     print "Error: DXE driver start function not found!"
+     enddo
+   )
+ )
+
+
+; Get the script parameter (driver name or "/dialog")
+ entry &para1
+
+
+; Check parameters
+ if "&para1"==""
+ (
+    ; no parameter given -> print usage
+    print "Usage: ""do go_dxedrv <drivername>"" or ""do go_dxedrv /dialog"""
+    enddo
+ )
+ if string.lwr("&para1")=="/dialog"
+ (
+    ; /dialog -> open a dialog to select driver
+    &dialog=&true
+    &process=""
+ )
+ else
+ (
+    ; parameter contains driver name
+    &dialog=&false
+    &driver="&para1"
+ )
+
+
+; Activate autoloader for DXE drivers:
+ ;EXT.sYmbol.Option AutoLoad DXEDRV
+ 
+; Ensure windows update
+ screen.always
+
+
+; Dialog or Command line version?
+
+ if &dialog
+   goto dialog
+   
+
+; --------------------------------------------------------------------------------
+; Command line interface
+
+ ; Check if the driver already exists in the driver list.
+
+ local &existed
+ 
+ GOSUB checkexisting &driver
+ entry &existed
+ if &existed
+   enddo
+   
+ ; Wait for driver to be loaded.
+
+ print "waiting for driver &driver..."
+ GOSUB waitforstart &driver
+
+ ; Yep! The driver is loaded and we found it.
+ ; Now load the driver symbols.
+
+ print "driver &driver started, loading symbols..."
+ GOSUB loadsymbols &driver
+ entry &main
+ if &main==0
+    enddo
+
+ ; We got the entry point of the driver.
+ ; We let the system run until it reaches this.
+
+ print "waiting for reaching entry..."
+ GOSUB waitformain &driver &main
+ 
+ // That's it, we halted at the entry point!
+
+ print "done."
+
+ enddo
+ 
+ 
+; --------------------------------------------------------------------------------
+; Dialog interface
+
+dialog:
+ dialog
+ (
+        header "Debug driver from entry"
+        pos 0. 0. 24. 3.
+        box "driver name"
+        pos 1. 1. 22. 1.
+drv:    defhotedit "" 
+        (
+            if dialog.string(drv)!=""
+                dialog.enable bok
+            else
+                dialog.disable bok
+        )
+        pos 2. 4.5 8.
+bok:    defbutton "Ok"
+        (
+            local &drv
+            dialog.disable bok
+            dialog.disable drv
+            &driver=dialog.string(drv)
+            dialog.set mess "Checking driver &driver..."
+            
+            GOSUB checkexisting &driver
+            entry &existed
+            if &existed
+                JUMPTO close
+
+            dialog.set mess "Waiting for driver &driver"
+            
+            GOSUB waitforstart &driver
+
+            dialog.set mess "Driver &driver started. Loading symbols..."
+
+            GOSUB loadsymbols &driver
+            entry &main
+            if &main==0
+                JUMPTO close
+
+            dialog.set mess "Waiting for reaching entry..."
+
+            GOSUB waitformain &driver &main
+            
+            JUMPTO close
+        )
+        pos 14. 4.5 8.
+        button "Cancel" "JUMPTO close"
+        pos 0. 6. 24. 1.
+mess:   edit "Please enter driver name" ""
+        close "JUMPTO close"
+ )
+
+ dialog.disable bok
+ dialog.disable mess
+
+ stop
+
+close:
+
+ if &breakaddr!=0
+ (
+    if STATE.RUN()
+        Break
+    Break.Delete &breakaddr
+    ON PBREAKAT &breakaddr
+    &breakaddr=0
+ )
+ 
+ dialog.end
+ enddo
+
+
+; --------------------------------------------------------------------------------
+; Subroutine: Check if driver already exists
+
+checkexisting:
+ entry &driver
+
+ if STATE.RUN()
+    Break
+    
+ if ext.dxedrv.magic("&driver")!=0xffffffff
+ (
+    sYmbol.AutoLOAD.CLEAR "&driver"
+    sYmbol.AutoLoad.CHECK
+    sYmbol.AutoLOAD.TOUCH "&driver"
+    if y.exist(\\&driver)
+        gosub message "Driver &driver already started." "Symbols loaded."
+    else
+        gosub message "Driver &driver already started." "No symbol file found."
+    return &true
+ )
+
+; Delete possibly existing breakpoints of previous driver runs
+ 
+ if y.exist("\\&driver")
+   Break.Delete y.secrange(\\&driver\.text)
+
+ return &false
+ 
+ 
+; --------------------------------------------------------------------------------
+; Subroutine: Wait for start of driver
+
+waitforstart:
+ entry &driver
+
+; Wait for driver to be loaded.
+
+ ; CoreStartImage() is called for every driver to start -
+ ; the conditional breakpoint halts only, if the desired
+ ; driver is found in the image table.
+ 
+ &breakaddr=address.offset(CoreStartImage)
+ Break.Delete &breakaddr                ; delete previous set breakpoints
+ Break.Set &breakaddr /CONDition ext.dxedrv.magic("&driver")!=0xffffffff
+ 
+ ON PBREAKAT &breakaddr goto continue1  ; if breakpoint reached: continue
+ Go         ; let the target run and load the driver
+ 
+ stop       ; halt script until breakpoint reached
+ 
+ ; breakpoint hit, continue script
+continue1:
+
+ Break.Delete &breakaddr    // delete breakpoint
+ ON PBREAKAT &breakaddr     // delete script action
+ &breakaddr=0
+
+ return
+
+
+; --------------------------------------------------------------------------------
+; Subroutine: Load symbols of driver
+
+loadsymbols:
+ local &magic
+ entry &driver
+
+; Yep! The driver is loaded and we found it.
+
+; Now load the driver symbols
+
+ sYmbol.AutoLOAD.CLEAR "&driver"    ; clear possibly previous set
+ sYmbol.AutoLoad.CHECK              ; force new autoloader list
+ sYmbol.AutoLoad.TOUCH "&driver"    ; force loading of driver symbols
+ 
+
+; Now set a breakpoint at it's entry point.
+ 
+ &magic=ext.dxedrv.magic("&driver")
+ &main=ext.dxedrv.entry(&magic)
+ 
+ return &main
+ 
+ 
+; --------------------------------------------------------------------------------
+; Subroutine: Wait for reaching entry
+
+waitformain:
+ entry &driver &main
+ 
+ &breakaddr=&main&~1    ; mask thumb bit!
+
+ Break.Set &breakaddr /Onchip   ; set breakpoint on entry
+
+ ON PBREAKAT &breakaddr goto continue2  ; if breakpoint reached: continue
+ Go         ; let the target run and start the driver
+
+ stop       ; halt script until breakpoint reached
+
+ ; breakpoint hit, continue script
+continue2: 
+         
+ Break.Delete &breakaddr    // delete breakpoint
+ ON PBREAKAT &breakaddr     // delete script action
+ &breakaddr=0
+
+ return
+ 
+
+; --------------------------------------------------------------------------------
+; Subroutine: print message in dialog box or command line
+
+message:
+ entry &msg1 &msg2
+ if &dialog
+    dialog.ok &msg1 &msg2
+ else
+    print &msg1 " " &msg2
+ return
+ 

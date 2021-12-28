@@ -1,0 +1,103 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple demo script for IMX6SOLOX-CM4 on MCIMX6SX-SDB (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario. As the CortexM4 core is in reset by default we relase it using
+;   the debugger first.
+;   Use this script for getting started.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to J17
+; @Keywords: ARM, Cortex-M4
+; @Author: AME
+; @Board: MCIMX6SX-SDB, i.MX6SoloX Sabre Board
+; @Chip: IMX6SOLOX
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx6slx-cm4_sieve_sram.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU IMX6SOLOX-CA9
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset 10.0ms
+SYStem.JtagClock CTCK 10MHz
+SYStem.Mode.Up
+
+; --------------------------------------------------------------------------------
+; kick CortexM4 secondary core
+GOSUB EnableM4
+
+; --------------------------------------------------------------------------------
+; attach ot the CortexM4 (is running now)
+SYStem.Down
+SYStem.CPU IMX6SOLOX-CM4
+SYStem.Mode.Attach
+
+IF STATE.RUN()
+  Break.direct
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_pic_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO
+
+; --------------------------------------------------------------------------------
+EnableM4: ;()
+(
+  ; Give access to peripherals for M4
+  Data.Set AZSD:0x207C000 %Long 0x77777777     ;AIPS-1 Configuration
+  Data.Set AZSD:0x217C000 %Long 0x77777777     ;AIPS-2 Configuration
+  Data.Set AZSD:0x227C000 %Long 0x77777777     ;AIPS-3 Configuration
+
+  ; Open M4 clocks
+  Data.Set AZSD:0x20c4068 %Long 0xFFFFFFFF    ;CCM Clock Gating Register0  (CCM_CCGR0)
+  Data.Set AZSD:0x20c406C %Long 0xFFFFFFFF    ;CCM Clock Gating Register1  (CCM_CCGR1)
+  Data.Set AZSD:0x20c4070 %Long 0xFFFFFFFF    ;CCM Clock Gating Register2  (CCM_CCGR2)
+  Data.Set AZSD:0x20c4074 %Long 0xFFFFFFFF    ;CCM Clock Gating Register3  (CCM_CCGR3)
+  Data.Set AZSD:0x20c4078 %Long 0xFFFFFFFF    ;CCM Clock Gating Register4  (CCM_CCGR4)
+  Data.Set AZSD:0x20c407C %Long 0xFFFFFFFF    ;CCM Clock Gating Register5  (CCM_CCGR5)
+  Data.Set AZSD:0x20c4080 %Long 0xFFFFFFFF    ;CCM Clock Gating Register6  (CCM_CCGR6)
+
+  ; Prepare M4 entry
+  ; Stack at TCMU
+  ; Stack pointer
+  Data.Set AZSD:0x007f8000 %Long 0x20000400
+  ; Code at BootRom
+  ;Program Counter
+  Data.Set AZSD:0x007f8004 %Long 0x00000009
+  ; Loop code
+  ; Code to halt the Cpu and check the asm address
+  Data.Assemble AZST:0x007f8008 b $+0 b $+0
+
+  ; Enable M4
+  Data.Set AZSD:0x020d8000 %Long Data.Long(AZSD:0x020d8000)|0x00400000
+  Data.Set AZSD:0x020d8000 %Long Data.Long(AZSD:0x020d8000)&~0x10
+  RETURN
+)

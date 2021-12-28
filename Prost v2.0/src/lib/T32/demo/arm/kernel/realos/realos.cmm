@@ -1,0 +1,52 @@
+; --------------------------------------------------------------------------------
+; @Title: RealOS Demo for TRACE32 OS Awareness
+; @Description: 
+;   This batchfile loads all necessary files to demonstrate the
+;   OS Awareness for RealOS.
+; @Keywords: awareness, RealOS, RTOS
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: realos.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; Debugger reset
+ PRINT "resetting..."
+ RESet
+ WinPAGE.RESet
+ WinPOS 0 24. 70. 8. 0. 0. W000
+ AREA.view
+
+; Debugger initializations
+ PRINT "initializing..."
+ SYStem.CPU CortexA9
+ SYStem.Up
+ 
+; load sample application
+ PRINT "loading sample application..."
+ Data.LOAD.Elf smpsys.axf
+ 
+; initialize RTOS support
+ PRINT "initializing RealOS support..."
+ TASK.CONFIG ~~/demo/arm/kernel/realos/realos.t32       ; load RealOS awareness
+ MENU.ReProgram ~~/demo/arm/kernel/realos/realos.men    ; load RealOS specific menu
+ HELP.FILTER.Add rtosrealos     ; add RealOS awareness manual to filtered help
+
+; patch applicaton if run in simulator
+ IF INTERFACE.SIM()
+ (
+    Data.Assemble wait_loop+0x8 nop
+    Data.Assemble Dd_GIC_Cpu_Init+0x4c nop
+ )
+ 
+ PRINT "load complete."
+
+; open some windows
+ WinPOS 0. 0. 70. 21. 11. 1. W002
+ List.auto
+ WinPOS 50. 6. 60. 6. 0. 1. W001
+ TASK.TaSK
+
+; start application
+ Go task1
+  

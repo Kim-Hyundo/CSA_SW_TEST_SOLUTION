@@ -1,0 +1,65 @@
+; --------------------------------------------------------------------------------
+; @Title: LS1021A Linux Attach debugging
+; @Description:
+;   This script is supposed to attach to a running Linux on LS1021. 
+;   The Task Awareness + Debugger Address Translation are prepared as for the 
+;   Reference Build. After execution of this script the debugger is ready for  
+;   Process, Kernel, optional Module and optional Library debugging.
+;   Prerequisites:
+;   * Target booted already Linux (after smp_init finished)
+;   * connect Debugcable to J12
+;     using the ARM20-MIPI converter LA-3770
+;     OR
+;     connect Combiprobe to J12 directly
+;   * VMLINUX kernel symbols match the target code
+; @Keywords: Freescale, Layerscape, CortexA7, QorIQ
+; @Props: Template
+; @Author: AME
+; @Board: TWR-LS1021A
+; @Chip: LS1021A
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: twr-ls1021_linux_attach.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+; board setup
+
+RESet
+SYStem.RESet
+SYStem.CPU LS1021A
+; linux specific settings
+SYStem.Option DACR ON
+SYStem.Option MMUSPACES ON
+TrOnchip.Set DABORT OFF
+TrOnchip.Set PABORT OFF
+TrOnchip.Set UNDEF  OFF
+; debug both cores as SMP
+CORE.ASSIGN 1,2
+SYStem.Mode.Attach
+
+; load kernel symbols to virtual addresses
+Data.LOAD.Elf <path to>/vmlinux /NoCODE
+
+; setup debugger address translation
+; Kernel Virtual Memory 0x80000000++0x3fffffff (1GByte)
+; Kernel Physical Base  0x80000000
+; Common Section        KERNEL + Modules -> 0x7f000000--0xffffffff
+; activate debugger address translation
+MMU.FORMAT LINUXSWAP3 swapper_pg_dir 0x80000000++0x3fffffff 0x80000000
+TRANSlation.COMMON 0x7f000000--0xffffffff
+TRANSlation.TableWalk ON
+TRANSlation.ON
+
+; load Awareness LINUX3
+TASK.CONFIG ~~/demo/arm/kernel/linux/linux-3.x/linux3.t32
+MENU.ReProgram ~~/demo/arm/kernel/linux/linux-3.x/linux.men
+
+; for now activate PROCESS debugging only
+TASK.sYmbol.Option AutoLoad PROCESS
+;TASK.sYmbol.Option AutoLoad MODULE
+;TASK.sYmbol.Option AutoLoad LIBRARY
+
+; check for new symbols after each GO
+sYmbol.AutoLOAD.CHECK ONGO
+
+ENDDO
+

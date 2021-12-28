@@ -1,0 +1,33 @@
+; --------------------------------------------------------------------------------
+; @Title: Start-Up script for MB86R0x Jade.
+; @Description: 
+;   This script sets up an debug session of
+;   an MB86R0x. Starts an low-level code afterwards.
+;   Set SW901.Pin4 OFF (Big Endian)
+;   Set SW901.Pin6 ON (ARM JTAG ENABLE)
+; @Author: AME
+; @Keywords: Jade
+; @Board: XXSvideo-D
+; @Chip: MB86R01, MB86R02, MB86R03
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: start.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+RESet
+SYStem.RESet
+SYStem.CPU MB86R02
+SYStem.Option BigEndian OFF
+SYStem.JtagClock RTCK
+SYStem.Up
+
+; load some code into SRAM
+Data.LOAD.Elf ~~/demo/arm/compiler/gnu-pic/midi_arm.elf 0x01001000 /RelPATH
+
+; stop at 'main'
+Go main
+WAIT !STATE.RUN()
+
+; open some windows
+List.auto
+

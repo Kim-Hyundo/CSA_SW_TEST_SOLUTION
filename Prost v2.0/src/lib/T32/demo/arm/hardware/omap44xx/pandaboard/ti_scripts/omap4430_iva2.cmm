@@ -1,0 +1,38 @@
+; --------------------------------------------------------------------------------
+; @Title: Start-Up Script for PandaBoard (OMAP4430.Iva2, ARM968)
+; @Description: 
+;   This start up script is will connect to the ARM968 CPU (Iva2). 
+;   This CPU should be released before running this script
+;   Use omap4430_cortexa9_cpu0.cmm cmm menu to release it.
+;   Other scripts are available in the TRACE32 window (CMM menu) 
+;   and executing by clicking on them (see omap4430_lauterbach_startup_guide.doc)
+; @Keywords: OMAP4430 PandaBoard
+; @Author: TI
+; @Board: PandaBoard
+; @Chip: OMAP4430
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: omap4430_iva2.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+SYStem.RESet
+SYStem.CPU OMAP4430IVA2
+SYStem.JtagClock 10MHz
+;SYStem.JtagClock RTCK
+;SYStem.Up
+SYStem.Mode.Attach
+IF STATE.RUN()
+  Break.direct
+
+
+AREA.Create results
+AREA.CLEAR results
+AREA.view results
+AREA.Select results
+PRINT " ivaHd icont2 connected ..."
+
+GLOBAL &CMM_DIR
+&CMM_DIR="~~~~"
+
+DO &CMM_DIR/omap4430_iva2_emulation_tests
+
+ENDDO

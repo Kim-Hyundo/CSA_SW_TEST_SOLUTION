@@ -1,0 +1,131 @@
+; --------------------------------------------------------------------------------
+; @Title: Setup Script for the Cogent CSB337 Board
+; @Description: 
+;   This script initializes the Cogent CSB337 Board using Data.Set commands. This
+;   script is called by csb337_linux.cmm
+; @Keywords: Cogent, Linux, RTOS
+; @Author: DIE
+; @Board: CSB337
+; @Chip: AT91RM9200
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: csb337_init.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+// turn on the main oscillator
+Data.Set 0xFFFFFC20 %Long 0x00000001
+
+// turn off PLLA
+//data.set 0xfffffc28 %LONG 0
+
+//set cpu = slow clock
+//data.set 0xfffffc30 %LONG 0x0
+WAIT 100.ms
+
+// setup plla to 180mhz
+// this will give it plenty of time to lock
+// while we do other things - cpu is running
+// at 32khz for now
+// pcm_pllar - diva = 1, mula = 50 = 184.32mhz
+Data.Set 0xfffffc28 %Long 0x20310401
+//Data.Set 0xfffffc28 %Long 0x20640402
+WAIT 50.ms
+
+// enable the peripheral clock on pb27
+// first enable it in the clock registers
+// pcm_scer: enable pck0
+Data.Set 0xfffffc00 %Long 0x0000ff00
+// pcm_pcer: enable all peripheral clocks
+Data.Set 0xfffffc10 %Long 0xffffffff
+// pmc_pck0: set pck0 = master plla/4
+Data.Set 0xfffffc40 %Long 0x0000000a
+
+// enable d16-31 on portc to be alternate function a (databus)
+// also enable *wait (pc6)
+// portc a function, pc6 = wait function a
+Data.Set 0xfffff870 %Long 0xffff0040
+// pio_pdr: enable gpio for all other bits
+Data.Set 0xfffff804 %Long 0xffff0040
+// pio_odr: all gpio = input
+Data.Set 0xfffff810 %Long 0xffffffff
+
+// enable ethernet and DTXD/DRXD on Port A
+// ethernet = PA16-7, DTXD = PA31
+Data.Set 0xfffff470 %Long 0xC001FF80
+Data.Set 0xfffff404 %Long 0xC001FF80
+
+// PIO_PDR: PB27 = peripheral, PB19-12 = Ethernet, all else = GPIO
+Data.Set 0xfffff604 %Long 0x080ff000
+Data.Set 0xfffff600 %Long 0xf7f00fff
+Data.Set 0xfffff670 %Long 0x08000000
+Data.Set 0xfffff674 %Long 0x000ff000
+Data.Set 0xfffff610 %Long 0x00000007
+Data.Set 0xfffff630 %Long 0x00000007
+Data.Set 0xfffff634 %Long 0x00000004
+
+// set cpu = plla and mck = plla/4
+Data.Set 0xfffffc30 %Long 0x00000300
+WAIT 50.ms
+Data.Set 0xfffffc30 %Long 0x00000302
+
+// assign sdram_cs to cs1, all others to sram
+//ebi_csa: cs1 = sdram
+Data.Set 0xffffff60 %Long 0x00000002
+//ebi_cfg: disable databus pullup and bus sharing
+Data.Set 0xffffff64 %Long 0x00000000
+
+//write cs0 for 16-bits, 10 wait states
+Data.Set 0xffffff70 %Long 0x1100318a
+
+// write sdram configuration register, for cas latency = 2,
+// ras to cas = 2, 32-bit, 4 bank, 9 column, 12 row addresses
+//Data.Set 0xffffff98 %Long 0x13113955
+//Data.Set 0xffffff98 %Long 0x4391B955
+Data.Set 0xffffff98 %Long 0x2188C155
+WAIT 500.ms
+
+// setup sdram - all sdram timing is off mclk
+// sdramc_mr: issue nop
+Data.Set 0xffffff90 %Long 0x00000001
+Data.Set 0x20000000 %Long 0
+Data.Set 0x20000000 %Long 0
+WAIT 500.ms
+
+// sdramc_mr: issue precharge all
+Data.Set 0xffffff90 %Long 0x00000002
+Data.Set 0x20000000 %Long 0x0
+WAIT 50.ms
+
+// force 8 refresh cycles
+// sdramc_mr: issue refresh
+Data.Set 0xffffff90 %Long 0x00000004
+Data.Set 0x20000000 %Long 0
+Data.Set 0x20000000 %Long 0
+Data.Set 0x20000000 %Long 0
+Data.Set 0x20000000 %Long 0
+Data.Set 0x20000000 %Long 0
+Data.Set 0x20000000 %Long 0
+Data.Set 0x20000000 %Long 0
+Data.Set 0x20000000 %Long 0
+WAIT 50.ms
+
+// set mrs mode
+Data.Set 0xffffff90 %Long 0x00000003
+Data.Set 0x20000080 %Long 0
+WAIT 50.ms
+
+// set normal mode
+Data.Set 0xffffff90 %Long 0x00000000
+Data.Set 0x20000000 %Long 0
+Register.Set r0 0x0
+WAIT 50.ms
+//reg 0 = 0
+
+// now set refresh to the final number of ~15usec
+Data.Set 0xffffff94 %Long 0x00000100
+Register.Set r0 0x0
+
+
+ENDDO
+
+

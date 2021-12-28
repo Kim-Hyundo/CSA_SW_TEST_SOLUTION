@@ -1,0 +1,88 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC1197 on TriBoard-TC179x (external memory)
+; @Description:
+;   Initializes the TriCore, SRAM and Flash,
+;   and loads the Sieve-Demo into memory.
+; @Keywords: external, extmem, Infineon, memory, sieve, TriCore
+; @Author: MAX
+; @Board: TriBoard-TC179x
+; @Chip: TC1197
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc1197_demo_extmem.cmm 7579 2014-08-27 15:14:14Z mobermeir $
+
+
+; --------------------------------------------------------------------------------
+; Memory mappings:
+; flash is not declared - see tc1197_flash.cmm
+; external SRAM                     mapped to 0xA1000000--0xA10FFFFF    1 MB
+; external Flash                    mapped to 0xA2000000--0xA23FFFFF    4 MB
+; processor internal program memory mapped to 0xD4000000--0xD4009FFF   40 KB
+; processor internal data memory    mapped to 0xD0000000--0xD001FFFF  128 KB
+; processor internal program flash  mapped to 0xA0000000--0xA03FFFFF    4 MB
+; processor internal data flash     mapped to 0xAFE00000--0xAFE07FFF   32 KB
+;                                             0xAFE10000--0xAFE17FFF   32 KB
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+
+RESet
+SYStem.CPU TC1197
+
+IF DAP.Available()
+(
+  ; Bi-Directional Debug Cable detected
+  SYStem.CONFIG.DEBUGPORTTYPE DAP2    ; instead of JTAG
+)
+ELSE
+(
+  ; Uni-Directional Debug Cable
+  SYStem.CONFIG.DEBUGPORTTYPE JTAG
+)
+
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; bugfixes and workarounds
+
+; DMA_TC.013
+; DMA-LMB-Master Access to Reserved Address Location
+; prevent the debugger from accessing certain target memory
+MAP.DenyAccess 0xC8000000++0x07FFFFFF
+
+; --------------------------------------------------------------------------------
+; Memory initialzation
+; initialize external bus unit
+Data.Set 0xF8000004 %Long 0x800000E1    ; EBU_MODCON
+
+; memory assignment
+; /CS0: AMD AM29BL162CB flash
+Data.Set 0xF8000018 %Long 0xA2000051    ; EBU_ADDRSEL0
+Data.Set 0xF8000028 %Long 0x00D30040    ; EBU_BUSRCON0
+Data.Set 0xF800002C %Long 0xFFFFFFFF    ; EBU_BUSRAP0
+Data.Set 0xF8000030 %Long 0x00D30000    ; EBU_BUSWCON0
+Data.Set 0xF8000034 %Long 0xFFFFFFFF    ; EBU_BUSWAP0
+; /CS1: SAMSUNG K6R4016V1D-UI10 SRAM
+Data.Set 0xF800001C %Long 0xA1000071    ; EBU_ADDRSEL1
+Data.Set 0xF8000038 %Long 0x00D30040    ; EBU_BUSRCON1
+Data.Set 0xF800003C %Long 0x011F0190    ; EBU_BUSRAP1
+Data.Set 0xF8000040 %Long 0x00D30000    ; EBU_BUSWCON1
+Data.Set 0xF8000044 %Long 0x011F0190    ; EBU_BUSWAP1
+; /CS2, /CS3: unused
+
+; --------------------------------------------------------------------------------
+; load demo program
+Data.LOAD.Elf "~~~~/triboard-tc1797_sieve_extmem.elf"
+Go.direct main
+
+; open some windows
+WinCLEAR
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame.view /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch
+Var.AddWatch ast flags
+
+ENDDO

@@ -1,0 +1,97 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for TC1762 on TriBoard TC1766 (Flash)
+; @Description:
+;   Initializes the TriCore and loads the Sieve-Demo into memory.
+; @Keywords: Flash, Infineon, TriCore
+; @Author: MAX
+; @Board: TriBoard-TC1766
+; @Chip: TC1762
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tc1762_flash.cmm 7666 2014-09-24 09:21:57Z mobermaier $
+
+
+; --------------------------------------------------------------------------------
+; Performed tests:
+; TriBoard TC1766.300 TC1762 EES-AA 2005-06-03 MAX
+;
+; Suggested board settings
+; DIP Switch S301:         SW1=ON,  SW2=OFF, SW3=ON,  SW4=ON,
+;                          SW5=OFF, SW6=ON,  SW7=OFF, SW8=OFF
+; DIP switches S401, S402: all off
+;
+; To use the TriBoard with a debugger the OCDS interface needs to be enabled.
+; This is done by the example program inside the external FLASH (set
+; OEC=0x10000).
+;
+; A-steps: Since the watchdog is not suspended in debug mode, do not use a
+; low JTAG clock frequency in case the watchdog is not already disabled by
+; the target program. Otherwise the debugger is possibly to slow to disable
+; the watchdog in time. Minimum JTAG clock depends on the core clock. Default
+; JTAG clock should be fine.
+;
+; Requirements to use OCDS-1:
+; Set jumper JP501 to 2-3 (= disable on-board wiggler)
+;
+; If onchip flash is not functional: DIP Switch S401 SW5=ON
+;
+; Memory mappings:
+; internal RAM (LDRAM)               32 KB  0xD0000000--0xD0007FFF
+; internal RAM (SPRAM)                4 KB  0xD4000000--0xD4000FFF
+; processor internal program flash    1 MB  0xA0000000--0xA00FFFFF
+; processor internal data flash       8 KB  0xAFE00000--0xAFE01FFF (Bank 0)
+;                                     8 KB  0xAFE10000--0xAFE01FFF (Bank 1)
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+
+RESet
+WinCLEAR
+SYStem.CPU TC1762
+SYStem.Up
+
+Data.Set 0xF0000024 %Long 0x00000008 ; disable watchdog
+
+; --------------------------------------------------------------------------------
+; flash declaration
+FLASH.RESet
+
+; flash declaration for processor internal flash - uncached address segment
+; processor internal program flash
+FLASH.Create 1. 0xA0000000--0xA001FFFF 0x4000  TARGET Long
+FLASH.Create 2. 0xA0020000--0xA003FFFF 0x20000 TARGET Long
+FLASH.Create 2. 0xA0040000--0xA007FFFF 0x40000 TARGET Long
+FLASH.Create 2. 0xA0080000--0xA00FFFFF 0x80000 TARGET Long
+; processor internal data flash
+FLASH.Create 3. 0xAFE00000--0xAFE03FFF 0x4000  TARGET Long
+FLASH.Create 4. 0xAFE10000--0xAFE13FFF 0x4000  TARGET Long
+FLASH.TARGET 0xD4000000 0xD0000000 0x1000 ~~/demo/tricore/flash/long/tc1796.bin
+
+; flash declaration for cached address segments
+FLASH.CreateALIAS 0x80000000--0x8FFFFFFF 0xA0000000
+
+; show flash declaration
+WinPOS 0% 0%
+FLASH.List
+
+; --------------------------------------------------------------------------------
+; example download to processor internal flash
+;
+; FLASH.AUTO is required for flash programming of unsorted files.
+; The affected sectors are erased automatically.
+
+DIALOG.YESNO "Program internal flash memory?"
+ENTRY &execflash
+IF &execflash
+(
+  FLASH.ReProgram ALL /Erase
+  Data.LOAD.auto *
+  FLASH.ReProgram off
+)
+
+; --------------------------------------------------------------------------------
+; open some window
+WinPOS 0% 50%
+List.auto
+
+ENDDO

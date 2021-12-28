@@ -1,0 +1,796 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="t32transform.xsl"?>
+<TRACE32 file="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Gen\20210531_TRACE32_20_02\Failsafe-TestSpec_RS4_0104\Report\Total\MANDO_FailSafe_Integration\SWC_Failsafe\func-p-80005186-80005211.xml">
+	<coverage>
+		<COVerage.EXPORT.ListLine ts="1622419849" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE" metric="object">
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\Rte_SWC_Diag</tree>
+				<cov>partial</cov>
+				<exec metric="object">50.847%</exec>
+				<branches>-</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>0</never>
+				<bytes>590</bytes>
+				<bytesok>300</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_HWFailure</tree>
+				<cov>partial</cov>
+				<exec metric="object">16.831%</exec>
+				<branches>10.000%</branches>
+				<ok>0</ok>
+				<taken>1</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>202</bytes>
+				<bytesok>34</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\SWC_Failsafe</tree>
+				<cov>partial</cov>
+				<exec metric="object">67.441%</exec>
+				<branches>-</branches>
+				<ok>4</ok>
+				<taken>11</taken>
+				<nottaken>21</nottaken>
+				<bytes>1548</bytes>
+				<bytesok>1044</bytesok>
+				<function>
+					<addrFrom>P:80005186</addrFrom>
+					<addrTo>P:80005211</addrTo>
+					<tree uid="p-80005186-80005211">\\MANDO_FailSafe_Integration\SWC_Failsafe\FS_PostProcessing</tree>
+					<cov>partial</cov>
+					<exec metric="object">44.285%</exec>
+					<branches>30.434%</branches>
+					<ok>1</ok>
+					<taken>4</taken>
+					<nottaken>8</nottaken>
+					<never>10</never>
+					<bytes>140</bytes>
+					<bytesok>62</bytesok>
+					<line>
+						<addrFrom>P:80005186</addrFrom>
+						<addrTo>P:8000518B</addrTo>
+						<tree>SWC_Failsafe.c \249--254</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>6</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000518C</addrFrom>
+						<addrTo>P:80005191</addrTo>
+						<tree>SWC_Failsafe.c \255--256</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">66.666%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80005192</addrFrom>
+						<addrTo>P:80005197</addrTo>
+						<tree>SWC_Failsafe.c \257--257</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80005198</addrFrom>
+						<addrTo>P:8000519D</addrTo>
+						<tree>SWC_Failsafe.c \258--259</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c</srcpath>
+						<cov>taken</cov>
+						<exec metric="object">66.666%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000519E</addrFrom>
+						<addrTo>P:800051A3</addrTo>
+						<tree>SWC_Failsafe.c \260--260</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>6</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800051AE</addrFrom>
+						<addrTo>P:800051B7</addrTo>
+						<tree>SWC_Failsafe.c \261--272</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>10</bytes>
+						<bytesok>10</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800051B8</addrFrom>
+						<addrTo>P:800051B9</addrTo>
+						<tree>SWC_Failsafe.c \273--273</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800051BA</addrFrom>
+						<addrTo>P:800051C1</addrTo>
+						<tree>SWC_Failsafe.c \274--277</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>8</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>SWC_Failsafe.c \278--300</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c</srcpath>
+						<cov>not taken</cov>
+						<exec metric="object">71.428%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>1</nottaken>
+						<bytes>14</bytes>
+						<bytesok>10</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800051C2</addrFrom>
+						<addrTo>P:800051C5</addrTo>
+						<tree>SWC_Failsafe.c \301--301</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800051D2</addrFrom>
+						<addrTo>P:800051D5</addrTo>
+						<tree>SWC_Failsafe.c \302--302</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c</srcpath>
+						<cov>not taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>1</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800051D6</addrFrom>
+						<addrTo>P:800051DD</addrTo>
+						<tree>SWC_Failsafe.c \303--303</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c</srcpath>
+						<cov>partial</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>12.500%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>0</nottaken>
+						<never>3</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800051DE</addrFrom>
+						<addrTo>P:800051E5</addrTo>
+						<tree>SWC_Failsafe.c \304--305</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c</srcpath>
+						<cov>not taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>4</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800051E6</addrFrom>
+						<addrTo>P:800051ED</addrTo>
+						<tree>SWC_Failsafe.c \306--307</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c</srcpath>
+						<cov>branches</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>1</taken>
+						<nottaken>1</nottaken>
+						<never>0</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800051EE</addrFrom>
+						<addrTo>P:800051F1</addrTo>
+						<tree>SWC_Failsafe.c \308--308</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800051CE</addrFrom>
+						<addrTo>P:800051D1</addrTo>
+						<tree>SWC_Failsafe.c \309--312</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c</srcpath>
+						<cov>not taken</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>50.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>1</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800051F2</addrFrom>
+						<addrTo>P:800051F9</addrTo>
+						<tree>SWC_Failsafe.c \313--313</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>0.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>4</never>
+						<bytes>8</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800051FA</addrFrom>
+						<addrTo>P:800051FD</addrTo>
+						<tree>SWC_Failsafe.c \314--314</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800051CA</addrFrom>
+						<addrTo>P:800051CD</addrTo>
+						<tree>SWC_Failsafe.c \315--318</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>100.000%</branches>
+						<ok>1</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:800051FE</addrFrom>
+						<addrTo>P:80005207</addrTo>
+						<tree>SWC_Failsafe.c \319--322</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>0.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>3</never>
+						<bytes>10</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80005208</addrFrom>
+						<addrTo>P:80005209</addrTo>
+						<tree>SWC_Failsafe.c \323--324</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>2</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000520A</addrFrom>
+						<addrTo>P:8000520D</addrTo>
+						<tree>SWC_Failsafe.c \325--330</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000520E</addrFrom>
+						<addrTo>P:80005211</addrTo>
+						<tree>SWC_Failsafe.c \331--331</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c</srcpath>
+						<cov>ok</cov>
+						<exec metric="object">100.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>4</bytesok>
+					</line>
+					<total>
+						<cov>partial</cov>
+						<exec metric="object">44.285%</exec>
+						<branches>31.818%</branches>
+						<ok>1</ok>
+						<taken>4</taken>
+						<nottaken>8</nottaken>
+						<never>9</never>
+						<bytes>140</bytes>
+						<bytesok>62</bytesok>
+					</total>
+				</function>
+				<total>
+					<cov>partial</cov>
+					<exec metric="object">44.285%</exec>
+					<branches>30.434%</branches>
+					<ok>1</ok>
+					<taken>4</taken>
+					<nottaken>8</nottaken>
+					<never>10</never>
+					<bytes>140</bytes>
+					<bytesok>62</bytesok>
+				</total>
+			</module>
+			<module>
+				<addrFrom>P:80002C38</addrFrom>
+				<addrTo>P:80002DC9</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\FS_BatteryVoltage</tree>
+				<cov>partial</cov>
+				<exec metric="object">83.582%</exec>
+				<branches>68.750%</branches>
+				<ok>12</ok>
+				<taken>3</taken>
+				<nottaken>6</nottaken>
+				<never>3</never>
+				<bytes>402</bytes>
+				<bytesok>336</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_CANBusOff</tree>
+				<cov>partial</cov>
+				<exec metric="object">45.736%</exec>
+				<branches>1.215%</branches>
+				<ok>0</ok>
+				<taken>6</taken>
+				<nottaken>2</nottaken>
+				<never>321</never>
+				<bytes>258</bytes>
+				<bytesok>118</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_CANTimeout</tree>
+				<cov>partial</cov>
+				<exec metric="object">37.582%</exec>
+				<branches>16.413%</branches>
+				<ok>8</ok>
+				<taken>82</taken>
+				<nottaken>10</nottaken>
+				<never>229</never>
+				<bytes>2432</bytes>
+				<bytesok>914</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_InvalidSignal</tree>
+				<cov>partial</cov>
+				<exec metric="object">54.381%</exec>
+				<branches>34.650%</branches>
+				<ok>3</ok>
+				<taken>130</taken>
+				<nottaken>92</nottaken>
+				<never>104</never>
+				<bytes>5866</bytes>
+				<bytesok>3190</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_SWFailure</tree>
+				<cov>partial</cov>
+				<exec metric="object">36.224%</exec>
+				<branches>1.215%</branches>
+				<ok>0</ok>
+				<taken>7</taken>
+				<nottaken>1</nottaken>
+				<never>321</never>
+				<bytes>392</bytes>
+				<bytesok>142</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>5</never>
+				<bytes>806</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80005B2A</addrFrom>
+				<addrTo>P:80005CBB</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc1</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>402</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80005CBC</addrFrom>
+				<addrTo>P:80005E4D</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc2</tree>
+				<cov>partial</cov>
+				<exec metric="object">81.094%</exec>
+				<branches>87.500%</branches>
+				<ok>3</ok>
+				<taken>0</taken>
+				<nottaken>1</nottaken>
+				<never>0</never>
+				<bytes>402</bytes>
+				<bytesok>326</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc3</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc4</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_main</tree>
+				<cov>partial</cov>
+				<exec metric="object">24.691%</exec>
+				<branches>25.000%</branches>
+				<ok>1</ok>
+				<taken>1</taken>
+				<nottaken>1</nottaken>
+				<never>5</never>
+				<bytes>324</bytes>
+				<bytesok>80</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80006180</addrFrom>
+				<addrTo>P:80006315</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc5</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80006456</addrFrom>
+				<addrTo>P:80006485</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_stubs</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>2</never>
+				<bytes>48</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<total>
+				<cov>partial</cov>
+				<exec metric="object">43.546%</exec>
+				<branches>15.776%</branches>
+				<ok>31</ok>
+				<taken>241</taken>
+				<nottaken>134</nottaken>
+				<never>979</never>
+				<bytes>14890</bytes>
+				<bytesok>6484</bytesok>
+			</total>
+		</COVerage.EXPORT.ListLine>
+	</coverage>
+	<marker>
+		<BookMark.EXPORT ts="1622419849" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE">
+		</BookMark.EXPORT>
+	</marker>
+	<listing>
+		<List.EXPORT ts="1622419849" t32ver="R.2020.09.000128638" t32pv="TRICORE" order="source">
+			<mixed module="\\MANDO_FailSafe_Integration\SWC_Failsafe" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c">
+				<hll><line>249</line><src>#endif</src></hll>
+				<hll><line>250</line><src>}</src></hll>
+				<hll><line>251</line><src></src></hll>
+				<hll><line>252</line><src>void FS_PostProcessing(void)</src></hll>
+				<hll><line>253</line><src>{</src></hll>
+				<hll><cov>ok</cov><line>254</line><src>    struct inhibit_info *p = get_inhibit_ptr();</src></hll>
+				<asm><cov>ok</cov><addr>P:80005186</addr><code>017F006D</code><label>FS_PostProcessing:                                                                                                                                                                                                                                              </label><mnemonic>call      0x80005484</mnemonic><comment>get_inhibit_ptr</comment></asm>
+				<asm><cov>ok</cov><addr>P:8000518A</addr><code>2C40</code><mnemonic>mov16.aa  a12,a2</mnemonic><comment>a12,p</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\SWC_Failsafe" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c">
+				<hll><line>255</line><src></src></hll>
+				<hll><cov>taken</cov><line>256</line><src>    if (!Get_NAVI_Option())</src></hll>
+				<asm><cov>ok</cov><addr>P:8000518C</addr><code>0177006D</code><mnemonic>call      0x8000547A</mnemonic><comment>Get_HDA2_Option</comment></asm>
+				<asm><cov>taken</cov><addr>P:80005190</addr><code>24F6</code><mnemonic>jnz16     d2,0x80005198</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\SWC_Failsafe" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c">
+				<hll><cov>never</cov><line>257</line><src>        p-&gt;warning.SCC_NSCCOnOffSta = 0;</src></hll>
+				<asm><cov>never</cov><addr>P:80005192</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80005194</addr><code>0823CF89</code><mnemonic>st.b      [a12]0x23,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\SWC_Failsafe" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c">
+				<hll><line>258</line><src></src></hll>
+				<hll><cov>taken</cov><line>259</line><src>    if (!Get_HDA2_Option())</src></hll>
+				<asm><cov>ok</cov><addr>P:80005198</addr><code>0171006D</code><mnemonic>call      0x8000547A</mnemonic><comment>Get_HDA2_Option</comment></asm>
+				<asm><cov>taken</cov><addr>P:8000519C</addr><code>24F6</code><mnemonic>jnz16     d2,0x800051A4</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\SWC_Failsafe" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c">
+				<hll><cov>never</cov><line>260</line><src>        p-&gt;warning.HDA_LCFuncSta = 0;</src></hll>
+				<asm><cov>never</cov><addr>P:8000519E</addr><code>00DA</code><mnemonic>mov16     d15,#0x0</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800051A0</addr><code>0825CF89</code><mnemonic>st.b      [a12]0x25,d15</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\SWC_Failsafe" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c">
+				<hll><line>261</line><src></src></hll>
+				<hll><line>262</line><src>#if CCAN == CANFD</src></hll>
+				<hll><line>263</line><src>    extern MsgGr_E2E_ECANFD_ADAS_CMD_31_50ms MsgGr_ADAS_CMD_31_50ms_IVC_D;</src></hll>
+				<hll><line>264</line><src>#elif CCAN == HSCAN</src></hll>
+				<hll><line>265</line><src>    extern MsgGr_CCAN_ADAS_CMD_31_1_50ms MsgGr_ADAS_CMD_31_1_50ms_Out;</src></hll>
+				<hll><line>266</line><src>#define MsgGr_ADAS_CMD_31_50ms_Out MsgGr_ADAS_CMD_31_1_50ms_Out</src></hll>
+				<hll><line>267</line><src>#define SWRC_LFASwSta CF_Clu_LFASwState</src></hll>
+				<hll><line>268</line><src>#endif </src></hll>
+				<hll><line>269</line><src></src></hll>
+				<hll><line>270</line><src>    uint8 LFASwSta;</src></hll>
+				<hll><line>271</line><src>        </src></hll>
+				<hll><cov>ok</cov><line>272</line><src>    uint8 HDA_CntrlModSta = MsgGr_ADAS_CMD_31_50ms_IVC_D.HDA_CntrlModSta,</src></hll>
+				<asm><cov>ok</cov><addr>P:800051AE</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800051B2</addr><code>2060FFD9</code><mnemonic>lea       a15,[a15]0x4A0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800051B6</addr><code>1108</code><mnemonic>ld16.bu   d1,[a15]0x1</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\SWC_Failsafe" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c">
+				<hll><cov>ok</cov><line>273</line><src>          HDA_LFA_SymSta = MsgGr_ADAS_CMD_31_50ms_IVC_D.HDA_LFA_SymSta;</src></hll>
+				<asm><cov>ok</cov><addr>P:800051B8</addr><code>3F08</code><mnemonic>ld16.bu   d15,[a15]0x3</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\SWC_Failsafe" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c">
+				<hll><line>274</line><src></src></hll>
+				<hll><line>275</line><src></src></hll>
+				<hll><line>276</line><src>#if LFA_SW_INTEG == APPLIED</src></hll>
+				<hll><cov>ok</cov><line>277</line><src>    LFASwSta = ref_sig.LFA_ShrtkeySwSta;</src></hll>
+				<asm><cov>ok</cov><addr>P:800051BA</addr><code>F9004091</code><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800051BE</addr><code>E008F239</code><mnemonic>ld.bu     d2,[a15]0x388</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\SWC_Failsafe" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c" type="multiple">
+				<hll><line>278</line><src>#elif LFA_SW_INTEG == NOT_APPLIED</src></hll>
+				<hll><line>279</line><src>    LFASwSta = ref_sig.SWRC_LFASwSta;</src></hll>
+				<hll><line>280</line><src>#elif LFA_SW_INTEG == MIXED</src></hll>
+				<hll><line>281</line><src>    switch (VariantCode_NvMData.stNvMVariantCode.NvM_Block_Region) {</src></hll>
+				<hll><line>282</line><src>    case Region__Europe:</src></hll>
+				<hll><line>283</line><src>    case Region__Australia:</src></hll>
+				<hll><line>284</line><src>        case Region__Russia:</src></hll>
+				<hll><line>285</line><src>        LFASwSta = ref_sig.LFA_ShrtkeySwSta;</src></hll>
+				<hll><line>286</line><src>        break;</src></hll>
+				<hll><line>287</line><src>    default:</src></hll>
+				<hll><line>288</line><src>        LFASwSta = ref_sig.SWRC_LFASwSta;</src></hll>
+				<hll><line>289</line><src>        break;</src></hll>
+				<hll><line>290</line><src>    }</src></hll>
+				<hll><line>291</line><src>#endif /* LFA_SW_INTEG */</src></hll>
+				<hll><line>292</line><src></src></hll>
+				<hll><line>293</line><src></src></hll>
+				<hll><line>294</line><src>    static enum {</src></hll>
+				<hll><line>295</line><src>        NO_POPUP = 0,</src></hll>
+				<hll><line>296</line><src>        LFA_FAIL_POPUP = 3,</src></hll>
+				<hll><line>297</line><src>        HDA_FAIL_POPUP = 4,</src></hll>
+				<hll><line>298</line><src>    } popup = NO_POPUP;</src></hll>
+				<hll><line>299</line><src></src></hll>
+				<hll><cov>ok</cov><line>300</line><src>    if (popup == NO_POPUP) {</src></hll>
+				<asm><cov>ok</cov><addr>P:800051A4</addr><code>29004091</code><mnemonic>movh.a    a2,#0x9004</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800051A8</addr><code>606422D9</code><mnemonic>lea       a2,[a2]0x5A4</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:800051AC</addr><code>2054</code><mnemonic>ld16.w    d0,[a2]</mnemonic></asm>
+				<asm><cov>not taken</cov><addr>P:800051C6</addr><code>801C00DF</code><mnemonic>jne       d0,#0x0,0x800051FE</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\SWC_Failsafe" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c">
+				<hll><cov>ok</cov><line>301</line><src>        switch (p-&gt;warning.HDA_InfoPUDis) {</src></hll>
+				<asm><cov>ok</cov><addr>P:800051C2</addr><code>0864C309</code><mnemonic>ld.bu     d3,[a12]0x24</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\SWC_Failsafe" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c">
+				<hll><did>not</did><dec>taken</dec><cov>taken</cov><line>302</line><src>        case HDA_LFA_FAULT:</src></hll>
+				<asm><cov>not taken</cov><addr>P:800051D2</addr><code>801C23DF</code><mnemonic>jne       d3,#0x2,0x8000520A</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\SWC_Failsafe" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c">
+				<hll><cov>partial</cov><line>303</line><src>            if (HDA_CntrlModSta != 0 &amp;&amp; (HDA_LFA_SymSta == 1 || HDA_LFA_SymSta == 2 || HDA_LFA_SymSta == 3))</src></hll>
+				<asm><cov>taken</cov><addr>P:800051D6</addr><code>1476</code><mnemonic>jz16      d1,0x800051DE</mnemonic><comment>HDA_CntrlModSta,0x800051DE</comment></asm>
+				<asm><cov>never</cov><addr>P:800051D8</addr><code>119E</code><mnemonic>jeq16     d15,#0x1,0x800051FA</mnemonic><comment>HDA_LFA_SymSta,#1,0x800051FA</comment></asm>
+				<asm><cov>never</cov><addr>P:800051DA</addr><code>209E</code><mnemonic>jeq16     d15,#0x2,0x800051FA</mnemonic><comment>HDA_LFA_SymSta,#2,0x800051FA</comment></asm>
+				<asm><cov>never</cov><addr>P:800051DC</addr><code>3F1E</code><mnemonic>jeq16     d15,#0x3,0x800051FA</mnemonic><comment>HDA_LFA_SymSta,#3,0x800051FA</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\SWC_Failsafe" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c">
+				<hll><line>304</line><src>                popup = HDA_FAIL_POPUP;</src></hll>
+				<hll><did>not</did><dec>taken</dec><cov>taken</cov><line>305</line><src>            else if (HDA_CntrlModSta == 0 &amp;&amp; (HDA_LFA_SymSta == 1 || HDA_LFA_SymSta == 2 || HDA_LFA_SymSta == 3))</src></hll>
+				<asm><cov>not taken</cov><addr>P:800051DE</addr><code>14F6</code><mnemonic>jnz16     d1,0x800051E6</mnemonic><comment>HDA_CntrlModSta,0x800051E6</comment></asm>
+				<asm><cov>not taken</cov><addr>P:800051E0</addr><code>171E</code><mnemonic>jeq16     d15,#0x1,0x800051EE</mnemonic><comment>HDA_LFA_SymSta,#1,0x800051EE</comment></asm>
+				<asm><cov>not taken</cov><addr>P:800051E2</addr><code>261E</code><mnemonic>jeq16     d15,#0x2,0x800051EE</mnemonic><comment>HDA_LFA_SymSta,#2,0x800051EE</comment></asm>
+				<asm><cov>not taken</cov><addr>P:800051E4</addr><code>351E</code><mnemonic>jeq16     d15,#0x3,0x800051EE</mnemonic><comment>HDA_LFA_SymSta,#3,0x800051EE</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\SWC_Failsafe" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c">
+				<hll><line>306</line><src>                popup = LFA_FAIL_POPUP;</src></hll>
+				<hll><cov>branches</cov><line>307</line><src>            else if (HDA_CntrlModSta == 0 &amp;&amp; LFASwSta == 1)</src></hll>
+				<asm><cov>not taken</cov><addr>P:800051E6</addr><code>801101DF</code><mnemonic>jne       d1,#0x0,0x80005208</mnemonic><comment>HDA_CntrlModSta,#0,0x80005208</comment></asm>
+				<asm><cov>taken</cov><addr>P:800051EA</addr><code>800F12DF</code><mnemonic>jne       d2,#0x1,0x80005208</mnemonic><comment>LFASwSta,#1,0x80005208</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\SWC_Failsafe" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c">
+				<hll><cov>never</cov><line>308</line><src>                popup = LFA_FAIL_POPUP;</src></hll>
+				<asm><cov>never</cov><addr>P:800051EE</addr><code>3082</code><mnemonic>mov16     d0,#0x3</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800051F0</addr><code>0D3C</code><mnemonic>j16       0x8000520A</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\SWC_Failsafe" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c">
+				<hll><line>309</line><src>            else</src></hll>
+				<hll><line>310</line><src>                popup = NO_POPUP;</src></hll>
+				<hll><line>311</line><src>            break;</src></hll>
+				<hll><did>not</did><dec>taken</dec><cov>taken</cov><line>312</line><src>        case HDA_FAULT:</src></hll>
+				<asm><cov>not taken</cov><addr>P:800051CE</addr><code>001213DF</code><mnemonic>jeq       d3,#0x1,0x800051F2</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\SWC_Failsafe" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c">
+				<hll><cov>never</cov><line>313</line><src>            if (HDA_CntrlModSta != 0 &amp;&amp; (HDA_LFA_SymSta == 1 || HDA_LFA_SymSta == 2 || HDA_LFA_SymSta == 3))</src></hll>
+				<asm><cov>never</cov><addr>P:800051F2</addr><code>1B76</code><mnemonic>jz16      d1,0x80005208</mnemonic><comment>HDA_CntrlModSta,0x80005208</comment></asm>
+				<asm><cov>never</cov><addr>P:800051F4</addr><code>131E</code><mnemonic>jeq16     d15,#0x1,0x800051FA</mnemonic><comment>HDA_LFA_SymSta,#1,0x800051FA</comment></asm>
+				<asm><cov>never</cov><addr>P:800051F6</addr><code>221E</code><mnemonic>jeq16     d15,#0x2,0x800051FA</mnemonic><comment>HDA_LFA_SymSta,#2,0x800051FA</comment></asm>
+				<asm><cov>never</cov><addr>P:800051F8</addr><code>385E</code><mnemonic>jne16     d15,#0x3,0x80005208</mnemonic><comment>HDA_LFA_SymSta,#3,0x80005208</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\SWC_Failsafe" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c">
+				<hll><cov>never</cov><line>314</line><src>                popup = HDA_FAIL_POPUP;</src></hll>
+				<asm><cov>never</cov><addr>P:800051FA</addr><code>4082</code><mnemonic>mov16     d0,#0x4</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:800051FC</addr><code>073C</code><mnemonic>j16       0x8000520A</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\SWC_Failsafe" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c">
+				<hll><line>315</line><src>            else</src></hll>
+				<hll><line>316</line><src>                popup = NO_POPUP;</src></hll>
+				<hll><line>317</line><src>            break;</src></hll>
+				<hll><cov>ok</cov><line>318</line><src>        case NO_FAULT:</src></hll>
+				<asm><cov>ok</cov><addr>P:800051CA</addr><code>001F03DF</code><mnemonic>jeq       d3,#0x0,0x80005208</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\SWC_Failsafe" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c">
+				<hll><line>319</line><src>            popup = NO_POPUP;</src></hll>
+				<hll><line>320</line><src>            break;</src></hll>
+				<hll><line>321</line><src>        }</src></hll>
+				<hll><cov>never</cov><line>322</line><src>    } else if (p-&gt;warning.HDA_InfoPUDis == NO_FAULT || (popup == LFA_FAIL_POPUP &amp;&amp; p-&gt;warning.HDA_InfoPUDis == HDA_FAULT)) {</src></hll>
+				<asm><cov>never</cov><addr>P:800051FE</addr><code>3576</code><mnemonic>jz16      d3,0x80005208</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80005200</addr><code>800530DF</code><mnemonic>jne       d0,#0x3,0x8000520A</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80005204</addr><code>800313DF</code><mnemonic>jne       d3,#0x1,0x8000520A</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\SWC_Failsafe" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c">
+				<hll><line>323</line><src>        /* Recover when NO_FAULT or last LFA popup X HDA_FAULT */</src></hll>
+				<hll><cov>ok</cov><line>324</line><src>        popup = NO_POPUP;</src></hll>
+				<asm><cov>ok</cov><addr>P:80005208</addr><code>0082</code><mnemonic>mov16     d0,#0x0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\SWC_Failsafe" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c">
+				<hll><line>325</line><src>    } else {</src></hll>
+				<hll><line>326</line><src>        /* Maintain last warning popup, except above cases */</src></hll>
+				<hll><line>327</line><src>    }</src></hll>
+				<hll><line>328</line><src></src></hll>
+				<hll><line>329</line><src>    /* Convert HDA_InfoPUDis value from FAULT to POPUP */</src></hll>
+				<hll><cov>ok</cov><line>330</line><src>    p-&gt;warning.HDA_InfoPUDis = popup;</src></hll>
+				<asm><cov>ok</cov><addr>P:8000520A</addr><code>0824C089</code><mnemonic>st.b      [a12]0x24,d0</mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\SWC_Failsafe" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\ASW\Failsafe\SWC_Failsafe.c">
+				<hll><cov>ok</cov><line>331</line><src>}</src></hll>
+				<asm><cov>ok</cov><addr>P:8000520E</addr><code>2074</code><mnemonic>st16.w    [a2],d0</mnemonic></asm>
+				<asm><cov>ok</cov><addr>P:80005210</addr><code>9000</code><mnemonic>ret16     </mnemonic></asm>
+			</mixed>
+		</List.EXPORT>
+	</listing>
+</TRACE32>

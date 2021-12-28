@@ -1,0 +1,27 @@
+//E2E Error 회복조건 확인
+B::
+//&para4 : 10ms -> 1cycle
+ENTRY &para1 &para2 &para3 &para4
+
+//ALL messages clear fault
+d.set Var.RANGE(can_timeout_tick) 0x0
+d.set Var.RANGE(can_timeout_fault) 0x0
+
+v e2e_err_flags[&para1]=e2e_err_flags[&para1]&~(1<<&para2)
+
+if string.scan("&para2","ESC",0)!=-1||string.scan("&para2","WHL",0)!=-1
+(
+    v esc[&para3].fault=1
+    v esc[&para3].recover_cnt=&para4/10.
+)
+else if string.scan("&para2","CLU",0)!=-1
+(
+    v clu[&para3].fault=1
+    v clu[&para3].recover_cnt=&para4/10.
+)
+else
+(
+   PRINT %ERROR "ERROR1"
+)
+
+ENDDO

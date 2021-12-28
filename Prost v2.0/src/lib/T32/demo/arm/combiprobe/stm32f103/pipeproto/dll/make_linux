@@ -1,0 +1,21 @@
+# Should be called with
+#
+# make -f Makefile.linux
+
+all: pproto
+
+pproto: pproto.o pipeproto.o mypipe.o
+	gcc -shared -o $@ $^
+
+pipeproto.o: pipeproto.c pipeproto.h
+	gcc -Wall -O2 -c $<
+
+mypipe.o: mypipe.c mypipe.h
+	gcc -Wall -O2 -DLINUX -c $<
+
+pproto.o: pproto.c mypipe.h pipeproto.h
+	gcc -Wall -O2 -DLINUX -c $<
+
+clean:
+	rm -f *.o pproto
+

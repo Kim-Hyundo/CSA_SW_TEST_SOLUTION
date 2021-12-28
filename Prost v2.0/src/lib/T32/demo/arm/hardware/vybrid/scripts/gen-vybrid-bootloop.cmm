@@ -1,0 +1,110 @@
+; --------------------------------------------------------------------------------
+; @Title: QSPI Bootimage generation for Vybrid
+; @Description:
+;   This scripts creates a super simple/trivial QSPI bootimage including the
+;   QSPI configuration header and Image Vector Table.
+;   The QSPI parameters are the BOOTROM defaults and should work with every QSPI
+;   flash. The application is a endless loop
+; @Keywords: QSPI, IVT
+; @Author: AME
+; @Board: -
+; @Chip: VF*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: gen-vybrid-bootloop.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+; clear the AVM: memory
+Data.Set AVM:0x0--0xfff %Long 0x0
+; create QSPI configuration data
+; the parameters are based on the BootROM defaults and allow to access a up to 16MByte flash
+(
+  ;Res
+  Data.Set AVM:0x0 %Long %LE 0x0
+  ; Hold Delay
+  Data.Set AVM:0x4 %Byte %LE 0x0
+  ; Half Speed Phase Selection
+  Data.Set AVM:0x5 %Byte %LE 0x0
+  ; Half Speed Delay Selection
+  Data.Set AVM:0x6 %Byte %LE 0x0
+  ;Res
+  Data.Set AVM:0x7 %Byte %LE 0x0
+  ;Res
+  Data.Set AVM:0x8 %Long %LE 0x0
+  ;Res
+  Data.Set AVM:0xC %Long %LE 0x0
+  ;Res
+  Data.Set AVM:0x10 %Long %LE 0x0
+  ;Chip Select hold time
+  Data.Set AVM:0x14 %Long %LE 0x3
+  ;Chip Select setup time
+  Data.Set AVM:0x18 %Long %LE 0x3
+  ; Serial Flash A1 size
+  Data.Set AVM:0x1C %Long %LE 0x01000000
+  ; Serial Flash A2 size
+  Data.Set AVM:0x20 %Long %LE 0x00000000
+  ; Serial Flash B1 size
+  Data.Set AVM:0x24 %Long %LE 0x01000000
+  ; Serial Flash B2 size
+  Data.Set AVM:0x28 %Long %LE 0x00000000
+  ; Serial Clock Frequency
+  Data.Set AVM:0x2c %Long %LE 0x00
+  ;Res
+  Data.Set AVM:0x30 %Long %LE 0x0
+  ; Mode of operation of serial Flash
+  Data.Set AVM:0x34 %Byte %LE 0x1
+  ; Serial Flash Port B Selection
+  Data.Set AVM:0x35 %Byte %LE 0x0
+  ; Dual Data Rate mode enable
+  Data.Set AVM:0x36 %Byte %LE 0x0
+  ; Data Strobe Signal enable in Serial Flash
+  Data.Set AVM:0x37 %Byte %LE 0x0
+  ; Parallel Mode enable
+  Data.Set AVM:0x38 %Byte %LE 0x0
+  ; CS1 on Port A
+  Data.Set AVM:0x39 %Byte %LE 0x0
+  ; CS1 on Port B
+  Data.Set AVM:0x3A %Byte %LE 0x0
+  ; Full Speed Phase Selection
+  Data.Set AVM:0x3B %Byte %LE 0x0
+  ; Full Speed Delay Selection
+  Data.Set AVM:0x3C %Byte %LE 0x0
+  ; DDR Sampling Point
+  Data.Set AVM:0x3D %Byte %LE 0x0
+
+  ; LUT
+  Data.Set AVM:0x3E %Long %LE 0x08180403
+  Data.Set AVM:0x42 %Long %LE 0x24001C08
+  Data.Set AVM:0x46 %Long %LE 0x0
+)
+
+; create super simple IVT
+(
+  ; header
+  Data.Set AVM:0x400 %Long %LE 0x412000D1
+  ; Boot Addr
+  Data.Set AVM:0x404 %Long %LE 0x20000800
+  ; Res
+  Data.Set AVM:0x408 %Long %LE 0x0
+  ; dcd
+  Data.Set AVM:0x40c %Long %LE 0x0
+  ; boot data
+  Data.Set AVM:0x410 %Long %LE 0x20000420
+  ; self
+  Data.Set AVM:0x414 %Long %LE 0x20000400
+  ; csf
+  Data.Set AVM:0x418 %Long %LE 0x0
+  ; res
+  Data.Set AVM:0x418 %Long %LE 0x0
+  ; create boot data
+  Data.Set AVM:0x420 %Long %LE 0x20000000 0x083c 0x0
+)
+
+; create simple program - endless loop
+(
+  ; simple program b $+0x0
+  Data.Set AVM:0x800--0xfff %Long %LE 0xeafffffe
+)
+
+Data.SAVE.Binary ~~~~/vybrid-qspi-bootloop.bin AVM:0x0--0xfff
+
+ENDDO

@@ -1,0 +1,419 @@
+B::list_sYmbol.RANGE(VC_Step1)_/cov
+_decisions___true__false____coverage____addr/line|code_____|label____|mnemonic________________|comment
+                                                 |{
+                                stmt         2058|        i_In1 = TC_i_In1[i];
+                                  ok   P:70100000|0000      VC_Step1: nop16
+                                  ok   P:70100002|0000                nop16
+                                  ok   P:70100004|0000                nop16
+                                  ok   P:70100006|0000                nop16
+                                                 |{
+                                stmt         2058|        i_In1 = TC_i_In1[i];
+                                  ok   P:70100008|0000                nop16
+                                  ok   P:7010000A|0000                nop16
+                                  ok   P:7010000C|0000                nop16
+                                  ok   P:7010000E|0000                nop16
+                                                 |{
+                                stmt         2058|        i_In1 = TC_i_In1[i];
+                                  ok   P:70100010|0000                nop16
+                                                 |{
+                                stmt         2058|        i_In1 = TC_i_In1[i];
+                                  ok   P:70100012|0000                nop16
+                                  ok   P:70100014|0000                nop16
+                                                 |{
+                                stmt         2058|        i_In1 = TC_i_In1[i];
+                                  ok   P:70100016|0000                nop16
+                                  ok   P:70100018|0000                nop16
+                                stmt         2059|        i_In2 = TC_i_In2[i];
+                                  ok   P:7010001A|0000                nop16
+                                  ok   P:7010001C|0000                nop16
+                                                 |{
+                                stmt         2058|        i_In1 = TC_i_In1[i];
+                                  ok   P:7010001E|0000                nop16
+                                  ok   P:70100020|0000                nop16
+                                stmt         2059|        i_In2 = TC_i_In2[i];
+                                  ok   P:70100022|0000                nop16
+                                  ok   P:70100024|0000                nop16
+                                stmt         2059|        i_In2 = TC_i_In2[i];
+                                  ok   P:70100026|0000                nop16
+                                                 |{
+                                stmt         2058|        i_In1 = TC_i_In1[i];
+                                  ok   P:70100028|0000                nop16
+                                stmt         2059|        i_In2 = TC_i_In2[i];
+                                  ok   P:7010002A|0000                nop16
+                                  ok   P:7010002C|0000                nop16
+                                  ok   P:7010002E|0000                nop16
+                                  ok   P:70100030|0000                nop16
+                                stmt         2059|        i_In2 = TC_i_In2[i];
+                                  ok   P:70100032|0000                nop16
+                                stmt         2059|        i_In2 = TC_i_In2[i];
+                                  ok   P:70100034|0000                nop16
+                                                 |
+                                                 |  int32_T tmp;
+                                                 |  uint16_T u0;
+                                                 |
+                                                 |  /* Product: '<Root>/Divide' incorporates:
+                                                 |   *  Delay: '<Root>/Integer Delay'
+                                                 |   *  Delay: '<Root>/Integer Delay1'
+                                                 |   *  Sum: '<Root>/Add'
+                                                 |   */
+                                stmt         2069|  tmp = (uint16_T)(localDW.IntegerDelay1_DSTATE + 1U);
+                                  ok   P:70100036|0000                nop16
+                                  ok   P:70100038|0000                nop16
+                                  ok   P:7010003A|0000                nop16
+                                  ok   P:7010003C|0000                nop16
+                                                 |
+                                                 |  int32_T tmp;
+                                                 |  uint16_T u0;
+                                                 |
+                                                 |  /* Product: '<Root>/Divide' incorporates:
+                                                 |   *  Delay: '<Root>/Integer Delay'
+                                                 |   *  Delay: '<Root>/Integer Delay1'
+                                                 |   *  Sum: '<Root>/Add'
+                                                 |   */
+                                stmt         2069|  tmp = (uint16_T)(localDW.IntegerDelay1_DSTATE + 1U);
+                                  ok   P:7010003E|0000                nop16
+                                  ok   P:70100040|0000                nop16
+                                stmt         2071|    localDW.IntegerDelay_DSTATE[0] / tmp);
+                                  ok   P:70100042|0000                nop16
+                                  ok   P:70100044|0000                nop16
+                                                 |...
+                                                 |
+                                                 |rtDW_pil_target_tc277 localDW;
+                                                 |
+                                                 |volatile int32_T ret;
+                                                 |
+                                                 |int i =0;
+                                                 |
+                                                 |/* Output and update for referenced model: 'pil_target_tc277' */
+                                stmt         2056|void VC_Step1(void)
+                                                 |
+                                                 |  int32_T tmp;
+                                                 |  uint16_T u0;
+                                                 |
+                                                 |  /* Product: '<Root>/Divide' incorporates:
+                                                 |   *  Delay: '<Root>/Integer Delay'
+                                                 |   *  Delay: '<Root>/Integer Delay1'
+                                                 |   *  Sum: '<Root>/Add'
+                                                 |   */
+                                stmt         2069|  tmp = (uint16_T)(localDW.IntegerDelay1_DSTATE + 1U);
+                                  ok   P:70100046|0000                nop16
+                                  ok   P:70100048|0000                nop16
+                                                 |
+                                                 |  int32_T tmp;
+                                                 |  uint16_T u0;
+                                                 |
+                                                 |  /* Product: '<Root>/Divide' incorporates:
+                                                 |   *  Delay: '<Root>/Integer Delay'
+                                                 |   *  Delay: '<Root>/Integer Delay1'
+                                                 |   *  Sum: '<Root>/Add'
+                                                 |   */
+                                stmt         2069|  tmp = (uint16_T)(localDW.IntegerDelay1_DSTATE + 1U);
+                                  ok   P:7010004A|0000                nop16
+                                  ok   P:7010004C|0000                nop16
+                                stmt         2070|  o_Out2 = (uint16_T)((uint32_T)tmp == 0U ? MAX_uint32_T : (uint32_T)
+                               taken   P:7010004E|0000                nop16
+                          incomplete         2070|  o_Out2 = (uint16_T)((uint32_T)tmp == 0U ? MAX_uint32_T : (uint32_T)
+                               never   P:70100050|0000                nop16
+                               never   P:70100052|0000                nop16
+                                stmt         2071|    localDW.IntegerDelay_DSTATE[0] / tmp);
+                                  ok   P:70100054|0000                nop16
+                                  ok   P:70100056|0000                nop16
+                                stmt         2070|  o_Out2 = (uint16_T)((uint32_T)tmp == 0U ? MAX_uint32_T : (uint32_T)
+                                  ok   P:70100058|0000                nop16
+                                  ok   P:7010005A|0000                nop16
+                                stmt         2070|  o_Out2 = (uint16_T)((uint32_T)tmp == 0U ? MAX_uint32_T : (uint32_T)
+                                  ok   P:7010005C|0000                nop16
+                                  ok   P:7010005E|0000                nop16
+                                                 |
+                                                 |  /* Product: '<Root>/Product' incorporates:
+                                                 |   *  Delay: '<Root>/Integer Delay'
+                                                 |   */
+                                stmt         2076|  o_Out1 = (uint16_T)((uint32_T)i_In1 * localDW.IntegerDelay_DSTATE[0]);
+                                  ok   P:70100060|0000                nop16
+                                  ok   P:70100062|0000                nop16
+                                                 |
+                                                 |  /* Product: '<Root>/Product' incorporates:
+                                                 |   *  Delay: '<Root>/Integer Delay'
+                                                 |   */
+                                stmt         2076|  o_Out1 = (uint16_T)((uint32_T)i_In1 * localDW.IntegerDelay_DSTATE[0]);
+                                  ok   P:70100064|0000                nop16
+                                  ok   P:70100066|0000                nop16
+                                                 |
+                                                 |  /* Saturate: '<Root>/Saturation' */
+                                                 |  u0 = o_Out1;
+                                                 |
+                                                 |  /* Sqrt: '<Root>/Sqrt' */
+                                stmt         2082|  o_Out3 = (real32_T)sqrt(i_In2);
+                                  ok   P:70100068|0000                nop16
+                                  ok   P:7010006A|0000                nop16
+                                                 |
+                                                 |  /* Product: '<Root>/Product' incorporates:
+                                                 |   *  Delay: '<Root>/Integer Delay'
+                                                 |   */
+                                stmt         2076|  o_Out1 = (uint16_T)((uint32_T)i_In1 * localDW.IntegerDelay_DSTATE[0]);
+                                  ok   P:7010006C|0000                nop16
+                                  ok   P:7010006E|0000                nop16
+                                  ok   P:70100070|0000                nop16
+                                                 |
+                                                 |  /* Product: '<Root>/Product' incorporates:
+                                                 |   *  Delay: '<Root>/Integer Delay'
+                                                 |   */
+                                stmt         2076|  o_Out1 = (uint16_T)((uint32_T)i_In1 * localDW.IntegerDelay_DSTATE[0]);
+                                                 |
+                                                 |  /* Saturate: '<Root>/Saturation' */
+                                                 |  u0 = o_Out1;
+                                                 |
+                                                 |  /* Sqrt: '<Root>/Sqrt' */
+                                stmt         2082|  o_Out3 = (real32_T)sqrt(i_In2);
+                                  ok   P:70100072|0000                nop16
+                                  ok   P:70100074|0000                nop16
+                                  ok   P:70100076|0000                nop16
+                                  ok   P:70100078|0000                nop16
+                                  ok   P:7010007A|0000                nop16
+                                                 |
+                                                 |  /* Saturate: '<Root>/Saturation' */
+                                                 |  u0 = o_Out1;
+                                                 |
+                                                 |  /* Sqrt: '<Root>/Sqrt' */
+                                stmt         2082|  o_Out3 = (real32_T)sqrt(i_In2);
+                                  ok   P:7010007C|0000                nop16
+                                  ok   P:7010007E|0000                nop16
+                                                 |
+                                                 |  /* Trigonometry: '<Root>/Trigonometric Function' */
+                                stmt         2085|  o_Out4 = (real32_T)sin(i_In2);
+                                  ok   P:70100080|0000                nop16
+                                  ok   P:70100082|0000                nop16
+                                                 |
+                                                 |  /* Trigonometry: '<Root>/Trigonometric Function' */
+                                stmt         2085|  o_Out4 = (real32_T)sin(i_In2);
+                                  ok   P:70100084|0000                nop16
+                                  ok   P:70100086|0000                nop16
+                                  ok   P:70100088|0000                nop16
+                                                 |
+                                                 |  /* Trigonometry: '<Root>/Trigonometric Function' */
+                                stmt         2085|  o_Out4 = (real32_T)sin(i_In2);
+                                  ok   P:7010008A|0000                nop16
+                                  ok   P:7010008C|0000                nop16
+                                                 |
+                                                 |  /* Update for Delay: '<Root>/Integer Delay1' */
+                                stmt         2088|  localDW.IntegerDelay1_DSTATE = i_In1;
+                                  ok   P:7010008E|0000                nop16
+                                  ok   P:70100090|0000                nop16
+                                                 |
+                                                 |  /* Update for Delay: '<Root>/Integer Delay1' */
+                                stmt         2088|  localDW.IntegerDelay1_DSTATE = i_In1;
+                                  ok   P:70100092|0000                nop16
+                                                 |
+                                                 |  /* Update for Delay: '<Root>/Integer Delay' */
+                                stmt         2091|  localDW.IntegerDelay_DSTATE[0] = localDW.IntegerDelay_DSTATE[1];
+                                  ok   P:70100094|0000                nop16
+                                  ok   P:70100096|0000                nop16
+                                                 |
+                                                 |  /* Update for Delay: '<Root>/Integer Delay' */
+                                stmt         2091|  localDW.IntegerDelay_DSTATE[0] = localDW.IntegerDelay_DSTATE[1];
+                                  ok   P:70100098|0000                nop16
+                                stmt         2092|  localDW.IntegerDelay_DSTATE[1] = localDW.IntegerDelay_DSTATE[2];
+                                  ok   P:7010009A|0000                nop16
+                                  ok   P:7010009C|0000                nop16
+                                stmt         2092|  localDW.IntegerDelay_DSTATE[1] = localDW.IntegerDelay_DSTATE[2];
+                                  ok   P:7010009E|0000                nop16
+                                  ok   P:701000A0|0000                nop16
+                                stmt         2092|  localDW.IntegerDelay_DSTATE[1] = localDW.IntegerDelay_DSTATE[2];
+                                  ok   P:701000A2|0000                nop16
+                                  ok   P:701000A4|0000                nop16
+                                                 |
+                                                 |  /* Saturate: '<Root>/Saturation' */
+                                stmt         2095|  if (u0 > 6550) {
+                                  ok   P:701000A6|0000                nop16
+                                  ok   P:701000A8|0000                nop16
+                                                 |
+                                                 |  /* Saturate: '<Root>/Saturation' */
+                                stmt         2095|  if (u0 > 6550) {
+                               taken   P:701000AA|0000                nop16
+                                  ok   P:701000AC|0000                nop16
+                                                 |    /* Update for Delay: '<Root>/Integer Delay' */
+                          incomplete         2097|    localDW.IntegerDelay_DSTATE[2] = 6550U;
+                               never   P:701000AE|0000                nop16
+                               never   P:701000B0|0000                nop16
+                                                 |  } else if (u0 < 1) {
+                                                 |    /* Update for Delay: '<Root>/Integer Delay' */
+                                stmt         2100|    localDW.IntegerDelay_DSTATE[2] = 1U;
+                                  ok   P:701000B2|0000                nop16
+                                  ok   P:701000B4|0000                nop16
+                                                 |  } else {
+                                                 |    /* Update for Delay: '<Root>/Integer Delay' */
+                                                 |    localDW.IntegerDelay_DSTATE[2] = u0;
+                                                 |  }
+                                stmt         2105|  if (jrand(100)>10)
+                                  ok   P:701000B6|0000                nop16
+                                                 |  } else {
+                                                 |    /* Update for Delay: '<Root>/Integer Delay' */
+                                                 |    localDW.IntegerDelay_DSTATE[2] = u0;
+                                                 |  }
+                                stmt         2105|  if (jrand(100)>10)
+                                  ok   P:701000B8|0000                nop16
+                                  ok   P:701000BA|0000                nop16
+                                  ok   P:701000BC|0000                nop16
+                                  ok   P:701000BE|0000                nop16
+                                                 |  } else {
+                                                 |    /* Update for Delay: '<Root>/Integer Delay' */
+                                                 |    localDW.IntegerDelay_DSTATE[2] = u0;
+                                                 |  }
+                                stmt         2105|  if (jrand(100)>10)
+                                  ok   P:701000C0|0000                nop16
+                                                 |  } else {
+                                                 |    /* Update for Delay: '<Root>/Integer Delay' */
+                                                 |    localDW.IntegerDelay_DSTATE[2] = u0;
+                                                 |  }
+                                stmt         2105|  if (jrand(100)>10)
+                           not taken   P:701000C2|0000                nop16
+                                  ok   P:701000C4|0000                nop16
+                                stmt         2106|        jusik3_function0();
+                                  ok   P:701000C6|0000                nop16
+                                  ok   P:701000C8|0000                nop16
+                                                 |
+                                stmt         2108|  if (jrand(100)>20)
+                                  ok   P:701000CA|0000                nop16
+                                  ok   P:701000CC|0000                nop16
+                                  ok   P:701000CE|0000                nop16
+                                  ok   P:701000D0|0000                nop16
+                                                 |
+                                stmt         2108|  if (jrand(100)>20)
+                                  ok   P:701000D2|0000                nop16
+                                                 |
+                                stmt         2108|  if (jrand(100)>20)
+                           not taken   P:701000D4|0000                nop16
+                                  ok   P:701000D6|0000                nop16
+                                stmt         2109|        jusik3_function1();
+                                  ok   P:701000D8|0000                nop16
+                                  ok   P:701000DA|0000                nop16
+                                                 |
+                                stmt         2111|  if (jrand(100)>30)
+                                  ok   P:701000DC|0000                nop16
+                                  ok   P:701000DE|0000                nop16
+                                  ok   P:701000E0|0000                nop16
+                                  ok   P:701000E2|0000                nop16
+                                                 |
+                                stmt         2111|  if (jrand(100)>30)
+                                  ok   P:701000E4|0000                nop16
+                                                 |
+                                stmt         2111|  if (jrand(100)>30)
+                           not taken   P:701000E6|0000                nop16
+                                  ok   P:701000E8|0000                nop16
+                                stmt         2112|        jusik3_function2();
+                                  ok   P:701000EA|0000                nop16
+                                  ok   P:701000EC|0000                nop16
+                                                 |
+                                stmt         2114|  if (jrand(100)>40)
+                                  ok   P:701000EE|0000                nop16
+                                  ok   P:701000F0|0000                nop16
+                                  ok   P:701000F2|0000                nop16
+                                  ok   P:701000F4|0000                nop16
+                                                 |
+                                stmt         2114|  if (jrand(100)>40)
+                                  ok   P:701000F6|0000                nop16
+                                                 |
+                                stmt         2114|  if (jrand(100)>40)
+                               taken   P:701000F8|0000                nop16
+                                  ok   P:701000FA|0000                nop16
+                          incomplete         2115|        jusik3_function3();
+                               never   P:701000FC|0000                nop16
+                               never   P:701000FE|0000                nop16
+                                                 |
+                                stmt         2117|  if (jrand(100)>50)
+                                  ok   P:70100100|0000                nop16
+                                  ok   P:70100102|0000                nop16
+                                  ok   P:70100104|0000                nop16
+                                  ok   P:70100106|0000                nop16
+                                                 |
+                                stmt         2117|  if (jrand(100)>50)
+                                  ok   P:70100108|0000                nop16
+                                                 |
+                                stmt         2117|  if (jrand(100)>50)
+                               taken   P:7010010A|0000                nop16
+                                  ok   P:7010010C|0000                nop16
+                          incomplete         2118|        jusik3_function4();
+                               never   P:7010010E|0000                nop16
+                               never   P:70100110|0000                nop16
+                                                 |
+                                stmt         2120|  if (jrand(100)>60)
+                                  ok   P:70100112|0000                nop16
+                                  ok   P:70100114|0000                nop16
+                                  ok   P:70100116|0000                nop16
+                                  ok   P:70100118|0000                nop16
+                                                 |
+                                stmt         2120|  if (jrand(100)>60)
+                                  ok   P:7010011A|0000                nop16
+                                                 |
+                                stmt         2120|  if (jrand(100)>60)
+                           not taken   P:7010011C|0000                nop16
+                                  ok   P:7010011E|0000                nop16
+                                stmt         2121|        jusik3_function5();
+                                  ok   P:70100120|0000                nop16
+                                  ok   P:70100122|0000                nop16
+                                                 |
+                                stmt         2123|  if (jrand(100)>70)
+                                  ok   P:70100124|0000                nop16
+                                  ok   P:70100126|0000                nop16
+                                  ok   P:70100128|0000                nop16
+                                  ok   P:7010012A|0000                nop16
+                                                 |
+                                stmt         2123|  if (jrand(100)>70)
+                                  ok   P:7010012C|0000                nop16
+                                                 |
+                                stmt         2123|  if (jrand(100)>70)
+                               taken   P:7010012E|0000                nop16
+                                  ok   P:70100130|0000                nop16
+                          incomplete         2124|        jusik3_function6();
+                               never   P:70100132|0000                nop16
+                               never   P:70100134|0000                nop16
+                                                 |
+                                stmt         2126|  if (jrand(100)>80)
+                                  ok   P:70100136|0000                nop16
+                                  ok   P:70100138|0000                nop16
+                                  ok   P:7010013A|0000                nop16
+                                  ok   P:7010013C|0000                nop16
+                                                 |
+                                stmt         2126|  if (jrand(100)>80)
+                                  ok   P:7010013E|0000                nop16
+                                                 |
+                                stmt         2126|  if (jrand(100)>80)
+                               taken   P:70100140|0000                nop16
+                                  ok   P:70100142|0000                nop16
+                          incomplete         2127|        jusik3_function7();
+                               never   P:70100144|0000                nop16
+                               never   P:70100146|0000                nop16
+                                                 |
+                                stmt         2129|  if (jrand(100)>90)
+                                  ok   P:70100148|0000                nop16
+                                  ok   P:7010014A|0000                nop16
+                                  ok   P:7010014C|0000                nop16
+                                  ok   P:7010014E|0000                nop16
+                                                 |
+                                stmt         2129|  if (jrand(100)>90)
+                                  ok   P:70100150|0000                nop16
+                                                 |
+                                stmt         2129|  if (jrand(100)>90)
+                               taken   P:70100152|0000                nop16
+                                  ok   P:70100154|0000                nop16
+                          incomplete         2130|        jusik3_function8();
+                               never   P:70100156|0000                nop16
+                               never   P:70100158|0000                nop16
+                                                 |
+                                stmt         2132|  if (jrand(100)>95)
+                                  ok   P:7010015A|0000                nop16
+                                  ok   P:7010015C|0000                nop16
+                                  ok   P:7010015E|0000                nop16
+                                  ok   P:70100160|0000                nop16
+                                                 |
+                                stmt         2132|  if (jrand(100)>95)
+                                  ok   P:70100162|0000                nop16
+                                                 |
+                                stmt         2132|  if (jrand(100)>95)
+                               taken   P:70100164|0000                nop16
+                                  ok   P:70100166|0000                nop16
+                          incomplete         2133|        jusik3_function9();
+                               never   P:70100168|0000                nop16
+                               never   P:7010016A|0000                nop16
+                                stmt         2134|}
+                                  ok   P:7010016C|0000                nop16

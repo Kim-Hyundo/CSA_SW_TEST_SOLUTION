@@ -1,0 +1,426 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="t32transform.xsl"?>
+<TRACE32 file="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Gen\20210531_TRACE32_20_02\Failsafe-TestSpec_RS4_0104\Report\DCU15_FAILSAFE_001_BAT\MANDO_FailSafe_Integration\prost_cstart\func-p-8000587e-80005893.xml">
+	<coverage>
+		<COVerage.EXPORT.ListLine ts="1622419829" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE" metric="object">
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\Rte_SWC_Diag</tree>
+				<cov>partial</cov>
+				<exec metric="object">50.847%</exec>
+				<branches>-</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>0</never>
+				<bytes>590</bytes>
+				<bytesok>300</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_HWFailure</tree>
+				<cov>partial</cov>
+				<exec metric="object">16.831%</exec>
+				<branches>10.000%</branches>
+				<ok>0</ok>
+				<taken>1</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>202</bytes>
+				<bytesok>34</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\SWC_Failsafe</tree>
+				<cov>partial</cov>
+				<exec metric="object">67.441%</exec>
+				<branches>-</branches>
+				<ok>4</ok>
+				<taken>11</taken>
+				<nottaken>21</nottaken>
+				<bytes>1548</bytes>
+				<bytesok>1044</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80002C38</addrFrom>
+				<addrTo>P:80002DC9</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\FS_BatteryVoltage</tree>
+				<cov>partial</cov>
+				<exec metric="object">83.582%</exec>
+				<branches>68.750%</branches>
+				<ok>12</ok>
+				<taken>3</taken>
+				<nottaken>6</nottaken>
+				<never>3</never>
+				<bytes>402</bytes>
+				<bytesok>336</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_CANBusOff</tree>
+				<cov>partial</cov>
+				<exec metric="object">45.736%</exec>
+				<branches>1.215%</branches>
+				<ok>0</ok>
+				<taken>6</taken>
+				<nottaken>2</nottaken>
+				<never>321</never>
+				<bytes>258</bytes>
+				<bytesok>118</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_CANTimeout</tree>
+				<cov>partial</cov>
+				<exec metric="object">37.582%</exec>
+				<branches>16.413%</branches>
+				<ok>8</ok>
+				<taken>82</taken>
+				<nottaken>10</nottaken>
+				<never>229</never>
+				<bytes>2432</bytes>
+				<bytesok>914</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_InvalidSignal</tree>
+				<cov>partial</cov>
+				<exec metric="object">54.381%</exec>
+				<branches>34.650%</branches>
+				<ok>3</ok>
+				<taken>130</taken>
+				<nottaken>92</nottaken>
+				<never>104</never>
+				<bytes>5866</bytes>
+				<bytesok>3190</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\FS_SWFailure</tree>
+				<cov>partial</cov>
+				<exec metric="object">36.224%</exec>
+				<branches>1.215%</branches>
+				<ok>0</ok>
+				<taken>7</taken>
+				<nottaken>1</nottaken>
+				<never>321</never>
+				<bytes>392</bytes>
+				<bytesok>142</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>5</never>
+				<bytes>806</bytes>
+				<bytesok>0</bytesok>
+				<function>
+					<addrFrom>P:8000587E</addrFrom>
+					<addrTo>P:80005893</addrTo>
+					<tree uid="p-8000587e-80005893">\\MANDO_FailSafe_Integration\prost_cstart\endinit_set</tree>
+					<cov>never</cov>
+					<exec metric="object">0.000%</exec>
+					<branches>-</branches>
+					<ok>0</ok>
+					<taken>0</taken>
+					<nottaken>0</nottaken>
+					<never>0</never>
+					<bytes>22</bytes>
+					<bytesok>0</bytesok>
+					<line>
+						<addrFrom>P:80005892</addrFrom>
+						<addrTo>P:80005893</addrTo>
+						<tree>prost_cstart.c \92--92</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\prost_cstart.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000587E</addrFrom>
+						<addrTo>P:80005889</addrTo>
+						<tree>prost_cstart.c \1262--1316</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\prost_cstart.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000588A</addrFrom>
+						<addrTo>P:8000588D</addrTo>
+						<tree>prost_cstart.c \1338--1338</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\prost_cstart.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:8000588E</addrFrom>
+						<addrTo>P:8000588F</addrTo>
+						<tree>prost_cstart.c \1339--1339</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\prost_cstart.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80005890</addrFrom>
+						<addrTo>P:80005891</addrTo>
+						<tree>prost_cstart.c \1340--1340</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\prost_cstart.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<total>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>22</bytes>
+						<bytesok>0</bytesok>
+					</total>
+				</function>
+				<total>
+					<cov>never</cov>
+					<exec metric="object">0.000%</exec>
+					<branches>-</branches>
+					<ok>0</ok>
+					<taken>0</taken>
+					<nottaken>0</nottaken>
+					<never>0</never>
+					<bytes>22</bytes>
+					<bytesok>0</bytesok>
+				</total>
+			</module>
+			<module>
+				<addrFrom>P:80005B2A</addrFrom>
+				<addrTo>P:80005CBB</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc1</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>402</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80005CBC</addrFrom>
+				<addrTo>P:80005E4D</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc2</tree>
+				<cov>partial</cov>
+				<exec metric="object">81.094%</exec>
+				<branches>87.500%</branches>
+				<ok>3</ok>
+				<taken>0</taken>
+				<nottaken>1</nottaken>
+				<never>0</never>
+				<bytes>402</bytes>
+				<bytesok>326</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc3</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc4</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\MANDO_FailSafe_Integration\prost_main</tree>
+				<cov>partial</cov>
+				<exec metric="object">24.691%</exec>
+				<branches>25.000%</branches>
+				<ok>1</ok>
+				<taken>1</taken>
+				<nottaken>1</nottaken>
+				<never>5</never>
+				<bytes>324</bytes>
+				<bytesok>80</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80006180</addrFrom>
+				<addrTo>P:80006315</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_cstart_tc5</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80006456</addrFrom>
+				<addrTo>P:80006485</addrTo>
+				<tree>\\MANDO_FailSafe_Integration\prost_stubs</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>2</never>
+				<bytes>48</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<total>
+				<cov>partial</cov>
+				<exec metric="object">43.546%</exec>
+				<branches>15.776%</branches>
+				<ok>31</ok>
+				<taken>241</taken>
+				<nottaken>134</nottaken>
+				<never>979</never>
+				<bytes>14890</bytes>
+				<bytesok>6484</bytesok>
+			</total>
+		</COVerage.EXPORT.ListLine>
+	</coverage>
+	<marker>
+		<BookMark.EXPORT ts="1622419829" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE">
+		</BookMark.EXPORT>
+	</marker>
+	<listing>
+		<List.EXPORT ts="1622419829" t32ver="R.2020.09.000128638" t32pv="TRICORE" order="source">
+			<mixed module="\\MANDO_FailSafe_Integration\prost_cstart" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\prost_cstart.c">
+				<hll><cov>never</cov><line>92</line><src>extern void _endinit_set  (void) { endinit_set(_ENDINIT_ENABLE); }</src></hll>
+				<asm><cov>never</cov><addr>P:80005892</addr><code>9000</code><mnemonic>ret16     </mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\prost_cstart" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\prost_cstart.c">
+				<hll><line>1262</line><src>#endif</src></hll>
+				<hll><line>1263</line><src></src></hll>
+				<hll><line>1264</line><src>        /*</src></hll>
+				<hll><line>1265</line><src>         * Default trap vectors are resolved from the C-library.</src></hll>
+				<hll><line>1266</line><src>         */</src></hll>
+				<hll><line>1267</line><src>#if __BTV_INIT</src></hll>
+				<hll><line>1268</line><src>#  if __RESOLVE_TRAP_0</src></hll>
+				<hll><line>1269</line><src>#    pragma extern  _trapmmu</src></hll>
+				<hll><line>1270</line><src>#  endif</src></hll>
+				<hll><line>1271</line><src>#  if __RESOLVE_TRAP_1</src></hll>
+				<hll><line>1272</line><src>#    pragma extern  _trapprotection</src></hll>
+				<hll><line>1273</line><src>#  endif</src></hll>
+				<hll><line>1274</line><src>#  if __RESOLVE_TRAP_2</src></hll>
+				<hll><line>1275</line><src>#    pragma extern  _trapinstruction</src></hll>
+				<hll><line>1276</line><src>#  endif</src></hll>
+				<hll><line>1277</line><src>#  if __RESOLVE_TRAP_3</src></hll>
+				<hll><line>1278</line><src>#    pragma extern  _trapcontext</src></hll>
+				<hll><line>1279</line><src>#  endif</src></hll>
+				<hll><line>1280</line><src>#  if __RESOLVE_TRAP_4</src></hll>
+				<hll><line>1281</line><src>#    pragma extern  _trapbus</src></hll>
+				<hll><line>1282</line><src>#  endif</src></hll>
+				<hll><line>1283</line><src>#  if __RESOLVE_TRAP_5</src></hll>
+				<hll><line>1284</line><src>#    pragma extern  _trapassertion</src></hll>
+				<hll><line>1285</line><src>#  endif</src></hll>
+				<hll><line>1286</line><src>#  if __RESOLVE_TRAP_6</src></hll>
+				<hll><line>1287</line><src>#    pragma extern  _trapsystem</src></hll>
+				<hll><line>1288</line><src>#  endif</src></hll>
+				<hll><line>1289</line><src>#  if __RESOLVE_TRAP_7</src></hll>
+				<hll><line>1290</line><src>#    pragma extern  _trapnmi</src></hll>
+				<hll><line>1291</line><src>#  endif</src></hll>
+				<hll><line>1292</line><src>#endif</src></hll>
+				<hll><line>1293</line><src>        </src></hll>
+				<hll><line>1294</line><src>}</src></hll>
+				<hll><line>1295</line><src></src></hll>
+				<hll><line>1296</line><src>/**************************************************************************</src></hll>
+				<hll><line>1297</line><src> *</src></hll>
+				<hll><line>1298</line><src> * FUNCTION:     endinit_set</src></hll>
+				<hll><line>1299</line><src> *</src></hll>
+				<hll><line>1300</line><src> * DESCRIPTION:  Sets or Clears the ENDINIT bit in the WDT_CON0 register</src></hll>
+				<hll><line>1301</line><src> *               in order to enabled or disable the write-protection for</src></hll>
+				<hll><line>1302</line><src> *               registers protected via the EndInit feature</src></hll>
+				<hll><line>1303</line><src> *               (ie. BTV, BIV, ISP, PCON0, DCON0).</src></hll>
+				<hll><line>1304</line><src> *</src></hll>
+				<hll><line>1305</line><src> *************************************************************************/</src></hll>
+				<hll><line>1306</line><src>static void inline endinit_set( _endinit_t endinit_value )</src></hll>
+				<hll><line>1307</line><src>{</src></hll>
+				<hll><line>1308</line><src>        unsigned int wdt_con0;</src></hll>
+				<hll><line>1309</line><src></src></hll>
+				<hll><line>1310</line><src>#if !( defined _REGUSERDEF16X_H || defined _REGUSERDEF162_H || defined _REGTC21X_H || defined _REGTC22X_H || defined _REGTC23X_ADAS_H || defined _REGTC23X_H || defined _REGTC27X_H || defined _REGTC27XB_H || defined _REGTC27XC_H || defined _REGTC27XD_H || defined _REGTC26X_H || defined _REGTC26XB_H || defined _REGTC29X_H || defined _REGTC29XB_H || defined _REGTC38X_H || defined _REGTC39X_H || defined _REGTC39XB_H )</src></hll>
+				<hll><line>1311</line><src>        unsigned int wdt_con1;</src></hll>
+				<hll><line>1312</line><src>#endif</src></hll>
+				<hll><line>1313</line><src>        /*</src></hll>
+				<hll><line>1314</line><src>         * 1st step: Password access (create password and send to WDT_CON0)</src></hll>
+				<hll><line>1315</line><src>         */        </src></hll>
+				<hll><cov>never</cov><line>1316</line><src>        wdt_con0 = WDT_CON0.U;</src></hll>
+				<asm><cov>never</cov><addr>P:8000587E</addr><code>FF003091</code><label>_endinit_set:                                                                                                                                                                                                                                                   </label><mnemonic>movh.a    a15,#0xF003</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80005882</addr><code>960CFFD9</code><mnemonic>lea       a15,[a15]0x624C</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80005886</addr><code>FFC9FF61</code><mnemonic>fcall     0x80005818</mnemonic><comment>.cocofun_2</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\prost_cstart" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\prost_cstart.c">
+				<hll><cov>never</cov><line>1338</line><src>        __isync();</src></hll>
+				<asm><cov>never</cov><addr>P:8000588A</addr><code>04C0000D</code><mnemonic>isync     </mnemonic></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\prost_cstart" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\prost_cstart.c">
+				<hll><cov>never</cov><line>1339</line><src>        WDT_CON0.U = wdt_con0;          </src></hll>
+				<asm><cov>never</cov><addr>P:8000588E</addr><code>FF74</code><mnemonic>st16.w    [a15],d15</mnemonic><comment>[a15],wdt_con0</comment></asm>
+			</mixed>
+			<mixed module="\\MANDO_FailSafe_Integration\prost_cstart" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Target_SW\prost_cstart.c">
+				<hll><cov>never</cov><line>1340</line><src>        WDT_CON0.U;                     /* read is required */</src></hll>
+				<asm><cov>never</cov><addr>P:80005890</addr><code>FF54</code><mnemonic>ld16.w    d15,[a15]</mnemonic><comment>wdt_con0,[a15]</comment></asm>
+			</mixed>
+		</List.EXPORT>
+	</listing>
+</TRACE32>

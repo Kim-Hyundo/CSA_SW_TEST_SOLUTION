@@ -1,0 +1,871 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags
+; @Author: TI
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: omap4430_tpiu.cmm 8886 2015-11-18 18:06:51Z mobermeir $
+
+// OPP definitions
+// Core DPLL is typically running at 1600MHz on OMAP4430
+// (M/(N+1))x2x38.4MHz (M= 125, 5)
+// (if using clock slicer mode with 38.4MHz system clock)
+//
+// The M6 divider provides REF_A_CLK and DBGCLK at 200MHz with a
+// divider at M6=8; Note, we may be able to go up to 266MHz but timing
+// has been closed in SDC at 200MHz.
+// Note that an odd divider may not provide a 50/50 duty cycle on the
+// clock, this is a glitchless divider so may be changed on the fly
+//
+// PER DPLL is running at 768MHz
+// M=10; N=0; So 38.4 x (10 / 1) x 2 = 768MHz.
+//
+//
+//
+//
+//  FUNCTIONS
+//
+//  Two solutions to change the frequency of the TPIU clock
+//   1/ Use Setup_TPIU_Clocking_Modes_200_TPIU_Clock() for 200MHz TPIU clock
+//   (TRACECLK output will be 83MHz DDR)
+//
+//   2/ Use Setup_TPIU_Clocking_Modes_256_TPIU_Clock
+//   (TRACECLK output will be 256MHz DDR)
+//
+//   The sequences in this gel FILE SHOULD BE used in the following order:
+//    (Cortex-A9)
+//    1/ Setup_TPIU_Clocking_Modes_XXX_TPIU_Clock()
+//    2/ Configure_EMU2_19_For_TPIU() for 16BIT tpiu TRACE from EM2..EMU19
+//    OR
+//    2/ Configure_EMU0_19_For_TPIU() for 18bit tpiu trace from EMU0..EMU19
+//
+//    If Lauterbach expects TRACEDATA[0] to appear on EMU0 use 18 bit configuration
+//    even if Lauterbach trace port is 16 bits wide.
+//
+//    If Lauterbach expects TRACEDATA[0] to appear on EMU4 use 16 bit configuration.
+//
+//    Note that the drive strength of the I/O (EMU0..19) are for 1-10pF external
+//    load. It can be changed by using the script CMM functions to use 10-16pF
+//    external load (Configure_EMU0_19_SmartIO_Load_10pF_16pF())
+//
+
+
+//   Configure FPGA as follows: (on TEB)
+//      * QSWITCH4[6:5] set to 0x3.
+//      * QSWITCH4[0] set to 0x0.
+//      * Configure QSWITCH2 register in FPGA using HPC tool as follows
+//        Set bits 25:24 to A:0x1 and 23:22 to A:0x1 to route EMU2..4 through
+//        switches controlled by the FPGA to the TPIU.
+//
+//      * Also need to ensure EMU0..4 connected from MIPI 60 connector 
+//        through resistor bank on board.
+//
+//      * Also need to ensure EMU2..4 disconnected from TI-20 JTAG header
+//
+
+
+LOCAL &param &label
+ENTRY &param
+
+ON ERROR GOTO
+	ENDDO
+&label="setup"+FORMAT.Decimal(1,&param)
+GOTO &label
+
+setup0:
+	GOSUB Setup_TPIU_Clocking_Modes_200_Core
+	ENDDO
+setup1:
+	GOSUB Setup_TPIU_Clocking_Modes_152_Per
+	ENDDO
+setup2:
+	GOSUB Setup_TPIU_Clocking_Modes_256_Per
+	ENDDO
+setup3:
+	GOSUB Setup_TPIU_Clocking_Modes_38_4_System_clk
+	ENDDO
+setup4:
+	GOSUB Configure_EMU2_19_For_TPIU
+	ENDDO
+setup5:
+	GOSUB Configure_EMU0_19_For_TPIU
+	ENDDO
+setup6:
+	GOSUB Configure_EMU0_19_SmartIO_Load_1pF_10pF
+	ENDDO
+setup7:
+	GOSUB Configure_EMU0_19_SmartIO_Load_10pF_16pF
+	ENDDO
+setup8:
+	GOSUB Configure_CM2_provide_clk_l3debugss_tpiu
+	ENDDO
+setup9:
+	GOSUB Configure_PTM_to_ETB_Fifo_full
+	ENDDO
+setup10:
+	GOSUB Set_PDLO_Clock_200_to_TPIU_Module_ES2
+	ENDDO
+setup11:
+	GOSUB Set_PDLO_Clock_300_to_TPIU_Module_ES2
+	ENDDO
+setup12:
+	GOSUB Set_PDLO_Clock_266_to_TPIU_Module_ES2
+	ENDDO
+
+
+Configure_PTM_to_ETB_Fifo_full:
+(
+ENTRY
+    Data.Set eapb:0xd4160040 %Long 0x30000
+RETURN
+)
+
+Set_PDLO_Clock_266_to_TPIU_Module_ES2:
+(
+  ENTRY
+  // Choose PDLO clock as clock source to TPIU module
+  LOCAL &device_type;
+  LOCAL &secure_mode;
+  LOCAL &PDLO_TRC_CTL;
+
+  &device_type=Data.Long(ahb:0x4A0022C4)
+
+  &device_type=(&device_type&0x300)>>8
+
+  IF (&device_type!=0x3)
+  ( 
+    PRINT "--->>> Not a GP device so open EMUSS firewall for ES2 <<<---"
+
+    // Open EMUSS firewall (note this will only work if L3_3 clock domain
+    // is not gated (which is it by default on SDC device........)
+    // You need to run Configure_CM2_provide_clkdebugss() first otherwise
+    // the disconnect bridge will cause in-band errors to be returned (:)
+    // This allows non-secure access in EMU/TEST device to go through
+    // Also needed for testing software messages on EMU/TEST device.
+    Data.Set ahb:0x4A226088 %Long 0xFFFFFFFF
+
+  )     
+
+  // Claim application ownership from DRM 
+  Data.Set ahb:0x54160050 %Long 0x40000000
+  // Enable application ownership from DRM 
+  Data.Set ahb:0x54160050 %Long 0x80000000
+
+  Data.Set ahb:0x54160020 %Long 0x0
+
+  // Initialize register to reset state
+  Data.Set ahb:0x54160024 %Long 0x00000000;
+
+  // Set divider to 1
+  &PDLO_TRC_CTL=0x1<<11.
+
+  // set refsel assuming 38MHz sysclk (/128)
+  &PDLO_TRC_CTL=&PDLO_TRC_CTL|(0x2<<0x5)
+
+  // configure dly_a value to control the speed. the lower this value is
+  // the higher the clock speed. The value of 16 here gives PTI clock at
+  // 150MHz +-5%
+
+  //ES1 and ES2 uses different delay line value here due to HW(PDLO) difference
+  //in 2 silicion versions
+
+  // Value -> 24 => PTI Clock = 133
+  &PDLO_TRC_CTL=&PDLO_TRC_CTL|(24.<<16.)
+
+  //*DRM_CLKGEN_PDLO_TRC_CTL |= 0x0800;
+  &PDLO_TRC_CTL=&PDLO_TRC_CTL|0x0800
+
+  Data.Set ahb:0x54160024 %Long &PDLO_TRC_CTL
+
+  // enable clock
+  &PDLO_TRC_CTL=&PDLO_TRC_CTL|0x4
+  Data.Set ahb:0x54160024 %Long &PDLO_TRC_CTL
+
+  // enable oscillator
+  &PDLO_TRC_CTL=&PDLO_TRC_CTL|0x2
+  Data.Set ahb:0x54160024 %Long &PDLO_TRC_CTL
+
+  PRINT "Configure CLKGEN CLKMUX for PDLO clock to TPIU "
+
+  RETURN
+)
+
+Set_PDLO_Clock_300_to_TPIU_Module_ES2:
+(
+  ENTRY
+  // Choose PDLO clock as clock source to TPIU module
+  LOCAL &device_type;
+  LOCAL &secure_mode;
+  LOCAL &PDLO_TRC_CTL;
+
+  &device_type=Data.Long(ahb:0x4A0022C4)
+
+  &device_type=(&device_type&0x300)>>8
+
+  IF (&device_type!=0x3)
+  ( 
+    PRINT "--->>> Not a GP device so open EMUSS firewall for ES2 <<<---"
+
+    // Open EMUSS firewall (note this will only work if L3_3 clock domain
+    // is not gated (which is it by default on SDC device........)
+    // You need to run Configure_CM2_provide_clkdebugss() first otherwise
+    // the disconnect bridge will cause in-band errors to be returned (:)
+    // This allows non-secure access in EMU/TEST device to go through
+    // Also needed for testing software messages on EMU/TEST device.
+    Data.Set ahb:0x4A226088 %Long 0xFFFFFFFF
+
+  )     
+
+  // Claim application ownership from DRM 
+  Data.Set ahb:0x54160050 %Long 0x40000000
+  // Enable application ownership from DRM 
+  Data.Set ahb:0x54160050 %Long 0x80000000
+
+  Data.Set ahb:0x54160020 %Long 0x0
+
+  // Initialize register to reset state
+  Data.Set ahb:0x54160024 %Long 0x00000000;
+
+  // Set divider to 1
+  &PDLO_TRC_CTL=0x1<<11.
+
+  // set refsel assuming 38MHz sysclk (/128)
+  &PDLO_TRC_CTL=&PDLO_TRC_CTL|(0x2<<0x5)
+
+  // configure dly_a value to control the speed. the lower this value is
+  // the higher the clock speed. The value of 16 here gives PTI clock at
+  // 150MHz +-5%
+
+  //ES1 and ES2 uses different delay line value here due to HW(PDLO) difference
+  //in 2 silicion versions
+
+  // Value -> 16 => PTI Clock = 150 (MAX Value)
+  &PDLO_TRC_CTL=&PDLO_TRC_CTL|(16.<<16.)
+
+  //*DRM_CLKGEN_PDLO_TRC_CTL |= 0x0800;
+  &PDLO_TRC_CTL=&PDLO_TRC_CTL|0x0800
+
+  Data.Set ahb:0x54160024 %Long &PDLO_TRC_CTL
+
+  // enable clock
+  &PDLO_TRC_CTL=&PDLO_TRC_CTL|0x4
+  Data.Set ahb:0x54160024 %Long &PDLO_TRC_CTL
+
+  // enable oscillator
+  &PDLO_TRC_CTL=&PDLO_TRC_CTL|0x2
+  Data.Set ahb:0x54160024 %Long &PDLO_TRC_CTL
+
+  PRINT "Configure CLKGEN CLKMUX for PDLO clock to TPIU "
+
+  RETURN
+)
+
+Set_PDLO_Clock_200_to_TPIU_Module_ES2:
+(
+  ENTRY
+  // Choose PDLO clock as clock source to TPIU module
+  LOCAL &device_type;
+  LOCAL &secure_mode;
+  LOCAL &PDLO_TRC_CTL;
+
+  &device_type=Data.Long(ahb:0x4A0022C4)
+
+  &device_type=(&device_type&0x300)>>8
+
+  IF (&device_type!=0x3)
+  ( 
+    PRINT "--->>> Not a GP device so open EMUSS firewall for ES2 <<<---"
+
+    // Open EMUSS firewall (note this will only work if L3_3 clock domain
+    // is not gated (which is it by default on SDC device........)
+    // You need to run Configure_CM2_provide_clkdebugss() first otherwise
+    // the disconnect bridge will cause in-band errors to be returned (:)
+    // This allows non-secure access in EMU/TEST device to go through
+    // Also needed for testing software messages on EMU/TEST device.
+    Data.Set ahb:0x4A226088 %Long 0xFFFFFFFF
+
+  )     
+
+  // Claim application ownership from DRM 
+  Data.Set ahb:0x54160050 %Long 0x40000000
+  // Enable application ownership from DRM 
+  Data.Set ahb:0x54160050 %Long 0x80000000
+
+  Data.Set ahb:0x54160020 %Long 0x0
+
+  // Initialize register to reset state
+  Data.Set ahb:0x54160024 %Long 0x00000000;
+
+  // Set divider to 1
+  &PDLO_TRC_CTL=0x1<<11.
+
+  // set refsel assuming 38MHz sysclk (/128)
+  &PDLO_TRC_CTL=&PDLO_TRC_CTL|(0x2<<0x5)
+
+  // configure dly_a value to control the speed. the lower this value is
+  // the higher the clock speed. The value of 44 here gives PTI clock at
+  // 90MHz +-5%
+
+  //ES1 and ES2 uses different delay line value here due to HW(PDLO) difference
+  //in 2 silicion versions
+
+  // Value -> 44 => PTI Clock = 100 
+  &PDLO_TRC_CTL=&PDLO_TRC_CTL|(44.<<16.)
+
+  // Value -> 22 => PTI Clock = 137
+  //&PDLO_TRC_CTL=&PDLO_TRC_CTL|(22.<<16.)
+
+  // Value -> 16 => PTI Clock = 150 (MAX Value)
+  //&PDLO_TRC_CTL=&PDLO_TRC_CTL|(16.<<16.)
+
+  //*DRM_CLKGEN_PDLO_TRC_CTL |= 0x0800;
+  &PDLO_TRC_CTL=&PDLO_TRC_CTL|0x0800
+
+  Data.Set ahb:0x54160024 %Long &PDLO_TRC_CTL
+
+  // enable clock
+  &PDLO_TRC_CTL=&PDLO_TRC_CTL|0x4
+  Data.Set ahb:0x54160024 %Long &PDLO_TRC_CTL
+
+  // enable oscillator
+  &PDLO_TRC_CTL=&PDLO_TRC_CTL|0x2
+  Data.Set ahb:0x54160024 %Long &PDLO_TRC_CTL
+
+  PRINT "Configure CLKGEN CLKMUX for PDLO clock to TPIU "
+
+RETURN
+)
+
+
+Setup_TPIU_Clocking_Modes_200_Core:
+(
+  ENTRY
+
+  GOSUB Configure_CM2_provide_clk_l3debugss_tpiu
+
+  GOSUB Set_DBGCLK_to_200MHz
+
+  GOSUB Configure_PRM_provide_RefA_clk_debugss_tpiu
+
+  GOSUB Set_Ref_AB_Clk_to_TPIU_Module
+
+  RETURN
+)
+
+Setup_TPIU_Clocking_Modes_152_Per:
+(
+  ENTRY
+
+  GOSUB Configure_CM2_provide_clk_l3debugss_tpiu
+
+  GOSUB Set_DBGCLK_to_200MHz
+
+  GOSUB Configure_PRM_provide_RefB_clk_152_debugss_tpiu
+
+  GOSUB Set_Ref_AB_Clk_to_TPIU_Module
+
+  RETURN
+)
+
+Setup_TPIU_Clocking_Modes_256_Per:
+(
+  ENTRY
+
+  GOSUB Configure_CM2_provide_clk_l3debugss_tpiu
+
+  GOSUB Set_DBGCLK_to_200MHz
+
+  GOSUB Configure_PRM_provide_RefB_clk_256_debugss_tpiu
+
+  GOSUB Set_Ref_AB_Clk_to_TPIU_Module
+
+  RETURN
+)
+
+Setup_TPIU_Clocking_Modes_38_4_System_clk:
+(
+  ENTRY
+
+  GOSUB Configure_CM2_provide_clk_l3debugss_tpiu
+
+  GOSUB Set_DBGCLK_to_200MHz
+
+  GOSUB Configure_PRM_provide_System_clk_debugss_tpiu
+
+  GOSUB Set_Ref_AB_Clk_to_TPIU_Module
+
+  RETURN
+)
+
+Configure_EMU2_19_For_TPIU:
+(
+  ENTRY
+
+  GOSUB Configure_DRM_TPIU_to_DP2_19
+
+  GOSUB Configure_Spinner_For_TPIU_trace_Pins_EMU2_EMU19_16bitmode  
+
+  RETURN
+)
+
+Configure_EMU0_19_For_TPIU:
+(
+  ENTRY
+
+  GOSUB Configure_DRM_to_assign_TPIU_to_DP0_19
+
+  GOSUB Configure_Spinner_For_TPIU_trace_Pins_EMU0_EMU19_18bitmode
+
+  RETURN
+)
+
+
+
+Configure_EMU0_19_SmartIO_Load_1pF_10pF:
+(
+  ENTRY
+
+  LOCAL &value1
+
+  PRINT "--->>> Configuring EMU0..19 for drive strength based upon external load 1-10pF which is default <<<--- " 
+
+  // Pin /  Pin Group in device control module for Smart2Io
+  // DP0 -- DPM_DR1
+  // DP1 -- DPM_DR2
+  // DP2 -- USBA0_DR0
+  // DP3 -- USBA0_DR1
+  // DP4 -- USBA0_DR1
+  // DP5 -- USBA0_DR1
+  // DP6 -- UART3_DR2
+  // DP7 -- UART3_DR3
+  // DP8 -- UART3_DR4
+  // DP9 -- UART3_DR5
+  // DP10 --USBA_DR2
+  // DP11 --USBA_DR2
+  // DP12 --USBA_DR2
+  // DP13 --USBA_DR2
+  // DP14 --GPIO_DR10
+  // DP15 --GPIO_DR10
+  // DP16 --DPM_DR2
+  // DP17 --DPM_DR2
+  // DP18 --DPM_DR3
+  // DP19 --DPM_DR3
+
+  // Setting up 1pF-10pF load for  DPM_DR1_LB, DPM_DR2_LB, USBA0_DR1_LB, DPM_DR3_LB
+  // UART3_DR2, UART3_DR3, UART3_DR4, UART3_DR5, USBA_DR2, GPIO_DR10
+  // *(int*)CONTROL_SMART2IO_PADCONF_0 &= ~((1 << 30) | (1 << 29) | (1 << 25) |  (1 << 2) | (1 << 28) | (1 << 6) | (1 << 5) | (1 << 4) | (1 << 3) | (1 << 1));
+  &value1=Data.Long(A:0x4A1005B0)  
+  &value1=&value1&(~((1<<30.)|(1<<29.)|(1<<25.)|(1<<2)|(1<<28.)|(1<<6)|(1<<5)|(1<<4)|(1<<3)|(1<<1)))   
+  Data.Set A:0x4A1005B0 %Long &value1 
+
+  // USBA0_DR0_LB 
+  // *(int*)CONTROL_SMART2IO_PADCONF_1 &= ~((1 << 29));
+  &value1=Data.Long(A:0x4A1005B4)  
+  &value1=&value1&(~((1<<29.)))   
+  Data.Set A:0x4A1005B4 %Long &value1
+
+  RETURN
+)
+
+Configure_EMU0_19_SmartIO_Load_10pF_16pF:
+(
+  ENTRY
+
+  LOCAL &value1
+
+  PRINT "Configuring EMU0..19 for drive strength based upon external load 10-16pF "
+
+  // Setting up 10pF-16pF load for DPM_DR1_LB, DPM_DR2_LB, USBA0_DR1_LB, DPM_DR3_LB
+  // *(int*)CONTROL_SMART2IO_PADCONF_0 |= ((1 << 30) | (1 << 29) | (1 << 25) |  (1 << 2) | (1 << 28) | (1 << 6) | (1 << 5) | (1 << 4) | (1 << 3) | (1 << 1));
+  &value1=Data.Long(A:0x4A1005B0)  
+  &value1=&value1|((1<<30.)|(1<<29.)|(1<<25.)|(1<<2)|(1<<28.)|(1<<6.)|(1<<5.)|(1<<4.)|(1<<3.)|(1<<1.))   
+  Data.Set A:0x4A1005B0 %Long &value1 
+
+  // USBA0_DR0_LB 
+  // *(int*)CONTROL_SMART2IO_PADCONF_1 |= ((1<<29));
+  &value1=Data.Long(A:0x4A1005B4)  
+  &value1=&value1|(1<<29.)   
+  Data.Set A:0x4A1005B4 %Long &value1
+
+  RETURN
+)
+
+Set_DBGCLK_to_200MHz:
+(
+  ENTRY
+  PRINT "Set DBGCLK to 200MHz assuming CORE DPLL is locked "
+  Data.Set A:0x4A004140 %Long 0x8
+  RETURN
+)
+
+Set_Ref_AB_Clk_to_TPIU_Module:
+(
+  ENTRY
+
+  // Choose not PDLO clock (who knows if it works or not...)
+  // but instead REFA/B clock output for STM/TPIU trace
+
+  LOCAL &device_type_temp
+  LOCAL &secure_mode
+
+  &device_type=Data.Long(A:0x4A0022C4)
+
+  &device_type=(&device_type&0x300)>>8
+  &secure_mode=Register(ns)   
+
+  IF (&device_type!=0x3)
+  ( 
+    PRINT "--->>> Not a GP device so open EMUSS firewall <<<--- "
+
+    IF (&secure_mode==1)
+    (   
+      Register.Set ns 0
+    ) 
+
+    // Open EMUSS firewall (note this will only work if L3_3 clock domain
+    // is not gated (which is it by default on SDC device........)
+    // You need to run Configure_CM2_provide_clk_l3debugss() first otherwise
+    // the disconnect bridge will cause in-band errors to be returned (:)
+    // This allows non-secure access in EMU/TEST device to go through
+    // Also needed for testing software messages on EMU/TEST device.
+
+    WAIT 100.ms
+
+    Data.Set AHB:0x4A226088 %Long 0xFFFFFFFF
+
+    IF (&secure_mode==1)
+    (   
+      Register.Set ns 1
+    ) 
+
+  )
+
+  WAIT 100.ms
+
+  //*(int*)0x54160020 = 0x1;
+  Data.Set AHB:0x54160020 %Long 0x1
+
+  WAIT 100.ms
+
+  PRINT "Configure CLKGEN CLKMUX for REFA/B/C clock to TPIU "
+
+  RETURN
+)
+
+Configure_PRM_provide_RefA_clk_debugss_tpiu:
+(
+  ENTRY
+
+  // Configure PRM to provide a RefA clk to debugss
+  // Configurations are in EMU_CM in PRM module 
+
+  // Clear all bits to start cleanly.
+  Data.Set A:0x4A307A20 %Long  0x0
+
+  // PMD_STM_MUX_CTRL = CORE_DPLL_EMU_CLK
+  // TPIU clock is CORE_DPLL_EMU_CLK / 1
+  // Allow REF_A clock to be propagated as CORE_DPLL_EMU_CLK
+  //*(int*)CM_EMU_DEBUGSS_CLKCTRL = (0x1 << 22 | 0x1 << 24); 
+  Data.Set A:0x4A307A20 %Long 0x01400000
+
+
+  PRINT "Configure PRM to provide REF_A clk as CORE_CLK_M6 DIVIDE BY 1 which is 200MHz "
+
+  RETURN
+)
+
+Configure_PRM_provide_RefB_clk_256_debugss_tpiu:
+(
+  ENTRY
+
+  // Configure PRM to provide a RefA clk to debugss
+  // Configurations are in EMU_CM in PRM module 
+
+  // Clear all bits to start cleanly.
+  Data.Set A:0x4A307A20 %Long  0x0
+
+  // Configure M7 divider for Per DLL clock
+  Data.Set A:0x4A008164 %Long 0x3
+
+  // PMD_STM_MUX_CTRL = CORE_DPLL_EMU_CLK
+  // TPIU clock is CORE_DPLL_EMU_CLK / 1
+  // Allow REF_B clock to be propagated as CORE_DPLL_EMU_CLK
+  //*(int*)CM_EMU_DEBUGSS_CLKCTRL = (0x2 << 22 | 0x1 << 24); 
+  Data.Set A:0x4A307A20 %Long 0x01800000
+
+  PRINT "PER DPLL should be locked at 768MHz previously........................... "
+
+  PRINT "Configure PRM to provide REF_B clk as CORE_CLK_M7 DIVIDE BY 1 which is 256MHz "
+
+  RETURN
+)
+
+Configure_PRM_provide_RefB_clk_152_debugss_tpiu:
+(
+  ENTRY
+
+  // Configure PRM to provide a RefA clk to debugss
+  // Configurations are in EMU_CM in PRM module 
+
+  // Clear all bits to start cleanly.
+  Data.Set A:0x4A307A20 %Long  0x0
+
+  // Configure M7 divider for Per DLL clock
+  Data.Set A:0x4A008164 %Long 0x5
+
+  // PMD_STM_MUX_CTRL = CORE_DPLL_EMU_CLK
+  // TPIU clock is CORE_DPLL_EMU_CLK / 1
+  // Allow REF_B clock to be propagated as CORE_DPLL_EMU_CLK
+  //*(int*)CM_EMU_DEBUGSS_CLKCTRL = (0x2 << 22 | 0x1 << 24); 
+  Data.Set A:0x4A307A20 %Long 0x01800000
+
+  PRINT "PER DPLL should be locked at 768MHz previously........................... "
+
+  PRINT "Configure PRM to provide REF_B clk as CORE_CLK_M7 DIVIDE BY 1 which is 152MHz "
+
+  RETURN
+)
+
+
+Configure_PRM_provide_System_clk_debugss_tpiu:
+(
+  ENTRY
+
+  // Configure PRM to provide a Sys clk to debugss
+  // Configurations are in EMU_CM in PRM module 
+
+  // Clear all bits to start cleanly.
+  Data.Set A:0x4A307A20 %Long  0x0
+
+
+  //*(int*)CM_EMU_DEBUGSS_CLKCTRL = (0x0 << 22 | 0x1 << 24); 
+  Data.Set A:0x4A307A20 %Long 0x01000000
+
+  PRINT "Configure PRM to provide system clk which is 38.4MHz "
+
+  RETURN
+)
+
+Configure_CM2_provide_clk_l3debugss_tpiu:
+(
+  ENTRY
+
+  // Allow Arteris L3_3 clock to be provided
+  //*(int*)CM_L3INSTR_L3_3_CLKCTRL = 0x1;
+  Data.Set A:0x4A008E20 %Long 0x1
+
+  // Allow l3 instr clock to be provided
+  //*(int*)CM_L3INSTR_L3_INSTR_CLKCTRL = 0x1;
+  Data.Set A:0x4A008E28 %Long 0x1
+
+  PRINT "Configure CM2 to provide a clock to debugss "
+
+  RETURN
+)
+
+Configure_Spinner_For_TPIU_trace_Pins_EMU0_EMU19_18bitmode:
+(
+  ENTRY
+
+  // Clear bits 16:31 
+  // Input buffer should be turned off, some reflections have been seen
+  // on silicon 
+
+  // Configure EMU0..19 for DBG pin usage 
+  // All are MUX MODE 0 and for all the input buffer has been disabled 
+  // Input buffer enabling for output only signals may result in reflections 
+  // Pull-ups/down have been disabled as well 
+
+  // TPIU is assumed to use TPIU_Data[0:15] on EMU0,1,4..EMU19 and 
+  // TPIU_CLK on EMU2 and TPIU_CTL on EMU3 
+
+
+  //*(int*)PAD0_SYS_BOOT5_PAD1_DPM_EMU0 &= 0x0000FFFF;
+
+  //*(int*)PAD0_SYS_BOOT5_PAD1_DPM_EMU0 |= (0x0 << 16); /* MUX mode 0 */
+
+  &value1=Data.Long(A:0x4A1001AC)
+  &value1=&value1&0x0000FFFF
+  Data.Set A:0x4A1001AC %Long &value1
+
+  &value1=&value1|(0x0<<16.)
+  Data.Set A:0x4A1001AC %Long &value1
+
+  //*(int*)PAD0_DPM_EMU1_PAD1_DPM_EMU2 = 0;
+  Data.Set A:0x4A1001B0 %Long 0
+
+  //*(int*)PAD0_DPM_EMU3_PAD1_DPM_EMU4 = 0;
+  Data.Set A:0x4A1001B4 %Long 0
+
+  //*(int*)PAD0_DPM_EMU5_PAD1_DPM_EMU6 = 0;
+  Data.Set A:0x4A1001B8 %Long 0
+
+  //*(int*)PAD0_DPM_EMU7_PAD1_DPM_EMU8 = 0;
+  Data.Set A:0x4A1001BC %Long 0
+
+  //*(int*)PAD0_DPM_EMU9_PAD1_DPM_EMU10 = 0;
+  Data.Set A:0x4A1001C0 %Long 0
+
+  //*(int*)PAD0_DPM_EMU11_PAD1_DPM_EMU12 = 0;
+  Data.Set A:0x4A1001C4 %Long 0
+
+  //*(int*)PAD0_DPM_EMU13_PAD1_DPM_EMU14 = 0;
+  Data.Set A:0x4A1001C8 %Long 0
+
+  //*(int*)PAD0_DPM_EMU15_PAD1_DPM_EMU16 = 0;
+  Data.Set A:0x4A1001CC %Long 0
+
+  //*(int*)PAD0_DPM_EMU17_PAD1_DPM_EMU18 = 0;
+  Data.Set A:0x4A1001D0 %Long 0
+
+  //*(int*)PAD0_DPM_EMU19 = 0;
+  Data.Set A:0x4A1001D4 %Long 0
+
+  PRINT "Configure Spinner for TPIU trace pins, EMU0..19 for 18 bit mode " 
+
+  RETURN
+)
+
+Configure_Spinner_For_TPIU_trace_Pins_EMU2_EMU19_16bitmode:
+(
+  ENTRY
+
+  // Clear bits 16:31 
+  // Input buffer should be turned off, some reflections have been seen
+  // on silicon 
+
+  // Configure EMU2..19 for DBG pin usage 
+  // All are MUX MODE 0 and for all the input buffer has been disabled 
+  // Input buffer enabling for output only signals may result in reflections 
+  // Pull-ups/down have been disabled as well 
+
+  // TPIU is assumed to use TPIU_Data[0:15] on EMU4..EMU19 and 
+  // TPIU_CLK on EMU2 and TPIU_CTL on EMU3 
+
+  //*(int*)PAD0_DPM_EMU1_PAD1_DPM_EMU0 &= 0x0000FFFF;
+
+  //*(int*)PAD0_DPM_EMU1_PAD1_DPM_EMU0 |= (0 << 16);
+
+  &value1=Data.Long(A:0x4A1001B0)
+  &value1=&value1&0x0000FFFF
+  Data.Set A:0x4A1001B0 %Long &value1
+
+  &value1=&value1|(0x0<<16.)
+  Data.Set A:0x4A1001B0 %Long &value1
+
+  //*(int*)PAD0_DPM_EMU3_PAD1_DPM_EMU4 = 0;
+  Data.Set A:0x4A1001B4 %Long 0
+
+  //*(int*)PAD0_DPM_EMU5_PAD1_DPM_EMU6 = 0;
+  Data.Set A:0x4A1001B8 %Long 0
+
+  //*(int*)PAD0_DPM_EMU7_PAD1_DPM_EMU8 = 0;
+  Data.Set A:0x4A1001BC %Long 0
+
+  //*(int*)PAD0_DPM_EMU9_PAD1_DPM_EMU10 = 0;
+  Data.Set A:0x4A1001C0 %Long 0
+
+  //*(int*)PAD0_DPM_EMU11_PAD1_DPM_EMU12 = 0;
+  Data.Set A:0x4A1001C4 %Long 0
+
+  //*(int*)PAD0_DPM_EMU13_PAD1_DPM_EMU14 = 0;
+  Data.Set A:0x4A1001C8 %Long 0
+
+  //*(int*)PAD0_DPM_EMU15_PAD1_DPM_EMU16 = 0;
+  Data.Set A:0x4A1001CC %Long 0
+
+  //*(int*)PAD0_DPM_EMU17_PAD1_DPM_EMU18 = 0;
+  Data.Set A:0x4A1001D0 %Long 0
+
+  //*(int*)PAD0_DPM_EMU19 = 0;
+  Data.Set A:0x4A1001d4 %Long 0
+
+  PRINT "Configure Spinner for TPIU trace pins, EMU2..19 for 16 bit mode "   
+
+  RETURN
+)
+
+Configure_DRM_TPIU_to_DP2_19:
+(
+  ENTRY
+
+  // Claim application ownership from DRM 
+  Data.Set AHB:0x54160050 %Long 0x40000000
+  // Enable application ownership from DRM 
+  Data.Set AHB:0x54160050 %Long 0x80000000
+
+  Data.Set AHB:0x54160088 %Long 0xA // TPIU_CLK     (DP2)
+  Data.Set AHB:0x5416008C %Long 0x9 // TPIU_CTL     (DP3)
+  Data.Set AHB:0x54160090 %Long 0x7 // TPIU_DATA[0] (DP4)
+  Data.Set AHB:0x54160094 %Long 0x7 // TPIU_DATA[1] (DP5)
+  Data.Set AHB:0x54160098 %Long 0x7 // TPIU_DATA[2] (DP6)
+  Data.Set AHB:0x5416009C %Long 0x7 // TPIU_DATA[3] (DP7)
+  Data.Set AHB:0x541600A0 %Long 0x7 // TPIU_DATA[4] (DP8)
+  Data.Set AHB:0x541600A4 %Long 0x7 // TPIU_DATA[5] (DP9)
+  Data.Set AHB:0x541600A8 %Long 0x7 // TPIU_DATA[6] (DP10)
+  Data.Set AHB:0x541600AC %Long 0x7 // TPIU_DATA[7] (DP11)
+  Data.Set AHB:0x541600B0 %Long 0x7 // TPIU_DATA[8] (DP12)
+  Data.Set AHB:0x541600B4 %Long 0x7 // TPIU_DATA[9] (DP13)
+  Data.Set AHB:0x541600B8 %Long 0x7 // TPIU_DATA[10] (DP14)
+  Data.Set AHB:0x541600BC %Long 0x7 // TPIU_DATA[11] (DP15)
+  Data.Set AHB:0x541600C0 %Long 0x7 // TPIU_DATA[12] (DP16)
+  Data.Set AHB:0x541600C4 %Long 0x7 // TPIU_DATA[13] (DP17)
+  Data.Set AHB:0x541600C8 %Long 0x7 // TPIU_DATA[14] (DP18)
+  Data.Set AHB:0x541600CC %Long 0x7 // TPIU_DATA[15] (DP19)
+
+  // Note the app owned state status bit should be '0' after PAD configuration
+  // (i checked, it appears to work)
+
+  // Debug only status bit is always '0' because on OMAP-4 no DP pin is exclusively 
+  // available for debug
+
+  // The output and output enable status bits should reflect the way STM is driving
+  // the pins (output enable should go to zero and stay zero)
+
+  PRINT "Programmed DRM to select debug function for DP pins, 16 pin TPIU data"
+  RETURN
+)
+
+Configure_DRM_to_assign_TPIU_to_DP0_19:
+(
+  ENTRY
+  // Claim application ownership from DRM 
+  Data.Set AHB:0x54160050 %Long 0x40000000
+  // Enable application ownership from DRM 
+  Data.Set AHB:0x54160050 %Long 0x80000000
+
+  Data.Set AHB:0x54160080 %Long 0x8 // TPIU_DATA[0] (DP0)
+  Data.Set AHB:0x54160084 %Long 0x8 // TPIU_DATA[1] (DP1)
+  Data.Set AHB:0x54160088 %Long 0xA // TPIU_CLK     (DP2)
+  Data.Set AHB:0x5416008C %Long 0x9 // TPIU_CTL     (DP3)
+  Data.Set AHB:0x54160090 %Long 0x8 // TPIU_DATA[2] (DP4)
+  Data.Set AHB:0x54160094 %Long 0x8 // TPIU_DATA[3] (DP5)
+  Data.Set AHB:0x54160098 %Long 0x8 // TPIU_DATA[4] (DP6)
+  Data.Set AHB:0x5416009C %Long 0x8 // TPIU_DATA[5] (DP7)
+  Data.Set AHB:0x541600A0 %Long 0x8 // TPIU_DATA[6] (DP8)
+  Data.Set AHB:0x541600A4 %Long 0x8 // TPIU_DATA[7] (DP9)
+  Data.Set AHB:0x541600A8 %Long 0x8 // TPIU_DATA[8] (DP10)
+  Data.Set AHB:0x541600AC %Long 0x8 // TPIU_DATA[9] (DP11)
+  Data.Set AHB:0x541600B0 %Long 0x8 // TPIU_DATA[10] (DP12)
+  Data.Set AHB:0x541600B4 %Long 0x8 // TPIU_DATA[11] (DP13)
+  Data.Set AHB:0x541600B8 %Long 0x8 // TPIU_DATA[12] (DP14)
+  Data.Set AHB:0x541600BC %Long 0x8 // TPIU_DATA[13] (DP15)
+  Data.Set AHB:0x541600C0 %Long 0x8 // TPIU_DATA[14] (DP16)
+  Data.Set AHB:0x541600C4 %Long 0x8 // TPIU_DATA[15] (DP17)
+  Data.Set AHB:0x541600C8 %Long 0x8 // TPIU_DATA[16] (DP18)
+  Data.Set AHB:0x541600CC %Long 0x8 // TPIU_DATA[17] (DP19)
+
+  // Note the app owned state status bit should be '0' after PAD configuration
+  // (i checked, it appears to work)
+
+  // Debug only status bit is always '0' because on OMAP-4 no DP pin is exclusively 
+  // available for debug
+
+  // The output and output enable status bits should reflect the way STM is driving
+  // the pins (output enable should go to zero and stay zero)
+
+  PRINT "Programmed DRM to select debug function for DP pins, 18 pin TPIU data"
+
+  RETURN
+)
+
+

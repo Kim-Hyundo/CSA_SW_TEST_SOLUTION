@@ -1,0 +1,80 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script to start up AUDO-1 on TriBoard and show example "sieve()"
+; @Description:
+;   Please note: Stepping into function sieve() causes a jump to exit because
+;   of AUDO-1 bug
+;   17.3.00, PEG
+; @Keywords: Infineon, tracedata, TriCore
+; @Author: MAX
+; @Board: TriBoard-TC1765
+; @Chip: tc1765
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: tracedata.cmm 13419 2018-10-30 15:24:34Z hlohn $
+
+
+; Requirements to use OCDS-1:
+; Set jumper JP501 to position 2-3
+
+; Requirements to use OCDS-2:
+; Bug of AUDO-1: ClkOUT weakness; CPU clock should be <= 1MHz;
+; use e.g 1MHz oscillator and switch No.1 OFF position (PLL bypass)
+
+; Initialize and start the debugger
+SYStem.CPU tc1765
+; Slow JTAG clock is required for 1MHz crystal
+;  SYStem.JtagClock 500000.
+SYStem.Option DataTrace ON
+SYStem.Up
+
+; Disable watchdog timer
+Data.Set 0xf0000024 %Long 0x00000008 ; WDTCON1
+;Data.Set 0xf0000020 %l 0xfffc00f8 ; WDTCON0
+;Data.Set 0xf0000020 %l 0xfffc00f3
+
+; Set external bus unit and bus control unit
+; Flash 4MB  0xa4000000-0xa43fffff
+; RAM   1MB  0xa0000000-0xa00fffff
+Data.Set 0xF0000510 %Long 0x0000FF68 ; EBUCON
+Data.Set 0xF0000560 %Long 0x00420a7c ; BUSCON0
+Data.Set 0xF0000520 %Long 0xa4000051 ; ADDSEL0
+Data.Set 0xF0000564 %Long 0x00020140 ; BUSCON1
+Data.Set 0xF0000524 %Long 0xa0000071 ; ADDSEL1
+Data.Set 0xF0000568 %Long 0x80415FFF ; BUSCON2
+Data.Set 0xF0000528 %Long 0x00000001 ; ADDSEL2
+Data.Set 0xF000056C %Long 0x80415FFF ; BUSCON3
+Data.Set 0xF000052C %Long 0x00000001 ; ADDSEL3
+Data.Set 0xF0000210 %Long 0x4001FFFF ; BCUCON
+
+; Enable trace port (OCDS-2; works up to 1MHz crystal)
+; Bit0 = ETEN = 1; Bit14 = CLOCKOUTDIS = 0;
+Data.Set 0xf0000050 %Long 0x00f00031
+; Bit1 = ETSEL = 1; -> PCP trace
+;  Data.Set 0xf0000050 %l 0x00f00033
+
+; Define flash (in this example 2 x Intel DT28F160F3)
+FLASH.Create 0xa4000000--0xa43fffff I28F200B Long
+MAP.BOnchip 0xa4000000--0xa43fffff
+
+; Load demo application program
+
+sYmbol.SourcePATH.RESet
+sYmbol.SourcePATH.Set ../datatrace
+Data.LOAD.Elf "~~~~/datatrace.elf"
+
+; Define flash
+; Programming of 1MB binary file takes 196 sec
+FLASH.RESet
+FLASH.Create 0a4000000--0a43fffff I28F200B Long
+
+; Open some windows
+WinCLEAR
+WinPOS 0% 0% 100% 50%
+List.auto
+WinPOS 0% 50% 50% 50%
+Frame /Locals /Caller
+WinPOS 50% 50% 50% 50%
+Var.Watch
+Var.AddWatch ast flags
+
+ENDDO

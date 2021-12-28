@@ -1,0 +1,118 @@
+; --------------------------------------------------------------------------------
+; @Title: Off-chip Trace Script for the i.MX6
+; @Description:
+;   Simple off-chip trace demo for the iMX6. The pin-multiplexing for off-chip
+;   trace is setup by the script.
+;   Connector J13 "JTAG" can be used with our MIPI connectors (CombiProbe
+;   or Debug Cable plus Converter LA-3770) if pin 7 and pin 9 will not be
+;   connected. We just bent them over on the J13 connector.
+;   A connector for the external trace port is not available on this board.
+;   WaitReset 1.3s: The required wait time depends on the boot loader.
+;   Further Note for NXP SabreAI/IMX6SABREAUTO
+;     * a adapter LA-3897 is available from Lauterbach
+;     * depending on the board revision R828 must be configured to position B
+; @Keywords: Cortex-A9, Freescale, imx6, sabrelite, sieve, SMP
+; @Author: KJM
+; @Board: iMX6-SabreLite, Nitrogen6x, Nitrogen6x-SOM, WandBoard, MCIMX6Q-SDB
+; @Chip: IMX6*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx6quad_offchip_trace.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; reset chip, connect to first core only
+  RESet
+  SYStem.RESet
+  SYStem.CPU iMX6Quad
+  CORE.ASSIGN 1
+  SYStem.Option ResBreak OFF
+  IF VERSION.BUILD()<92177.
+  (
+    SYStem.Option WaitReset 0.6s
+  )
+  ELSE
+  (
+    SYStem.Option WaitIDCODE 1.5s
+  )
+  Trace.METHOD Onchip
+  SYStem.Up
+
+; enable other cores and connect to all of them
+  Data.Set ASD:0x020d8000 %Long 0x01C00521
+
+  SYStem.Down
+  CORE.ASSIGN 1 2 3 4
+  SYStem.Mode Attach
+
+  IF STATE.RUN()
+    Break.direct
+
+  CORE.select 0.
+  Register.RESet
+  Data.LOAD.Elf ~~~~/demo_sram.axf
+  Register.Set PC  main
+  Register.Set R13 0x917000
+
+  CORE.select 1.
+  Register.RESet
+  Register.Set PC  background
+  Register.Set R13 0x917000
+
+  CORE.select 2.
+  Register.RESet
+  Register.Set PC  background
+  Register.Set R13 0x917000
+
+  CORE.select 3.
+  Register.RESet
+  Register.Set PC  background
+  Register.Set R13 0x917000
+
+  CORE.select 0.
+
+  IF Analyzer()
+  (
+    ; set the pin-multiplexing (IOMUXC) for the off-chip trace
+    ; use EZAHB - Runtime Secure AHB access (Trustzone)
+    Data.Set EZAHB:0x20E025C %Long 0x7
+    Data.Set EZAHB:0x20E0260 %Long 0x7
+    Data.Set EZAHB:0x20E0264 %Long 0x7
+    Data.Set EZAHB:0x20E0268 %Long 0x7
+    Data.Set EZAHB:0x20E026C %Long 0x7
+    Data.Set EZAHB:0x20E0270 %Long 0x7
+    Data.Set EZAHB:0x20E0274 %Long 0x7
+    Data.Set EZAHB:0x20E0278 %Long 0x7
+    Data.Set EZAHB:0x20E027C %Long 0x7
+    Data.Set EZAHB:0x20E0280 %Long 0x7
+    Data.Set EZAHB:0x20E0284 %Long 0x7
+    Data.Set EZAHB:0x20E0288 %Long 0x7
+    Data.Set EZAHB:0x20E028C %Long 0x7
+    Data.Set EZAHB:0x20E0290 %Long 0x7
+    Data.Set EZAHB:0x20E0294 %Long 0x7
+    Data.Set EZAHB:0x20E0298 %Long 0x7
+    Data.Set EZAHB:0x20E029C %Long 0x7
+    Data.Set EZAHB:0x20E02A0 %Long 0x7
+
+    ETM.PortSize 16
+    Analyzer.AutoFocus
+
+    WinPOS 50% 50% 50% 50%
+    Analyzer.List
+  )
+
+; open some windows
+  WinCLEAR
+
+  WinPOS 0% 0% 50% 50%
+  List.auto
+
+  WinPOS 50% 0% 50% 50%
+  Register.view /SpotLight
+
+  WinPOS 0% 50% 50% 50%
+  Frame /Locals /Caller
+
+  WinPOS 50% 50% 50% 50%
+  Trace.List
+
+  ENDDO

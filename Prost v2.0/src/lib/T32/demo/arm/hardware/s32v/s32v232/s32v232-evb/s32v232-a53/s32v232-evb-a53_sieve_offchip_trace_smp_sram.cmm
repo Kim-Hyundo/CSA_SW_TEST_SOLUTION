@@ -1,0 +1,172 @@
+; --------------------------------------------------------------------------------
+; @Title: SMP-Demo script for S32V232 on S32V234-EVB with Offchip-Trace (RAM, SMP)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Offchip-Trace. Pinmuxing and Clock
+;   setup is handled in the script.
+;   As only the Cortex-M4 is started after reset, we start the first A53 using
+;   the script. We handle the start of the secondary cores in the script and
+;   switch to SMP later.
+;   Use this script to test the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Debug Cable/Combiprobe to J17
+;    * Connect AutoFocus Preprocessor to J57 using Mictor38 cable
+;    * set Bootmode to SD-Card, remove SD-Card
+; @Keywords: ARM, Cortex-A53, ETM, SMP
+; @Author: AME
+; @Board: S32V234-EVB
+; @Chip: S32V232
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: s32v232-evb-a53_sieve_offchip_trace_smp_sram.cmm 16225 2020-06-25 14:27:47Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; check prerequisites
+IF SYStem.INSTANCE()>1.
+(
+  PRINT %ERROR "Please start this script in Non-AMP or AMP-Master mode."
+  ENDDO
+)
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU S32V232
+SYStem.Option AHBHPROT 0x3
+SYStem.Option EnReset OFF
+SYStem.JtagClock CTCK 10MHz
+CORE.ASSIGN 1.
+; disable Trace infrastructure for the moment - TPIU may be unclocked!
+ETM.OFF
+Trace.DISable
+SYStem.Mode Prepare
+
+GOSUB DisableWatchdog
+DO ~~~~/../../scripts/kick_cores "A53_1"
+
+SYStem.Mode Attach
+IF STATE.RUN()
+  Break.direct
+
+; --------------------------------------------------------------------------------
+; kick secondary cores
+DO ~~~~/../../scripts/kick_cores "A53_2"
+
+; disconnect from system and reattach in SMP mode
+SYStem.Mode.Down
+CORE.ASSIGN 1. 2.
+SYStem.Mode.Attach
+
+IF STATE.RUN()
+  Break.direct
+
+GOSUB InitEcc
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+CORE.select 0.
+Data.LOAD.Elf "~~~~/sieve_ram_aarch64_v8.elf"
+; Set PC for all secondary cores
+Register.Init /CORE 1.
+Register.Set PC _start_secondary /CORE 1.
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; initialize OFFCHIP trace if Analyzer is plugged (ETM)
+IF Analyzer()
+(
+  ; set PinMux and enable Clocks
+  ; enable trace clock and select bus
+  Data.set edbg:0x40000504 %LONG 0yxxxxxxxxxxxxxxxxxxxxx11xxxxxxxxx
+  ; pinmux
+  Data.Set EAHB:0x4006C3DC %Long 0x200701  ; PG7 ; clock
+  Data.Set EAHB:0x4006C28C %Long 0x200702  ; PB3 ;control
+  Data.Set EAHB:0x4006C3E0 %Long 0x200701  ; PG8
+  Data.Set EAHB:0x4006C3E4 %Long 0x200701  ; PG9
+  Data.Set EAHB:0x4006C3E8 %Long 0x200701  ; PG10
+  Data.Set EAHB:0x4006C3EC %Long 0x200701  ; PG11
+  Data.Set EAHB:0x4006C3F0 %Long 0x200701  ; PG12
+  Data.Set EAHB:0x4006C3F4 %Long 0x200701  ; PG13
+  Data.Set EAHB:0x4006C3F8 %Long 0x200701  ; PG14
+  Data.Set EAHB:0x4006C3FC %Long 0x200701  ; PG15
+  Data.Set EAHB:0x4006C400 %Long 0x200701  ; PH0
+  Data.Set EAHB:0x4006C404 %Long 0x200701  ; PH1
+  Data.Set EAHB:0x4006C408 %Long 0x200701  ; PH2
+  Data.Set EAHB:0x4006C40C %Long 0x200701  ; PH3
+  Data.Set EAHB:0x4006C410 %Long 0x200701  ; PH4
+  Data.Set EAHB:0x4006C414 %Long 0x200701  ; PH5
+  Data.Set EAHB:0x4006C418 %Long 0x200701  ; PH6
+  Data.Set EAHB:0x4006C41C %Long 0x200701  ; PH7
+
+  ; set TPIU to FIRC / 1
+  Data.Set EAHB:0x40042880 %Long %LE 0x0
+  ; Disable the Effect of SWO on TPIU
+  Data.Set EAPB:0x80011EF0 %LE %Long 0x1
+  Data.Set EAPB:0x80011F00 %LE %Long 0x1
+  ; to select ARM_PLL do
+  ; not used as ARM_PLL isn't running!
+  ; set TPIU to ARM PLL / 1
+  ; Data.Set AD:0x40042888 %Long %LE 0x800F0000
+  ; Data.Set AD:0x40042880 %Long %LE 0x2000000
+  ; WAIT 0.2s
+  ; Data.Set AD:0x40042888 %Long %LE 0x80000000
+
+  Trace.Method Analyzer
+  TPIU.PortSize 16
+  TPIU.PortMode Continuous
+  ETM.Trace ON
+  ETM.ON
+  ; use Autofocus based calibration
+  Analyzer.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO
+
+DisableWatchdog:
+(
+  ; use the AHB access port to disable the WDOG before the actual connection
+  Data.Set EAHB:0x40086010 %Long 0xc520
+  Data.Set EAHB:0x40086010 %Long 0xd928
+  Data.Set EAHB:0x40086000 %Long Data.Long(EAHB:0x40086000)&~0x1
+  Data.Set EAHB:0x40086000 %Long Data.Long(EAHB:0x40086000)|0x40
+  RETURN
+)
+
+InitEcc:
+(
+  ; ECC init of SRAM with use eDMA TCD1
+  Data.Set EAHB:0x40003020 %Long 0x6230
+  Data.Set EAHB:0x40003024 %Long 0x03030000
+  Data.Set EAHB:0x40003028 %Long 0x00400000
+  Data.Set EAHB:0x40003030 %Long 0x3e800000
+  Data.Set EAHB:0x40003034 %Long 0x00010008
+  Data.Set EAHB:0x4000303C %Long 0x00010001
+  WAIT (Data.Word(EAHB:0x4000303C)&0x0080)==0x0080
+  RETURN
+)
+

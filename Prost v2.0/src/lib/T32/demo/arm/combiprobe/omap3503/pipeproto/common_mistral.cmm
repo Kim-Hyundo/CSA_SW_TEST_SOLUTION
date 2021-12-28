@@ -1,0 +1,212 @@
+; --------------------------------------------------------------------------------
+; @Title: PIPE Demo Setup Script for Cortex-A8 on OMAP3503
+; @Description: PIPE Demo setup script for Cortex-A8 on OMAP3530 for the "Mistral" board
+; @Keywords: OMAP, PIPE, TI
+; @Board: Mistral
+; @Chip: OMAP3503
+; @Author: ING
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: common_mistral.cmm 15209 2019-11-04 10:07:55Z bschroefel $
+
+
+  WinCLEAR
+  SystemTrace.state
+
+; start-up the debugger
+
+  SYStem.RESet
+  SYStem.CPU OMAP3530
+  SYStem.JtagClock RTCK
+
+; When using ARM20/TI Adapter
+  SYStem.CONFIG.CONNECTOR mipi34
+
+  CAnalyzer.RESet
+  CAnalyzer.PipePROTO
+  CAnalyzer.AutoArm ON
+  CAnalyzer.THreshold 0.9
+
+  SYStem.Up
+
+  ; required for emulation device
+  Register.Set NS 1
+
+  GOSUB disable_watchdog
+  GOSUB prcm_clocking_conf_IIa
+  GOSUB setgpmcsdrc
+
+  DO clock_setup
+
+  ETM.OFF
+
+  ; Setup SDTI on OMAP
+  STM.ON
+  STM.PortSize 4
+  STM.PortMode 1/2
+  STM.PortMode HalfRate
+
+  ; Now turn on PIPE mode
+  SystemTrace.Mode PIPE
+
+  ; Load demo application
+  Data.LOAD.Elf ../omaptest/test.elf
+
+ENDDO
+
+disable_watchdog:
+(
+  ; Enable Interface Clock
+  Data.Set ASD:0x48004C10 %Long 0x20
+  
+  ; Enable functional clock
+  Data.Set ASD:0x48004C00 %Long 0x20
+ 
+  ; Check that module is IDLE
+  WAIT (Data.Long(ASD:0x48004C20)&0x20)==0 
+   
+  ; Disable watchdog timer
+  Data.Set ASD:0x48314048 %LE %Long 0x0000AAAA;
+  WAIT (Data.Long(ASD:0x48314034)&0x10)==0
+ 
+  Data.Set ASD:0x48314048 %LE %Long 0x00005555;
+  WAIT (Data.Long(ASD:0x48314034)&0x10)==0
+ 
+  ; Check if the watchdog timer is running */
+  IF (Data.Long(ASD:0x48314048)!=0x00005555)
+  (
+    ; Disable Watchdog 2
+    ; Wait until reset complete */
+    WAIT (Data.Long(ASD:0x48314014)&0x01)!=0
+ 
+    ; Disable 32Khz watchdog timer */
+    Data.Set ASD:0x48314048 %Long 0x0000AAAA
+ 
+    WAIT (Data.Long(ASD:0x48314034)&0x10)==0
+           
+    ; Disable 32Khz watchdog timer
+    Data.Set ASD:0x48314048 %Long 0x00005555
+   
+    WAIT (Data.Long(ASD:0x48314034)&0x10)==0 
+  )
+
+  RETURN
+)
+
+
+prcm_clocking_conf_IIa:
+(
+  ; Set system clock to 19.2MHz (PRM_CLKSEL_REG) 
+  Data.Set ASD:0x48306D40 %LE %Long 0x2
+        
+  &val=Data.Long(ASD:0x48004D00)
+  &val=&val&(~0x07)
+  &val=&val|(5<<0)
+  Data.Set ASD:0x48004D00 %LE %Long &val  
+  
+  WHILE ((Data.Long(ASD:0x48004d20)&(0x1))==0x1)
+ 
+  ; Program CM_CLKSEL_CORE_REG
+  ; .................    L3             L4         FSHOSTUSB    GPT10    GPT11      SSI
+  Data.Set ASD:0x48004A40 %LE %Long ((2<<0)|(2<<2)|(2<<4)|(0<<6)|(0<<7)|(3<<8))   
+ 
+  ; Program DPLL
+  ; Multiplier = 242
+  ; Divisor = 13
+  ; CORE_DPLL_CLKOUT_DIV
+  ; APLL clock source = 19.2MHz system clock
+  ; 54MHz and 48MHz clocks are derived from APLL
+  Data.Set ASD:0x48004D40 %LE %Long ((1<<27.)|(242.<<16.)|(13.<<8)|(0<<5)|(0<<3))        
+    
+  ; Put DPLL into lock mode
+  ; Set CORE DPLL FreqSel: 0.75-1MHz
+  Data.Set ASD:0x48004d00 %LE %Long (Data.Long(d:0x48004D00)|(5<<4)|(7<<0))   
+
+  ; Wait for DPLL to be in lock mode 
+  WHILE ((Data.Long(ASD:0x48004d20)&(0x1))!=0x1)
+   
+  RETURN
+)
+
+
+
+setgpmcsdrc:
+(
+  ; issues software reset of SDRAM interface
+  Data.Set ASD:0x6D000010 %LE %Long 0x0000000a
+  RePeaT 0x100
+  (
+  WAIT 1.ms
+  )
+
+  ; remove reset
+  Data.Set ASD:0x6D000010 %LE %Long 0x00000008
+
+  ; set up sram mux mode for external connection
+  ; SDRCSharing
+  ; Chip-level shared interface management
+  ; Assumption is that both the 16Mx32 chips are connected to CS0 of SDRC.
+  ; i.e 1GBit part 32Mx32 is connected to CS0 = 128 MB 
+                                      ; SDRCTriState: no Tris
+                                      ; CS0MuxCfg: 000 (32-bit SDRAM on D31..0)
+                                      ; CS1MuxCfg: 000 (32-bit SDRAM on D31..0)
+  ;Data.Set sd:0x6D000070 %le %long 0x000000C5
+  Data.Set ASD:0x6D000080 %LE %Long 0x01702019
+  Data.Set ASD:0x6D0000B0 %LE %Long 0x01702019
+  Data.Set ASD:0x6D000044 %LE %Long 0x00000100
+
+  RePeaT 0x2
+  (
+    WAIT 1.ms
+  )
+
+  ;   ACTIMA
+  Data.Set ASD:0x6D00009c %LE %Long 0x629DB485
+  Data.Set ASD:0x6D0000C4 %LE %Long 0x629DB485
+
+  ;   ACTIMB
+  Data.Set ASD:0x6D0000A0 %LE %Long 0x00001012
+  Data.Set ASD:0x6D0000C8 %LE %Long 0x00001012
+
+  ;SDRC_RFR_CTRL_0  
+  Data.Set ASD:0x6D0000A4 %LE %Long 0x00005D01 
+  Data.Set ASD:0x6D0000D4 %LE %Long 0x00005D01 
+
+  ;Manual Command sequence
+  Data.Set ASD:0x6D0000A8 %LE %Long 0x00000000
+  Data.Set ASD:0x6D0000A8 %LE %Long 0x00000001
+  Data.Set ASD:0x6D0000A8 %LE %Long 0x00000002
+  Data.Set ASD:0x6D0000A8 %LE %Long 0x00000002
+
+  Data.Set ASD:0x6D0000D8 %LE %Long 0x00000000
+  Data.Set ASD:0x6D0000D8 %LE %Long 0x00000001
+  Data.Set ASD:0x6D0000D8 %LE %Long 0x00000002
+  Data.Set ASD:0x6D0000D8 %LE %Long 0x00000002
+
+  ; CS0 SDRC Mode Register
+  ; Burst length = 4 - DDR memory
+  ; Serial mode = Serial 
+  ; CAS latency = 3 
+  Data.Set ASD:0x6D000084 %LE %Long 0x00000032
+  Data.Set ASD:0x6D0000B4 %LE %Long 0x00000032
+
+  ;Configure EMR_0 and EMR_1
+  Data.Set ASD:0x6D00008C %LE %Long 0x00000020
+  Data.Set ASD:0x6D0000BC %LE %Long 0x00000020
+
+  ;  /* SDRC DLLA control register */
+  ;  /* Enable DLL, Load counter with 115 (middle of range) */ 
+  ;  /* Delay is 90 degrees */
+  Data.Set ASD:0x6D000060 %LE %Long 0x0000000a ; 
+
+  ; Wait for DLL lock time.
+  RePeaT 0x10
+  (
+    WAIT 1.ms
+  )
+
+  RETURN
+)
+
+
+

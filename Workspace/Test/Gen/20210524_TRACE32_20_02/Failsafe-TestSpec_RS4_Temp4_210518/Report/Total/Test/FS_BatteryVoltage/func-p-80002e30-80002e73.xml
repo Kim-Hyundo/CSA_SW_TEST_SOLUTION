@@ -1,0 +1,439 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="t32transform.xsl"?>
+<TRACE32 file="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Gen\20210524_TRACE32_20_02\Failsafe-TestSpec_RS4_Temp4_210518\Report\Total\Test\FS_BatteryVoltage\func-p-80002e30-80002e73.xml">
+	<coverage>
+		<COVerage.EXPORT.ListLine ts="1621823191" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE" metric="object">
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\Rte_SWC_Diag</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>-</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>0</never>
+				<bytes>638</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\FS_HWFailure</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>16</never>
+				<bytes>236</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\SWC_Failsafe</tree>
+				<cov>partial</cov>
+				<exec metric="object">0.600%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>16</never>
+				<bytes>1666</bytes>
+				<bytesok>10</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80002DEA</addrFrom>
+				<addrTo>P:80002F83</addrTo>
+				<tree>\\Test\FS_BatteryVoltage</tree>
+				<cov>partial</cov>
+				<exec metric="object">59.512%</exec>
+				<branches>52.000%</branches>
+				<ok>8</ok>
+				<taken>3</taken>
+				<nottaken>7</nottaken>
+				<never>7</never>
+				<bytes>410</bytes>
+				<bytesok>244</bytesok>
+				<function>
+					<addrFrom>P:80002E30</addrFrom>
+					<addrTo>P:80002E73</addrTo>
+					<tree uid="p-80002e30-80002e73">\\Test\FS_BatteryVoltage\FS_SetInhibit_BatteryVoltage</tree>
+					<cov>never</cov>
+					<exec metric="object">0.000%</exec>
+					<branches>0.000%</branches>
+					<ok>0</ok>
+					<taken>0</taken>
+					<nottaken>0</nottaken>
+					<never>4</never>
+					<bytes>68</bytes>
+					<bytesok>0</bytesok>
+					<line>
+						<addrFrom>P:80002E3A</addrFrom>
+						<addrTo>P:80002E3B</addrTo>
+						<tree>FS_BatteryVoltage.c \107--109</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>multiple</addrFrom>
+						<tree>FS_BatteryVoltage.c \110--111</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>12</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002E3E</addrFrom>
+						<addrTo>P:80002E55</addrTo>
+						<tree>FS_BatteryVoltage.c \112--113</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>0.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>1</never>
+						<bytes>24</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002E56</addrFrom>
+						<addrTo>P:80002E59</addrTo>
+						<tree>FS_BatteryVoltage.c \114--128</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>0.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>1</never>
+						<bytes>4</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002E5A</addrFrom>
+						<addrTo>P:80002E71</addrTo>
+						<tree>FS_BatteryVoltage.c \129--130</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>0.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>1</never>
+						<bytes>24</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<line>
+						<addrFrom>P:80002E72</addrFrom>
+						<addrTo>P:80002E73</addrTo>
+						<tree>FS_BatteryVoltage.c \131--144</tree>
+						<srcpath>C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c</srcpath>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>-</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>0</never>
+						<bytes>2</bytes>
+						<bytesok>0</bytesok>
+					</line>
+					<total>
+						<cov>never</cov>
+						<exec metric="object">0.000%</exec>
+						<branches>0.000%</branches>
+						<ok>0</ok>
+						<taken>0</taken>
+						<nottaken>0</nottaken>
+						<never>3</never>
+						<bytes>68</bytes>
+						<bytesok>0</bytesok>
+					</total>
+				</function>
+				<total>
+					<cov>never</cov>
+					<exec metric="object">0.000%</exec>
+					<branches>0.000%</branches>
+					<ok>0</ok>
+					<taken>0</taken>
+					<nottaken>0</nottaken>
+					<never>4</never>
+					<bytes>68</bytes>
+					<bytesok>0</bytesok>
+				</total>
+			</module>
+			<module>
+				<addrFrom>P:80002F84</addrFrom>
+				<addrTo>P:800030BB</addrTo>
+				<tree>\\Test\FS_CANBusOff</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>17</never>
+				<bytes>312</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\FS_CANTimeout</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>350</never>
+				<bytes>2458</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\FS_InvalidSignal</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>350</never>
+				<bytes>6758</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\FS_SWFailure</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>17</never>
+				<bytes>304</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_cstart</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>5</never>
+				<bytes>806</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_cstart_tc1</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>402</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_cstart_tc2</tree>
+				<cov>partial</cov>
+				<exec metric="object">81.094%</exec>
+				<branches>87.500%</branches>
+				<ok>3</ok>
+				<taken>0</taken>
+				<nottaken>1</nottaken>
+				<never>0</never>
+				<bytes>402</bytes>
+				<bytesok>326</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_cstart_tc3</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>multiple</addrFrom>
+				<tree>\\Test\prost_main</tree>
+				<cov>partial</cov>
+				<exec metric="object">27.835%</exec>
+				<branches>31.818%</branches>
+				<ok>1</ok>
+				<taken>4</taken>
+				<nottaken>1</nottaken>
+				<never>5</never>
+				<bytes>388</bytes>
+				<bytesok>108</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:800065B6</addrFrom>
+				<addrTo>P:8000674B</addrTo>
+				<tree>\\Test\prost_cstart_tc4</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:8000674C</addrFrom>
+				<addrTo>P:800068E1</addrTo>
+				<tree>\\Test\prost_cstart_tc5</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>4</never>
+				<bytes>406</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<module>
+				<addrFrom>P:80006A62</addrFrom>
+				<addrTo>P:80006A91</addrTo>
+				<tree>\\Test\prost_stubs</tree>
+				<cov>never</cov>
+				<exec metric="object">0.000%</exec>
+				<branches>0.000%</branches>
+				<ok>0</ok>
+				<taken>0</taken>
+				<nottaken>0</nottaken>
+				<never>2</never>
+				<bytes>48</bytes>
+				<bytesok>0</bytesok>
+			</module>
+			<total>
+				<cov>partial</cov>
+				<exec metric="object">4.287%</exec>
+				<branches>2.412%</branches>
+				<ok>12</ok>
+				<taken>7</taken>
+				<nottaken>9</nottaken>
+				<never>801</never>
+				<bytes>16046</bytes>
+				<bytesok>688</bytesok>
+			</total>
+		</COVerage.EXPORT.ListLine>
+	</coverage>
+	<marker>
+		<BookMark.EXPORT ts="1621823191" t32ver="R.2020.09.000128638" t32pv="TRICORE" cpu="TC397XE">
+		</BookMark.EXPORT>
+	</marker>
+	<listing>
+		<List.EXPORT ts="1621823191" t32ver="R.2020.09.000128638" t32pv="TRICORE" order="source">
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><line>107</line><src>}</src></hll>
+				<hll><line>108</line><src></src></hll>
+				<hll><cov>never</cov><line>109</line><src>void FS_SetInhibit_BatteryVoltage(void)</src></hll>
+				<asm><cov>never</cov><addr>P:80002E3A</addr><code>2820</code><mnemonic>sub16.a   a10,#0x28</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c" type="multiple">
+				<hll><line>110</line><src>{</src></hll>
+				<hll><cov>never</cov><line>111</line><src>    if (bat_info.high.fault == TRUE) {</src></hll>
+				<asm><cov>never</cov><addr>P:80002E30</addr><code>F9004091</code><label>FS_SetInhibit_BatteryVoltage:                                                                                                                                                                                                                                   </label><mnemonic>movh.a    a15,#0x9004</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80002E34</addr><code>706CFFD9</code><mnemonic>lea       a15,[a15]0x5EC</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80002E38</addr><code>FF14</code><mnemonic>ld16.bu   d15,[a15]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80002E3C</addr><code>1D5E</code><mnemonic>jne16     d15,#0x1,0x80002E56</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><line>112</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>113</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80002E3E</addr><code>28000091</code><mnemonic>movh.a    a2,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80002E42</addr><code>726822D9</code><mnemonic>lea       a2,[a2]0x25E8</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80002E46</addr><code>A440</code><mnemonic>mov16.aa  a4,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80002E48</addr><code>002505C5</code><mnemonic>lea       a5,0x25</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80002E4C</addr><code>2F04</code><mnemonic>ld16.bu   d15,[a2+]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80002E4E</addr><code>4F24</code><mnemonic>st16.b    [a4+],d15</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80002E50</addr><code>5EFC</code><mnemonic>loop16    a5,0x80002E4C</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80002E52</addr><code>1647006D</code><mnemonic>call      0x80005AE0</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><line>114</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>115</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>116</line><src>                .sccml = {1},</src></hll>
+				<hll><line>117</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>118</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>119</line><src>                .hda = {1,1,1,1},</src></hll>
+				<hll><line>120</line><src>                .bca = {1,0},</src></hll>
+				<hll><line>121</line><src>                .sea = {1},</src></hll>
+				<hll><line>122</line><src>                .rcca = {1,0},</src></hll>
+				<hll><line>123</line><src>                .warning = {3,3,3,3,HDA_LFA_FAULT,5,1},</src></hll>
+				<hll><line>124</line><src>            }</src></hll>
+				<hll><line>125</line><src>        );</src></hll>
+				<hll><line>126</line><src>    }</src></hll>
+				<hll><line>127</line><src></src></hll>
+				<hll><cov>never</cov><line>128</line><src>    if (bat_info.low.fault == TRUE) {</src></hll>
+				<asm><cov>never</cov><addr>P:80002E56</addr><code>6F08</code><mnemonic>ld16.bu   d15,[a15]0x6</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80002E58</addr><code>1D5E</code><mnemonic>jne16     d15,#0x1,0x80002E72</mnemonic></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><line>129</line><src>        update_inhibit_info(</src></hll>
+				<hll><cov>never</cov><line>130</line><src>            (struct inhibit_info){</src></hll>
+				<asm><cov>never</cov><addr>P:80002E5A</addr><code>F8000091</code><mnemonic>movh.a    a15,#0x8000</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80002E5E</addr><code>7268FFD9</code><mnemonic>lea       a15,[a15]0x25E8</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80002E62</addr><code>A240</code><mnemonic>mov16.aa  a2,a10</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80002E64</addr><code>002504C5</code><mnemonic>lea       a4,0x25</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80002E68</addr><code>FF04</code><mnemonic>ld16.bu   d15,[a15+]</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80002E6A</addr><code>2F24</code><mnemonic>st16.b    [a2+],d15</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80002E6C</addr><code>4EFC</code><mnemonic>loop16    a4,0x80002E68</mnemonic></asm>
+				<asm><cov>never</cov><addr>P:80002E6E</addr><code>1639001D</code><mnemonic>j         0x80005AE0</mnemonic><comment>update_inhibit_info</comment></asm>
+			</mixed>
+			<mixed module="\\Test\FS_BatteryVoltage" srcpath="C:\Users\CSA_DEV\Documents\Working\Prost_v2.0\Workspace\Test\Target_SW\ASW\Failsafe\FS_Items\FS_BatteryVoltage.c">
+				<hll><line>131</line><src>                .fca = {1,1,1,1,1,1,1,1,1},</src></hll>
+				<hll><line>132</line><src>                .scc = {1,1,1,1},</src></hll>
+				<hll><line>133</line><src>                .sccml = {1},</src></hll>
+				<hll><line>134</line><src>                .nscc = {1,1},</src></hll>
+				<hll><line>135</line><src>                .lfa = {1,1},</src></hll>
+				<hll><line>136</line><src>                .hda = {1,1,1,1},</src></hll>
+				<hll><line>137</line><src>                .bca = {1,0},</src></hll>
+				<hll><line>138</line><src>                .sea = {1},</src></hll>
+				<hll><line>139</line><src>                .rcca = {1,0},</src></hll>
+				<hll><line>140</line><src>                .warning = {3,3,3,3,HDA_LFA_FAULT,5,1},</src></hll>
+				<hll><line>141</line><src>            }</src></hll>
+				<hll><line>142</line><src>        );</src></hll>
+				<hll><line>143</line><src>    }</src></hll>
+				<hll><cov>never</cov><line>144</line><src>}</src></hll>
+				<asm><cov>never</cov><addr>P:80002E72</addr><code>9000</code><mnemonic>ret16     </mnemonic></asm>
+			</mixed>
+		</List.EXPORT>
+	</listing>
+</TRACE32>

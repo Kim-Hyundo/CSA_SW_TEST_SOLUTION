@@ -1,0 +1,45 @@
+; --------------------------------------------------------------------------------
+; @Title: PATCH for TRACE32 OS Awareness in Nucleus Plus
+; @Description:
+;   This version supplies table display and analyzer check. System call
+;   trace is not supported yet.
+;
+;   All used memory locations are computed internally by global
+;   system variables. See below for the changes.
+;
+;   This script has been tested with following Nucleus Plus versions:
+;
+;   History:
+;
+; @Keywords: Infineon, kernel, nucleus, RTOS, TriCore
+; @Author: DIE
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: pnuc.cmm 13125 2018-09-11 14:03:01Z rdienstbeck $
+
+
+; START OS Awareness
+; --------------------------------------------------------------------------------
+
+; task.config:
+; 1st argument is name of configuration file (nuc.t32)
+; 2nd argument is memory location, at which the running process is specified
+; 3rd argument is patch address for suspend call -- not used here!
+; 4th to 12th argument are system pointers
+LOCAL &arg4 &arg5 &arg6 &arg7 &arg8 &arg9 &arg10 &arg11 &arg12
+&arg4=ADDRESS.OFFSET(TCD_Created_Tasks_List)
+&arg5=ADDRESS.OFFSET(MBD_Created_Mailboxes_List)
+&arg6=ADDRESS.OFFSET(QUD_Created_Queues_List)
+&arg7=ADDRESS.OFFSET(PID_Created_Pipes_List)
+&arg8=ADDRESS.OFFSET(SMD_Created_Semaphores_List)
+&arg9=ADDRESS.OFFSET(EVD_Created_Event_Groups_List)
+&arg10=ADDRESS.OFFSET(TMD_Created_Timers_List)
+&arg11=ADDRESS.OFFSET(PMD_Created_Pools_List)
+&arg12=ADDRESS.OFFSET(DMD_Created_Pools_List)
+; last argument is system call patch routine
+
+; automatic configuration:
+TASK.CONFIG nuc 0x0 0x0
+
+; manual configuration:
+; task.config TCD_Current_Thread 0 arg4 &arg5 &arg6 &arg7 &arg8 &arg9 &arg10 &arg11 &arg12 0

@@ -1,0 +1,66 @@
+; --------------------------------------------------------------------------------
+; @Title: QSPI XIP/LINEAR mode on ZYNQ
+; @Description:
+;   Initialize the QSPI XIP/LINEAR mode on ZYNQ.
+;   Prerequisites:
+;     * Bootmode: CASCADED JTAG, JTAG BOOT, PLL ON
+;   Notes:
+;     * assume ARM_PLL 33.3MHZ * 0x1a = 865MHz
+;     * QSPI IP with ARMPLL/0x14 = 43 MHz
+;     * QSPI_SCK divider /4 = 10MHz
+; @Author: AME
+; @Board: ZedBoard ZC702 ZC706
+; @Chip: ZYNQ-7000
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: zynq7000_qspi_linflash.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+  RESet
+  SYStem.RESet
+  SYStem.CPU ZYNQ-7000
+ 
+; This selects the DAP for accessing the ARM cores via cascaded JTAG mode
+  SYStem.CONFIG DAPIRPRE 6.      
+  SYStem.CONFIG DAPIRPOST 0.
+  SYStem.CONFIG DAPDRPRE 1.
+  SYStem.CONFIG DAPDRPOST 0.
+ 
+  TrOnchip.Set.UNDEF OFF
+  TrOnchip.Set.DABORT OFF
+  TrOnchip.Set.PABORT OFF
+ 
+  SYStem.Option.WaitReset 8.s
+
+  SYStem.Up
+  
+; MMU disable
+  PER.Set.simple C15:0x1 %Long 0x18C52C78
+
+; SLCR - UNLOCK WRITE
+  Data.Set ASD:0XF8000008 %Long 0x0000DF0D
+
+; spi pin configuration
+  Data.Set ASD:0xF8000704 %LE %Long 0x1702     ; PS_MIO1 -> SPI_CS
+  Data.Set ASD:0xF8000708 %LE %Long 0x702      ; PS_MIO2 -> SPI_MOSI
+  Data.Set ASD:0xF800070C %LE %Long 0x702      ; PS_MIO3 -> SPI_MISO
+  Data.Set ASD:0xF8000710 %LE %Long 0x702      ; PS_MIO4 -> SPI_DQ2 for the quad spi
+  Data.Set ASD:0xF8000714 %LE %Long 0x702      ; PS_MIO5 -> SPI_DQ3 for the quad spi
+  Data.Set ASD:0xF8000718 %LE %Long 0x702      ; PS_MIO6 -> SPI_CLK
+  
+  Data.Set ASD:0xF8000230 %LE %Long 0x0        ; LQSPI_RST_CTRL -> deassert RESET
+  
+  Data.Set ASD:0xF800014C %LE %Long 0x1421     ; LQSPI_CLK_CTRL -> CLK_DIV 0x14, ARM_PLL enable
+  
+  ; SLCR - finished
+  
+  ; QSPI
+  Data.Set ASD:0xE000D014 %LE %Long 0x0        ; Disable QSPI
+  Data.Set ASD:0xE000D000 %LE %Long 0x800240CF  ; CONFIG_REG -> 32bit fifo, /4 div, cs0, master
+  Data.Set ASD:0xE000D038 %LE %Long 0x33       ; LPBK_DLY_ADJ
+  Data.Set ASD:0xE000D0A0 %LE %Long 0x80000003 ; LQSPI_CFG - read 1bit mode
+  Data.Set ASD:0xE000D014 %LE %Long 0x1        ; Enable QSPI
+  
+  ; ensure we do not create buserror on AXI
+  MAP.DenyAccess 0xFBFFF000++0xFBFFFFFF
+  Data.dump 0xFC000000

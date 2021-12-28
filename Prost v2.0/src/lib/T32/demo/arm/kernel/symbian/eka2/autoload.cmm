@@ -1,0 +1,72 @@
+; --------------------------------------------------------------------------------
+; @Title: Symbian Symbol Autoloader Script
+; @Description: Autoload script, called by TRACE32 if symbols are to be loaded
+; @Keywords: eka2, symbian
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: autoload.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+// define local macros
+ LOCAL &filename &basename &progname &symfilename1 &symfilename2 &filepath 
+ LOCAL &code &data &spaceid &databsslinear &basename &space
+
+// get filename and relocation information
+ // these parameters are passed when calling this skript
+ 
+ ENTRY &filename &code &data &databsslinear &spaceid
+ 
+ // &filename:      name of process/file
+ // &code:          text segment address
+ // &data:          data segment address (not used here)
+ // &databsslinear: combined data & bss segment address
+ // &space:         space id of process
+ 
+ // check for valid space id
+ IF "&spaceid"==""
+    &spaceid=0
+
+ // get symbol file name and program name
+ &basename=STRing.CUT(&filename,-STRing.LENgth(OS.FILE.EXTENSION(&filename)))
+ &symfilename1="&basename"+".sym"   ; <= v9.6
+ &symfilename2=&filename+".sym"   ; >= S^3
+
+ &progname=OS.FILE.NAME("&basename")
+ // convert spaces to underscores for symbol path
+ &len=STRing.LENgth("&progname")
+ &space=STRing.SCAN("&progname"," ",0)
+ WHILE &space!=-1
+ (
+     &progname=STRing.CUT("&progname",&space-&len)+"_"+STRing.CUT("&progname",&space+1)
+     &space=STRing.SCAN("&progname"," ",0)
+ )
+
+
+// delete program if it already exists or other code is already there
+ sYmbol.Delete &code
+ IF sYmbol.EXIST("\\&progname")
+   sYmbol.Delete \\&progname
+
+// search file in source search path and open dialog when not there
+ &filepath=sYmbol.SEARCHFILE("&symfilename1")
+ IF !OS.FILE("&filepath")
+    &filepath=sYmbol.SEARCHFILE("&symfilename2")
+ IF !OS.FILE("&filepath")
+ (
+   LOCAL &file
+   &file=OS.FILE.NAME("&symfilename1")
+   WinPOS ,,,,,, filebox normal "Searching symbols for &filename"
+   DIALOG.File "*\&file"
+   ENTRY %LINE &filepath
+   IF "&filepath"==""
+     ENDDO
+ )
+
+// load symbol file (options for sourcepath, e.g. /STRIPPART may need to be added when required)
+// use /vm and /codesec when debugging paged systems!
+ Data.LOAD.Elf "&filepath" &spaceid:0 /NoClear /CPP /NoCODE \
+   /name &progname \
+   /reloc ER_RO at &code /RELOC ER_RW at &databsslinear /RELOC ER_ZI after ER_RW
+ 
+ ENDDO

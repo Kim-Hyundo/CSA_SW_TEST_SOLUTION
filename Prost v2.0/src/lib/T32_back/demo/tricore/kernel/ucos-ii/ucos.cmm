@@ -1,0 +1,66 @@
+; --------------------------------------------------------------------------------
+; @Title: uC/OS-II Demo for TRACE32 OS Awareness
+; @Description:
+;   This script loads all necessary files to demonstrate
+;   the RTOS-Debugger for uC/OS-II.
+;
+;   This script has been tested with following uC/OS-II versions:
+;
+;   2001-09-19: Version 2.5.1, Proc: TriCore RiderD, Compiler: HighTec GNU
+;
+; @Keywords: Infineon, kernel, RTOS, TriCore, ucos-ii
+; @Author: DIE
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: ucos.cmm 13125 2018-09-11 14:03:01Z rdienstbeck $
+
+;   Created by Rudi Dienstbeck / Lauterbach GmbH
+
+ SCREEN.ON                    ; all messages are displayed
+ AREA.RESet
+ WinPAGE.RESet
+ WinCLEAR
+ WinPOS 0. 27. 63. 7. 0. 0. W006
+ AREA.view
+
+; Debugger reset
+
+ PRINT "resetting..."
+ SYStem.Down
+
+; Initializing Debugger
+
+ PRINT "initializing..."
+ ; currently this demo runs only on the TriCore Simulator
+ SYStem.CPU  RiderD
+ SYStem.Up
+
+; load sample application
+
+ PRINT "loading sample application..."
+ Data.LOAD.auto ucos2test.out
+
+; patch Idle Task to call a fake timer tick for the simulator
+
+ Data.Assemble OSTaskIdleHook+4 call OSTimeTick
+ Data.Assemble OSTimeTickHook+4 call OS_Sched
+
+; initialize mutitasking support
+ PRINT "initializing RTOS support..."
+ TASK.CONFIG ucos         ; Init OS Awareness
+ MENU.ReProgram ucos      ; Init specific Menu Part's
+
+ PRINT "load complete."
+
+; open some windows
+
+ WinPOS 0. 0. 73. 23. 11. 1. W001
+ List.auto
+
+ WinPOS 63. 18. 60. 11. 0. 1. W003
+ TASK.TASK
+
+; patch application to reroute output to a
+; TRACE32 terminal window -- see term.cmm
+
+ DO term

@@ -1,0 +1,32 @@
+; --------------------------------------------------------------------------------
+; @Title: Batchfile for Debugging EBoot on a DBPXA250 Development Board, WinCE 5.0
+; @Description: 
+;   For EBoot communication:
+;   Connect Hyperterminal on FFUART (J43):
+;   38400, 8N1N
+; @Author: DIE
+; @Board: DBPXA250
+; @Chip: PXA250
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: eboot.cmm 15236 2019-11-08 07:27:03Z bschroefel $
+
+
+ SYStem.Down
+ Break.Delete 
+ sYmbol.RESet
+ SYStem.CPU PXA250
+ SYStem.Option DynVector ON
+ SYStem.Option MMUSpaces OFF
+ SYStem.Up
+
+ MAP.BOnchip 0--0x1ffffff   ; flash
+
+ ; see EBOOT\boot.bib: .text at EBOOT+0x1000, .data at RAM
+ Data.LOAD.eXe eboot.exe /NoCODE /RELOC .text at 0x80079000 /RELOC .data at 0x80068000 /RELOC .pdata at 0x8006a000 /RELOC .reloc at 0x8006b000
+ 
+ ; eboot starts at address 0;
+ ; eboot copies it's code into RAM, set onchip BP!
+ Break.Set main /Onchip
+ 
+ Go

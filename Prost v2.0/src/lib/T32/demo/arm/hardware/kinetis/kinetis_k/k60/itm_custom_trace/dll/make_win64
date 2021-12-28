@@ -1,0 +1,18 @@
+# MakeFile to compile via a Visual Studio 2010 environment
+# Open a "Visual Studio Command Prompt" and compile with
+#
+#    nmake -f make_win64
+#
+
+COPTS = -c -W3 -D_X64_=1 -DWIN64 -DMS_WINDOWS -Z7 -O2 -Gs
+
+all: func_inst64.dll
+
+func_inst64.dll: func_inst.obj pipeproto.obj pipeproto.h
+	link -machine:x64 -dll -out:func_inst64.dll func_inst.obj pipeproto.obj
+	del /F *.obj *.exp *.ilk *.lib *.pdb
+
+.c.obj: ; cl $(COPTS) $*.c
+
+clean:
+	del /F *.obj *.exp *.ilk *.dll *.pdb

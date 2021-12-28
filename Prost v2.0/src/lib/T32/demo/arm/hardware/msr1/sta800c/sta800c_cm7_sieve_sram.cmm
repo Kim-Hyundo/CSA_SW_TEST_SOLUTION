@@ -1,0 +1,76 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for MSR1-CM7 on STA800C (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario. Use this script for getting started.
+;   Prerequisites:
+;    * Connect Debug Cable to J14
+;      or connect Combiprobe/uTrace to J14 using adapter LA-3771.
+; @Keywords: ARM, MSR1, Cortex-M7
+; @Author: ALI
+; @Board: STA800C
+; @Chip: MSR1-CM7
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: sta800c_cm7_sieve_sram.cmm 14794 2019-08-12 13:22:33Z alintner $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU MSR1-CM7
+IF COMBIPROBE()||UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.JtagClock 10MHz
+SYStem.Option EnReset OFF
+
+; try to guess TSEL
+SYStem.DETECT.IDCode
+IF IDCODE(0)!=0x6BA00477 ; the ARM DAP should be the first in the JTAG chain
+(
+  PRINT %ERROR "No ARM Debug Access Port detected"
+  ENDDO
+)
+IF IDCODENUMBER()>1.
+(
+  SYStem.CONFIG.DAPIRPRE 5.
+  SYStem.CONFIG.DAPDRPRE 1.
+)
+Trace.DISable
+ETM.OFF
+ITM.OFF
+STM.OFF
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Register.view /SpotLight
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO

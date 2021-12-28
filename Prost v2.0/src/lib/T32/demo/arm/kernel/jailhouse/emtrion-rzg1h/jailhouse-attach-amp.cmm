@@ -1,0 +1,162 @@
+; --------------------------------------------------------------------------------
+; @Title: Jailhouse Demo on emCON-RZ/G1H in AMP mode
+; @Description:
+;
+; This script shows an example setup for a Jailhouse hypervisor system.
+; TRACE32 is set up im AMP mode; each inmate gets an individual
+; PowerView instance.
+; The demo contains a root cell, an inmate running FreeRTOS, a bare metal
+; inmate and an inmate running Linux.
+; This script attaches to an already running system.
+;
+; @Keywords: hypervisor, awareness, jailhouse
+; @Author: DIE
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: jailhouse-attach-amp.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+LOCAL &ppd &imgdir
+
+&ppd=os.ppd()
+&imgdir="&ppd/images"
+
+; Reset all instances of debugger
+IC ALL WinCLEAR
+AREA
+PRINT
+PRINT "===== TRACE32 for Jailhouse on emtrion RZG1H - AMP Setup ====="
+PRINT "resetting debugger..."
+IC ALL TASK.RESet
+IC ALL EXTension.RESet
+IC ALL SYStem.RESet
+IC ALL sYmbol.RESet
+
+; Check if we are the master
+IF (SYSTEM.INSTANCE()>1.)
+(
+  PRINT %ERROR "This file must be called from MASTER GUI!"
+  ENDDO
+)
+InterCom.NAME RootCell
+
+; Start slave GUI for FreeRTOS
+PRINT "starting FreeRTOS GUI..."
+IF !InterCom.PING(FreeRTOS)
+    TargetSystem.NewInstance FreeRTOS
+InterCom.WAIT FreeRTOS
+
+; Start slave GUI for LED Demo
+PRINT "starting LedDemo GUI..."
+IF !InterCom.PING(LedDemo)
+    TargetSystem.NewInstance LedDemo
+InterCom.WAIT LedDemo
+
+; Start slave GUI for Linux Inmate
+PRINT "starting LinuxInmate GUI..."
+IF !InterCom.PING(LinuxInmate)
+    TargetSystem.NewInstance LinuxInmate
+InterCom.WAIT LinuxInmate
+
+; System settings for all cores
+PRINT "initializing debugger on all GUIs..."
+IC ALL SYStem.CPU R8A77420
+
+; Configuration for Root Cell
+IC RootCell SYStem.CONFIG CORE 1. 1.
+SYStem.Option ResBreak OFF
+;SYStem.Option WaitReset 0.3s
+SYStem.Option DACR ON          ; give Debugger global write permissions
+TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+TrOnchip.Set UNDEF OFF         ; may be used by Linux for FPU detection
+TrOnchip.Set RESET OFF
+
+; Configuration for slaves
+; Inmate "FreeRTOS" runs on 3rd A7, physical core "6"
+IC FreeRTOS SYStem.CONFIG CORE 2. 1.
+IC FreeRTOS CORE.ASSIGN 6.
+; Inmate "LedDemo" runs on 4th A7, physical core "8"
+IC LedDemo SYStem.CONFIG CORE 3. 1.
+IC LedDemo CORE.ASSIGN 8.
+; Inmate "Linux" runs on 4th A15, physical core "7"
+IC LinuxInmate SYStem.CONFIG CORE 4. 1.
+IC LinuxInmate CORE.ASSIGN 7.
+
+; Root cell runs on all others in A15-A15-A15-A7-A7 sequence
+CORE.ASSIGN 1. 3. 5. 2. 4.
+SYSTEM.ATTACH
+
+Break
+
+; Load Linux symbols and awareness
+
+SYStem.Option ZONESPACES ON     ; enable symbol separation of secure and non-secure zone
+SYStem.Option MMUSPACES ON      ; enable space ids to virtual addresses
+
+; In hypervised system, we need to disable the reverse translation
+SYStem.Option.MMUPhysLogMemaccess OFF
+
+PRINT "Loading Linux kernel symbols..."
+Data.LOAD.Elf &imgdir/vmlinux N:0::0 /nocode
+
+; Configure Linux awareness and address translation
+
+PRINT "Configuring debugger address translation..."
+MMU.FORMAT STD swapper_pg_dir
+TRANSlation.Create N:0::0xC0000000--0xE77FFFFF 0x40000000
+TRANSLATION.COMMON N:0xBF000000--0xFFFFFFFF
+TRANSlation.TABLEWALK ON
+TRANSlation.ON
+
+PRINT "configuring Linux awareness..."
+EXTension.LOAD ~~/demo/arm/kernel/linux/linux-3.x/linux3.t32
+MENU.ReProgram ~~/demo/arm/kernel/linux/linux-3.x/linux.men
+TASK.Option MMUCHECK OFF
+
+; Load Jailhouse symbols and awareness
+
+PRINT "loading Jailhouse symbols..."
+Data.LOAD.Elf &imgdir/hypervisor.o H:0::0 /nocode /noclear
+Data.LOAD.Elf &imgdir/jailhouse.ko N:0::0 /nocode /noclear /reloctype 3
+
+PRINT "loading Jailhouse awareness..."
+EXTension.LOAD ~~/demo/arm/kernel/jailhouse/jailhouse.t32
+MENU.ReProgram ~~/demo/arm/kernel/jailhouse/jailhouse.men
+EXTension.ACCESS H: jailhouse
+TRANSlation.COMMON H:0x0--0xffffffffffffffff
+; Configure dtb access from hypervisor awareness
+&dtbphysical=address.offset(mmu.physical(N:v.value(initial_boot_params)))
+EXTension.jailhouse.Option DTB &dtbphysical
+
+; attach FreeRTOS
+IC FreeRTOS SYStem.Mode Attach
+IC FreeRTOS Break
+IC FreeRTOS PRINT "loading freertos-display symbols..."
+IC FreeRTOS Data.LOAD.Elf &imgdir/freertos-display.elf /nocode /noclear
+IC FreeRTOS EXTension.LOAD ~~/demo/arm/kernel/freertos/freertos.t32
+IC FreeRTOS Menu.Reprogram ~~/demo/arm/kernel/freertos/freertos.men
+
+; attach LedDemo
+IC LedDemo SYStem.Mode Attach
+IC LedDemo Break
+IC LedDemo PRINT "loading led-demo symbols..."
+IC LedDemo Data.LOAD.Elf &imgdir/led-demo-linked.o /nocode /noclear
+
+; attach LinuxInmate
+IC LinuxInmate SYStem.Mode Attach
+IC LinuxInmate Break
+IC LinuxInmate PRINT "loading Linux inmate symbols..."
+IC LinuxInmate Data.LOAD.Elf Data.LOAD.Elf &imgdir/vmlinux-inmate /nocode /noclear
+IC LinuxInmate MMU.FORMAT STD swapper_pg_dir
+IC LinuxInmate TRANSlation.Create N:0::0xC0000000--0xC7FFFFFF 0x70000000
+IC LinuxInmate TRANSLATION.COMMON N:0xBF000000--0xFFFFFFFF
+IC LinuxInmate EXTension.LOAD ~~/demo/arm/kernel/linux/linux-3.x/linux3.t32
+IC LinuxInmate Menu.Reprogram ~~/demo/arm/kernel/linux/linux-3.x/linux.men
+IC LinuxInmate TASK.Option MMUCHECK OFF
+
+IC RootCell     PRINT "===== TRACE32 setup done (Root Cell). ====="
+IC FreeRTOS     PRINT "===== TRACE32 setup done (Inmate FreeRTOS). ====="
+IC LedDemo      PRINT "===== TRACE32 setup done (Inmate LedDemo). ====="
+IC LinuxInmate  PRINT "===== TRACE32 setup done (Inmate Linux). ====="
+
+ENDDO

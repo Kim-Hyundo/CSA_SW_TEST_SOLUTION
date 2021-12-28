@@ -1,0 +1,106 @@
+; --------------------------------------------------------------------------------
+; @Title: Serial FLASH Programming script for TI AM571x
+; @Description:
+; Quad Serial FLASH(Micron,N25Q128) is connected to QSPI1_CS0
+;
+; SDRAM: 0x40301000
+;
+; QSPI Register Base : 0x4B300000   
+;
+; @Author: jjeong
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; @Chip: AM571*
+; @Keywords: flash spi
+; --------------------------------------------------------------------------------
+; $Id: am571x-spi.cmm 7577 2019-10-30 15:30:31Z bschroefel $
+&QSPI_BASE=0x4B300000
+LOCAL &arg1
+ENTRY &arg1
+&arg1=STRing.UPpeR("&arg1")  // for example "PREPAREONLY"
+
+
+
+SYStem.RESet
+SYStem.CPU AM571x
+SYStem.JtagClock 10.Mhz
+SYStem.Option DACR ON
+SYStem.Option RESBREAK OFF
+SYStem.Option ENRESET ON
+SYStem.Option WaitReset OFF 
+SYStem.Up
+
+Data.Set C15:0x1 %Long  (Data.Long(C15:0x1)&~(0x1005))  ; disable interrupt and mmu
+
+//watchdog disable
+Data.Set A:0x4AE14048 %Long 0x0xAAAA
+Data.Set A:0x4AE14048 %Long 0x0x5555
+
+//QSPI clock enable 
+Data.Set 0x4a009838 %Long 0x00030002 
+
+//QSPI pin mux
+Data.Set A:0x4A003488 %Long 0x10101 ;qspi1_sclk
+Data.Set A:0x4A003474 %Long 0x50101 ;qspi1_rtclk
+Data.Set A:0x4A0034B8 %Long 0x10101 ;qspi1_cs0
+Data.Set A:0x4A0034BC %Long 0x10101 ;qspi1_cs1
+Data.Set A:0x4A003480 %Long 0x50101 ;qspi1_d0
+Data.Set A:0x4A003484 %Long 0x50101 ;qspi1_d1
+Data.Set A:0x4A00347C %Long 0x50101 ;qspi1_d2
+Data.Set A:0x4A003478 %Long 0x50101 ;qspi1_d3
+
+Data.Set &QSPI_BASE+0x40 %LE %Long 0x09
+Data.Set &QSPI_BASE+0x40 %LE %Long 0x80000009
+Data.Set &QSPI_BASE+0x54 %LE %Long 0x20203
+
+GOSUB READ_ID_TEST
+
+FLASHFILE.RESet
+
+//FLASHFILE.CONFIG  <QSPI BASE>  0x0  0x0  0x0
+FLASHFILE.CONFIG    &QSPI_BASE   0x0  0x0  0x0
+
+//FLASHFILE.TARGET <Code Range>          <Data Range>              <Algorithm File>
+FLASHFILE.TARGET   0x40301000++0x2FFF    EAHB:0x40304000++0x1FFF    ~~/demo/arm/flash/byte/spi64fs_tiqspi.bin /STACKSIZE 0x200 /DualPort /KEEP
+
+FLASHFILE.GETID
+
+//End of the test prepareonly
+IF "&arg1"=="PREPAREONLY"
+ENDDO
+
+
+//FLASHFILE.ERASE 0x0++0xFFFFF
+
+//FLASHFILE.LOAD uboot.bin 0x0            ; Write uboot.bin to 0x0 on the serial flash  
+//FLASHFILE.LOAD uboot.bin 0x0  /ComPare  ; Verify
+
+FLASHFILE.DUMP 0x0  ; Read out from the serial flash
+
+ENDDO
+
+READ_ID_TEST:
+
+&QSPI_CMD_REG=&QSPI_BASE+0x48
+&QSPI_DAT_REG=&QSPI_BASE+0x50
+&QSPI_STAT_REG=&QSPI_BASE+0x4C
+
+&RE=(0x1<<16.)  ; read
+&WR=(0x2<<16.)  ; write
+&END=(0x4<<16.) ;
+&cmd_reg_def=0x0|(0x7<<19.)|(0x0<<28.)|0xFFF ;
+
+Data.Set A:&QSPI_DAT_REG %Long 0x9F
+Data.Set A:&QSPI_CMD_REG %Long (&cmd_reg_def|&WR)
+//print "status 0x" data.long(A:&QSPI_STAT_REG)  
+
+Data.Set A:&QSPI_CMD_REG %Long (&cmd_reg_def|&RE)
+PRINT "read 1st 0x" Data.Long(A:&QSPI_DAT_REG)  
+
+Data.Set A:&QSPI_CMD_REG %Long (&cmd_reg_def|&RE)
+PRINT "read 2nd 0x" Data.Long(A:&QSPI_DAT_REG)  
+
+Data.Set A:&QSPI_CMD_REG %Long (&cmd_reg_def|&RE)
+PRINT "read 3rd 0x" Data.Long(A:&QSPI_DAT_REG)  
+Data.Set A:&QSPI_CMD_REG %Long (&cmd_reg_def|&END)                   
+
+RETURN

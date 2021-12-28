@@ -1,0 +1,30 @@
+; --------------------------------------------------------------------------------
+; @Title: PIPE Demo Setup Script for OMAP3530
+; @Description: -
+; @Keywords: beagle, PIPE, PROTO
+; @Board: BeagleBoard
+; @Chip: OMAP3530
+; @Author: ING
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: setup2.cmm 15209 2019-11-04 10:07:55Z bschroefel $
+
+
+DO common
+
+Var.set timerReload = 19.
+
+; Setup two applications which will to listen to different windows PIPES
+OS.screen ./pread2.exe 0
+OS.screen ./pread2.exe 1
+
+WAIT 1.s
+
+; Load DLL two times, give some parameters which define,
+; to which channels the DLL will listen.
+
+SystemTrace.PipePROTO dll/pproto pproto00 0 127.
+SystemTrace.PipePROTO dll/pproto pproto01 128. 255.
+
+
+SystemTrace.Arm

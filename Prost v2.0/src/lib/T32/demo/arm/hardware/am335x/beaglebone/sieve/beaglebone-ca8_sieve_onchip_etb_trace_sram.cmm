@@ -1,0 +1,73 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for AM3359 with Onchip-Trace (RAM, ETB)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The program flow is traced using the Onchip-Trace (ETB).
+;   Prerequisites BeagleBone:
+;    * Connect Debug Cable/Combiprobe to P7 using Adapter LA-3780
+;   Prerequisites Beaglebone Black:
+;    * Connect Debug Cable/Combiprobe to P2 using Adapter LA-3780
+; @Keywords: ARM, Cortex-A8, ETB, ETM
+; @Author: AME
+; @Board: Beaglebone, Beaglebone Black
+; @Chip: AM3359
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: beaglebone-ca8_sieve_onchip_etb_trace_sram.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU AM3359
+SYStem.JtagClock CTCK 10MHz
+SYStem.Up
+
+GOSUB DisableWatchdog
+; enable SRAM - CM_PER_OCMRAM
+Data.Set AD:0x44E0002C %Long 0x2
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_arm_v7.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; initialize ONCHIP trace (ETB)
+Trace.METHOD ONCHIP
+ETM.Trace ON
+ETM.ON
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Var.DRAW %DEFault sinewave
+
+ENDDO
+
+DisableWatchdog:
+(
+  ; disable the Watchdog
+  Data.Set AD:0x44E35048 %LE %Long 0x0000AAAA   ;write magic1 to WDT_WSPR
+  Data.Set AD:0x44E35048 %LE %Long 0x00005555   ;write magic2 to WDT_WSPR
+  RETURN
+)

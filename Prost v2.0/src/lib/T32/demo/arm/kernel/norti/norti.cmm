@@ -1,0 +1,84 @@
+; --------------------------------------------------------------------------------
+; @Title: NORTi Demo for TRACE32 OS Awareness
+; @Description:
+;
+;   This batchfile loads all necessary files to demonstrate
+;   the OS Awareness for NORTi v4.
+;
+;   This script has been tested with following NORTi versions:
+;
+;   2005-11-15:  Version v4.12
+;
+; @Keywords: awareness, RTOS
+; @Author: DIE
+; @Chip: MC9328MX1
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: norti.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+;   Created by Rudi Dienstbeck / Lauterbach GmbH
+
+ LOCAL &srcdrive
+ LOCAL &srcpath
+ &srcdrive="S:"
+ &srcpath="&srcdrive"+"\RTOS\NORTi\MiSPO\NORTi\SMP\ARM\MC9328MX1_EVA_BOD"
+
+
+ SCREEN.ON                    ; all messages are displayed
+ AREA.RESet
+ WinPAGE.RESet
+ WinCLEAR
+ WinPOS 0. 27. 63. 7. 0. 0. W006
+ AREA.view
+
+; Debugger reset
+
+ PRINT "resetting..."
+ RESet
+
+; Initializing Debugger
+
+ PRINT "initializing..."
+
+ SYStem.CPU MC9328MX1
+ SYStem.Up
+
+; load sample application
+
+ PRINT "loading sample application..."
+
+ Data.LOAD.auto smp9328al.axf
+ sYmbol.SourcePATH.Set &srcpath
+
+ IF INTERFACE.SIM()
+ (
+   ; simulate SWI handler
+   Data.Assemble 8 nop
+   Data.Assemble , stmdb r13!,{r14}
+   Data.Assemble , mrs r14,spsr
+   Data.Assemble , stmdb r13!,{r14}
+   Data.Assemble , mov pc,r0
+ )
+
+; initialize mutitasking support
+ PRINT "initializing RTOS support..."
+ TASK.CONFIG norti          ; load NORTi awareness (norti.t32)
+ MENU.ReProgram norti       ; load NORTi specific menu (norti.men)
+ HELP.FILTER.Add rtosnorti  ; add NORTi awareness manual to help filter
+
+ PRINT "load complete."  ; send to Message Line
+
+; open some windows
+
+ WinPOS 0. 0. 73. 23. 11. 1. W001
+ List.auto
+
+ WinPOS 40. 15. 50. 5. 0. 1. W003
+ TASK.TASK
+
+; start application
+
+ Go RcvTask
+
+ ENDDO
+

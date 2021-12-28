@@ -1,0 +1,27 @@
+; --------------------------------------------------------------------------------
+; @Title: PIPE Demo Setup Script for OMAP3530 (PipeWRITE)
+; @Description:
+;  Example PIPE demo setup script using the SystemTrace.PipeWRITE command.
+; @Keywords: PIPE, PIPEWRITE, PROTO
+; @Board: BeagleBoard
+; @Chip: OMAP3530
+; @Author: ING
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: setup_pipewrite.cmm 15209 2019-11-04 10:07:55Z bschroefel $
+
+
+DO common
+
+Var.set timerReload = 49.
+
+; Open an application, which will create and read from PIPE
+OS.screen ./pread_pipe.exe \\.\pipe\pproto00
+
+WAIT 500.ms
+
+; connect to pipe
+SystemTrace.PipeWRITE \\.\pipe\pproto00
+
+; ARM CombiProbe
+SystemTrace.Arm

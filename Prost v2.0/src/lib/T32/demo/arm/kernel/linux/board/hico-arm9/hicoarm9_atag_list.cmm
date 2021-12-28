@@ -1,0 +1,66 @@
+; --------------------------------------------------------------------------------
+; @Title: ATAG Structure Initialization Script for the HiCO.ARM9 Board
+; @Description: Setup parameter tags for Linux boot
+; @Keywords: hico*
+; @Author: DIE
+; @Board: HiCO.ARM9
+; @Props:NoWelcome
+; @Chip: AT91RM9200
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: hicoarm9_atag_list.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+&tagAddr=0x20000100
+
+; ATAG_CORE
+Data.Set &tagAddr %Long %LE 0x5
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x54410001
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x1
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x1000
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x0
+&tagAddr=&tagAddr+0x4
+
+; ATAG_MEM
+Data.Set &tagAddr %Long %LE 0x4
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x54410002
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x04000000  // size 64MB
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x20000000  // start
+&tagAddr=&tagAddr+0x4
+
+; ATAG_INITRD2
+Data.Set &tagAddr %Long %LE 0x4
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x54420005
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x22000000 // start
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x800000 // file size in bytes 8M
+&tagAddr=&tagAddr+0x4
+
+; ATAG_CMDLINE
+Data.Set &tagAddr %Long %LE 0x10
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x54410009
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr "console=ttyS1,115200 root=/dev/ram rw" 0
+&tagAddr=&tagAddr+0x38
+
+; ATAG_NONE
+Data.Set &tagAddr %Long %LE 0x0
+&tagAddr=&tagAddr+0x4
+Data.Set &tagAddr %Long %LE 0x0
+&tagAddr=&tagAddr+0x4
+
+Register.Set r2 0x20000000
+
+ENDDO
+
+

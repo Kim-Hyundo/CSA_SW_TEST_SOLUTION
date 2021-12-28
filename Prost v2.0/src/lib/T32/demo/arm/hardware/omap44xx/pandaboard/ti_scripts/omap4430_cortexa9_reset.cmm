@@ -1,0 +1,342 @@
+; --------------------------------------------------------------------------------
+; @Props: NoMetaTags
+; @Author: TI
+; @Copyright: -
+; --------------------------------------------------------------------------------
+; $Id: omap4430_cortexa9_reset.cmm 8886 2015-11-18 18:06:51Z mobermeir $
+
+ENTRY &reset_cpu
+
+IF (Var.VALUE(&reset_cpu)==0)
+( 
+  GOSUB reset_ducati_cortexM3_RTOS
+  ENDDO
+)
+
+IF (Var.VALUE(&reset_cpu)==1)
+( 
+  GOSUB reset_ducati_cortexM3_SIMCOP
+  ENDDO
+)
+
+IF (Var.VALUE(&reset_cpu)==2)
+( 
+  GOSUB reset_tesla_C64
+  ENDDO
+)
+
+IF (Var.VALUE(&reset_cpu)==3)
+( 
+  GOSUB reset_ivahd_iCont1
+  ENDDO
+)
+
+IF (Var.VALUE(&reset_cpu)==4)
+( 
+  GOSUB reset_ivahd_iCont2
+  ENDDO
+)
+
+IF (Var.VALUE(&reset_cpu)==5)
+( 
+  GOSUB reset_cortexa9_CPU1
+  ENDDO
+)
+
+reset_cortexa9_CPU1:
+(
+  ENTRY
+  
+  PRINT "--->>> out_reset_cortexa9_CPU1 <<<--- "
+  
+  Data.Set EDAP:0x8001900c %Long Data.Long(EDAP:0x8001900c)|0x20000
+  Data.Set EDAP:0x8001900c %Long Data.Long(EDAP:0x8001900c)&~0x4000
+  
+  PRINT "---<<< out_reset_cortexa9_CPU1 >>>--- "
+  
+  RETURN
+)
+reset_ducati_cortexM3_RTOS:
+(
+  ENTRY
+  LOCAL &register
+
+  PRINT "--->>> reset_ducati_cortexM3_RTOS <<<--- "
+
+  IF (&CORTEXM3_RESET_STATE==0)
+  (
+    Data.Set NSR:0x4A008920 %Long 0x00000001
+    Data.Set NSR:0x4A008900 %Long 0x00000002
+  
+    // while ((Data.Long(NSR:0x4A008900)&0x100)!=0x100)
+    WAIT (Data.Long(NSR:0x4A008900)&0x100)==0x100
+  )
+
+  IF ((&CORTEXM3_RESET_STATE&0x1)!=0x1)
+  (
+    &register=Data.Long(NSR:0x4a306910)
+  
+    IF ((&CORTEXM3_RESET_STATE&0x2)!=0x2)
+    (
+      &register=&register&0xFFFFFFFB
+      Data.Set NSR:0x4a306910 %Long &register
+
+      // while ((Data.Long(NSR:0x4A306914)&0x4)!=0x4)
+      WAIT (Data.Long(NSR:0x4A306914)&0x4)==0x4
+
+      Data.Set NSR:0x4a306914 %Long 0x4
+
+
+      Data.Set NSR:0x55080a20 %Long 0xf
+      Data.Set NSR:0x55080a24 %Long 0xf
+
+      Data.Set NSR:0x550809a0 %Long 0x55020000
+
+      Data.Set NSR:0x55020004 %Long 0x801
+      Data.Set NSR:0x55020800 %Long 0xE7FEE7FE
+    )
+    &register=&register&0xFFFFFFFE
+    Data.Set NSR:0x4a306910 %Long &register
+  
+    // while ((Data.Long(NSR:0x4A306914)&0x1)!=0x1)
+    WAIT (Data.Long(NSR:0x4A306914)&0x1)==0x1
+    
+    Data.Set NSR:0x4a306914 %Long 0x1
+    
+    &CORTEXM3_RESET_STATE=&CORTEXM3_RESET_STATE|0x1
+  )
+  
+  PRINT "---<<< reset_ducati_cortexM3_RTOS >>>--- "
+  RETURN
+)
+    
+reset_ducati_cortexM3_SIMCOP:
+(
+  ENTRY
+  LOCAL &register
+
+  PRINT "--->>> reset_ducati_cortexM3_SIMCOP <<<--- "
+
+  IF (&CORTEXM3_RESET_STATE==0)
+  (
+    Data.Set NSR:0x4A008920 %Long 0x00000001
+    Data.Set NSR:0x4A008900 %Long 0x00000002
+  
+    // while ((Data.Long(NSR:0x4A008900)&0x100)!=0x100)
+    WAIT (Data.Long(NSR:0x4A008900)&0x100)==0x100
+  )
+
+  IF ((&CORTEXM3_RESET_STATE&0x2)!=0x2)
+  (
+    &register=Data.Long(NSR:0x4a306910)
+  
+    IF ((&CORTEXM3_RESET_STATE&0x1)!=0x1)
+    (
+      &register=&register&0xFFFFFFFB
+      Data.Set NSR:0x4a306910 %Long &register
+    
+      // while ((Data.Long(NSR:0x4A306914)&0x4)!=0x4)
+      WAIT (Data.Long(NSR:0x4A306914)&0x4)==0x4
+    
+      Data.Set NSR:0x4a306914 %Long 0x4
+    
+  
+      Data.Set NSR:0x55080a20 %Long 0xf
+      Data.Set NSR:0x55080a24 %Long 0xf
+
+      Data.Set NSR:0x550809a0 %Long 0x55020000
+
+      Data.Set NSR:0x55020004 %Long 0x801
+      Data.Set NSR:0x55020800 %Long 0xE7FEE7FE
+    ) 
+      
+    &register=&register&0xFFFFFFFD
+    Data.Set NSR:0x4a306910 %Long &register
+  
+    // while ((Data.Long(NSR:0x4A306914)&0x2)!=0x2)
+    WAIT (Data.Long(NSR:0x4A306914)&0x2)==0x2
+    
+    Data.Set NSR:0x4a306914 %Long 0x2
+    
+    &CORTEXM3_RESET_STATE=&CORTEXM3_RESET_STATE|0x2
+  )
+
+PRINT "---<<< reset_ducati_cortexM3_SIMCOP >>>--- "
+
+RETURN
+)
+
+reset_tesla_C64:
+(
+  ENTRY
+  LOCAL &register
+    
+  PRINT "--->>> reset_tesla_C64 <<<--- "
+     
+  // IVAHD WAKEUP (after IVAHD dpll)
+  // Configure IVAHD and SL2 modules into "Auto" mode
+  // IVAHD_CM2:CM_IVAHD_IVAHD_CLKCTRL
+  Data.Set NSR:0x4A008F20 %Long 0x00000001
+  // IVAHD_CM2:CM_IVAHD_SL2_CLKCTRL
+  Data.Set NSR:0x4A008F28 %Long 0x00000001
+    
+  // Set Force wakeUp domain transition
+  // IVAHD_CM2:CM_IVAHD_CLKSTCTRL = SW_WKUP
+  Data.Set NSR:0x4A008F00 %Long 0x00000002
+    
+  // Read1 IVAHD_ROOT_CLK is running or gatng/ungating transition is on-going
+  // while (((*(int*)0x4A008F00) & 0x100)& ~0x100);
+        
+  // Configure Tesla mode into Auto mode
+  // TESLA_CM1:CM_TESLA_TESLA_CLKCTRL
+  Data.Set NSR:0x4A004420 %Long 0x00000001;    
+    
+  // Set force-wakeup domain transition
+  // TESLA_CM1:CM_TESLA_CLKSTCTRL = SW_WKUP
+  Data.Set NSR:0x4A004400 %Long 0x00000002    
+    
+  // Reading 1 : clock is running ir gating/ungating transition is on-going.
+  WAIT (Data.Long(NSR:0x4A004400)&0x100)==0x100
+           
+  // release slave port reset for IVA-HD allows SL2 access.
+  &register=Data.Long(NSR:0x4A306F10)
+  &register=&register&(~(1<<2))
+  Data.Set NSR:0x4A306F10 %Long &register   
+
+  Data.Set NSR:0x5B000000 %Long 0x00000000
+  Data.Set NSR:0x5B000004 %Long 0x00000000  
+  Data.Set NSR:0x5B000008 %Long 0x00000000  
+  Data.Set NSR:0x5B00000C %Long 0x00000000  
+  Data.Set NSR:0x5B000010 %Long 0x00000000  
+  Data.Set NSR:0x5B000014 %Long 0x00000000  
+  Data.Set NSR:0x5B000018 %Long 0x00000000  
+  Data.Set NSR:0x5B00001C %Long 0x00000000  
+  Data.Set NSR:0x5B000020 %Long 0x0FFFFF12 
+  
+  // Set tesla boot address
+  Data.Set NSR:0x4A002304 %Long 0x10800000;
+
+  // DSP reset
+  // RM_TESLA_RSTCTRL (MMU and DSP RESET)
+  Data.Set NSR:0x4A306410 %Long 0x00000000
+    
+  // wait Tesla reset applied 
+  // while (((*(int*)0x4A306414) & 0x0001)& ~0x0001);
+  WAIT (Data.Long(NSR:0x4A306414)&0x0001)==0x0001
+   
+  // Read 0x0 : test that module is fully functional   
+  // wait (Data.Long(NSR:0x4A004420)&0x30000)==0x30000
+   
+  // wait slave port reset for IVA-HD reset applied 
+  WAIT (Data.Long(NSR:0x4A306F14)&0x0004)==0x0004   
+  // Clear reset status 
+  &register=0x4
+  Data.Set NSR:0x4A306F14 %Long &register
+    
+   &TESLA_RESET_STATE=1
+     
+   PRINT "---<<< reset_tesla_C64 >>>--- "
+     
+   RETURN
+)
+
+reset_ivahd_iCont1:
+(
+  ENTRY
+  LOCAL &register
+    
+  IF (&TESLA_RESET_STATE!=1)
+  (
+    PRINT "--->>> Release Tesla first !!! >>>--- "
+  )
+  ELSE
+  (
+    PRINT "--->>> reset_IVAHD iCont1 >>>--- "
+   
+    //iCont1 reset release (release slave port reset)
+   
+    //&register=Data.Long(NSR:0x4A306F10)
+    //&register=&register&~(1<<2)
+    //Data.Set NSR:0x4A306F10 %long &register
+
+    // Write data to iCont1 ITM
+    Data.Set NSR:0x5A008000 %Long 0x0
+    Data.Set NSR:0x5A008004 %Long 0x0
+    Data.Set NSR:0x5A008008 %Long 0x0
+    Data.Set NSR:0x5A00800C %Long 0x0
+    Data.Set NSR:0x5A008010 %Long 0xEAFFFFFE
+
+    // Release iCont1 reset
+    &register=Data.Long(NSR:0x4A306F10)
+    &register=&register&~(1<<0)
+    Data.Set NSR:0x4A306F10 %Long &register
+
+    // wait iCont1 reset applied 
+    WAIT (Data.Long(NSR:0x4A306F14)&0x0001)==0x0001
+   
+    // Clear reset status 
+    &register=0x1
+    Data.Set NSR:0x4A306F14 %Long &register
+      
+    // Read 0x0 : test that IVAHD is fully functional 
+    ;wait (Data.Long(NSR:0x4A008F20)&0x30000)==0x30000
+   
+    // Read 0x0 : test that SL2 is fully functional 
+    ;wait (Data.Long(NSR:0x4A008F28)&0x30000)==0x30000
+     
+    PRINT "---<<< reset_IVAHD iCont1 >>>--- "
+  )
+  RETURN
+)
+
+reset_ivahd_iCont2:
+(
+  ENTRY 
+  LOCAL &register
+    
+  IF (&TESLA_RESET_STATE!=1)
+  (
+    PRINT "--->>> Release Tesla first !!! >>>--- "
+  )
+  ELSE
+  (
+  
+    PRINT "--->>> reset_IVAHD iCont2 <<<--- "
+    
+    // iCont2 reset release (release slave port reset)
+
+    //&register=Data.Long(NSR:0x4A306F10)
+    //&register=&register&~(1<<2)
+    //Data.Set NSR:0x4A306F10 %long &register 
+
+    // Write data to iCont2 ITM 
+    Data.Set NSR:0x5A018000 %Long 0x0
+    Data.Set NSR:0x5A018004 %Long 0x0
+    Data.Set NSR:0x5A018008 %Long 0x0
+    Data.Set NSR:0x5A01800C %Long 0x0
+    Data.Set NSR:0x5A018010 %Long 0xEAFFFFFE
+
+    // Release iCont2 reset
+    &register=Data.Long(NSR:0x4A306F10)
+    &register=&register&~(1<<1)
+    Data.Set NSR:0x4A306F10 %Long &register
+
+    // wait iCont2 reset applied
+    WAIT (Data.Long(NSR:0x4A306F14)&0x0002)==0x0002
+ 
+    // Clear reset status 
+    &register=0x2
+    Data.Set NSR:0x4A306F14 %Long &register
+
+    // Read 0x0 : test that IVAHD is fully functional 
+    ;while (((*(int*)0x4A008F20) & 0x30000)& ~0x30000);
+    ;wait (Data.Long(NSR:0x4A008F20)&0x30000)==0x30000
+   
+    // Read 0x0 : test that SL2 is fully functional 
+    ;while (((*(int*)0x4A008F28) & 0x30000)& ~0x30000);
+    ;wait (Data.Long(NSR:0x4A008F28)&0x30000)==0x30000
+      
+    PRINT "---<<< reset_IVAHD iCont2 >>>--- "
+  )
+  RETURN
+)

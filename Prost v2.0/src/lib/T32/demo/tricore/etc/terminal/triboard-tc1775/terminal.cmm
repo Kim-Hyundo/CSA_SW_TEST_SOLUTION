@@ -1,0 +1,68 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for terminal demo TC1775 on TriBoard TC1775
+; @Description:
+;   Terminal demo.
+;
+;   performed tests
+;   Dip Switch S301:      SW1=ON,  SW2=OFF, SW3=ON,  SW4=ON,
+;                         SW5=ON,  SW6=ON,  SW7=OFF, SW8=OFF
+;   TriBoard TC1796.300 TC1796 EES-BC 2005-09-02 MAX
+;
+;   Memory mappings:
+;   flash is not declared
+;   external SRAM  (1MB) mapped to 0xA0000000--0xA00FFFFF
+;   external Flash (4MB) mapped to 0xA4000000--0xA43FFFFF
+;
+;   Use the following boot option:
+;   Dip Switch S301: SW1=ON,  SW2=OFF, SW3=ON,  SW4=OFF,
+;                    SW5=OFF, SW6=ON,  SW7=OFF, SW8=ON
+;
+; @Keywords: Infineon, terminal, TriCore
+; @Author: MAX
+; @Board: TriBoard-TC1775
+; @Chip: TC1775
+; @Copyright: (C) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: terminal.cmm 7485 2014-07-29 08:14:56Z mobermeir $
+
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+
+RESet
+SYStem.CPU TC1775
+SYStem.Up
+
+; --------------------------------------------------------------------------------
+; Memory initialzation
+
+; initialize external bus unit
+Data.Set 0xF0000210 %Long 0x4001FFFF    ; EBU_BCUCON
+Data.Set 0xF0000510 %Long 0x0000FF68    ; EBU_EBUCON
+
+; memory assignment
+; Intel DT28F160 Flash
+Data.Set 0xF0000520 %Long 0xA4000051    ; EBU_ADDSEL0
+Data.Set 0xF0000560 %Long 0x00420A7C    ; EBU_BUSCON0
+; Samsung KM616V4002BT-12 SRAM
+Data.Set 0xF0000524 %Long 0xA0000071    ; EBU_ADDSEL1
+Data.Set 0xF0000564 %Long 0x00020140    ; EBU_BUSCON1
+; unused
+Data.Set 0xF0000528 %Long 0x00000000    ; EBU_ADDSEL2
+Data.Set 0xF0000568 %Long 0x8002D7FF    ; EBU_BUSCON2
+Data.Set 0xF000052C %Long 0x00000000    ; EBU_ADDSEL3
+Data.Set 0xF000056C %Long 0x8002D7FF    ; EBU_BUSCON3
+
+; --------------------------------------------------------------------------------
+; load terminal application
+Data.LOAD.Ieee ~~~~/tst12.abs
+
+; configure terminal
+TERM.RESet
+TERM.METHOD BufferE
+TERM.GATE 0xA0018000 0xA0018100
+
+; start demo
+Go
+
+ENDDO

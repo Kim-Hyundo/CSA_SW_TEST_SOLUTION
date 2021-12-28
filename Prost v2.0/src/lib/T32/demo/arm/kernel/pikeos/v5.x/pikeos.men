@@ -1,0 +1,327 @@
+; --------------------------------------------------------------------------------
+; @Title: PikeOS specific menu
+; @Description: -
+; @Author: DIE
+; @Copyright: (c) 1989-2014 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: pikeos.men 5210 2020-04-16 08:02:04Z rdienstbeck $
+
+ADD
+MENU
+(
+    POPUP "&PikeOS"
+    (
+        DEFAULT
+        MENUITEM "Display Tasks"                "TASK.TaskList"
+        MENUITEM "Display Threads"              "TASK.ThrliSt"
+        MENUITEM "Display &Resource Partitions" "TASK.ResPart"
+        MENUITEM "Display System &Information"  "TASK.INFO"
+        SEPARATOR
+        MENUITEM "Debug Task on entry..."
+        (
+            LOCAL &arch
+            &arch= "arm" 
+            DO ~~/demo/&arch/kernel/pikeos/v5.x/app_debug.cmm /dialog
+        )
+        SEPARATOR
+        POPUP "&Stack Coverage"
+        (
+          MENUITEM "List Stacks"     "TASK.STacK"
+          MENUITEM "Add Task"        "TASK.STacK.ADD"
+          MENUITEM "Remove Task"     "TASK.STacK.ReMove"
+          MENUITEM "&Reset Coverage"
+          (
+            IF ICD()||SIMULATOR()
+            (
+              DIALOG.YESNO "Overwrite unused stack space" "with stack fill pattern?"
+              ENTRY &yes
+              IF !&yes
+                ENDDO
+              )
+            TASK.STacK.Init
+          )
+          MENUITEM "Stack &Pattern..."
+          (
+              DIALOG
+              (
+                HEADER "Stack Pattern"
+                POS 0 0 13. 3.
+                BOX "initialized pattern:"
+                POS 1 1 11. 1.
+pattern:        DEFEDIT "" ""
+                POS 14. 1 6 1
+                DEFBUTTON "OK"
+                (
+                  LOCAL &pattern
+                  &pattern=DIALOG.STRING(pattern)
+                  TASK.STacK.PATtern %Long &pattern
+                  DIALOG.END
+                )
+              )
+              DIALOG.Set pattern "0xdeadbeef"
+          )
+        )
+        SEPARATOR
+        POPUP "S&ymbol &Autoloader"
+        (
+            MENUITEM "[:symbols]List Components"    "sYmbol.AutoLoad.List"
+            MENUITEM "[:init]Check Now!"            "sYmbol.AutoLoad.CHECK"
+            MENUITEM "[:config]Config..."           "sYmbol.AutoLOAD.config"
+        )
+        SEPARATOR
+        POPUP "Personalities"
+        (
+            MENUITEM "Load APEX Awareness..."
+            (
+                DIALOG.view
+                (
+                    HEADER "Load APEX Awareness"
+                    POS 0. 0. 24. 3.
+                    BOX "PikeOS task name"
+                    POS 1. 1. 22. 1.
+proc:               DEFHOTEDIT ""
+                    (
+                        IF DIALOG.STRing(proc)!=""
+                            DIALOG.Enable bok
+                        ELSE
+                            DIALOG.Disable bok
+                    )
+                    POS 0. 2.5 24. 3.
+                    BOX "APEX OS type"
+                    POS 1. 3.5 22. 1.
+type:               EDIT "devel" ""
+                    POS 14. 5.5 8.
+                    BUTTON "Cancel" "DIALOG.END"
+                    POS 2. 5.5 8.
+bok:                DEFBUTTON "Ok"
+                    (
+                        LOCAL &arch &proc &type
+                        &arch= "arm" 
+                        &proc=DIALOG.STRing(proc)
+                        &type=DIALOG.STRing(type)
+                        DIALOG.END
+                        DO ~~/demo/&arch/kernel/pikeos/v5.x/load_apex.cmm &proc &type
+                    )
+                )
+                DIALOG.Disable bok
+            )
+            MENUITEM "Load POSIX Awareness..."
+            (
+                DIALOG.view
+                (
+                    HEADER "Load POSIX Awareness"
+                    POS 0. 0. 24. 3.
+                    BOX "PikeOS task name"
+                    POS 1. 1. 22. 1.
+proc:               DEFHOTEDIT ""
+                    (
+                        IF DIALOG.STRing(proc)!=""
+                            DIALOG.Enable bok
+                        ELSE
+                            DIALOG.Disable bok
+                    )
+                    POS 14. 3. 8.
+                    BUTTON "Cancel" "DIALOG.END"
+                    POS 2. 3. 8.
+bok:                DEFBUTTON "Ok"
+                    (
+                        LOCAL &arch &proc
+                        &arch= "arm" 
+                        &proc=DIALOG.STRing(proc)
+                        DIALOG.END
+                        DO ~~/demo/&arch/kernel/pikeos/v5.x/load_posix.cmm &proc
+                    )
+                )
+                DIALOG.Disable bok
+            )
+        )
+    )
+    POPUP "Perf"
+    (
+      SEPARATOR
+      POPUP "&Task Runtime"
+      (
+        MENUITEM "&Prepare"
+        (
+          IF T.METHOD.ANALYZER()
+          (
+            Analyzer.AutoInit ON
+          )
+          IF (ICE()||FIRE())&&!A.MODE.FLOW()
+          (
+            Analyzer.ReProgram
+            (
+              Sample.Enable IF AlphaBreak&&Write
+            )
+            Break.Delete /Alpha
+            Break.Set TASK.CONFIG(magic)++(TASK.CONFIG(magicsize)-1) /Alpha
+          )
+          IF A.MODE.FLOW()
+          (
+            Break.Delete /TraceEnable
+            Break.Set TASK.CONFIG(magic) /TraceEnable
+          )
+        )
+        MENUITEM "[:perf]Show &Numerical"   "Trace.STATistic.TASK"
+        MENUITEM "[:achart]Show as &Timing" "Trace.CHART.TASK"
+        MENUITEM "[:achart]Tracking with Trace &List"
+        (
+          Trace.List List.TASK DEFault /Track
+          Trace.CHART.TASK /Track
+        )
+      )
+      POPUP "Task &Function Runtime"
+      (
+        MENUITEM "&Prepare"
+        (
+          IF T.METHOD.ANALYZER()
+          (
+            Analyzer.AutoInit ON
+            Analyzer.STATistic.PreFetch ON
+          )
+
+          IF (ICE()||FIRE())&&!A.MODE.FLOW()
+          (
+            IF A.CONFIG.HAC()
+            (
+               Analyzer.ReProgram
+               (
+                 Sample.Enable IF AlphaBreak
+                 Sample.Enable IF BetaBreak
+                 Mark.A        IF AlphaBreak
+                 Mark.B        IF BetaBreak
+               )
+            )
+            ELSE
+            (
+               Analyzer.ReProgram
+               (
+                 Sample.Enable IF AlphaBreak||BetaBreak
+                 Mark.A IF AlphaBreak
+                 Mark.B IF BetaBreak
+               )
+            )
+            Break.Delete /Alpha /Beta /Charly
+            Break.SetFunc
+            Break.Set TASK.CONFIG(magic)++(TASK.CONFIG(magicsize)-1) /Alpha
+          )
+          IF A.MODE.FLOW()
+          (
+            Break.Delete /TraceData
+            Break.Set task.config(magic) /TraceData
+          )
+        )
+        MENUITEM "[:perf]Show &Numerical"     "Trace.STATistic.TASKFUNC"
+        MENUITEM "[:perf]Show as &Tree"       "Trace.STATistic.TASKTREE"
+        MENUITEM "[:perf]Show &Detailed Tree" "Trace.STATistic.TASKTREE ALL"
+        MENUITEM "[:achart]Show as &Timing"   "Trace.CHART.TASKFUNC"
+        MENUITEM "[:alist]Show N&esting"      "Trace.List List.TASK FUNC TI.FUNC"
+      )
+    )
+    POPUP "&Help"
+    (
+        MENUITEM "[:manual]OS Awareness Manual PikeOS" "HELP __RTOS_PIKEOS_"
+    )
+)
+
+
+MENU "task.tl"
+(
+  MENUITEM "Display detailed"
+  (
+    LOCAL &address
+    &address=ADDRESS.OFFSET(TRACK.ADDRESS())
+    TASK.TaskList &address
+  )
+  MENUITEM "Display task struct"
+  (
+    LOCAL &address
+    &address=TRACK.ADDRESS()
+    Var.View %String %Open (P4k_taskinfo_t*)(&address)
+  )
+  MENUITEM "Dump task struct"
+  (
+    LOCAL &address
+    &address=TRACK.ADDRESS()
+    Data.dump &address /Long /DIALOG
+  )
+  SEPARATOR
+  MENUITEM "Load task symbols"
+  (
+    LOCAL &magic
+    &magic=ADDRESS.OFFSET(TRACK.ADDRESS())
+    TASK.sYmbol.LOAD &magic
+  )
+  SEPARATOR
+  POPUP "Personalities"
+  (
+    MENUITEM "Load APEX Awareness..."
+    (
+        DIALOG.view
+        (
+            HEADER "Load APEX Awareness"
+            POS 0. 0. 24. 3.
+            BOX "APEX OS type"
+            POS 1. 1. 22. 1.
+type:       EDIT "devel" ""
+            POS 14. 3. 8.
+            BUTTON "Cancel" "DIALOG.END"
+            POS 2. 3. 8.
+bok:        DEFBUTTON "Ok"
+            (
+                LOCAL &arch &magic &proc &type
+                &arch= "arm" 
+                &magic=ADDRESS.OFFSET(TRACK.ADDRESS())
+                &proc=task.task.name(&magic)
+                &type=DIALOG.STRing(type)
+                DIALOG.END
+                DO ~~/demo/&arch/kernel/pikeos/v5.x/load_apex.cmm &proc &type
+            )
+        )
+    )
+    MENUITEM "Load POSIX Awareness..."
+    (
+        LOCAL &arch &magic &proc
+        &arch= "arm" 
+        &magic=ADDRESS.OFFSET(TRACK.ADDRESS())
+        &proc=task.task.name(&magic)
+        DO ~~/demo/&arch/kernel/pikeos/v5.x/load_posix.cmm &proc
+    )
+  )
+)
+
+MENU "task.ts"
+(
+  MENUITEM "Display detailed"
+  (
+    LOCAL &address
+    &address=ADDRESS.OFFSET(TRACK.ADDRESS())
+    TASK.ThrliSt &address
+  )
+  MENUITEM "Display thread struct"
+  (
+    LOCAL &address
+    &address=TRACK.ADDRESS()
+    Var.View %String %Open (P4k_thrinfo_t*)(&address)
+  )
+  SEPARATOR
+  MENUITEM "Display Stack Frame"
+  (
+    LOCAL &magic
+    &magic=ADDRESS.OFFSET(TRACK.ADDRESS())
+    Var.Frame /Locals /Caller /TASK &magic
+  )
+  MENUITEM "Switch Context"
+  (
+    LOCAL &magic
+    &magic=ADDRESS.OFFSET(TRACK.ADDRESS())
+    Register.TASK &magic
+  )
+  SEPARATOR
+  MENUITEM "Dump thread struct"
+  (
+    &address=track.address()
+    Data.dump &address /Long /DIALOG
+  )
+)
+

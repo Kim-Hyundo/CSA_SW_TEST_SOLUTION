@@ -1,0 +1,121 @@
+; --------------------------------------------------------------------------------
+; @Title: ITM trace script for the MCB1760 board
+; @Description:
+;   This is a very simple demo to show how to extend the TRACE32 tracing
+;   functionality via your own DLL. Printf traces are exported on SWO.
+; @Keywords: Cortex-M4, DLL, ITM
+; @Board: MCB1760
+; @Chip: LPC1768
+; @Author: -
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: mcb1760_trace_itmprintf.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+; bring up board, load application etc.
+
+  Break.Reset
+  SYStem.RESet
+  SYStem.CPU LPC1768
+  SYStem.CONFIG DEBUGPORTTYPE SWD
+  SYStem.CONFIG CONNECTOR MIPI20T
+  SYStem.Option ResBreak  OFF
+  SYStem.Option DUALPORT  ON
+  SYStem.MemAccess        DAP
+
+  ITM.RESet
+  ETM.RESet
+
+  ON ERROR GOSUB
+  (
+    RETURN
+  )
+
+  ; ITM via Serial Wire Viewer with CombiProbe
+
+  WinCLEAR
+  IF hardware.COMBIPROBE()||hardware.UTRACE()
+  (
+    Trace.METHOD CAnalyzer
+    CAnalyzer.RESet
+    CAnalyzer.Init
+
+    ; unload all DLLs
+    CAnalyzer.CTL ""
+    ; set threshold voltage
+    CAnalyzer.THreshold 1.60
+
+
+    ; enable pipe mode
+    CAnalyzer.Mode PIPE
+
+    CAnalyzer.Init
+  )
+
+  ; Connect to the LPC1768 chip
+  SYStem.Up
+
+  ; Setup clocks
+  Data.LOAD.Elf ~~~~/setup_clocks.axf
+  Go exit
+  WAIT !STATE.RUN()
+
+  ; Enable Trace
+    Data.Set 0x4002C028 %Long 0x00000008
+
+  ; Detect ETM/TPIU configuration
+  ETM.ON
+  ; Do not use ETM
+  ETM.OFF
+
+  ; Turn on ITM
+  ITM.ON
+
+  ITM.TraceID  3         ; Set TraceID for ITM to 3
+  ITM.PortSize 4         ; 4 bit TPIU
+
+
+  ; Load Test application which uses "ITM_Printf" to
+  ; output "printf" data via ITM
+  Data.LOAD.Elf ~~~~/test.axf
+
+  ; Now start application
+  GO main
+  WAIT !STATE.RUN()
+
+  ; Make
+  Var timerReload=10.
+
+  ; Open List window
+  WINPOS 0.0 0.0 92. 15. 15. 1. W000
+  WINTABS 10. 10. 25. 62.
+  List.auto
+
+  IF hardware.COMBIPROBE()||hardware.UTRACE()
+  (
+    ; Init CombiProbe and Open "CAnalyzer" window
+
+    WINPOS 97.0 0.076923 25. 16. 0. 0. W001
+    CAnalyzer
+    CAnalyzer.CustomTraceLoad "printf" dll/viewprintf
+
+    ; Open a window using the custom DLL, displaying all strings output
+    ; by the custom DLL
+    WINPOS 0.14286 21.231 64. 39. 12. 1. W003
+    WINTABS 40.
+    CAnalyzer.CT.printf.ListString spare ti.back /track
+
+    ; Open DLL Log window
+    WINPOS 68.143 27.692 38. 34. 0. 0. W002
+    CAnalyzer.PPROTO.LOG
+
+    ; Regular ITM trace list window to view
+    ; the raw ITM messages
+    WINPOS 110.29 27.692 57. 32. 12. 1. W005
+    WINTABS
+    ITMCAnalyzer.List address cycle data ti.back l.nodummy /Track
+  )
+
+  ON ERROR
+
+  ENDDO

@@ -1,0 +1,106 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux Demo for TRACE32 OS Awareness on the Snowball
+; @Description: 
+;   This batchfile demonstrates the use of the OS Awareness for Linux
+;   The example is generated for the Snowball board
+;   using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   Linux is downloaded to the board via ICD.
+; @Keywords: A9500, ARM, awareness, CortexA9, Linux, RTOS, SMP, ST, STE
+; @Author: KJM
+; @Board: Snowball
+; @Chip: A9500
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: snowball_linux.cmm 15223 2019-11-05 16:29:45Z bschroefel $
+
+
+  LOCAL &ka_path &awareness
+    
+  WinCLEAR
+  RESet
+  AREA.CLEAR
+  
+  
+  DO ~~/demo/etc/terminal/serial/term.cmm COM1 115200.
+  
+  SYStem.CPU AP9500
+  
+  TrOnchip.Set RESet OFF
+  
+  SYStem.Option DACR ON          ; give Debugger global write permissions
+  TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+  TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+  TrOnchip.Set UNDEF OFF         ; my be used by Linux for FPU detection
+  SYStem.Option MMUSPACES ON            ; enable space ids to virtual addresses
+
+  CORE.ASSIGN 1
+
+  SYStem.Up
+  Go 
+  WAIT 1.s
+  Break
+  
+  
+  Data.LOAD.Elf vmlinux 0x8000-0xc0008000 /NosYmbol /noreg
+  
+  Register.RESet
+  Register.Set PC 8000
+  Register.Set r1 3363.
+  
+  DO snowball_atag_list.cmm
+  
+  
+  ; Load the Linux kernel symbols into the debugger
+  PRINT "loading Linux kernel symbols..."
+  Data.LOAD.Elf vmlinux /gnu /NoCODE /StripPART 4
+
+  PRINT "loading ram disk..."
+ 
+  Data.LOAD.Binary ramdisk.image.gz 0x08000000 /NoClear /NosYmbol
+  
+  ; Open a Code Window -- we like to see something
+  
+  WinPOS 0. 0. 75. 20.
+  List.auto
+  SCREEN.display
+  
+    
+  Go start_kernel /Onchip
+  WAIT !STATE.RUN()
+  
+  Go
+  
+  WAIT 5.s
+  
+  SYStem.Mode Down
+  CORE.ASSIGN 1 2
+  SYStem.Mode Attach
+  
+  PRINT "initializing debugger MMU..."
+  MMU.FORMAT LINUX swapper_pg_dir 0xc0000000--0xdfffffff 0x00000000
+  TRANSlation.COMMON 0bf000000--0ffffffff            ; common area for kernel and processes
+  TRANSlation.TableWalk ON   ; debugger uses a table walk to decode virtual addresses
+  TRANSlation.ON
+  
+    
+  ; check linux major version
+  IF STRing.SCAN(Data.STRing(linux_banner), "Linux version 2.", 0)==0
+  (
+      &ka_path="~~/demo/arm/kernel/linux/linux-2.x"
+      &awareness="linux.t32"
+  )
+  ELSE
+  (
+      &ka_path="~~/demo/arm/kernel/linux/linux-3.x"
+      &awareness="linux3.t32"  
+  )
+ 
+  PRINT "initializing RTOS support..."
+  TASK.CONFIG &ka_path/&awareness               ; loads Linux awareness 
+  MENU.ReProgram &ka_path/linux            ; loads Linux menu 
+  
+  Break
+  
+  

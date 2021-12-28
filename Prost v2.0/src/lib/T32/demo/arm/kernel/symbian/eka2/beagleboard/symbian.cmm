@@ -1,0 +1,189 @@
+; --------------------------------------------------------------------------------
+; @Title: Symbian OS Demo for TRACE32 OS Awareness on the BeagleBoard
+; @Description:
+;
+;   This batchfile demonstrates the use of the OS Awareness for
+;   Symbian OS
+;
+;   The example is generated for the Beagle Board using an ICD.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+;   Symbian OS is downloaded to the board via ICD.
+;
+; @Keywords: awareness
+; @Author: DIE
+; @Board: BeagleBoard
+; @Chip: OMAP3530
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: symbian.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+ ;&pdkpath="T:"
+ &pdkpath="E:\Symbian\Symbian_3\PDK"
+ ;&romname="beaglearmv5d"        ; multiple memory model
+ &romname="beaglearmv5df"       ; flexible memory model
+
+; Starting Symbian OS example with TRACE32:
+; - Connect STRAIGHT modem cable to RS232
+;   - 115200 baud, 8/N/1, no(!) handshake
+; - Start TRACE32
+; - Switch on the board
+; - TRACE32: "do symbian"
+
+
+ SCREEN.ALways      ; permanent update for internal terminal window
+ ; screen.on        ; if you use external terminal
+
+
+; Debugger Reset
+
+ WinPAGE.RESet
+ AREA.RESet
+ WinPOS 0. 24. 75. 8. 0. 0. W000
+ AREA.view
+
+ PRINT "resetting..."
+
+ RESet
+
+
+; Initializing Debugger
+
+ PRINT "initializing..."
+ SYStem.CPU OMAP3530
+
+ SYStem.JtagClock RTCK
+ SYStem.Option ResBreak OFF     ; hardware dependent (see manual)
+ SYStem.Option WaitReset ON     ; hardware dependent (see manual)
+
+ SYStem.Option DACR ON          ; give Debugger global write permissions
+ TrOnchip.Set DABORT OFF        ; used by Symbian OS for page miss!
+ TrOnchip.Set PABORT OFF        ; used by Symbian OS for page miss!
+ TrOnchip.Set UNDEF OFF         ; used for floating point math
+ TrOnchip.Set SWI OFF           ; let SWI be handled by Symbian OS
+ Tronchip.Set IRQ OFF
+ SYStem.Option MMUSPACES OFF    ; NO space ids used (yet)
+ ;SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+
+ SETUP.IMASKASM ON              ; lock interrupts while single stepping
+
+ SYStem.Up
+
+
+; Open a Code Window -- we like to see something
+
+ WinPOS 0. 0. 75. 20.
+ List.auto
+ SCREEN.display
+
+
+; Open serial terminal window on COM1
+
+ WinPOS 35. 0. ,,,,, TERM.view
+ TERM.METHOD COM COM1 115200. 8 NONE 1STOP NONE
+ ;TERM.SIZE 80. 1000.   ; for debug log
+ ;TERM.SCROLL ON
+ TERM.SIZE 80. 25.      ; for eshell
+ TERM.Mode VT100
+ TERM.view
+
+
+; Target Setup
+
+ ; start u-boot to initialize the board
+ Go
+ PRINT "target setup..."
+ WAIT 5.s
+ Break
+
+
+; Load the Symbian OS image
+
+ PRINT "loading Symbian OS image..."
+
+ Data.LOAD.Binary &pdkpath\epoc32\rom\&romname.img 0x81000000
+
+ ; load symbol labels of image
+ Data.LOAD.SYMBIAN &pdkpath\epoc32\rom\&romname.symbol
+
+ ; set PC on start address of image
+ Register.RESet
+ Register.Set PC 0x81000000
+
+
+; Configure Autoloader
+
+ PRINT "configuring autoloader..."
+
+ ; add search paths for symbol files (.sym)
+ sYmbol.SourcePATH.Set &pdkpath\epoc32\release\armv5\udeb
+
+ ; scan rombuild log file for modules & addresses
+ sYmbol.AutoLOAD.LOADEPOC &pdkpath\epoc32\rom\&romname.log \
+     "do ~~/demo/arm/kernel/symbian/eka2/autoload.cmm "
+
+ ; define dynamic autoloader
+ sYmbol.AutoLOAD.CHECKEPOC "do ~~/demo/arm/kernel/symbian/eka2/autoload.cmm "
+
+ ; switch off automatic process detection (slows down debugger execution)
+ sYmbol.AutoLOAD.CHECK OFF
+
+ ; add source search paths
+ sYmbol.SourcePATH.Set &pdkpath
+
+
+; Load the Symbian OS kernel symbols into the debugger
+
+ PRINT "loading Symbian OS kernel symbols..."
+
+ ; force autoloader to load ekern
+ sYmbol.AutoLOAD.TOUCH "*ekern.exe"
+ sYmbol.CLEANUP.sYmbols
+
+ ; symbols for bootloader, if needed
+   ;Data.LOAD.Elf &epoc32path\release\armv5\_h4hrp_bootldr.sym \
+   ;    /nocode /noclear /cpp /strippart 1 /reloc ER_RO at 0x80000000
+
+
+; Ok, we're done, let's start Symbian OS
+
+ ; boot Symbian
+ Go
+ PRINT "starting Symbian OS, please wait..."
+ WAIT 1.s
+
+ ; halt target for further initializing
+ Break
+
+
+ ; set a breakpoint on restart, if kernel panics
+ Break.Set \\_omap3530_EKERN\cutils\Kern::Restart
+
+
+; Scan initial MMU settings and switch on debugger MMU
+ ;(not yet used)
+ ;MMU.SCAN
+ ;TRANSlation.ON
+
+
+; Initialize RTOS Support
+
+ PRINT "initializing SymbianOS support..."
+
+ TASK.CONFIG ~~/demo/arm/kernel/symbian/eka2/symbian2.t32       ; loads Symbian OS awareness
+ MENU.ReProgram ~~/demo/arm/kernel/symbian/eka2/symbian2.men    ; loads Symbian OS menu
+ HELP.FILTER.Add rtossymbian2   ; add Symbian OS awareness manual to help filter
+
+ PRINT "done."
+
+
+; --------------------------------------------------------------------------------
+; Application Debugging
+; e.g. "btrace"
+
+ PRINT "start Z:\Sys\Bin\btrace"
+ DO ~~/demo/arm/kernel/symbian/eka2/procentry btrace
+
+ ENDDO
+

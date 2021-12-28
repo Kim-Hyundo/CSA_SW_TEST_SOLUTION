@@ -1,0 +1,8 @@
+SYStem.CPU TC397XA
+CORE.ASSIGN 1 2
+SYStem.Up
+Data.LOAD.Elf ~~~~/../tc39x_sensor_lmu-impl2-dtlyt1.elf
+Trace.LOAD ~~~~/bmc_trace_demo-tc39x_sensor_lmu-impl2-dtlyt1-core1-detail.ad
+DO ~~~~/bmc_trace_demo-tc39x_sensor_lmu-impl2-dtlyt1-core1-detail-bmc.cmm
+ENDDO "PMN0: STALL,PMN1: BRMISS,PMN2: ICMISS,PMN4: DCMISS"
+

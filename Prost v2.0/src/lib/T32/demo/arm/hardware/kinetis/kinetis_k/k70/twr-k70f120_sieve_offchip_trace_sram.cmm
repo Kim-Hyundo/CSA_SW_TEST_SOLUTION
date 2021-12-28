@@ -1,0 +1,157 @@
+; --------------------------------------------------------------------------------
+; @Title: Demo script for MK70FN1M0VMJ12 on TWR-K70F120 with Offchip-Trace (RAM)
+; @Description:
+;   Loads the sieve demo application into RAM and sets up a demo debug
+;   scenario.
+;   The Offchip Trace using a Combiprobe/uTrace or PowerTrace is set up.
+;   Use this script for testing the Offchip-Trace.
+;   Prerequisites:
+;    * Connect Combiprobe/uTrace to J11
+;      or
+;      Connect AutoFocus Preprocessor to J11
+;      and connect DebugCable to Preprocessor
+;    * remove   R138 & R11
+;    * populate R137
+; @Keywords: ARM, Cortex-M4, ETM, ITM
+; @Author: AME
+; @Board: TWR-K70F120
+; @Chip: MK70FN1M0VMJ12
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: twr-k70f120_sieve_offchip_trace_sram.cmm 16392 2020-08-07 13:51:55Z irohloff $
+
+; Reviewed by SKR, 2020-03-12
+
+
+WinCLEAR
+
+; --------------------------------------------------------------------------------
+; initialize and start the debugger
+RESet
+SYStem.RESet
+SYStem.CPU MK70FN1M0VMJ12
+SYStem.CONFIG.DEBUGPORTTYPE SWD
+IF hardware.COMBIPROBE()||hardware.UTRACE()
+(
+  SYStem.CONFIG.CONNECTOR MIPI20T
+)
+SYStem.Option DUALPORT ON
+SYStem.MemAccess DAP
+SYStem.JtagClock CTCK 10MHz
+SYStem.Up
+
+GOSUB DisableWatchdog
+
+; --------------------------------------------------------------------------------
+; initialize offchip-trace (ETM ON, ITM ON)
+IF hardware.COMBIPROBE()||hardware.UTRACE()||Analyzer()
+(
+  ; set PinMux and enable Clocks
+  Data.Set SD:0x40048038 %Long 0x0000FFFF // PORTA_CLK
+  Data.Set SD:0x40048004 %Long 0x00001000 // TRACE_CLK
+
+  Data.Set SD:0x40049018 %Long 0x00000700 // TRACECLK  (low drive strength to emulate series termination)
+  Data.Set SD:0x4004901C %Long 0x00000700 // TRACED3   (low drive strength to emulate series termination)
+  Data.Set SD:0x40049020 %Long 0x00000700 // TRACED2   (low drive strength to emulate series termination)
+  Data.Set SD:0x40049024 %Long 0x00000700 // TRACED1   (low drive strength to emulate series termination)
+  Data.Set SD:0x40049028 %Long 0x00000700 // TRACED0   (low drive strength to emulate series termination)
+
+  Data.Set SD:0x40048068 %Long 0x00000000 // Trace Clkdiv 0
+
+  ; optional: setup the DCO here
+  IF FALSE()
+  (
+    ; let the DCO run ~80-90MHz
+    Data.Set SD:0x40064003 0x75
+    ; NFC/32 + Trace/1
+    Data.Set SD:0x40048068 %Long 0xF8000000
+  )
+
+  TPIU.PortSize 4
+  TPIU.PortMode Continuous
+  ITM.DataTrace CorrelatedData
+  ITM.ON
+  ETM.Trace ON
+  ETM.ON
+)
+IF hardware.COMBIPROBE()||hardware.UTRACE()
+(
+  Trace.METHOD CAnalyzer
+  Trace.AutoInit ON
+  IF VERSION.BUILD.BASE()>=74752.
+  (
+    CAnalyzer.AutoFocus
+  )
+  ELSE
+  (
+    ; for uTrace & Combiprobe use manual calibration
+    ; CAnalyzer.ClockDELAY Large
+  )
+)
+IF Analyzer()
+(
+  Trace.METHOD Analyzer
+  Trace.AutoInit ON
+  Trace.AutoFocus
+)
+
+; --------------------------------------------------------------------------------
+; load demo program (uses internal RAM only)
+Data.LOAD.Elf "~~~~/sieve_ram_thumb_ii_v7m.elf"
+
+; --------------------------------------------------------------------------------
+; start program execution
+Go.direct main
+WAIT !STATE.RUN()
+
+; --------------------------------------------------------------------------------
+; setup ITM based datatrace of variable plot1
+Var.Break.Set plot1 /Write /TraceData
+
+; --------------------------------------------------------------------------------
+; open some windows
+WinCLEAR
+Mode.Hll
+WinPOS 0. 0.
+List.auto
+WinPOS 120. 0. 100. 8.
+Frame.view
+WinPOS 120. 14.
+Var.Watch
+Var.AddWatch %SpotLight ast flags
+WinPOS 120. 25.
+Trace.List
+WinPOS 0. 32.
+Trace.DRAW.Var %DEFault plot1
+
+ENDDO
+
+DisableWatchdog:
+(
+  ; disable the Watchdog
+  LOCAL &tmp1 &tmp2
+  &tmp1=Data.Long(ST:0x20000000)
+  &tmp2=Data.Long(ST:0x20000004)
+  Register.SWAP
+
+  ; The watchdog has a restrictive timing. It has to be configured and unlocked within a peripod
+  ; of 20+256 cycles. Therefor the unlock sequence need to be done by a small target program.
+  Data.Assemble ST:0x20000000  strh r1,[r0]  ;SD:0x4005200E = 0xC520   (Key 1)
+  Data.Assemble ,              strh r2,[r0]  ;SD:0x4005200E = 0xD928   (Key 2)
+  Data.Assemble ,              strh r4,[r3]  ;SD:0x40052000 = 0x0000   (Config register)
+  Data.Assemble ,              bkpt #0
+  Register.Set PC 0x20000000
+  Register.Set R0 0x4005200E
+  Register.Set R1 0xC520
+  Register.Set R2 0xD928
+  Register.Set R3 0x40052000
+  Register.Set R4 0x0
+  Go.direct
+  WAIT !STATE.RUN()
+
+  Register.SWAP
+  Data.Set ST:0x20000000 %Long &tmp1
+  Data.Set ST:0x20000004 %Long &tmp2
+
+  RETURN
+)

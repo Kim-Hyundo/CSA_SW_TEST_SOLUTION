@@ -1,0 +1,20 @@
+; --------------------------------------------------------------------------------
+; @Title: Simple flash example for the VF65GS10 Boaard
+; @Description:
+;   Write a flash image with endless loops into the qspi flash.
+;   To debug TWR-VF65GS10 revision H you have to solder a 10K resistor at R161.
+; @Keywords: Cortex-A5
+; @Author: AME
+; @Board: TWR-Vf65GS10
+; @Chip: VF6*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: twr-vf65gs10_qspi_flash.cmm 15217 2019-11-04 16:17:15Z bschroefel $
+
+
+DO ~~/demo/arm/flash/vybridqspi-spi64.cmm PREPAREONLY
+
+FLASHFILE.ERASE 0x0--0xffff
+FLASHFILE.LOAD ~~~~/../scripts/vybrid-qspi-bootloop.bin
+
+ENDDO

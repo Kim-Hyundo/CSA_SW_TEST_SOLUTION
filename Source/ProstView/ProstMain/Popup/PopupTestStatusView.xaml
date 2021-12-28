@@ -1,0 +1,238 @@
+﻿<Window x:Class="ProstMain.Popup.PopupTestStatusView"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:wpf="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
+             xmlns:gif="http://wpfanimatedgif.codeplex.com"
+             xmlns:util="clr-namespace:ProstMain.Util"
+             xmlns:dialog="clr-namespace:ProstMain.Dialog"
+             AllowsTransparency="True"
+             mc:Ignorable="d" Background="{DynamicResource ResourceKey=PopupBackground}" Width="550" Height="350" WindowStyle="None" WindowStartupLocation="CenterOwner" DataContext="{Binding Source={StaticResource Locator},Path=PopupTestStatusVM}" Closed="Window_Closed">
+
+    <Window.Resources>
+        <util:CheckDataConvert x:Key="checkDataConvert"/>
+        <util:LineColorConvert x:Key="lineColorConvert"/>
+        <util:ProgressVisibleConvert x:Key="progressvisibleconvert"/>
+        <util:BuildProgressConvert x:Key="buildprogressconvert"/>
+        <util:TestStepZeroConver x:Key="teststepzeroconver"/>
+        <util:StepTestEnableConvert x:Key="StepTestEnableConvert"/>
+        <util:BoolToGridRowHeightConverter x:Key="BoolToGridRowHeightConverter"/>
+    </Window.Resources>
+    <materialDesign:DialogHost HorizontalAlignment="Stretch" VerticalAlignment="Stretch" OverlayBackground="Black" IsOpen="{Binding PopupTestStatusModel.IsTestStatusPopupOpen}">
+        <materialDesign:DialogHost.DialogContent>
+            <dialog:TestStatusDialogView/>
+        </materialDesign:DialogHost.DialogContent>
+        <Grid VerticalAlignment="Top" >
+            <GroupBox MouseLeftButtonDown="DockPanel_MouseDown">
+                <GroupBox.Header>
+                    <DockPanel LastChildFill="False">
+                        <TextBlock Text="Test Running..." Foreground="{DynamicResource ResourceKey=GroupBoxHeaderForeground}" VerticalAlignment="Center"></TextBlock>
+                        <Button DockPanel.Dock="Right" Command="{Binding StopTestStatusCommand}" Background="{DynamicResource ResourceKey=ButtonBackground}">
+                            <Button.Content>
+                                <materialDesign:PackIcon Kind="Stop"/>
+                            </Button.Content>
+                        </Button>
+
+                        <Button DockPanel.Dock="Right" Margin="5,0,5,0" Command="{Binding RestartTestCommand}" Background="{DynamicResource ResourceKey=ButtonBackground}">
+                            <Button.Content>
+                                <materialDesign:PackIcon Kind="Play"/>
+                            </Button.Content>
+                        </Button>
+                        <Button DockPanel.Dock="Right" Margin="5,0,5,0" Command="{Binding PauseTestCommand}" Background="{DynamicResource ResourceKey=ButtonBackground}">
+                            <Button.Content>
+                                <materialDesign:PackIcon Kind="Pause"/>
+                            </Button.Content>
+                        </Button>
+                        <Button DockPanel.Dock="Right" Margin="5,0,5,0" Command="{Binding StepTestCommand}" IsEnabled="{Binding PopupTestStatusModel.TestStateMode,Converter={StaticResource StepTestEnableConvert},Mode=TwoWay}" Background="{DynamicResource ResourceKey=ButtonBackground}">
+                            <Button.Content>
+                                <materialDesign:PackIcon Kind="SkipNext"/>
+                            </Button.Content>
+                        </Button>
+                    </DockPanel>
+                </GroupBox.Header>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2.5*"/>
+                        <ColumnDefinition Width="2.5*"/>
+                        <ColumnDefinition Width="2.5*"/>
+                        <ColumnDefinition Width="2.5*"/>
+                        <ColumnDefinition Width="2.5*"/>
+                        <ColumnDefinition Width="2.5*"/>
+                        <ColumnDefinition Width="2.5*"/>
+                        <ColumnDefinition Width="2.5*"/>
+                        <ColumnDefinition Width="2.5*"/>
+                        <ColumnDefinition Width="2.5*"/>
+                        <ColumnDefinition Width="2.5*"/>
+                        <ColumnDefinition Width="2.5*"/>
+
+                    </Grid.ColumnDefinitions>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="2.5*"/>
+                        <RowDefinition Height="2.5*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1.5*"/>
+                        <RowDefinition Height="1.5*"/>
+                        <RowDefinition Height="1.5*"/>
+                        <RowDefinition Height="{Binding Source={StaticResource Locator},Path=MenuBarVM.IsADFileGenerator,Converter={StaticResource BoolToGridRowHeightConverter}}"/>
+                        <RowDefinition Height="{Binding Source={StaticResource Locator},Path=MenuBarVM.IsADFileGenerator,Converter={StaticResource BoolToGridRowHeightConverter}}"/>
+                        <RowDefinition Height="{Binding Source={StaticResource Locator},Path=MenuBarVM.IsADFileGenerator,Converter={StaticResource BoolToGridRowHeightConverter}}"/>
+                        <RowDefinition Height="{Binding Source={StaticResource Locator},Path=MenuBarVM.IsADFileGenerator,Converter={StaticResource BoolToGridRowHeightConverter}}"/>
+
+
+
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.RowSpan="5" Grid.ColumnSpan="12" BorderThickness="2,2,2,2" Margin="0,-8,0,0">
+                        <Border.BorderBrush>
+                            <DrawingBrush Viewport="0,0,8,8" ViewportUnits="Absolute" TileMode="Tile">
+                                <DrawingBrush.Drawing>
+                                    <DrawingGroup>
+                                        <GeometryDrawing Brush="White">
+                                            <GeometryDrawing.Geometry>
+                                                <GeometryGroup>
+                                                    <RectangleGeometry Rect="0,0,50,50" />
+                                                    <RectangleGeometry Rect="50,50,50,50" />
+                                                </GeometryGroup>
+                                            </GeometryDrawing.Geometry>
+                                        </GeometryDrawing>
+                                    </DrawingGroup>
+                                </DrawingBrush.Drawing>
+                            </DrawingBrush>
+                        </Border.BorderBrush>
+                    </Border>
+
+                    <Image gif:ImageBehavior.RepeatBehavior="Forever" gif:ImageBehavior.AnimatedSource="/ProstMain;component/Resources/flow.gif" Grid.Row="0" Grid.Column="7" Grid.ColumnSpan="2" RenderOptions.BitmapScalingMode="HighQuality" RenderTransformOrigin="0.5,0.5">
+                        <Image.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform/>
+                                <SkewTransform/>
+                                <RotateTransform Angle="-90"/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </Image.RenderTransform>
+                    </Image>
+                    <Image gif:ImageBehavior.RepeatBehavior="Forever" gif:ImageBehavior.AnimatedSource="/ProstMain;component/Resources/flow.gif" Grid.Row="1" Grid.Column="7" Grid.ColumnSpan="2" RenderOptions.BitmapScalingMode="HighQuality" RenderTransformOrigin="0.5,0.5">
+                        <Image.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform/>
+                                <SkewTransform/>
+                                <RotateTransform Angle="-270"/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </Image.RenderTransform>
+                    </Image>
+                    <Border  Grid.Column="5" Grid.Row="0" Grid.ColumnSpan="2" Grid.RowSpan="2">
+                        <Image  VerticalAlignment="Center" HorizontalAlignment="Center" Margin="7" Source="/ProstMain;component/Resources/trace32.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+                    </Border>
+
+                    <TextBlock Grid.Row="2" Grid.Column="5" Grid.RowSpan="2" Grid.ColumnSpan="2" Text="TRACE32" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" FontSize="18" FontWeight="Bold"/>
+
+                    <Border  Grid.Column="9" Grid.Row="0" Grid.ColumnSpan="2" Grid.RowSpan="2">
+                        <Image Source="/ProstMain;component/Resources/TargetHW_Icon_Normal.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+                    </Border>
+
+                    <Border  Grid.Column="1" Grid.Row="0" Grid.ColumnSpan="2" Grid.RowSpan="2">
+                        <Image Source="/ProstMain;component/Resources/TestCase_Icon_Normal.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+                    </Border>
+
+                    <Image gif:ImageBehavior.RepeatBehavior="Forever" gif:ImageBehavior.AnimatedSource="/ProstMain;component/Resources/flow.gif" Grid.Row="0" Grid.Column="3" Grid.ColumnSpan="2" Grid.RowSpan="3" RenderOptions.BitmapScalingMode="HighQuality" RenderTransformOrigin="0.5,0.5">
+                        <Image.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform/>
+                                <SkewTransform/>
+                                <RotateTransform Angle="-90"/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </Image.RenderTransform>
+                    </Image>
+
+                    <TextBlock Grid.Row="2" Grid.RowSpan="2" Grid.Column="1" Grid.ColumnSpan="2" Text="Test Case" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" FontSize="18" FontWeight="Bold"/>
+                    <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="4" VerticalAlignment="Top" Text="{Binding PopupTestStatusModel.TestcaseProgressText}" HorizontalAlignment="Center" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" FontSize="14"/>
+                    <TextBlock Grid.Row="2" Grid.RowSpan="2" Grid.Column="9" Grid.ColumnSpan="2" Text="Target" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" FontSize="18" FontWeight="Bold"/>
+
+                    <TextBlock Text="{Binding PopupTestStatusModel.TestStatusText}" FontSize="18" FontWeight="Bold" Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="10" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding PopupTestStatusModel.IsTestStart,Converter={StaticResource progressvisibleconvert}}">
+                        <TextBlock.Foreground>
+                            <SolidColorBrush x:Name="TestRunningTextColor" Color="White" />
+                        </TextBlock.Foreground>
+                        <TextBlock.Triggers>
+                            <EventTrigger RoutedEvent="Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="TestRunningTextColor" Storyboard.TargetProperty="Color" From="White" To="#2d2d30" Duration="0:0:0.6" AutoReverse="True" RepeatBehavior="Forever" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </TextBlock.Triggers>
+                    </TextBlock>
+                    <Grid Margin="0,2,0,2" Grid.Row="6" Grid.ColumnSpan="12" Grid.Column="0" Visibility="{Binding PopupTestStatusModel.IsTestStart,Converter={StaticResource progressvisibleconvert}}">
+                        <Border Grid.Column="0" Margin="57,0,50,0">
+                            <Border.Background>
+                                <ImageBrush ImageSource="/ProstMain;component/Resources/bg_full_progressbar.png"/>
+                            </Border.Background>
+                        </Border>
+                        <util:NinePatchPanel Margin="57,0,0,0" BackgroundImage="/ProstMain;component/Resources/full_progressbar.9.png" HorizontalAlignment="Left" Visibility="{Binding PopupTestStatusModel.TestStatusProgress,Converter={StaticResource teststepzeroconver}}" Width="{Binding PopupTestStatusModel.TestStatusProgress,Converter={StaticResource buildprogressconvert},UpdateSourceTrigger=PropertyChanged}" Grid.Column="0"/>
+
+                        <TextBlock Foreground="Black" Grid.Column="0" HorizontalAlignment="Center" Text="{Binding PopupTestStatusModel.TestStatusProgress,StringFormat={}{0:N1}%}" FontWeight="Bold" FontSize="15" VerticalAlignment="Center" />
+                    </Grid>
+
+                    <TextBlock Text="Analyzing Data..." FontSize="18" FontWeight="Bold" Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="10" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding PopupTestStatusModel.IsTestStart,Converter={StaticResource progressvisibleconvert}}">
+                        <TextBlock.Foreground>
+                            <SolidColorBrush x:Name="AnalyzingTextColor" Color="White" />
+                        </TextBlock.Foreground>
+                        <TextBlock.Triggers>
+                            <EventTrigger RoutedEvent="Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="AnalyzingTextColor" Storyboard.TargetProperty="Color" From="White" To="#2d2d30" Duration="0:0:0.6" AutoReverse="True" RepeatBehavior="Forever" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </TextBlock.Triggers>
+                    </TextBlock>
+
+                    <Grid Margin="0,2,0,2" Grid.Row="8" Grid.ColumnSpan="12" Grid.Column="0" Visibility="{Binding PopupTestStatusModel.IsTestStart,Converter={StaticResource progressvisibleconvert}}">
+                        <Border Grid.Column="0" Margin="57,0,50,0">
+                            <Border.Background>
+                                <ImageBrush ImageSource="/ProstMain;component/Resources/bg_full_progressbar.png"/>
+                            </Border.Background>
+                        </Border>
+                        <util:NinePatchPanel Margin="57,0,0,0" BackgroundImage="/ProstMain;component/Resources/full_progressbar.9.png" HorizontalAlignment="Left" Visibility="{Binding PopupTestStatusModel.TestAnalysysProgress,Converter={StaticResource teststepzeroconver}}" Width="{Binding PopupTestStatusModel.TestAnalysysProgress,Converter={StaticResource buildprogressconvert},UpdateSourceTrigger=PropertyChanged}" Grid.Column="0"/>
+
+                        <TextBlock Foreground="Black" Grid.Column="0" HorizontalAlignment="Center" Text="{Binding PopupTestStatusModel.TestAnalysysProgress,StringFormat={}{0:N1}%}" FontWeight="Bold" FontSize="15" VerticalAlignment="Center" />
+                    </Grid>
+
+                    <TextBlock Text="Merge Data..." FontSize="18" FontWeight="Bold" Grid.Row="9" Grid.Column="1" Grid.ColumnSpan="10" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding PopupTestStatusModel.IsTestStart,Converter={StaticResource progressvisibleconvert}}">
+                        <TextBlock.Foreground>
+                            <SolidColorBrush x:Name="CoverageAnalyzingTextColor" Color="White" />
+                        </TextBlock.Foreground>
+                        <TextBlock.Triggers>
+                            <EventTrigger RoutedEvent="Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="CoverageAnalyzingTextColor" Storyboard.TargetProperty="Color" From="White" To="#2d2d30" Duration="0:0:0.6" AutoReverse="True" RepeatBehavior="Forever" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </TextBlock.Triggers>
+                    </TextBlock>
+
+                    <Grid Margin="0,2,0,2" Grid.Row="10" Grid.ColumnSpan="12" Grid.Column="0" Visibility="{Binding PopupTestStatusModel.IsTestStart,Converter={StaticResource progressvisibleconvert}}">
+                        <Border Grid.Column="0" Margin="57,0,50,0">
+                            <Border.Background>
+                                <ImageBrush ImageSource="/ProstMain;component/Resources/bg_full_progressbar.png"/>
+                            </Border.Background>
+                        </Border>
+                        <util:NinePatchPanel Margin="57,0,0,0" BackgroundImage="/ProstMain;component/Resources/full_progressbar.9.png" HorizontalAlignment="Left" Visibility="{Binding PopupTestStatusModel.TestMergeDataProgress,Converter={StaticResource teststepzeroconver}}" Width="{Binding PopupTestStatusModel.TestMergeDataProgress,Converter={StaticResource buildprogressconvert},UpdateSourceTrigger=PropertyChanged}" Grid.Column="0"/>
+
+                        <TextBlock Foreground="Black" Grid.Column="0" HorizontalAlignment="Center" Text="{Binding PopupTestStatusModel.TestMergeDataProgress,StringFormat={}{0:N1}%}" FontWeight="Bold" FontSize="15" VerticalAlignment="Center" />
+                    </Grid>
+                </Grid>
+            </GroupBox>
+        </Grid>
+    </materialDesign:DialogHost>
+</Window>
+

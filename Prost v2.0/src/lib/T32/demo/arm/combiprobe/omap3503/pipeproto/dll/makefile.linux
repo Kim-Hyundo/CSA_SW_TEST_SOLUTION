@@ -1,0 +1,13 @@
+CC      := gcc
+COPTS   := -Wall -DLINUX -c -O2
+
+all: pproto 
+
+pproto: pproto.o pipeproto.o mypipe.o pipeproto.h
+	gcc -shared -o $@ pproto.o pipeproto.o mypipe.o
+
+%.o: %.c
+	$(CC) $(COPTS) -o $@ $*.c
+
+clean:
+	rm -f *.o pproto

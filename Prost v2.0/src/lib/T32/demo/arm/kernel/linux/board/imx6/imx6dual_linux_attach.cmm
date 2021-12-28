@@ -1,0 +1,91 @@
+; --------------------------------------------------------------------------------
+; @Title: Linux Demo for TRACE32 OS Awareness for the SabreLite i.MX6 Board Dual Core
+; @Description:  
+;   This script is supposed to attach to a running Linux on i.MX6 SABER LITE board. 
+;   The Task Awareness + Debugger Address Translation are prepared as for the 
+;   GSRD. After execution of this script the debugger is ready for Process, 
+;   Kernel, optional Module and optional Library debugging.
+;   It will NOT run on any other board, but may be used as a template
+;   for others.
+; @Keywords: awareness, Freescale, imx6*, i.MX6*
+; @Author: KJM
+; @Board: SabreLite
+; @Chip: IMX6DUAL*
+; @Copyright: (C) 1989-2019 Lauterbach GmbH, licensed for use with TRACE32(R) only
+; --------------------------------------------------------------------------------
+; $Id: imx6dual_linux_attach.cmm 15210 2019-11-04 10:51:00Z bschroefel $
+
+
+LOCAL &ka_path &awareness
+  SCREEN.ON
+
+; Debugger Reset
+ 
+  RESet
+  WinPAGE.RESet
+  AREA.RESet
+  WinPOS 0. 25. 75. 9. 0. 0. W000
+  AREA.view
+ 
+  PRINT "resetting..."
+
+; reset chip, connect to core #0 only
+ 
+  SYStem.CPU IMX6DUAL
+  ; SYStem.CPU IMX6DUALLITE
+  SYStem.Option ResBreak OFF
+  SYStem.Option DACR ON          ; give Debugger global write permissions
+  TrOnchip.Set DABORT OFF        ; used by Linux for page miss!
+  TrOnchip.Set PABORT OFF        ; used by Linux for page miss!
+  TrOnchip.Set UNDEF OFF         ; my be used by Linux for FPU detection
+  SYStem.Option MMUSPACES ON           ; enable space ids to virtual addresses
+  SETUP.IMASKASM ON          ; lock interrupts while single stepping
+  
+  Trace.METHOD Onchip
+
+  SYStem.Mode Attach ; all cores should already be started by the kernel at this time
+  Break.direct
+  WAIT !STATE.RUN()
+
+
+  DO ~~/demo/etc/terminal/serial/term.cmm COM1 115200.
+  
+; Load the Linux kernel symbols into the debugger
+  
+  PRINT "loading Linux kernel symbols..." 
+  Data.LOAD.Elf vmlinux /gnu /NoCODE /StripPART "imx6"
+ 
+; Open a Code Window -- we like to see something
+ 
+  WinPOS 0. 0. 75. 20.
+  List.auto
+  SCREEN.display
+ 
+ 
+ ; Map the virtual kernel symbols to physical addresses
+ ; to give the debugger access to it before CPU MMU is
+ ; initialized
+ 
+  PRINT "initializing debugger MMU..."
+  MMU.FORMAT LINUX swapper_pg_dir 0x80000000--0xdfffffff 0x10000000
+  TRANSlation.COMMON 07f000000--0ffffffff         ; common area for kernel and processes
+  TRANSlation.TableWalk ON   ; debugger uses a table walk to decode virtual addresses
+  TRANSlation.ON
+  
+ ; Initialize Linux Awareness
+   ; Note that the Linux awareness needs the kernel symbols to work 
+   PRINT "initializing RTOS support..."
+   ; Choose the correct Linux major version below
+   ;TASK.CONFIG ~~/demo/arm/kernel/linux/linux-2.x/linux.t32     ; loads Linux awareness for linux-2.x
+   ;MENU.ReProgram ~~/demo/arm/kernel/linux/linux-2.x/linux.men  ; loads Linux menu  for linux-2.x
+   TASK.CONFIG ~~/demo/arm/kernel/linux/linux-3.x/linux3.t32     ; loads Linux awareness for linux-3.x
+   MENU.ReProgram ~~/demo/arm/kernel/linux/linux-3.x/linux.men  ; loads Linux menu  for linux-3.x
+   
+ ; Group kernel area to be displayed with red bar
+   GROUP.Create "kernel" 0xc0000000--0xffffffff /RED
+ 
+   Go.direct
+ 
+   Mode.Hll
+ 
+  ENDDO
