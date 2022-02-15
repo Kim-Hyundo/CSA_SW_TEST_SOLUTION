@@ -45,24 +45,24 @@ def main(test=True):
         dic_project_info = pa.object_file_load(r"C:\Users\GiCheol.Shin\Desktop\test\test\Temp\C_PROJECT_INFO_DATA_dictionary.txt", "rb")
 
 
-        # skc### 가라데이터들
-        dic_project_info['Test_Env']['Test_Component'] = 'Demo'
-        #dic_project_info['Compiler']['Compiler Type'] = 'GHS'
-        dic_project_info['Test_Env']['Test_compilerType'] = 'GHS'
-        dic_project_info['Compiler']['IsExistMainls'] = 'FALSE'
-        dic_project_info['Test_Env']['Test_CPU'] = 'CYT2B75CA(rev_d)'
-        dic_project_info['Test_Env']['CompilerVersion'] = '2021.1.4'
-        dic_project_info['Compiler']['Core'] = {'cm0plus': 'FALSE', 'cm4': 'TRUE'}
-        dic_project_info['Compiler']['Compiler_Path'] = r"C:\ghs\comp_202114"
-        dic_project_info['Common_Path']['Workspace_Path'] = r"C:\Users\GiCheol.Shin\Desktop\test"
-        dic_project_info['Common_Path']['Project_Root_Path'] = r"C:\Users\GiCheol.Shin\Desktop\test\make_main"
-        dic_project_info['Common_Path']['T15_Install_Path'] = r"C:\Prost_v2.0\Prost v2.0"
-        dic_project_info['Compiler']['Runnable_List'].clear()
-        dic_project_info['Compiler']['Runnable_List'][1] = 'Demo_Test()$$1$$cm4$$Demo.h'
-        dic_project_info['Compiler']['Runnable_List'][2] = 'plus()$$1$$cm4$$plus.h'
-        dic_project_info['Compiler']['Runnable_List'][3] = 'minus()$$1$$cm4$$minus.h'
-        dic_project_info['Compiler']['IncludePath_List'].clear()
-        dic_project_info['Compiler']['IncludePath_List'][1] = r"$(workspace_loc)\make_main\Target_SW"
+        # skc### CYT2B7 test
+        # dic_project_info['Test_Env']['Test_Component'] = 'Demo'
+        # #dic_project_info['Compiler']['Compiler Type'] = 'GHS'
+        # dic_project_info['Test_Env']['Test_compilerType'] = 'GHS'
+        # dic_project_info['Compiler']['IsExistMainls'] = 'FALSE'
+        # dic_project_info['Test_Env']['Test_CPU'] = 'CYT2B75CA(rev_d)'
+        # dic_project_info['Test_Env']['CompilerVersion'] = '2021.1.4'
+        # dic_project_info['Compiler']['Core'] = {'cm0plus': 'FALSE', 'cm4': 'TRUE'}
+        # dic_project_info['Compiler']['Compiler_Path'] = r"C:\ghs\comp_202114"
+        # dic_project_info['Common_Path']['Workspace_Path'] = r"C:\Users\GiCheol.Shin\Desktop\test"
+        # dic_project_info['Common_Path']['Project_Root_Path'] = r"C:\Users\GiCheol.Shin\Desktop\test\make_main"
+        # dic_project_info['Common_Path']['T15_Install_Path'] = r"C:\Prost_v2.0\Prost v2.0"
+        # dic_project_info['Compiler']['Runnable_List'].clear()
+        # dic_project_info['Compiler']['Runnable_List'][1] = 'Demo_Test()$$1$$cm4$$Demo.h'
+        # dic_project_info['Compiler']['Runnable_List'][2] = 'plus()$$1$$cm4$$plus.h'
+        # dic_project_info['Compiler']['Runnable_List'][3] = 'minus()$$1$$cm4$$minus.h'
+        # dic_project_info['Compiler']['IncludePath_List'].clear()
+        # dic_project_info['Compiler']['IncludePath_List'][1] = r"$(workspace_loc)\make_main\Target_SW"
         # dic_project_info['Compiler']['IncludePath_List'][2] = r"$(workspace_loc)\make_main\Target_SW\common"
         # dic_project_info['Compiler']['IncludePath_List'][3] = r"$(workspace_loc)\make_main\Target_SW\common\hdr"
         # dic_project_info['Compiler']['IncludePath_List'][4] = r"$(workspace_loc)\make_main\Target_SW\common\hdr\cmsis"
@@ -77,8 +77,8 @@ def main(test=True):
         # dic_project_info['Compiler']['IncludePath_List'][13] = r"$(workspace_loc)\make_main\Target_SW\CYT2B7+rev_d\src\drivers"
         # dic_project_info['Compiler']['IncludePath_List'][14] = r"$(workspace_loc)\make_main\Target_SW\CYT2B7+rev_d\src\interrupts"
         # dic_project_info['Compiler']['IncludePath_List'][15] = r"$(workspace_loc)\make_main\Target_SW\CYT2B7+rev_d\src\system"
-        dic_project_info['Compiler']['IncludePath_List'][16] = r"$(workspace_loc)\make_main\Target_SW\Demo"
-        dic_project_info['Compiler']['IncludePath_List'][17] = r"$(workspace_loc)\make_main\Target_SW\Demo\minus"
+        # dic_project_info['Compiler']['IncludePath_List'][16] = r"$(workspace_loc)\make_main\Target_SW\Demo"
+        # dic_project_info['Compiler']['IncludePath_List'][17] = r"$(workspace_loc)\make_main\Target_SW\Demo\minus"
         # dic_project_info['Compiler']['Compiler_Option'] = ''
         # dic_project_info['Compiler']['Compiler_Option'] += 'OPT_GLOBAL += -G \n'
         # dic_project_info['Compiler']['Compiler_Option'] += 'OPT_GLOBAL += -dual_debug \n'
@@ -111,55 +111,23 @@ def main(test=True):
         # dic_project_info['Compiler']['Linker_Option'] = []
         # dic_project_info['Compiler']['Library_List'] = []
 
-        # skc### 실제 들어가야하는 로직들
-        #if 'GHS' == dic_project_info['Compiler']['Compiler Type']:
-        # if 'GHS' == dic_project_info['Test_Env']['Test_compilerType']:
-        #
-        #     # 시리즈 별 define을 위한 dictionary 추가
-        #     # Die에 보드 이름이 들어가 있는데 실제로 보드와 관련된 bsp들이 들어가는건 아니고 그야말로 그냥 define용임 이거 define 안하면 컴파일 에러남
-        #     if 'CYT2B7' in dic_project_info['Test_Env']['Test_CPU']:
-        #         dic_project_info['Test_Env']['Serise'] = 'CYT2B7'
-        #         dic_project_info['Test_Env']['Die'] = 'tviibe1m'
-        #     elif 'CYT2B9' in dic_project_info['Test_Env']['Test_CPU']:
-        #         dic_project_info['Test_Env']['Serise'] = 'CYT2B9'
-        #         dic_project_info['Test_Env']['Die'] = 'tviibe2m'
-        #     elif 'CYT2BL' in dic_project_info['Test_Env']['Test_CPU']:
-        #         dic_project_info['Test_Env']['Serise'] = 'CYT2BL'
-        #         dic_project_info['Test_Env']['Die'] = 'tviibe4m'
-        #     elif 'CYT2B6' in dic_project_info['Test_Env']['Test_CPU']:
-        #         dic_project_info['Test_Env']['Serise'] = 'CYT2B6'
-        #         dic_project_info['Test_Env']['Die'] = 'tviibe512k'
-        #     elif 'CYT4BB' in dic_project_info['Test_Env']['Test_CPU']:
-        #         dic_project_info['Test_Env']['Serise'] = 'CYT2BB'
-        #         dic_project_info['Test_Env']['Die'] = 'tviibh4m'
-        #     elif 'CYT4BF' in dic_project_info['Test_Env']['Test_CPU']:
-        #         dic_project_info['Test_Env']['Serise'] = 'CYT2BF'
-        #         dic_project_info['Test_Env']['Die'] = 'tviibh8m'
-        #     elif 'CYT3DL' in dic_project_info['Test_Env']['Test_CPU']:
-        #         dic_project_info['Test_Env']['Serise'] = 'CYT3DL'
-        #         dic_project_info['Test_Env']['Die'] = 'tviic2d4m'
-        #     elif 'CYT4DN' in dic_project_info['Test_Env']['Test_CPU']:
-        #         dic_project_info['Test_Env']['Serise'] = 'CYT4DN'
-        #         dic_project_info['Test_Env']['Die'] = 'tviic2d6m'
-        #     elif 'CYT4EN' in dic_project_info['Test_Env']['Test_CPU']:
-        #         dic_project_info['Test_Env']['Serise'] = 'CYT4EN'
-        #         dic_project_info['Test_Env']['Die'] = 'tviic2d6mddr'
-        #     elif 'CYT2CL' in dic_project_info['Test_Env']['Test_CPU']:
-        #         dic_project_info['Test_Env']['Serise'] = 'CYT2CL'
-        #         dic_project_info['Test_Env']['Die'] = 'tviice4m'
-        #
-        #     if 'rev_a' in dic_project_info['Test_Env']['Test_CPU']:
-        #         dic_project_info['Test_Env']['MCU_rev'] = 'rev_a'
-        #     elif 'rev_b' in dic_project_info['Test_Env']['Test_CPU']:
-        #         dic_project_info['Test_Env']['MCU_rev'] = 'rev_b'
-        #     elif 'rev_c' in dic_project_info['Test_Env']['Test_CPU']:
-        #         dic_project_info['Test_Env']['MCU_rev'] = 'rev_c'
-        #     elif 'rev_d' in dic_project_info['Test_Env']['Test_CPU']:
-        #         dic_project_info['Test_Env']['MCU_rev'] = 'rev_d'
-        #
-        #     # mcu 이름 끝에 알파벳 하나는 S아니면 E인데 그냥 동작온도범위라서 신경안써도 될듯 칩 스펙, 패키지 다 똑같음
-        #     dic_project_info['Test_Env']['Test_CPU'] = dic_project_info['Test_Env']['Test_CPU'].split('(')[0] + 'S'
-        # # skc###
+        # skc### TC38X test
+        # dic_project_info = pa.object_file_load("C:\Prost_v2.0\Workspace\MANDO_FailSafe_Integration\Temp\C_PROJECT_INFO_DATA_dictionary.txt", "rb")
+        # dic_project_info['Common_Path']['WorkingProject_Path'] = r"C:\Users\GiCheol.Shin\Desktop\test\test_tc38x\Gen"
+        # dic_project_info['Common_Path']['Workspace_Path'] = r"C:\Users\GiCheol.Shin\Desktop\test"
+        # dic_project_info['Common_Path']['Project_Root_Path'] = r"C:\Users\GiCheol.Shin\Desktop\test\test_tc38x"
+        # dic_project_info['Common_Path']['T15_Install_Path'] = r"C:\Users\GiCheol.Shin\Desktop\Prost_v2.0\Prost v2.0"
+        # dic_project_info['Common_Path']['Project_Gen_Path'] = r"C:\Users\GiCheol.Shin\Desktop\test\test_tc38x\Gen"
+        # dic_project_info['Compiler']['Compiler_Option'] = r'-C$(TARGET) --lsl-core=vtc -t $(INC) -Wa-H"sfr/reg$(TARGET).def" -Wa-gAHLs --emit-locals=-equ,-symbols -Wa-Ogs -Wa--error-limit=42 -Wc-H"sfr/reg$(TARGET).sfr" --iso=99 --language=-gcc,-volatile,+strings --switch=auto --align=0 --default-near-size=0 --default-a0-size=0 --default-a1-size=0 -O2 --compact-max-size=200 -g --source'
+        # dic_project_info['Compiler']['Core'] = {'core0': 'TRUE', 'core1': 'FALSE', 'core2': 'FALSE', 'core3': 'FALSE'}
+        # dic_project_info['Compiler']['IncludePath_List'].clear()
+        # dic_project_info['Compiler']['IncludePath_List'][1] = r"C:\Users\GiCheol.Shin\Desktop\test\test_tc38x\Target_SW"
+        # dic_project_info['Compiler']['Runnable_List'].clear()
+        # dic_project_info['Compiler']['Runnable_List'][1] = 'Demo_Test()$$1$$cm4$$Demo.h'
+        # dic_project_info['Test_Env']['Test_Code_Path'] = r"C:\Users\GiCheol.Shin\Desktop\test\test_tc38x\Target_SW"
+        # dic_project_info['Test_Env']['CompilerVersion'] = '6.2'
+        # dic_project_info['Test_Env']['Test_CPU'] = 'tc38x'
+        # dic_project_info['Test_Env']['Test_Component'] = 'tc38x_test'
 
         # skc###
         # #Path Debug Data
