@@ -149,12 +149,7 @@ namespace ProstMain.Util
                 if (ViewModelLocator.MainVM.MainModel.IsTestSimulationEnable)
                     proc = Process.Start(@"..\src\lib\T32\PowerView_Simulator.bat", @"..\src\lib\T32 " + ViewModelLocator.TargetHWSettingVM.TargetHWSettingModel.Trace32IPAddress);
                 else
-                {
-                    if (ViewModelLocator.TargetHWSettingVM.TargetHWSettingModel.CpuName.ToUpper().Contains("TC")) //지현 수정
-                        proc = Process.Start(@"..\src\lib\T32\PowerView.bat", "TRICORE " + @"..\src\lib\T32 " + ViewModelLocator.TargetHWSettingVM.TargetHWSettingModel.Trace32IPAddress);
-                    else if (ViewModelLocator.TargetHWSettingVM.TargetHWSettingModel.CpuName.ToUpper().Contains("CYT")) //지현 수정
-                        proc = Process.Start(@"..\src\lib\T32\PowerView.bat", "ARM " + @"..\src\lib\T32 " + ViewModelLocator.TargetHWSettingVM.TargetHWSettingModel.Trace32IPAddress);
-                }
+                    proc = Process.Start(@"..\src\lib\T32\PowerView.bat", @"..\src\lib\T32 " + ViewModelLocator.TargetHWSettingVM.TargetHWSettingModel.Trace32IPAddress);
             }
             else
             {
@@ -300,27 +295,8 @@ namespace ProstMain.Util
                             break;
                         }
                     }
-
-                    string PreElfConvertPath = "";
-                    string PostElfConvertPath = "";
-
-                    /*임시 방편*/
-                    if (ViewModelLocator.ETCSettingVM.PreLoadElfPath == null)
-                        ViewModelLocator.ETCSettingVM.PreLoadElfPath = "";
-                    if (ViewModelLocator.ETCSettingVM.PostLoadElfPath == null)
-                        ViewModelLocator.ETCSettingVM.PostLoadElfPath = "";
-
-                    if (ViewModelLocator.ETCSettingVM.PreLoadElfPath.Contains("$(workspace_loc)"))
-                        PreElfConvertPath = ViewModelLocator.ETCSettingVM.PreLoadElfPath.Replace("$(workspace_loc)", ViewModelLocator.WorkSpaceVM.WorkSpaceModel.WorkSpacePath);
-                    else
-                        PreElfConvertPath = ViewModelLocator.ETCSettingVM.PreLoadElfPath;
-
-                    if (ViewModelLocator.ETCSettingVM.PostLoadElfPath.Contains("$(workspace_loc)"))
-                        PostElfConvertPath = ViewModelLocator.ETCSettingVM.PostLoadElfPath.Replace("$(workspace_loc)", ViewModelLocator.WorkSpaceVM.WorkSpaceModel.WorkSpacePath);
-                    else
-                        PostElfConvertPath = ViewModelLocator.ETCSettingVM.PostLoadElfPath;
-
-                    TRACE32_DLL.T32_Cmd("CD.DO \"" + FlashPath + "\" " + "\"" + elffiles[0] + "\" " + "\"" + tempindex + "\"" + "\"" + PreElfConvertPath + "\"" + "\"" + PostElfConvertPath + "\"");
+                    
+                    TRACE32_DLL.T32_Cmd("CD.DO \"" + FlashPath + "\" " + "\"" + elffiles[0] + "\" " + "\"" + tempindex + "\"");
                     Trace32Handler.TRACE32_DLL.T32_GetPracticeState(ref check);
                     while (check != 0)
                     {
@@ -423,23 +399,8 @@ namespace ProstMain.Util
                 if (ViewModelLocator.TargetHWSettingVM.CoreList[i])
                     corenum = i;
             }
-            /* 12/01 스택사용량 측정 관련 start / end 주소 */
-            string StartAddressNmae = "";
-            string EndAddressNmae = "";
-            if (ViewModelLocator.CompilerSettingVM.CompilerSettingModel.CompilerType.Equals("TASKING"))
-            {
-                StartAddressNmae = "_lc_gb_MY_FILLED_STACK" + corenum;
-                EndAddressNmae = "_lc_ge_MY_FILLED_STACK" + corenum;
-            }
-            else if (ViewModelLocator.CompilerSettingVM.CompilerSettingModel.CompilerType.Equals("GHS"))
-            {
-                StartAddressNmae = "__ghs_stackstart";
-                EndAddressNmae = "__ghs_stackend";
-            }
-
-            /* 지현 수정 여기까지 */
-
-            
+            string StartAddressNmae = "_lc_gb_MY_FILLED_STACK" + corenum;
+            string EndAddressNmae = "_lc_ge_MY_FILLED_STACK" + corenum;
             StringBuilder resultTemp = new StringBuilder(0, 256);
             UInt16 msg = 0;
 

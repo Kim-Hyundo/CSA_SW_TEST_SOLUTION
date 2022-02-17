@@ -176,7 +176,6 @@ namespace ProstMain.Util
             // Test Env DIctionary
             IronPython.Runtime.PythonDictionary Test_Env_DIC = new IronPython.Runtime.PythonDictionary
             {
-
                 { "SW_Version", ViewModelLocator.MainVM.MainModel.VERSION },
                 { "Tester", ViewModelLocator.ProjectSettingVM.ProjectSettingModel.Tester },
                 { "Test_Project", ViewModelLocator.WorkSpaceVM.WorkSpaceModel.CurrentProjectName },
@@ -275,8 +274,7 @@ namespace ProstMain.Util
             Compiler_DIC.Add("Delay_Coeff", "25");
             for (int i = 0; i < ViewModelLocator.TargetHWSettingVM.CoreList.Count; i++)
             {
-                Core_DIC.Add(ViewModelLocator.TargetHWSettingVM.CoreNameList[i], ViewModelLocator.TargetHWSettingVM.CoreList[i].ToString().ToUpper());
-                //Core_DIC.Add("core" + i, ViewModelLocator.TargetHWSettingVM.CoreList[i].ToString().ToUpper());
+                Core_DIC.Add("core" + i, ViewModelLocator.TargetHWSettingVM.CoreList[i].ToString().ToUpper());
             }
             Compiler_DIC.Add("Core", Core_DIC);
 
@@ -507,20 +505,8 @@ namespace ProstMain.Util
 
                 
                 string elfFileName = SourceFilePath + "\\Debug\\" + ViewModelLocator.WorkSpaceVM.WorkSpaceModel.CurrentProjectName + ".elf";
+                string mapFileName = SourceFilePath + "\\Debug\\" + ViewModelLocator.WorkSpaceVM.WorkSpaceModel.CurrentProjectName + ".mapxml";
 
-                
-                //string mapFileName = SourceFilePath + "\\Debug\\" + ViewModelLocator.WorkSpaceVM.WorkSpaceModel.CurrentProjectName + ".mapxml";
-                string mapFileName = "";
-
-
-                if (ViewModelLocator.CompilerSettingVM.CompilerSettingModel.CompilerType.Equals("TASKING"))
-                {
-                    mapFileName = SourceFilePath + "\\Debug\\" + ViewModelLocator.WorkSpaceVM.WorkSpaceModel.CurrentProjectName + ".mapxml";
-                }
-                else if (ViewModelLocator.CompilerSettingVM.CompilerSettingModel.CompilerType.Equals("GHS"))
-                {
-                    mapFileName = SourceFilePath + "\\Debug\\" + ViewModelLocator.WorkSpaceVM.WorkSpaceModel.CurrentProjectName + ".map";
-                }
                 string elf_src_temp = elfFileName;
                 string elf_target_temp = TargetFilePath + "\\" + Path.GetFileName(elfFileName);
                 File.Copy(elf_src_temp, elf_target_temp, true);

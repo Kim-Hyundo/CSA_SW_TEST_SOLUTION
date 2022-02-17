@@ -96,6 +96,8 @@ namespace ProstMain.ViewModel
         {
             TargetSWSettingModel = new TargetSWSettingModel();
 
+            
+
             AddRunnableOKCommand = new RelayCommand(AddRunnableOK);
             AddStubOKCommand = new RelayCommand(AddStubOK);
             AddRegisterOKCommand = new RelayCommand(AddRegisterOK);

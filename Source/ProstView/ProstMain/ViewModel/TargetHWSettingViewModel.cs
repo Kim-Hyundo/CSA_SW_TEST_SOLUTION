@@ -58,7 +58,6 @@ namespace ProstMain.ViewModel
                 }
             }
         }
-
         private ObservableCollection<string> _CoreNameList;
         public ObservableCollection<string> CoreNameList
         {
@@ -95,7 +94,7 @@ namespace ProstMain.ViewModel
             CoreList.Add(false);
             CoreList.Add(false);
             CoreList.Add(false);
-            
+
             CPUList = new ObservableCollection<string>();
             CPUList.Add("tc23x");
             CPUList.Add("tc27x");
@@ -107,49 +106,9 @@ namespace ProstMain.ViewModel
             CoreNameList.Add("core1");
             CoreNameList.Add("core2");
 
-           
-
             ManufacturerList = new ObservableCollection<string>();
         }
-        public void RefreshCPU()
-        {
-            CPUList.Clear();
-            CoreList.Clear();
-            CoreNameList.Clear();
-            if (TargetHWSettingModel.ManufacturerName == null || TargetHWSettingModel.ManufacturerName == "")
-            {
-            }
-            else
-            {
-                if (TargetHWSettingModel.ManufacturerName.Equals("AURIX"))
-                {
-                    CPUList.Add("tc23x");
-                    CPUList.Add("tc27x");
-                    CPUList.Add("tc29x");
-                    CPUList.Add("tc39x");
-
-                    CoreList.Add(false);
-                    CoreList.Add(false);
-                    CoreList.Add(false);
-                    CoreNameList.Add("core0");
-                    CoreNameList.Add("core1");
-                    CoreNameList.Add("core2");
-
-                }
-                else if (TargetHWSettingModel.ManufacturerName.Equals("TraveoII"))
-                {
-                    CPUList.Add("CYT2B75CA(rev_d)");
-
-                    CoreList.Add(false);
-                    CoreList.Add(false);
-                    CoreNameList.Add("cm0plus");
-                    CoreNameList.Add("cm4");
-                }
-            }
-
-
-            }
-            public bool checkTargetHWData()
+        public bool checkTargetHWData()
         {
             bool resultValue = true;
             if (TargetHWSettingModel.CpuName == null || TargetHWSettingModel.CpuName == "")
@@ -204,15 +163,6 @@ namespace ProstMain.ViewModel
                     CoreNameList.Add("core4");
                     CoreNameList.Add("core5");
                 }
-                else if (TargetHWSettingModel.CpuName.Equals("CYT2B75CA(rev_d)"))
-                {
-                    CoreList.Add(false);
-                    CoreList.Add(false);
-                    CoreNameList.Add("cm0plus");
-                    CoreNameList.Add("cm4");
-                }/* 11/22 */
-               
-               
             }
             TargetHWSettingView.Instance.UpdateView();
         }

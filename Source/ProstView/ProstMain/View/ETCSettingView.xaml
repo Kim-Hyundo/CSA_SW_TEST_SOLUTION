@@ -7,99 +7,44 @@
              xmlns:local="clr-namespace:ProstMain.View"
              mc:Ignorable="d" 
              DataContext="{Binding Source={StaticResource Locator},Path=ETCSettingVM}">
-    <StackPanel Orientation="Vertical">
-        <GroupBox Header="MAKE ENUM SCRIPT">
-            <Grid Background="{DynamicResource ResourceKey=StandardBackground}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="1*"/>
-                    <RowDefinition Height="1*"/>
-                    <RowDefinition Height="2*"/>
-                    <RowDefinition Height="2*"/>
+    <GroupBox Header="MAKE ENUM SCRIPT">
+        <Grid Background="{DynamicResource ResourceKey=StandardBackground}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="2*"/>
+                <RowDefinition Height="2*"/>
 
-                </Grid.RowDefinitions>
+            </Grid.RowDefinitions>
 
-                <Grid Grid.Row="0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="2*"/>
-                        <ColumnDefinition Width="6*"/>
-                        <ColumnDefinition Width="2*"/>
-                    </Grid.ColumnDefinitions>
-                    <materialDesign:ColorZone Mode="PrimaryMid" CornerRadius="8" Grid.Row="1" Grid.Column="0" VerticalAlignment="Stretch" Margin="3">
-                        <Grid VerticalAlignment="Center">
-                            <TextBlock FontSize="16"  Text="Enum Script Path" Foreground="{DynamicResource ResourceKey=GroupBoxHeaderForeground}" VerticalAlignment="Center" TextAlignment="Center"/>
-                        </Grid>
-                    </materialDesign:ColorZone>
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="6*"/>
+                    <ColumnDefinition Width="2*"/>
+                </Grid.ColumnDefinitions>
+                <materialDesign:ColorZone Mode="PrimaryMid" CornerRadius="8" Grid.Row="1" Grid.Column="0" VerticalAlignment="Stretch" Margin="3">
+                    <Grid VerticalAlignment="Center">
+                        <TextBlock FontSize="16"  Text="Enum Script Path" Foreground="{DynamicResource ResourceKey=GroupBoxHeaderForeground}" VerticalAlignment="Center" TextAlignment="Center"/>
+                    </Grid>
+                </materialDesign:ColorZone>
 
-                    <Rectangle Grid.Column="1"  Margin="3" Stroke="{DynamicResource ResourceKey=PrimaryHueMidBrush}" StrokeThickness="2"/>
+                <Rectangle Grid.Column="1"  Margin="3" Stroke="{DynamicResource ResourceKey=PrimaryHueMidBrush}" StrokeThickness="2"/>
 
-                    <Canvas Height="25" ClipToBounds="True" Name="CANVAS_CompilerPath" VerticalAlignment="Stretch" Grid.Column="1" Margin="10" HorizontalAlignment="Stretch">
-                        <TextBlock Canvas.Top="0" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" FontSize="18" TextWrapping="Wrap" x:Name="TEXTBOX_CompilerPath" Text="{Binding EnumScriptPath}" HorizontalAlignment="Stretch"/>
-                    </Canvas>
-                    <Button Margin="10,4,10,4" Grid.Column="4" Grid.Row="1" Background="{DynamicResource ButtonBackground}" Foreground="{DynamicResource ResourceKey=ButtonForeground}" Height="Auto" Command="{Binding EnumScriptPathBrowserCommand}">
-                        <Button.Content>
-                            <materialDesign:PackIcon Kind="FolderSearchOutline" Width="35" Height="35" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Button.Content>
-                    </Button>
-                </Grid>
-                <Button Margin="10,4,10,4" Grid.Column="4" Grid.Row="1" Background="{DynamicResource ButtonBackground}" Foreground="{DynamicResource ResourceKey=ButtonForeground}" Height="Auto" Command="{Binding MakeEnumScriptCommand}">
+                <Canvas Height="25" ClipToBounds="True" Name="CANVAS_CompilerPath" VerticalAlignment="Stretch" Grid.Column="1" Margin="10" HorizontalAlignment="Stretch">
+                    <TextBlock Canvas.Top="0" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" FontSize="18" TextWrapping="Wrap" x:Name="TEXTBOX_CompilerPath" Text="{Binding EnumScriptPath}" HorizontalAlignment="Stretch"/>
+                </Canvas>
+                <Button Margin="10,4,10,4" Grid.Column="4" Grid.Row="1" Background="{DynamicResource ButtonBackground}" Foreground="{DynamicResource ResourceKey=ButtonForeground}" Height="Auto" Command="{Binding EnumScriptPathBrowserCommand}">
                     <Button.Content>
-                        <TextBlock Text="Make Enum Script"/>
+                        <materialDesign:PackIcon Kind="FolderSearchOutline" Width="35" Height="35" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button.Content>
                 </Button>
             </Grid>
-        </GroupBox>
-        <GroupBox Header="Optional Load Elf">
-            <Grid Background="{DynamicResource ResourceKey=StandardBackground}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="1*"/>
-                    <RowDefinition Height="1*"/>
-                </Grid.RowDefinitions>
-
-                <Grid Grid.Row="0">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="1*"/>
-                        <RowDefinition Height="1*"/>
-                        
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="2*"/>
-                        <ColumnDefinition Width="6*"/>
-                        <ColumnDefinition Width="2*"/>
-                    </Grid.ColumnDefinitions>
-                    <materialDesign:ColorZone Mode="PrimaryMid" CornerRadius="8" Grid.Row="0" Grid.Column="0" VerticalAlignment="Stretch" Margin="3">
-                        <Grid VerticalAlignment="Center" Grid.Row="0">
-                                <TextBlock FontSize="16"  Text="Pre Load Elf Path" Foreground="{DynamicResource ResourceKey=GroupBoxHeaderForeground}" VerticalAlignment="Center" TextAlignment="Center"/>
-                            </Grid>
-                    </materialDesign:ColorZone>
-                    <materialDesign:ColorZone Mode="PrimaryMid" CornerRadius="8" Grid.Row="1" Grid.Column="0" VerticalAlignment="Stretch" Margin="3">
-                        <Grid VerticalAlignment="Center" Grid.Row="0">
-                            <TextBlock FontSize="16"  Text="Post Load Elf Path" Foreground="{DynamicResource ResourceKey=GroupBoxHeaderForeground}" VerticalAlignment="Center" TextAlignment="Center"/>
-                        </Grid>
-                    </materialDesign:ColorZone>
-
-                    <Rectangle Grid.Column="1" Grid.Row="1"  Margin="3" Stroke="{DynamicResource ResourceKey=PrimaryHueMidBrush}" StrokeThickness="2"/>
-
-                    <Canvas Height="25" ClipToBounds="True" Name="CANVAS_CompilerPath_PreElf" VerticalAlignment="Stretch" Grid.Column="1" Grid.Row="0" Margin="10" HorizontalAlignment="Stretch">
-                        <TextBox Canvas.Top="0" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" FontSize="18" TextWrapping="Wrap" x:Name="TEXTBOX_CompilerPath_PreElf" Text="{Binding PreLoadElfPath}" HorizontalAlignment="Stretch"/>
-                    </Canvas>
-                    <Button Margin="10,4,10,4" Grid.Column="4" Grid.Row="0" Background="{DynamicResource ButtonBackground}" Foreground="{DynamicResource ResourceKey=ButtonForeground}" Height="Auto" Command="{Binding PreLoadElfPathBrowserCommand}">
-                        <Button.Content>
-                            <materialDesign:PackIcon Kind="FolderSearchOutline" Width="35" Height="35" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Button.Content>
-                    </Button>
-
-                    <Rectangle Grid.Column="1"  Margin="3" Stroke="{DynamicResource ResourceKey=PrimaryHueMidBrush}" StrokeThickness="2"/>
-
-                    <Canvas Height="25" ClipToBounds="True" Name="CANVAS_CompilerPath_PostElf" VerticalAlignment="Stretch" Grid.Column="1" Grid.Row="1" Margin="10" HorizontalAlignment="Stretch">
-                        <TextBox Canvas.Top="0" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" FontSize="18" TextWrapping="Wrap" x:Name="TEXTBOX_CompilerPath_PostElf" Text="{Binding PostLoadElfPath}" HorizontalAlignment="Stretch"/>
-                    </Canvas>
-                    <Button Margin="10,4,10,4" Grid.Column="4" Grid.Row="1" Background="{DynamicResource ButtonBackground}" Foreground="{DynamicResource ResourceKey=ButtonForeground}" Height="Auto" Command="{Binding PostLoadElfPathBrowserCommand}">
-                        <Button.Content>
-                            <materialDesign:PackIcon Kind="FolderSearchOutline" Width="35" Height="35" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Button.Content>
-                    </Button>
-                </Grid>
-            </Grid>
-        </GroupBox>
-    </StackPanel>
+            <Button Margin="10,4,10,4" Grid.Column="4" Grid.Row="1" Background="{DynamicResource ButtonBackground}" Foreground="{DynamicResource ResourceKey=ButtonForeground}" Height="Auto" Command="{Binding MakeEnumScriptCommand}">
+                <Button.Content>
+                    <TextBlock Text="Make Enum Script"/>
+                </Button.Content>
+            </Button>
+        </Grid>
+    </GroupBox>
 </UserControl>

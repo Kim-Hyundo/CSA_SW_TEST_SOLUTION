@@ -522,13 +522,9 @@ namespace GraphProject.ViewModel
                 this.SummaryContainerView = new TestSummaryContainerViewModel();
                 this.ContainerView = new MemoryUsageContainerViewModel();
                 this.ContainerView2 = new TestFailListContainerViewModel();
-                if(cov_flags)
-                {
-                    this.CoverageContainerView = new TestCoverageContainerViewModel();
-                    this.TotalCoverageContainerView = new TotalTestCoverageContainerViewModel();
-                    this.TotalMCDCCoverageContainerView = new TotalMCDCCoverageContainerViewModel();
-                }
-                    
+                this.CoverageContainerView = new TestCoverageContainerViewModel();
+                this.TotalCoverageContainerView = new TotalTestCoverageContainerViewModel();
+                this.TotalMCDCCoverageContainerView = new TotalMCDCCoverageContainerViewModel();
 
 
                 IsWorkerProgressDialogOpen = false;
@@ -691,6 +687,7 @@ namespace GraphProject.ViewModel
             catch(Exception ex)
             {
                 CommonUtil.LogMessageList.Add(ex.Message + CommonUtil.GetExceptionLineNumber(ex));
+                throw;
             }
 
         }
@@ -798,7 +795,6 @@ namespace GraphProject.ViewModel
             catch (Exception ex)
             {
                 CommonUtil.LogMessageList.Add(ex.Message + CommonUtil.GetExceptionLineNumber(ex));
-                throw;
             }
         }
         

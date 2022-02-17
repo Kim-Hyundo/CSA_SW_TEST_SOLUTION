@@ -88,17 +88,8 @@ namespace GraphProject.ViewModel
             double rate = Math.Truncate((double)(((double)pass_cnt / (double)total_test_cnt) * 100) * 100) / 100;
 
 
-            //지현 수정
-            //원본
-            //IronPython.Runtime.PythonDictionary Target_sw_usage = (IronPython.Runtime.PythonDictionary)MainViewModel.Summary_Data["Target SW Data"];
-            IronPython.Runtime.PythonDictionary Target_sw_usage = new IronPython.Runtime.PythonDictionary();
+            IronPython.Runtime.PythonDictionary Target_sw_usage = (IronPython.Runtime.PythonDictionary)MainViewModel.Summary_Data["Target SW Data"];
 
-            if (MainViewModel.Summary_Data.keys().Contains("Target SW Data"))
-            {
-                Target_sw_usage = (IronPython.Runtime.PythonDictionary)MainViewModel.Summary_Data["Target SW Data"];
-            }
-
-            //여기까지 수정 data
             foreach (string key in Target_sw_usage.keys())
             {
                 IronPython.Runtime.PythonDictionary tmp = (IronPython.Runtime.PythonDictionary)Target_sw_usage[key];

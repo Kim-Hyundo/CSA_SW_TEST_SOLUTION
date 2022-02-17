@@ -160,7 +160,7 @@ namespace ProstMain.Model
             if(ViewModelLocator.MainVM.MainModel.PROGRAM_MODE == Common.Common.CUSTOMER_ALL || ViewModelLocator.MainVM.MainModel.PROGRAM_MODE == Common.Common.CUSTOMER_WIA)
             {
                 if (Directory.Exists(Common.Common.INSTALL_PATH + "\\src\\parser\\src\\Wia\\WiaUnitTest\\specification"))
-                { 
+                {
                     string[] files = Directory.GetFiles(Common.Common.INSTALL_PATH + "\\src\\parser\\src\\Wia\\WiaUnitTest\\specification", "*.py");
                     foreach (string f in files)
                     {

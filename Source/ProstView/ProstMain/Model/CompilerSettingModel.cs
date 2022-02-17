@@ -1,5 +1,4 @@
 ﻿using GalaSoft.MvvmLight;
-using ProstMain.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -89,7 +88,6 @@ namespace ProstMain.Model
                 {
                     _CompilerType = value;
                     RaisePropertyChanged("CompilerType");
-                    ViewModelLocator.CompilerSettingVM.RefreshCompiler();
                 }
             }
         }

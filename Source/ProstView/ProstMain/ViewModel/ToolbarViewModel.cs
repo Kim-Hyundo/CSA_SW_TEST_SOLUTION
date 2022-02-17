@@ -102,17 +102,7 @@ namespace ProstMain.ViewModel
             }
 
             string[] elffiles = Directory.GetFiles(ViewModelLocator.ProjectSettingVM.ProjectSettingModel.TimeCreateFolderPath + "\\" + "Build", "*.elf");
-            string[] mapfiles = Directory.GetFiles(ViewModelLocator.ProjectSettingVM.ProjectSettingModel.TimeCreateFolderPath + "\\" + "Build", "*.map");
-            //mapxml --> map 지현 수정
-
-            if (ViewModelLocator.CompilerSettingVM.CompilerSettingModel.CompilerType.Equals("TASKING"))
-            {
-                mapfiles = Directory.GetFiles(ViewModelLocator.ProjectSettingVM.ProjectSettingModel.TimeCreateFolderPath + "\\" + "Build", "*.mapxml");
-            }
-            else if (ViewModelLocator.CompilerSettingVM.CompilerSettingModel.CompilerType.Equals("GHS"))
-            {
-                mapfiles = Directory.GetFiles(ViewModelLocator.ProjectSettingVM.ProjectSettingModel.TimeCreateFolderPath + "\\" + "Build", "*.map");
-            }
+            string[] mapfiles = Directory.GetFiles(ViewModelLocator.ProjectSettingVM.ProjectSettingModel.TimeCreateFolderPath + "\\" + "Build", "*.mapxml");
 
             if (elffiles.Length == 0 || mapfiles.Length == 0)
             {

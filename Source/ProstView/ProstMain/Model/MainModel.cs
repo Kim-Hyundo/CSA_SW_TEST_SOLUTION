@@ -274,7 +274,7 @@ namespace ProstMain.Model
 
             TrackBarMessageQueue = new SnackbarMessageQueue();
 
-            VERSION = "3.4.4";
+            VERSION = "3.3";
             PROGRAM_MODE = Common.Common.CUSTOMER_MANDO;
         }
     }

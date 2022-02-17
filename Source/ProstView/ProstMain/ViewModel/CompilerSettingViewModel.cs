@@ -65,7 +65,6 @@ namespace ProstMain.ViewModel
 
             ComplilerTypeList = new ObservableCollection<string>();
             ComplilerTypeList.Add("TASKING");
-            ComplilerTypeList.Add("GHS"); // 11/22
 
             CompilerPathBrowserCommand = new RelayCommand(CompilerPathBrowser);
         }
@@ -82,29 +81,7 @@ namespace ProstMain.ViewModel
                 CompilerSettingModel.CompilerPath = dialog.FileName; 
             }
         }
-
-        public void RefreshCompiler()
-        {
-            CompilerVersionList.Clear();
-            if (CompilerSettingModel.CompilerType == null || CompilerSettingModel.CompilerType == "")
-            { }
-            else
-            {
-                if (CompilerSettingModel.CompilerType.Equals("TASKING"))
-                {
-                    CompilerVersionList.Add("6.2");
-                    CompilerVersionList.Add("4.2");
-                    CompilerVersionList.Add("4.3");
-                }
-                /* 11/22 */
-                else if (CompilerSettingModel.CompilerType.Equals("GHS"))
-                {
-                    CompilerVersionList.Add("2021.1.4");
-                }
-            }
-        }
-
-                public bool checkTargetCompilerData()
+        public bool checkTargetCompilerData()
         {
             bool resultValue = true;
             if (CompilerSettingModel.CompilerVersion == null || CompilerSettingModel.CompilerVersion.Equals(""))

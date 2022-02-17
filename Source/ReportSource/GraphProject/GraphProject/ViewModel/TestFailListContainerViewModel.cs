@@ -245,7 +245,6 @@ namespace GraphProject.ViewModel
             catch (Exception ex)
             {
                 CommonUtil.LogMessageList.Add(ex.Message);
-                throw;
             }
         }
     }

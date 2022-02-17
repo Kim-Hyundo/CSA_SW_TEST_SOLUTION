@@ -74,7 +74,7 @@
                         <notify:TaskbarIcon.TrayToolTip>
                             <Border Background="White">
                                 <Grid Width="80" Height="20">
-                                    <TextBlock Text="SW TEST AUTOMATION TOOL" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource ResourceKey=StandardTextForeground}"/>
+                                    <TextBlock Text="PROST Unit" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource ResourceKey=StandardTextForeground}"/>
                                 </Grid>
                             </Border>
                         </notify:TaskbarIcon.TrayToolTip>
@@ -85,7 +85,7 @@
                                         <GroupBox.Header>
                                             <StackPanel Orientation="Horizontal"  Background="Transparent">
                                                 <Image Source="/ProstMain;component/Resources/MainIcon.png" Width="25" Height="25" RenderOptions.BitmapScalingMode="HighQuality"/>
-                                                <TextBlock Text="SW TEST AUTOMATION TOOL" Foreground="{DynamicResource ResourceKey=GroupBoxHeaderForeground}" Margin="8,0,0,0" FontWeight="Bold" VerticalAlignment="Center"/>
+                                                <TextBlock Text="PROST Unit" Foreground="{DynamicResource ResourceKey=GroupBoxHeaderForeground}" Margin="8,0,0,0" FontWeight="Bold" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </GroupBox.Header>
                                         <Grid>
@@ -134,7 +134,7 @@
 
                     <DockPanel x:Name="TitleBar" Background="{DynamicResource ResourceKey=TopBarBackground}" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,0" MouseLeftButtonDown="TitleBar_MouseDown" LastChildFill="False">
                         <Image Source="/ProstMain;component/Resources/MainIcon.png" Margin="4,1,1,1"></Image>
-                        <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" FontSize="16" Margin="5,0,0,0" FontWeight="Bold">SW TEST AUTOMATION TOOL</TextBlock>
+                        <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource ResourceKey=StandardTextForeground}" FontSize="16" Margin="5,0,0,0" FontWeight="Bold">PROST Unit</TextBlock>
                         <Button Width="45" Style="{DynamicResource CloseButtonStyle}" WindowChrome.IsHitTestVisibleInChrome="True" HorizontalAlignment="Right"
                             Command="{Binding ExitProgramCommand}" CommandParameter="mainwindow" DockPanel.Dock="Right"/>
                         <Button DockPanel.Dock="Right" x:Name="RestoreButton" Visibility="Collapsed" Style="{StaticResource RestoreButtonStyle}" 

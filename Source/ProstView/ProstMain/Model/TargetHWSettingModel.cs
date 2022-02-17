@@ -154,7 +154,6 @@ namespace ProstMain.Model
                 {
                     _ManufacturerName = value;
                     RaisePropertyChanged("ManufacturerName");
-                    ViewModelLocator.TargetHWSettingVM.RefreshCPU();
                 }
             }
         }

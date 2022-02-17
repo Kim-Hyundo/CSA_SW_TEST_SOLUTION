@@ -28,6 +28,7 @@ namespace ProstMain.Util
         IronPython.Runtime.PythonDictionary MakeADFileCheckDic;
         double TestProgress;
 
+        //BackGroundWoker -> 스레드 개념. 
         public BackgroundWorker BuildTestWorker;
         public BackgroundWorker TestRunWorker;
 
@@ -265,125 +266,11 @@ namespace ProstMain.Util
 
                 Thread.Sleep(2000);
 
-                /*if (!Trace32Handler.getInstance().FlashDownload(Common.Common.TRACE32_POWERVIEW))
+                if (!Trace32Handler.getInstance().FlashDownload(Common.Common.TRACE32_POWERVIEW))
                 {
                     e.Cancel = true;
                     return;
-                }*/
-                try
-                {
-                    int check_ = 1;
-                    int tempindex = 0;
-                    string FlashPath = "";
-                    string str = "";
-                    StringBuilder resultTemp = new StringBuilder("", 0);
-                    UInt16 type = 0;
-
-                    Trace32Handler.TRACE32_DLL.T32_Cmd("SYSTEM.RESET");
-
-                    resultTemp = null;
-
-                    FlashPath = Common.Common.INSTALL_PATH + @"\src\lib\T32\flash\" + ViewModelLocator.TargetHWSettingVM.TargetHWSettingModel.CpuName + ".cmm";
-
-                    string[] elffiles = Directory.GetFiles(ViewModelLocator.ProjectSettingVM.ProjectSettingModel.TimeCreateFolderPath + "\\" + "Build", "*.elf");
-
-                    for (int i = 0; i < ViewModelLocator.TargetHWSettingVM.CoreList.Count; i++)
-                    {
-                        if (ViewModelLocator.TargetHWSettingVM.CoreList[i] == true)
-                        {
-                            tempindex = i;
-                            break;
-                        }
-                    }
-
-                    if (File.Exists(elffiles[0]))
-                    {
-                        for (int i = 0; i < ViewModelLocator.TargetHWSettingVM.CoreList.Count; i++)
-                        {
-                            if (ViewModelLocator.TargetHWSettingVM.CoreList[i] == true)
-                            {
-                                tempindex = i;
-                                break;
-                            }
-                        }
-
-                        /*지현 수정*/
-                        string PreElfConvertPath = "";
-                        string PostElfConvertPath = "";
-
-                        /*임시 방편*/
-                        if (ViewModelLocator.ETCSettingVM.PreLoadElfPath == null)
-                            ViewModelLocator.ETCSettingVM.PreLoadElfPath = "";
-                        if (ViewModelLocator.ETCSettingVM.PostLoadElfPath == null)
-                            ViewModelLocator.ETCSettingVM.PostLoadElfPath = "";
-
-
-                        if (ViewModelLocator.ETCSettingVM.PreLoadElfPath.Contains("$(workspace_loc)"))
-                            PreElfConvertPath = ViewModelLocator.ETCSettingVM.PreLoadElfPath.Replace("$(workspace_loc)", ViewModelLocator.WorkSpaceVM.WorkSpaceModel.WorkSpacePath);
-                        else
-                            PreElfConvertPath = ViewModelLocator.ETCSettingVM.PreLoadElfPath;
-
-                        if (ViewModelLocator.ETCSettingVM.PostLoadElfPath.Contains("$(workspace_loc)"))
-                            PostElfConvertPath = ViewModelLocator.ETCSettingVM.PostLoadElfPath.Replace("$(workspace_loc)", ViewModelLocator.WorkSpaceVM.WorkSpaceModel.WorkSpacePath);
-                        else
-                            PostElfConvertPath = ViewModelLocator.ETCSettingVM.PostLoadElfPath;
-
-                        Trace32Handler.TRACE32_DLL.T32_Cmd("CD.DO \"" + FlashPath + "\" " + "\"" + elffiles[0] + "\" " + "\"" + tempindex + "\"" + "\"" + PreElfConvertPath + "\"" + "\"" + PostElfConvertPath + "\"");
-                        //Trace32Handler.TRACE32_DLL.T32_Cmd("cd.do \"" + "\"C:\\Users\\GiCheol.Shin\\Desktop\\Prost_v2.0\\Prost v2.0\\src\\lib\\T32\\flash\\CYT2B75CA(rev_d).cmm\" " + "\"C:\\Users\\GiCheol.Shin\\Desktop\\test\\test\\Gen\\20211201_\\Build\\test.elf\" " + "\"1\" " +"\"C:\\Users\\GiCheol.Shin\\Desktop\\test\\test\\Target_SW\\Debug\\cm0plus.elf\" " + "\"\"");
-                        //Trace32Handler.TRACE32_DLL.T32_Cmd("CD.DO \"" + FlashPath + "\" " + "\"" + elffiles[0] + "\" " + "\"" + tempindex + "\" " + "\"" + ViewModelLocator.ETCSettingVM.PreLoadElfPath + "\" " + "\"" + ViewModelLocator.ETCSettingVM.PostLoadElfPath + "\"");
-                        /*지현 수정 여기까지*/
-                        Trace32Handler.TRACE32_DLL.T32_GetPracticeState(ref check);
-                        while (check != 0)
-                        {
-                            Trace32Handler.TRACE32_DLL.T32_GetPracticeState(ref check);
-                        }
-
-                        string ConvertPath = "";
-                        if (ViewModelLocator.ETCSettingVM.EnumScriptPath.Contains("$(workspace_loc)"))
-                            ConvertPath = ViewModelLocator.ETCSettingVM.EnumScriptPath.Replace("$(workspace_loc)", ViewModelLocator.WorkSpaceVM.WorkSpaceModel.WorkSpacePath);
-                        else
-                            ConvertPath = ViewModelLocator.ETCSettingVM.EnumScriptPath;
-                        if (File.Exists(ConvertPath))
-                        {
-                            Trace32Handler.TRACE32_DLL.T32_Cmd("CD.DO \"" + ConvertPath + "\"");
-                            Trace32Handler.TRACE32_DLL.T32_GetPracticeState(ref check);
-                            while (check != 0)
-                            {
-                                Trace32Handler.TRACE32_DLL.T32_GetPracticeState(ref check);
-                            }
-                        }
-                        if (File.Exists(Common.Common.INSTALL_PATH + @"\src\parser\Cmm\Templete\enum_macro.cmm"))
-                        {
-                            Trace32Handler.TRACE32_DLL.T32_Cmd("CD.DO \"" + Common.Common.INSTALL_PATH + @"\src\parser\Cmm\Templete\enum_macro.cmm" + "\"");
-                            Trace32Handler.TRACE32_DLL.T32_GetPracticeState(ref check);
-                            while (check != 0)
-                            {
-                                Trace32Handler.TRACE32_DLL.T32_GetPracticeState(ref check);
-                            }
-                        }
-
-                        int index = 0;
-                        foreach (RunnableModel model in ViewModelLocator.TargetSWSettingVM.TargetSWSettingModel.RunnableList)
-                        {
-                            string[] temp = model.RunnableNameGrid.Split('(');
-                            if (temp.Length > 1)
-                            {
-                                string FunctionFlagName = temp[0] + "_flag";
-                                Trace32Handler.TRACE32_DLL.T32_Cmd("y.new.macro " + FunctionFlagName + " " + index);
-                                index++;
-                            }
-                        }
-
-                        /* 12/01 지현 수정 -> Stack 사용량 측정 관련 address 정보 저장 */
-                        Trace32Handler.getInstance().StackAddressSave();
-                    }
-                    else
-                        Console.WriteLine("Elf file is not exist.");
-                }
-                catch (Exception ex)
-                {
-                    ProstLog.getInstance().Log(Common.Common.MODULE_MAIN_GUI, Common.Common.LOGTYPE_ERR, ex.Message);
-                }
+                }                
 
                 while (ViewModelLocator.PopupTestCaseParsingVM.PopupTestCaseParsingModel.IsTestcaseParserComplete == Common.Common.DEFAULT)
                 {
@@ -442,14 +329,13 @@ namespace ProstMain.Util
 
                 ///////////////////////////////////////////////////
                 ///
-                /*if (!PrevCheckTestVarification()) //지현 수정
+                if (!PrevCheckTestVarification())
                 {
                     e.Cancel = true;
                     return;
                 }
-                */
+
                 TestWorkerCheckCancel(e);
-                
                 /// 
                 ///////////////////////////////////////////////////
 
@@ -843,11 +729,11 @@ namespace ProstMain.Util
                                         StringBuilder resultTemp = new StringBuilder("0", 256);
                                         UInt16 msg = 0;
 
-                                        Trace32Handler.TRACE32_DLL.T32_Cmd("print %d Var.fvalue(" + ex_outputkeyList[x].ToString() + ")");
+                                        Trace32Handler.TRACE32_DLL.T32_Cmd("print %d Var.value(" + ex_outputkeyList[x].ToString() + ")");
                                         Trace32Handler.TRACE32_DLL.T32_GetMessage(resultTemp, ref msg);
 
                                         string str = resultTemp.ToString();
-                                        ProstLog.getInstance().Log(Common.Common.MODULE_TRACE32, Common.Common.LOGTYPE_PFF, "Print Var.fValue T32_GetMessage [" + str + "]");
+                                        ProstLog.getInstance().Log(Common.Common.MODULE_TRACE32, Common.Common.LOGTYPE_PFF, "Print Var.Value T32_GetMessage [" + str + "]");
                                         CreateTestResultData[ex_outputkeyList[x].ToString()] = str;
                                     }
                                 }
@@ -942,8 +828,6 @@ namespace ProstMain.Util
 
                         Thread.Sleep(1000);
                     }
-
-                    //지현 확인
                     if (Dictionary_Keys_ComparisonArray.Count == Scenario_Cycle + 1)
                     {
                         TestRunWorker.ReportProgress(0, new ProgressState { Value = 100, Content = "Measuring Stack Usage..." });

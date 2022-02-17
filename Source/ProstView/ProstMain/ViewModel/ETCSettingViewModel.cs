@@ -27,35 +27,6 @@ namespace ProstMain.ViewModel
                 }
             }
         }
-
-        private string _PreLoadElfPath;
-        public string PreLoadElfPath
-        {
-            get { return _PreLoadElfPath; }
-            set
-            {
-                if (_PreLoadElfPath != value)
-                {
-                    _PreLoadElfPath = value;
-                    RaisePropertyChanged("PreLoadElfPath");
-                }
-            }
-        }
-
-        private string _PostLoadElfPath;
-        public string PostLoadElfPath
-        {
-            get { return _PostLoadElfPath; }
-            set
-            {
-                if (_PostLoadElfPath != value)
-                {
-                    _PostLoadElfPath = value;
-                    RaisePropertyChanged("PostLoadElfPath");
-                }
-            }
-        }
-
         private string _EnumScriptDialogViewContent;
         public string EnumScriptDialogViewContent
         {
@@ -70,46 +41,13 @@ namespace ProstMain.ViewModel
             }
         }
         public RelayCommand EnumScriptPathBrowserCommand { get; set; }
-        public RelayCommand PreLoadElfPathBrowserCommand { get; set; }
-        public RelayCommand PostLoadElfPathBrowserCommand { get; set; }
         public RelayCommand MakeEnumScriptCommand { get; set; }
 
         public ETCSettingViewModel()
         {
             EnumScriptPathBrowserCommand = new RelayCommand(EnumScriptPathBrowserFunction);
-            PreLoadElfPathBrowserCommand = new RelayCommand(PreLoadElfPathBrowserFunction);
-            PostLoadElfPathBrowserCommand = new RelayCommand(PostLoadElfPathBrowserFunction);
-
             MakeEnumScriptCommand = new RelayCommand(MakeEnumScriptFunction);
         }
-        private void PreLoadElfPathBrowserFunction()
-        {
-            Microsoft.Win32.OpenFileDialog dialog = new Microsoft.Win32.OpenFileDialog();
-            dialog.Filter = "Elf Files (*.elf)|*.elf";
-
-            if (dialog.ShowDialog() == true)
-            {
-                if (dialog.FileName.Contains(ViewModelLocator.WorkSpaceVM.WorkSpaceModel.WorkSpacePath))
-                    PreLoadElfPath = @"$(workspace_loc)\" + dialog.FileName.Replace(ViewModelLocator.WorkSpaceVM.WorkSpaceModel.WorkSpacePath + @"\", "");
-                else
-                    PreLoadElfPath = dialog.FileName;
-            }
-        }
-
-        private void PostLoadElfPathBrowserFunction()
-        {
-            Microsoft.Win32.OpenFileDialog dialog = new Microsoft.Win32.OpenFileDialog();
-            dialog.Filter = "Elf Files (*.elf)|*.elf";
-
-            if (dialog.ShowDialog() == true)
-            {
-                if (dialog.FileName.Contains(ViewModelLocator.WorkSpaceVM.WorkSpaceModel.WorkSpacePath))
-                    PostLoadElfPath = @"$(workspace_loc)\" + dialog.FileName.Replace(ViewModelLocator.WorkSpaceVM.WorkSpaceModel.WorkSpacePath + @"\", "");
-                else
-                    PostLoadElfPath = dialog.FileName;
-            }
-        }
-
         private void EnumScriptPathBrowserFunction()
         {
             Microsoft.Win32.OpenFileDialog dialog = new Microsoft.Win32.OpenFileDialog();

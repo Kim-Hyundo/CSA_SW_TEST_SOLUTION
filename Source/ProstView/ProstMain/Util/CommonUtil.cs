@@ -76,7 +76,7 @@ namespace ProstMain.Util
                 Process[] processList = Process.GetProcesses();
                 foreach (Process proc in processList)
                 {
-                    if (proc.ProcessName.Equals("t32mtc")||proc.ProcessName.Equals("t32marm"))
+                    if (proc.ProcessName.Equals("t32mtc"))
                         proc.Kill();
                 }
             }
@@ -263,30 +263,16 @@ namespace ProstMain.Util
 
             var reader = new EndianBinaryReader(stream, EndianBitConverter.NativeEndianness);
             ElfFile elfFile = ElfFile.ReadElfFile(reader);
-                                 
-            for(int i = 0; i < elfFile.Sections.Count; i++)
-            {
-                if(elfFile.Sections[i].GetType().Name == "ElfSymbolTable")
-                {
-                    ElfSymbolTable symbolTable_temp = elfFile.Sections[i] as ElfSymbolTable;
 
-                    foreach (ElfSymbolTableEntry entry in symbolTable_temp)
-                    {
-                        if (entry.Type == ElfSymbolType.File)
-                            symbollist.Add(entry.Name);
-                    }
-                    break;
-                }
+            Assert.IsAssignableFrom<ElfSymbolTable>(elfFile.Sections[3]);
+            ElfSymbolTable symbolTable = elfFile.Sections[3] as ElfSymbolTable;
+            foreach (ElfSymbolTableEntry entry in symbolTable)
+            {
+                if (entry.Type == ElfSymbolType.File)
+                    symbollist.Add(entry.Name);
             }
-                                 
-            //Assert.IsAssignableFrom<ElfSymbolTable>(elfFile.Sections[3]);
-            //ElfSymbolTable symbolTable = elfFile.Sections[3] as ElfSymbolTable;
-            //foreach (ElfSymbolTableEntry entry in symbolTable)
-            //{
-            //    if (entry.Type == ElfSymbolType.File)
-            //        symbollist.Add(entry.Name);
-            //}
-            
+
+
             return symbollist;
         }
         /// <summary>

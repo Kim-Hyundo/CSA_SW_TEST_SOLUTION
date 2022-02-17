@@ -138,11 +138,7 @@ namespace ProstMain.ViewModel
                     return;
                 else
                 {
-                    for (int l = 0; l < Files.Length; l++)
-                    {
-
-                    
-                    string[] licenseFile = FileManager.FileRead(Files[l].FullName);
+                    string[] licenseFile = FileManager.FileRead(Files[0].FullName);
 
                     for (int i = 0; i < licenseFile.Length; i++)
                     {
@@ -166,14 +162,9 @@ namespace ProstMain.ViewModel
                                                     ViewModelLocator.TargetHWSettingVM.CPUList.Add(temp[1]);
                                                 }*/
                     }
-                    }
                 }
 
-
-                //지현 수정 Arm 추가
-                ViewModelLocator.TargetHWSettingVM.TargetHWSettingModel.Trace32Version = FileVersionInfo.GetVersionInfo(@"..\src\lib\T32\bin\windows64\t32arm.exe").FileVersion;
-                //ViewModelLocator.TargetHWSettingVM.TargetHWSettingModel.Trace32Version = FileVersionInfo.GetVersionInfo(@"..\src\lib\T32\bin\windows64\t32mtc.exe").FileVersion;
-                
+                ViewModelLocator.TargetHWSettingVM.TargetHWSettingModel.Trace32Version = FileVersionInfo.GetVersionInfo(@"..\src\lib\T32\bin\windows64\t32mtc.exe").FileVersion;
                 DirectoryInfo a = new DirectoryInfo(@"..\src\lib\T32\bin\windows64");
                 ViewModelLocator.TargetHWSettingVM.TargetHWSettingModel.Trace32InstallPath = a.FullName;
             }
@@ -808,9 +799,7 @@ namespace ProstMain.ViewModel
                     }
 
 
-                    IronPython.Runtime.PythonDictionary ReportSummary_Senario_Data = ((IronPython.Runtime.PythonDictionary)
-                        
-                        Summary_Data_Tmp_init[ViewModelLocator.ProjectSettingVM.ProjectSettingModel.SelectedSenario]);
+                    IronPython.Runtime.PythonDictionary ReportSummary_Senario_Data = ((IronPython.Runtime.PythonDictionary)ReportSummary_Data_Tmp_init[ViewModelLocator.ProjectSettingVM.ProjectSettingModel.SelectedSenario]);
 
                     IronPython.Runtime.List Total_Memory = (IronPython.Runtime.List)ReportSummary_Senario_Data["Memory Usage"];
                     string passRate = ReportSummary_Senario_Data["Pass Rate"].ToString().Replace("%", "");

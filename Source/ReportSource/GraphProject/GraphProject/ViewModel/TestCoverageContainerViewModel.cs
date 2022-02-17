@@ -299,8 +299,7 @@ namespace GraphProject.ViewModel
             catch (Exception ex)
             {
                 CommonUtil.LogMessageList.Add(ex.Message + CommonUtil.GetExceptionLineNumber(ex));
-                throw;
-                // return;
+                return;
             }
         }
         public class FuncCoveragePassFailComparer : IComparer<FuncCoverageModel>

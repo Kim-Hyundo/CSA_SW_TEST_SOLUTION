@@ -412,23 +412,8 @@ namespace GraphProject.ViewModel
         {
             test_tmp = new List<object>();
 
-            //지현 수정
-            // IronPython.Runtime.List Total_Memory = (IronPython.Runtime.List)MainViewModel.Summary_Data["Memory Usage"];
-            //IronPython.Runtime.PythonDictionary SW_Memory_Data = (IronPython.Runtime.PythonDictionary)MainViewModel.Summary_Data["Target SW Data"];
-            //원본은 여기까지
-
-            IronPython.Runtime.List Total_Memory = new IronPython.Runtime.List();
-            if (MainViewModel.Summary_Data.Keys.Contains("Memory Usage"))
-            {
-                Total_Memory = (IronPython.Runtime.List)MainViewModel.Summary_Data["Memory Usage"];
-            }
-            IronPython.Runtime.PythonDictionary SW_Memory_Data = new IronPython.Runtime.PythonDictionary();
-            if (MainViewModel.Summary_Data.Keys.Contains("Target SW Data"))
-            {
-                SW_Memory_Data = (IronPython.Runtime.PythonDictionary)MainViewModel.Summary_Data["Target SW Data"];
-            }
-
-            //수정 완료
+            IronPython.Runtime.List Total_Memory = (IronPython.Runtime.List)MainViewModel.Summary_Data["Memory Usage"];
+            IronPython.Runtime.PythonDictionary SW_Memory_Data = (IronPython.Runtime.PythonDictionary)MainViewModel.Summary_Data["Target SW Data"];
 
             int cellCount = Total_Memory.Count;
             int numCols = 2;
@@ -477,24 +462,9 @@ namespace GraphProject.ViewModel
         {
             test_tmp = new List<object>();
 
-            //지현 수정
-           // IronPython.Runtime.List Total_Memory = (IronPython.Runtime.List)MainViewModel.Summary_Data["Memory Usage"];
-            //IronPython.Runtime.PythonDictionary SW_Memory_Data = (IronPython.Runtime.PythonDictionary)MainViewModel.Summary_Data["Target SW Data"];
-            //원본은 여기까지
+            IronPython.Runtime.List Total_Memory = (IronPython.Runtime.List)MainViewModel.Summary_Data["Memory Usage"];
+            IronPython.Runtime.PythonDictionary SW_Memory_Data = (IronPython.Runtime.PythonDictionary)MainViewModel.Summary_Data["Target SW Data"];
 
-            IronPython.Runtime.List Total_Memory = new IronPython.Runtime.List();
-            if (MainViewModel.Summary_Data.Keys.Contains("Memory Usage"))
-            {
-                Total_Memory = (IronPython.Runtime.List)MainViewModel.Summary_Data["Memory Usage"];
-            }
-            IronPython.Runtime.PythonDictionary SW_Memory_Data = new IronPython.Runtime.PythonDictionary();
-            if (MainViewModel.Summary_Data.Keys.Contains("Target SW Data"))
-            {
-                SW_Memory_Data= (IronPython.Runtime.PythonDictionary)MainViewModel.Summary_Data["Target SW Data"];
-            }
-
-           //수정 완료
-       
             int cellCount = Total_Memory.Count;
             int numCols = 2;
             int numRows = (cellCount + 1) / numCols;

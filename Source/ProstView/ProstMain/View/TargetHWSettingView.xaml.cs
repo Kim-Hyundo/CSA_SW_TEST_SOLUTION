@@ -1,5 +1,4 @@
-﻿using ProstMain.Model;
-using ProstMain.ViewModel;
+﻿using ProstMain.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +16,6 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-
 namespace ProstMain.View
 {
     /// <summary>
@@ -27,20 +25,6 @@ namespace ProstMain.View
     {
         bool isMarquee_Trace32InstallPath = false;
         public static TargetHWSettingView Instance { get; private set; }
-
-        private TargetHWSettingModel _TargetHWSettingModel;
-        public TargetHWSettingModel TargetHWSettingModel
-        {
-            get { return _TargetHWSettingModel; }
-            set
-            {
-                if (_TargetHWSettingModel != value)
-                {
-                    _TargetHWSettingModel = value;
-                }
-            }
-        }
-
         public TargetHWSettingView()
         {
             InitializeComponent();
@@ -48,70 +32,37 @@ namespace ProstMain.View
             this.DataContext = ViewModelLocator.TargetHWSettingVM;
             UpdateView();
             TEXTBOX_TimerTick.PreviewTextInput += TEXTBOX_TimerTick_PreviewTextInput;
-
         }
         public void UpdateView()
         {
             CoreGrid.ColumnDefinitions.Clear();
             CoreGrid.Children.Clear();
 
-                for (int i = 0; i < ViewModelLocator.TargetHWSettingVM.CoreList.Count; i++)
-                {
-                    ColumnDefinition c1 = new ColumnDefinition();
-                    c1.Width = new GridLength(1, GridUnitType.Star);
-
-                    CoreGrid.ColumnDefinitions.Add(c1);
-                }
-                for (int i = 0; i < ViewModelLocator.TargetHWSettingVM.CoreList.Count; i++)
-                {
-                    RadioButton radiobutton = new RadioButton();
-
-                //radiobutton.Content = "Core " + i;
-                    radiobutton.Content = ViewModelLocator.TargetHWSettingVM.CoreNameList[i];
-                    radiobutton.Margin = new Thickness(10, 0, 0, 0);
-                    radiobutton.VerticalAlignment = VerticalAlignment.Center;
-
-                    radiobutton.SetValue(Control.ForegroundProperty, App.Current.Resources["StandardTextForeground"]);
-                    radiobutton.SetValue(Control.BackgroundProperty, App.Current.Resources["CheckBoxBackGroundColor"]);
-
-                    Binding myBinding = new Binding("CoreList[" + i + "]");
-
-                    radiobutton.SetBinding(RadioButton.IsCheckedProperty, myBinding);
-
-                    Grid.SetColumn(radiobutton, i);
-                    CoreGrid.Children.Add(radiobutton);
-                }
-           /* }
-            else if(TargetHWSettingModel.CpuName.Equals("CYT2B75CA"))
+            for (int i = 0; i < ViewModelLocator.TargetHWSettingVM.CoreList.Count; i++)
             {
-                string[] temp = new string[] { "cm0plus", "cm4" };
+                ColumnDefinition c1 = new ColumnDefinition();
+                c1.Width = new GridLength(1, GridUnitType.Star);
 
-                for (int i = 0; i < ViewModelLocator.TargetHWSettingVM.CoreList.Count; i++)
-                {
-                    ColumnDefinition c1 = new ColumnDefinition();
-                    c1.Width = new GridLength(1, GridUnitType.Star);
+                CoreGrid.ColumnDefinitions.Add(c1);
+            }
 
-                    CoreGrid.ColumnDefinitions.Add(c1);
-                }
-                for (int i = 0; i < ViewModelLocator.TargetHWSettingVM.CoreList.Count; i++)
-                {
-                    RadioButton radiobutton = new RadioButton();
+            for (int i = 0; i < ViewModelLocator.TargetHWSettingVM.CoreList.Count; i++)
+            {
+                RadioButton radiobutton = new RadioButton();
+                radiobutton.Content = "Core " + i;
+                radiobutton.Margin = new Thickness(10, 0, 0, 0);
+                radiobutton.VerticalAlignment = VerticalAlignment.Center;
 
-                    radiobutton.Content = temp[i];
-                    radiobutton.Margin = new Thickness(10, 0, 0, 0);
-                    radiobutton.VerticalAlignment = VerticalAlignment.Center;
+                radiobutton.SetValue(Control.ForegroundProperty, App.Current.Resources["StandardTextForeground"]);
+                radiobutton.SetValue(Control.BackgroundProperty, App.Current.Resources["CheckBoxBackGroundColor"]);
 
-                    radiobutton.SetValue(Control.ForegroundProperty, App.Current.Resources["StandardTextForeground"]);
-                    radiobutton.SetValue(Control.BackgroundProperty, App.Current.Resources["CheckBoxBackGroundColor"]);
+                Binding myBinding = new Binding("CoreList[" + i + "]");
 
-                    Binding myBinding = new Binding("CoreList[" + i + "]");
+                radiobutton.SetBinding(RadioButton.IsCheckedProperty, myBinding);
 
-                    radiobutton.SetBinding(RadioButton.IsCheckedProperty, myBinding);
-
-                    Grid.SetColumn(radiobutton, i);
-                    CoreGrid.Children.Add(radiobutton);
-                }
-            }*/
+                Grid.SetColumn(radiobutton, i);
+                CoreGrid.Children.Add(radiobutton);
+            }
         }
 
         private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
@@ -119,7 +70,7 @@ namespace ProstMain.View
             Regex regex = new Regex("[^0-9]+");
             e.Handled = regex.IsMatch(e.Text);
         }
-
+       
 
         private void TEXTBLOCK_Trace32InstallPath_MouseLeave(object sender, MouseEventArgs e)
         {
